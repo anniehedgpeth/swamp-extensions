@@ -141,8 +141,9 @@ const GlobalArgsSchema = z.object({
     title: z.string().describe(
       "Required. The title of the newsletter signup prompt.",
     ).optional(),
-  }).describe("Configuration for newsletter signup calls-to-action (CTAs).")
-    .optional(),
+  }).describe(
+    "Optional. Configuration specific to newsletter signup CTAs. Only populated if type is `NEWSLETTER_SIGNUP`.",
+  ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "NEWSLETTER_SIGNUP"]).describe(
     "Required. The type of this CTA.",
   ).optional(),
@@ -193,8 +194,9 @@ const InputsSchema = z.object({
     title: z.string().describe(
       "Required. The title of the newsletter signup prompt.",
     ).optional(),
-  }).describe("Configuration for newsletter signup calls-to-action (CTAs).")
-    .optional(),
+  }).describe(
+    "Optional. Configuration specific to newsletter signup CTAs. Only populated if type is `NEWSLETTER_SIGNUP`.",
+  ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "NEWSLETTER_SIGNUP"]).describe(
     "Required. The type of this CTA.",
   ).optional(),
@@ -229,7 +231,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications.Ctas. Registered at `@swamp/gcp/webcontentpublisher/publications-ctas`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications-ctas",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -253,6 +255,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

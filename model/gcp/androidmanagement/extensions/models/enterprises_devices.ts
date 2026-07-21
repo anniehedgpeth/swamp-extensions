@@ -323,7 +323,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Output only. The status of policy signature verification.")
       .optional(),
   }).describe(
-    "Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device's policy.",
+    "Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device's policy the device is company-owned.",
   ).optional(),
   defaultApplicationInfo: z.array(z.object({
     defaultApplicationSettingAttempts: z.array(z.object({
@@ -386,8 +386,9 @@ const GlobalArgsSchema = z.object({
     verifyAppsEnabled: z.boolean().describe(
       "Whether Google Play Protect verification (https://support.google.com/accounts/answer/2812853) is enforced on the device.",
     ).optional(),
-  }).describe("Information about security related device settings on device.")
-    .optional(),
+  }).describe(
+    "Device settings information. This information is only available if deviceSettingsEnabled is true in the device's policy.",
+  ).optional(),
   disabledReason: z.object({
     defaultMessage: z.string().describe(
       "The default message displayed if no localized message is specified or the user's locale doesn't match with any of the localized messages. A default message must be provided if any localized messages are provided.",
@@ -396,7 +397,7 @@ const GlobalArgsSchema = z.object({
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
   }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
+    "If the device state is DISABLED, an optional message that is displayed on the device indicating the reason the device is disabled. This field can be modified by a patch request.",
   ).optional(),
   displays: z.array(z.object({
     density: z.number().int().describe(
@@ -427,7 +428,7 @@ const GlobalArgsSchema = z.object({
       "Output only. If this device was migrated from another DPC, this is its package name. Not populated otherwise.",
     ).optional(),
   }).describe(
-    "Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).",
+    "Output only. Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).",
   ).optional(),
   enrollmentTime: z.string().describe("The time of device enrollment.")
     .optional(),
@@ -486,9 +487,7 @@ const GlobalArgsSchema = z.object({
     skinThrottlingTemperatures: z.array(z.number()).describe(
       "Device skin throttling temperature thresholds in Celsius.",
     ).optional(),
-  }).describe(
-    "Information about device hardware. The fields related to temperature thresholds are only available if hardwareStatusEnabled is true in the device's policy.",
-  ).optional(),
+  }).describe("Detailed information about the device hardware.").optional(),
   hardwareStatusSamples: z.array(z.object({
     batteryTemperatures: z.array(z.number()).describe(
       "Current battery temperatures in Celsius for each battery on the device.",
@@ -548,7 +547,9 @@ const GlobalArgsSchema = z.object({
       "Total internal storage on device in bytes.",
     ).optional(),
     totalRam: z.string().describe("Total RAM on device in bytes.").optional(),
-  }).describe("Information about device memory and storage.").optional(),
+  }).describe(
+    "Memory information: contains information about device memory and storage.",
+  ).optional(),
   name: z.string().describe(
     "The name of the device in the form enterprises/{enterpriseId}/devices/{deviceId}.",
   ).optional(),
@@ -592,7 +593,9 @@ const GlobalArgsSchema = z.object({
     wifiMacAddress: z.string().describe(
       "Wi-Fi MAC address of the device. For example, 7c:11:11:11:11:11.",
     ).optional(),
-  }).describe("Device network info.").optional(),
+  }).describe(
+    "Device network information. This information is only available if networkInfoEnabled is true in the device's policy.",
+  ).optional(),
   nonComplianceDetails: z.array(z.object({
     currentValue: z.string().describe(
       "If the policy setting could not be applied, the current value of the setting on the device.",
@@ -651,14 +654,14 @@ const GlobalArgsSchema = z.object({
           "Output only. The scope of non-compliant default application setting.",
         ).optional(),
       }).describe(
-        "Additional context for non-compliance related to default application settings.",
+        "Output only. Additional context for non-compliance related to default application settings. See DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE.",
       ).optional(),
       oncWifiContext: z.object({
         wifiGuid: z.string().describe(
           "The GUID of non-compliant Wi-Fi configuration.",
         ).optional(),
       }).describe(
-        "Additional context for non-compliance related to Wi-Fi configuration.",
+        "Additional context for non-compliance related to Wi-Fi configuration. See ONC_WIFI_INVALID_VALUE and ONC_WIFI_API_LEVEL",
       ).optional(),
       passwordPoliciesContext: z.object({
         passwordPolicyScope: z.enum([
@@ -667,9 +670,9 @@ const GlobalArgsSchema = z.object({
           "SCOPE_PROFILE",
         ]).describe("The scope of non-compliant password.").optional(),
       }).describe(
-        "Additional context for non-compliance related to password policies.",
+        "Additional context for non-compliance related to password policies. See PASSWORD_POLICIES_PASSWORD_EXPIRED and PASSWORD_POLICIES_PASSWORD_NOT_SUFFICIENT.",
       ).optional(),
-    }).describe("Additional context for SpecificNonComplianceReason.")
+    }).describe("Additional context for specific_non_compliance_reason.")
       .optional(),
     specificNonComplianceReason: z.enum([
       "SPECIFIC_NON_COMPLIANCE_REASON_UNSPECIFIED",
@@ -756,7 +759,7 @@ const GlobalArgsSchema = z.object({
       "Additional details regarding the security posture of the device.",
     ).optional(),
   }).describe(
-    "The security posture of the device, as determined by the current device state and the policies applied.",
+    "Device's security posture value that reflects how secure the device is.",
   ).optional(),
   softwareInfo: z.object({
     androidBuildNumber: z.string().describe(
@@ -802,7 +805,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Information about a potential pending system update.")
       .optional(),
-  }).describe("Information about device software.").optional(),
+  }).describe(
+    "Detailed information about the device software. This information is only available if softwareInfoEnabled is true in the device's policy.",
+  ).optional(),
   state: z.enum([
     "DEVICE_STATE_UNSPECIFIED",
     "ACTIVE",
@@ -822,7 +827,7 @@ const GlobalArgsSchema = z.object({
     accountIdentifier: z.string().describe(
       "A unique identifier you create for this user, such as user342 or asset#44418. This field must be set when the user is created and can't be updated. This field must not contain personally identifiable information (PII). This identifier must be 1024 characters or less; otherwise, the update policy request will fail.",
     ).optional(),
-  }).describe("A user belonging to an enterprise.").optional(),
+  }).describe("The user who owns the device.").optional(),
   userName: z.string().describe(
     "The resource name of the user that owns this device in the form enterprises/{enterpriseId}/users/{userId}.",
   ).optional(),
@@ -1225,7 +1230,7 @@ const InputsSchema = z.object({
     ]).describe("Output only. The status of policy signature verification.")
       .optional(),
   }).describe(
-    "Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device's policy.",
+    "Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device's policy the device is company-owned.",
   ).optional(),
   defaultApplicationInfo: z.array(z.object({
     defaultApplicationSettingAttempts: z.array(z.object({
@@ -1288,8 +1293,9 @@ const InputsSchema = z.object({
     verifyAppsEnabled: z.boolean().describe(
       "Whether Google Play Protect verification (https://support.google.com/accounts/answer/2812853) is enforced on the device.",
     ).optional(),
-  }).describe("Information about security related device settings on device.")
-    .optional(),
+  }).describe(
+    "Device settings information. This information is only available if deviceSettingsEnabled is true in the device's policy.",
+  ).optional(),
   disabledReason: z.object({
     defaultMessage: z.string().describe(
       "The default message displayed if no localized message is specified or the user's locale doesn't match with any of the localized messages. A default message must be provided if any localized messages are provided.",
@@ -1298,7 +1304,7 @@ const InputsSchema = z.object({
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
   }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
+    "If the device state is DISABLED, an optional message that is displayed on the device indicating the reason the device is disabled. This field can be modified by a patch request.",
   ).optional(),
   displays: z.array(z.object({
     density: z.number().int().describe(
@@ -1329,7 +1335,7 @@ const InputsSchema = z.object({
       "Output only. If this device was migrated from another DPC, this is its package name. Not populated otherwise.",
     ).optional(),
   }).describe(
-    "Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).",
+    "Output only. Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).",
   ).optional(),
   enrollmentTime: z.string().describe("The time of device enrollment.")
     .optional(),
@@ -1388,9 +1394,7 @@ const InputsSchema = z.object({
     skinThrottlingTemperatures: z.array(z.number()).describe(
       "Device skin throttling temperature thresholds in Celsius.",
     ).optional(),
-  }).describe(
-    "Information about device hardware. The fields related to temperature thresholds are only available if hardwareStatusEnabled is true in the device's policy.",
-  ).optional(),
+  }).describe("Detailed information about the device hardware.").optional(),
   hardwareStatusSamples: z.array(z.object({
     batteryTemperatures: z.array(z.number()).describe(
       "Current battery temperatures in Celsius for each battery on the device.",
@@ -1450,7 +1454,9 @@ const InputsSchema = z.object({
       "Total internal storage on device in bytes.",
     ).optional(),
     totalRam: z.string().describe("Total RAM on device in bytes.").optional(),
-  }).describe("Information about device memory and storage.").optional(),
+  }).describe(
+    "Memory information: contains information about device memory and storage.",
+  ).optional(),
   name: z.string().describe(
     "The name of the device in the form enterprises/{enterpriseId}/devices/{deviceId}.",
   ).optional(),
@@ -1494,7 +1500,9 @@ const InputsSchema = z.object({
     wifiMacAddress: z.string().describe(
       "Wi-Fi MAC address of the device. For example, 7c:11:11:11:11:11.",
     ).optional(),
-  }).describe("Device network info.").optional(),
+  }).describe(
+    "Device network information. This information is only available if networkInfoEnabled is true in the device's policy.",
+  ).optional(),
   nonComplianceDetails: z.array(z.object({
     currentValue: z.string().describe(
       "If the policy setting could not be applied, the current value of the setting on the device.",
@@ -1553,14 +1561,14 @@ const InputsSchema = z.object({
           "Output only. The scope of non-compliant default application setting.",
         ).optional(),
       }).describe(
-        "Additional context for non-compliance related to default application settings.",
+        "Output only. Additional context for non-compliance related to default application settings. See DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE.",
       ).optional(),
       oncWifiContext: z.object({
         wifiGuid: z.string().describe(
           "The GUID of non-compliant Wi-Fi configuration.",
         ).optional(),
       }).describe(
-        "Additional context for non-compliance related to Wi-Fi configuration.",
+        "Additional context for non-compliance related to Wi-Fi configuration. See ONC_WIFI_INVALID_VALUE and ONC_WIFI_API_LEVEL",
       ).optional(),
       passwordPoliciesContext: z.object({
         passwordPolicyScope: z.enum([
@@ -1569,9 +1577,9 @@ const InputsSchema = z.object({
           "SCOPE_PROFILE",
         ]).describe("The scope of non-compliant password.").optional(),
       }).describe(
-        "Additional context for non-compliance related to password policies.",
+        "Additional context for non-compliance related to password policies. See PASSWORD_POLICIES_PASSWORD_EXPIRED and PASSWORD_POLICIES_PASSWORD_NOT_SUFFICIENT.",
       ).optional(),
-    }).describe("Additional context for SpecificNonComplianceReason.")
+    }).describe("Additional context for specific_non_compliance_reason.")
       .optional(),
     specificNonComplianceReason: z.enum([
       "SPECIFIC_NON_COMPLIANCE_REASON_UNSPECIFIED",
@@ -1658,7 +1666,7 @@ const InputsSchema = z.object({
       "Additional details regarding the security posture of the device.",
     ).optional(),
   }).describe(
-    "The security posture of the device, as determined by the current device state and the policies applied.",
+    "Device's security posture value that reflects how secure the device is.",
   ).optional(),
   softwareInfo: z.object({
     androidBuildNumber: z.string().describe(
@@ -1704,7 +1712,9 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Information about a potential pending system update.")
       .optional(),
-  }).describe("Information about device software.").optional(),
+  }).describe(
+    "Detailed information about the device software. This information is only available if softwareInfoEnabled is true in the device's policy.",
+  ).optional(),
   state: z.enum([
     "DEVICE_STATE_UNSPECIFIED",
     "ACTIVE",
@@ -1724,7 +1734,7 @@ const InputsSchema = z.object({
     accountIdentifier: z.string().describe(
       "A unique identifier you create for this user, such as user342 or asset#44418. This field must be set when the user is created and can't be updated. This field must not contain personally identifiable information (PII). This identifier must be 1024 characters or less; otherwise, the update policy request will fail.",
     ).optional(),
-  }).describe("A user belonging to an enterprise.").optional(),
+  }).describe("The user who owns the device.").optional(),
   userName: z.string().describe(
     "The resource name of the user that owns this device in the form enterprises/{enterpriseId}/users/{userId}.",
   ).optional(),
@@ -1756,7 +1766,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Devices. Registered at `@swamp/gcp/androidmanagement/enterprises-devices`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-devices",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1865,6 +1875,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

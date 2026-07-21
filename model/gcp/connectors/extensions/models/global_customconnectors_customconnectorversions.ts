@@ -136,7 +136,7 @@ const GlobalArgsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -144,8 +144,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. List containing additional auth configs.")
@@ -176,7 +175,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Client secret for user-provided OAuth app.")
         .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -190,9 +189,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -203,9 +200,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("Optional. The client identifier.")
         .optional(),
@@ -213,18 +208,18 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Optional. Secret version reference containing the client secret.",
+      ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+      ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Optional. Value for the "aud" claim.')
           .optional(),
@@ -232,11 +227,9 @@ const GlobalArgsSchema = z.object({
           .optional(),
         subject: z.string().describe('Optional. Value for the "sub" claim.')
           .optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("Optional. JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Optional. Format of SSH Client cert.")
         .optional(),
@@ -244,31 +237,32 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. SSH Client Cert. It should contain both public and private key.",
+      ).optional(),
       sshClientCertPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Password (passphrase) for ssh client certificate if it has one.",
+      ).optional(),
       username: z.string().describe(
         "Optional. The user account used to authenticate.",
       ).optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Secret version reference containing the password.")
         .optional(),
       username: z.string().describe("Optional. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig defines details of a authentication type.")
-    .optional(),
+    }).describe("UserPassword.").optional(),
+  }).describe(
+    "Optional. Authentication config for accessing connector service (facade). This is used only when enable_backend_destination_config is true.",
+  ).optional(),
   authConfigTemplates: z.array(z.object({
     authKey: z.string().describe("Identifier key for auth config").optional(),
     authType: z.enum([
@@ -287,7 +281,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The client ID assigned to the Google Cloud Connectors OAuth app for the connector data source.",
         ).optional(),
         clientSecret: z.unknown().describe(
-          "Secret provides a reference to entries in Secret Manager.",
+          "Optional. The client secret assigned to the Google Cloud Connectors OAuth app for the connector data source.",
         ).optional(),
         enablePkce: z.unknown().describe(
           "Optional. Whether to enable PKCE for the auth code flow.",
@@ -302,7 +296,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The base URI the user must click to trigger the authorization code login flow.",
         ).optional(),
       }).describe(
-        "This configuration captures the details required to render an authorization link for the OAuth Authorization Code Flow.",
+        "Optional. Authorization code link options. To be populated if `ValueType` is `AUTHORIZATION_CODE`",
       ).optional(),
       description: z.string().describe("Optional. Description.").optional(),
       displayName: z.string().describe(
@@ -340,7 +334,7 @@ const GlobalArgsSchema = z.object({
           'Required. Value separator. Only "," can be used for OAuth auth code flow scope field.',
         ).optional(),
       }).describe(
-        "MultipleSelectConfig represents the multiple options for a config variable.",
+        "Optional. MultipleSelectConfig represents the multiple options for a config variable.",
       ).optional(),
       required: z.boolean().describe(
         "Optional. Flag represents that this `ConfigVariable` must be provided for a connection.",
@@ -355,7 +349,9 @@ const GlobalArgsSchema = z.object({
         logicalOperator: z.unknown().describe(
           "Optional. The logical operator to use between the fields and conditions.",
         ).optional(),
-      }).describe("Struct for representing boolean expressions.").optional(),
+      }).describe(
+        "Optional. Condition under which a field would be required. The condition can be represented in the form of a logical expression.",
+      ).optional(),
       roleGrant: z.object({
         helperTextTemplate: z.unknown().describe(
           "Optional. Template that UI can use to provide helper text to customers.",
@@ -363,13 +359,14 @@ const GlobalArgsSchema = z.object({
         principal: z.unknown().describe(
           "Optional. Principal/Identity for whom the role need to assigned.",
         ).optional(),
-        resource: z.unknown().describe("Resource definition").optional(),
+        resource: z.unknown().describe(
+          "Optional. Resource on which the roles needs to be granted for the principal.",
+        ).optional(),
         roles: z.unknown().describe(
           "Optional. List of roles that need to be granted.",
         ).optional(),
-      }).describe(
-        "This configuration defines all the Cloud IAM roles that needs to be granted to a particular Google Cloud resource for the selected principal like service account. These configurations will let UI display to customers what IAM roles need to be granted by them. Or these configurations can be used by the UI to render a 'grant' button to do the same on behalf of the user.",
-      ).optional(),
+      }).describe("Optional. Role grant configuration for the config variable.")
+        .optional(),
       state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "DEPRECATED"]).describe(
         "Output only. State of the config variable.",
       ).optional(),
@@ -415,8 +412,9 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. The client secret assigned to the Google Cloud Connectors OAuth app for the connector data source.",
+      ).optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE for the auth code flow.",
       ).optional(),
@@ -430,7 +428,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The base URI the user must click to trigger the authorization code login flow.",
       ).optional(),
     }).describe(
-      "This configuration captures the details required to render an authorization link for the OAuth Authorization Code Flow.",
+      "Optional. Authorization code link options. To be populated if `ValueType` is `AUTHORIZATION_CODE`",
     ).optional(),
     description: z.string().describe("Optional. Description.").optional(),
     displayName: z.string().describe("Optional. Display name of the parameter.")
@@ -477,7 +475,7 @@ const GlobalArgsSchema = z.object({
         'Required. Value separator. Only "," can be used for OAuth auth code flow scope field.',
       ).optional(),
     }).describe(
-      "MultipleSelectConfig represents the multiple options for a config variable.",
+      "Optional. MultipleSelectConfig represents the multiple options for a config variable.",
     ).optional(),
     required: z.boolean().describe(
       "Optional. Flag represents that this `ConfigVariable` must be provided for a connection.",
@@ -498,7 +496,9 @@ const GlobalArgsSchema = z.object({
       logicalOperator: z.enum(["OPERATOR_UNSPECIFIED", "AND", "OR"]).describe(
         "Optional. The logical operator to use between the fields and conditions.",
       ).optional(),
-    }).describe("Struct for representing boolean expressions.").optional(),
+    }).describe(
+      "Optional. Condition under which a field would be required. The condition can be represented in the form of a logical expression.",
+    ).optional(),
     roleGrant: z.object({
       helperTextTemplate: z.string().describe(
         "Optional. Template that UI can use to provide helper text to customers.",
@@ -518,13 +518,14 @@ const GlobalArgsSchema = z.object({
           "GCP_SECRETMANAGER_SECRET_VERSION",
         ]).describe("Optional. Different types of resource supported.")
           .optional(),
-      }).describe("Resource definition").optional(),
+      }).describe(
+        "Optional. Resource on which the roles needs to be granted for the principal.",
+      ).optional(),
       roles: z.array(z.string()).describe(
         "Optional. List of roles that need to be granted.",
       ).optional(),
-    }).describe(
-      "This configuration defines all the Cloud IAM roles that needs to be granted to a particular Google Cloud resource for the selected principal like service account. These configurations will let UI display to customers what IAM roles need to be granted by them. Or these configurations can be used by the UI to render a 'grant' button to do the same on behalf of the user.",
-    ).optional(),
+    }).describe("Optional. Role grant configuration for the config variable.")
+      .optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "DEPRECATED"]).describe(
       "Output only. State of the config variable.",
     ).optional(),
@@ -619,24 +620,8 @@ const GlobalArgsSchema = z.object({
       "Required. Details about partner connector use cases.",
     ).optional(),
   }).describe(
-    "Partner metadata details. This will be populated when publishing the custom connector as a partner connector version. On publishing, parntner connector version will be created using the fields in PartnerMetadata.",
+    "Optional. Partner metadata details. This should be populated only when publishing the custom connector to partner connector.",
   ).optional(),
-  publishStatus: z.object({
-    publishState: z.enum([
-      "PUBLISH_STATE_UNSPECIFIED",
-      "PUBLISHED",
-      "PUBLISH_IN_PROGRESS",
-      "UNPUBLISHED",
-    ]).describe("Output only. Publish state of the custom connector.")
-      .optional(),
-    publishTime: z.string().describe("Output only. Publish time.").optional(),
-    publishedAs: z.string().describe(
-      "Output only. Partner connector name. Will be set on the custom connector. Format: providers/partner/connectors//versions/",
-    ).optional(),
-    publishedSource: z.string().describe(
-      "Output only. Custom connector name. Will be set on the partner connector. Format: providers/customconnectors/connectors//versions/",
-    ).optional(),
-  }).describe("Publish status of a custom connector.").optional(),
   serviceAccount: z.string().describe(
     "Optional. Service account used by runtime plane to access auth config secrets.",
   ).optional(),
@@ -888,7 +873,7 @@ const InputsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -896,8 +881,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. List containing additional auth configs.")
@@ -928,7 +912,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Client secret for user-provided OAuth app.")
         .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -942,9 +926,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -955,9 +937,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("Optional. The client identifier.")
         .optional(),
@@ -965,18 +945,18 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Optional. Secret version reference containing the client secret.",
+      ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+      ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Optional. Value for the "aud" claim.')
           .optional(),
@@ -984,11 +964,9 @@ const InputsSchema = z.object({
           .optional(),
         subject: z.string().describe('Optional. Value for the "sub" claim.')
           .optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("Optional. JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Optional. Format of SSH Client cert.")
         .optional(),
@@ -996,31 +974,32 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. SSH Client Cert. It should contain both public and private key.",
+      ).optional(),
       sshClientCertPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Password (passphrase) for ssh client certificate if it has one.",
+      ).optional(),
       username: z.string().describe(
         "Optional. The user account used to authenticate.",
       ).optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Secret version reference containing the password.")
         .optional(),
       username: z.string().describe("Optional. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig defines details of a authentication type.")
-    .optional(),
+    }).describe("UserPassword.").optional(),
+  }).describe(
+    "Optional. Authentication config for accessing connector service (facade). This is used only when enable_backend_destination_config is true.",
+  ).optional(),
   authConfigTemplates: z.array(z.object({
     authKey: z.string().describe("Identifier key for auth config").optional(),
     authType: z.enum([
@@ -1039,7 +1018,7 @@ const InputsSchema = z.object({
           "Optional. The client ID assigned to the Google Cloud Connectors OAuth app for the connector data source.",
         ).optional(),
         clientSecret: z.unknown().describe(
-          "Secret provides a reference to entries in Secret Manager.",
+          "Optional. The client secret assigned to the Google Cloud Connectors OAuth app for the connector data source.",
         ).optional(),
         enablePkce: z.unknown().describe(
           "Optional. Whether to enable PKCE for the auth code flow.",
@@ -1054,7 +1033,7 @@ const InputsSchema = z.object({
           "Optional. The base URI the user must click to trigger the authorization code login flow.",
         ).optional(),
       }).describe(
-        "This configuration captures the details required to render an authorization link for the OAuth Authorization Code Flow.",
+        "Optional. Authorization code link options. To be populated if `ValueType` is `AUTHORIZATION_CODE`",
       ).optional(),
       description: z.string().describe("Optional. Description.").optional(),
       displayName: z.string().describe(
@@ -1092,7 +1071,7 @@ const InputsSchema = z.object({
           'Required. Value separator. Only "," can be used for OAuth auth code flow scope field.',
         ).optional(),
       }).describe(
-        "MultipleSelectConfig represents the multiple options for a config variable.",
+        "Optional. MultipleSelectConfig represents the multiple options for a config variable.",
       ).optional(),
       required: z.boolean().describe(
         "Optional. Flag represents that this `ConfigVariable` must be provided for a connection.",
@@ -1107,7 +1086,9 @@ const InputsSchema = z.object({
         logicalOperator: z.unknown().describe(
           "Optional. The logical operator to use between the fields and conditions.",
         ).optional(),
-      }).describe("Struct for representing boolean expressions.").optional(),
+      }).describe(
+        "Optional. Condition under which a field would be required. The condition can be represented in the form of a logical expression.",
+      ).optional(),
       roleGrant: z.object({
         helperTextTemplate: z.unknown().describe(
           "Optional. Template that UI can use to provide helper text to customers.",
@@ -1115,13 +1096,14 @@ const InputsSchema = z.object({
         principal: z.unknown().describe(
           "Optional. Principal/Identity for whom the role need to assigned.",
         ).optional(),
-        resource: z.unknown().describe("Resource definition").optional(),
+        resource: z.unknown().describe(
+          "Optional. Resource on which the roles needs to be granted for the principal.",
+        ).optional(),
         roles: z.unknown().describe(
           "Optional. List of roles that need to be granted.",
         ).optional(),
-      }).describe(
-        "This configuration defines all the Cloud IAM roles that needs to be granted to a particular Google Cloud resource for the selected principal like service account. These configurations will let UI display to customers what IAM roles need to be granted by them. Or these configurations can be used by the UI to render a 'grant' button to do the same on behalf of the user.",
-      ).optional(),
+      }).describe("Optional. Role grant configuration for the config variable.")
+        .optional(),
       state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "DEPRECATED"]).describe(
         "Output only. State of the config variable.",
       ).optional(),
@@ -1167,8 +1149,9 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. The client secret assigned to the Google Cloud Connectors OAuth app for the connector data source.",
+      ).optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE for the auth code flow.",
       ).optional(),
@@ -1182,7 +1165,7 @@ const InputsSchema = z.object({
         "Optional. The base URI the user must click to trigger the authorization code login flow.",
       ).optional(),
     }).describe(
-      "This configuration captures the details required to render an authorization link for the OAuth Authorization Code Flow.",
+      "Optional. Authorization code link options. To be populated if `ValueType` is `AUTHORIZATION_CODE`",
     ).optional(),
     description: z.string().describe("Optional. Description.").optional(),
     displayName: z.string().describe("Optional. Display name of the parameter.")
@@ -1229,7 +1212,7 @@ const InputsSchema = z.object({
         'Required. Value separator. Only "," can be used for OAuth auth code flow scope field.',
       ).optional(),
     }).describe(
-      "MultipleSelectConfig represents the multiple options for a config variable.",
+      "Optional. MultipleSelectConfig represents the multiple options for a config variable.",
     ).optional(),
     required: z.boolean().describe(
       "Optional. Flag represents that this `ConfigVariable` must be provided for a connection.",
@@ -1250,7 +1233,9 @@ const InputsSchema = z.object({
       logicalOperator: z.enum(["OPERATOR_UNSPECIFIED", "AND", "OR"]).describe(
         "Optional. The logical operator to use between the fields and conditions.",
       ).optional(),
-    }).describe("Struct for representing boolean expressions.").optional(),
+    }).describe(
+      "Optional. Condition under which a field would be required. The condition can be represented in the form of a logical expression.",
+    ).optional(),
     roleGrant: z.object({
       helperTextTemplate: z.string().describe(
         "Optional. Template that UI can use to provide helper text to customers.",
@@ -1270,13 +1255,14 @@ const InputsSchema = z.object({
           "GCP_SECRETMANAGER_SECRET_VERSION",
         ]).describe("Optional. Different types of resource supported.")
           .optional(),
-      }).describe("Resource definition").optional(),
+      }).describe(
+        "Optional. Resource on which the roles needs to be granted for the principal.",
+      ).optional(),
       roles: z.array(z.string()).describe(
         "Optional. List of roles that need to be granted.",
       ).optional(),
-    }).describe(
-      "This configuration defines all the Cloud IAM roles that needs to be granted to a particular Google Cloud resource for the selected principal like service account. These configurations will let UI display to customers what IAM roles need to be granted by them. Or these configurations can be used by the UI to render a 'grant' button to do the same on behalf of the user.",
-    ).optional(),
+    }).describe("Optional. Role grant configuration for the config variable.")
+      .optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "DEPRECATED"]).describe(
       "Output only. State of the config variable.",
     ).optional(),
@@ -1371,24 +1357,8 @@ const InputsSchema = z.object({
       "Required. Details about partner connector use cases.",
     ).optional(),
   }).describe(
-    "Partner metadata details. This will be populated when publishing the custom connector as a partner connector version. On publishing, parntner connector version will be created using the fields in PartnerMetadata.",
+    "Optional. Partner metadata details. This should be populated only when publishing the custom connector to partner connector.",
   ).optional(),
-  publishStatus: z.object({
-    publishState: z.enum([
-      "PUBLISH_STATE_UNSPECIFIED",
-      "PUBLISHED",
-      "PUBLISH_IN_PROGRESS",
-      "UNPUBLISHED",
-    ]).describe("Output only. Publish state of the custom connector.")
-      .optional(),
-    publishTime: z.string().describe("Output only. Publish time.").optional(),
-    publishedAs: z.string().describe(
-      "Output only. Partner connector name. Will be set on the custom connector. Format: providers/partner/connectors//versions/",
-    ).optional(),
-    publishedSource: z.string().describe(
-      "Output only. Custom connector name. Will be set on the partner connector. Format: providers/customconnectors/connectors//versions/",
-    ).optional(),
-  }).describe("Publish status of a custom connector.").optional(),
   serviceAccount: z.string().describe(
     "Optional. Service account used by runtime plane to access auth config secrets.",
   ).optional(),
@@ -1429,7 +1399,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Global.CustomConnectors.CustomConnectorVersions. Registered at `@swamp/gcp/connectors/global-customconnectors-customconnectorversions`. */
 export const model = {
   type: "@swamp/gcp/connectors/global-customconnectors-customconnectorversions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: publishStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { publishStatus: _publishStatus, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1480,9 +1460,6 @@ export const model = {
         if (g["partnerMetadata"] !== undefined) {
           body["partnerMetadata"] = g["partnerMetadata"];
         }
-        if (g["publishStatus"] !== undefined) {
-          body["publishStatus"] = g["publishStatus"];
-        }
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
         }
@@ -1513,14 +1490,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

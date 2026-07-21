@@ -163,15 +163,14 @@ const GlobalArgsSchema = z.object({
       subscribeMibPerSec: z.number().int().describe(
         "Subscribe throughput capacity per partition in MiB/s. Must be >= 4 and <= 32.",
       ).optional(),
-    }).describe("The throughput capacity configuration for each partition.")
-      .optional(),
+    }).describe("The capacity configuration.").optional(),
     count: z.string().describe(
       "The number of partitions in the topic. Must be at least 1. Once a topic has been created the number of partitions can be increased but not decreased. Message ordering is not guaranteed across a topic resize. For more information see https://cloud.google.com/pubsub/lite/docs/topics#scaling_capacity",
     ).optional(),
     scale: z.number().int().describe(
       "DEPRECATED: Use capacity instead which can express a superset of configurations. Every partition in the topic is allocated throughput equivalent to `scale` times the standard partition throughput (4 MiB/s). This is also reflected in the cost of this topic; a topic with `scale` of 2 and count of 10 is charged for 20 partitions. This value must be in the range [1,4].",
     ).optional(),
-  }).describe("The settings for a topic's partitions.").optional(),
+  }).describe("The settings for this topic's partitions.").optional(),
   reservationConfig: z.object({
     throughputReservation: z.string().describe(
       "The Reservation to use for this topic's throughput capacity. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}",
@@ -184,7 +183,7 @@ const GlobalArgsSchema = z.object({
     period: z.string().describe(
       "How long a published message is retained. If unset, messages will be retained as long as the bytes retained for each partition is below `per_partition_bytes`.",
     ).optional(),
-  }).describe("The settings for a topic's message retention.").optional(),
+  }).describe("The settings for this topic's message retention.").optional(),
   topicId: z.string().describe(
     "Required. The ID to use for the topic, which will become the final component of the topic's name. This value is structured like: `my-topic-name`.",
   ).optional(),
@@ -230,15 +229,14 @@ const InputsSchema = z.object({
       subscribeMibPerSec: z.number().int().describe(
         "Subscribe throughput capacity per partition in MiB/s. Must be >= 4 and <= 32.",
       ).optional(),
-    }).describe("The throughput capacity configuration for each partition.")
-      .optional(),
+    }).describe("The capacity configuration.").optional(),
     count: z.string().describe(
       "The number of partitions in the topic. Must be at least 1. Once a topic has been created the number of partitions can be increased but not decreased. Message ordering is not guaranteed across a topic resize. For more information see https://cloud.google.com/pubsub/lite/docs/topics#scaling_capacity",
     ).optional(),
     scale: z.number().int().describe(
       "DEPRECATED: Use capacity instead which can express a superset of configurations. Every partition in the topic is allocated throughput equivalent to `scale` times the standard partition throughput (4 MiB/s). This is also reflected in the cost of this topic; a topic with `scale` of 2 and count of 10 is charged for 20 partitions. This value must be in the range [1,4].",
     ).optional(),
-  }).describe("The settings for a topic's partitions.").optional(),
+  }).describe("The settings for this topic's partitions.").optional(),
   reservationConfig: z.object({
     throughputReservation: z.string().describe(
       "The Reservation to use for this topic's throughput capacity. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}",
@@ -251,7 +249,7 @@ const InputsSchema = z.object({
     period: z.string().describe(
       "How long a published message is retained. If unset, messages will be retained as long as the bytes retained for each partition is below `per_partition_bytes`.",
     ).optional(),
-  }).describe("The settings for a topic's message retention.").optional(),
+  }).describe("The settings for this topic's message retention.").optional(),
   topicId: z.string().describe(
     "Required. The ID to use for the topic, which will become the final component of the topic's name. This value is structured like: `my-topic-name`.",
   ).optional(),
@@ -283,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Lite Admin.Projects.Topics. Registered at `@swamp/gcp/pubsublite/admin-projects-topics`. */
 export const model = {
   type: "@swamp/gcp/pubsublite/admin-projects-topics",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -382,6 +380,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

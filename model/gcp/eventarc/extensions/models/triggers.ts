@@ -193,7 +193,9 @@ const GlobalArgsSchema = z.object({
       service: z.string().describe(
         "Required. The name of the Cloud Run service being addressed. See https://cloud.google.com/run/docs/reference/rest/v1/namespaces.services. Only services located in the same project as the trigger object can be addressed.",
       ).optional(),
-    }).describe("Represents a Cloud Run destination.").optional(),
+    }).describe(
+      "Cloud Run fully-managed resource that receives the events. The resource should be in the same project as the trigger.",
+    ).optional(),
     gke: z.object({
       cluster: z.string().describe(
         "Required. The name of the cluster the GKE service is running in. The cluster must be running in the same project as the trigger being created.",
@@ -209,22 +211,27 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       service: z.string().describe("Required. Name of the GKE service.")
         .optional(),
-    }).describe("Represents a GKE destination.").optional(),
+    }).describe(
+      "A GKE service capable of receiving events. The service should be running in the same project as the trigger.",
+    ).optional(),
     httpEndpoint: z.object({
       uri: z.string().describe(
         "Required. The URI of the HTTP endpoint. The value must be a RFC2396 URI string. Examples: `http://10.10.10.8:80/route`, `http://svc.us-central1.p.local:8080/`. Only HTTP and HTTPS protocols are supported. The host can be either a static IP addressable from the VPC specified by the network config, or an internal DNS hostname of the service resolvable via Cloud DNS.",
       ).optional(),
-    }).describe("Represents a HTTP endpoint destination.").optional(),
+    }).describe("An HTTP endpoint destination described by an URI.").optional(),
     networkConfig: z.object({
       networkAttachment: z.string().describe(
         "Required. Name of the NetworkAttachment that allows access to the customer's VPC. Format: `projects/{PROJECT_ID}/regions/{REGION}/networkAttachments/{NETWORK_ATTACHMENT_NAME}`",
       ).optional(),
-    }).describe("Network Configuration that can be inherited by other protos.")
-      .optional(),
+    }).describe(
+      "Optional. Network config is used to configure how Eventarc resolves and connect to a destination. This should only be used with HttpEndpoint destination type.",
+    ).optional(),
     workflow: z.string().describe(
       "The resource name of the Workflow whose Executions are triggered by the events. The Workflow resource should be deployed in the same project as the trigger. Format: `projects/{project}/locations/{location}/workflows/{workflow}`",
     ).optional(),
-  }).describe("Represents a target of an invocation over HTTP.").optional(),
+  }).describe(
+    "Required. Destination specifies where the events should be sent to.",
+  ).optional(),
   eventDataContentType: z.string().describe(
     "Optional. EventDataContentType specifies the type of payload in MIME format that is expected from the CloudEvent data field. This is set to `application/json` if the value is not defined.",
   ).optional(),
@@ -251,7 +258,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The maximum number of delivery attempts for any message. The only valid value is 1.",
     ).optional(),
   }).describe(
-    "The retry policy configuration for the Trigger. Can only be set with Cloud Run destinations.",
+    "Optional. The retry policy to use in the Trigger. If unset, event delivery will be retried for up to 24 hours by default: https://cloud.google.com/eventarc/docs/retry-events",
   ).optional(),
   serviceAccount: z.string().describe(
     "Optional. The IAM service account email associated with the trigger. The service account represents the identity of the trigger. The `iam.serviceAccounts.actAs` permission must be granted on the service account to allow a principal to impersonate the service account. For more information, see the [Roles and permissions](/eventarc/docs/all-roles-permissions) page specific to the trigger destination.",
@@ -264,9 +271,11 @@ const GlobalArgsSchema = z.object({
       topic: z.string().describe(
         "Optional. The name of the Pub/Sub topic created and managed by Eventarc as a transport for the event delivery. Format: `projects/{PROJECT_ID}/topics/{TOPIC_NAME}`. You can set an existing topic for triggers of the type `google.cloud.pubsub.topic.v1.messagePublished`. The topic you provide here is not deleted by Eventarc at trigger deletion.",
       ).optional(),
-    }).describe("Represents a Pub/Sub transport.").optional(),
+    }).describe(
+      "The Pub/Sub topic and subscription used by Eventarc as a transport intermediary.",
+    ).optional(),
   }).describe(
-    "Represents the transport intermediaries created for the trigger to deliver events.",
+    "Optional. To deliver messages, Eventarc might use other Google Cloud products as a transport intermediary. This field contains a reference to that transport intermediary. This information can be used for debugging purposes.",
   ).optional(),
   triggerId: z.string().describe(
     "Required. The user-provided ID to be assigned to the trigger.",
@@ -350,7 +359,9 @@ const InputsSchema = z.object({
       service: z.string().describe(
         "Required. The name of the Cloud Run service being addressed. See https://cloud.google.com/run/docs/reference/rest/v1/namespaces.services. Only services located in the same project as the trigger object can be addressed.",
       ).optional(),
-    }).describe("Represents a Cloud Run destination.").optional(),
+    }).describe(
+      "Cloud Run fully-managed resource that receives the events. The resource should be in the same project as the trigger.",
+    ).optional(),
     gke: z.object({
       cluster: z.string().describe(
         "Required. The name of the cluster the GKE service is running in. The cluster must be running in the same project as the trigger being created.",
@@ -366,22 +377,27 @@ const InputsSchema = z.object({
       ).optional(),
       service: z.string().describe("Required. Name of the GKE service.")
         .optional(),
-    }).describe("Represents a GKE destination.").optional(),
+    }).describe(
+      "A GKE service capable of receiving events. The service should be running in the same project as the trigger.",
+    ).optional(),
     httpEndpoint: z.object({
       uri: z.string().describe(
         "Required. The URI of the HTTP endpoint. The value must be a RFC2396 URI string. Examples: `http://10.10.10.8:80/route`, `http://svc.us-central1.p.local:8080/`. Only HTTP and HTTPS protocols are supported. The host can be either a static IP addressable from the VPC specified by the network config, or an internal DNS hostname of the service resolvable via Cloud DNS.",
       ).optional(),
-    }).describe("Represents a HTTP endpoint destination.").optional(),
+    }).describe("An HTTP endpoint destination described by an URI.").optional(),
     networkConfig: z.object({
       networkAttachment: z.string().describe(
         "Required. Name of the NetworkAttachment that allows access to the customer's VPC. Format: `projects/{PROJECT_ID}/regions/{REGION}/networkAttachments/{NETWORK_ATTACHMENT_NAME}`",
       ).optional(),
-    }).describe("Network Configuration that can be inherited by other protos.")
-      .optional(),
+    }).describe(
+      "Optional. Network config is used to configure how Eventarc resolves and connect to a destination. This should only be used with HttpEndpoint destination type.",
+    ).optional(),
     workflow: z.string().describe(
       "The resource name of the Workflow whose Executions are triggered by the events. The Workflow resource should be deployed in the same project as the trigger. Format: `projects/{project}/locations/{location}/workflows/{workflow}`",
     ).optional(),
-  }).describe("Represents a target of an invocation over HTTP.").optional(),
+  }).describe(
+    "Required. Destination specifies where the events should be sent to.",
+  ).optional(),
   eventDataContentType: z.string().describe(
     "Optional. EventDataContentType specifies the type of payload in MIME format that is expected from the CloudEvent data field. This is set to `application/json` if the value is not defined.",
   ).optional(),
@@ -408,7 +424,7 @@ const InputsSchema = z.object({
       "Optional. The maximum number of delivery attempts for any message. The only valid value is 1.",
     ).optional(),
   }).describe(
-    "The retry policy configuration for the Trigger. Can only be set with Cloud Run destinations.",
+    "Optional. The retry policy to use in the Trigger. If unset, event delivery will be retried for up to 24 hours by default: https://cloud.google.com/eventarc/docs/retry-events",
   ).optional(),
   serviceAccount: z.string().describe(
     "Optional. The IAM service account email associated with the trigger. The service account represents the identity of the trigger. The `iam.serviceAccounts.actAs` permission must be granted on the service account to allow a principal to impersonate the service account. For more information, see the [Roles and permissions](/eventarc/docs/all-roles-permissions) page specific to the trigger destination.",
@@ -421,9 +437,11 @@ const InputsSchema = z.object({
       topic: z.string().describe(
         "Optional. The name of the Pub/Sub topic created and managed by Eventarc as a transport for the event delivery. Format: `projects/{PROJECT_ID}/topics/{TOPIC_NAME}`. You can set an existing topic for triggers of the type `google.cloud.pubsub.topic.v1.messagePublished`. The topic you provide here is not deleted by Eventarc at trigger deletion.",
       ).optional(),
-    }).describe("Represents a Pub/Sub transport.").optional(),
+    }).describe(
+      "The Pub/Sub topic and subscription used by Eventarc as a transport intermediary.",
+    ).optional(),
   }).describe(
-    "Represents the transport intermediaries created for the trigger to deliver events.",
+    "Optional. To deliver messages, Eventarc might use other Google Cloud products as a transport intermediary. This field contains a reference to that transport intermediary. This information can be used for debugging purposes.",
   ).optional(),
   triggerId: z.string().describe(
     "Required. The user-provided ID to be assigned to the trigger.",
@@ -456,7 +474,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Eventarc Triggers. Registered at `@swamp/gcp/eventarc/triggers`. */
 export const model = {
   type: "@swamp/gcp/eventarc/triggers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -560,6 +578,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

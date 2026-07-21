@@ -162,7 +162,7 @@ const GlobalArgsSchema = z.object({
   freeGiftValue: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Free gift value for the promotion.").optional(),
   genericRedemptionCode: z.string().describe(
     "Generic redemption code for the promotion. To be used with the `offerType` field.",
   ).optional(),
@@ -187,28 +187,30 @@ const GlobalArgsSchema = z.object({
   limitValue: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Maximum purchase value for the promotion.").optional(),
   longTitle: z.string().describe("Required. Long title for the promotion.")
     .optional(),
   maxDiscountAmount: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe(
+    "The maximum monetary discount a customer can receive for the promotion. This field is only supported with the `Percent off` coupon value type.",
+  ).optional(),
   minimumPurchaseAmount: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Minimum purchase amount for the promotion.").optional(),
   minimumPurchaseQuantity: z.number().int().describe(
     "Minimum purchase quantity for the promotion.",
   ).optional(),
   moneyBudget: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Cost cap for the promotion.").optional(),
   moneyOffAmount: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("The money off amount offered in the promotion.").optional(),
   offerType: z.enum(["OFFER_TYPE_UNSPECIFIED", "NO_CODE", "GENERIC_CODE"])
     .describe("Required. Type of the promotion.").optional(),
   orderLimit: z.number().int().describe("Order limit for the promotion.")
@@ -235,39 +237,17 @@ const GlobalArgsSchema = z.object({
   promotionDisplayTimePeriod: z.object({
     endTime: z.string().describe("The ending timestamp.").optional(),
     startTime: z.string().describe("The starting timestamp.").optional(),
-  }).describe("A message that represents a time period.").optional(),
+  }).describe("`TimePeriod` representation of the promotion's display dates.")
+    .optional(),
   promotionEffectiveTimePeriod: z.object({
     endTime: z.string().describe("The ending timestamp.").optional(),
     startTime: z.string().describe("The starting timestamp.").optional(),
-  }).describe("A message that represents a time period.").optional(),
+  }).describe(
+    "Required. `TimePeriod` representation of the promotion's effective dates.",
+  ).optional(),
   promotionId: z.string().describe(
     "Required. The user provided promotion ID to uniquely identify the promotion.",
   ).optional(),
-  promotionStatus: z.object({
-    creationDate: z.string().describe(
-      'Date on which the promotion has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"',
-    ).optional(),
-    destinationStatuses: z.array(z.object({
-      destination: z.string().describe("The name of the destination.")
-        .optional(),
-      status: z.enum([
-        "STATE_UNSPECIFIED",
-        "IN_REVIEW",
-        "REJECTED",
-        "LIVE",
-        "STOPPED",
-        "EXPIRED",
-        "PENDING",
-      ]).describe("The status for the specified destination.").optional(),
-    })).describe("The intended destinations for the promotion.").optional(),
-    lastUpdateDate: z.string().describe(
-      'Date on which the promotion status has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"',
-    ).optional(),
-    promotionIssue: z.array(z.object({
-      code: z.string().describe("Code of the issue.").optional(),
-      detail: z.string().describe("Explanation of the issue.").optional(),
-    })).describe("A list of issues associated with the promotion.").optional(),
-  }).describe("The status of the promotion.").optional(),
   promotionUrl: z.string().describe(
     "URL to the page on the merchant's site where the promotion shows. Local Inventory ads promotions throw an error if no promo url is included. URL is used to confirm that the promotion is valid and can be redeemed.",
   ).optional(),
@@ -434,7 +414,7 @@ const InputsSchema = z.object({
   freeGiftValue: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Free gift value for the promotion.").optional(),
   genericRedemptionCode: z.string().describe(
     "Generic redemption code for the promotion. To be used with the `offerType` field.",
   ).optional(),
@@ -459,28 +439,30 @@ const InputsSchema = z.object({
   limitValue: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Maximum purchase value for the promotion.").optional(),
   longTitle: z.string().describe("Required. Long title for the promotion.")
     .optional(),
   maxDiscountAmount: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe(
+    "The maximum monetary discount a customer can receive for the promotion. This field is only supported with the `Percent off` coupon value type.",
+  ).optional(),
   minimumPurchaseAmount: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Minimum purchase amount for the promotion.").optional(),
   minimumPurchaseQuantity: z.number().int().describe(
     "Minimum purchase quantity for the promotion.",
   ).optional(),
   moneyBudget: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("Cost cap for the promotion.").optional(),
   moneyOffAmount: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).describe("The price represented as a number and currency.").optional(),
+  }).describe("The money off amount offered in the promotion.").optional(),
   offerType: z.enum(["OFFER_TYPE_UNSPECIFIED", "NO_CODE", "GENERIC_CODE"])
     .describe("Required. Type of the promotion.").optional(),
   orderLimit: z.number().int().describe("Order limit for the promotion.")
@@ -507,39 +489,17 @@ const InputsSchema = z.object({
   promotionDisplayTimePeriod: z.object({
     endTime: z.string().describe("The ending timestamp.").optional(),
     startTime: z.string().describe("The starting timestamp.").optional(),
-  }).describe("A message that represents a time period.").optional(),
+  }).describe("`TimePeriod` representation of the promotion's display dates.")
+    .optional(),
   promotionEffectiveTimePeriod: z.object({
     endTime: z.string().describe("The ending timestamp.").optional(),
     startTime: z.string().describe("The starting timestamp.").optional(),
-  }).describe("A message that represents a time period.").optional(),
+  }).describe(
+    "Required. `TimePeriod` representation of the promotion's effective dates.",
+  ).optional(),
   promotionId: z.string().describe(
     "Required. The user provided promotion ID to uniquely identify the promotion.",
   ).optional(),
-  promotionStatus: z.object({
-    creationDate: z.string().describe(
-      'Date on which the promotion has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"',
-    ).optional(),
-    destinationStatuses: z.array(z.object({
-      destination: z.string().describe("The name of the destination.")
-        .optional(),
-      status: z.enum([
-        "STATE_UNSPECIFIED",
-        "IN_REVIEW",
-        "REJECTED",
-        "LIVE",
-        "STOPPED",
-        "EXPIRED",
-        "PENDING",
-      ]).describe("The status for the specified destination.").optional(),
-    })).describe("The intended destinations for the promotion.").optional(),
-    lastUpdateDate: z.string().describe(
-      'Date on which the promotion status has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"',
-    ).optional(),
-    promotionIssue: z.array(z.object({
-      code: z.string().describe("Code of the issue.").optional(),
-      detail: z.string().describe("Explanation of the issue.").optional(),
-    })).describe("A list of issues associated with the promotion.").optional(),
-  }).describe("The status of the promotion.").optional(),
   promotionUrl: z.string().describe(
     "URL to the page on the merchant's site where the promotion shows. Local Inventory ads promotions throw an error if no promo url is included. URL is used to confirm that the promotion is valid and can be redeemed.",
   ).optional(),
@@ -604,7 +564,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Promotions. Registered at `@swamp/gcp/content/promotions`. */
 export const model = {
   type: "@swamp/gcp/content/promotions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -690,6 +650,14 @@ export const model = {
       toVersion: "2026.07.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: promotionStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { promotionStatus: _promotionStatus, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -800,9 +768,6 @@ export const model = {
         if (g["promotionId"] !== undefined) {
           body["promotionId"] = g["promotionId"];
         }
-        if (g["promotionStatus"] !== undefined) {
-          body["promotionStatus"] = g["promotionStatus"];
-        }
         if (g["promotionUrl"] !== undefined) {
           body["promotionUrl"] = g["promotionUrl"];
         }
@@ -833,12 +798,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "merchantId": String(g["merchantId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

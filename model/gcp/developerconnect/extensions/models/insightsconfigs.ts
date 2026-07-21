@@ -187,7 +187,9 @@ const GlobalArgsSchema = z.object({
       projectId: z.string().describe(
         "Required. The project id of the project where the provenance is stored.",
       ).optional(),
-    }).describe("Google Artifact Analysis configurations.").optional(),
+    }).describe(
+      "Optional. Set if the artifact metadata is stored in Artifact analysis.",
+    ).optional(),
     googleArtifactRegistry: z.object({
       artifactRegistryPackage: z.string().describe(
         "Required. Immutable. The name of the artifact registry package.",
@@ -195,7 +197,8 @@ const GlobalArgsSchema = z.object({
       projectId: z.string().describe(
         "Required. The host project of Artifact Registry.",
       ).optional(),
-    }).describe("Google Artifact Registry configurations.").optional(),
+    }).describe("Optional. Set if the artifact is stored in Artifact registry.")
+      .optional(),
     uri: z.string().describe(
       "Required. Immutable. The URI of the artifact that is deployed. e.g. `us-docker.pkg.dev/my-project/my-repo/image`. The URI does not include the tag / digest because it captures a lineage of artifacts.",
     ).optional(),
@@ -212,9 +215,8 @@ const GlobalArgsSchema = z.object({
     projectIds: z.array(z.string()).describe(
       "Optional. The project IDs. Format: {project}",
     ).optional(),
-  }).describe(
-    "Projects represents the projects to track with the InsightsConfig.",
-  ).optional(),
+  }).describe("Optional. The projects to track with the InsightsConfig.")
+    .optional(),
   insightsConfigId: z.string().describe(
     "Required. ID of the requesting InsightsConfig.",
   ).optional(),
@@ -291,7 +293,9 @@ const InputsSchema = z.object({
       projectId: z.string().describe(
         "Required. The project id of the project where the provenance is stored.",
       ).optional(),
-    }).describe("Google Artifact Analysis configurations.").optional(),
+    }).describe(
+      "Optional. Set if the artifact metadata is stored in Artifact analysis.",
+    ).optional(),
     googleArtifactRegistry: z.object({
       artifactRegistryPackage: z.string().describe(
         "Required. Immutable. The name of the artifact registry package.",
@@ -299,7 +303,8 @@ const InputsSchema = z.object({
       projectId: z.string().describe(
         "Required. The host project of Artifact Registry.",
       ).optional(),
-    }).describe("Google Artifact Registry configurations.").optional(),
+    }).describe("Optional. Set if the artifact is stored in Artifact registry.")
+      .optional(),
     uri: z.string().describe(
       "Required. Immutable. The URI of the artifact that is deployed. e.g. `us-docker.pkg.dev/my-project/my-repo/image`. The URI does not include the tag / digest because it captures a lineage of artifacts.",
     ).optional(),
@@ -316,9 +321,8 @@ const InputsSchema = z.object({
     projectIds: z.array(z.string()).describe(
       "Optional. The project IDs. Format: {project}",
     ).optional(),
-  }).describe(
-    "Projects represents the projects to track with the InsightsConfig.",
-  ).optional(),
+  }).describe("Optional. The projects to track with the InsightsConfig.")
+    .optional(),
   insightsConfigId: z.string().describe(
     "Required. ID of the requesting InsightsConfig.",
   ).optional(),
@@ -350,7 +354,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Developer Connect InsightsConfigs. Registered at `@swamp/gcp/developerconnect/insightsconfigs`. */
 export const model = {
   type: "@swamp/gcp/developerconnect/insightsconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -454,6 +458,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

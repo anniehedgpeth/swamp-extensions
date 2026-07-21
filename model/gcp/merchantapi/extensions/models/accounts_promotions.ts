@@ -178,7 +178,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. [Free gift value](https://support.google.com/merchants/answer/13844477?ref_topic=13773355) for the promotion.",
+      ).optional(),
       genericRedemptionCode: z.string().describe(
         "Optional. Generic redemption code for the promotion. To be used with the `offerType` field and must meet the [minimum requirements](https://support.google.com/merchants/answer/13837405?ref_topic=13773355).",
       ).optional(),
@@ -210,7 +212,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. [Maximum product price](https://support.google.com/merchants/answer/2906014) for promotion.",
+      ).optional(),
       longTitle: z.string().describe(
         "Required. [Long title](https://support.google.com/merchants/answer/13838102?ref_topic=13773355) for the promotion.",
       ).optional(),
@@ -221,7 +225,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. The maximum monetary discount a customer can receive for the promotion. This field is only supported with the `Percent off` coupon value type.",
+      ).optional(),
       maxMoneyOffAmount: z.object({
         amountMicros: z.string().describe(
           "The price represented as a number in micros (1 million micros is an equivalent to one's currency standard unit, for example, 1 USD = 1000000 micros).",
@@ -229,7 +235,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. Maximum money off amount for a promotion with `MONEY_OFF_RANGE` coupon value type. At least one of `min_money_off_amount` or `max_money_off_amount` must be present when the coupon value type is `MONEY_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
+      ).optional(),
       maxPercentOff: z.string().describe(
         "Optional. Maximum percent off for a promotion with `PERCENT_OFF_RANGE` coupon value type. At least one of `min_percent_off` or `max_percent_off` must be present when the coupon value type is `PERCENT_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
       ).optional(),
@@ -240,7 +248,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. Minimum money off amount for a promotion with `MONEY_OFF_RANGE` coupon value type. At least one of `min_money_off_amount` or `max_money_off_amount` must be present when the coupon value type is `MONEY_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
+      ).optional(),
       minPercentOff: z.string().describe(
         "Optional. Minimum percent off for a promotion with `PERCENT_OFF_RANGE` coupon value type. At least one of `min_percent_off` or `max_percent_off` must be present when the coupon value type is `PERCENT_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
       ).optional(),
@@ -251,7 +261,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. [Minimum purchase amount](https://support.google.com/merchants/answer/13837705?ref_topic=13773355) for the promotion.",
+      ).optional(),
       minimumPurchaseQuantity: z.string().optional(),
       moneyOffAmount: z.object({
         amountMicros: z.string().describe(
@@ -260,7 +272,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. The [money off amount](https://support.google.com/merchants/answer/13838101?ref_topic=13773355) offered in the promotion.",
+      ).optional(),
       offerType: z.enum(["OFFER_TYPE_UNSPECIFIED", "NO_CODE", "GENERIC_CODE"])
         .describe(
           "Required. [Type](https://support.google.com/merchants/answer/13837405?ref_topic=13773355) of the promotion. Use this attribute to indicate whether or not customers need a coupon code to redeem your promotion.",
@@ -308,7 +322,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "Optional. `TimePeriod` representation of the promotion's display dates. This attribute specifies the date and time frame when the promotion will be live on Google.com and Shopping ads. If the display time period for promotion `promotion_display_time_period` attribute is not specified, the promotion effective time period `promotion_effective_time_period` determines the date and time frame when the promotion will be live on Google.com and Shopping ads.",
       ).optional(),
       promotionEffectiveTimePeriod: z.object({
         endTime: z.string().describe(
@@ -318,7 +332,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "Required. `TimePeriod` representation of the promotion's effective dates. This attribute specifies that the promotion can be tested on your online store during this time period.",
       ).optional(),
       promotionUrl: z.string().describe(
         "Optional. URL to the page on the merchant's site where the promotion shows. Local Inventory ads promotions throw an error if no `promotion_url` is included. URL is used to confirm that the promotion is valid and can be redeemed.",
@@ -349,7 +363,7 @@ const GlobalArgsSchema = z.object({
       storeCodesInclusion: z.array(z.string()).describe(
         "Optional. [Store codes to include](https://support.google.com/merchants/answer/13857470?ref_topic=13773355) for the promotion. The store filter attributes only applies when the `store_applicability` attribute is set to [specific_stores](https://support.google.com/merchants/answer/13857563?ref_topic=13773355). Store code (the store ID from your Business Profile) of the physical store the product is sold in. See the [Local product inventory data specification](https://support.google.com/merchants/answer/3061342) for more information.",
       ).optional(),
-    }).describe("Attributes.").optional(),
+    }).describe("Optional. A list of promotion attributes.").optional(),
     contentLanguage: z.string().describe(
       "Required. The two-letter [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code for the promotion. Promotions is only for [selected languages](https://support.google.com/merchants/answer/4588281?ref_topic=6396150&sjid=18314938579342094533-NC#option3&zippy=).",
     ).optional(),
@@ -471,7 +485,9 @@ const GlobalArgsSchema = z.object({
       lastUpdateDate: z.string().describe(
         "Output only. Date on which the promotion status has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example `2020-01-02T09:00:00+01:00` or `2020-01-02T09:00:00Z`",
       ).optional(),
-    }).describe("The status of the promotion.").optional(),
+    }).describe(
+      "Output only. The [status of a promotion](https://support.google.com/merchants/answer/3398326?ref_topic=7322924&sjid=5155774230887277618-NC), data validation issues, that is, information about a promotion computed asynchronously.",
+    ).optional(),
     redemptionChannel: z.array(
       z.enum(["REDEMPTION_CHANNEL_UNSPECIFIED", "IN_STORE", "ONLINE"]),
     ).describe(
@@ -483,9 +499,7 @@ const GlobalArgsSchema = z.object({
     versionNumber: z.string().describe(
       "Optional. Represents the existing version (freshness) of the promotion, which can be used to preserve the right order when multiple updates are done at the same time. If set, the insertion is prevented when version number is lower than the current version number of the existing promotion. Re-insertion (for example, promotion refresh after 30 days) can be performed with the current `version_number`. If the operation is prevented, the aborted exception will be thrown.",
     ).optional(),
-  }).describe(
-    "Represents a promotion. See the following articles for more details. Required promotion input attributes to pass data validation checks are primarily defined below: * [Promotions data specification](https://support.google.com/merchants/answer/2906014) * [Local promotions data specification](https://support.google.com/merchants/answer/10146130) After inserting, updating a promotion input, it may take several minutes before the final promotion can be retrieved.",
-  ).optional(),
+  }).describe("Required. The promotion to insert.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -660,7 +674,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. [Free gift value](https://support.google.com/merchants/answer/13844477?ref_topic=13773355) for the promotion.",
+      ).optional(),
       genericRedemptionCode: z.string().describe(
         "Optional. Generic redemption code for the promotion. To be used with the `offerType` field and must meet the [minimum requirements](https://support.google.com/merchants/answer/13837405?ref_topic=13773355).",
       ).optional(),
@@ -692,7 +708,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. [Maximum product price](https://support.google.com/merchants/answer/2906014) for promotion.",
+      ).optional(),
       longTitle: z.string().describe(
         "Required. [Long title](https://support.google.com/merchants/answer/13838102?ref_topic=13773355) for the promotion.",
       ).optional(),
@@ -703,7 +721,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. The maximum monetary discount a customer can receive for the promotion. This field is only supported with the `Percent off` coupon value type.",
+      ).optional(),
       maxMoneyOffAmount: z.object({
         amountMicros: z.string().describe(
           "The price represented as a number in micros (1 million micros is an equivalent to one's currency standard unit, for example, 1 USD = 1000000 micros).",
@@ -711,7 +731,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. Maximum money off amount for a promotion with `MONEY_OFF_RANGE` coupon value type. At least one of `min_money_off_amount` or `max_money_off_amount` must be present when the coupon value type is `MONEY_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
+      ).optional(),
       maxPercentOff: z.string().describe(
         "Optional. Maximum percent off for a promotion with `PERCENT_OFF_RANGE` coupon value type. At least one of `min_percent_off` or `max_percent_off` must be present when the coupon value type is `PERCENT_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
       ).optional(),
@@ -722,7 +744,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. Minimum money off amount for a promotion with `MONEY_OFF_RANGE` coupon value type. At least one of `min_money_off_amount` or `max_money_off_amount` must be present when the coupon value type is `MONEY_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
+      ).optional(),
       minPercentOff: z.string().describe(
         "Optional. Minimum percent off for a promotion with `PERCENT_OFF_RANGE` coupon value type. At least one of `min_percent_off` or `max_percent_off` must be present when the coupon value type is `PERCENT_OFF_RANGE`. If neither is provided an `INVALID_PROMOTION_MISSING_BENEFIT_OR_RESTRICTION` error is returned.",
       ).optional(),
@@ -733,7 +757,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. [Minimum purchase amount](https://support.google.com/merchants/answer/13837705?ref_topic=13773355) for the promotion.",
+      ).optional(),
       minimumPurchaseQuantity: z.string().optional(),
       moneyOffAmount: z.object({
         amountMicros: z.string().describe(
@@ -742,7 +768,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Optional. The [money off amount](https://support.google.com/merchants/answer/13838101?ref_topic=13773355) offered in the promotion.",
+      ).optional(),
       offerType: z.enum(["OFFER_TYPE_UNSPECIFIED", "NO_CODE", "GENERIC_CODE"])
         .describe(
           "Required. [Type](https://support.google.com/merchants/answer/13837405?ref_topic=13773355) of the promotion. Use this attribute to indicate whether or not customers need a coupon code to redeem your promotion.",
@@ -790,7 +818,7 @@ const InputsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "Optional. `TimePeriod` representation of the promotion's display dates. This attribute specifies the date and time frame when the promotion will be live on Google.com and Shopping ads. If the display time period for promotion `promotion_display_time_period` attribute is not specified, the promotion effective time period `promotion_effective_time_period` determines the date and time frame when the promotion will be live on Google.com and Shopping ads.",
       ).optional(),
       promotionEffectiveTimePeriod: z.object({
         endTime: z.string().describe(
@@ -800,7 +828,7 @@ const InputsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "Required. `TimePeriod` representation of the promotion's effective dates. This attribute specifies that the promotion can be tested on your online store during this time period.",
       ).optional(),
       promotionUrl: z.string().describe(
         "Optional. URL to the page on the merchant's site where the promotion shows. Local Inventory ads promotions throw an error if no `promotion_url` is included. URL is used to confirm that the promotion is valid and can be redeemed.",
@@ -831,7 +859,7 @@ const InputsSchema = z.object({
       storeCodesInclusion: z.array(z.string()).describe(
         "Optional. [Store codes to include](https://support.google.com/merchants/answer/13857470?ref_topic=13773355) for the promotion. The store filter attributes only applies when the `store_applicability` attribute is set to [specific_stores](https://support.google.com/merchants/answer/13857563?ref_topic=13773355). Store code (the store ID from your Business Profile) of the physical store the product is sold in. See the [Local product inventory data specification](https://support.google.com/merchants/answer/3061342) for more information.",
       ).optional(),
-    }).describe("Attributes.").optional(),
+    }).describe("Optional. A list of promotion attributes.").optional(),
     contentLanguage: z.string().describe(
       "Required. The two-letter [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code for the promotion. Promotions is only for [selected languages](https://support.google.com/merchants/answer/4588281?ref_topic=6396150&sjid=18314938579342094533-NC#option3&zippy=).",
     ).optional(),
@@ -953,7 +981,9 @@ const InputsSchema = z.object({
       lastUpdateDate: z.string().describe(
         "Output only. Date on which the promotion status has been last updated in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example `2020-01-02T09:00:00+01:00` or `2020-01-02T09:00:00Z`",
       ).optional(),
-    }).describe("The status of the promotion.").optional(),
+    }).describe(
+      "Output only. The [status of a promotion](https://support.google.com/merchants/answer/3398326?ref_topic=7322924&sjid=5155774230887277618-NC), data validation issues, that is, information about a promotion computed asynchronously.",
+    ).optional(),
     redemptionChannel: z.array(
       z.enum(["REDEMPTION_CHANNEL_UNSPECIFIED", "IN_STORE", "ONLINE"]),
     ).describe(
@@ -965,9 +995,7 @@ const InputsSchema = z.object({
     versionNumber: z.string().describe(
       "Optional. Represents the existing version (freshness) of the promotion, which can be used to preserve the right order when multiple updates are done at the same time. If set, the insertion is prevented when version number is lower than the current version number of the existing promotion. Re-insertion (for example, promotion refresh after 30 days) can be performed with the current `version_number`. If the operation is prevented, the aborted exception will be thrown.",
     ).optional(),
-  }).describe(
-    "Represents a promotion. See the following articles for more details. Required promotion input attributes to pass data validation checks are primarily defined below: * [Promotions data specification](https://support.google.com/merchants/answer/2906014) * [Local promotions data specification](https://support.google.com/merchants/answer/10146130) After inserting, updating a promotion input, it may take several minutes before the final promotion can be retrieved.",
-  ).optional(),
+  }).describe("Required. The promotion to insert.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -996,7 +1024,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Promotions. Registered at `@swamp/gcp/merchantapi/accounts-promotions`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-promotions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1034,14 +1069,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

@@ -178,9 +178,7 @@ const GlobalArgsSchema = z.object({
     zones: z.array(z.string()).describe(
       "Targets VM instances in ANY of these zones. Leave empty to target VM instances in any zone.",
     ).optional(),
-  }).describe(
-    "A filter to target VM instances for patching. The targeted VMs must meet all criteria specified. So if both labels and zones are specified, the patch job targets only VMs with those labels and in those zones.",
-  ).optional(),
+  }).describe("Required. VM instances to patch.").optional(),
   name: z.string().describe(
     "Unique name for the patch deployment resource in a project. The patch deployment name is in the form: `projects/{project_id}/patchDeployments/{patch_deployment_id}`. This field is ignored when you create a new patch deployment.",
   ).optional(),
@@ -188,9 +186,7 @@ const GlobalArgsSchema = z.object({
     executeTime: z.string().describe(
       "Required. The desired patch job execution time.",
     ).optional(),
-  }).describe(
-    "Sets the time for a one time patch deployment. Timestamp is in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.",
-  ).optional(),
+  }).describe("Required. Schedule a one-time execution.").optional(),
   patchConfig: z.object({
     apt: z.object({
       excludes: z.array(z.string()).describe(
@@ -203,10 +199,10 @@ const GlobalArgsSchema = z.object({
         "By changing the type to DIST, the patching is performed using `apt-get dist-upgrade` instead.",
       ).optional(),
     }).describe(
-      "Apt patching is completed by executing `apt-get update && apt-get upgrade`. Additional options can be set to control how this is executed.",
+      "Apt update settings. Use this setting to override the default `apt` patch rules.",
     ).optional(),
     goo: z.object({}).describe(
-      "Googet patching is performed by running `googet update`.",
+      "Goo update settings. Use this setting to override the default `goo` patch rules.",
     ).optional(),
     migInstancesAllowed: z.boolean().describe(
       "Allows the patch job to run on Managed instance groups (MIGs).",
@@ -226,7 +222,8 @@ const GlobalArgsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -238,7 +235,9 @@ const GlobalArgsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Linux VMs targeted by the PatchJob.",
+      ).optional(),
       windowsExecStepConfig: z.object({
         allowedSuccessCodes: z.array(z.number().int()).describe(
           "Defaults to [0]. A list of possible return values that the execution can return to indicate a success.",
@@ -253,7 +252,8 @@ const GlobalArgsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -265,8 +265,10 @@ const GlobalArgsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
-    }).describe("A step that runs an executable for a PatchJob.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Windows VMs targeted by the PatchJob.",
+      ).optional(),
+    }).describe("The `ExecStep` to run after the patch update.").optional(),
     preStep: z.object({
       linuxExecStepConfig: z.object({
         allowedSuccessCodes: z.array(z.number().int()).describe(
@@ -282,7 +284,8 @@ const GlobalArgsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -294,7 +297,9 @@ const GlobalArgsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Linux VMs targeted by the PatchJob.",
+      ).optional(),
       windowsExecStepConfig: z.object({
         allowedSuccessCodes: z.array(z.number().int()).describe(
           "Defaults to [0]. A list of possible return values that the execution can return to indicate a success.",
@@ -309,7 +314,8 @@ const GlobalArgsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -321,8 +327,10 @@ const GlobalArgsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
-    }).describe("A step that runs an executable for a PatchJob.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Windows VMs targeted by the PatchJob.",
+      ).optional(),
+    }).describe("The `ExecStep` to run before the patch update.").optional(),
     rebootConfig: z.enum([
       "REBOOT_CONFIG_UNSPECIFIED",
       "DEFAULT",
@@ -355,8 +363,9 @@ const GlobalArgsSchema = z.object({
       exclusivePatches: z.array(z.string()).describe(
         "An exclusive list of kbs to be updated. These are the only patches that will be updated. This field must not be used with other patch configurations.",
       ).optional(),
-    }).describe("Windows patching is performed using the Windows Update Agent.")
-      .optional(),
+    }).describe(
+      "Windows update settings. Use this override the default windows patch rules.",
+    ).optional(),
     yum: z.object({
       excludes: z.array(z.string()).describe(
         "List of packages to exclude from update. These packages are excluded by using the yum `--exclude` flag.",
@@ -371,7 +380,7 @@ const GlobalArgsSchema = z.object({
         "Adds the `--security` flag to `yum update`. Not supported on all platforms.",
       ).optional(),
     }).describe(
-      "Yum patching is performed by executing `yum update`. Additional options can be set to control how this is executed. Note that not all settings are supported on all platforms.",
+      "Yum update settings. Use this setting to override the default `yum` patch rules.",
     ).optional(),
     zypper: z.object({
       categories: z.array(z.string()).describe(
@@ -393,11 +402,9 @@ const GlobalArgsSchema = z.object({
         "Adds the `--with-update` flag, to `zypper patch`.",
       ).optional(),
     }).describe(
-      "Zypper patching is performed by running `zypper patch`. See also https://en.opensuse.org/SDB:Zypper_manual.",
+      "Zypper update settings. Use this setting to override the default `zypper` patch rules.",
     ).optional(),
-  }).describe(
-    "Patch configuration specifications. Contains details on how to apply the patch(es) to a VM instance.",
-  ).optional(),
+  }).describe("Optional. Patch configuration that is applied.").optional(),
   recurringSchedule: z.object({
     endTime: z.string().describe(
       "Optional. The end time at which a recurring patch deployment schedule is no longer active.",
@@ -429,12 +436,8 @@ const GlobalArgsSchema = z.object({
         weekOrdinal: z.number().int().describe(
           "Required. Week number in a month. 1-4 indicates the 1st to 4th week of the month. -1 indicates the last week of the month.",
         ).optional(),
-      }).describe(
-        'Represents one week day in a month. An example is "the 4th Sunday".',
-      ).optional(),
-    }).describe(
-      'Represents a monthly schedule. An example of a valid monthly schedule is "on the third Tuesday of the month" or "on the 15th of the month".',
-    ).optional(),
+      }).describe("Required. Week day in a month.").optional(),
+    }).describe("Required. Schedule with monthly executions.").optional(),
     nextExecuteTime: z.string().describe(
       "Output only. The time the next patch job is scheduled to run.",
     ).optional(),
@@ -454,9 +457,8 @@ const GlobalArgsSchema = z.object({
       seconds: z.number().int().describe(
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
+    }).describe("Required. Time of the day to run a recurring deployment.")
+      .optional(),
     timeZone: z.object({
       id: z.string().describe(
         'IANA Time Zone Database time zone. For example "America/New_York".',
@@ -465,7 +467,7 @@ const GlobalArgsSchema = z.object({
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
     }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+      "Required. Defines the time zone that `time_of_day` is relative to. The rules for daylight saving time are determined by the chosen time zone.",
     ).optional(),
     weekly: z.object({
       dayOfWeek: z.enum([
@@ -478,8 +480,8 @@ const GlobalArgsSchema = z.object({
         "SATURDAY",
         "SUNDAY",
       ]).describe("Required. Day of the week.").optional(),
-    }).describe("Represents a weekly schedule.").optional(),
-  }).describe("Sets the time for recurring patch deployments.").optional(),
+    }).describe("Required. Schedule with weekly executions.").optional(),
+  }).describe("Required. Schedule recurring executions.").optional(),
   rollout: z.object({
     disruptionBudget: z.object({
       fixed: z.number().int().describe("Specifies a fixed value.").optional(),
@@ -487,13 +489,11 @@ const GlobalArgsSchema = z.object({
         "Specifies the relative value defined as a percentage, which will be multiplied by a reference value.",
       ).optional(),
     }).describe(
-      'Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.',
+      "The maximum number (or percentage) of VMs per zone to disrupt at any given moment. The number of VMs calculated from multiplying the percentage by the total number of VMs in a zone is rounded up. During patching, a VM is considered disrupted from the time the agent is notified to begin until patching has completed. This disruption time includes the time to complete reboot and any post-patch steps. A VM contributes to the disruption budget if its patching operation fails either when applying the patches, running pre or post patch steps, or if it fails to respond with a success notification before timing out. VMs that are not running or do not have an active agent do not count toward this disruption budget. For zone-by-zone rollouts, if the disruption budget in a zone is exceeded, the patch job stops, because continuing to the next zone requires completion of the patch process in the previous zone. For example, if the disruption budget has a fixed value of `10`, and 8 VMs fail to patch in the current zone, the patch job continues to patch 2 VMs at a time until the zone is completed. When that zone is completed successfully, patching begins with 10 VMs at a time in the next zone. If 10 VMs in the next zone fail to patch, the patch job stops.",
     ).optional(),
     mode: z.enum(["MODE_UNSPECIFIED", "ZONE_BY_ZONE", "CONCURRENT_ZONES"])
       .describe("Mode of the patch rollout.").optional(),
-  }).describe(
-    "Patch rollout configuration specifications. Contains details on the concurrency control when applying patch(es) to all targeted VMs.",
-  ).optional(),
+  }).describe("Optional. Rollout strategy of the patch job.").optional(),
   patchDeploymentId: z.string().describe(
     "Required. A name for the patch deployment in the project. When creating a name the following rules apply: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project.",
   ).optional(),
@@ -666,9 +666,7 @@ const InputsSchema = z.object({
     zones: z.array(z.string()).describe(
       "Targets VM instances in ANY of these zones. Leave empty to target VM instances in any zone.",
     ).optional(),
-  }).describe(
-    "A filter to target VM instances for patching. The targeted VMs must meet all criteria specified. So if both labels and zones are specified, the patch job targets only VMs with those labels and in those zones.",
-  ).optional(),
+  }).describe("Required. VM instances to patch.").optional(),
   name: z.string().describe(
     "Unique name for the patch deployment resource in a project. The patch deployment name is in the form: `projects/{project_id}/patchDeployments/{patch_deployment_id}`. This field is ignored when you create a new patch deployment.",
   ).optional(),
@@ -676,9 +674,7 @@ const InputsSchema = z.object({
     executeTime: z.string().describe(
       "Required. The desired patch job execution time.",
     ).optional(),
-  }).describe(
-    "Sets the time for a one time patch deployment. Timestamp is in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.",
-  ).optional(),
+  }).describe("Required. Schedule a one-time execution.").optional(),
   patchConfig: z.object({
     apt: z.object({
       excludes: z.array(z.string()).describe(
@@ -691,10 +687,10 @@ const InputsSchema = z.object({
         "By changing the type to DIST, the patching is performed using `apt-get dist-upgrade` instead.",
       ).optional(),
     }).describe(
-      "Apt patching is completed by executing `apt-get update && apt-get upgrade`. Additional options can be set to control how this is executed.",
+      "Apt update settings. Use this setting to override the default `apt` patch rules.",
     ).optional(),
     goo: z.object({}).describe(
-      "Googet patching is performed by running `googet update`.",
+      "Goo update settings. Use this setting to override the default `goo` patch rules.",
     ).optional(),
     migInstancesAllowed: z.boolean().describe(
       "Allows the patch job to run on Managed instance groups (MIGs).",
@@ -714,7 +710,8 @@ const InputsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -726,7 +723,9 @@ const InputsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Linux VMs targeted by the PatchJob.",
+      ).optional(),
       windowsExecStepConfig: z.object({
         allowedSuccessCodes: z.array(z.number().int()).describe(
           "Defaults to [0]. A list of possible return values that the execution can return to indicate a success.",
@@ -741,7 +740,8 @@ const InputsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -753,8 +753,10 @@ const InputsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
-    }).describe("A step that runs an executable for a PatchJob.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Windows VMs targeted by the PatchJob.",
+      ).optional(),
+    }).describe("The `ExecStep` to run after the patch update.").optional(),
     preStep: z.object({
       linuxExecStepConfig: z.object({
         allowedSuccessCodes: z.array(z.number().int()).describe(
@@ -770,7 +772,8 @@ const InputsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -782,7 +785,9 @@ const InputsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Linux VMs targeted by the PatchJob.",
+      ).optional(),
       windowsExecStepConfig: z.object({
         allowedSuccessCodes: z.array(z.number().int()).describe(
           "Defaults to [0]. A list of possible return values that the execution can return to indicate a success.",
@@ -797,7 +802,8 @@ const InputsSchema = z.object({
           object: z.string().describe(
             "Required. Name of the Cloud Storage object.",
           ).optional(),
-        }).describe("Cloud Storage object representation.").optional(),
+        }).describe("A Cloud Storage object containing the executable.")
+          .optional(),
         interpreter: z.enum([
           "INTERPRETER_UNSPECIFIED",
           "NONE",
@@ -809,8 +815,10 @@ const InputsSchema = z.object({
         localPath: z.string().describe(
           "An absolute path to the executable on the VM.",
         ).optional(),
-      }).describe("Common configurations for an ExecStep.").optional(),
-    }).describe("A step that runs an executable for a PatchJob.").optional(),
+      }).describe(
+        "The ExecStepConfig for all Windows VMs targeted by the PatchJob.",
+      ).optional(),
+    }).describe("The `ExecStep` to run before the patch update.").optional(),
     rebootConfig: z.enum([
       "REBOOT_CONFIG_UNSPECIFIED",
       "DEFAULT",
@@ -843,8 +851,9 @@ const InputsSchema = z.object({
       exclusivePatches: z.array(z.string()).describe(
         "An exclusive list of kbs to be updated. These are the only patches that will be updated. This field must not be used with other patch configurations.",
       ).optional(),
-    }).describe("Windows patching is performed using the Windows Update Agent.")
-      .optional(),
+    }).describe(
+      "Windows update settings. Use this override the default windows patch rules.",
+    ).optional(),
     yum: z.object({
       excludes: z.array(z.string()).describe(
         "List of packages to exclude from update. These packages are excluded by using the yum `--exclude` flag.",
@@ -859,7 +868,7 @@ const InputsSchema = z.object({
         "Adds the `--security` flag to `yum update`. Not supported on all platforms.",
       ).optional(),
     }).describe(
-      "Yum patching is performed by executing `yum update`. Additional options can be set to control how this is executed. Note that not all settings are supported on all platforms.",
+      "Yum update settings. Use this setting to override the default `yum` patch rules.",
     ).optional(),
     zypper: z.object({
       categories: z.array(z.string()).describe(
@@ -881,11 +890,9 @@ const InputsSchema = z.object({
         "Adds the `--with-update` flag, to `zypper patch`.",
       ).optional(),
     }).describe(
-      "Zypper patching is performed by running `zypper patch`. See also https://en.opensuse.org/SDB:Zypper_manual.",
+      "Zypper update settings. Use this setting to override the default `zypper` patch rules.",
     ).optional(),
-  }).describe(
-    "Patch configuration specifications. Contains details on how to apply the patch(es) to a VM instance.",
-  ).optional(),
+  }).describe("Optional. Patch configuration that is applied.").optional(),
   recurringSchedule: z.object({
     endTime: z.string().describe(
       "Optional. The end time at which a recurring patch deployment schedule is no longer active.",
@@ -917,12 +924,8 @@ const InputsSchema = z.object({
         weekOrdinal: z.number().int().describe(
           "Required. Week number in a month. 1-4 indicates the 1st to 4th week of the month. -1 indicates the last week of the month.",
         ).optional(),
-      }).describe(
-        'Represents one week day in a month. An example is "the 4th Sunday".',
-      ).optional(),
-    }).describe(
-      'Represents a monthly schedule. An example of a valid monthly schedule is "on the third Tuesday of the month" or "on the 15th of the month".',
-    ).optional(),
+      }).describe("Required. Week day in a month.").optional(),
+    }).describe("Required. Schedule with monthly executions.").optional(),
     nextExecuteTime: z.string().describe(
       "Output only. The time the next patch job is scheduled to run.",
     ).optional(),
@@ -942,9 +945,8 @@ const InputsSchema = z.object({
       seconds: z.number().int().describe(
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
+    }).describe("Required. Time of the day to run a recurring deployment.")
+      .optional(),
     timeZone: z.object({
       id: z.string().describe(
         'IANA Time Zone Database time zone. For example "America/New_York".',
@@ -953,7 +955,7 @@ const InputsSchema = z.object({
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
     }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+      "Required. Defines the time zone that `time_of_day` is relative to. The rules for daylight saving time are determined by the chosen time zone.",
     ).optional(),
     weekly: z.object({
       dayOfWeek: z.enum([
@@ -966,8 +968,8 @@ const InputsSchema = z.object({
         "SATURDAY",
         "SUNDAY",
       ]).describe("Required. Day of the week.").optional(),
-    }).describe("Represents a weekly schedule.").optional(),
-  }).describe("Sets the time for recurring patch deployments.").optional(),
+    }).describe("Required. Schedule with weekly executions.").optional(),
+  }).describe("Required. Schedule recurring executions.").optional(),
   rollout: z.object({
     disruptionBudget: z.object({
       fixed: z.number().int().describe("Specifies a fixed value.").optional(),
@@ -975,13 +977,11 @@ const InputsSchema = z.object({
         "Specifies the relative value defined as a percentage, which will be multiplied by a reference value.",
       ).optional(),
     }).describe(
-      'Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.',
+      "The maximum number (or percentage) of VMs per zone to disrupt at any given moment. The number of VMs calculated from multiplying the percentage by the total number of VMs in a zone is rounded up. During patching, a VM is considered disrupted from the time the agent is notified to begin until patching has completed. This disruption time includes the time to complete reboot and any post-patch steps. A VM contributes to the disruption budget if its patching operation fails either when applying the patches, running pre or post patch steps, or if it fails to respond with a success notification before timing out. VMs that are not running or do not have an active agent do not count toward this disruption budget. For zone-by-zone rollouts, if the disruption budget in a zone is exceeded, the patch job stops, because continuing to the next zone requires completion of the patch process in the previous zone. For example, if the disruption budget has a fixed value of `10`, and 8 VMs fail to patch in the current zone, the patch job continues to patch 2 VMs at a time until the zone is completed. When that zone is completed successfully, patching begins with 10 VMs at a time in the next zone. If 10 VMs in the next zone fail to patch, the patch job stops.",
     ).optional(),
     mode: z.enum(["MODE_UNSPECIFIED", "ZONE_BY_ZONE", "CONCURRENT_ZONES"])
       .describe("Mode of the patch rollout.").optional(),
-  }).describe(
-    "Patch rollout configuration specifications. Contains details on the concurrency control when applying patch(es) to all targeted VMs.",
-  ).optional(),
+  }).describe("Optional. Rollout strategy of the patch job.").optional(),
   patchDeploymentId: z.string().describe(
     "Required. A name for the patch deployment in the project. When creating a name the following rules apply: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project.",
   ).optional(),
@@ -1013,7 +1013,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud OS Config PatchDeployments. Registered at `@swamp/gcp/osconfig/patchdeployments`. */
 export const model = {
   type: "@swamp/gcp/osconfig/patchdeployments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

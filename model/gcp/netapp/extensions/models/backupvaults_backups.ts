@@ -177,7 +177,9 @@ const GlobalArgsSchema = z.object({
     volumeUuid: z.string().describe(
       "Required. The UUID of the ONTAP source volume.",
     ).optional(),
-  }).describe("Represents ONTAP source details.").optional(),
+  }).describe(
+    "Optional. Represents source details for ONTAP backups. Either source_volume or ontap_source should be provided.",
+  ).optional(),
   sourceSnapshot: z.string().describe(
     "If specified, backup will be created from the given snapshot. If not specified, there will be a new snapshot taken to initiate the backup creation. Format: `projects/{project_id}/locations/{location}/volumes/{volume_id}/snapshots/{snapshot_id}`",
   ).optional(),
@@ -244,7 +246,9 @@ const InputsSchema = z.object({
     volumeUuid: z.string().describe(
       "Required. The UUID of the ONTAP source volume.",
     ).optional(),
-  }).describe("Represents ONTAP source details.").optional(),
+  }).describe(
+    "Optional. Represents source details for ONTAP backups. Either source_volume or ontap_source should be provided.",
+  ).optional(),
   sourceSnapshot: z.string().describe(
     "If specified, backup will be created from the given snapshot. If not specified, there will be a new snapshot taken to initiate the backup creation. Format: `projects/{project_id}/locations/{location}/volumes/{volume_id}/snapshots/{snapshot_id}`",
   ).optional(),
@@ -285,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp BackupVaults.Backups. Registered at `@swamp/gcp/netapp/backupvaults-backups`. */
 export const model = {
   type: "@swamp/gcp/netapp/backupvaults-backups",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -421,6 +425,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: ontapSource",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

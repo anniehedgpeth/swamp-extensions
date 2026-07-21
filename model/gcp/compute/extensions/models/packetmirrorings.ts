@@ -209,7 +209,9 @@ const GlobalArgsSchema = z.object({
     url: z.string().describe(
       "Resource URL to the forwarding rule representing the ILB configured as destination of the mirrored traffic.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The Forwarding Rule resource of typeloadBalancingScheme=INTERNAL that will be used as collector for mirrored traffic. The specified forwarding rule must have isMirroringCollector set to true.",
+  ).optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -226,7 +228,9 @@ const GlobalArgsSchema = z.object({
     direction: z.enum(["BOTH", "EGRESS", "INGRESS"]).describe(
       "Direction of traffic to mirror, either INGRESS, EGRESS, or BOTH. The default is BOTH.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Filter for mirrored traffic. If unspecified, all IPv4 traffic is mirrored.",
+  ).optional(),
   mirroredResources: z.object({
     instances: z.array(z.object({
       canonicalUrl: z.string().describe(
@@ -251,7 +255,9 @@ const GlobalArgsSchema = z.object({
     tags: z.array(z.string()).describe(
       "A set of mirrored tags. Traffic from/to all VM instances that have one or more of these tags will be mirrored.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "PacketMirroring mirroredResourceInfos. MirroredResourceInfo specifies a set of mirrored VM instances, subnetworks and/or tags for which traffic from/to all VM instances will be mirrored.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -261,7 +267,9 @@ const GlobalArgsSchema = z.object({
       "Output only. [Output Only] Unique identifier for the network; defined by the server.",
     ).optional(),
     url: z.string().describe("URL of the network resource.").optional(),
-  }).optional(),
+  }).describe(
+    "Specifies the mirrored VPC network. Only packets in this network will be mirrored. All mirrored VMs should have a NIC in the given network. All mirrored subnetworks should belong to the given network.",
+  ).optional(),
   priority: z.number().int().describe(
     "The priority of applying this configuration. Priority is used to break ties in cases where there is more than one matching rule. In the case of two rules that apply for a given Instance, the one with the lowest-numbered priority value wins. Default value is 1000. Valid range is 0 through 65535.",
   ).optional(),
@@ -323,7 +331,9 @@ const InputsSchema = z.object({
     url: z.string().describe(
       "Resource URL to the forwarding rule representing the ILB configured as destination of the mirrored traffic.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The Forwarding Rule resource of typeloadBalancingScheme=INTERNAL that will be used as collector for mirrored traffic. The specified forwarding rule must have isMirroringCollector set to true.",
+  ).optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -340,7 +350,9 @@ const InputsSchema = z.object({
     direction: z.enum(["BOTH", "EGRESS", "INGRESS"]).describe(
       "Direction of traffic to mirror, either INGRESS, EGRESS, or BOTH. The default is BOTH.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Filter for mirrored traffic. If unspecified, all IPv4 traffic is mirrored.",
+  ).optional(),
   mirroredResources: z.object({
     instances: z.array(z.object({
       canonicalUrl: z.string().describe(
@@ -365,7 +377,9 @@ const InputsSchema = z.object({
     tags: z.array(z.string()).describe(
       "A set of mirrored tags. Traffic from/to all VM instances that have one or more of these tags will be mirrored.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "PacketMirroring mirroredResourceInfos. MirroredResourceInfo specifies a set of mirrored VM instances, subnetworks and/or tags for which traffic from/to all VM instances will be mirrored.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -375,7 +389,9 @@ const InputsSchema = z.object({
       "Output only. [Output Only] Unique identifier for the network; defined by the server.",
     ).optional(),
     url: z.string().describe("URL of the network resource.").optional(),
-  }).optional(),
+  }).describe(
+    "Specifies the mirrored VPC network. Only packets in this network will be mirrored. All mirrored VMs should have a NIC in the given network. All mirrored subnetworks should belong to the given network.",
+  ).optional(),
   priority: z.number().int().describe(
     "The priority of applying this configuration. Priority is used to break ties in cases where there is more than one matching rule. In the case of two rules that apply for a given Instance, the one with the lowest-numbered priority value wins. Default value is 1000. Valid range is 0 through 65535.",
   ).optional(),
@@ -410,7 +426,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine PacketMirrorings. Registered at `@swamp/gcp/compute/packetmirrorings`. */
 export const model = {
   type: "@swamp/gcp/compute/packetmirrorings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -509,6 +525,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

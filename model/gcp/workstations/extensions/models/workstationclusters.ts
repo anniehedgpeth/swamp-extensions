@@ -183,12 +183,14 @@ const GlobalArgsSchema = z.object({
     domain: z.string().describe(
       "Immutable. Domain used by Workstations for HTTP ingress.",
     ).optional(),
-  }).describe("Configuration options for a custom domain.").optional(),
+  }).describe("Optional. Configuration options for a custom domain.")
+    .optional(),
   gatewayConfig: z.object({
     http2Enabled: z.boolean().describe(
       "Optional. Whether HTTP/2 is enabled for this workstation cluster. Defaults to false.",
     ).optional(),
-  }).describe("Configuration options for Cluster HTTP Gateway.").optional(),
+  }).describe("Optional. Configuration options for Cluster HTTP Gateway.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. [Labels](https://cloud.google.com/workstations/docs/label-resources) that are applied to the workstation cluster and that are also propagated to the underlying Compute Engine resources.",
   ).optional(),
@@ -211,7 +213,7 @@ const GlobalArgsSchema = z.object({
     serviceAttachmentUri: z.string().describe(
       "Output only. Service attachment URI for the workstation cluster. The service attachment is created when private endpoint is enabled. To access workstations in the workstation cluster, configure access to the managed service using [Private Service Connect](https://cloud.google.com/vpc/docs/configure-private-service-connect-services).",
     ).optional(),
-  }).describe("Configuration options for private workstation clusters.")
+  }).describe("Optional. Configuration for private workstation cluster.")
     .optional(),
   subnetwork: z.string().describe(
     "Immutable. Name of the Compute Engine subnetwork in which instances associated with this workstation cluster will be created. Must be part of the subnetwork specified for this workstation cluster.",
@@ -287,12 +289,14 @@ const InputsSchema = z.object({
     domain: z.string().describe(
       "Immutable. Domain used by Workstations for HTTP ingress.",
     ).optional(),
-  }).describe("Configuration options for a custom domain.").optional(),
+  }).describe("Optional. Configuration options for a custom domain.")
+    .optional(),
   gatewayConfig: z.object({
     http2Enabled: z.boolean().describe(
       "Optional. Whether HTTP/2 is enabled for this workstation cluster. Defaults to false.",
     ).optional(),
-  }).describe("Configuration options for Cluster HTTP Gateway.").optional(),
+  }).describe("Optional. Configuration options for Cluster HTTP Gateway.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. [Labels](https://cloud.google.com/workstations/docs/label-resources) that are applied to the workstation cluster and that are also propagated to the underlying Compute Engine resources.",
   ).optional(),
@@ -315,7 +319,7 @@ const InputsSchema = z.object({
     serviceAttachmentUri: z.string().describe(
       "Output only. Service attachment URI for the workstation cluster. The service attachment is created when private endpoint is enabled. To access workstations in the workstation cluster, configure access to the managed service using [Private Service Connect](https://cloud.google.com/vpc/docs/configure-private-service-connect-services).",
     ).optional(),
-  }).describe("Configuration options for private workstation clusters.")
+  }).describe("Optional. Configuration for private workstation cluster.")
     .optional(),
   subnetwork: z.string().describe(
     "Immutable. Name of the Compute Engine subnetwork in which instances associated with this workstation cluster will be created. Must be part of the subnetwork specified for this workstation cluster.",
@@ -360,7 +364,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workstations WorkstationClusters. Registered at `@swamp/gcp/workstations/workstationclusters`. */
 export const model = {
   type: "@swamp/gcp/workstations/workstationclusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -535,6 +539,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: workstationAuthorizationUrl, workstationLaunchUrl",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

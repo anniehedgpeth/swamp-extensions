@@ -174,7 +174,7 @@ const GlobalArgsSchema = z.object({
     alternateUsePermission: z.string().describe(
       "Immutable. The IAM permission grantable on the Entry Group to allow access to instantiate Entries of Dataplex Universal Catalog owned Entry Types, only settable for Dataplex Universal Catalog owned Types.",
     ).optional(),
-  }).describe("Authorization for an Entry Type.").optional(),
+  }).describe("Immutable. Authorization defined for this type.").optional(),
   description: z.string().describe("Optional. Description of the EntryType.")
     .optional(),
   displayName: z.string().describe("Optional. User friendly display name.")
@@ -234,7 +234,7 @@ const InputsSchema = z.object({
     alternateUsePermission: z.string().describe(
       "Immutable. The IAM permission grantable on the Entry Group to allow access to instantiate Entries of Dataplex Universal Catalog owned Entry Types, only settable for Dataplex Universal Catalog owned Types.",
     ).optional(),
-  }).describe("Authorization for an Entry Type.").optional(),
+  }).describe("Immutable. Authorization defined for this type.").optional(),
   description: z.string().describe("Optional. Description of the EntryType.")
     .optional(),
   displayName: z.string().describe("Optional. User friendly display name.")
@@ -285,7 +285,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex EntryTypes. Registered at `@swamp/gcp/dataplex/entrytypes`. */
 export const model = {
   type: "@swamp/gcp/dataplex/entrytypes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -389,6 +389,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -544,9 +549,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["authorization"] !== undefined) {
-          body["authorization"] = g["authorization"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

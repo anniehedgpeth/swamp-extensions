@@ -164,7 +164,7 @@ const GlobalArgsSchema = z.object({
           allowedValues: z.array(z.unknown()).describe(
             "The set of allowed values for this enum. This set must not be empty and can include up to 100 allowed values. The display names of the values in this set must not be empty and must be case-insensitively unique within this set. The order of items in this set is preserved. This field can be used to create, remove, and reorder enum values. To rename enum values, use the `RenameTagTemplateFieldEnumValue` method.",
           ).optional(),
-        }).optional(),
+        }).describe("An enum type.").optional(),
         primitiveType: z.enum([
           "PRIMITIVE_TYPE_UNSPECIFIED",
           "DOUBLE",
@@ -174,7 +174,8 @@ const GlobalArgsSchema = z.object({
           "RICHTEXT",
         ]).describe("Primitive types, such as string, boolean, etc.")
           .optional(),
-      }).optional(),
+      }).describe("Required. The type of value this tag field can contain.")
+        .optional(),
     }),
   ).describe(
     "Required. Map of tag template field IDs to the settings for the field. This map is an exhaustive list of the allowed fields. The map must contain at least one field and at most 500 fields. The keys to this map are tag template field IDs. The IDs have the following limitations: * Can contain uppercase and lowercase letters, numbers (0-9) and underscores (_). * Must be at least 1 character and at most 64 characters long. * Must start with a letter or underscore.",
@@ -239,7 +240,7 @@ const InputsSchema = z.object({
           allowedValues: z.array(z.unknown()).describe(
             "The set of allowed values for this enum. This set must not be empty and can include up to 100 allowed values. The display names of the values in this set must not be empty and must be case-insensitively unique within this set. The order of items in this set is preserved. This field can be used to create, remove, and reorder enum values. To rename enum values, use the `RenameTagTemplateFieldEnumValue` method.",
           ).optional(),
-        }).optional(),
+        }).describe("An enum type.").optional(),
         primitiveType: z.enum([
           "PRIMITIVE_TYPE_UNSPECIFIED",
           "DOUBLE",
@@ -249,7 +250,8 @@ const InputsSchema = z.object({
           "RICHTEXT",
         ]).describe("Primitive types, such as string, boolean, etc.")
           .optional(),
-      }).optional(),
+      }).describe("Required. The type of value this tag field can contain.")
+        .optional(),
     }),
   ).describe(
     "Required. Map of tag template field IDs to the settings for the field. This map is an exhaustive list of the allowed fields. The map must contain at least one field and at most 500 fields. The keys to this map are tag template field IDs. The IDs have the following limitations: * Can contain uppercase and lowercase letters, numbers (0-9) and underscores (_). * Must be at least 1 character and at most 64 characters long. * Must start with a letter or underscore.",
@@ -291,7 +293,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Data Catalog TagTemplates. Registered at `@swamp/gcp/datacatalog/tagtemplates`. */
 export const model = {
   type: "@swamp/gcp/datacatalog/tagtemplates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -400,6 +402,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

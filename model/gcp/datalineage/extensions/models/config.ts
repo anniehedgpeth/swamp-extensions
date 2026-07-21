@@ -103,18 +103,18 @@ const GlobalArgsSchema = z.object({
           "Required. Integration to which the rule applies. This field can be used to specify the integration against which the ingestion rule should be applied.",
         ).optional(),
       }).describe(
-        "Integration selector of the rule. The rule is only applied to the Integration selected by the selector.",
+        "Required. Integration selector of the rule. The rule is only applied to the Integration selected by the selector.",
       ).optional(),
       lineageEnablement: z.object({
         enabled: z.boolean().describe(
           "Optional. If true, ingestion of lineage should be enabled. If false, it should be disabled. If unspecified, the system default value is used.",
         ).optional(),
       }).describe(
-        "Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children.",
+        "Required. Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children. If unspecified, the ingestion will be enabled only if it was configured in the resource's parent.",
       ).optional(),
     })).describe("Optional. List of rules for Data Lineage ingestion.")
       .optional(),
-  }).describe("Defines how Lineage should be ingested for a given resource.")
+  }).describe("Optional. Ingestion rule for Data Lineage ingestion.")
     .optional(),
   name: z.string().describe(
     "Identifier. The resource name of the config. Format: `organizations/{organization_id}/locations/global/config` `folders/{folder_id}/locations/global/config` `projects/{project_id}/locations/global/config` `projects/{project_number}/locations/global/config`",
@@ -159,18 +159,18 @@ const InputsSchema = z.object({
           "Required. Integration to which the rule applies. This field can be used to specify the integration against which the ingestion rule should be applied.",
         ).optional(),
       }).describe(
-        "Integration selector of the rule. The rule is only applied to the Integration selected by the selector.",
+        "Required. Integration selector of the rule. The rule is only applied to the Integration selected by the selector.",
       ).optional(),
       lineageEnablement: z.object({
         enabled: z.boolean().describe(
           "Optional. If true, ingestion of lineage should be enabled. If false, it should be disabled. If unspecified, the system default value is used.",
         ).optional(),
       }).describe(
-        "Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children.",
+        "Required. Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children. If unspecified, the ingestion will be enabled only if it was configured in the resource's parent.",
       ).optional(),
     })).describe("Optional. List of rules for Data Lineage ingestion.")
       .optional(),
-  }).describe("Defines how Lineage should be ingested for a given resource.")
+  }).describe("Optional. Ingestion rule for Data Lineage ingestion.")
     .optional(),
   name: z.string().describe(
     "Identifier. The resource name of the config. Format: `organizations/{organization_id}/locations/global/config` `folders/{folder_id}/locations/global/config` `projects/{project_id}/locations/global/config` `projects/{project_number}/locations/global/config`",
@@ -200,7 +200,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Lineage Config. Registered at `@swamp/gcp/datalineage/config`. */
 export const model = {
   type: "@swamp/gcp/datalineage/config",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -304,6 +304,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

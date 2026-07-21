@@ -222,9 +222,8 @@ const GlobalArgsSchema = z.object({
       inclusionLabels: z.record(z.string(), z.string()).describe(
         'Optional. A map of key-value pairs representing VM labels. VMs must have all of the labels specified in this map to be selected (logical AND). e.g. If the `inclusion_labels` are {("key1", "value1"), ("key2", "value2")}, the VM labels must contain both ("key1", "value1") and ("key2", "value2") to be selected. If the VM labels are ("key1", "value1") and ("something", "else"), it will not be selected. If the map is empty, it\'s considered a match.',
       ).optional(),
-    }).describe(
-      "A LabelSelector is applied to a VM only if it matches all the specified labels.",
-    ).optional(),
+    }).describe("Optional. LabelSelector selects VMs based on their labels.")
+      .optional(),
   })).describe(
     "Optional. Selectors to target VMs for this policy. VMs are selected if they match *any* of the provided selectors (logical OR). If this list is empty, the policy applies to all VMs.",
   ).optional(),
@@ -289,9 +288,8 @@ const InputsSchema = z.object({
       inclusionLabels: z.record(z.string(), z.string()).describe(
         'Optional. A map of key-value pairs representing VM labels. VMs must have all of the labels specified in this map to be selected (logical AND). e.g. If the `inclusion_labels` are {("key1", "value1"), ("key2", "value2")}, the VM labels must contain both ("key1", "value1") and ("key2", "value2") to be selected. If the VM labels are ("key1", "value1") and ("something", "else"), it will not be selected. If the map is empty, it\'s considered a match.',
       ).optional(),
-    }).describe(
-      "A LabelSelector is applied to a VM only if it matches all the specified labels.",
-    ).optional(),
+    }).describe("Optional. LabelSelector selects VMs based on their labels.")
+      .optional(),
   })).describe(
     "Optional. Selectors to target VMs for this policy. VMs are selected if they match *any* of the provided selectors (logical OR). If this list is empty, the policy applies to all VMs.",
   ).optional(),
@@ -331,7 +329,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ZoneVmExtensionPolicies. Registered at `@swamp/gcp/compute/zonevmextensionpolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/zonevmextensionpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

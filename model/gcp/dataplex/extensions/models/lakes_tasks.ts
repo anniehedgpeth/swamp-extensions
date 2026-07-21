@@ -187,70 +187,7 @@ const GlobalArgsSchema = z.object({
     serviceAccount: z.string().describe(
       "Required. Service account to use to execute a task. If not provided, the default Compute service account for the project is used.",
     ).optional(),
-  }).describe("Execution related settings, like retry and service_account.")
-    .optional(),
-  executionStatus: z.object({
-    latestJob: z.object({
-      endTime: z.string().describe("Output only. The time when the job ended.")
-        .optional(),
-      executionSpec: z.object({
-        args: z.record(z.string(), z.string()).describe(
-          "Optional. The arguments to pass to the task. The args can use placeholders of the format ${placeholder} as part of key/value string. These will be interpolated before passing the args to the driver. Currently supported placeholders: - ${task_id} - ${job_time} To pass positional args, set the key as TASK_ARGS. The value should be a comma-separated string of all the positional arguments. To use a delimiter other than comma, refer to https://cloud.google.com/sdk/gcloud/reference/topic/escaping. In case of other keys being present in the args, then TASK_ARGS will be passed as the last argument.",
-        ).optional(),
-        kmsKey: z.string().describe(
-          "Optional. The Cloud KMS key to use for encryption, of the form: projects/{project_number}/locations/{location_id}/keyRings/{key-ring-name}/cryptoKeys/{key-name}.",
-        ).optional(),
-        maxJobExecutionLifetime: z.string().describe(
-          "Optional. The maximum duration after which the job execution is expired.",
-        ).optional(),
-        project: z.string().describe(
-          "Optional. The project in which jobs are run. By default, the project containing the Lake is used. If a project is provided, the ExecutionSpec.service_account must belong to this project.",
-        ).optional(),
-        serviceAccount: z.string().describe(
-          "Required. Service account to use to execute a task. If not provided, the default Compute service account for the project is used.",
-        ).optional(),
-      }).describe("Execution related settings, like retry and service_account.")
-        .optional(),
-      labels: z.record(z.string(), z.string()).describe(
-        "Output only. User-defined labels for the task.",
-      ).optional(),
-      message: z.string().describe(
-        "Output only. Additional information about the current state.",
-      ).optional(),
-      name: z.string().describe(
-        "Output only. The relative resource name of the job, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/tasks/{task_id}/jobs/{job_id}.",
-      ).optional(),
-      retryCount: z.number().int().describe(
-        "Output only. The number of times the job has been retried (excluding the initial attempt).",
-      ).optional(),
-      service: z.enum(["SERVICE_UNSPECIFIED", "DATAPROC"]).describe(
-        "Output only. The underlying service running a job.",
-      ).optional(),
-      serviceJob: z.string().describe(
-        "Output only. The full resource name for the job run under a particular service.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. The time when the job was started.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "RUNNING",
-        "CANCELLING",
-        "CANCELLED",
-        "SUCCEEDED",
-        "FAILED",
-        "ABORTED",
-      ]).describe("Output only. Execution state for the job.").optional(),
-      trigger: z.enum(["TRIGGER_UNSPECIFIED", "TASK_CONFIG", "RUN_REQUEST"])
-        .describe("Output only. Job execution trigger.").optional(),
-      uid: z.string().describe(
-        "Output only. System generated globally unique ID for the job.",
-      ).optional(),
-    }).describe("A job represents an instance of a task.").optional(),
-    updateTime: z.string().describe(
-      "Output only. Last update time of the status.",
-    ).optional(),
-  }).describe("Status of the task execution (e.g. Jobs).").optional(),
+  }).describe("Required. Spec related to how a task is executed.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the task.",
   ).optional(),
@@ -269,8 +206,9 @@ const GlobalArgsSchema = z.object({
         maxExecutorsCount: z.number().int().describe(
           "Optional. Max configurable executors. If max_executors_count > executors_count, then auto-scaling is enabled. Max Executor Count should be between 2 and 1000. Default=1000",
         ).optional(),
-      }).describe("Batch compute resources associated with the task.")
-        .optional(),
+      }).describe(
+        "Compute resources needed for a Task when using Dataproc Serverless.",
+      ).optional(),
       containerImage: z.object({
         image: z.string().describe("Optional. Container image to use.")
           .optional(),
@@ -283,9 +221,7 @@ const GlobalArgsSchema = z.object({
         pythonPackages: z.array(z.string()).describe(
           "Optional. A list of python packages to be installed. Valid formats include Cloud Storage URI to a PIP installable library. For example, gs://bucket-name/my/path/to/lib.tar.gz",
         ).optional(),
-      }).describe(
-        "Container Image Runtime Configuration used with Batch execution.",
-      ).optional(),
+      }).describe("Container Image Runtime Configuration.").optional(),
       vpcNetwork: z.object({
         network: z.string().describe(
           "Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.",
@@ -296,15 +232,13 @@ const GlobalArgsSchema = z.object({
         subNetwork: z.string().describe(
           "Optional. The Cloud VPC sub-network in which the job is run.",
         ).optional(),
-      }).describe("Cloud VPC Network used to run the infrastructure.")
-        .optional(),
-    }).describe(
-      "Configuration for the underlying infrastructure used to run workloads.",
-    ).optional(),
+      }).describe("Vpc network.").optional(),
+    }).describe("Optional. Infrastructure specification for the execution.")
+      .optional(),
     notebook: z.string().describe(
       "Required. Path to input notebook. This can be the Cloud Storage URI of the notebook file or the path to a Notebook Content. The execution args are accessible as environment variables (TASK_key=value).",
     ).optional(),
-  }).describe("Config for running scheduled notebooks.").optional(),
+  }).describe("Config related to running scheduled Notebooks.").optional(),
   spark: z.object({
     archiveUris: z.array(z.string()).describe(
       "Optional. Cloud Storage URIs of archives to be extracted into the working directory of each executor. Supported file types:.jar,.tar,.tar.gz,.tgz, and.zip.",
@@ -320,8 +254,9 @@ const GlobalArgsSchema = z.object({
         maxExecutorsCount: z.number().int().describe(
           "Optional. Max configurable executors. If max_executors_count > executors_count, then auto-scaling is enabled. Max Executor Count should be between 2 and 1000. Default=1000",
         ).optional(),
-      }).describe("Batch compute resources associated with the task.")
-        .optional(),
+      }).describe(
+        "Compute resources needed for a Task when using Dataproc Serverless.",
+      ).optional(),
       containerImage: z.object({
         image: z.string().describe("Optional. Container image to use.")
           .optional(),
@@ -334,9 +269,7 @@ const GlobalArgsSchema = z.object({
         pythonPackages: z.array(z.string()).describe(
           "Optional. A list of python packages to be installed. Valid formats include Cloud Storage URI to a PIP installable library. For example, gs://bucket-name/my/path/to/lib.tar.gz",
         ).optional(),
-      }).describe(
-        "Container Image Runtime Configuration used with Batch execution.",
-      ).optional(),
+      }).describe("Container Image Runtime Configuration.").optional(),
       vpcNetwork: z.object({
         network: z.string().describe(
           "Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.",
@@ -347,11 +280,9 @@ const GlobalArgsSchema = z.object({
         subNetwork: z.string().describe(
           "Optional. The Cloud VPC sub-network in which the job is run.",
         ).optional(),
-      }).describe("Cloud VPC Network used to run the infrastructure.")
-        .optional(),
-    }).describe(
-      "Configuration for the underlying infrastructure used to run workloads.",
-    ).optional(),
+      }).describe("Vpc network.").optional(),
+    }).describe("Optional. Infrastructure specification for the execution.")
+      .optional(),
     mainClass: z.string().describe(
       "The name of the driver's main class. The jar file that contains the class must be in the default CLASSPATH or specified in jar_file_uris. The execution args are passed in as a sequence of named process arguments (--key=value).",
     ).optional(),
@@ -367,7 +298,7 @@ const GlobalArgsSchema = z.object({
     sqlScriptFile: z.string().describe(
       'A reference to a query file. This should be the Cloud Storage URI of the query file. The execution args are used to declare a set of script variables (set key="value";).',
     ).optional(),
-  }).describe("User-specified config for running a Spark task.").optional(),
+  }).describe("Config related to running custom Spark tasks.").optional(),
   triggerSpec: z.object({
     disabled: z.boolean().describe(
       "Optional. Prevent the task from executing. This does not cancel already running tasks. It is intended to temporarily disable RECURRING tasks.",
@@ -384,7 +315,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "ON_DEMAND", "RECURRING"]).describe(
       "Required. Immutable. Trigger type of the user-specified Task.",
     ).optional(),
-  }).describe("Task scheduling and trigger settings.").optional(),
+  }).describe(
+    "Required. Spec related to how often and when a task should be triggered.",
+  ).optional(),
   taskId: z.string().describe("Required. Task identifier.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -518,70 +451,7 @@ const InputsSchema = z.object({
     serviceAccount: z.string().describe(
       "Required. Service account to use to execute a task. If not provided, the default Compute service account for the project is used.",
     ).optional(),
-  }).describe("Execution related settings, like retry and service_account.")
-    .optional(),
-  executionStatus: z.object({
-    latestJob: z.object({
-      endTime: z.string().describe("Output only. The time when the job ended.")
-        .optional(),
-      executionSpec: z.object({
-        args: z.record(z.string(), z.string()).describe(
-          "Optional. The arguments to pass to the task. The args can use placeholders of the format ${placeholder} as part of key/value string. These will be interpolated before passing the args to the driver. Currently supported placeholders: - ${task_id} - ${job_time} To pass positional args, set the key as TASK_ARGS. The value should be a comma-separated string of all the positional arguments. To use a delimiter other than comma, refer to https://cloud.google.com/sdk/gcloud/reference/topic/escaping. In case of other keys being present in the args, then TASK_ARGS will be passed as the last argument.",
-        ).optional(),
-        kmsKey: z.string().describe(
-          "Optional. The Cloud KMS key to use for encryption, of the form: projects/{project_number}/locations/{location_id}/keyRings/{key-ring-name}/cryptoKeys/{key-name}.",
-        ).optional(),
-        maxJobExecutionLifetime: z.string().describe(
-          "Optional. The maximum duration after which the job execution is expired.",
-        ).optional(),
-        project: z.string().describe(
-          "Optional. The project in which jobs are run. By default, the project containing the Lake is used. If a project is provided, the ExecutionSpec.service_account must belong to this project.",
-        ).optional(),
-        serviceAccount: z.string().describe(
-          "Required. Service account to use to execute a task. If not provided, the default Compute service account for the project is used.",
-        ).optional(),
-      }).describe("Execution related settings, like retry and service_account.")
-        .optional(),
-      labels: z.record(z.string(), z.string()).describe(
-        "Output only. User-defined labels for the task.",
-      ).optional(),
-      message: z.string().describe(
-        "Output only. Additional information about the current state.",
-      ).optional(),
-      name: z.string().describe(
-        "Output only. The relative resource name of the job, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/tasks/{task_id}/jobs/{job_id}.",
-      ).optional(),
-      retryCount: z.number().int().describe(
-        "Output only. The number of times the job has been retried (excluding the initial attempt).",
-      ).optional(),
-      service: z.enum(["SERVICE_UNSPECIFIED", "DATAPROC"]).describe(
-        "Output only. The underlying service running a job.",
-      ).optional(),
-      serviceJob: z.string().describe(
-        "Output only. The full resource name for the job run under a particular service.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. The time when the job was started.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "RUNNING",
-        "CANCELLING",
-        "CANCELLED",
-        "SUCCEEDED",
-        "FAILED",
-        "ABORTED",
-      ]).describe("Output only. Execution state for the job.").optional(),
-      trigger: z.enum(["TRIGGER_UNSPECIFIED", "TASK_CONFIG", "RUN_REQUEST"])
-        .describe("Output only. Job execution trigger.").optional(),
-      uid: z.string().describe(
-        "Output only. System generated globally unique ID for the job.",
-      ).optional(),
-    }).describe("A job represents an instance of a task.").optional(),
-    updateTime: z.string().describe(
-      "Output only. Last update time of the status.",
-    ).optional(),
-  }).describe("Status of the task execution (e.g. Jobs).").optional(),
+  }).describe("Required. Spec related to how a task is executed.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the task.",
   ).optional(),
@@ -600,8 +470,9 @@ const InputsSchema = z.object({
         maxExecutorsCount: z.number().int().describe(
           "Optional. Max configurable executors. If max_executors_count > executors_count, then auto-scaling is enabled. Max Executor Count should be between 2 and 1000. Default=1000",
         ).optional(),
-      }).describe("Batch compute resources associated with the task.")
-        .optional(),
+      }).describe(
+        "Compute resources needed for a Task when using Dataproc Serverless.",
+      ).optional(),
       containerImage: z.object({
         image: z.string().describe("Optional. Container image to use.")
           .optional(),
@@ -614,9 +485,7 @@ const InputsSchema = z.object({
         pythonPackages: z.array(z.string()).describe(
           "Optional. A list of python packages to be installed. Valid formats include Cloud Storage URI to a PIP installable library. For example, gs://bucket-name/my/path/to/lib.tar.gz",
         ).optional(),
-      }).describe(
-        "Container Image Runtime Configuration used with Batch execution.",
-      ).optional(),
+      }).describe("Container Image Runtime Configuration.").optional(),
       vpcNetwork: z.object({
         network: z.string().describe(
           "Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.",
@@ -627,15 +496,13 @@ const InputsSchema = z.object({
         subNetwork: z.string().describe(
           "Optional. The Cloud VPC sub-network in which the job is run.",
         ).optional(),
-      }).describe("Cloud VPC Network used to run the infrastructure.")
-        .optional(),
-    }).describe(
-      "Configuration for the underlying infrastructure used to run workloads.",
-    ).optional(),
+      }).describe("Vpc network.").optional(),
+    }).describe("Optional. Infrastructure specification for the execution.")
+      .optional(),
     notebook: z.string().describe(
       "Required. Path to input notebook. This can be the Cloud Storage URI of the notebook file or the path to a Notebook Content. The execution args are accessible as environment variables (TASK_key=value).",
     ).optional(),
-  }).describe("Config for running scheduled notebooks.").optional(),
+  }).describe("Config related to running scheduled Notebooks.").optional(),
   spark: z.object({
     archiveUris: z.array(z.string()).describe(
       "Optional. Cloud Storage URIs of archives to be extracted into the working directory of each executor. Supported file types:.jar,.tar,.tar.gz,.tgz, and.zip.",
@@ -651,8 +518,9 @@ const InputsSchema = z.object({
         maxExecutorsCount: z.number().int().describe(
           "Optional. Max configurable executors. If max_executors_count > executors_count, then auto-scaling is enabled. Max Executor Count should be between 2 and 1000. Default=1000",
         ).optional(),
-      }).describe("Batch compute resources associated with the task.")
-        .optional(),
+      }).describe(
+        "Compute resources needed for a Task when using Dataproc Serverless.",
+      ).optional(),
       containerImage: z.object({
         image: z.string().describe("Optional. Container image to use.")
           .optional(),
@@ -665,9 +533,7 @@ const InputsSchema = z.object({
         pythonPackages: z.array(z.string()).describe(
           "Optional. A list of python packages to be installed. Valid formats include Cloud Storage URI to a PIP installable library. For example, gs://bucket-name/my/path/to/lib.tar.gz",
         ).optional(),
-      }).describe(
-        "Container Image Runtime Configuration used with Batch execution.",
-      ).optional(),
+      }).describe("Container Image Runtime Configuration.").optional(),
       vpcNetwork: z.object({
         network: z.string().describe(
           "Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.",
@@ -678,11 +544,9 @@ const InputsSchema = z.object({
         subNetwork: z.string().describe(
           "Optional. The Cloud VPC sub-network in which the job is run.",
         ).optional(),
-      }).describe("Cloud VPC Network used to run the infrastructure.")
-        .optional(),
-    }).describe(
-      "Configuration for the underlying infrastructure used to run workloads.",
-    ).optional(),
+      }).describe("Vpc network.").optional(),
+    }).describe("Optional. Infrastructure specification for the execution.")
+      .optional(),
     mainClass: z.string().describe(
       "The name of the driver's main class. The jar file that contains the class must be in the default CLASSPATH or specified in jar_file_uris. The execution args are passed in as a sequence of named process arguments (--key=value).",
     ).optional(),
@@ -698,7 +562,7 @@ const InputsSchema = z.object({
     sqlScriptFile: z.string().describe(
       'A reference to a query file. This should be the Cloud Storage URI of the query file. The execution args are used to declare a set of script variables (set key="value";).',
     ).optional(),
-  }).describe("User-specified config for running a Spark task.").optional(),
+  }).describe("Config related to running custom Spark tasks.").optional(),
   triggerSpec: z.object({
     disabled: z.boolean().describe(
       "Optional. Prevent the task from executing. This does not cancel already running tasks. It is intended to temporarily disable RECURRING tasks.",
@@ -715,7 +579,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "ON_DEMAND", "RECURRING"]).describe(
       "Required. Immutable. Trigger type of the user-specified Task.",
     ).optional(),
-  }).describe("Task scheduling and trigger settings.").optional(),
+  }).describe(
+    "Required. Spec related to how often and when a task should be triggered.",
+  ).optional(),
   taskId: z.string().describe("Required. Task identifier.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -748,7 +614,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Lakes.Tasks. Registered at `@swamp/gcp/dataplex/lakes-tasks`. */
 export const model = {
   type: "@swamp/gcp/dataplex/lakes-tasks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -855,6 +721,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: executionStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { executionStatus: _executionStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -889,9 +763,6 @@ export const model = {
         }
         if (g["executionSpec"] !== undefined) {
           body["executionSpec"] = g["executionSpec"];
-        }
-        if (g["executionStatus"] !== undefined) {
-          body["executionStatus"] = g["executionStatus"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["notebook"] !== undefined) body["notebook"] = g["notebook"];
@@ -1025,9 +896,6 @@ export const model = {
         }
         if (g["executionSpec"] !== undefined) {
           body["executionSpec"] = g["executionSpec"];
-        }
-        if (g["executionStatus"] !== undefined) {
-          body["executionStatus"] = g["executionStatus"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["notebook"] !== undefined) body["notebook"] = g["notebook"];

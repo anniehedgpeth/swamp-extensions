@@ -177,8 +177,7 @@ const GlobalArgsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of AmazonKinesisConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateAmazonKinesisConnection.")
-      .optional(),
+    }).describe("Properties for an Amazon Kinesis connection.").optional(),
     amazonRedshiftConnectionProperties: z.object({
       connectionUrl: z.string().describe(
         "Optional. Connection URL. e.g.: 'jdbc:redshift://aws-redshift-instance.aaaaaaaaaaaa.us-east-2.redshift.amazonaws.com:5439/mydb'",
@@ -195,8 +194,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateAmazonRedshiftConnection.")
-      .optional(),
+    }).describe("Properties for an Amazon Redshift connection.").optional(),
     amazonS3ConnectionProperties: z.object({
       accessKeyId: z.string().describe(
         "Optional. Access key ID to access the Amazon S3 bucket.",
@@ -212,7 +210,7 @@ const GlobalArgsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of AmazonS3Connection.",
       ).optional(),
-    }).describe("The properties of GoldengateAmazonS3Connection.").optional(),
+    }).describe("Properties for an Amazon S3 connection.").optional(),
     azureDataLakeStorageConnectionProperties: z.object({
       account: z.string().describe(
         "Optional. Sets the Azure storage account name.",
@@ -249,7 +247,7 @@ const GlobalArgsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of AzureDataLakeStorageConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateAzureDataLakeStorageConnection.")
+    }).describe("Properties for an Azure Data Lake Storage Connection.")
       .optional(),
     azureSynapseAnalyticsConnectionProperties: z.object({
       connectionString: z.string().describe(
@@ -267,7 +265,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateAzureSynapseAnalyticsConnection.")
+    }).describe("Properties for an Azure Synapse Analytics connection.")
       .optional(),
     connectionType: z.enum([
       "GOLDENGATE_CONNECTION_TYPE_UNSPECIFIED",
@@ -328,7 +326,7 @@ const GlobalArgsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of DatabricksConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateDatabricksConnection.").optional(),
+    }).describe("Properties for a Databricks connection.").optional(),
     db2ConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -372,7 +370,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the DB2 database.",
       ).optional(),
-    }).describe("The properties of GoldengateDb2Connection.").optional(),
+    }).describe("Properties for a DB2 connection.").optional(),
     description: z.string().describe(
       "Optional. Metadata about this specific object.",
     ).optional(),
@@ -408,15 +406,13 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateElasticsearchConnection.")
-      .optional(),
+    }).describe("Properties for an Elasticsearch connection.").optional(),
     genericConnectionProperties: z.object({
       host: z.string().describe("Optional. The host of the GenericConnection.")
         .optional(),
       technologyType: z.string().describe("Optional. The technology type.")
         .optional(),
-    }).describe("The properties of GoldengateGenericConnectionProperties.")
-      .optional(),
+    }).describe("Properties for a Generic Connection.").optional(),
     goldengateConnectionProperties: z.object({
       goldengateDeploymentId: z.string().describe(
         "Optional. The name of the GoldengateDeployment associated with the GoldengateConnection. Format: projects/{project}/locations/{location}/goldengateDeployments/{goldengate_deployment}",
@@ -437,26 +433,21 @@ const GlobalArgsSchema = z.object({
         .optional(),
       username: z.string().describe("Optional. The username credential.")
         .optional(),
-    }).describe("The properties of GoldengateGoldengateConnectionProperties.")
-      .optional(),
+    }).describe("Properties for a Goldengate Connection.").optional(),
     googleBigQueryConnectionProperties: z.object({
       serviceAccountKeyFile: z.string().describe(
         "Optional. The base64 encoded content of the service account key file containing the credentials required to use Google BigQuery.",
       ).optional(),
       technologyType: z.string().describe("Optional. The technology type.")
         .optional(),
-    }).describe(
-      "The properties of GoldengateGoogleBigQueryConnectionProperties.",
-    ).optional(),
+    }).describe("Properties for a Google BigQuery Connection.").optional(),
     googleCloudStorageConnectionProperties: z.object({
       serviceAccountKeyFile: z.string().describe(
         "Optional. The base64 encoded content of the service account key file containing the credentials required to use Google Cloud Storage.",
       ).optional(),
       technologyType: z.string().describe("Optional. The technology type.")
         .optional(),
-    }).describe(
-      "The properties of GoldengateGoogleCloudStorageConnectionProperties.",
-    ).optional(),
+    }).describe("Properties for a Google Cloud Storage Connection.").optional(),
     googlePubsubConnectionProperties: z.object({
       serviceAccountKeyFile: z.string().describe(
         "Optional. The base64 encoded content of the service account key file containing the credentials required to use Google Pub/Sub.",
@@ -464,8 +455,7 @@ const GlobalArgsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of GooglePubsubConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateGooglePubsubConnection.")
-      .optional(),
+    }).describe("Properties for a Google Pub/Sub connection.").optional(),
     hdfsConnectionProperties: z.object({
       coreSiteXml: z.string().describe(
         "Optional. The content of the Hadoop Distributed File System configuration file (core-site.xml).",
@@ -473,7 +463,7 @@ const GlobalArgsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of HdfsConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateHdfsConnection.").optional(),
+    }).describe("Properties for an HDFS connection.").optional(),
     icebergConnectionProperties: z.object({
       catalog: z.object({
         catalogType: z.enum([
@@ -513,7 +503,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           uri: z.string().describe("Required. The REST uri.").optional(),
         }).describe("The REST Iceberg catalog.").optional(),
-      }).describe("The Iceberg catalog details.").optional(),
+      }).describe("Required. The Iceberg catalog.").optional(),
       storage: z.object({
         amazonS3IcebergStorage: z.object({
           accessKeyId: z.string().describe(
@@ -563,11 +553,11 @@ const GlobalArgsSchema = z.object({
           "GOOGLE_CLOUD_STORAGE",
           "AZURE_DATA_LAKE_STORAGE",
         ]).describe("Required. The type of Iceberg storage.").optional(),
-      }).describe("The Iceberg storage details.").optional(),
+      }).describe("Required. The Iceberg storage.").optional(),
       technologyType: z.string().describe(
         "Required. The technology type of Iceberg connection.",
       ).optional(),
-    }).describe("The properties of GoldengateIcebergConnection.").optional(),
+    }).describe("Properties for an Iceberg connection.").optional(),
     ingressIpAddresses: z.array(z.string()).describe(
       "Output only. The Ingress IPs of the GoldengateConnection.",
     ).optional(),
@@ -645,8 +635,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the Java Message Service.",
       ).optional(),
-    }).describe("The properties of GoldengateJavaMessageServiceConnection.")
-      .optional(),
+    }).describe("Properties for a Java Message Service connection.").optional(),
     kafkaConnectionProperties: z.object({
       bootstrapServers: z.array(z.object({
         host: z.string().describe("Required. The name or address of a host.")
@@ -718,7 +707,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateKafkaConnection.").optional(),
+    }).describe("Properties for a Kafka Connection.").optional(),
     kafkaSchemaRegistryConnectionProperties: z.object({
       authenticationType: z.enum([
         "AUTHENTICATION_TYPE_UNSPECIFIED",
@@ -767,7 +756,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username to access Schema Registry using basic authentication. This value is injected into 'schema.registry.basic.auth.user.info=user:password' configuration property.",
       ).optional(),
-    }).describe("The properties of GoldengateKafkaSchemaRegistryConnection.")
+    }).describe("Properties for a Kafka Schema Registry Connection.")
       .optional(),
     lifecycleDetails: z.string().describe(
       "Output only. Describes the object's current state in detail. For example, it can be used to provide actionable information for a resource in a Failed state.",
@@ -798,8 +787,7 @@ const GlobalArgsSchema = z.object({
       tenantId: z.string().describe(
         "Optional. Azure tenant ID of the application.",
       ).optional(),
-    }).describe("The properties of GoldengateMicrosoftFabricConnection.")
-      .optional(),
+    }).describe("Properties for a Microsoft Fabric connection.").optional(),
     microsoftSqlserverConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -840,8 +828,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the Microsoft SQL Server.",
       ).optional(),
-    }).describe("The properties of GoldengateMicrosoftSqlserverConnection.")
-      .optional(),
+    }).describe("Properties for a Microsoft SQL Server connection.").optional(),
     mongodbConnectionProperties: z.object({
       connectionString: z.string().describe(
         "Optional. MongoDB connection string. e.g.: 'mongodb://mongodb0.example.com:27017/recordsrecords'",
@@ -879,7 +866,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the database.",
       ).optional(),
-    }).describe("The properties of GoldengateMongodbConnection.").optional(),
+    }).describe("Properties for a MongoDB connection.").optional(),
     mysqlConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -937,7 +924,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("Properties of GoldengateMysqlConnection.").optional(),
+    }).describe("Properties for a Mysql Connection.").optional(),
     ociObjectStorageConnectionProperties: z.object({
       privateKeyFile: z.string().describe(
         "Optional. The content of the private key file (PEM file) corresponding to the API key of the fingerprint.",
@@ -963,8 +950,7 @@ const GlobalArgsSchema = z.object({
       userId: z.string().describe(
         "Optional. The OCID of the OCI user who will access the Object Storage. The user must have write access to the bucket they want to connect to.",
       ).optional(),
-    }).describe("The properties of GoldengateOciObjectStorageConnection.")
-      .optional(),
+    }).describe("Properties for an OCI Object Storage Connection.").optional(),
     ocid: z.string().describe(
       "Output only. The [OCID] of the connection being referenced.",
     ).optional(),
@@ -996,7 +982,7 @@ const GlobalArgsSchema = z.object({
       userId: z.string().describe(
         "Optional. The OCID of the OCI user who will access.",
       ).optional(),
-    }).describe("The properties of GoldengateOracleAIDataPlatformConnection.")
+    }).describe("Properties for an Oracle AI Data Platform connection.")
       .optional(),
     oracleConnectionProperties: z.object({
       authenticationMode: z.enum([
@@ -1028,8 +1014,7 @@ const GlobalArgsSchema = z.object({
       walletFile: z.string().describe(
         "Optional. The wallet contents Oracle Goldengate uses to make connections to a database. This attribute is expected to be base64 encoded.",
       ).optional(),
-    }).describe("The properties of Goldengate Oracle Database Connection.")
-      .optional(),
+    }).describe("Properties for an Oracle Database Connection.").optional(),
     oracleNosqlConnectionProperties: z.object({
       privateKeyFile: z.string().describe(
         "Optional. The content of the private key file (PEM file) corresponding to the API key of the fingerprint.",
@@ -1054,8 +1039,7 @@ const GlobalArgsSchema = z.object({
       userId: z.string().describe(
         "Optional. The OCID of the OCI user who will access the Oracle NoSQL database.",
       ).optional(),
-    }).describe("The properties of GoldengateOracleNosqlConnection.")
-      .optional(),
+    }).describe("Properties for an Oracle NoSQL connection.").optional(),
     postgresqlConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -1112,7 +1096,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengatePostgresqlConnection.").optional(),
+    }).describe("Properties for a PostgreSQL connection.").optional(),
     redisConnectionProperties: z.object({
       authenticationType: z.enum([
         "REDIS_AUTHENTICATION_TYPE_UNSPECIFIED",
@@ -1161,7 +1145,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateRedisConnection.").optional(),
+    }).describe("Properties for a Redis connection.").optional(),
     routingMethod: z.enum([
       "GOLDENGATE_CONNECTION_ROUTING_METHOD_UNSPECIFIED",
       "SHARED_DEPLOYMENT_ENDPOINT",
@@ -1197,11 +1181,12 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to Snowflake.",
       ).optional(),
-    }).describe("The properties of GoldengateSnowflakeConnection.").optional(),
+    }).describe("Properties for a Snowflake connection.").optional(),
     updateTime: z.string().describe(
       "Output only. The time the resource was last updated.",
     ).optional(),
-  }).describe("The properties of a GoldengateConnection.").optional(),
+  }).describe("Required. The properties of the GoldengateConnection.")
+    .optional(),
   goldengateConnectionId: z.string().describe(
     "Required. The ID of the GoldengateConnection to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -1635,8 +1620,7 @@ const InputsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of AmazonKinesisConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateAmazonKinesisConnection.")
-      .optional(),
+    }).describe("Properties for an Amazon Kinesis connection.").optional(),
     amazonRedshiftConnectionProperties: z.object({
       connectionUrl: z.string().describe(
         "Optional. Connection URL. e.g.: 'jdbc:redshift://aws-redshift-instance.aaaaaaaaaaaa.us-east-2.redshift.amazonaws.com:5439/mydb'",
@@ -1653,8 +1637,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateAmazonRedshiftConnection.")
-      .optional(),
+    }).describe("Properties for an Amazon Redshift connection.").optional(),
     amazonS3ConnectionProperties: z.object({
       accessKeyId: z.string().describe(
         "Optional. Access key ID to access the Amazon S3 bucket.",
@@ -1670,7 +1653,7 @@ const InputsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of AmazonS3Connection.",
       ).optional(),
-    }).describe("The properties of GoldengateAmazonS3Connection.").optional(),
+    }).describe("Properties for an Amazon S3 connection.").optional(),
     azureDataLakeStorageConnectionProperties: z.object({
       account: z.string().describe(
         "Optional. Sets the Azure storage account name.",
@@ -1707,7 +1690,7 @@ const InputsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of AzureDataLakeStorageConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateAzureDataLakeStorageConnection.")
+    }).describe("Properties for an Azure Data Lake Storage Connection.")
       .optional(),
     azureSynapseAnalyticsConnectionProperties: z.object({
       connectionString: z.string().describe(
@@ -1725,7 +1708,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateAzureSynapseAnalyticsConnection.")
+    }).describe("Properties for an Azure Synapse Analytics connection.")
       .optional(),
     connectionType: z.enum([
       "GOLDENGATE_CONNECTION_TYPE_UNSPECIFIED",
@@ -1786,7 +1769,7 @@ const InputsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of DatabricksConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateDatabricksConnection.").optional(),
+    }).describe("Properties for a Databricks connection.").optional(),
     db2ConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -1830,7 +1813,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the DB2 database.",
       ).optional(),
-    }).describe("The properties of GoldengateDb2Connection.").optional(),
+    }).describe("Properties for a DB2 connection.").optional(),
     description: z.string().describe(
       "Optional. Metadata about this specific object.",
     ).optional(),
@@ -1866,15 +1849,13 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateElasticsearchConnection.")
-      .optional(),
+    }).describe("Properties for an Elasticsearch connection.").optional(),
     genericConnectionProperties: z.object({
       host: z.string().describe("Optional. The host of the GenericConnection.")
         .optional(),
       technologyType: z.string().describe("Optional. The technology type.")
         .optional(),
-    }).describe("The properties of GoldengateGenericConnectionProperties.")
-      .optional(),
+    }).describe("Properties for a Generic Connection.").optional(),
     goldengateConnectionProperties: z.object({
       goldengateDeploymentId: z.string().describe(
         "Optional. The name of the GoldengateDeployment associated with the GoldengateConnection. Format: projects/{project}/locations/{location}/goldengateDeployments/{goldengate_deployment}",
@@ -1895,26 +1876,21 @@ const InputsSchema = z.object({
         .optional(),
       username: z.string().describe("Optional. The username credential.")
         .optional(),
-    }).describe("The properties of GoldengateGoldengateConnectionProperties.")
-      .optional(),
+    }).describe("Properties for a Goldengate Connection.").optional(),
     googleBigQueryConnectionProperties: z.object({
       serviceAccountKeyFile: z.string().describe(
         "Optional. The base64 encoded content of the service account key file containing the credentials required to use Google BigQuery.",
       ).optional(),
       technologyType: z.string().describe("Optional. The technology type.")
         .optional(),
-    }).describe(
-      "The properties of GoldengateGoogleBigQueryConnectionProperties.",
-    ).optional(),
+    }).describe("Properties for a Google BigQuery Connection.").optional(),
     googleCloudStorageConnectionProperties: z.object({
       serviceAccountKeyFile: z.string().describe(
         "Optional. The base64 encoded content of the service account key file containing the credentials required to use Google Cloud Storage.",
       ).optional(),
       technologyType: z.string().describe("Optional. The technology type.")
         .optional(),
-    }).describe(
-      "The properties of GoldengateGoogleCloudStorageConnectionProperties.",
-    ).optional(),
+    }).describe("Properties for a Google Cloud Storage Connection.").optional(),
     googlePubsubConnectionProperties: z.object({
       serviceAccountKeyFile: z.string().describe(
         "Optional. The base64 encoded content of the service account key file containing the credentials required to use Google Pub/Sub.",
@@ -1922,8 +1898,7 @@ const InputsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of GooglePubsubConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateGooglePubsubConnection.")
-      .optional(),
+    }).describe("Properties for a Google Pub/Sub connection.").optional(),
     hdfsConnectionProperties: z.object({
       coreSiteXml: z.string().describe(
         "Optional. The content of the Hadoop Distributed File System configuration file (core-site.xml).",
@@ -1931,7 +1906,7 @@ const InputsSchema = z.object({
       technologyType: z.string().describe(
         "Optional. The technology type of HdfsConnection.",
       ).optional(),
-    }).describe("The properties of GoldengateHdfsConnection.").optional(),
+    }).describe("Properties for an HDFS connection.").optional(),
     icebergConnectionProperties: z.object({
       catalog: z.object({
         catalogType: z.enum([
@@ -1971,7 +1946,7 @@ const InputsSchema = z.object({
           ).optional(),
           uri: z.string().describe("Required. The REST uri.").optional(),
         }).describe("The REST Iceberg catalog.").optional(),
-      }).describe("The Iceberg catalog details.").optional(),
+      }).describe("Required. The Iceberg catalog.").optional(),
       storage: z.object({
         amazonS3IcebergStorage: z.object({
           accessKeyId: z.string().describe(
@@ -2021,11 +1996,11 @@ const InputsSchema = z.object({
           "GOOGLE_CLOUD_STORAGE",
           "AZURE_DATA_LAKE_STORAGE",
         ]).describe("Required. The type of Iceberg storage.").optional(),
-      }).describe("The Iceberg storage details.").optional(),
+      }).describe("Required. The Iceberg storage.").optional(),
       technologyType: z.string().describe(
         "Required. The technology type of Iceberg connection.",
       ).optional(),
-    }).describe("The properties of GoldengateIcebergConnection.").optional(),
+    }).describe("Properties for an Iceberg connection.").optional(),
     ingressIpAddresses: z.array(z.string()).describe(
       "Output only. The Ingress IPs of the GoldengateConnection.",
     ).optional(),
@@ -2103,8 +2078,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the Java Message Service.",
       ).optional(),
-    }).describe("The properties of GoldengateJavaMessageServiceConnection.")
-      .optional(),
+    }).describe("Properties for a Java Message Service connection.").optional(),
     kafkaConnectionProperties: z.object({
       bootstrapServers: z.array(z.object({
         host: z.string().describe("Required. The name or address of a host.")
@@ -2176,7 +2150,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateKafkaConnection.").optional(),
+    }).describe("Properties for a Kafka Connection.").optional(),
     kafkaSchemaRegistryConnectionProperties: z.object({
       authenticationType: z.enum([
         "AUTHENTICATION_TYPE_UNSPECIFIED",
@@ -2225,7 +2199,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username to access Schema Registry using basic authentication. This value is injected into 'schema.registry.basic.auth.user.info=user:password' configuration property.",
       ).optional(),
-    }).describe("The properties of GoldengateKafkaSchemaRegistryConnection.")
+    }).describe("Properties for a Kafka Schema Registry Connection.")
       .optional(),
     lifecycleDetails: z.string().describe(
       "Output only. Describes the object's current state in detail. For example, it can be used to provide actionable information for a resource in a Failed state.",
@@ -2256,8 +2230,7 @@ const InputsSchema = z.object({
       tenantId: z.string().describe(
         "Optional. Azure tenant ID of the application.",
       ).optional(),
-    }).describe("The properties of GoldengateMicrosoftFabricConnection.")
-      .optional(),
+    }).describe("Properties for a Microsoft Fabric connection.").optional(),
     microsoftSqlserverConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -2298,8 +2271,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the Microsoft SQL Server.",
       ).optional(),
-    }).describe("The properties of GoldengateMicrosoftSqlserverConnection.")
-      .optional(),
+    }).describe("Properties for a Microsoft SQL Server connection.").optional(),
     mongodbConnectionProperties: z.object({
       connectionString: z.string().describe(
         "Optional. MongoDB connection string. e.g.: 'mongodb://mongodb0.example.com:27017/recordsrecords'",
@@ -2337,7 +2309,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to the database.",
       ).optional(),
-    }).describe("The properties of GoldengateMongodbConnection.").optional(),
+    }).describe("Properties for a MongoDB connection.").optional(),
     mysqlConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -2395,7 +2367,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("Properties of GoldengateMysqlConnection.").optional(),
+    }).describe("Properties for a Mysql Connection.").optional(),
     ociObjectStorageConnectionProperties: z.object({
       privateKeyFile: z.string().describe(
         "Optional. The content of the private key file (PEM file) corresponding to the API key of the fingerprint.",
@@ -2421,8 +2393,7 @@ const InputsSchema = z.object({
       userId: z.string().describe(
         "Optional. The OCID of the OCI user who will access the Object Storage. The user must have write access to the bucket they want to connect to.",
       ).optional(),
-    }).describe("The properties of GoldengateOciObjectStorageConnection.")
-      .optional(),
+    }).describe("Properties for an OCI Object Storage Connection.").optional(),
     ocid: z.string().describe(
       "Output only. The [OCID] of the connection being referenced.",
     ).optional(),
@@ -2454,7 +2425,7 @@ const InputsSchema = z.object({
       userId: z.string().describe(
         "Optional. The OCID of the OCI user who will access.",
       ).optional(),
-    }).describe("The properties of GoldengateOracleAIDataPlatformConnection.")
+    }).describe("Properties for an Oracle AI Data Platform connection.")
       .optional(),
     oracleConnectionProperties: z.object({
       authenticationMode: z.enum([
@@ -2486,8 +2457,7 @@ const InputsSchema = z.object({
       walletFile: z.string().describe(
         "Optional. The wallet contents Oracle Goldengate uses to make connections to a database. This attribute is expected to be base64 encoded.",
       ).optional(),
-    }).describe("The properties of Goldengate Oracle Database Connection.")
-      .optional(),
+    }).describe("Properties for an Oracle Database Connection.").optional(),
     oracleNosqlConnectionProperties: z.object({
       privateKeyFile: z.string().describe(
         "Optional. The content of the private key file (PEM file) corresponding to the API key of the fingerprint.",
@@ -2512,8 +2482,7 @@ const InputsSchema = z.object({
       userId: z.string().describe(
         "Optional. The OCID of the OCI user who will access the Oracle NoSQL database.",
       ).optional(),
-    }).describe("The properties of GoldengateOracleNosqlConnection.")
-      .optional(),
+    }).describe("Properties for an Oracle NoSQL connection.").optional(),
     postgresqlConnectionProperties: z.object({
       additionalAttributes: z.array(z.object({
         key: z.string().describe("Required. The name of the property entry.")
@@ -2570,7 +2539,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengatePostgresqlConnection.").optional(),
+    }).describe("Properties for a PostgreSQL connection.").optional(),
     redisConnectionProperties: z.object({
       authenticationType: z.enum([
         "REDIS_AUTHENTICATION_TYPE_UNSPECIFIED",
@@ -2619,7 +2588,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect the associated system of the given technology.",
       ).optional(),
-    }).describe("The properties of GoldengateRedisConnection.").optional(),
+    }).describe("Properties for a Redis connection.").optional(),
     routingMethod: z.enum([
       "GOLDENGATE_CONNECTION_ROUTING_METHOD_UNSPECIFIED",
       "SHARED_DEPLOYMENT_ENDPOINT",
@@ -2655,11 +2624,12 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. The username Oracle Goldengate uses to connect to Snowflake.",
       ).optional(),
-    }).describe("The properties of GoldengateSnowflakeConnection.").optional(),
+    }).describe("Properties for a Snowflake connection.").optional(),
     updateTime: z.string().describe(
       "Output only. The time the resource was last updated.",
     ).optional(),
-  }).describe("The properties of a GoldengateConnection.").optional(),
+  }).describe("Required. The properties of the GoldengateConnection.")
+    .optional(),
   goldengateConnectionId: z.string().describe(
     "Required. The ID of the GoldengateConnection to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -2694,7 +2664,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud GoldengateConnections. Registered at `@swamp/gcp/oracledatabase/goldengateconnections`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/goldengateconnections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

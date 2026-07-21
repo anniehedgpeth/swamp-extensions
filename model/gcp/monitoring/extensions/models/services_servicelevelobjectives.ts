@@ -188,13 +188,15 @@ const GlobalArgsSchema = z.object({
   serviceLevelIndicator: z.object({
     basicSli: z.object({
       availability: z.object({}).describe(
-        "Future parameters for the availability SLI.",
+        "Good service is defined to be the count of requests made to this service that return successfully.",
       ).optional(),
       latency: z.object({
         threshold: z.string().describe(
           "Good service is defined to be the count of requests made to this service that return in no more than threshold.",
         ).optional(),
-      }).describe("Parameters for a latency threshold SLI.").optional(),
+      }).describe(
+        "Good service is defined to be the count of requests made to this service that are fast enough with respect to latency.threshold.",
+      ).optional(),
       location: z.array(z.string()).describe(
         "OPTIONAL: The set of locations to which this SLI is relevant. Telemetry from other locations will not be used to calculate performance for this SLI. If omitted, this SLI applies to all locations in which the Service has activity. For service types that don't support breaking down by location, setting this field will result in an error.",
       ).optional(),
@@ -204,9 +206,7 @@ const GlobalArgsSchema = z.object({
       version: z.array(z.string()).describe(
         "OPTIONAL: The set of API versions to which this SLI is relevant. Telemetry from other API versions will not be used to calculate performance for this SLI. If omitted, this SLI applies to all API versions. For service types that don't support breaking down by version, setting this field will result in an error.",
       ).optional(),
-    }).describe(
-      "An SLI measuring performance on a well-known service type. Performance will be computed on the basis of pre-defined metrics. The type of the service_resource determines the metrics to use and the service_resource.labels and metric_labels are used to construct a monitoring filter to filter that metric down to just the data relevant to this service.",
-    ).optional(),
+    }).describe("Basic SLI on a well-known service type.").optional(),
     requestBased: z.object({
       distributionCut: z.object({
         distributionFilter: z.string().describe(
@@ -215,9 +215,11 @@ const GlobalArgsSchema = z.object({
         range: z.object({
           max: z.number().describe("Range maximum.").optional(),
           min: z.number().describe("Range minimum.").optional(),
-        }).describe("Range of numerical values within min and max.").optional(),
+        }).describe(
+          'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
+        ).optional(),
       }).describe(
-        "A DistributionCut defines a TimeSeries and thresholds used for measuring good service and total service. The TimeSeries must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE. The computed good_service will be the estimated count of values in the Distribution that fall within the specified min and max.",
+        "distribution_cut is used when good_service is a count of values aggregated in a Distribution that fall into a good range. The total_service is the total count of all values aggregated in the Distribution.",
       ).optional(),
       goodTotalRatio: z.object({
         badServiceFilter: z.string().describe(
@@ -230,11 +232,9 @@ const GlobalArgsSchema = z.object({
           "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying total demanded service. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.",
         ).optional(),
       }).describe(
-        "A TimeSeriesRatio specifies two TimeSeries to use for computing the good_service / total_service ratio. The specified TimeSeries must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE. The TimeSeriesRatio must specify exactly two of good, bad, and total, and the relationship good_service + bad_service = total_service will be assumed.",
+        "good_total_ratio is used when the ratio of good_service to total_service is computed from two TimeSeries.",
       ).optional(),
-    }).describe(
-      "Service Level Indicators for which atomic units of service are counted directly.",
-    ).optional(),
+    }).describe("Request-based SLIs").optional(),
     windowsBased: z.object({
       goodBadMetricFilter: z.string().describe(
         "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries with ValueType = BOOL. The window is good if any true values appear in the window.",
@@ -242,13 +242,15 @@ const GlobalArgsSchema = z.object({
       goodTotalRatioThreshold: z.object({
         basicSliPerformance: z.object({
           availability: z.object({}).describe(
-            "Future parameters for the availability SLI.",
+            "Good service is defined to be the count of requests made to this service that return successfully.",
           ).optional(),
           latency: z.object({
             threshold: z.unknown().describe(
               "Good service is defined to be the count of requests made to this service that return in no more than threshold.",
             ).optional(),
-          }).describe("Parameters for a latency threshold SLI.").optional(),
+          }).describe(
+            "Good service is defined to be the count of requests made to this service that are fast enough with respect to latency.threshold.",
+          ).optional(),
           location: z.array(z.unknown()).describe(
             "OPTIONAL: The set of locations to which this SLI is relevant. Telemetry from other locations will not be used to calculate performance for this SLI. If omitted, this SLI applies to all locations in which the Service has activity. For service types that don't support breaking down by location, setting this field will result in an error.",
           ).optional(),
@@ -258,19 +260,17 @@ const GlobalArgsSchema = z.object({
           version: z.array(z.unknown()).describe(
             "OPTIONAL: The set of API versions to which this SLI is relevant. Telemetry from other API versions will not be used to calculate performance for this SLI. If omitted, this SLI applies to all API versions. For service types that don't support breaking down by version, setting this field will result in an error.",
           ).optional(),
-        }).describe(
-          "An SLI measuring performance on a well-known service type. Performance will be computed on the basis of pre-defined metrics. The type of the service_resource determines the metrics to use and the service_resource.labels and metric_labels are used to construct a monitoring filter to filter that metric down to just the data relevant to this service.",
-        ).optional(),
+        }).describe("BasicSli to evaluate to judge window quality.").optional(),
         performance: z.object({
           distributionCut: z.object({
             distributionFilter: z.unknown().describe(
               "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries aggregating values. Must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE.",
             ).optional(),
             range: z.unknown().describe(
-              "Range of numerical values within min and max.",
+              'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
             ).optional(),
           }).describe(
-            "A DistributionCut defines a TimeSeries and thresholds used for measuring good service and total service. The TimeSeries must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE. The computed good_service will be the estimated count of values in the Distribution that fall within the specified min and max.",
+            "distribution_cut is used when good_service is a count of values aggregated in a Distribution that fall into a good range. The total_service is the total count of all values aggregated in the Distribution.",
           ).optional(),
           goodTotalRatio: z.object({
             badServiceFilter: z.unknown().describe(
@@ -283,47 +283,47 @@ const GlobalArgsSchema = z.object({
               "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying total demanded service. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.",
             ).optional(),
           }).describe(
-            "A TimeSeriesRatio specifies two TimeSeries to use for computing the good_service / total_service ratio. The specified TimeSeries must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE. The TimeSeriesRatio must specify exactly two of good, bad, and total, and the relationship good_service + bad_service = total_service will be assumed.",
+            "good_total_ratio is used when the ratio of good_service to total_service is computed from two TimeSeries.",
           ).optional(),
-        }).describe(
-          "Service Level Indicators for which atomic units of service are counted directly.",
-        ).optional(),
+        }).describe("RequestBasedSli to evaluate to judge window quality.")
+          .optional(),
         threshold: z.number().describe(
           "If window performance >= threshold, the window is counted as good.",
         ).optional(),
-      }).describe(
-        "A PerformanceThreshold is used when each window is good when that window has a sufficiently high performance.",
-      ).optional(),
+      }).describe("A window is good if its performance is high enough.")
+        .optional(),
       metricMeanInRange: z.object({
         range: z.object({
           max: z.number().describe("Range maximum.").optional(),
           min: z.number().describe("Range minimum.").optional(),
-        }).describe("Range of numerical values within min and max.").optional(),
+        }).describe(
+          'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
+        ).optional(),
         timeSeries: z.string().describe(
           "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying the TimeSeries to use for evaluating window quality.",
         ).optional(),
       }).describe(
-        "A MetricRange is used when each window is good when the value x of a single TimeSeries satisfies range.min <= x <= range.max. The provided TimeSeries must have ValueType = INT64 or ValueType = DOUBLE and MetricKind = GAUGE.",
+        "A window is good if the metric's value is in a good range, averaged across returned streams.",
       ).optional(),
       metricSumInRange: z.object({
         range: z.object({
           max: z.number().describe("Range maximum.").optional(),
           min: z.number().describe("Range minimum.").optional(),
-        }).describe("Range of numerical values within min and max.").optional(),
+        }).describe(
+          'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
+        ).optional(),
         timeSeries: z.string().describe(
           "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying the TimeSeries to use for evaluating window quality.",
         ).optional(),
       }).describe(
-        "A MetricRange is used when each window is good when the value x of a single TimeSeries satisfies range.min <= x <= range.max. The provided TimeSeries must have ValueType = INT64 or ValueType = DOUBLE and MetricKind = GAUGE.",
+        "A window is good if the metric's value is in a good range, summed across returned streams.",
       ).optional(),
       windowPeriod: z.string().describe(
         "Duration over which window quality is evaluated. Must be an integer fraction of a day and at least 60s.",
       ).optional(),
-    }).describe(
-      "A WindowsBasedSli defines good_service as the count of time windows for which the provided service was of good quality. Criteria for determining if service was good are embedded in the window_criterion.",
-    ).optional(),
+    }).describe("Windows-based SLIs").optional(),
   }).describe(
-    'A Service-Level Indicator (SLI) describes the "performance" of a service. For some services, the SLI is well-defined. In such cases, the SLI can be described easily by referencing the well-known SLI and providing the needed parameters. Alternatively, a "custom" SLI can be defined with a query to the underlying metric store. An SLI is defined to be good_service / total_service over any queried time interval. The value of performance always falls into the range 0 <= performance <= 1. A custom SLI describes how to compute this ratio, whether this is by dividing values from a pair of time series, cutting a Distribution into good and bad counts, or counting time windows in which the service complies with a criterion. For separation of concerns, a single Service-Level Indicator measures performance for only one aspect of service quality, such as fraction of successful queries or fast-enough queries.',
+    "The definition of good service, used to measure and calculate the quality of the Service's performance with respect to a single aspect of service quality.",
   ).optional(),
   userLabels: z.record(z.string(), z.string()).describe(
     "Labels which have been used to annotate the service-level objective. Label keys must start with a letter. Label keys and values may contain lowercase letters, numbers, underscores, and dashes. Label keys and values have a maximum length of 63 characters, and must be less than 128 bytes in size. Up to 64 label entries may be stored. For labels which do not have a semantic value, the empty string may be supplied for the label value.",
@@ -445,13 +445,15 @@ const InputsSchema = z.object({
   serviceLevelIndicator: z.object({
     basicSli: z.object({
       availability: z.object({}).describe(
-        "Future parameters for the availability SLI.",
+        "Good service is defined to be the count of requests made to this service that return successfully.",
       ).optional(),
       latency: z.object({
         threshold: z.string().describe(
           "Good service is defined to be the count of requests made to this service that return in no more than threshold.",
         ).optional(),
-      }).describe("Parameters for a latency threshold SLI.").optional(),
+      }).describe(
+        "Good service is defined to be the count of requests made to this service that are fast enough with respect to latency.threshold.",
+      ).optional(),
       location: z.array(z.string()).describe(
         "OPTIONAL: The set of locations to which this SLI is relevant. Telemetry from other locations will not be used to calculate performance for this SLI. If omitted, this SLI applies to all locations in which the Service has activity. For service types that don't support breaking down by location, setting this field will result in an error.",
       ).optional(),
@@ -461,9 +463,7 @@ const InputsSchema = z.object({
       version: z.array(z.string()).describe(
         "OPTIONAL: The set of API versions to which this SLI is relevant. Telemetry from other API versions will not be used to calculate performance for this SLI. If omitted, this SLI applies to all API versions. For service types that don't support breaking down by version, setting this field will result in an error.",
       ).optional(),
-    }).describe(
-      "An SLI measuring performance on a well-known service type. Performance will be computed on the basis of pre-defined metrics. The type of the service_resource determines the metrics to use and the service_resource.labels and metric_labels are used to construct a monitoring filter to filter that metric down to just the data relevant to this service.",
-    ).optional(),
+    }).describe("Basic SLI on a well-known service type.").optional(),
     requestBased: z.object({
       distributionCut: z.object({
         distributionFilter: z.string().describe(
@@ -472,9 +472,11 @@ const InputsSchema = z.object({
         range: z.object({
           max: z.number().describe("Range maximum.").optional(),
           min: z.number().describe("Range minimum.").optional(),
-        }).describe("Range of numerical values within min and max.").optional(),
+        }).describe(
+          'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
+        ).optional(),
       }).describe(
-        "A DistributionCut defines a TimeSeries and thresholds used for measuring good service and total service. The TimeSeries must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE. The computed good_service will be the estimated count of values in the Distribution that fall within the specified min and max.",
+        "distribution_cut is used when good_service is a count of values aggregated in a Distribution that fall into a good range. The total_service is the total count of all values aggregated in the Distribution.",
       ).optional(),
       goodTotalRatio: z.object({
         badServiceFilter: z.string().describe(
@@ -487,11 +489,9 @@ const InputsSchema = z.object({
           "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying total demanded service. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.",
         ).optional(),
       }).describe(
-        "A TimeSeriesRatio specifies two TimeSeries to use for computing the good_service / total_service ratio. The specified TimeSeries must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE. The TimeSeriesRatio must specify exactly two of good, bad, and total, and the relationship good_service + bad_service = total_service will be assumed.",
+        "good_total_ratio is used when the ratio of good_service to total_service is computed from two TimeSeries.",
       ).optional(),
-    }).describe(
-      "Service Level Indicators for which atomic units of service are counted directly.",
-    ).optional(),
+    }).describe("Request-based SLIs").optional(),
     windowsBased: z.object({
       goodBadMetricFilter: z.string().describe(
         "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries with ValueType = BOOL. The window is good if any true values appear in the window.",
@@ -499,13 +499,15 @@ const InputsSchema = z.object({
       goodTotalRatioThreshold: z.object({
         basicSliPerformance: z.object({
           availability: z.object({}).describe(
-            "Future parameters for the availability SLI.",
+            "Good service is defined to be the count of requests made to this service that return successfully.",
           ).optional(),
           latency: z.object({
             threshold: z.unknown().describe(
               "Good service is defined to be the count of requests made to this service that return in no more than threshold.",
             ).optional(),
-          }).describe("Parameters for a latency threshold SLI.").optional(),
+          }).describe(
+            "Good service is defined to be the count of requests made to this service that are fast enough with respect to latency.threshold.",
+          ).optional(),
           location: z.array(z.unknown()).describe(
             "OPTIONAL: The set of locations to which this SLI is relevant. Telemetry from other locations will not be used to calculate performance for this SLI. If omitted, this SLI applies to all locations in which the Service has activity. For service types that don't support breaking down by location, setting this field will result in an error.",
           ).optional(),
@@ -515,19 +517,17 @@ const InputsSchema = z.object({
           version: z.array(z.unknown()).describe(
             "OPTIONAL: The set of API versions to which this SLI is relevant. Telemetry from other API versions will not be used to calculate performance for this SLI. If omitted, this SLI applies to all API versions. For service types that don't support breaking down by version, setting this field will result in an error.",
           ).optional(),
-        }).describe(
-          "An SLI measuring performance on a well-known service type. Performance will be computed on the basis of pre-defined metrics. The type of the service_resource determines the metrics to use and the service_resource.labels and metric_labels are used to construct a monitoring filter to filter that metric down to just the data relevant to this service.",
-        ).optional(),
+        }).describe("BasicSli to evaluate to judge window quality.").optional(),
         performance: z.object({
           distributionCut: z.object({
             distributionFilter: z.unknown().describe(
               "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries aggregating values. Must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE.",
             ).optional(),
             range: z.unknown().describe(
-              "Range of numerical values within min and max.",
+              'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
             ).optional(),
           }).describe(
-            "A DistributionCut defines a TimeSeries and thresholds used for measuring good service and total service. The TimeSeries must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE. The computed good_service will be the estimated count of values in the Distribution that fall within the specified min and max.",
+            "distribution_cut is used when good_service is a count of values aggregated in a Distribution that fall into a good range. The total_service is the total count of all values aggregated in the Distribution.",
           ).optional(),
           goodTotalRatio: z.object({
             badServiceFilter: z.unknown().describe(
@@ -540,47 +540,47 @@ const InputsSchema = z.object({
               "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying total demanded service. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.",
             ).optional(),
           }).describe(
-            "A TimeSeriesRatio specifies two TimeSeries to use for computing the good_service / total_service ratio. The specified TimeSeries must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE. The TimeSeriesRatio must specify exactly two of good, bad, and total, and the relationship good_service + bad_service = total_service will be assumed.",
+            "good_total_ratio is used when the ratio of good_service to total_service is computed from two TimeSeries.",
           ).optional(),
-        }).describe(
-          "Service Level Indicators for which atomic units of service are counted directly.",
-        ).optional(),
+        }).describe("RequestBasedSli to evaluate to judge window quality.")
+          .optional(),
         threshold: z.number().describe(
           "If window performance >= threshold, the window is counted as good.",
         ).optional(),
-      }).describe(
-        "A PerformanceThreshold is used when each window is good when that window has a sufficiently high performance.",
-      ).optional(),
+      }).describe("A window is good if its performance is high enough.")
+        .optional(),
       metricMeanInRange: z.object({
         range: z.object({
           max: z.number().describe("Range maximum.").optional(),
           min: z.number().describe("Range minimum.").optional(),
-        }).describe("Range of numerical values within min and max.").optional(),
+        }).describe(
+          'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
+        ).optional(),
         timeSeries: z.string().describe(
           "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying the TimeSeries to use for evaluating window quality.",
         ).optional(),
       }).describe(
-        "A MetricRange is used when each window is good when the value x of a single TimeSeries satisfies range.min <= x <= range.max. The provided TimeSeries must have ValueType = INT64 or ValueType = DOUBLE and MetricKind = GAUGE.",
+        "A window is good if the metric's value is in a good range, averaged across returned streams.",
       ).optional(),
       metricSumInRange: z.object({
         range: z.object({
           max: z.number().describe("Range maximum.").optional(),
           min: z.number().describe("Range minimum.").optional(),
-        }).describe("Range of numerical values within min and max.").optional(),
+        }).describe(
+          'Range of values considered "good." For a one-sided range, set one bound to an infinite value.',
+        ).optional(),
         timeSeries: z.string().describe(
           "A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying the TimeSeries to use for evaluating window quality.",
         ).optional(),
       }).describe(
-        "A MetricRange is used when each window is good when the value x of a single TimeSeries satisfies range.min <= x <= range.max. The provided TimeSeries must have ValueType = INT64 or ValueType = DOUBLE and MetricKind = GAUGE.",
+        "A window is good if the metric's value is in a good range, summed across returned streams.",
       ).optional(),
       windowPeriod: z.string().describe(
         "Duration over which window quality is evaluated. Must be an integer fraction of a day and at least 60s.",
       ).optional(),
-    }).describe(
-      "A WindowsBasedSli defines good_service as the count of time windows for which the provided service was of good quality. Criteria for determining if service was good are embedded in the window_criterion.",
-    ).optional(),
+    }).describe("Windows-based SLIs").optional(),
   }).describe(
-    'A Service-Level Indicator (SLI) describes the "performance" of a service. For some services, the SLI is well-defined. In such cases, the SLI can be described easily by referencing the well-known SLI and providing the needed parameters. Alternatively, a "custom" SLI can be defined with a query to the underlying metric store. An SLI is defined to be good_service / total_service over any queried time interval. The value of performance always falls into the range 0 <= performance <= 1. A custom SLI describes how to compute this ratio, whether this is by dividing values from a pair of time series, cutting a Distribution into good and bad counts, or counting time windows in which the service complies with a criterion. For separation of concerns, a single Service-Level Indicator measures performance for only one aspect of service quality, such as fraction of successful queries or fast-enough queries.',
+    "The definition of good service, used to measure and calculate the quality of the Service's performance with respect to a single aspect of service quality.",
   ).optional(),
   userLabels: z.record(z.string(), z.string()).describe(
     "Labels which have been used to annotate the service-level objective. Label keys must start with a letter. Label keys and values may contain lowercase letters, numbers, underscores, and dashes. Label keys and values have a maximum length of 63 characters, and must be less than 128 bytes in size. Up to 64 label entries may be stored. For labels which do not have a semantic value, the empty string may be supplied for the label value.",
@@ -616,7 +616,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring Services.ServiceLevelObjectives. Registered at `@swamp/gcp/monitoring/services-servicelevelobjectives`. */
 export const model = {
   type: "@swamp/gcp/monitoring/services-servicelevelobjectives",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -720,6 +720,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

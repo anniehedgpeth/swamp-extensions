@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
         "Start time of the maintenance window, in milliseconds after midnight on the device. Windows can span midnight.",
       ).optional(),
     }).describe(
-      "Maintenance window for managed Google Play Accounts. This allows Play store to update the apps on the foreground in the designated window.",
+      "The maintenance window defining when apps running in the foreground should be updated.",
     ).optional(),
     policyId: z.string().describe(
       "An identifier for the policy that will be passed with the app install feedback sent from the Play Store.",
@@ -221,7 +221,7 @@ const GlobalArgsSchema = z.object({
         minimumVersionCode: z.number().int().describe(
           "The minimum version of the app. If a lower version of the app is installed, then the app will be auto-updated according to the auto-install constraints, instead of waiting for the regular auto-update. You can set a minimum version code for at most 20 apps per device.",
         ).optional(),
-      }).optional(),
+      }).describe("The auto-install policy for the product.").optional(),
       autoUpdateMode: z.enum([
         "autoUpdateModeUnspecified",
         "autoUpdateDefault",
@@ -244,7 +244,7 @@ const GlobalArgsSchema = z.object({
             "The variable set that is attributed to the user.",
           ).optional(),
         }).describe(
-          "A configuration variables resource contains the managed configuration settings ID to be applied to a single user, as well as the variable set that is attributed to the user. The variable set will be used to replace placeholders in the managed configuration settings.",
+          "Contains the ID of the managed configuration profile and the set of configuration variables (if any) defined for the user.",
         ).optional(),
         kind: z.string().describe("Deprecated.").optional(),
         managedProperty: z.array(z.unknown()).describe(
@@ -253,9 +253,7 @@ const GlobalArgsSchema = z.object({
         productId: z.string().describe(
           'The ID of the product that the managed configuration is for, e.g. "app:com.google.android.gm".',
         ).optional(),
-      }).describe(
-        "*Deprecated:* New integrations cannot use this method and can refer to our new recommendations",
-      ).optional(),
+      }).describe("The managed configuration for the product.").optional(),
       productId: z.string().describe(
         'The ID of the product. For example, "app:com.google.android.gm".',
       ).optional(),
@@ -268,7 +266,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "The list of product policies. The productAvailabilityPolicy needs to be set to WHITELIST or ALL for the product policies to be applied.",
     ).optional(),
-  }).describe("The device policy for a given managed device.").optional(),
+  }).describe("The policy enforced on the device.").optional(),
   product: z.string().describe(
     "The product name of the device. This comes from android.os.Build.PRODUCT.",
   ).optional(),
@@ -302,9 +300,8 @@ const GlobalArgsSchema = z.object({
     lastUpdatedTimestampMillis: z.string().describe(
       "The timestamp of the last report update in milliseconds since epoch. This field will always be present.",
     ).optional(),
-  }).describe(
-    "Device report updated with the latest app states for managed apps on the device.",
-  ).optional(),
+  }).describe("The device report updated with the latest app states.")
+    .optional(),
   retailBrand: z.string().describe(
     "Retail brand for the device, if set. See android.os.Build.BRAND",
   ).optional(),
@@ -429,7 +426,7 @@ const InputsSchema = z.object({
         "Start time of the maintenance window, in milliseconds after midnight on the device. Windows can span midnight.",
       ).optional(),
     }).describe(
-      "Maintenance window for managed Google Play Accounts. This allows Play store to update the apps on the foreground in the designated window.",
+      "The maintenance window defining when apps running in the foreground should be updated.",
     ).optional(),
     policyId: z.string().describe(
       "An identifier for the policy that will be passed with the app install feedback sent from the Play Store.",
@@ -460,7 +457,7 @@ const InputsSchema = z.object({
         minimumVersionCode: z.number().int().describe(
           "The minimum version of the app. If a lower version of the app is installed, then the app will be auto-updated according to the auto-install constraints, instead of waiting for the regular auto-update. You can set a minimum version code for at most 20 apps per device.",
         ).optional(),
-      }).optional(),
+      }).describe("The auto-install policy for the product.").optional(),
       autoUpdateMode: z.enum([
         "autoUpdateModeUnspecified",
         "autoUpdateDefault",
@@ -483,7 +480,7 @@ const InputsSchema = z.object({
             "The variable set that is attributed to the user.",
           ).optional(),
         }).describe(
-          "A configuration variables resource contains the managed configuration settings ID to be applied to a single user, as well as the variable set that is attributed to the user. The variable set will be used to replace placeholders in the managed configuration settings.",
+          "Contains the ID of the managed configuration profile and the set of configuration variables (if any) defined for the user.",
         ).optional(),
         kind: z.string().describe("Deprecated.").optional(),
         managedProperty: z.array(z.unknown()).describe(
@@ -492,9 +489,7 @@ const InputsSchema = z.object({
         productId: z.string().describe(
           'The ID of the product that the managed configuration is for, e.g. "app:com.google.android.gm".',
         ).optional(),
-      }).describe(
-        "*Deprecated:* New integrations cannot use this method and can refer to our new recommendations",
-      ).optional(),
+      }).describe("The managed configuration for the product.").optional(),
       productId: z.string().describe(
         'The ID of the product. For example, "app:com.google.android.gm".',
       ).optional(),
@@ -507,7 +502,7 @@ const InputsSchema = z.object({
     })).describe(
       "The list of product policies. The productAvailabilityPolicy needs to be set to WHITELIST or ALL for the product policies to be applied.",
     ).optional(),
-  }).describe("The device policy for a given managed device.").optional(),
+  }).describe("The policy enforced on the device.").optional(),
   product: z.string().describe(
     "The product name of the device. This comes from android.os.Build.PRODUCT.",
   ).optional(),
@@ -541,9 +536,8 @@ const InputsSchema = z.object({
     lastUpdatedTimestampMillis: z.string().describe(
       "The timestamp of the last report update in milliseconds since epoch. This field will always be present.",
     ).optional(),
-  }).describe(
-    "Device report updated with the latest app states for managed apps on the device.",
-  ).optional(),
+  }).describe("The device report updated with the latest app states.")
+    .optional(),
   retailBrand: z.string().describe(
     "Retail brand for the device, if set. See android.os.Build.BRAND",
   ).optional(),
@@ -576,7 +570,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Devices. Registered at `@swamp/gcp/androidenterprise/devices`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/devices",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -680,6 +674,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

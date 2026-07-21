@@ -173,7 +173,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Google Cloud KMS encryption key. Format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`",
       ).optional(),
     }).describe(
-      "Defined a customer managed encryption key that will be used to encrypt Backup artifacts.",
+      'Optional. This defines a customer managed encryption key that will be used to encrypt the "config" portion (the Kubernetes resources) of Backups created via this plan. Default (empty): Config backup artifacts will not be encrypted.',
     ).optional(),
     includeSecrets: z.boolean().describe(
       "Optional. This flag specifies whether Kubernetes Secret resources should be included when they fall into the scope of Backups. Default: False",
@@ -194,7 +194,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("Optional. A list of namespaced Kubernetes resources.")
         .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
+    }).describe(
+      "If set, include just the resources referenced by the listed ProtectedApplications.",
+    ).optional(),
     selectedNamespaceLabels: z.object({
       resourceLabels: z.array(z.object({
         key: z.string().describe("Optional. The key/name of the label.")
@@ -203,14 +205,17 @@ const GlobalArgsSchema = z.object({
           .optional(),
       })).describe("Optional. A list of Kubernetes label-value pairs.")
         .optional(),
-    }).describe("A list of Kubernetes labels.").optional(),
+    }).describe(
+      "If set, the list of labels whose constituent namespaces were included in the Backup.",
+    ).optional(),
     selectedNamespaces: z.object({
       namespaces: z.array(z.string()).describe(
         "Optional. A list of Kubernetes Namespaces.",
       ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
+    }).describe("If set, include just the resources in the listed namespaces.")
+      .optional(),
   }).describe(
-    "BackupConfig defines the configuration of Backups created via this BackupPlan.",
+    "Optional. Defines the configuration of Backups created via this BackupPlan.",
   ).optional(),
   backupSchedule: z.object({
     cronSchedule: z.string().describe(
@@ -230,8 +235,9 @@ const GlobalArgsSchema = z.object({
         daysOfWeek: z.object({
           daysOfWeek: z.unknown().describe("Optional. A list of days of week.")
             .optional(),
-        }).describe("Holds repeated DaysOfWeek values as a container.")
-          .optional(),
+        }).describe(
+          "The exclusion window occurs on these days of each week in UTC.",
+        ).optional(),
         duration: z.string().describe(
           "Required. Specifies duration of the window. Duration must be >= 5 minutes and = target RPO - daily window: duration < 24 hours - weekly window: - days of week includes all seven days of a week: duration < 24 hours - all other weekly window: duration < 168 hours (i.e., 24 * 7 hours)",
         ).optional(),
@@ -246,7 +252,7 @@ const GlobalArgsSchema = z.object({
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
         }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+          "No recurrence. The exclusion window occurs only once and on this date in UTC.",
         ).optional(),
         startTime: z.object({
           hours: z.unknown().describe(
@@ -262,7 +268,7 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Specifies the start time of the window using time of the day in UTC.",
         ).optional(),
       })).describe(
         "Optional. User specified time windows during which backup can NOT happen for this BackupPlan - backups should start and finish outside of any given exclusion window. Note: backup jobs will be scheduled to start and finish outside the duration of the window as much as possible, but running jobs will not get canceled when it runs into the window. All the time and date values in exclusion_windows entry in the API are in UTC. We only allow <=1 recurrence (daily or weekly) exclusion window for a BackupPlan while no restriction on number of single occurrence windows.",
@@ -271,10 +277,10 @@ const GlobalArgsSchema = z.object({
         "Required. Defines the target RPO for the BackupPlan in minutes, which means the target maximum data loss in time that is acceptable for this BackupPlan. This must be at least 60, i.e., 1 hour, and at most 86400, i.e., 60 days.",
       ).optional(),
     }).describe(
-      "Defines RPO scheduling configuration for automatically creating Backups via this BackupPlan.",
+      "Optional. Defines the RPO schedule configuration for this BackupPlan. This is mutually exclusive with the cron_schedule field since at most one schedule can be defined for a BackupPLan. If this is defined, then backup_retain_days must also be defined. Default (empty): no automatic backup creation will occur.",
     ).optional(),
   }).describe(
-    "Defines scheduling parameters for automatically creating Backups via this BackupPlan.",
+    "Optional. Defines a schedule for automatic Backup creation via this BackupPlan.",
   ).optional(),
   cluster: z.string().describe(
     "Required. Immutable. The source cluster from which Backups will be created via this BackupPlan. Valid formats: - `projects/*/locations/*/clusters/*` - `projects/*/zones/*/clusters/*`",
@@ -299,7 +305,7 @@ const GlobalArgsSchema = z.object({
       "Optional. This flag denotes whether the retention policy of this BackupPlan is locked. If set to True, no further update is allowed on this policy, including the `locked` field itself. Default: False",
     ).optional(),
   }).describe(
-    "RetentionPolicy defines a Backup retention policy for a BackupPlan.",
+    "Optional. RetentionPolicy governs lifecycle of Backups created under this plan.",
   ).optional(),
   backupPlanId: z.string().describe(
     "Required. The client-provided short name for the BackupPlan resource. This name must: - be between 1 and 63 characters long (inclusive) - consist of only lower-case ASCII letters, numbers, and dashes - start with a lower-case letter - end with a lower-case letter or number - be unique within the set of BackupPlans in this location",
@@ -401,7 +407,7 @@ const InputsSchema = z.object({
         "Optional. Google Cloud KMS encryption key. Format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`",
       ).optional(),
     }).describe(
-      "Defined a customer managed encryption key that will be used to encrypt Backup artifacts.",
+      'Optional. This defines a customer managed encryption key that will be used to encrypt the "config" portion (the Kubernetes resources) of Backups created via this plan. Default (empty): Config backup artifacts will not be encrypted.',
     ).optional(),
     includeSecrets: z.boolean().describe(
       "Optional. This flag specifies whether Kubernetes Secret resources should be included when they fall into the scope of Backups. Default: False",
@@ -422,7 +428,9 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("Optional. A list of namespaced Kubernetes resources.")
         .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
+    }).describe(
+      "If set, include just the resources referenced by the listed ProtectedApplications.",
+    ).optional(),
     selectedNamespaceLabels: z.object({
       resourceLabels: z.array(z.object({
         key: z.string().describe("Optional. The key/name of the label.")
@@ -431,14 +439,17 @@ const InputsSchema = z.object({
           .optional(),
       })).describe("Optional. A list of Kubernetes label-value pairs.")
         .optional(),
-    }).describe("A list of Kubernetes labels.").optional(),
+    }).describe(
+      "If set, the list of labels whose constituent namespaces were included in the Backup.",
+    ).optional(),
     selectedNamespaces: z.object({
       namespaces: z.array(z.string()).describe(
         "Optional. A list of Kubernetes Namespaces.",
       ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
+    }).describe("If set, include just the resources in the listed namespaces.")
+      .optional(),
   }).describe(
-    "BackupConfig defines the configuration of Backups created via this BackupPlan.",
+    "Optional. Defines the configuration of Backups created via this BackupPlan.",
   ).optional(),
   backupSchedule: z.object({
     cronSchedule: z.string().describe(
@@ -458,8 +469,9 @@ const InputsSchema = z.object({
         daysOfWeek: z.object({
           daysOfWeek: z.unknown().describe("Optional. A list of days of week.")
             .optional(),
-        }).describe("Holds repeated DaysOfWeek values as a container.")
-          .optional(),
+        }).describe(
+          "The exclusion window occurs on these days of each week in UTC.",
+        ).optional(),
         duration: z.string().describe(
           "Required. Specifies duration of the window. Duration must be >= 5 minutes and = target RPO - daily window: duration < 24 hours - weekly window: - days of week includes all seven days of a week: duration < 24 hours - all other weekly window: duration < 168 hours (i.e., 24 * 7 hours)",
         ).optional(),
@@ -474,7 +486,7 @@ const InputsSchema = z.object({
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
         }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+          "No recurrence. The exclusion window occurs only once and on this date in UTC.",
         ).optional(),
         startTime: z.object({
           hours: z.unknown().describe(
@@ -490,7 +502,7 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Specifies the start time of the window using time of the day in UTC.",
         ).optional(),
       })).describe(
         "Optional. User specified time windows during which backup can NOT happen for this BackupPlan - backups should start and finish outside of any given exclusion window. Note: backup jobs will be scheduled to start and finish outside the duration of the window as much as possible, but running jobs will not get canceled when it runs into the window. All the time and date values in exclusion_windows entry in the API are in UTC. We only allow <=1 recurrence (daily or weekly) exclusion window for a BackupPlan while no restriction on number of single occurrence windows.",
@@ -499,10 +511,10 @@ const InputsSchema = z.object({
         "Required. Defines the target RPO for the BackupPlan in minutes, which means the target maximum data loss in time that is acceptable for this BackupPlan. This must be at least 60, i.e., 1 hour, and at most 86400, i.e., 60 days.",
       ).optional(),
     }).describe(
-      "Defines RPO scheduling configuration for automatically creating Backups via this BackupPlan.",
+      "Optional. Defines the RPO schedule configuration for this BackupPlan. This is mutually exclusive with the cron_schedule field since at most one schedule can be defined for a BackupPLan. If this is defined, then backup_retain_days must also be defined. Default (empty): no automatic backup creation will occur.",
     ).optional(),
   }).describe(
-    "Defines scheduling parameters for automatically creating Backups via this BackupPlan.",
+    "Optional. Defines a schedule for automatic Backup creation via this BackupPlan.",
   ).optional(),
   cluster: z.string().describe(
     "Required. Immutable. The source cluster from which Backups will be created via this BackupPlan. Valid formats: - `projects/*/locations/*/clusters/*` - `projects/*/zones/*/clusters/*`",
@@ -527,7 +539,7 @@ const InputsSchema = z.object({
       "Optional. This flag denotes whether the retention policy of this BackupPlan is locked. If set to True, no further update is allowed on this policy, including the `locked` field itself. Default: False",
     ).optional(),
   }).describe(
-    "RetentionPolicy defines a Backup retention policy for a BackupPlan.",
+    "Optional. RetentionPolicy governs lifecycle of Backups created under this plan.",
   ).optional(),
   backupPlanId: z.string().describe(
     "Required. The client-provided short name for the BackupPlan resource. This name must: - be between 1 and 63 characters long (inclusive) - consist of only lower-case ASCII letters, numbers, and dashes - start with a lower-case letter - end with a lower-case letter or number - be unique within the set of BackupPlans in this location",
@@ -560,7 +572,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup for GKE BackupPlans. Registered at `@swamp/gcp/gkebackup/backupplans`. */
 export const model = {
   type: "@swamp/gcp/gkebackup/backupplans",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -672,6 +684,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -740,16 +757,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

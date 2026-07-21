@@ -221,7 +221,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Security (HTTPS) enforcement for this URL.").optional(),
     url: z.string().describe("URL to serve the endpoint at.").optional(),
   }).describe(
-    "Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration for API handlers.",
+    "Serving configuration for Google Cloud Endpoints (https://cloud.google.com/endpoints).Only returned in GET requests if view=FULL is set.",
   ).optional(),
   appEngineApis: z.boolean().describe(
     "Allows App Engine second generation runtimes to access the legacy bundled services.",
@@ -251,9 +251,7 @@ const GlobalArgsSchema = z.object({
       targetWriteOpsPerSecond: z.number().int().describe(
         "Target ops written per second.",
       ).optional(),
-    }).describe(
-      "Target scaling by disk usage. Only applicable in the App Engine flexible environment.",
-    ).optional(),
+    }).describe("Target scaling by disk usage.").optional(),
     maxConcurrentRequests: z.number().int().describe(
       "Number of concurrent requests an automatic scaling instance can accept before the scheduler spawns a new instance.Defaults to a runtime-specific value.",
     ).optional(),
@@ -288,9 +286,7 @@ const GlobalArgsSchema = z.object({
       targetSentPacketsPerSecond: z.number().int().describe(
         "Target packets sent per second.",
       ).optional(),
-    }).describe(
-      "Target scaling by network usage. Only applicable in the App Engine flexible environment.",
-    ).optional(),
+    }).describe("Target scaling by network usage.").optional(),
     requestUtilization: z.object({
       targetConcurrentRequests: z.number().int().describe(
         "Target number of concurrent requests.",
@@ -298,9 +294,7 @@ const GlobalArgsSchema = z.object({
       targetRequestCountPerSecond: z.number().int().describe(
         "Target requests per second.",
       ).optional(),
-    }).describe(
-      "Target scaling by request utilization. Only applicable in the App Engine flexible environment.",
-    ).optional(),
+    }).describe("Target scaling by request utilization.").optional(),
     standardSchedulerSettings: z.object({
       maxInstances: z.number().int().describe(
         "Maximum number of instances to run for this version. Set to 2147483647 to disable max_instances configuration.",
@@ -316,7 +310,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Scheduler settings for standard environment.").optional(),
   }).describe(
-    "Automatic scaling is based on request rate, response latencies, and other application metrics.",
+    "Automatic scaling is based on request rate, response latencies, and other application metrics. Instances are dynamically created and destroyed as needed in order to handle traffic.",
   ).optional(),
   basicScaling: z.object({
     idleTimeout: z.string().describe(
@@ -349,14 +343,14 @@ const GlobalArgsSchema = z.object({
         "The Cloud Build timeout used as part of any dependent builds performed by version creation. Defaults to 10 minutes.",
       ).optional(),
     }).describe(
-      "Options for the build operations performed as a part of the version deployment. Only applicable for App Engine flexible environment when creating a version using source code directly.",
+      "Options for any Google Cloud Build builds created as a part of this deployment.These options will only be used if a new build is created, such as when deploying to the App Engine flexible environment using files or zip.",
     ).optional(),
     container: z.object({
       image: z.string().describe(
         'URI to the hosted container image in Google Container Registry. The URI must be fully qualified and include a tag or digest. Examples: "gcr.io/my-project/image:tag" or "gcr.io/my-project/image@digest"',
       ).optional(),
     }).describe(
-      "Docker image that is used to create a container and start a VM instance for the version that you deploy. Only applicable for instances running in the App Engine flexible environment.",
+      "The Docker image for the container that runs the version. Only applicable for instances running in the App Engine flexible environment.",
     ).optional(),
     files: z.record(
       z.string(),
@@ -380,9 +374,11 @@ const GlobalArgsSchema = z.object({
       sourceUrl: z.string().describe(
         "URL of the zip file to deploy from. Must be a URL to a resource in Google Cloud Storage in the form 'http(s)://storage.googleapis.com//'.",
       ).optional(),
-    }).describe("The zip file information for a zip deployment.").optional(),
+    }).describe(
+      "The zip file for this deployment, if this is a zip deployment.",
+    ).optional(),
   }).describe(
-    "Code and application artifacts used to deploy a version to App Engine.",
+    "Code and application artifacts that make up this version.Only returned in GET requests if view=FULL is set.",
   ).optional(),
   endpointsApiService: z.object({
     configId: z.string().describe(
@@ -402,7 +398,7 @@ const GlobalArgsSchema = z.object({
       "Endpoints rollout strategy. If FIXED, config_id must be specified. If MANAGED, config_id must be omitted.",
     ).optional(),
   }).describe(
-    'Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration. The Endpoints API Service provides tooling for serving Open API and gRPC endpoints via an NGINX proxy. Only valid for App Engine Flexible environment deployments.The fields here refer to the name and configuration ID of a "service" resource in the Service Management API (https://cloud.google.com/service-management/overview).',
+    "Cloud Endpoints configuration.If endpoints_api_service is set, the Cloud Endpoints Extensible Service Proxy will be provided to serve the API implemented by the app.",
   ).optional(),
   entrypoint: z.object({
     shell: z.string().describe(
@@ -438,8 +434,7 @@ const GlobalArgsSchema = z.object({
     runtimeVersion: z.string().describe(
       "The runtime version of an App Engine flexible application.",
     ).optional(),
-  }).describe("Runtime settings for the App Engine flexible environment.")
-    .optional(),
+  }).describe("Settings for App Engine flexible runtimes.").optional(),
   generatedCustomerMetadata: z.record(z.string(), z.string()).describe(
     "Additional Google Generated Customer Metadata, this field won't be provided by default and can be requested by setting the IncludeExtraData field in GetVersionRequest",
   ).optional(),
@@ -448,7 +443,7 @@ const GlobalArgsSchema = z.object({
       scriptPath: z.string().describe(
         "Path to the script from the application root directory.",
       ).optional(),
-    }).describe("Uses Google Cloud Endpoints to handle requests.").optional(),
+    }).describe("Uses API Endpoints to handle requests.").optional(),
     authFailAction: z.enum([
       "AUTH_FAIL_ACTION_UNSPECIFIED",
       "AUTH_FAIL_ACTION_REDIRECT",
@@ -478,7 +473,7 @@ const GlobalArgsSchema = z.object({
         "Path to the script from the application root directory.",
       ).optional(),
     }).describe(
-      "Executes a script to handle the request that matches the URL pattern.",
+      'Executes a script to handle the requests that match this URL pattern. Only the auto value is supported for Node.js in the App Engine standard environment, for example "script": "auto".',
     ).optional(),
     securityLevel: z.enum([
       "SECURE_UNSPECIFIED",
@@ -510,7 +505,7 @@ const GlobalArgsSchema = z.object({
         "Regular expression that matches the file paths for all files that should be referenced by this handler.",
       ).optional(),
     }).describe(
-      "Files served directly to the user for a given URL, such as images, CSS stylesheets, or JavaScript source files. Static file handlers describe which files in the application directory are static files, and which URLs serve them.",
+      "Returns the contents of a file, such as an image, as the response.",
     ).optional(),
     urlRegex: z.string().describe(
       "URL prefix. Uses regular expression syntax, which means regexp special characters must be escaped, but should not contain groupings. All URLs that begin with this prefix are handled by this handler, using the portion of the URL after the prefix as part of the file path.",
@@ -540,7 +535,7 @@ const GlobalArgsSchema = z.object({
       "Number of consecutive failed health checks required before removing traffic.",
     ).optional(),
   }).describe(
-    "Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances. Only applicable for instances in App Engine flexible environment.",
+    "Configures health checking for instances. Unhealthy instances are stopped and replaced with new instances. Only applicable in the App Engine flexible environment.",
   ).optional(),
   id: z.string().describe(
     'Relative name of the version within the service. Example: v1. Version names can contain only lowercase letters, numbers, or hyphens. Reserved names: "default", "latest", and any name with the prefix "ah-".',
@@ -591,14 +586,14 @@ const GlobalArgsSchema = z.object({
     timeout: z.string().describe("Time before the check is considered failed.")
       .optional(),
   }).describe(
-    "Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances.",
+    "Configures liveness health checking for instances. Unhealthy instances are stopped and replaced with new instances",
   ).optional(),
   manualScaling: z.object({
     instances: z.number().int().describe(
       "Number of instances to assign to the service at the start. This number can later be altered by using the Modules API (https://cloud.google.com/appengine/docs/python/modules/functions) set_num_instances() function.",
     ).optional(),
   }).describe(
-    "A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time.",
+    'A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time. Manually scaled versions are sometimes referred to as "backends".',
   ).optional(),
   network: z.object({
     forwardedPorts: z.array(z.string()).describe(
@@ -648,7 +643,7 @@ const GlobalArgsSchema = z.object({
     timeout: z.string().describe("Time before the check is considered failed.")
       .optional(),
   }).describe(
-    "Readiness checking configuration for VM instances. Unhealthy instances are removed from traffic rotation.",
+    "Configures readiness health checking for instances. Unhealthy instances are not put into the backend traffic rotation.",
   ).optional(),
   resources: z.object({
     cpu: z.number().describe("Number of CPU cores needed.").optional(),
@@ -663,7 +658,9 @@ const GlobalArgsSchema = z.object({
       volumeType: z.string().describe("Underlying volume type, e.g. 'tmpfs'.")
         .optional(),
     })).describe("User specified volumes.").optional(),
-  }).describe("Machine resources for a version.").optional(),
+  }).describe(
+    "Machine resources for this version. Only applicable in the App Engine flexible environment.",
+  ).optional(),
   runtime: z.string().describe("Desired runtime. Example: python27.")
     .optional(),
   runtimeApiVersion: z.string().describe(
@@ -699,7 +696,7 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Full Serverless VPC Access Connector name e.g. projects/my-project/locations/us-central1/connectors/c1.",
     ).optional(),
-  }).describe("VPC access connector specification.").optional(),
+  }).describe("Enables VPC connectivity for standard apps.").optional(),
   zones: z.array(z.string()).describe(
     "The Google Compute Engine zones that are supported by this version in the App Engine flexible environment. Deprecated.",
   ).optional(),
@@ -933,7 +930,7 @@ const InputsSchema = z.object({
     ]).describe("Security (HTTPS) enforcement for this URL.").optional(),
     url: z.string().describe("URL to serve the endpoint at.").optional(),
   }).describe(
-    "Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration for API handlers.",
+    "Serving configuration for Google Cloud Endpoints (https://cloud.google.com/endpoints).Only returned in GET requests if view=FULL is set.",
   ).optional(),
   appEngineApis: z.boolean().describe(
     "Allows App Engine second generation runtimes to access the legacy bundled services.",
@@ -963,9 +960,7 @@ const InputsSchema = z.object({
       targetWriteOpsPerSecond: z.number().int().describe(
         "Target ops written per second.",
       ).optional(),
-    }).describe(
-      "Target scaling by disk usage. Only applicable in the App Engine flexible environment.",
-    ).optional(),
+    }).describe("Target scaling by disk usage.").optional(),
     maxConcurrentRequests: z.number().int().describe(
       "Number of concurrent requests an automatic scaling instance can accept before the scheduler spawns a new instance.Defaults to a runtime-specific value.",
     ).optional(),
@@ -1000,9 +995,7 @@ const InputsSchema = z.object({
       targetSentPacketsPerSecond: z.number().int().describe(
         "Target packets sent per second.",
       ).optional(),
-    }).describe(
-      "Target scaling by network usage. Only applicable in the App Engine flexible environment.",
-    ).optional(),
+    }).describe("Target scaling by network usage.").optional(),
     requestUtilization: z.object({
       targetConcurrentRequests: z.number().int().describe(
         "Target number of concurrent requests.",
@@ -1010,9 +1003,7 @@ const InputsSchema = z.object({
       targetRequestCountPerSecond: z.number().int().describe(
         "Target requests per second.",
       ).optional(),
-    }).describe(
-      "Target scaling by request utilization. Only applicable in the App Engine flexible environment.",
-    ).optional(),
+    }).describe("Target scaling by request utilization.").optional(),
     standardSchedulerSettings: z.object({
       maxInstances: z.number().int().describe(
         "Maximum number of instances to run for this version. Set to 2147483647 to disable max_instances configuration.",
@@ -1028,7 +1019,7 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Scheduler settings for standard environment.").optional(),
   }).describe(
-    "Automatic scaling is based on request rate, response latencies, and other application metrics.",
+    "Automatic scaling is based on request rate, response latencies, and other application metrics. Instances are dynamically created and destroyed as needed in order to handle traffic.",
   ).optional(),
   basicScaling: z.object({
     idleTimeout: z.string().describe(
@@ -1061,14 +1052,14 @@ const InputsSchema = z.object({
         "The Cloud Build timeout used as part of any dependent builds performed by version creation. Defaults to 10 minutes.",
       ).optional(),
     }).describe(
-      "Options for the build operations performed as a part of the version deployment. Only applicable for App Engine flexible environment when creating a version using source code directly.",
+      "Options for any Google Cloud Build builds created as a part of this deployment.These options will only be used if a new build is created, such as when deploying to the App Engine flexible environment using files or zip.",
     ).optional(),
     container: z.object({
       image: z.string().describe(
         'URI to the hosted container image in Google Container Registry. The URI must be fully qualified and include a tag or digest. Examples: "gcr.io/my-project/image:tag" or "gcr.io/my-project/image@digest"',
       ).optional(),
     }).describe(
-      "Docker image that is used to create a container and start a VM instance for the version that you deploy. Only applicable for instances running in the App Engine flexible environment.",
+      "The Docker image for the container that runs the version. Only applicable for instances running in the App Engine flexible environment.",
     ).optional(),
     files: z.record(
       z.string(),
@@ -1092,9 +1083,11 @@ const InputsSchema = z.object({
       sourceUrl: z.string().describe(
         "URL of the zip file to deploy from. Must be a URL to a resource in Google Cloud Storage in the form 'http(s)://storage.googleapis.com//'.",
       ).optional(),
-    }).describe("The zip file information for a zip deployment.").optional(),
+    }).describe(
+      "The zip file for this deployment, if this is a zip deployment.",
+    ).optional(),
   }).describe(
-    "Code and application artifacts used to deploy a version to App Engine.",
+    "Code and application artifacts that make up this version.Only returned in GET requests if view=FULL is set.",
   ).optional(),
   endpointsApiService: z.object({
     configId: z.string().describe(
@@ -1114,7 +1107,7 @@ const InputsSchema = z.object({
       "Endpoints rollout strategy. If FIXED, config_id must be specified. If MANAGED, config_id must be omitted.",
     ).optional(),
   }).describe(
-    'Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration. The Endpoints API Service provides tooling for serving Open API and gRPC endpoints via an NGINX proxy. Only valid for App Engine Flexible environment deployments.The fields here refer to the name and configuration ID of a "service" resource in the Service Management API (https://cloud.google.com/service-management/overview).',
+    "Cloud Endpoints configuration.If endpoints_api_service is set, the Cloud Endpoints Extensible Service Proxy will be provided to serve the API implemented by the app.",
   ).optional(),
   entrypoint: z.object({
     shell: z.string().describe(
@@ -1150,8 +1143,7 @@ const InputsSchema = z.object({
     runtimeVersion: z.string().describe(
       "The runtime version of an App Engine flexible application.",
     ).optional(),
-  }).describe("Runtime settings for the App Engine flexible environment.")
-    .optional(),
+  }).describe("Settings for App Engine flexible runtimes.").optional(),
   generatedCustomerMetadata: z.record(z.string(), z.string()).describe(
     "Additional Google Generated Customer Metadata, this field won't be provided by default and can be requested by setting the IncludeExtraData field in GetVersionRequest",
   ).optional(),
@@ -1160,7 +1152,7 @@ const InputsSchema = z.object({
       scriptPath: z.string().describe(
         "Path to the script from the application root directory.",
       ).optional(),
-    }).describe("Uses Google Cloud Endpoints to handle requests.").optional(),
+    }).describe("Uses API Endpoints to handle requests.").optional(),
     authFailAction: z.enum([
       "AUTH_FAIL_ACTION_UNSPECIFIED",
       "AUTH_FAIL_ACTION_REDIRECT",
@@ -1190,7 +1182,7 @@ const InputsSchema = z.object({
         "Path to the script from the application root directory.",
       ).optional(),
     }).describe(
-      "Executes a script to handle the request that matches the URL pattern.",
+      'Executes a script to handle the requests that match this URL pattern. Only the auto value is supported for Node.js in the App Engine standard environment, for example "script": "auto".',
     ).optional(),
     securityLevel: z.enum([
       "SECURE_UNSPECIFIED",
@@ -1222,7 +1214,7 @@ const InputsSchema = z.object({
         "Regular expression that matches the file paths for all files that should be referenced by this handler.",
       ).optional(),
     }).describe(
-      "Files served directly to the user for a given URL, such as images, CSS stylesheets, or JavaScript source files. Static file handlers describe which files in the application directory are static files, and which URLs serve them.",
+      "Returns the contents of a file, such as an image, as the response.",
     ).optional(),
     urlRegex: z.string().describe(
       "URL prefix. Uses regular expression syntax, which means regexp special characters must be escaped, but should not contain groupings. All URLs that begin with this prefix are handled by this handler, using the portion of the URL after the prefix as part of the file path.",
@@ -1252,7 +1244,7 @@ const InputsSchema = z.object({
       "Number of consecutive failed health checks required before removing traffic.",
     ).optional(),
   }).describe(
-    "Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances. Only applicable for instances in App Engine flexible environment.",
+    "Configures health checking for instances. Unhealthy instances are stopped and replaced with new instances. Only applicable in the App Engine flexible environment.",
   ).optional(),
   id: z.string().describe(
     'Relative name of the version within the service. Example: v1. Version names can contain only lowercase letters, numbers, or hyphens. Reserved names: "default", "latest", and any name with the prefix "ah-".',
@@ -1303,14 +1295,14 @@ const InputsSchema = z.object({
     timeout: z.string().describe("Time before the check is considered failed.")
       .optional(),
   }).describe(
-    "Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances.",
+    "Configures liveness health checking for instances. Unhealthy instances are stopped and replaced with new instances",
   ).optional(),
   manualScaling: z.object({
     instances: z.number().int().describe(
       "Number of instances to assign to the service at the start. This number can later be altered by using the Modules API (https://cloud.google.com/appengine/docs/python/modules/functions) set_num_instances() function.",
     ).optional(),
   }).describe(
-    "A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time.",
+    'A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time. Manually scaled versions are sometimes referred to as "backends".',
   ).optional(),
   network: z.object({
     forwardedPorts: z.array(z.string()).describe(
@@ -1360,7 +1352,7 @@ const InputsSchema = z.object({
     timeout: z.string().describe("Time before the check is considered failed.")
       .optional(),
   }).describe(
-    "Readiness checking configuration for VM instances. Unhealthy instances are removed from traffic rotation.",
+    "Configures readiness health checking for instances. Unhealthy instances are not put into the backend traffic rotation.",
   ).optional(),
   resources: z.object({
     cpu: z.number().describe("Number of CPU cores needed.").optional(),
@@ -1375,7 +1367,9 @@ const InputsSchema = z.object({
       volumeType: z.string().describe("Underlying volume type, e.g. 'tmpfs'.")
         .optional(),
     })).describe("User specified volumes.").optional(),
-  }).describe("Machine resources for a version.").optional(),
+  }).describe(
+    "Machine resources for this version. Only applicable in the App Engine flexible environment.",
+  ).optional(),
   runtime: z.string().describe("Desired runtime. Example: python27.")
     .optional(),
   runtimeApiVersion: z.string().describe(
@@ -1411,7 +1405,7 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Full Serverless VPC Access Connector name e.g. projects/my-project/locations/us-central1/connectors/c1.",
     ).optional(),
-  }).describe("VPC access connector specification.").optional(),
+  }).describe("Enables VPC connectivity for standard apps.").optional(),
   zones: z.array(z.string()).describe(
     "The Google Compute Engine zones that are supported by this version in the App Engine flexible environment. Deprecated.",
   ).optional(),
@@ -1446,7 +1440,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.Services.Versions. Registered at `@swamp/gcp/appengine/apps-services-versions`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-services-versions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1550,6 +1544,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1673,15 +1672,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "appsId": String(g["appsId"] ?? ""),
-              "servicesId": String(g["servicesId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

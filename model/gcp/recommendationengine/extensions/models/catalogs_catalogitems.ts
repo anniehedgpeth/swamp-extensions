@@ -188,7 +188,7 @@ const GlobalArgsSchema = z.object({
       'Numerical features. Some examples would be the height/weight of a product, or age of a customer. Feature names must be UTF-8 encoded strings. For example: `{ "lengths_cm": {"value":[2.3, 15.4]}, "heights_cm": {"value":[8.1, 6.4]} }`',
     ).optional(),
   }).describe(
-    "FeatureMap represents extra features that customers want to include in the recommendation model for catalogs/user events as categorical/numerical features.",
+    "Optional. Highly encouraged. Extra catalog item attributes to be included in the recommendation model. For example, for retail products, this could include the store name, vendor, style, color, etc. These are very strong signals for recommendation model, thus we highly recommend providing the item attributes here.",
   ).optional(),
   itemGroupId: z.string().describe(
     "Optional. Variant group identifier for prediction results. UTF-8 encoded string with a length limit of 128 bytes. This field must be enabled before it can be used. [Learn more](/recommendations-ai/docs/catalog#item-group-id).",
@@ -216,7 +216,7 @@ const GlobalArgsSchema = z.object({
       originalPrice: z.number().describe(
         "Optional. Price of the product without any discount. If zero, by default set to be the 'displayPrice'.",
       ).optional(),
-    }).describe("Exact product price.").optional(),
+    }).describe("Optional. The exact product price.").optional(),
     images: z.array(z.object({
       height: z.number().int().describe(
         "Optional. Height of the image in number of pixels.",
@@ -233,9 +233,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
       min: z.number().describe("Required. The minimum product price.")
         .optional(),
-    }).describe(
-      "Product price range when there are a range of prices for different variations of the same product.",
-    ).optional(),
+    }).describe("Optional. The product price range.").optional(),
     stockState: z.enum([
       "STOCK_STATE_UNSPECIFIED",
       "IN_STOCK",
@@ -245,9 +243,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. Online stock state of the catalog item. Default is `IN_STOCK`.",
     ).optional(),
-  }).describe(
-    "ProductCatalogItem captures item metadata specific to retail products.",
-  ).optional(),
+  }).describe("Optional. Metadata specific to retail products.").optional(),
   tags: z.array(z.string()).describe(
     "Optional. Filtering tags associated with the catalog item. Each tag should be a UTF-8 encoded string with a length limit of 1 KiB. This tag can be used for filtering recommendation results by passing the tag as part of the predict request filter.",
   ).optional(),
@@ -339,7 +335,7 @@ const InputsSchema = z.object({
       'Numerical features. Some examples would be the height/weight of a product, or age of a customer. Feature names must be UTF-8 encoded strings. For example: `{ "lengths_cm": {"value":[2.3, 15.4]}, "heights_cm": {"value":[8.1, 6.4]} }`',
     ).optional(),
   }).describe(
-    "FeatureMap represents extra features that customers want to include in the recommendation model for catalogs/user events as categorical/numerical features.",
+    "Optional. Highly encouraged. Extra catalog item attributes to be included in the recommendation model. For example, for retail products, this could include the store name, vendor, style, color, etc. These are very strong signals for recommendation model, thus we highly recommend providing the item attributes here.",
   ).optional(),
   itemGroupId: z.string().describe(
     "Optional. Variant group identifier for prediction results. UTF-8 encoded string with a length limit of 128 bytes. This field must be enabled before it can be used. [Learn more](/recommendations-ai/docs/catalog#item-group-id).",
@@ -367,7 +363,7 @@ const InputsSchema = z.object({
       originalPrice: z.number().describe(
         "Optional. Price of the product without any discount. If zero, by default set to be the 'displayPrice'.",
       ).optional(),
-    }).describe("Exact product price.").optional(),
+    }).describe("Optional. The exact product price.").optional(),
     images: z.array(z.object({
       height: z.number().int().describe(
         "Optional. Height of the image in number of pixels.",
@@ -384,9 +380,7 @@ const InputsSchema = z.object({
         .optional(),
       min: z.number().describe("Required. The minimum product price.")
         .optional(),
-    }).describe(
-      "Product price range when there are a range of prices for different variations of the same product.",
-    ).optional(),
+    }).describe("Optional. The product price range.").optional(),
     stockState: z.enum([
       "STOCK_STATE_UNSPECIFIED",
       "IN_STOCK",
@@ -396,9 +390,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. Online stock state of the catalog item. Default is `IN_STOCK`.",
     ).optional(),
-  }).describe(
-    "ProductCatalogItem captures item metadata specific to retail products.",
-  ).optional(),
+  }).describe("Optional. Metadata specific to retail products.").optional(),
   tags: z.array(z.string()).describe(
     "Optional. Filtering tags associated with the catalog item. Each tag should be a UTF-8 encoded string with a length limit of 1 KiB. This tag can be used for filtering recommendation results by passing the tag as part of the predict request filter.",
   ).optional(),
@@ -436,7 +428,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Recommendations AI (Beta) Catalogs.CatalogItems. Registered at `@swamp/gcp/recommendationengine/catalogs-catalogitems`. */
 export const model = {
   type: "@swamp/gcp/recommendationengine/catalogs-catalogitems",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -797,6 +789,25 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: g, type, version, upgrades, globalArguments, inputsSchema, resources, methods",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          g: _g,
+          type: _type,
+          version: _version,
+          upgrades: _upgrades,
+          globalArguments: _globalArguments,
+          inputsSchema: _inputsSchema,
+          resources: _resources,
+          methods: _methods,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -854,14 +865,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

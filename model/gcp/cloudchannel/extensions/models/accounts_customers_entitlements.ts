@@ -127,9 +127,7 @@ const GlobalArgsSchema = z.object({
       baseEntitlement: z.string().describe(
         "The name of the base entitlement, for which this entitlement is an add-on.",
       ).optional(),
-    }).describe(
-      "Association links that an entitlement has to other entitlements.",
-    ).optional(),
+    }).describe("Association information to other entitlements.").optional(),
     billingAccount: z.string().describe(
       "Optional. The billing account resource name that is used to pay for this entitlement.",
     ).optional(),
@@ -150,7 +148,9 @@ const GlobalArgsSchema = z.object({
             "MONTH",
             "YEAR",
           ]).describe("Period Type.").optional(),
-        }).describe("Represents period in days/months/years.").optional(),
+        }).describe(
+          "Describes how frequently the reseller will be billed, such as once per month.",
+        ).optional(),
         paymentPlan: z.enum([
           "PAYMENT_PLAN_UNSPECIFIED",
           "COMMITMENT",
@@ -162,10 +162,14 @@ const GlobalArgsSchema = z.object({
         resizeUnitCount: z.boolean().describe(
           "If true and enable_renewal = true, the unit (for example seats or licenses) will be set to the number of active units at renewal time.",
         ).optional(),
-      }).describe("Renewal settings for renewable Offers.").optional(),
+      }).describe(
+        "Optional. Renewal settings applicable for a commitment-based Offer.",
+      ).optional(),
       startTime: z.string().describe("Output only. Commitment start timestamp.")
         .optional(),
-    }).describe("Commitment settings for commitment-based offers.").optional(),
+    }).describe(
+      "Commitment settings for a commitment-based Offer. Required for commitment based offers.",
+    ).optional(),
     createTime: z.string().describe(
       "Output only. The time at which the entitlement is created.",
     ).optional(),
@@ -192,7 +196,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         stringValue: z.string().describe("Represents a string value.")
           .optional(),
-      }).describe("Data type and value of a parameter.").optional(),
+      }).describe("Value of the parameter.").optional(),
     })).describe(
       "Extended entitlement parameters. When creating an entitlement, valid parameter names and values are defined in the Offer.parameter_definitions. For Google Workspace, the following Parameters may be accepted as input: - max_units: The maximum assignable units for a flexible offer OR - num_units: The total commitment for commitment-based offers The response may additionally include the following output-only Parameters: - assigned_units: The number of licenses assigned to users. For Google Cloud billing subaccounts, the following Parameter may be accepted as input: - display_name: The display name of the billing subaccount.",
     ).optional(),
@@ -209,7 +213,9 @@ const GlobalArgsSchema = z.object({
       skuId: z.string().describe(
         "Output only. The SKU pertaining to the provisioning resource as specified in the Offer.",
       ).optional(),
-    }).describe("Service provisioned for an entitlement.").optional(),
+    }).describe(
+      "Output only. Service provisioning details for the entitlement.",
+    ).optional(),
     provisioningState: z.enum([
       "PROVISIONING_STATE_UNSPECIFIED",
       "ACTIVE",
@@ -238,13 +244,11 @@ const GlobalArgsSchema = z.object({
       trial: z.boolean().describe(
         "Determines if the entitlement is in a trial or not: * `true` - The entitlement is in trial. * `false` - The entitlement is not in trial.",
       ).optional(),
-    }).describe("Settings for trial offers.").optional(),
+    }).describe("Output only. Settings for trial offers.").optional(),
     updateTime: z.string().describe(
       "Output only. The time at which the entitlement is updated.",
     ).optional(),
-  }).describe(
-    "An entitlement is a representation of a customer's ability to use a service.",
-  ).optional(),
+  }).describe("Required. The entitlement to create.").optional(),
   requestId: z.string().describe(
     "Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it's complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (`00000000-0000-0000-0000-000000000000`).",
   ).optional(),
@@ -314,9 +318,7 @@ const InputsSchema = z.object({
       baseEntitlement: z.string().describe(
         "The name of the base entitlement, for which this entitlement is an add-on.",
       ).optional(),
-    }).describe(
-      "Association links that an entitlement has to other entitlements.",
-    ).optional(),
+    }).describe("Association information to other entitlements.").optional(),
     billingAccount: z.string().describe(
       "Optional. The billing account resource name that is used to pay for this entitlement.",
     ).optional(),
@@ -337,7 +339,9 @@ const InputsSchema = z.object({
             "MONTH",
             "YEAR",
           ]).describe("Period Type.").optional(),
-        }).describe("Represents period in days/months/years.").optional(),
+        }).describe(
+          "Describes how frequently the reseller will be billed, such as once per month.",
+        ).optional(),
         paymentPlan: z.enum([
           "PAYMENT_PLAN_UNSPECIFIED",
           "COMMITMENT",
@@ -349,10 +353,14 @@ const InputsSchema = z.object({
         resizeUnitCount: z.boolean().describe(
           "If true and enable_renewal = true, the unit (for example seats or licenses) will be set to the number of active units at renewal time.",
         ).optional(),
-      }).describe("Renewal settings for renewable Offers.").optional(),
+      }).describe(
+        "Optional. Renewal settings applicable for a commitment-based Offer.",
+      ).optional(),
       startTime: z.string().describe("Output only. Commitment start timestamp.")
         .optional(),
-    }).describe("Commitment settings for commitment-based offers.").optional(),
+    }).describe(
+      "Commitment settings for a commitment-based Offer. Required for commitment based offers.",
+    ).optional(),
     createTime: z.string().describe(
       "Output only. The time at which the entitlement is created.",
     ).optional(),
@@ -379,7 +387,7 @@ const InputsSchema = z.object({
         ).optional(),
         stringValue: z.string().describe("Represents a string value.")
           .optional(),
-      }).describe("Data type and value of a parameter.").optional(),
+      }).describe("Value of the parameter.").optional(),
     })).describe(
       "Extended entitlement parameters. When creating an entitlement, valid parameter names and values are defined in the Offer.parameter_definitions. For Google Workspace, the following Parameters may be accepted as input: - max_units: The maximum assignable units for a flexible offer OR - num_units: The total commitment for commitment-based offers The response may additionally include the following output-only Parameters: - assigned_units: The number of licenses assigned to users. For Google Cloud billing subaccounts, the following Parameter may be accepted as input: - display_name: The display name of the billing subaccount.",
     ).optional(),
@@ -396,7 +404,9 @@ const InputsSchema = z.object({
       skuId: z.string().describe(
         "Output only. The SKU pertaining to the provisioning resource as specified in the Offer.",
       ).optional(),
-    }).describe("Service provisioned for an entitlement.").optional(),
+    }).describe(
+      "Output only. Service provisioning details for the entitlement.",
+    ).optional(),
     provisioningState: z.enum([
       "PROVISIONING_STATE_UNSPECIFIED",
       "ACTIVE",
@@ -425,13 +435,11 @@ const InputsSchema = z.object({
       trial: z.boolean().describe(
         "Determines if the entitlement is in a trial or not: * `true` - The entitlement is in trial. * `false` - The entitlement is not in trial.",
       ).optional(),
-    }).describe("Settings for trial offers.").optional(),
+    }).describe("Output only. Settings for trial offers.").optional(),
     updateTime: z.string().describe(
       "Output only. The time at which the entitlement is updated.",
     ).optional(),
-  }).describe(
-    "An entitlement is a representation of a customer's ability to use a service.",
-  ).optional(),
+  }).describe("Required. The entitlement to create.").optional(),
   requestId: z.string().describe(
     "Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it's complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (`00000000-0000-0000-0000-000000000000`).",
   ).optional(),
@@ -463,7 +471,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Channel Accounts.Customers.Entitlements. Registered at `@swamp/gcp/cloudchannel/accounts-customers-entitlements`. */
 export const model = {
   type: "@swamp/gcp/cloudchannel/accounts-customers-entitlements",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -560,6 +568,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -600,14 +613,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

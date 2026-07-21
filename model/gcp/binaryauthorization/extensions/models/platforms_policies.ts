@@ -152,25 +152,25 @@ const GlobalArgsSchema = z.object({
           "Optional. A user-provided name for this check. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.",
         ).optional(),
         imageAllowlist: z.unknown().describe(
-          "Images that are exempted from normal checks based on name pattern only.",
+          "Optional. Images exempted from this check. If any of the patterns match the image url, the check will not be evaluated.",
         ).optional(),
         imageFreshnessCheck: z.unknown().describe(
-          "An image freshness check, which rejects images that were uploaded before the set number of days ago to the supported repositories.",
+          "Optional. Require that an image is no older than a configured expiration time. Image age is determined by its upload time.",
         ).optional(),
         sigstoreSignatureCheck: z.unknown().describe(
-          "A Sigstore signature check, which verifies the Sigstore signature associated with an image.",
+          "Optional. Require that an image was signed by Cosign with a trusted key. This check requires that both the image and signature are stored in Artifact Registry.",
         ).optional(),
         simpleSigningAttestationCheck: z.unknown().describe(
-          "Require a signed [DSSE](https://github.com/secure-systems-lab/dsse) attestation with type SimpleSigning.",
+          "Optional. Require a SimpleSigning-type attestation for every image in the deployment.",
         ).optional(),
         slsaCheck: z.unknown().describe(
-          "A SLSA provenance attestation check, which ensures that images are built by a trusted builder using source code from its trusted repositories only.",
+          "Optional. Require that an image was built by a trusted builder (such as Google Cloud Build), meets requirements for Supply chain Levels for Software Artifacts (SLSA), and was built from a trusted source code repostitory.",
         ).optional(),
         trustedDirectoryCheck: z.unknown().describe(
-          "A trusted directory check, which rejects images that do not come from the set of user-configured trusted directories.",
+          "Optional. Require that an image lives in a trusted directory.",
         ).optional(),
         vulnerabilityCheck: z.unknown().describe(
-          "An image vulnerability check, which rejects images that violate the configured vulnerability rules.",
+          "Optional. Require that an image does not contain vulnerabilities that violate the configured rules, such as based on severity levels.",
         ).optional(),
       })).describe(
         'Optional. The checks to apply. The ultimate result of evaluating the check set will be "allow" if and only if every check in `checks` evaluates to "allow". If `checks` is empty, the default behavior is "always allow".',
@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
           "Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.",
         ).optional(),
       }).describe(
-        "Images that are exempted from normal checks based on name pattern only.",
+        "Optional. Images exempted from this `CheckSet`. If any of the patterns match the image being evaluated, no checks in the `CheckSet` will be evaluated.",
       ).optional(),
       scope: z.object({
         kubernetesNamespace: z.string().describe(
@@ -192,7 +192,9 @@ const GlobalArgsSchema = z.object({
         kubernetesServiceAccount: z.string().describe(
           "Optional. Matches a single Kubernetes service account, e.g. `my-namespace:my-service-account`. `kubernetes_service_account` scope is always more specific than `kubernetes_namespace` scope for the same namespace.",
         ).optional(),
-      }).describe("A scope specifier for `CheckSet` objects.").optional(),
+      }).describe(
+        "Optional. The scope to which this `CheckSet` applies. If unset or an empty string (the default), applies to all namespaces and service accounts. See the `Scope` message documentation for details on scoping rules.",
+      ).optional(),
     })).describe(
       'Optional. The `CheckSet` objects to apply, scoped by namespace or namespace and service account. Exactly one `CheckSet` will be evaluated for a given Pod (unless the list is empty, in which case the behavior is "always allow"). If multiple `CheckSet` objects have scopes that match the namespace and service account of the Pod being evaluated, only the `CheckSet` with the MOST SPECIFIC scope will match. `CheckSet` objects must be listed in order of decreasing specificity, i.e. if a scope matches a given service account (which must include the namespace), it must come before a `CheckSet` with a scope matching just that namespace. This property is enforced by server-side validation. The purpose of this restriction is to ensure that if more than one `CheckSet` matches a given Pod, the `CheckSet` that will be evaluated will always be the first in the list to match (because if any other matches, it must be less specific). If `check_sets` is empty, the default behavior is to allow all images. If `check_sets` is non-empty, the last `check_sets` entry must always be a `CheckSet` with no scope set, i.e. a catchall to handle any situation not caught by the preceding `CheckSet` objects.',
     ).optional(),
@@ -201,11 +203,9 @@ const GlobalArgsSchema = z.object({
         "Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.",
       ).optional(),
     }).describe(
-      "Images that are exempted from normal checks based on name pattern only.",
+      "Optional. Images exempted from this policy. If any of the patterns match the image being evaluated, the rest of the policy will not be evaluated.",
     ).optional(),
-  }).describe(
-    "A Binary Authorization policy for a GKE cluster. This is one type of policy that can occur as a `PlatformPolicy`.",
-  ).optional(),
+  }).describe("Optional. GKE platform-specific policy.").optional(),
   policyId: z.string().describe("Required. The platform policy ID.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -269,25 +269,25 @@ const InputsSchema = z.object({
           "Optional. A user-provided name for this check. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.",
         ).optional(),
         imageAllowlist: z.unknown().describe(
-          "Images that are exempted from normal checks based on name pattern only.",
+          "Optional. Images exempted from this check. If any of the patterns match the image url, the check will not be evaluated.",
         ).optional(),
         imageFreshnessCheck: z.unknown().describe(
-          "An image freshness check, which rejects images that were uploaded before the set number of days ago to the supported repositories.",
+          "Optional. Require that an image is no older than a configured expiration time. Image age is determined by its upload time.",
         ).optional(),
         sigstoreSignatureCheck: z.unknown().describe(
-          "A Sigstore signature check, which verifies the Sigstore signature associated with an image.",
+          "Optional. Require that an image was signed by Cosign with a trusted key. This check requires that both the image and signature are stored in Artifact Registry.",
         ).optional(),
         simpleSigningAttestationCheck: z.unknown().describe(
-          "Require a signed [DSSE](https://github.com/secure-systems-lab/dsse) attestation with type SimpleSigning.",
+          "Optional. Require a SimpleSigning-type attestation for every image in the deployment.",
         ).optional(),
         slsaCheck: z.unknown().describe(
-          "A SLSA provenance attestation check, which ensures that images are built by a trusted builder using source code from its trusted repositories only.",
+          "Optional. Require that an image was built by a trusted builder (such as Google Cloud Build), meets requirements for Supply chain Levels for Software Artifacts (SLSA), and was built from a trusted source code repostitory.",
         ).optional(),
         trustedDirectoryCheck: z.unknown().describe(
-          "A trusted directory check, which rejects images that do not come from the set of user-configured trusted directories.",
+          "Optional. Require that an image lives in a trusted directory.",
         ).optional(),
         vulnerabilityCheck: z.unknown().describe(
-          "An image vulnerability check, which rejects images that violate the configured vulnerability rules.",
+          "Optional. Require that an image does not contain vulnerabilities that violate the configured rules, such as based on severity levels.",
         ).optional(),
       })).describe(
         'Optional. The checks to apply. The ultimate result of evaluating the check set will be "allow" if and only if every check in `checks` evaluates to "allow". If `checks` is empty, the default behavior is "always allow".',
@@ -300,7 +300,7 @@ const InputsSchema = z.object({
           "Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.",
         ).optional(),
       }).describe(
-        "Images that are exempted from normal checks based on name pattern only.",
+        "Optional. Images exempted from this `CheckSet`. If any of the patterns match the image being evaluated, no checks in the `CheckSet` will be evaluated.",
       ).optional(),
       scope: z.object({
         kubernetesNamespace: z.string().describe(
@@ -309,7 +309,9 @@ const InputsSchema = z.object({
         kubernetesServiceAccount: z.string().describe(
           "Optional. Matches a single Kubernetes service account, e.g. `my-namespace:my-service-account`. `kubernetes_service_account` scope is always more specific than `kubernetes_namespace` scope for the same namespace.",
         ).optional(),
-      }).describe("A scope specifier for `CheckSet` objects.").optional(),
+      }).describe(
+        "Optional. The scope to which this `CheckSet` applies. If unset or an empty string (the default), applies to all namespaces and service accounts. See the `Scope` message documentation for details on scoping rules.",
+      ).optional(),
     })).describe(
       'Optional. The `CheckSet` objects to apply, scoped by namespace or namespace and service account. Exactly one `CheckSet` will be evaluated for a given Pod (unless the list is empty, in which case the behavior is "always allow"). If multiple `CheckSet` objects have scopes that match the namespace and service account of the Pod being evaluated, only the `CheckSet` with the MOST SPECIFIC scope will match. `CheckSet` objects must be listed in order of decreasing specificity, i.e. if a scope matches a given service account (which must include the namespace), it must come before a `CheckSet` with a scope matching just that namespace. This property is enforced by server-side validation. The purpose of this restriction is to ensure that if more than one `CheckSet` matches a given Pod, the `CheckSet` that will be evaluated will always be the first in the list to match (because if any other matches, it must be less specific). If `check_sets` is empty, the default behavior is to allow all images. If `check_sets` is non-empty, the last `check_sets` entry must always be a `CheckSet` with no scope set, i.e. a catchall to handle any situation not caught by the preceding `CheckSet` objects.',
     ).optional(),
@@ -318,11 +320,9 @@ const InputsSchema = z.object({
         "Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.",
       ).optional(),
     }).describe(
-      "Images that are exempted from normal checks based on name pattern only.",
+      "Optional. Images exempted from this policy. If any of the patterns match the image being evaluated, the rest of the policy will not be evaluated.",
     ).optional(),
-  }).describe(
-    "A Binary Authorization policy for a GKE cluster. This is one type of policy that can occur as a `PlatformPolicy`.",
-  ).optional(),
+  }).describe("Optional. GKE platform-specific policy.").optional(),
   policyId: z.string().describe("Required. The platform policy ID.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -355,7 +355,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Binary Authorization Platforms.Policies. Registered at `@swamp/gcp/binaryauthorization/platforms-policies`. */
 export const model = {
   type: "@swamp/gcp/binaryauthorization/platforms-policies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -462,6 +462,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -505,14 +510,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

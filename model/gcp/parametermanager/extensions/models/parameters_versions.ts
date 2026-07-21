@@ -179,8 +179,9 @@ const GlobalArgsSchema = z.object({
   payload: z.object({
     data: z.string().describe("Required. bytes data for storing payload.")
       .optional(),
-  }).describe("Message for storing a ParameterVersion resource's payload data")
-    .optional(),
+  }).describe(
+    "Required. Immutable. Payload content of a ParameterVersion resource. This is only returned when the request provides the View value of FULL (default for GET request).",
+  ).optional(),
   parameterVersionId: z.string().describe(
     "Required. Id of the ParameterVersion resource",
   ).optional(),
@@ -220,8 +221,9 @@ const InputsSchema = z.object({
   payload: z.object({
     data: z.string().describe("Required. bytes data for storing payload.")
       .optional(),
-  }).describe("Message for storing a ParameterVersion resource's payload data")
-    .optional(),
+  }).describe(
+    "Required. Immutable. Payload content of a ParameterVersion resource. This is only returned when the request provides the View value of FULL (default for GET request).",
+  ).optional(),
   parameterVersionId: z.string().describe(
     "Required. Id of the ParameterVersion resource",
   ).optional(),
@@ -259,7 +261,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Parameter Manager Parameters.Versions. Registered at `@swamp/gcp/parametermanager/parameters-versions`. */
 export const model = {
   type: "@swamp/gcp/parametermanager/parameters-versions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -366,6 +368,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -409,14 +416,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -502,7 +502,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["disabled"] !== undefined) body["disabled"] = g["disabled"];
-        if (g["payload"] !== undefined) body["payload"] = g["payload"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

@@ -195,7 +195,9 @@ const GlobalArgsSchema = z.object({
     coresPerLicense: z.string().describe("The number of cores per license.")
       .optional(),
     license: z.string().describe("The applicable license URI.").optional(),
-  }).describe("Commitment for a particular license resource.").optional(),
+  }).describe(
+    "The license specification required as part of a license commitment.",
+  ).optional(),
   mergeSourceCommitments: z.array(z.string()).describe(
     "The list of source commitments that you are merging to create the new merged commitment. For more information, see Merging commitments.",
   ).optional(),
@@ -207,7 +209,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the commitment. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional commitment params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   plan: z.enum(["INVALID", "THIRTY_SIX_MONTH", "TWELVE_MONTH"]).describe(
     "The minimum time duration that you commit to purchasing resources. The plan that you choose determines the preset term length of the commitment (which is 1 year or 3 years) and affects the discount rate that you receive for your resources. Committing to a longer time duration typically gives you a higher discount rate. The supported values for this field are TWELVE_MONTH (1 year), andTHIRTY_SIX_MONTH (3 years).",
   ).optional(),
@@ -224,16 +228,20 @@ const GlobalArgsSchema = z.object({
         "Indicates chosen reservation operational mode for the reservation.",
       ).optional(),
     }).describe(
-      "Advance control for cluster management, applicable only to DENSE deployment type reservations.",
+      "Advanced control for cluster management, applicable only to DENSE deployment type reservations.",
     ).optional(),
     aggregateReservation: z.object({
       inUseResources: z.array(z.object({
-        accelerator: z.unknown().optional(),
+        accelerator: z.unknown().describe(
+          "Properties of accelerator resources in this reservation.",
+        ).optional(),
       })).describe(
         "Output only. [Output only] List of resources currently in use.",
       ).optional(),
       reservedResources: z.array(z.object({
-        accelerator: z.unknown().optional(),
+        accelerator: z.unknown().describe(
+          "Properties of accelerator resources in this reservation.",
+        ).optional(),
       })).describe("List of reserved resources (CPUs, memory, accelerators).")
         .optional(),
       vmFamily: z.enum([
@@ -252,7 +260,7 @@ const GlobalArgsSchema = z.object({
         "The workload type of the instances that will target this reservation.",
       ).optional(),
     }).describe(
-      "This reservation type is specified by total resource amounts (e.g. total count of CPUs) and can account for multiple instance SKUs. In other words, one can create instances of varying shapes against this reservation.",
+      "Reservation for aggregated resources, providing shape flexibility.",
     ).optional(),
     commitment: z.string().describe(
       "Output only. [Output Only] Full or partial URL to a parent commitment. This field displays for reservations that are tied to a commitment.",
@@ -272,7 +280,7 @@ const GlobalArgsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Duration time relative to reservation creation when Compute Engine will automatically delete this resource.",
     ).optional(),
     deleteAtTime: z.string().describe(
       "Absolute time in future when the reservation will be auto-deleted by Compute Engine. Timestamp is represented inRFC3339 text format.",
@@ -307,7 +315,9 @@ const GlobalArgsSchema = z.object({
       resourceManagerTags: z.record(z.string(), z.string()).describe(
         "Input only. Resource manager tags to be bound to the reservation. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
       ).optional(),
-    }).describe("Additional reservation params.").optional(),
+    }).describe(
+      "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+    ).optional(),
     protectionTier: z.enum([
       "CAPACITY_OPTIMIZED",
       "PROTECTION_TIER_UNSPECIFIED",
@@ -321,7 +331,9 @@ const GlobalArgsSchema = z.object({
         "DISALLOW_ALL",
         "SERVICE_SHARE_TYPE_UNSPECIFIED",
       ]).describe("Sharing config for all Google Cloud services.").optional(),
-    }).optional(),
+    }).describe(
+      "Specify the reservation sharing policy. If unspecified, the reservation will not be shared with Google Cloud managed services.",
+    ).optional(),
     resourcePolicies: z.record(z.string(), z.string()).describe(
       "Resource policies to be added to this reservation. The key is defined by user, and the value is resource policy url. This is to define placement policy with reservation.",
     ).optional(),
@@ -338,7 +350,8 @@ const GlobalArgsSchema = z.object({
         healthyBlockCount: z.number().int().describe(
           "The number of reservation blocks that are healthy.",
         ).optional(),
-      }).describe("Health information for the reservation.").optional(),
+      }).describe("[Output only] Health information for the reservation.")
+        .optional(),
       reservationBlockCount: z.number().int().describe(
         "The number of reservation blocks associated with this reservation.",
       ).optional(),
@@ -388,9 +401,8 @@ const GlobalArgsSchema = z.object({
           windowStartTime: z.unknown().describe(
             "The current start time of the maintenance window. This timestamp value is in RFC3339 text format.",
           ).optional(),
-        }).describe("Upcoming Maintenance notification information.")
-          .optional(),
-      }).describe("Maintenance Info for ReservationBlocks.").optional(),
+        }).describe("Maintenance information on this group of VMs.").optional(),
+      }).describe("Maintenance information for this reservation").optional(),
       specificSkuAllocation: z.object({
         sourceInstanceTemplateId: z.string().describe(
           "ID of the instance template used to populate reservation properties.",
@@ -398,8 +410,10 @@ const GlobalArgsSchema = z.object({
         utilizations: z.record(z.string(), z.unknown()).describe(
           "Per service utilization breakdown. The Key is the Google Cloud managed service name.",
         ).optional(),
-      }).describe("Contains Properties set for the reservation.").optional(),
-    }).describe("[Output Only] Contains output only fields.").optional(),
+      }).describe("Allocation Properties of this reservation.").optional(),
+    }).describe(
+      "Output only. [Output Only] Status information for Reservation resource.",
+    ).optional(),
     satisfiesPzs: z.boolean().describe(
       "Output only. [Output Only] Reserved for future use.",
     ).optional(),
@@ -429,7 +443,7 @@ const GlobalArgsSchema = z.object({
         "SPECIFIC_PROJECTS",
       ]).describe("Type of sharing for this shared-reservation").optional(),
     }).describe(
-      "The share setting for reservations and sole tenancy node groups.",
+      "Specify share-settings to create a shared reservation. This property is optional. For more information about the syntax and options for this field and its subfields, see the guide for creating a shared reservation.",
     ).optional(),
     specificReservation: z.object({
       assuredCount: z.string().describe(
@@ -457,14 +471,12 @@ const GlobalArgsSchema = z.object({
         minCpuPlatform: z.string().describe(
           "Minimum cpu platform the reservation.",
         ).optional(),
-      }).describe("Properties of the SKU instances being reserved. Next ID: 10")
-        .optional(),
+      }).describe("The instance properties for the reservation.").optional(),
       sourceInstanceTemplate: z.string().describe(
         "Specifies the instance template to create the reservation. If you use this field, you must exclude the instanceProperties field. This field is optional, and it can be a full or partial URL. For example, the following are all valid URLs to an instance template: - https://www.googleapis.com/compute/v1/projects/project/global/instanceTemplates/instanceTemplate - projects/project/global/instanceTemplates/instanceTemplate - global/instanceTemplates/instanceTemplate",
       ).optional(),
-    }).describe(
-      "This reservation type allows to pre allocate specific instance configuration.",
-    ).optional(),
+    }).describe("Reservation for instances with specific machine shapes.")
+      .optional(),
     specificReservationRequired: z.boolean().describe(
       'Indicates whether the reservation can be consumed by VMs with affinity for "any" reservation. If the field is set, then only VMs that target the reservation by name can consume from this reservation.',
     ).optional(),
@@ -701,7 +713,9 @@ const InputsSchema = z.object({
     coresPerLicense: z.string().describe("The number of cores per license.")
       .optional(),
     license: z.string().describe("The applicable license URI.").optional(),
-  }).describe("Commitment for a particular license resource.").optional(),
+  }).describe(
+    "The license specification required as part of a license commitment.",
+  ).optional(),
   mergeSourceCommitments: z.array(z.string()).describe(
     "The list of source commitments that you are merging to create the new merged commitment. For more information, see Merging commitments.",
   ).optional(),
@@ -713,7 +727,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the commitment. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional commitment params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   plan: z.enum(["INVALID", "THIRTY_SIX_MONTH", "TWELVE_MONTH"]).describe(
     "The minimum time duration that you commit to purchasing resources. The plan that you choose determines the preset term length of the commitment (which is 1 year or 3 years) and affects the discount rate that you receive for your resources. Committing to a longer time duration typically gives you a higher discount rate. The supported values for this field are TWELVE_MONTH (1 year), andTHIRTY_SIX_MONTH (3 years).",
   ).optional(),
@@ -730,16 +746,20 @@ const InputsSchema = z.object({
         "Indicates chosen reservation operational mode for the reservation.",
       ).optional(),
     }).describe(
-      "Advance control for cluster management, applicable only to DENSE deployment type reservations.",
+      "Advanced control for cluster management, applicable only to DENSE deployment type reservations.",
     ).optional(),
     aggregateReservation: z.object({
       inUseResources: z.array(z.object({
-        accelerator: z.unknown().optional(),
+        accelerator: z.unknown().describe(
+          "Properties of accelerator resources in this reservation.",
+        ).optional(),
       })).describe(
         "Output only. [Output only] List of resources currently in use.",
       ).optional(),
       reservedResources: z.array(z.object({
-        accelerator: z.unknown().optional(),
+        accelerator: z.unknown().describe(
+          "Properties of accelerator resources in this reservation.",
+        ).optional(),
       })).describe("List of reserved resources (CPUs, memory, accelerators).")
         .optional(),
       vmFamily: z.enum([
@@ -758,7 +778,7 @@ const InputsSchema = z.object({
         "The workload type of the instances that will target this reservation.",
       ).optional(),
     }).describe(
-      "This reservation type is specified by total resource amounts (e.g. total count of CPUs) and can account for multiple instance SKUs. In other words, one can create instances of varying shapes against this reservation.",
+      "Reservation for aggregated resources, providing shape flexibility.",
     ).optional(),
     commitment: z.string().describe(
       "Output only. [Output Only] Full or partial URL to a parent commitment. This field displays for reservations that are tied to a commitment.",
@@ -778,7 +798,7 @@ const InputsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Duration time relative to reservation creation when Compute Engine will automatically delete this resource.",
     ).optional(),
     deleteAtTime: z.string().describe(
       "Absolute time in future when the reservation will be auto-deleted by Compute Engine. Timestamp is represented inRFC3339 text format.",
@@ -813,7 +833,9 @@ const InputsSchema = z.object({
       resourceManagerTags: z.record(z.string(), z.string()).describe(
         "Input only. Resource manager tags to be bound to the reservation. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
       ).optional(),
-    }).describe("Additional reservation params.").optional(),
+    }).describe(
+      "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+    ).optional(),
     protectionTier: z.enum([
       "CAPACITY_OPTIMIZED",
       "PROTECTION_TIER_UNSPECIFIED",
@@ -827,7 +849,9 @@ const InputsSchema = z.object({
         "DISALLOW_ALL",
         "SERVICE_SHARE_TYPE_UNSPECIFIED",
       ]).describe("Sharing config for all Google Cloud services.").optional(),
-    }).optional(),
+    }).describe(
+      "Specify the reservation sharing policy. If unspecified, the reservation will not be shared with Google Cloud managed services.",
+    ).optional(),
     resourcePolicies: z.record(z.string(), z.string()).describe(
       "Resource policies to be added to this reservation. The key is defined by user, and the value is resource policy url. This is to define placement policy with reservation.",
     ).optional(),
@@ -844,7 +868,8 @@ const InputsSchema = z.object({
         healthyBlockCount: z.number().int().describe(
           "The number of reservation blocks that are healthy.",
         ).optional(),
-      }).describe("Health information for the reservation.").optional(),
+      }).describe("[Output only] Health information for the reservation.")
+        .optional(),
       reservationBlockCount: z.number().int().describe(
         "The number of reservation blocks associated with this reservation.",
       ).optional(),
@@ -894,9 +919,8 @@ const InputsSchema = z.object({
           windowStartTime: z.unknown().describe(
             "The current start time of the maintenance window. This timestamp value is in RFC3339 text format.",
           ).optional(),
-        }).describe("Upcoming Maintenance notification information.")
-          .optional(),
-      }).describe("Maintenance Info for ReservationBlocks.").optional(),
+        }).describe("Maintenance information on this group of VMs.").optional(),
+      }).describe("Maintenance information for this reservation").optional(),
       specificSkuAllocation: z.object({
         sourceInstanceTemplateId: z.string().describe(
           "ID of the instance template used to populate reservation properties.",
@@ -904,8 +928,10 @@ const InputsSchema = z.object({
         utilizations: z.record(z.string(), z.unknown()).describe(
           "Per service utilization breakdown. The Key is the Google Cloud managed service name.",
         ).optional(),
-      }).describe("Contains Properties set for the reservation.").optional(),
-    }).describe("[Output Only] Contains output only fields.").optional(),
+      }).describe("Allocation Properties of this reservation.").optional(),
+    }).describe(
+      "Output only. [Output Only] Status information for Reservation resource.",
+    ).optional(),
     satisfiesPzs: z.boolean().describe(
       "Output only. [Output Only] Reserved for future use.",
     ).optional(),
@@ -935,7 +961,7 @@ const InputsSchema = z.object({
         "SPECIFIC_PROJECTS",
       ]).describe("Type of sharing for this shared-reservation").optional(),
     }).describe(
-      "The share setting for reservations and sole tenancy node groups.",
+      "Specify share-settings to create a shared reservation. This property is optional. For more information about the syntax and options for this field and its subfields, see the guide for creating a shared reservation.",
     ).optional(),
     specificReservation: z.object({
       assuredCount: z.string().describe(
@@ -963,14 +989,12 @@ const InputsSchema = z.object({
         minCpuPlatform: z.string().describe(
           "Minimum cpu platform the reservation.",
         ).optional(),
-      }).describe("Properties of the SKU instances being reserved. Next ID: 10")
-        .optional(),
+      }).describe("The instance properties for the reservation.").optional(),
       sourceInstanceTemplate: z.string().describe(
         "Specifies the instance template to create the reservation. If you use this field, you must exclude the instanceProperties field. This field is optional, and it can be a full or partial URL. For example, the following are all valid URLs to an instance template: - https://www.googleapis.com/compute/v1/projects/project/global/instanceTemplates/instanceTemplate - projects/project/global/instanceTemplates/instanceTemplate - global/instanceTemplates/instanceTemplate",
       ).optional(),
-    }).describe(
-      "This reservation type allows to pre allocate specific instance configuration.",
-    ).optional(),
+    }).describe("Reservation for instances with specific machine shapes.")
+      .optional(),
     specificReservationRequired: z.boolean().describe(
       'Indicates whether the reservation can be consumed by VMs with affinity for "any" reservation. If the field is set, then only VMs that target the reservation by name can consume from this reservation.',
     ).optional(),
@@ -1073,7 +1097,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionCommitments. Registered at `@swamp/gcp/compute/regioncommitments`. */
 export const model = {
   type: "@swamp/gcp/compute/regioncommitments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1256,6 +1280,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: params",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

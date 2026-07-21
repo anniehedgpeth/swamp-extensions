@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
           "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
         ).optional(),
       }).describe(
-        "EncryptionConfig describes the encryption config of a cluster that is encrypted with a CMEK (customer-managed encryption key).",
+        "Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.",
       ).optional(),
       initialUser: z.object({
         password: z.string().describe("The initial password for the user.")
@@ -212,7 +212,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         user: z.string().describe("The database username.").optional(),
       }).describe(
-        "The username/password for a database user. Used for specifying initial users at cluster creation time.",
+        "Required. Input only. Initial user to setup during cluster creation. Required.",
       ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "Labels for the AlloyDB cluster created by DMS. An object containing a list of 'key', 'value' pairs.",
@@ -234,8 +234,9 @@ const GlobalArgsSchema = z.object({
           enablePublicIp: z.boolean().describe(
             "Optional. Enabling public ip for the instance.",
           ).optional(),
-        }).describe("Metadata related to instance level network configuration.")
-          .optional(),
+        }).describe(
+          "Optional. Metadata related to instance level network configuration.",
+        ).optional(),
         labels: z.record(z.string(), z.string()).describe(
           "Labels for the AlloyDB primary instance created by DMS. An object containing a list of 'key', 'value' pairs.",
         ).optional(),
@@ -246,8 +247,9 @@ const GlobalArgsSchema = z.object({
           machineType: z.string().describe(
             'Optional. Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.',
           ).optional(),
-        }).describe("MachineConfig describes the configuration of a machine.")
-          .optional(),
+        }).describe(
+          "Configuration for the machines that host the underlying database engine.",
+        ).optional(),
         outboundPublicIpAddresses: z.array(z.string()).describe(
           "Output only. All outbound public IP addresses configured for the instance.",
         ).optional(),
@@ -258,10 +260,10 @@ const GlobalArgsSchema = z.object({
       vpcNetwork: z.string().describe(
         'Required. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: "projects/{project_number}/global/networks/{network_id}". This is required to create a cluster.',
       ).optional(),
-    }).describe("Settings for creating an AlloyDB cluster.").optional(),
-  }).describe(
-    "Specifies required connection parameters, and the parameters required to create an AlloyDB destination cluster.",
-  ).optional(),
+    }).describe(
+      "Immutable. Metadata used to create the destination AlloyDB cluster.",
+    ).optional(),
+  }).describe("An AlloyDB cluster connection profile.").optional(),
   cloudsql: z.object({
     additionalPublicIp: z.string().describe(
       "Output only. The Cloud SQL database instance's additional (outgoing) public IP. Used when the Cloud SQL database availability type is REGIONAL (i.e. multiple zones / highly available).",
@@ -304,7 +306,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Whether data cache is enabled for the instance.",
         ).optional(),
       }).describe(
-        "Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.",
+        "Optional. Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.",
       ).optional(),
       dataDiskProvisionedIops: z.string().describe(
         "Optional. Provisioned number of I/O operations per second for the data disk. This field is only used for hyperdisk-balanced disk types.",
@@ -389,7 +391,9 @@ const GlobalArgsSchema = z.object({
         requireSsl: z.boolean().describe(
           "Whether SSL connections over IP should be enforced or not.",
         ).optional(),
-      }).describe("IP Management configuration.").optional(),
+      }).describe(
+        "The settings for IP Management. This allows to enable or disable the instance IP and manage which external networks can connect to the instance. The IPv4 address cannot be disabled.",
+      ).optional(),
       rootPassword: z.string().describe("Input only. Initial root password.")
         .optional(),
       rootPasswordSet: z.boolean().describe(
@@ -413,26 +417,12 @@ const GlobalArgsSchema = z.object({
       zone: z.string().describe(
         "The Google Cloud Platform zone where your Cloud SQL database instance is located.",
       ).optional(),
-    }).describe("Settings for creating a Cloud SQL database instance.")
-      .optional(),
-  }).describe(
-    "Specifies required connection parameters, and, optionally, the parameters required to create a Cloud SQL destination database instance.",
-  ).optional(),
+    }).describe(
+      "Immutable. Metadata used to create the destination Cloud SQL database.",
+    ).optional(),
+  }).describe("A CloudSQL database connection profile.").optional(),
   displayName: z.string().describe("The connection profile display name.")
     .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'The resource labels for connection profile to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: `{ "name": "wrench", "mass": "1.3kg", "count": "3" }`.',
   ).optional(),
@@ -474,13 +464,13 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the destination to connect to the source database.",
+    ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for MySQL databases.",
-  ).optional(),
+  }).describe("A MySQL database connection profile.").optional(),
   name: z.string().describe(
     "The name of this connection profile resource in the form of projects/{project}/locations/{location}/connectionProfiles/{connectionProfile}.",
   ).optional(),
@@ -499,7 +489,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
       username: z.string().describe("Required. Username for the SSH tunnel.")
         .optional(),
-    }).describe("Forward SSH Tunnel connectivity.").optional(),
+    }).describe("Forward SSH tunnel connectivity.").optional(),
     host: z.string().describe(
       "Required. The IP or hostname of the source Oracle database.",
     ).optional(),
@@ -541,13 +531,13 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
         ).optional(),
-      }).describe("SSL configuration information.").optional(),
+      }).describe("Optional. SSL configuration for the Oracle connection.")
+        .optional(),
       username: z.string().describe(
         "Required. Username for the Oracle ASM connection.",
       ).optional(),
-    }).describe(
-      "Configuration for Oracle Automatic Storage Management (ASM) connection.",
-    ).optional(),
+    }).describe("Optional. Configuration for Oracle ASM connection.")
+      .optional(),
     password: z.string().describe(
       "Required. Input only. The password for the user that Database Migration Service will be using to connect to the database. This field is not returned on request, and the value is encrypted when stored in Database Migration Service.",
     ).optional(),
@@ -561,7 +551,7 @@ const GlobalArgsSchema = z.object({
       privateConnection: z.string().describe(
         "Required. The resource name (URI) of the private connection.",
       ).optional(),
-    }).describe("Private Connectivity.").optional(),
+    }).describe("Private connectivity.").optional(),
     ssl: z.object({
       caCertificate: z.string().describe(
         "Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server's certificate. The replica will use this certificate to verify it's connecting to the right host.",
@@ -584,16 +574,16 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the connection to the source Oracle database. * Only `SERVER_ONLY` configuration is supported for Oracle SSL. * SSL is supported for Oracle versions 12 and above.",
+    ).optional(),
     staticServiceIpConnectivity: z.object({}).describe(
-      "Static IP address connectivity configured on service project.",
+      "Static Service IP connectivity.",
     ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for Oracle databases.",
-  ).optional(),
+  }).describe("An Oracle database connection profile.").optional(),
   postgresql: z.object({
     alloydbClusterId: z.string().describe(
       "Optional. If the destination is an AlloyDB database, use this field to provide the AlloyDB cluster ID.",
@@ -618,7 +608,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
       username: z.string().describe("Required. Username for the SSH tunnel.")
         .optional(),
-    }).describe("Forward SSH Tunnel connectivity.").optional(),
+    }).describe("Forward SSH tunnel connectivity.").optional(),
     host: z.string().describe(
       "Required. The IP or hostname of the source PostgreSQL database.",
     ).optional(),
@@ -642,14 +632,12 @@ const GlobalArgsSchema = z.object({
       privateConnection: z.string().describe(
         "Required. The resource name (URI) of the private connection.",
       ).optional(),
-    }).describe("Private Connectivity.").optional(),
+    }).describe("Private connectivity.").optional(),
     privateServiceConnectConnectivity: z.object({
       serviceAttachment: z.string().describe(
         "Required. A service attachment that exposes a database, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}",
       ).optional(),
-    }).describe(
-      "[Private Service Connect connectivity](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)",
-    ).optional(),
+    }).describe("Private service connect connectivity.").optional(),
     ssl: z.object({
       caCertificate: z.string().describe(
         "Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server's certificate. The replica will use this certificate to verify it's connecting to the right host.",
@@ -672,16 +660,16 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the destination to connect to the source database.",
+    ).optional(),
     staticIpConnectivity: z.object({}).describe(
-      "The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.",
+      "Static ip connectivity data (default, no additional details needed).",
     ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for PostgreSQL databases.",
-  ).optional(),
+  }).describe("A PostgreSQL database connection profile.").optional(),
   provider: z.enum([
     "DATABASE_PROVIDER_UNSPECIFIED",
     "CLOUDSQL",
@@ -702,7 +690,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Cloud Storage path inside the bucket that stores backups.",
       ).optional(),
     }).describe(
-      "Specifies the backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.",
+      "The backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.",
     ).optional(),
     cloudSqlId: z.string().describe(
       "If the source is a Cloud SQL database, use this field to provide the Cloud SQL instance ID of the source.",
@@ -727,7 +715,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
       username: z.string().describe("Required. Username for the SSH tunnel.")
         .optional(),
-    }).describe("Forward SSH Tunnel connectivity.").optional(),
+    }).describe("Forward SSH tunnel connectivity.").optional(),
     host: z.string().describe(
       "Required. The IP or hostname of the source SQL Server database.",
     ).optional(),
@@ -744,14 +732,12 @@ const GlobalArgsSchema = z.object({
       privateConnection: z.string().describe(
         "Required. The resource name (URI) of the private connection.",
       ).optional(),
-    }).describe("Private Connectivity.").optional(),
+    }).describe("Private connectivity.").optional(),
     privateServiceConnectConnectivity: z.object({
       serviceAttachment: z.string().describe(
         "Required. A service attachment that exposes a database, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}",
       ).optional(),
-    }).describe(
-      "[Private Service Connect connectivity](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)",
-    ).optional(),
+    }).describe("Private Service Connect connectivity.").optional(),
     ssl: z.object({
       caCertificate: z.string().describe(
         "Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server's certificate. The replica will use this certificate to verify it's connecting to the right host.",
@@ -774,16 +760,16 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the destination to connect to the source database.",
+    ).optional(),
     staticIpConnectivity: z.object({}).describe(
-      "The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.",
+      "Static IP connectivity data (default, no additional details needed).",
     ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for SQL Server databases.",
-  ).optional(),
+  }).describe("Connection profile for a SQL Server data source.").optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "DRAFT",
@@ -1056,7 +1042,7 @@ const InputsSchema = z.object({
           "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
         ).optional(),
       }).describe(
-        "EncryptionConfig describes the encryption config of a cluster that is encrypted with a CMEK (customer-managed encryption key).",
+        "Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.",
       ).optional(),
       initialUser: z.object({
         password: z.string().describe("The initial password for the user.")
@@ -1066,7 +1052,7 @@ const InputsSchema = z.object({
         ).optional(),
         user: z.string().describe("The database username.").optional(),
       }).describe(
-        "The username/password for a database user. Used for specifying initial users at cluster creation time.",
+        "Required. Input only. Initial user to setup during cluster creation. Required.",
       ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "Labels for the AlloyDB cluster created by DMS. An object containing a list of 'key', 'value' pairs.",
@@ -1088,8 +1074,9 @@ const InputsSchema = z.object({
           enablePublicIp: z.boolean().describe(
             "Optional. Enabling public ip for the instance.",
           ).optional(),
-        }).describe("Metadata related to instance level network configuration.")
-          .optional(),
+        }).describe(
+          "Optional. Metadata related to instance level network configuration.",
+        ).optional(),
         labels: z.record(z.string(), z.string()).describe(
           "Labels for the AlloyDB primary instance created by DMS. An object containing a list of 'key', 'value' pairs.",
         ).optional(),
@@ -1100,8 +1087,9 @@ const InputsSchema = z.object({
           machineType: z.string().describe(
             'Optional. Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.',
           ).optional(),
-        }).describe("MachineConfig describes the configuration of a machine.")
-          .optional(),
+        }).describe(
+          "Configuration for the machines that host the underlying database engine.",
+        ).optional(),
         outboundPublicIpAddresses: z.array(z.string()).describe(
           "Output only. All outbound public IP addresses configured for the instance.",
         ).optional(),
@@ -1112,10 +1100,10 @@ const InputsSchema = z.object({
       vpcNetwork: z.string().describe(
         'Required. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: "projects/{project_number}/global/networks/{network_id}". This is required to create a cluster.',
       ).optional(),
-    }).describe("Settings for creating an AlloyDB cluster.").optional(),
-  }).describe(
-    "Specifies required connection parameters, and the parameters required to create an AlloyDB destination cluster.",
-  ).optional(),
+    }).describe(
+      "Immutable. Metadata used to create the destination AlloyDB cluster.",
+    ).optional(),
+  }).describe("An AlloyDB cluster connection profile.").optional(),
   cloudsql: z.object({
     additionalPublicIp: z.string().describe(
       "Output only. The Cloud SQL database instance's additional (outgoing) public IP. Used when the Cloud SQL database availability type is REGIONAL (i.e. multiple zones / highly available).",
@@ -1158,7 +1146,7 @@ const InputsSchema = z.object({
           "Optional. Whether data cache is enabled for the instance.",
         ).optional(),
       }).describe(
-        "Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.",
+        "Optional. Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.",
       ).optional(),
       dataDiskProvisionedIops: z.string().describe(
         "Optional. Provisioned number of I/O operations per second for the data disk. This field is only used for hyperdisk-balanced disk types.",
@@ -1243,7 +1231,9 @@ const InputsSchema = z.object({
         requireSsl: z.boolean().describe(
           "Whether SSL connections over IP should be enforced or not.",
         ).optional(),
-      }).describe("IP Management configuration.").optional(),
+      }).describe(
+        "The settings for IP Management. This allows to enable or disable the instance IP and manage which external networks can connect to the instance. The IPv4 address cannot be disabled.",
+      ).optional(),
       rootPassword: z.string().describe("Input only. Initial root password.")
         .optional(),
       rootPasswordSet: z.boolean().describe(
@@ -1267,26 +1257,12 @@ const InputsSchema = z.object({
       zone: z.string().describe(
         "The Google Cloud Platform zone where your Cloud SQL database instance is located.",
       ).optional(),
-    }).describe("Settings for creating a Cloud SQL database instance.")
-      .optional(),
-  }).describe(
-    "Specifies required connection parameters, and, optionally, the parameters required to create a Cloud SQL destination database instance.",
-  ).optional(),
+    }).describe(
+      "Immutable. Metadata used to create the destination Cloud SQL database.",
+    ).optional(),
+  }).describe("A CloudSQL database connection profile.").optional(),
   displayName: z.string().describe("The connection profile display name.")
     .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'The resource labels for connection profile to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: `{ "name": "wrench", "mass": "1.3kg", "count": "3" }`.',
   ).optional(),
@@ -1328,13 +1304,13 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the destination to connect to the source database.",
+    ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for MySQL databases.",
-  ).optional(),
+  }).describe("A MySQL database connection profile.").optional(),
   name: z.string().describe(
     "The name of this connection profile resource in the form of projects/{project}/locations/{location}/connectionProfiles/{connectionProfile}.",
   ).optional(),
@@ -1353,7 +1329,7 @@ const InputsSchema = z.object({
         .optional(),
       username: z.string().describe("Required. Username for the SSH tunnel.")
         .optional(),
-    }).describe("Forward SSH Tunnel connectivity.").optional(),
+    }).describe("Forward SSH tunnel connectivity.").optional(),
     host: z.string().describe(
       "Required. The IP or hostname of the source Oracle database.",
     ).optional(),
@@ -1395,13 +1371,13 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
         ).optional(),
-      }).describe("SSL configuration information.").optional(),
+      }).describe("Optional. SSL configuration for the Oracle connection.")
+        .optional(),
       username: z.string().describe(
         "Required. Username for the Oracle ASM connection.",
       ).optional(),
-    }).describe(
-      "Configuration for Oracle Automatic Storage Management (ASM) connection.",
-    ).optional(),
+    }).describe("Optional. Configuration for Oracle ASM connection.")
+      .optional(),
     password: z.string().describe(
       "Required. Input only. The password for the user that Database Migration Service will be using to connect to the database. This field is not returned on request, and the value is encrypted when stored in Database Migration Service.",
     ).optional(),
@@ -1415,7 +1391,7 @@ const InputsSchema = z.object({
       privateConnection: z.string().describe(
         "Required. The resource name (URI) of the private connection.",
       ).optional(),
-    }).describe("Private Connectivity.").optional(),
+    }).describe("Private connectivity.").optional(),
     ssl: z.object({
       caCertificate: z.string().describe(
         "Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server's certificate. The replica will use this certificate to verify it's connecting to the right host.",
@@ -1438,16 +1414,16 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the connection to the source Oracle database. * Only `SERVER_ONLY` configuration is supported for Oracle SSL. * SSL is supported for Oracle versions 12 and above.",
+    ).optional(),
     staticServiceIpConnectivity: z.object({}).describe(
-      "Static IP address connectivity configured on service project.",
+      "Static Service IP connectivity.",
     ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for Oracle databases.",
-  ).optional(),
+  }).describe("An Oracle database connection profile.").optional(),
   postgresql: z.object({
     alloydbClusterId: z.string().describe(
       "Optional. If the destination is an AlloyDB database, use this field to provide the AlloyDB cluster ID.",
@@ -1472,7 +1448,7 @@ const InputsSchema = z.object({
         .optional(),
       username: z.string().describe("Required. Username for the SSH tunnel.")
         .optional(),
-    }).describe("Forward SSH Tunnel connectivity.").optional(),
+    }).describe("Forward SSH tunnel connectivity.").optional(),
     host: z.string().describe(
       "Required. The IP or hostname of the source PostgreSQL database.",
     ).optional(),
@@ -1496,14 +1472,12 @@ const InputsSchema = z.object({
       privateConnection: z.string().describe(
         "Required. The resource name (URI) of the private connection.",
       ).optional(),
-    }).describe("Private Connectivity.").optional(),
+    }).describe("Private connectivity.").optional(),
     privateServiceConnectConnectivity: z.object({
       serviceAttachment: z.string().describe(
         "Required. A service attachment that exposes a database, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}",
       ).optional(),
-    }).describe(
-      "[Private Service Connect connectivity](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)",
-    ).optional(),
+    }).describe("Private service connect connectivity.").optional(),
     ssl: z.object({
       caCertificate: z.string().describe(
         "Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server's certificate. The replica will use this certificate to verify it's connecting to the right host.",
@@ -1526,16 +1500,16 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the destination to connect to the source database.",
+    ).optional(),
     staticIpConnectivity: z.object({}).describe(
-      "The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.",
+      "Static ip connectivity data (default, no additional details needed).",
     ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for PostgreSQL databases.",
-  ).optional(),
+  }).describe("A PostgreSQL database connection profile.").optional(),
   provider: z.enum([
     "DATABASE_PROVIDER_UNSPECIFIED",
     "CLOUDSQL",
@@ -1556,7 +1530,7 @@ const InputsSchema = z.object({
         "Optional. Cloud Storage path inside the bucket that stores backups.",
       ).optional(),
     }).describe(
-      "Specifies the backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.",
+      "The backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.",
     ).optional(),
     cloudSqlId: z.string().describe(
       "If the source is a Cloud SQL database, use this field to provide the Cloud SQL instance ID of the source.",
@@ -1581,7 +1555,7 @@ const InputsSchema = z.object({
         .optional(),
       username: z.string().describe("Required. Username for the SSH tunnel.")
         .optional(),
-    }).describe("Forward SSH Tunnel connectivity.").optional(),
+    }).describe("Forward SSH tunnel connectivity.").optional(),
     host: z.string().describe(
       "Required. The IP or hostname of the source SQL Server database.",
     ).optional(),
@@ -1598,14 +1572,12 @@ const InputsSchema = z.object({
       privateConnection: z.string().describe(
         "Required. The resource name (URI) of the private connection.",
       ).optional(),
-    }).describe("Private Connectivity.").optional(),
+    }).describe("Private connectivity.").optional(),
     privateServiceConnectConnectivity: z.object({
       serviceAttachment: z.string().describe(
         "Required. A service attachment that exposes a database, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}",
       ).optional(),
-    }).describe(
-      "[Private Service Connect connectivity](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)",
-    ).optional(),
+    }).describe("Private Service Connect connectivity.").optional(),
     ssl: z.object({
       caCertificate: z.string().describe(
         "Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server's certificate. The replica will use this certificate to verify it's connecting to the right host.",
@@ -1628,16 +1600,16 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. The ssl config type according to 'client_key', 'client_certificate' and 'ca_certificate'.",
       ).optional(),
-    }).describe("SSL configuration information.").optional(),
+    }).describe(
+      "SSL configuration for the destination to connect to the source database.",
+    ).optional(),
     staticIpConnectivity: z.object({}).describe(
-      "The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.",
+      "Static IP connectivity data (default, no additional details needed).",
     ).optional(),
     username: z.string().describe(
       "Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.",
     ).optional(),
-  }).describe(
-    "Specifies connection parameters required specifically for SQL Server databases.",
-  ).optional(),
+  }).describe("Connection profile for a SQL Server data source.").optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "DRAFT",
@@ -1687,7 +1659,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration ConnectionProfiles. Registered at `@swamp/gcp/datamigration/connectionprofiles`. */
 export const model = {
   type: "@swamp/gcp/datamigration/connectionprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1799,6 +1771,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1832,7 +1812,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["mysql"] !== undefined) body["mysql"] = g["mysql"];
         if (g["name"] !== undefined) body["name"] = g["name"];
@@ -1974,7 +1953,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["mysql"] !== undefined) body["mysql"] = g["mysql"];
         if (g["oracle"] !== undefined) body["oracle"] = g["oracle"];

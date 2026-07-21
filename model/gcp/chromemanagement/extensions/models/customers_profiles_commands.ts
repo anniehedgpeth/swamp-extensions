@@ -124,20 +124,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  commandResult: z.object({
-    clientExecutionTime: z.string().describe(
-      "Output only. Timestamp of the client execution of the remote command.",
-    ).optional(),
-    resultCode: z.string().describe(
-      "Output only. Result code that indicates the type of error or success of the command.",
-    ).optional(),
-    resultType: z.enum([
-      "COMMAND_RESULT_TYPE_UNSPECIFIED",
-      "IGNORED",
-      "FAILURE",
-      "SUCCESS",
-    ]).describe("Output only. Result type of the remote command.").optional(),
-  }).describe("Result of the execution of a command.").optional(),
   commandType: z.string().describe(
     'Required. Type of the remote command. The only supported command_type is "clearBrowsingData".',
   ).optional(),
@@ -173,20 +159,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  commandResult: z.object({
-    clientExecutionTime: z.string().describe(
-      "Output only. Timestamp of the client execution of the remote command.",
-    ).optional(),
-    resultCode: z.string().describe(
-      "Output only. Result code that indicates the type of error or success of the command.",
-    ).optional(),
-    resultType: z.enum([
-      "COMMAND_RESULT_TYPE_UNSPECIFIED",
-      "IGNORED",
-      "FAILURE",
-      "SUCCESS",
-    ]).describe("Output only. Result type of the remote command.").optional(),
-  }).describe("Result of the execution of a command.").optional(),
   commandType: z.string().describe(
     'Required. Type of the remote command. The only supported command_type is "clearBrowsingData".',
   ).optional(),
@@ -224,7 +196,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Chrome Management Customers.Profiles.Commands. Registered at `@swamp/gcp/chromemanagement/customers-profiles-commands`. */
 export const model = {
   type: "@swamp/gcp/chromemanagement/customers-profiles-commands",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -326,6 +298,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: commandResult",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { commandResult: _commandResult, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -349,9 +329,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["commandResult"] !== undefined) {
-          body["commandResult"] = g["commandResult"];
-        }
         if (g["commandType"] !== undefined) {
           body["commandType"] = g["commandType"];
         }

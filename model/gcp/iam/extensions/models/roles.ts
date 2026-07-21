@@ -180,7 +180,7 @@ const GlobalArgsSchema = z.object({
     title: z.string().describe(
       "Optional. A human-readable title for the role. Typically this is limited to 100 UTF-8 bytes.",
     ).optional(),
-  }).describe("A role in the Identity and Access Management API.").optional(),
+  }).describe("The Role resource to create.").optional(),
   roleId: z.string().describe(
     "The role ID to use for this role. A role ID may contain alphanumeric characters, underscores (`_`), and periods (`.`). It must contain a minimum of 3 characters and a maximum of 64 characters.",
   ).optional(),
@@ -249,7 +249,7 @@ const InputsSchema = z.object({
     title: z.string().describe(
       "Optional. A human-readable title for the role. Typically this is limited to 100 UTF-8 bytes.",
     ).optional(),
-  }).describe("A role in the Identity and Access Management API.").optional(),
+  }).describe("The Role resource to create.").optional(),
   roleId: z.string().describe(
     "The role ID to use for this role. A role ID may contain alphanumeric characters, underscores (`_`), and periods (`.`). It must contain a minimum of 3 characters and a maximum of 64 characters.",
   ).optional(),
@@ -302,7 +302,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) Roles. Registered at `@swamp/gcp/iam/roles`. */
 export const model = {
   type: "@swamp/gcp/iam/roles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

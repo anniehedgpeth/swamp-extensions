@@ -168,7 +168,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("The Compute Billing Owner for this Data Boost App Profile.")
       .optional(),
   }).describe(
-    "Data Boost is a serverless compute capability that lets you run high-throughput read jobs and queries on your Bigtable data, without impacting the performance of the clusters that handle your application traffic. Data Boost supports read-only use cases with single-cluster routing.",
+    "Specifies that this app profile is intended for read-only usage via the Data Boost feature.",
   ).optional(),
   description: z.string().describe(
     "Long form description of the use case for this AppProfile.",
@@ -178,11 +178,9 @@ const GlobalArgsSchema = z.object({
       "The set of clusters to route to. The order is ignored; clusters will be tried in order of distance. If left empty, all clusters are eligible.",
     ).optional(),
     rowAffinity: z.object({}).describe(
-      "If enabled, Bigtable will route the request based on the row key of the request, rather than randomly. Instead, each row key will be assigned to a cluster, and will stick to that cluster. If clusters are added or removed, then this may affect which row keys stick to which clusters. To avoid this, users can use a cluster group to specify which clusters are to be used. In this case, new clusters that are not a part of the cluster group will not be routed to, and routing will be unaffected by the new cluster. Moreover, clusters specified in the cluster group cannot be deleted unless removed from the cluster group.",
+      "Row affinity sticky routing based on the row key of the request. Requests that span multiple rows are routed non-deterministically.",
     ).optional(),
-  }).describe(
-    "Read/write requests are routed to the nearest cluster in the instance, and will fail over to the nearest cluster that is available in the event of transient errors or delays. Clusters in a region are considered equidistant. Choosing this option sacrifices read-your-writes consistency to improve availability.",
-  ).optional(),
+  }).describe("Use a multi-cluster routing policy.").optional(),
   name: z.string().describe(
     "The unique name of the app profile, up to 50 characters long. Values are of the form `projects/{project}/instances/{instance}/appProfiles/_a-zA-Z0-9*`.",
   ).optional(),
@@ -193,12 +191,10 @@ const GlobalArgsSchema = z.object({
     clusterId: z.string().describe(
       "The cluster to which read/write requests should be routed.",
     ).optional(),
-  }).describe(
-    "Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.",
-  ).optional(),
+  }).describe("Use a single-cluster routing policy.").optional(),
   standardIsolation: z.object({
     memoryConfig: z.object({}).describe(
-      "If set, eligible single-row requests (currently limited to ReadRows) using this app profile will be routed to the memory layer. All eligible writes populate the memory layer. MemoryConfig can only be set if the AppProfile uses single cluster routing and the configured cluster has a memory layer enabled.",
+      "Optional. The memory config to use for requests sent using this app profile.",
     ).optional(),
     priority: z.enum([
       "PRIORITY_UNSPECIFIED",
@@ -208,7 +204,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("The priority of requests sent using this app profile.")
       .optional(),
   }).describe(
-    "Standard options for isolating this app profile's traffic from other use cases.",
+    "The standard options used for isolating this app profile's traffic from other use cases.",
   ).optional(),
   appProfileId: z.string().describe(
     "Required. The ID to be used when referring to the new app profile within its instance, e.g., just `myprofile` rather than `projects/myproject/instances/myinstance/appProfiles/myprofile`.",
@@ -260,7 +256,7 @@ const InputsSchema = z.object({
     ]).describe("The Compute Billing Owner for this Data Boost App Profile.")
       .optional(),
   }).describe(
-    "Data Boost is a serverless compute capability that lets you run high-throughput read jobs and queries on your Bigtable data, without impacting the performance of the clusters that handle your application traffic. Data Boost supports read-only use cases with single-cluster routing.",
+    "Specifies that this app profile is intended for read-only usage via the Data Boost feature.",
   ).optional(),
   description: z.string().describe(
     "Long form description of the use case for this AppProfile.",
@@ -270,11 +266,9 @@ const InputsSchema = z.object({
       "The set of clusters to route to. The order is ignored; clusters will be tried in order of distance. If left empty, all clusters are eligible.",
     ).optional(),
     rowAffinity: z.object({}).describe(
-      "If enabled, Bigtable will route the request based on the row key of the request, rather than randomly. Instead, each row key will be assigned to a cluster, and will stick to that cluster. If clusters are added or removed, then this may affect which row keys stick to which clusters. To avoid this, users can use a cluster group to specify which clusters are to be used. In this case, new clusters that are not a part of the cluster group will not be routed to, and routing will be unaffected by the new cluster. Moreover, clusters specified in the cluster group cannot be deleted unless removed from the cluster group.",
+      "Row affinity sticky routing based on the row key of the request. Requests that span multiple rows are routed non-deterministically.",
     ).optional(),
-  }).describe(
-    "Read/write requests are routed to the nearest cluster in the instance, and will fail over to the nearest cluster that is available in the event of transient errors or delays. Clusters in a region are considered equidistant. Choosing this option sacrifices read-your-writes consistency to improve availability.",
-  ).optional(),
+  }).describe("Use a multi-cluster routing policy.").optional(),
   name: z.string().describe(
     "The unique name of the app profile, up to 50 characters long. Values are of the form `projects/{project}/instances/{instance}/appProfiles/_a-zA-Z0-9*`.",
   ).optional(),
@@ -285,12 +279,10 @@ const InputsSchema = z.object({
     clusterId: z.string().describe(
       "The cluster to which read/write requests should be routed.",
     ).optional(),
-  }).describe(
-    "Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.",
-  ).optional(),
+  }).describe("Use a single-cluster routing policy.").optional(),
   standardIsolation: z.object({
     memoryConfig: z.object({}).describe(
-      "If set, eligible single-row requests (currently limited to ReadRows) using this app profile will be routed to the memory layer. All eligible writes populate the memory layer. MemoryConfig can only be set if the AppProfile uses single cluster routing and the configured cluster has a memory layer enabled.",
+      "Optional. The memory config to use for requests sent using this app profile.",
     ).optional(),
     priority: z.enum([
       "PRIORITY_UNSPECIFIED",
@@ -300,7 +292,7 @@ const InputsSchema = z.object({
     ]).describe("The priority of requests sent using this app profile.")
       .optional(),
   }).describe(
-    "Standard options for isolating this app profile's traffic from other use cases.",
+    "The standard options used for isolating this app profile's traffic from other use cases.",
   ).optional(),
   appProfileId: z.string().describe(
     "Required. The ID to be used when referring to the new app profile within its instance, e.g., just `myprofile` rather than `projects/myproject/instances/myinstance/appProfiles/myprofile`.",
@@ -339,7 +331,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.AppProfiles. Registered at `@swamp/gcp/bigtableadmin/instances-appprofiles`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-appprofiles",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -468,6 +460,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

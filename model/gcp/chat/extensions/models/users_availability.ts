@@ -146,20 +146,22 @@ const GlobalArgsSchema = z.object({
           filename: z.string().describe(
             "Required. Input only. The image file name. Supported file extensions: `.png`, `.jpg`, `.gif`.",
           ).optional(),
-        }).describe("Payload data for the custom emoji.").optional(),
+        }).describe(
+          "Optional. Input only. Payload data. Required when the custom emoji is created.",
+        ).optional(),
         temporaryImageUri: z.string().describe(
           "Output only. A temporary image URL for the custom emoji, valid for at least 10 minutes. Note that this is not populated in the response when the custom emoji is created.",
         ).optional(),
         uid: z.string().describe(
           "Output only. Unique key for the custom emoji resource.",
         ).optional(),
-      }).describe(
-        "Represents a [custom emoji](https://support.google.com/chat/answer/12800149).",
-      ).optional(),
+      }).describe("A custom emoji.").optional(),
       unicode: z.string().describe(
         "Optional. A basic emoji represented by a unicode string.",
       ).optional(),
-    }).describe("An emoji that is used as a reaction to a message.").optional(),
+    }).describe(
+      "Required. The emoji of the custom status. Only Unicode emojis are supported; custom emojis are not supported.",
+    ).optional(),
     expireTime: z.string().describe(
       "The timestamp when the custom status expires.",
     ).optional(),
@@ -169,15 +171,13 @@ const GlobalArgsSchema = z.object({
     ttl: z.string().describe(
       "Input only. The time-to-live duration after which the custom status expires.",
     ).optional(),
-  }).describe(
-    "Represents a user's custom status in Google Chat. This includes a short text message with an optional emoji that a user sets to give more context about their availability.",
-  ).optional(),
+  }).describe("Optional. The user's custom status.").optional(),
   doNotDisturbMetadata: z.object({
     expirationTime: z.string().describe(
       "Output only. Timestamp until which the user should be marked as DO_NOT_DISTURB. This can be maximum of 1 year in the future.",
     ).optional(),
   }).describe(
-    "Metadata associated with the `DO_NOT_DISTURB` availability state, specifying when the state is set to expire.",
+    "Output only. Metadata if the user state is set to DO_NOT_DISTURB.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the user's availability. Format: `users/{user}/availability` `{user}` is the id for the Person in the People API or Admin SDK directory API. For example, `users/123456789`. The user's email address or `me` can also be used as an alias to refer to the caller. For example, `users/user@example.com` or `users/me`.",
@@ -240,20 +240,22 @@ const InputsSchema = z.object({
           filename: z.string().describe(
             "Required. Input only. The image file name. Supported file extensions: `.png`, `.jpg`, `.gif`.",
           ).optional(),
-        }).describe("Payload data for the custom emoji.").optional(),
+        }).describe(
+          "Optional. Input only. Payload data. Required when the custom emoji is created.",
+        ).optional(),
         temporaryImageUri: z.string().describe(
           "Output only. A temporary image URL for the custom emoji, valid for at least 10 minutes. Note that this is not populated in the response when the custom emoji is created.",
         ).optional(),
         uid: z.string().describe(
           "Output only. Unique key for the custom emoji resource.",
         ).optional(),
-      }).describe(
-        "Represents a [custom emoji](https://support.google.com/chat/answer/12800149).",
-      ).optional(),
+      }).describe("A custom emoji.").optional(),
       unicode: z.string().describe(
         "Optional. A basic emoji represented by a unicode string.",
       ).optional(),
-    }).describe("An emoji that is used as a reaction to a message.").optional(),
+    }).describe(
+      "Required. The emoji of the custom status. Only Unicode emojis are supported; custom emojis are not supported.",
+    ).optional(),
     expireTime: z.string().describe(
       "The timestamp when the custom status expires.",
     ).optional(),
@@ -263,15 +265,13 @@ const InputsSchema = z.object({
     ttl: z.string().describe(
       "Input only. The time-to-live duration after which the custom status expires.",
     ).optional(),
-  }).describe(
-    "Represents a user's custom status in Google Chat. This includes a short text message with an optional emoji that a user sets to give more context about their availability.",
-  ).optional(),
+  }).describe("Optional. The user's custom status.").optional(),
   doNotDisturbMetadata: z.object({
     expirationTime: z.string().describe(
       "Output only. Timestamp until which the user should be marked as DO_NOT_DISTURB. This can be maximum of 1 year in the future.",
     ).optional(),
   }).describe(
-    "Metadata associated with the `DO_NOT_DISTURB` availability state, specifying when the state is set to expire.",
+    "Output only. Metadata if the user state is set to DO_NOT_DISTURB.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the user's availability. Format: `users/{user}/availability` `{user}` is the id for the Person in the People API or Admin SDK directory API. For example, `users/123456789`. The user's email address or `me` can also be used as an alias to refer to the caller. For example, `users/user@example.com` or `users/me`.",
@@ -308,7 +308,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Users.Availability. Registered at `@swamp/gcp/chat/users-availability`. */
 export const model = {
   type: "@swamp/gcp/chat/users-availability",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

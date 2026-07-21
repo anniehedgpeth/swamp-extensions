@@ -155,110 +155,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  activeConfig: z.object({
-    airInterface: z.object({
-      radioTechnology: z.enum([
-        "RADIO_TECHNOLOGY_UNSPECIFIED",
-        "E_UTRA",
-        "CAMBIUM_NETWORKS",
-        "FOUR_G_BBW_SAA_1",
-        "NR",
-        "DOODLE_CBRS",
-        "CW",
-        "REDLINE",
-        "TARANA_WIRELESS",
-        "FAROS",
-      ]).describe(
-        "Conditional. This field specifies the radio access technology that is used for the CBSD.",
-      ).optional(),
-      supportedSpec: z.string().describe(
-        "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
-      ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
-    callSign: z.string().describe("The call sign of the device operator.")
-      .optional(),
-    category: z.enum([
-      "DEVICE_CATEGORY_UNSPECIFIED",
-      "DEVICE_CATEGORY_A",
-      "DEVICE_CATEGORY_B",
-    ]).describe("FCC category of the device.").optional(),
-    installationParams: z.object({
-      antennaAzimuth: z.number().int().describe(
-        "Boresight direction of the horizontal plane of the antenna in degrees with respect to true north. The value of this parameter is an integer with a value between 0 and 359 inclusive. A value of 0 degrees means true north; a value of 90 degrees means east. This parameter is optional for Category A devices and conditional for Category B devices.",
-      ).optional(),
-      antennaBeamwidth: z.number().int().describe(
-        "3-dB antenna beamwidth of the antenna in the horizontal-plane in degrees. This parameter is an unsigned integer having a value between 0 and 360 (degrees) inclusive; it is optional for Category A devices and conditional for Category B devices.",
-      ).optional(),
-      antennaDowntilt: z.number().int().describe(
-        "Antenna downtilt in degrees and is an integer with a value between -90 and +90 inclusive; a negative value means the antenna is tilted up (above horizontal). This parameter is optional for Category A devices and conditional for Category B devices.",
-      ).optional(),
-      antennaGain: z.number().describe(
-        "Peak antenna gain in dBi. This parameter is a double with a value between -127 and +128 (dBi) inclusive. Part of Release 2 to support floating-point value",
-      ).optional(),
-      antennaModel: z.string().describe(
-        "If an external antenna is used, the antenna model is optionally provided in this field. The string has a maximum length of 128 octets.",
-      ).optional(),
-      cpeCbsdIndication: z.boolean().describe(
-        "If present, this parameter specifies whether the CBSD is a CPE-CBSD or not.",
-      ).optional(),
-      eirpCapability: z.number().int().describe(
-        "This parameter is the maximum device EIRP in units of dBm/10MHz and is an integer with a value between -127 and +47 (dBm/10 MHz) inclusive. If not included, SAS interprets it as maximum allowable EIRP in units of dBm/10MHz for device category.",
-      ).optional(),
-      height: z.number().describe(
-        'Device antenna height in meters. When the `heightType` parameter value is "AGL", the antenna height should be given relative to ground level. When the `heightType` parameter value is "AMSL", it is given with respect to WGS84 datum.',
-      ).optional(),
-      heightType: z.enum([
-        "HEIGHT_TYPE_UNSPECIFIED",
-        "HEIGHT_TYPE_AGL",
-        "HEIGHT_TYPE_AMSL",
-      ]).describe("Specifies how the height is measured.").optional(),
-      horizontalAccuracy: z.number().describe(
-        "A positive number in meters to indicate accuracy of the device antenna horizontal location. This optional parameter should only be present if its value is less than the FCC requirement of 50 meters.",
-      ).optional(),
-      indoorDeployment: z.boolean().describe(
-        "Whether the device antenna is indoor or not. `true`: indoor. `false`: outdoor.",
-      ).optional(),
-      latitude: z.number().describe(
-        "Latitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -90.000000 to +90.000000. Positive values represent latitudes north of the equator; negative values south of the equator.",
-      ).optional(),
-      longitude: z.number().describe(
-        "Longitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -180.000000 to +180.000000. Positive values represent longitudes east of the prime meridian; negative values west of the prime meridian.",
-      ).optional(),
-      verticalAccuracy: z.number().describe(
-        "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
-      ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
-    isSigned: z.boolean().describe(
-      "Output only. Whether the configuration has been signed by a CPI.",
-    ).optional(),
-    measurementCapabilities: z.array(
-      z.enum([
-        "MEASUREMENT_CAPABILITY_UNSPECIFIED",
-        "MEASUREMENT_CAPABILITY_RECEIVED_POWER_WITH_GRANT",
-        "MEASUREMENT_CAPABILITY_RECEIVED_POWER_WITHOUT_GRANT",
-      ]),
-    ).describe("Measurement reporting capabilities of the device.").optional(),
-    model: z.object({
-      firmwareVersion: z.string().describe(
-        "The firmware version of the device.",
-      ).optional(),
-      hardwareVersion: z.string().describe(
-        "The hardware version of the device.",
-      ).optional(),
-      name: z.string().describe("The name of the device model.").optional(),
-      softwareVersion: z.string().describe(
-        "The software version of the device.",
-      ).optional(),
-      vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
-    state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
-      .describe("State of the configuration.").optional(),
-    updateTime: z.string().describe(
-      "Output only. The last time the device configuration was edited.",
-    ).optional(),
-    userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
   deviceMetadata: z.object({
     antennaModel: z.string().describe(
       "If populated, the Antenna Model Pattern to use. Format is: `RecordCreatorId:PatternId`",
@@ -284,10 +180,10 @@ const GlobalArgsSchema = z.object({
       state: z.enum(["STATE_UNSPECIFIED", "DRAFT", "FINAL"]).describe(
         "State of the NRQZ validation info.",
       ).optional(),
-    }).describe("Information about National Radio Quiet Zone validation.")
+    }).describe("Output only. National Radio Quiet Zone validation info.")
       .optional(),
   }).describe(
-    "Device data overridable by both SAS Portal and registration requests.",
+    "Device parameters that can be overridden by both SAS Portal and SAS registration requests.",
   ).optional(),
   displayName: z.string().describe("Device display name.").optional(),
   fccId: z.string().describe(
@@ -322,7 +218,7 @@ const GlobalArgsSchema = z.object({
       supportedSpec: z.string().describe(
         "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
       ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
+    }).describe("Information about this device's air interface.").optional(),
     callSign: z.string().describe("The call sign of the device operator.")
       .optional(),
     category: z.enum([
@@ -375,8 +271,7 @@ const GlobalArgsSchema = z.object({
       verticalAccuracy: z.number().describe(
         "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
       ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
+    }).describe("Installation parameters for the device.").optional(),
     isSigned: z.boolean().describe(
       "Output only. Whether the configuration has been signed by a CPI.",
     ).optional(),
@@ -399,14 +294,15 @@ const GlobalArgsSchema = z.object({
         "The software version of the device.",
       ).optional(),
       vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
+    }).describe("Information about this device model.").optional(),
     state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
       .describe("State of the configuration.").optional(),
     updateTime: z.string().describe(
       "Output only. The last time the device configuration was edited.",
     ).optional(),
     userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
+  }).describe("Configuration of the device, as specified via SAS Portal API.")
+    .optional(),
   serialNumber: z.string().describe(
     "A serial number assigned to the device by the device manufacturer.",
   ).optional(),
@@ -547,110 +443,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  activeConfig: z.object({
-    airInterface: z.object({
-      radioTechnology: z.enum([
-        "RADIO_TECHNOLOGY_UNSPECIFIED",
-        "E_UTRA",
-        "CAMBIUM_NETWORKS",
-        "FOUR_G_BBW_SAA_1",
-        "NR",
-        "DOODLE_CBRS",
-        "CW",
-        "REDLINE",
-        "TARANA_WIRELESS",
-        "FAROS",
-      ]).describe(
-        "Conditional. This field specifies the radio access technology that is used for the CBSD.",
-      ).optional(),
-      supportedSpec: z.string().describe(
-        "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
-      ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
-    callSign: z.string().describe("The call sign of the device operator.")
-      .optional(),
-    category: z.enum([
-      "DEVICE_CATEGORY_UNSPECIFIED",
-      "DEVICE_CATEGORY_A",
-      "DEVICE_CATEGORY_B",
-    ]).describe("FCC category of the device.").optional(),
-    installationParams: z.object({
-      antennaAzimuth: z.number().int().describe(
-        "Boresight direction of the horizontal plane of the antenna in degrees with respect to true north. The value of this parameter is an integer with a value between 0 and 359 inclusive. A value of 0 degrees means true north; a value of 90 degrees means east. This parameter is optional for Category A devices and conditional for Category B devices.",
-      ).optional(),
-      antennaBeamwidth: z.number().int().describe(
-        "3-dB antenna beamwidth of the antenna in the horizontal-plane in degrees. This parameter is an unsigned integer having a value between 0 and 360 (degrees) inclusive; it is optional for Category A devices and conditional for Category B devices.",
-      ).optional(),
-      antennaDowntilt: z.number().int().describe(
-        "Antenna downtilt in degrees and is an integer with a value between -90 and +90 inclusive; a negative value means the antenna is tilted up (above horizontal). This parameter is optional for Category A devices and conditional for Category B devices.",
-      ).optional(),
-      antennaGain: z.number().describe(
-        "Peak antenna gain in dBi. This parameter is a double with a value between -127 and +128 (dBi) inclusive. Part of Release 2 to support floating-point value",
-      ).optional(),
-      antennaModel: z.string().describe(
-        "If an external antenna is used, the antenna model is optionally provided in this field. The string has a maximum length of 128 octets.",
-      ).optional(),
-      cpeCbsdIndication: z.boolean().describe(
-        "If present, this parameter specifies whether the CBSD is a CPE-CBSD or not.",
-      ).optional(),
-      eirpCapability: z.number().int().describe(
-        "This parameter is the maximum device EIRP in units of dBm/10MHz and is an integer with a value between -127 and +47 (dBm/10 MHz) inclusive. If not included, SAS interprets it as maximum allowable EIRP in units of dBm/10MHz for device category.",
-      ).optional(),
-      height: z.number().describe(
-        'Device antenna height in meters. When the `heightType` parameter value is "AGL", the antenna height should be given relative to ground level. When the `heightType` parameter value is "AMSL", it is given with respect to WGS84 datum.',
-      ).optional(),
-      heightType: z.enum([
-        "HEIGHT_TYPE_UNSPECIFIED",
-        "HEIGHT_TYPE_AGL",
-        "HEIGHT_TYPE_AMSL",
-      ]).describe("Specifies how the height is measured.").optional(),
-      horizontalAccuracy: z.number().describe(
-        "A positive number in meters to indicate accuracy of the device antenna horizontal location. This optional parameter should only be present if its value is less than the FCC requirement of 50 meters.",
-      ).optional(),
-      indoorDeployment: z.boolean().describe(
-        "Whether the device antenna is indoor or not. `true`: indoor. `false`: outdoor.",
-      ).optional(),
-      latitude: z.number().describe(
-        "Latitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -90.000000 to +90.000000. Positive values represent latitudes north of the equator; negative values south of the equator.",
-      ).optional(),
-      longitude: z.number().describe(
-        "Longitude of the device antenna location in degrees relative to the WGS 84 datum. The allowed range is from -180.000000 to +180.000000. Positive values represent longitudes east of the prime meridian; negative values west of the prime meridian.",
-      ).optional(),
-      verticalAccuracy: z.number().describe(
-        "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
-      ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
-    isSigned: z.boolean().describe(
-      "Output only. Whether the configuration has been signed by a CPI.",
-    ).optional(),
-    measurementCapabilities: z.array(
-      z.enum([
-        "MEASUREMENT_CAPABILITY_UNSPECIFIED",
-        "MEASUREMENT_CAPABILITY_RECEIVED_POWER_WITH_GRANT",
-        "MEASUREMENT_CAPABILITY_RECEIVED_POWER_WITHOUT_GRANT",
-      ]),
-    ).describe("Measurement reporting capabilities of the device.").optional(),
-    model: z.object({
-      firmwareVersion: z.string().describe(
-        "The firmware version of the device.",
-      ).optional(),
-      hardwareVersion: z.string().describe(
-        "The hardware version of the device.",
-      ).optional(),
-      name: z.string().describe("The name of the device model.").optional(),
-      softwareVersion: z.string().describe(
-        "The software version of the device.",
-      ).optional(),
-      vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
-    state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
-      .describe("State of the configuration.").optional(),
-    updateTime: z.string().describe(
-      "Output only. The last time the device configuration was edited.",
-    ).optional(),
-    userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
   deviceMetadata: z.object({
     antennaModel: z.string().describe(
       "If populated, the Antenna Model Pattern to use. Format is: `RecordCreatorId:PatternId`",
@@ -676,10 +468,10 @@ const InputsSchema = z.object({
       state: z.enum(["STATE_UNSPECIFIED", "DRAFT", "FINAL"]).describe(
         "State of the NRQZ validation info.",
       ).optional(),
-    }).describe("Information about National Radio Quiet Zone validation.")
+    }).describe("Output only. National Radio Quiet Zone validation info.")
       .optional(),
   }).describe(
-    "Device data overridable by both SAS Portal and registration requests.",
+    "Device parameters that can be overridden by both SAS Portal and SAS registration requests.",
   ).optional(),
   displayName: z.string().describe("Device display name.").optional(),
   fccId: z.string().describe(
@@ -714,7 +506,7 @@ const InputsSchema = z.object({
       supportedSpec: z.string().describe(
         "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
       ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
+    }).describe("Information about this device's air interface.").optional(),
     callSign: z.string().describe("The call sign of the device operator.")
       .optional(),
     category: z.enum([
@@ -767,8 +559,7 @@ const InputsSchema = z.object({
       verticalAccuracy: z.number().describe(
         "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
       ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
+    }).describe("Installation parameters for the device.").optional(),
     isSigned: z.boolean().describe(
       "Output only. Whether the configuration has been signed by a CPI.",
     ).optional(),
@@ -791,14 +582,15 @@ const InputsSchema = z.object({
         "The software version of the device.",
       ).optional(),
       vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
+    }).describe("Information about this device model.").optional(),
     state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
       .describe("State of the configuration.").optional(),
     updateTime: z.string().describe(
       "Output only. The last time the device configuration was edited.",
     ).optional(),
     userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
+  }).describe("Configuration of the device, as specified via SAS Portal API.")
+    .optional(),
   serialNumber: z.string().describe(
     "A serial number assigned to the device by the device manufacturer.",
   ).optional(),
@@ -830,7 +622,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SAS Portal (Testing) Customers.Devices. Registered at `@swamp/gcp/prod_tt_sasportal/customers-devices`. */
 export const model = {
   type: "@swamp/gcp/prod_tt_sasportal/customers-devices",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -937,6 +729,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: activeConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { activeConfig: _activeConfig, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -959,9 +759,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["activeConfig"] !== undefined) {
-          body["activeConfig"] = g["activeConfig"];
-        }
         if (g["deviceMetadata"] !== undefined) {
           body["deviceMetadata"] = g["deviceMetadata"];
         }
@@ -1083,9 +880,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["activeConfig"] !== undefined) {
-          body["activeConfig"] = g["activeConfig"];
-        }
         if (g["deviceMetadata"] !== undefined) {
           body["deviceMetadata"] = g["deviceMetadata"];
         }

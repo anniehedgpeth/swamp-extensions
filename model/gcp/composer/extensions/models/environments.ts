@@ -170,8 +170,9 @@ const GlobalArgsSchema = z.object({
           "RETENTION_MODE_DISABLED",
         ]).describe("Optional. Retention can be either enabled or disabled.")
           .optional(),
-      }).describe("The policy for airflow metadata database retention.")
-        .optional(),
+      }).describe(
+        "Optional. The retention policy for airflow metadata database.",
+      ).optional(),
       taskLogsRetentionConfig: z.object({
         storageMode: z.enum([
           "TASK_LOGS_STORAGE_MODE_UNSPECIFIED",
@@ -180,9 +181,11 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. The mode of storage for Airflow workers task logs.",
         ).optional(),
-      }).describe("The configuration setting for Task Logs.").optional(),
+      }).describe(
+        "Optional. The configuration settings for task logs retention",
+      ).optional(),
     }).describe(
-      "The configuration setting for Airflow database data retention mechanism.",
+      "Optional. The configuration setting for Airflow database data retention mechanism.",
     ).optional(),
     databaseConfig: z.object({
       machineType: z.string().describe(
@@ -192,14 +195,14 @@ const GlobalArgsSchema = z.object({
         "Optional. The Compute Engine zone where the Airflow database is created. If zone is provided, it must be in the region selected for the environment. If zone is not provided, a zone is automatically selected. The zone can only be set during environment creation. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.*.",
       ).optional(),
     }).describe(
-      "The configuration of Cloud SQL instance that is used by the Apache Airflow software.",
+      "Optional. The configuration settings for Cloud SQL instance used internally by Apache Airflow software.",
     ).optional(),
     encryptionConfig: z.object({
       kmsKeyName: z.string().describe(
         "Optional. Customer-managed Encryption Key available through Google's Key Management Service. Cannot be updated. If not specified, Google-managed key will be used.",
       ).optional(),
     }).describe(
-      "The encryption options for the Cloud Composer environment and its dependencies.Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
+      "Optional. The encryption options for the Cloud Composer environment and its dependencies. Cannot be updated.",
     ).optional(),
     environmentSize: z.enum([
       "ENVIRONMENT_SIZE_UNSPECIFIED",
@@ -224,7 +227,7 @@ const GlobalArgsSchema = z.object({
         "Required. Start time of the first recurrence of the maintenance window.",
       ).optional(),
     }).describe(
-      'The configuration settings for Cloud Composer maintenance window. The following example: ` { "startTime":"2019-08-01T01:00:00Z" "endTime":"2019-08-01T07:00:00Z" "recurrence":"FREQ=WEEKLY;BYDAY=TU,WE" } ` would define a maintenance window between 01 and 07 hours UTC during each Tuesday and Wednesday.',
+      "Optional. The maintenance window is the period when Cloud Composer components may undergo maintenance. It is defined so that maintenance is not executed during peak hours or critical time periods. The system will not be under maintenance for every occurrence of this window, but when maintenance is planned, it will be scheduled during the window. The maintenance window period must encompass at least 12 hours per week. This may be split into multiple chunks, each with a size of at least 4 hours. If this value is omitted, the default value for maintenance window is applied. By default, maintenance windows are from 00:00:00 to 04:00:00 (GMT) on Friday, Saturday, and Sunday every week.",
     ).optional(),
     masterAuthorizedNetworksConfig: z.object({
       cidrBlocks: z.array(z.object({
@@ -241,7 +244,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Whether or not master authorized networks feature is enabled.",
       ).optional(),
     }).describe(
-      "Configuration options for the master authorized networks feature. Enabled master authorized networks will disallow all external traffic to access Kubernetes master through HTTPS except traffic from the given CIDR blocks, Google Compute Engine Public IPs and Google Prod IPs.",
+      "Optional. The configuration options for GKE cluster master authorized networks. By default master authorized networks feature is: - in case of private environment: enabled with no external networks allowlisted. - in case of public environment: disabled.",
     ).optional(),
     nodeConfig: z.object({
       composerInternalIpv4CidrBlock: z.string().describe(
@@ -273,7 +276,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Whether or not to enable Alias IPs in the GKE cluster. If `true`, a VPC-native cluster is created. This field is only supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*. Environments in newer versions always use VPC-native GKE clusters.",
         ).optional(),
       }).describe(
-        "Configuration for controlling how IPs are allocated in the GKE cluster running the Apache Airflow software.",
+        "Optional. The configuration for controlling how IPs are allocated in the GKE cluster.",
       ).optional(),
       location: z.string().describe(
         'Optional. The Compute Engine [zone](/compute/docs/regions-zones) in which to deploy the VMs used to run the Apache Airflow software, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/zones/{zoneId}". This `location` must belong to the enclosing environment\'s project and location. If both this field and `nodeConfig.machineType` are specified, `nodeConfig.machineType` must belong to this `location`; if both are unspecified, the service will pick a zone in the Compute Engine region corresponding to the Cloud Composer location, and propagate that choice to both fields. If only one field (`location` or `nodeConfig.machineType`) is specified, the location information from the specified field will be propagated to the unspecified field. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.',
@@ -297,7 +300,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The list of instance tags applied to all node VMs. Tags are used to identify valid sources or targets for network firewalls. Each tag within the list must comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt). Cannot be updated.",
       ).optional(),
     }).describe(
-      "The configuration information for the Kubernetes Engine nodes running the Apache Airflow software.",
+      "Optional. The configuration used for the Kubernetes Engine cluster.",
     ).optional(),
     nodeCount: z.number().int().describe(
       "The number of nodes in the Kubernetes Engine cluster that will be used to run this environment. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
@@ -333,7 +336,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Indicates the user requested specific connection type between Tenant and Customer projects. You cannot set networking connection type in public IP environment.",
         ).optional(),
       }).describe(
-        "Configuration options for networking connections in the Composer 2 environment.",
+        "Optional. Configuration for the network connections configuration in the environment.",
       ).optional(),
       networkingType: z.enum([
         "NETWORKING_TYPE_UNSPECIFIED",
@@ -353,7 +356,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The IP range in CIDR notation to use for the hosted master network. This range is used for assigning internal IP addresses to the GKE cluster master or set of masters and to the internal load balancer virtual IP. This range must not overlap with any other ranges in use within the cluster's network.",
         ).optional(),
       }).describe(
-        "Configuration options for the private GKE cluster in a Cloud Composer environment.",
+        "Optional. Configuration for the private GKE cluster for a Private IP Cloud Composer environment.",
       ).optional(),
       webServerIpv4CidrBlock: z.string().describe(
         "Optional. The CIDR block from which IP range for web server will be reserved. Needs to be disjoint from `private_cluster_config.master_ipv4_cidr_block` and `cloud_sql_ipv4_cidr_block`. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
@@ -362,7 +365,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The IP range reserved for the tenant project's App Engine VMs. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
       ).optional(),
     }).describe(
-      "The configuration information for configuring a Private IP Cloud Composer environment.",
+      "Optional. The configuration used for the Private IP Cloud Composer environment.",
     ).optional(),
     recoveryConfig: z.object({
       scheduledSnapshotsConfig: z.object({
@@ -379,9 +382,11 @@ const GlobalArgsSchema = z.object({
           "Optional. Time zone that sets the context to interpret snapshot_creation_schedule.",
         ).optional(),
       }).describe(
-        "The configuration for scheduled snapshot creation mechanism.",
+        "Optional. The configuration for scheduled snapshot creation mechanism.",
       ).optional(),
-    }).describe("The Recovery settings of an environment.").optional(),
+    }).describe(
+      "Optional. The Recovery settings configuration of an environment. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.",
+    ).optional(),
     resilienceMode: z.enum(["RESILIENCE_MODE_UNSPECIFIED", "HIGH_RESILIENCE"])
       .describe(
         "Optional. Resilience mode of the Cloud Composer Environment. This field is supported for Cloud Composer environments in versions composer-2.2.0-airflow-*.*.* and newer.",
@@ -401,8 +406,9 @@ const GlobalArgsSchema = z.object({
         enabled: z.boolean().describe(
           "Optional. Whether or not Cloud Data Lineage integration is enabled.",
         ).optional(),
-      }).describe("Configuration for Cloud Data Lineage integration.")
-        .optional(),
+      }).describe(
+        "Optional. The configuration for Cloud Data Lineage integration.",
+      ).optional(),
       envVariables: z.record(z.string(), z.string()).describe(
         "Optional. Additional environment variables to provide to the Apache Airflow scheduler, worker, and webserver processes. Environment variable names must match the regular expression `a-zA-Z_*`. They cannot specify Apache Airflow software configuration overrides (they cannot match the regular expression `AIRFLOW__[A-Z0-9_]+__[A-Z0-9_]+`), and they cannot match any of the following reserved names: * `AIRFLOW_HOME` * `C_FORCE_ROOT` * `CONTAINER_NAME` * `DAGS_FOLDER` * `GCP_PROJECT` * `GCS_BUCKET` * `GKE_CLUSTER_NAME` * `SQL_DATABASE` * `SQL_INSTANCE` * `SQL_PASSWORD` * `SQL_PROJECT` * `SQL_REGION` * `SQL_USER`",
       ).optional(),
@@ -426,14 +432,14 @@ const GlobalArgsSchema = z.object({
         "Optional. Whether or not the web server uses custom plugins. If unspecified, the field defaults to `PLUGINS_ENABLED`. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.",
       ).optional(),
     }).describe(
-      "Specifies the selection and configuration of software inside the environment.",
+      "Optional. The configuration settings for software inside the environment.",
     ).optional(),
     webServerConfig: z.object({
       machineType: z.string().describe(
         "Optional. Machine type on which Airflow web server is running. It has to be one of: composer-n1-webserver-2, composer-n1-webserver-4 or composer-n1-webserver-8. If not specified, composer-n1-webserver-2 will be used. Value custom is returned only in response, if Airflow web server parameters were manually changed to a non-standard values.",
       ).optional(),
     }).describe(
-      "The configuration settings for the Airflow web server App Engine instance. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*",
+      "Optional. The configuration settings for the Airflow web server App Engine instance.",
     ).optional(),
     webServerNetworkAccessControl: z.object({
       allowedIpRanges: z.array(z.object({
@@ -446,7 +452,7 @@ const GlobalArgsSchema = z.object({
       })).describe("A collection of allowed IP ranges with descriptions.")
         .optional(),
     }).describe(
-      "Network-level access control policy for the Airflow web server.",
+      "Optional. The network-level access control policy for the Airflow web server. If unspecified, no network-level access restrictions will be applied.",
     ).optional(),
     workloadsConfig: z.object({
       dagProcessor: z.object({
@@ -463,7 +469,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Storage (GB) request and limit for a single Airflow DAG processor replica.",
         ).optional(),
       }).describe(
-        "Configuration for resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.",
+        "Optional. Resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.",
       ).optional(),
       scheduler: z.object({
         count: z.number().int().describe("Optional. The number of schedulers.")
@@ -477,8 +483,7 @@ const GlobalArgsSchema = z.object({
         storageGb: z.number().describe(
           "Optional. Storage (GB) request and limit for a single Airflow scheduler replica.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow schedulers.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow schedulers.").optional(),
       triggerer: z.object({
         count: z.number().int().describe("Optional. The number of triggerers.")
           .optional(),
@@ -488,8 +493,7 @@ const GlobalArgsSchema = z.object({
         memoryGb: z.number().describe(
           "Optional. Memory (GB) request and limit for a single Airflow triggerer replica.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow triggerers.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow triggerers.").optional(),
       webServer: z.object({
         cpu: z.number().describe(
           "Optional. CPU request and limit for Airflow web server.",
@@ -500,8 +504,7 @@ const GlobalArgsSchema = z.object({
         storageGb: z.number().describe(
           "Optional. Storage (GB) request and limit for Airflow web server.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow web server.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow web server.").optional(),
       worker: z.object({
         cpu: z.number().describe(
           "Optional. CPU request and limit for a single Airflow worker replica.",
@@ -518,12 +521,12 @@ const GlobalArgsSchema = z.object({
         storageGb: z.number().describe(
           "Optional. Storage (GB) request and limit for a single Airflow worker replica.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow workers.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow workers.").optional(),
     }).describe(
-      "The Kubernetes workloads configuration for GKE cluster associated with the Cloud Composer environment. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.",
+      "Optional. The workloads configuration settings for the GKE cluster associated with the Cloud Composer environment. The GKE cluster runs Airflow scheduler, web server and workers workloads. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.",
     ).optional(),
-  }).describe("Configuration information for an environment.").optional(),
+  }).describe("Optional. Configuration parameters for this environment.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for this environment. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \\p{Ll}\\p{Lo}{0,62} * Values must conform to regexp: [\\p{Ll}\\p{Lo}\\p{N}_-]{0,63} * Both keys and values are additionally constrained to be <= 128 bytes in size.",
   ).optional(),
@@ -542,7 +545,7 @@ const GlobalArgsSchema = z.object({
     bucket: z.string().describe(
       "Optional. The name of the Cloud Storage bucket used by the environment. No `gs://` prefix.",
     ).optional(),
-  }).describe("The configuration for data storage in the environment.")
+  }).describe("Optional. Storage configuration for this environment.")
     .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -729,8 +732,9 @@ const InputsSchema = z.object({
           "RETENTION_MODE_DISABLED",
         ]).describe("Optional. Retention can be either enabled or disabled.")
           .optional(),
-      }).describe("The policy for airflow metadata database retention.")
-        .optional(),
+      }).describe(
+        "Optional. The retention policy for airflow metadata database.",
+      ).optional(),
       taskLogsRetentionConfig: z.object({
         storageMode: z.enum([
           "TASK_LOGS_STORAGE_MODE_UNSPECIFIED",
@@ -739,9 +743,11 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. The mode of storage for Airflow workers task logs.",
         ).optional(),
-      }).describe("The configuration setting for Task Logs.").optional(),
+      }).describe(
+        "Optional. The configuration settings for task logs retention",
+      ).optional(),
     }).describe(
-      "The configuration setting for Airflow database data retention mechanism.",
+      "Optional. The configuration setting for Airflow database data retention mechanism.",
     ).optional(),
     databaseConfig: z.object({
       machineType: z.string().describe(
@@ -751,14 +757,14 @@ const InputsSchema = z.object({
         "Optional. The Compute Engine zone where the Airflow database is created. If zone is provided, it must be in the region selected for the environment. If zone is not provided, a zone is automatically selected. The zone can only be set during environment creation. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.*.",
       ).optional(),
     }).describe(
-      "The configuration of Cloud SQL instance that is used by the Apache Airflow software.",
+      "Optional. The configuration settings for Cloud SQL instance used internally by Apache Airflow software.",
     ).optional(),
     encryptionConfig: z.object({
       kmsKeyName: z.string().describe(
         "Optional. Customer-managed Encryption Key available through Google's Key Management Service. Cannot be updated. If not specified, Google-managed key will be used.",
       ).optional(),
     }).describe(
-      "The encryption options for the Cloud Composer environment and its dependencies.Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
+      "Optional. The encryption options for the Cloud Composer environment and its dependencies. Cannot be updated.",
     ).optional(),
     environmentSize: z.enum([
       "ENVIRONMENT_SIZE_UNSPECIFIED",
@@ -783,7 +789,7 @@ const InputsSchema = z.object({
         "Required. Start time of the first recurrence of the maintenance window.",
       ).optional(),
     }).describe(
-      'The configuration settings for Cloud Composer maintenance window. The following example: ` { "startTime":"2019-08-01T01:00:00Z" "endTime":"2019-08-01T07:00:00Z" "recurrence":"FREQ=WEEKLY;BYDAY=TU,WE" } ` would define a maintenance window between 01 and 07 hours UTC during each Tuesday and Wednesday.',
+      "Optional. The maintenance window is the period when Cloud Composer components may undergo maintenance. It is defined so that maintenance is not executed during peak hours or critical time periods. The system will not be under maintenance for every occurrence of this window, but when maintenance is planned, it will be scheduled during the window. The maintenance window period must encompass at least 12 hours per week. This may be split into multiple chunks, each with a size of at least 4 hours. If this value is omitted, the default value for maintenance window is applied. By default, maintenance windows are from 00:00:00 to 04:00:00 (GMT) on Friday, Saturday, and Sunday every week.",
     ).optional(),
     masterAuthorizedNetworksConfig: z.object({
       cidrBlocks: z.array(z.object({
@@ -800,7 +806,7 @@ const InputsSchema = z.object({
         "Optional. Whether or not master authorized networks feature is enabled.",
       ).optional(),
     }).describe(
-      "Configuration options for the master authorized networks feature. Enabled master authorized networks will disallow all external traffic to access Kubernetes master through HTTPS except traffic from the given CIDR blocks, Google Compute Engine Public IPs and Google Prod IPs.",
+      "Optional. The configuration options for GKE cluster master authorized networks. By default master authorized networks feature is: - in case of private environment: enabled with no external networks allowlisted. - in case of public environment: disabled.",
     ).optional(),
     nodeConfig: z.object({
       composerInternalIpv4CidrBlock: z.string().describe(
@@ -832,7 +838,7 @@ const InputsSchema = z.object({
           "Optional. Whether or not to enable Alias IPs in the GKE cluster. If `true`, a VPC-native cluster is created. This field is only supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*. Environments in newer versions always use VPC-native GKE clusters.",
         ).optional(),
       }).describe(
-        "Configuration for controlling how IPs are allocated in the GKE cluster running the Apache Airflow software.",
+        "Optional. The configuration for controlling how IPs are allocated in the GKE cluster.",
       ).optional(),
       location: z.string().describe(
         'Optional. The Compute Engine [zone](/compute/docs/regions-zones) in which to deploy the VMs used to run the Apache Airflow software, specified as a [relative resource name](/apis/design/resource_names#relative_resource_name). For example: "projects/{projectId}/zones/{zoneId}". This `location` must belong to the enclosing environment\'s project and location. If both this field and `nodeConfig.machineType` are specified, `nodeConfig.machineType` must belong to this `location`; if both are unspecified, the service will pick a zone in the Compute Engine region corresponding to the Cloud Composer location, and propagate that choice to both fields. If only one field (`location` or `nodeConfig.machineType`) is specified, the location information from the specified field will be propagated to the unspecified field. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.',
@@ -856,7 +862,7 @@ const InputsSchema = z.object({
         "Optional. The list of instance tags applied to all node VMs. Tags are used to identify valid sources or targets for network firewalls. Each tag within the list must comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt). Cannot be updated.",
       ).optional(),
     }).describe(
-      "The configuration information for the Kubernetes Engine nodes running the Apache Airflow software.",
+      "Optional. The configuration used for the Kubernetes Engine cluster.",
     ).optional(),
     nodeCount: z.number().int().describe(
       "The number of nodes in the Kubernetes Engine cluster that will be used to run this environment. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
@@ -892,7 +898,7 @@ const InputsSchema = z.object({
           "Optional. Indicates the user requested specific connection type between Tenant and Customer projects. You cannot set networking connection type in public IP environment.",
         ).optional(),
       }).describe(
-        "Configuration options for networking connections in the Composer 2 environment.",
+        "Optional. Configuration for the network connections configuration in the environment.",
       ).optional(),
       networkingType: z.enum([
         "NETWORKING_TYPE_UNSPECIFIED",
@@ -912,7 +918,7 @@ const InputsSchema = z.object({
           "Output only. The IP range in CIDR notation to use for the hosted master network. This range is used for assigning internal IP addresses to the GKE cluster master or set of masters and to the internal load balancer virtual IP. This range must not overlap with any other ranges in use within the cluster's network.",
         ).optional(),
       }).describe(
-        "Configuration options for the private GKE cluster in a Cloud Composer environment.",
+        "Optional. Configuration for the private GKE cluster for a Private IP Cloud Composer environment.",
       ).optional(),
       webServerIpv4CidrBlock: z.string().describe(
         "Optional. The CIDR block from which IP range for web server will be reserved. Needs to be disjoint from `private_cluster_config.master_ipv4_cidr_block` and `cloud_sql_ipv4_cidr_block`. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
@@ -921,7 +927,7 @@ const InputsSchema = z.object({
         "Output only. The IP range reserved for the tenant project's App Engine VMs. This field is supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.",
       ).optional(),
     }).describe(
-      "The configuration information for configuring a Private IP Cloud Composer environment.",
+      "Optional. The configuration used for the Private IP Cloud Composer environment.",
     ).optional(),
     recoveryConfig: z.object({
       scheduledSnapshotsConfig: z.object({
@@ -938,9 +944,11 @@ const InputsSchema = z.object({
           "Optional. Time zone that sets the context to interpret snapshot_creation_schedule.",
         ).optional(),
       }).describe(
-        "The configuration for scheduled snapshot creation mechanism.",
+        "Optional. The configuration for scheduled snapshot creation mechanism.",
       ).optional(),
-    }).describe("The Recovery settings of an environment.").optional(),
+    }).describe(
+      "Optional. The Recovery settings configuration of an environment. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.",
+    ).optional(),
     resilienceMode: z.enum(["RESILIENCE_MODE_UNSPECIFIED", "HIGH_RESILIENCE"])
       .describe(
         "Optional. Resilience mode of the Cloud Composer Environment. This field is supported for Cloud Composer environments in versions composer-2.2.0-airflow-*.*.* and newer.",
@@ -960,8 +968,9 @@ const InputsSchema = z.object({
         enabled: z.boolean().describe(
           "Optional. Whether or not Cloud Data Lineage integration is enabled.",
         ).optional(),
-      }).describe("Configuration for Cloud Data Lineage integration.")
-        .optional(),
+      }).describe(
+        "Optional. The configuration for Cloud Data Lineage integration.",
+      ).optional(),
       envVariables: z.record(z.string(), z.string()).describe(
         "Optional. Additional environment variables to provide to the Apache Airflow scheduler, worker, and webserver processes. Environment variable names must match the regular expression `a-zA-Z_*`. They cannot specify Apache Airflow software configuration overrides (they cannot match the regular expression `AIRFLOW__[A-Z0-9_]+__[A-Z0-9_]+`), and they cannot match any of the following reserved names: * `AIRFLOW_HOME` * `C_FORCE_ROOT` * `CONTAINER_NAME` * `DAGS_FOLDER` * `GCP_PROJECT` * `GCS_BUCKET` * `GKE_CLUSTER_NAME` * `SQL_DATABASE` * `SQL_INSTANCE` * `SQL_PASSWORD` * `SQL_PROJECT` * `SQL_REGION` * `SQL_USER`",
       ).optional(),
@@ -985,14 +994,14 @@ const InputsSchema = z.object({
         "Optional. Whether or not the web server uses custom plugins. If unspecified, the field defaults to `PLUGINS_ENABLED`. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.",
       ).optional(),
     }).describe(
-      "Specifies the selection and configuration of software inside the environment.",
+      "Optional. The configuration settings for software inside the environment.",
     ).optional(),
     webServerConfig: z.object({
       machineType: z.string().describe(
         "Optional. Machine type on which Airflow web server is running. It has to be one of: composer-n1-webserver-2, composer-n1-webserver-4 or composer-n1-webserver-8. If not specified, composer-n1-webserver-2 will be used. Value custom is returned only in response, if Airflow web server parameters were manually changed to a non-standard values.",
       ).optional(),
     }).describe(
-      "The configuration settings for the Airflow web server App Engine instance. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*",
+      "Optional. The configuration settings for the Airflow web server App Engine instance.",
     ).optional(),
     webServerNetworkAccessControl: z.object({
       allowedIpRanges: z.array(z.object({
@@ -1005,7 +1014,7 @@ const InputsSchema = z.object({
       })).describe("A collection of allowed IP ranges with descriptions.")
         .optional(),
     }).describe(
-      "Network-level access control policy for the Airflow web server.",
+      "Optional. The network-level access control policy for the Airflow web server. If unspecified, no network-level access restrictions will be applied.",
     ).optional(),
     workloadsConfig: z.object({
       dagProcessor: z.object({
@@ -1022,7 +1031,7 @@ const InputsSchema = z.object({
           "Optional. Storage (GB) request and limit for a single Airflow DAG processor replica.",
         ).optional(),
       }).describe(
-        "Configuration for resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.",
+        "Optional. Resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.",
       ).optional(),
       scheduler: z.object({
         count: z.number().int().describe("Optional. The number of schedulers.")
@@ -1036,8 +1045,7 @@ const InputsSchema = z.object({
         storageGb: z.number().describe(
           "Optional. Storage (GB) request and limit for a single Airflow scheduler replica.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow schedulers.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow schedulers.").optional(),
       triggerer: z.object({
         count: z.number().int().describe("Optional. The number of triggerers.")
           .optional(),
@@ -1047,8 +1055,7 @@ const InputsSchema = z.object({
         memoryGb: z.number().describe(
           "Optional. Memory (GB) request and limit for a single Airflow triggerer replica.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow triggerers.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow triggerers.").optional(),
       webServer: z.object({
         cpu: z.number().describe(
           "Optional. CPU request and limit for Airflow web server.",
@@ -1059,8 +1066,7 @@ const InputsSchema = z.object({
         storageGb: z.number().describe(
           "Optional. Storage (GB) request and limit for Airflow web server.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow web server.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow web server.").optional(),
       worker: z.object({
         cpu: z.number().describe(
           "Optional. CPU request and limit for a single Airflow worker replica.",
@@ -1077,12 +1083,12 @@ const InputsSchema = z.object({
         storageGb: z.number().describe(
           "Optional. Storage (GB) request and limit for a single Airflow worker replica.",
         ).optional(),
-      }).describe("Configuration for resources used by Airflow workers.")
-        .optional(),
+      }).describe("Optional. Resources used by Airflow workers.").optional(),
     }).describe(
-      "The Kubernetes workloads configuration for GKE cluster associated with the Cloud Composer environment. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.",
+      "Optional. The workloads configuration settings for the GKE cluster associated with the Cloud Composer environment. The GKE cluster runs Airflow scheduler, web server and workers workloads. This field is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.",
     ).optional(),
-  }).describe("Configuration information for an environment.").optional(),
+  }).describe("Optional. Configuration parameters for this environment.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for this environment. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \\p{Ll}\\p{Lo}{0,62} * Values must conform to regexp: [\\p{Ll}\\p{Lo}\\p{N}_-]{0,63} * Both keys and values are additionally constrained to be <= 128 bytes in size.",
   ).optional(),
@@ -1101,7 +1107,7 @@ const InputsSchema = z.object({
     bucket: z.string().describe(
       "Optional. The name of the Cloud Storage bucket used by the environment. No `gs://` prefix.",
     ).optional(),
-  }).describe("The configuration for data storage in the environment.")
+  }).describe("Optional. Storage configuration for this environment.")
     .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -1131,7 +1137,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Composer Environments. Registered at `@swamp/gcp/composer/environments`. */
 export const model = {
   type: "@swamp/gcp/composer/environments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1245,6 +1251,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

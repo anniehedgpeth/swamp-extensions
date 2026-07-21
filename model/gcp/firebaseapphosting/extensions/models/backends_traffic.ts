@@ -112,7 +112,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Required. The list of traffic splits.").optional(),
   }).describe(
-    "A list of traffic splits that together represent where traffic is being routed.",
+    "Output only. Current state of traffic allocation for the backend. When setting `target`, this field may differ for some time until the desired state is reached.",
   ).optional(),
   etag: z.string().describe(
     "Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.",
@@ -153,7 +153,7 @@ const GlobalArgsSchema = z.object({
       'Optional. A list of file paths patterns that trigger a build and rollout if at least one of the changed files in the commit are present in this list. This field is optional; the rollout policy will default to triggering on all paths if both ignored_paths and required_paths are not populated. Limited to 100 paths. Example: ` required_paths: { pattern: "foo/bar/*", type: "GLOB" } `',
     ).optional(),
   }).describe(
-    "The policy for how automatic builds and rollouts are triggered and rolled out.",
+    "A rollout policy specifies how new builds and automatic deployments are created.",
   ).optional(),
   target: z.object({
     splits: z.array(z.object({
@@ -165,7 +165,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Required. The list of traffic splits.").optional(),
   }).describe(
-    "A list of traffic splits that together represent where traffic is being routed.",
+    "Set to manually control the desired traffic for the backend. This will cause `current` to eventually match this value. The percentages must add up to 100%.",
   ).optional(),
   uid: z.string().describe("Output only. System-assigned, unique identifier.")
     .optional(),
@@ -233,7 +233,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Required. The list of traffic splits.").optional(),
   }).describe(
-    "A list of traffic splits that together represent where traffic is being routed.",
+    "Output only. Current state of traffic allocation for the backend. When setting `target`, this field may differ for some time until the desired state is reached.",
   ).optional(),
   etag: z.string().describe(
     "Output only. Server-computed checksum based on other values; may be sent on update or delete to ensure operation is done on expected resource.",
@@ -274,7 +274,7 @@ const InputsSchema = z.object({
       'Optional. A list of file paths patterns that trigger a build and rollout if at least one of the changed files in the commit are present in this list. This field is optional; the rollout policy will default to triggering on all paths if both ignored_paths and required_paths are not populated. Limited to 100 paths. Example: ` required_paths: { pattern: "foo/bar/*", type: "GLOB" } `',
     ).optional(),
   }).describe(
-    "The policy for how automatic builds and rollouts are triggered and rolled out.",
+    "A rollout policy specifies how new builds and automatic deployments are created.",
   ).optional(),
   target: z.object({
     splits: z.array(z.object({
@@ -286,7 +286,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Required. The list of traffic splits.").optional(),
   }).describe(
-    "A list of traffic splits that together represent where traffic is being routed.",
+    "Set to manually control the desired traffic for the backend. This will cause `current` to eventually match this value. The percentages must add up to 100%.",
   ).optional(),
   uid: z.string().describe("Output only. System-assigned, unique identifier.")
     .optional(),
@@ -318,7 +318,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Hosting Backends.Traffic. Registered at `@swamp/gcp/firebaseapphosting/backends-traffic`. */
 export const model = {
   type: "@swamp/gcp/firebaseapphosting/backends-traffic",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -442,6 +442,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -169,8 +169,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "List of Account permissions. Valid account permissions are read and manage.",
     ).optional(),
-  }).describe("Defines the Google Tag Manager Account access permissions.")
-    .optional(),
+  }).describe("GTM Account access permissions.").optional(),
   accountId: z.string().describe("GTM Account ID.").optional(),
   containerAccess: z.array(z.object({
     containerId: z.string().describe("GTM Container ID.").optional(),
@@ -211,8 +210,7 @@ const InputsSchema = z.object({
     ).describe(
       "List of Account permissions. Valid account permissions are read and manage.",
     ).optional(),
-  }).describe("Defines the Google Tag Manager Account access permissions.")
-    .optional(),
+  }).describe("GTM Account access permissions.").optional(),
   accountId: z.string().describe("GTM Account ID.").optional(),
   containerAccess: z.array(z.object({
     containerId: z.string().describe("GTM Container ID.").optional(),
@@ -249,7 +247,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Permissions. Registered at `@swamp/gcp/tagmanager/accounts-permissions`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-permissions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -294,12 +299,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "accountId": String(g["accountId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

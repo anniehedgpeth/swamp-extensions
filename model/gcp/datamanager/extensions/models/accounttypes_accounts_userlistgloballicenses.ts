@@ -149,23 +149,6 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "Immutable. Product type of client customer which the user list is being licensed to.",
   ).optional(),
-  metrics: z.object({
-    clickCount: z.string().describe(
-      "Output only. The number of clicks for the user list license.",
-    ).optional(),
-    endDate: z.string().describe(
-      "Output only. The end date (inclusive) of the metrics in the format YYYYMMDD. For example, 20260102 represents January 2, 2026. If `start_date` is used in the filter, `end_date` is also required. If neither `start_date` nor `end_date` are included in the filter, the UserListLicenseMetrics fields will not be populated in the response.",
-    ).optional(),
-    impressionCount: z.string().describe(
-      "Output only. The number of impressions for the user list license.",
-    ).optional(),
-    revenueUsdMicros: z.string().describe(
-      "Output only. The revenue for the user list license in USD micros.",
-    ).optional(),
-    startDate: z.string().describe(
-      "Output only. The start date (inclusive) of the metrics in the format YYYYMMDD. For example, 20260102 represents January 2, 2026. If `end_date` is used in the filter, `start_date` is also required. If neither `start_date` nor `end_date` are included in the filter, the UserListLicenseMetrics fields will not be populated in the response.",
-    ).optional(),
-  }).describe("Metrics related to a user list license.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the user list global license.",
   ).optional(),
@@ -204,7 +187,7 @@ const GlobalArgsSchema = z.object({
       .optional(),
     startTime: z.string().describe("Output only. Start time of the pricing.")
       .optional(),
-  }).describe("A user list license pricing.").optional(),
+  }).describe("Optional. UserListGlobalLicense pricing.").optional(),
   status: z.enum([
     "USER_LIST_LICENSE_STATUS_UNSPECIFIED",
     "USER_LIST_LICENSE_STATUS_ENABLED",
@@ -272,23 +255,6 @@ const InputsSchema = z.object({
   ]).describe(
     "Immutable. Product type of client customer which the user list is being licensed to.",
   ).optional(),
-  metrics: z.object({
-    clickCount: z.string().describe(
-      "Output only. The number of clicks for the user list license.",
-    ).optional(),
-    endDate: z.string().describe(
-      "Output only. The end date (inclusive) of the metrics in the format YYYYMMDD. For example, 20260102 represents January 2, 2026. If `start_date` is used in the filter, `end_date` is also required. If neither `start_date` nor `end_date` are included in the filter, the UserListLicenseMetrics fields will not be populated in the response.",
-    ).optional(),
-    impressionCount: z.string().describe(
-      "Output only. The number of impressions for the user list license.",
-    ).optional(),
-    revenueUsdMicros: z.string().describe(
-      "Output only. The revenue for the user list license in USD micros.",
-    ).optional(),
-    startDate: z.string().describe(
-      "Output only. The start date (inclusive) of the metrics in the format YYYYMMDD. For example, 20260102 represents January 2, 2026. If `end_date` is used in the filter, `start_date` is also required. If neither `start_date` nor `end_date` are included in the filter, the UserListLicenseMetrics fields will not be populated in the response.",
-    ).optional(),
-  }).describe("Metrics related to a user list license.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the user list global license.",
   ).optional(),
@@ -327,7 +293,7 @@ const InputsSchema = z.object({
       .optional(),
     startTime: z.string().describe("Output only. Start time of the pricing.")
       .optional(),
-  }).describe("A user list license pricing.").optional(),
+  }).describe("Optional. UserListGlobalLicense pricing.").optional(),
   status: z.enum([
     "USER_LIST_LICENSE_STATUS_UNSPECIFIED",
     "USER_LIST_LICENSE_STATUS_ENABLED",
@@ -366,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Manager AccountTypes.Accounts.UserListGlobalLicenses. Registered at `@swamp/gcp/datamanager/accounttypes-accounts-userlistgloballicenses`. */
 export const model = {
   type: "@swamp/gcp/datamanager/accounttypes-accounts-userlistgloballicenses",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -473,6 +439,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: metrics",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { metrics: _metrics, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -499,7 +473,6 @@ export const model = {
         if (g["licenseType"] !== undefined) {
           body["licenseType"] = g["licenseType"];
         }
-        if (g["metrics"] !== undefined) body["metrics"] = g["metrics"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["pricing"] !== undefined) body["pricing"] = g["pricing"];
         if (g["status"] !== undefined) body["status"] = g["status"];
@@ -610,7 +583,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["metrics"] !== undefined) body["metrics"] = g["metrics"];
         if (g["pricing"] !== undefined) body["pricing"] = g["pricing"];
         if (g["status"] !== undefined) body["status"] = g["status"];
         const updateMaskKeys = Object.keys(body);

@@ -214,7 +214,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   attributionEnabled: z.boolean().describe(
     "Whether the activity is enabled for attribution.",
   ).optional(),
@@ -298,7 +300,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the floodlight configuration. This is a read-only, auto-generated field.",
+  ).optional(),
   floodlightTagType: z.enum(["IFRAME", "IMAGE", "GLOBAL_SITE_TAG"]).describe(
     "The type of Floodlight tag this activity will generate. This is a required field.",
   ).optional(),
@@ -323,7 +327,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this floodlight activity. This is a read-only, auto-generated field.",
+  ).optional(),
   name: z.string().describe(
     "Name of this floodlight activity. This is a required field. Must be less than 129 characters long and cannot contain quotes.",
   ).optional(),
@@ -343,7 +349,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       name: z.string().describe("Name of this tag.").optional(),
       tag: z.string().describe("Tag code.").optional(),
-    }).describe("Dynamic Tag").optional(),
+    }).describe("Dynamic floodlight tag.").optional(),
     siteId: z.string().describe("Site ID of this dynamic tag.").optional(),
     siteIdDimensionValue: z.object({
       dimensionName: z.string().describe("The name of the dimension.")
@@ -365,7 +371,9 @@ const GlobalArgsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "Dimension value for the ID of the site. This is a read-only, auto-generated field.",
+    ).optional(),
     viewThrough: z.boolean().describe(
       "Whether this tag is applicable only for view-throughs.",
     ).optional(),
@@ -612,7 +620,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   attributionEnabled: z.boolean().describe(
     "Whether the activity is enabled for attribution.",
   ).optional(),
@@ -696,7 +706,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the floodlight configuration. This is a read-only, auto-generated field.",
+  ).optional(),
   floodlightTagType: z.enum(["IFRAME", "IMAGE", "GLOBAL_SITE_TAG"]).describe(
     "The type of Floodlight tag this activity will generate. This is a required field.",
   ).optional(),
@@ -721,7 +733,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this floodlight activity. This is a read-only, auto-generated field.",
+  ).optional(),
   name: z.string().describe(
     "Name of this floodlight activity. This is a required field. Must be less than 129 characters long and cannot contain quotes.",
   ).optional(),
@@ -741,7 +755,7 @@ const InputsSchema = z.object({
       ).optional(),
       name: z.string().describe("Name of this tag.").optional(),
       tag: z.string().describe("Tag code.").optional(),
-    }).describe("Dynamic Tag").optional(),
+    }).describe("Dynamic floodlight tag.").optional(),
     siteId: z.string().describe("Site ID of this dynamic tag.").optional(),
     siteIdDimensionValue: z.object({
       dimensionName: z.string().describe("The name of the dimension.")
@@ -763,7 +777,9 @@ const InputsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "Dimension value for the ID of the site. This is a read-only, auto-generated field.",
+    ).optional(),
     viewThrough: z.boolean().describe(
       "Whether this tag is applicable only for view-throughs.",
     ).optional(),
@@ -926,7 +942,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 FloodlightActivities. Registered at `@swamp/gcp/dfareporting/floodlightactivities`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/floodlightactivities",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1025,6 +1041,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

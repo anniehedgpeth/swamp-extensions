@@ -122,7 +122,9 @@ const GlobalArgsSchema = z.object({
           radiusValue: z.unknown().describe(
             "Optional. Radius length in units defined by radius_units.",
           ).optional(),
-        }).describe("Contains proximity filter information.").optional(),
+        }).describe(
+          "Optional. The proximity targeting rules of the dynamic feed, only applicable when rule type is PROXIMITY_TARGETING.",
+        ).optional(),
         remarketingValueAttributes: z.array(z.unknown()).describe(
           "Optional. The link between an element field ID and a list of user attribute IDs.",
         ).optional(),
@@ -146,7 +148,9 @@ const GlobalArgsSchema = z.object({
         weightFieldId: z.number().int().describe(
           "Optional. The field ID for the feed that will be used for weighted rotation, only applicable when rotation type is WEIGHTED.",
         ).optional(),
-      }).describe("Contains dynamic rules information.").optional(),
+      }).describe(
+        "Optional. Dynamic rules for row selection for the given dynamic feed in the given dynamic profile.",
+      ).optional(),
       quantity: z.number().int().describe(
         "Optional. The number of this dynamic feed rows needed by the dynamic profile, default value is 1. Acceptable values are between 1 to 99, inclusive.",
       ).optional(),
@@ -156,14 +160,9 @@ const GlobalArgsSchema = z.object({
     versionId: z.string().describe(
       "Output only. Version ID of this dynamic profile version. This is a read-only, auto-generated field. -1 for draft version, 0+ for published versions.",
     ).optional(),
-  }).describe("Contains dynamic profile version information.").optional(),
+  }).describe("Optional. Active version of the dynamic profile.").optional(),
   archiveStatus: z.enum(["ARCHIVE_STATUS_UNKNOWN", "UNARCHIVED", "ARCHIVED"])
     .describe("Optional. Archive status of this dynamic profile.").optional(),
-  createInfo: z.object({
-    time: z.string().describe(
-      "Timestamp of the last change in milliseconds since epoch.",
-    ).optional(),
-  }).describe("Modification timestamp.").optional(),
   description: z.string().describe(
     "Optional. Description of this dynamic profile.",
   ).optional(),
@@ -194,7 +193,9 @@ const GlobalArgsSchema = z.object({
           radiusValue: z.unknown().describe(
             "Optional. Radius length in units defined by radius_units.",
           ).optional(),
-        }).describe("Contains proximity filter information.").optional(),
+        }).describe(
+          "Optional. The proximity targeting rules of the dynamic feed, only applicable when rule type is PROXIMITY_TARGETING.",
+        ).optional(),
         remarketingValueAttributes: z.array(z.unknown()).describe(
           "Optional. The link between an element field ID and a list of user attribute IDs.",
         ).optional(),
@@ -218,7 +219,9 @@ const GlobalArgsSchema = z.object({
         weightFieldId: z.number().int().describe(
           "Optional. The field ID for the feed that will be used for weighted rotation, only applicable when rotation type is WEIGHTED.",
         ).optional(),
-      }).describe("Contains dynamic rules information.").optional(),
+      }).describe(
+        "Optional. Dynamic rules for row selection for the given dynamic feed in the given dynamic profile.",
+      ).optional(),
       quantity: z.number().int().describe(
         "Optional. The number of this dynamic feed rows needed by the dynamic profile, default value is 1. Acceptable values are between 1 to 99, inclusive.",
       ).optional(),
@@ -228,12 +231,7 @@ const GlobalArgsSchema = z.object({
     versionId: z.string().describe(
       "Output only. Version ID of this dynamic profile version. This is a read-only, auto-generated field. -1 for draft version, 0+ for published versions.",
     ).optional(),
-  }).describe("Contains dynamic profile version information.").optional(),
-  lastModifiedInfo: z.object({
-    time: z.string().describe(
-      "Timestamp of the last change in milliseconds since epoch.",
-    ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe("Optional. Draft version of the dynamic profile.").optional(),
   name: z.string().describe(
     "Required. Identifier. Name of this dynamic profile. This is a required field and must be less than 256 characters long.",
   ).optional(),
@@ -339,7 +337,9 @@ const InputsSchema = z.object({
           radiusValue: z.unknown().describe(
             "Optional. Radius length in units defined by radius_units.",
           ).optional(),
-        }).describe("Contains proximity filter information.").optional(),
+        }).describe(
+          "Optional. The proximity targeting rules of the dynamic feed, only applicable when rule type is PROXIMITY_TARGETING.",
+        ).optional(),
         remarketingValueAttributes: z.array(z.unknown()).describe(
           "Optional. The link between an element field ID and a list of user attribute IDs.",
         ).optional(),
@@ -363,7 +363,9 @@ const InputsSchema = z.object({
         weightFieldId: z.number().int().describe(
           "Optional. The field ID for the feed that will be used for weighted rotation, only applicable when rotation type is WEIGHTED.",
         ).optional(),
-      }).describe("Contains dynamic rules information.").optional(),
+      }).describe(
+        "Optional. Dynamic rules for row selection for the given dynamic feed in the given dynamic profile.",
+      ).optional(),
       quantity: z.number().int().describe(
         "Optional. The number of this dynamic feed rows needed by the dynamic profile, default value is 1. Acceptable values are between 1 to 99, inclusive.",
       ).optional(),
@@ -373,14 +375,9 @@ const InputsSchema = z.object({
     versionId: z.string().describe(
       "Output only. Version ID of this dynamic profile version. This is a read-only, auto-generated field. -1 for draft version, 0+ for published versions.",
     ).optional(),
-  }).describe("Contains dynamic profile version information.").optional(),
+  }).describe("Optional. Active version of the dynamic profile.").optional(),
   archiveStatus: z.enum(["ARCHIVE_STATUS_UNKNOWN", "UNARCHIVED", "ARCHIVED"])
     .describe("Optional. Archive status of this dynamic profile.").optional(),
-  createInfo: z.object({
-    time: z.string().describe(
-      "Timestamp of the last change in milliseconds since epoch.",
-    ).optional(),
-  }).describe("Modification timestamp.").optional(),
   description: z.string().describe(
     "Optional. Description of this dynamic profile.",
   ).optional(),
@@ -411,7 +408,9 @@ const InputsSchema = z.object({
           radiusValue: z.unknown().describe(
             "Optional. Radius length in units defined by radius_units.",
           ).optional(),
-        }).describe("Contains proximity filter information.").optional(),
+        }).describe(
+          "Optional. The proximity targeting rules of the dynamic feed, only applicable when rule type is PROXIMITY_TARGETING.",
+        ).optional(),
         remarketingValueAttributes: z.array(z.unknown()).describe(
           "Optional. The link between an element field ID and a list of user attribute IDs.",
         ).optional(),
@@ -435,7 +434,9 @@ const InputsSchema = z.object({
         weightFieldId: z.number().int().describe(
           "Optional. The field ID for the feed that will be used for weighted rotation, only applicable when rotation type is WEIGHTED.",
         ).optional(),
-      }).describe("Contains dynamic rules information.").optional(),
+      }).describe(
+        "Optional. Dynamic rules for row selection for the given dynamic feed in the given dynamic profile.",
+      ).optional(),
       quantity: z.number().int().describe(
         "Optional. The number of this dynamic feed rows needed by the dynamic profile, default value is 1. Acceptable values are between 1 to 99, inclusive.",
       ).optional(),
@@ -445,12 +446,7 @@ const InputsSchema = z.object({
     versionId: z.string().describe(
       "Output only. Version ID of this dynamic profile version. This is a read-only, auto-generated field. -1 for draft version, 0+ for published versions.",
     ).optional(),
-  }).describe("Contains dynamic profile version information.").optional(),
-  lastModifiedInfo: z.object({
-    time: z.string().describe(
-      "Timestamp of the last change in milliseconds since epoch.",
-    ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe("Optional. Draft version of the dynamic profile.").optional(),
   name: z.string().describe(
     "Required. Identifier. Name of this dynamic profile. This is a required field and must be less than 256 characters long.",
   ).optional(),
@@ -485,7 +481,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 DynamicProfiles. Registered at `@swamp/gcp/dfareporting/dynamicprofiles`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/dynamicprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -582,6 +578,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: createInfo, lastModifiedInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          createInfo: _createInfo,
+          lastModifiedInfo: _lastModifiedInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -612,14 +620,10 @@ export const model = {
         if (g["archiveStatus"] !== undefined) {
           body["archiveStatus"] = g["archiveStatus"];
         }
-        if (g["createInfo"] !== undefined) body["createInfo"] = g["createInfo"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
         if (g["draft"] !== undefined) body["draft"] = g["draft"];
-        if (g["lastModifiedInfo"] !== undefined) {
-          body["lastModifiedInfo"] = g["lastModifiedInfo"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["studioAdvertiserId"] !== undefined) {
@@ -712,14 +716,10 @@ export const model = {
         if (g["archiveStatus"] !== undefined) {
           body["archiveStatus"] = g["archiveStatus"];
         }
-        if (g["createInfo"] !== undefined) body["createInfo"] = g["createInfo"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
         if (g["draft"] !== undefined) body["draft"] = g["draft"];
-        if (g["lastModifiedInfo"] !== undefined) {
-          body["lastModifiedInfo"] = g["lastModifiedInfo"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["studioAdvertiserId"] !== undefined) {

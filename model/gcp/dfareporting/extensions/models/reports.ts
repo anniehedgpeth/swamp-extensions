@@ -205,7 +205,7 @@ const GlobalArgsSchema = z.object({
       metricNames: z.array(z.string()).describe(
         "List of names of floodlight activity metrics.",
       ).optional(),
-    }).describe("Represents an activity group.").optional(),
+    }).describe("Activity group.").optional(),
     customRichMediaEvents: z.object({
       filteredEventIds: z.array(z.object({
         dimensionName: z.string().describe("The name of the dimension.")
@@ -234,7 +234,7 @@ const GlobalArgsSchema = z.object({
       kind: z.string().describe(
         "The kind of resource this is, in this case dfareporting#customRichMediaEvents.",
       ).optional(),
-    }).describe("Represents a Custom Rich Media Events group.").optional(),
+    }).describe("Custom Rich Media Events group.").optional(),
     dateRange: z.object({
       endDate: z.string().optional(),
       kind: z.string().describe(
@@ -262,7 +262,8 @@ const GlobalArgsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range for which this report should be run.")
+      .optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -329,7 +330,8 @@ const GlobalArgsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("Required. The date range this report should be run for.")
+      .optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -442,7 +444,7 @@ const GlobalArgsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range this report should be run for.").optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -496,7 +498,9 @@ const GlobalArgsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "The floodlight ID for which to show data in this report. All advertisers associated with that ID will automatically be added. The dimension of the value needs to be 'dfa:floodlightConfigId'.",
+    ).optional(),
     metricNames: z.array(z.string()).describe(
       "The list of names of metrics the report should include.",
     ).optional(),
@@ -616,7 +620,7 @@ const GlobalArgsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range this report should be run for.").optional(),
     floodlightConfigId: z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -637,7 +641,9 @@ const GlobalArgsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "The floodlight ID for which to show data in this report. All advertisers associated with that ID will automatically be added. The dimension of the value needs to be 'dfa:floodlightConfigId'.",
+    ).optional(),
     metricNames: z.array(z.string()).describe(
       "The list of names of metrics the report should include.",
     ).optional(),
@@ -715,7 +721,7 @@ const GlobalArgsSchema = z.object({
       metricNames: z.array(z.string()).describe(
         "List of names of floodlight activity metrics.",
       ).optional(),
-    }).describe("Represents an activity group.").optional(),
+    }).describe("Activity group.").optional(),
     customRichMediaEvents: z.object({
       filteredEventIds: z.array(z.object({
         dimensionName: z.string().describe("The name of the dimension.")
@@ -744,7 +750,7 @@ const GlobalArgsSchema = z.object({
       kind: z.string().describe(
         "The kind of resource this is, in this case dfareporting#customRichMediaEvents.",
       ).optional(),
-    }).describe("Represents a Custom Rich Media Events group.").optional(),
+    }).describe("Custom Rich Media Events group.").optional(),
     dateRange: z.object({
       endDate: z.string().optional(),
       kind: z.string().describe(
@@ -772,7 +778,7 @@ const GlobalArgsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range this report should be run for.").optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -1149,7 +1155,7 @@ const InputsSchema = z.object({
       metricNames: z.array(z.string()).describe(
         "List of names of floodlight activity metrics.",
       ).optional(),
-    }).describe("Represents an activity group.").optional(),
+    }).describe("Activity group.").optional(),
     customRichMediaEvents: z.object({
       filteredEventIds: z.array(z.object({
         dimensionName: z.string().describe("The name of the dimension.")
@@ -1178,7 +1184,7 @@ const InputsSchema = z.object({
       kind: z.string().describe(
         "The kind of resource this is, in this case dfareporting#customRichMediaEvents.",
       ).optional(),
-    }).describe("Represents a Custom Rich Media Events group.").optional(),
+    }).describe("Custom Rich Media Events group.").optional(),
     dateRange: z.object({
       endDate: z.string().optional(),
       kind: z.string().describe(
@@ -1206,7 +1212,8 @@ const InputsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range for which this report should be run.")
+      .optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -1273,7 +1280,8 @@ const InputsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("Required. The date range this report should be run for.")
+      .optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -1386,7 +1394,7 @@ const InputsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range this report should be run for.").optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -1440,7 +1448,9 @@ const InputsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "The floodlight ID for which to show data in this report. All advertisers associated with that ID will automatically be added. The dimension of the value needs to be 'dfa:floodlightConfigId'.",
+    ).optional(),
     metricNames: z.array(z.string()).describe(
       "The list of names of metrics the report should include.",
     ).optional(),
@@ -1560,7 +1570,7 @@ const InputsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range this report should be run for.").optional(),
     floodlightConfigId: z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -1581,7 +1591,9 @@ const InputsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "The floodlight ID for which to show data in this report. All advertisers associated with that ID will automatically be added. The dimension of the value needs to be 'dfa:floodlightConfigId'.",
+    ).optional(),
     metricNames: z.array(z.string()).describe(
       "The list of names of metrics the report should include.",
     ).optional(),
@@ -1659,7 +1671,7 @@ const InputsSchema = z.object({
       metricNames: z.array(z.string()).describe(
         "List of names of floodlight activity metrics.",
       ).optional(),
-    }).describe("Represents an activity group.").optional(),
+    }).describe("Activity group.").optional(),
     customRichMediaEvents: z.object({
       filteredEventIds: z.array(z.object({
         dimensionName: z.string().describe("The name of the dimension.")
@@ -1688,7 +1700,7 @@ const InputsSchema = z.object({
       kind: z.string().describe(
         "The kind of resource this is, in this case dfareporting#customRichMediaEvents.",
       ).optional(),
-    }).describe("Represents a Custom Rich Media Events group.").optional(),
+    }).describe("Custom Rich Media Events group.").optional(),
     dateRange: z.object({
       endDate: z.string().optional(),
       kind: z.string().describe(
@@ -1716,7 +1728,7 @@ const InputsSchema = z.object({
         "The date range relative to the date of when the report is run.",
       ).optional(),
       startDate: z.string().optional(),
-    }).describe("Represents a date range.").optional(),
+    }).describe("The date range this report should be run for.").optional(),
     dimensionFilters: z.array(z.object({
       dimensionName: z.string().describe("The name of the dimension.")
         .optional(),
@@ -1827,7 +1839,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Reports. Registered at `@swamp/gcp/dfareporting/reports`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/reports",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1916,6 +1928,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

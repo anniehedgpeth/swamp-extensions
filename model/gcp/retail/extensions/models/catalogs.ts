@@ -111,9 +111,7 @@ const GlobalArgsSchema = z.object({
     merchantCenterProductIdField: z.string().describe(
       "Which field of [Merchant Center Product](/bigquery-transfer/docs/merchant-center-products-schema) should be imported as Product.id. Acceptable values are: * `offerId` (default): Import `offerId` as the product ID. * `itemGroupId`: Import `itemGroupId` as the product ID. Notice that Retail API will choose one item from the ones with the same `itemGroupId`, and use it to represent the item group. If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. If this field is `itemGroupId` and ingestion_product_type is `variant`, an INVALID_ARGUMENT error is returned. See [Product levels](https://cloud.google.com/retail/docs/catalog#product-levels) for more details.",
     ).optional(),
-  }).describe(
-    "Configures what level the product should be uploaded with regards to how users will be send events and how predictions will be made.",
-  ).optional(),
+  }).describe("Required. The product level configuration.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -148,9 +146,7 @@ const InputsSchema = z.object({
     merchantCenterProductIdField: z.string().describe(
       "Which field of [Merchant Center Product](/bigquery-transfer/docs/merchant-center-products-schema) should be imported as Product.id. Acceptable values are: * `offerId` (default): Import `offerId` as the product ID. * `itemGroupId`: Import `itemGroupId` as the product ID. Notice that Retail API will choose one item from the ones with the same `itemGroupId`, and use it to represent the item group. If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. If this field is `itemGroupId` and ingestion_product_type is `variant`, an INVALID_ARGUMENT error is returned. See [Product levels](https://cloud.google.com/retail/docs/catalog#product-levels) for more details.",
     ).optional(),
-  }).describe(
-    "Configures what level the product should be uploaded with regards to how users will be send events and how predictions will be made.",
-  ).optional(),
+  }).describe("Required. The product level configuration.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -179,7 +175,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs. Registered at `@swamp/gcp/retail/catalogs`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -273,6 +269,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

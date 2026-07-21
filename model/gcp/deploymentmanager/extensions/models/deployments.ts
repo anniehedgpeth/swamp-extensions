@@ -211,286 +211,19 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
   ).optional(),
-  operation: z.object({
-    clientOperationId: z.string().describe(
-      "[Output Only] The value of `requestId` if you provided it in the request. Not present otherwise.",
-    ).optional(),
-    creationTimestamp: z.string().describe(
-      "[Deprecated] This field is deprecated.",
-    ).optional(),
-    description: z.string().describe(
-      "[Output Only] A textual description of the operation, which is set when the operation is created.",
-    ).optional(),
-    endTime: z.string().describe(
-      "[Output Only] The time that this operation was completed. This value is in RFC3339 text format.",
-    ).optional(),
-    error: z.object({
-      errors: z.array(z.object({
-        arguments: z.array(z.unknown()).describe(
-          'Output only. [Output Only] Optional error details WARNING: DO NOT MAKE VISIBLE This is for internal use-only (like componentization) (thus the visibility "none") and in case of public exposure it is strongly recommended to follow pattern of: https://aip.dev/193 and expose as details field.',
-        ).optional(),
-        code: z.string().describe(
-          "[Output Only] The error type identifier for this error.",
-        ).optional(),
-        debugInfo: z.object({
-          detail: z.unknown().describe(
-            "Additional debugging information provided by the server.",
-          ).optional(),
-          stackEntries: z.unknown().describe(
-            "The stack trace entries indicating where the error occurred.",
-          ).optional(),
-        }).describe("Describes additional debugging info.").optional(),
-        errorDetails: z.array(z.unknown()).describe(
-          "[Output Only] An optional list of messages that contain the error details. There is a set of defined message types to use for providing details.The syntax depends on the error code. For example, QuotaExceededInfo will have details when the error code is QUOTA_EXCEEDED.",
-        ).optional(),
-        location: z.string().describe(
-          "[Output Only] Indicates the field in the request that caused the error. This property is optional.",
-        ).optional(),
-        message: z.string().describe(
-          "[Output Only] An optional, human-readable error message.",
-        ).optional(),
-      })).describe(
-        "[Output Only] The array of errors encountered while processing this operation.",
-      ).optional(),
-    }).describe(
-      "[Output Only] If errors are generated during processing of the operation, this field will be populated.",
-    ).optional(),
-    firewallPolicyRuleOperationMetadata: z.object({
-      allocatedPriority: z.number().int().describe(
-        "The priority allocated for the firewall policy rule if query parameters specified minPriority/maxPriority.",
-      ).optional(),
-    }).optional(),
-    getVersionOperationMetadata: z.object({
-      inlineSbomInfo: z.object({
-        currentComponentVersions: z.record(z.string(), z.string()).describe(
-          "SBOM versions currently applied to the resource. The key is the component name and the value is the version.",
-        ).optional(),
-        targetComponentVersions: z.record(z.string(), z.string()).describe(
-          "SBOM versions scheduled for the next maintenance. The key is the component name and the value is the version.",
-        ).optional(),
-      }).optional(),
-    }).optional(),
-    httpErrorMessage: z.string().describe(
-      "[Output Only] If the operation fails, this field contains the HTTP error message that was returned, such as `NOT FOUND`.",
-    ).optional(),
-    httpErrorStatusCode: z.number().int().describe(
-      "[Output Only] If the operation fails, this field contains the HTTP error status code that was returned. For example, a `404` means the resource was not found.",
-    ).optional(),
-    id: z.string().describe(
-      "[Output Only] The unique identifier for the operation. This identifier is defined by the server.",
-    ).optional(),
-    insertTime: z.string().describe(
-      "[Output Only] The time that this operation was requested. This value is in RFC3339 text format.",
-    ).optional(),
-    instancesBulkInsertOperationMetadata: z.object({
-      machineType: z.string().describe(
-        "[Output Only] The machine type of the VMs that were created used internally only by KCP flex bulk insert.",
-      ).optional(),
-      perLocationStatus: z.record(
-        z.string(),
-        z.object({
-          createdVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs successfully created so far.",
-          ).optional(),
-          deletedVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs that got deleted during rollback.",
-          ).optional(),
-          failedToCreateVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs that started creating but encountered an error.",
-          ).optional(),
-          status: z.enum([
-            "STATUS_UNSPECIFIED",
-            "CREATING",
-            "ROLLING_BACK",
-            "DONE",
-          ]).describe(
-            "[Output Only] Creation status of BulkInsert operation - information if the flow is rolling forward or rolling back.",
-          ).optional(),
-          targetVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs originally planned to be created.",
-          ).optional(),
-        }),
-      ).describe(
-        "Status information per location (location name is key). Example key: zones/us-central1-a",
-      ).optional(),
-    }).optional(),
-    kind: z.string().describe(
-      "Output only. [Output Only] Type of the resource. Always `compute#operation` for Operation resources.",
-    ).optional(),
-    name: z.string().describe("[Output Only] Name of the operation.")
-      .optional(),
-    operationGroupId: z.string().describe(
-      "Output only. [Output Only] An ID that represents a group of operations, such as when a group of operations results from a `bulkInsert` API request.",
-    ).optional(),
-    operationType: z.string().describe(
-      "[Output Only] The type of operation, such as `insert`, `update`, or `delete`, and so on.",
-    ).optional(),
-    progress: z.number().int().describe(
-      "[Output Only] An optional progress indicator that ranges from 0 to 100. There is no requirement that this be linear or support any granularity of operations. This should not be used to guess when the operation will be complete. This number should monotonically increase as the operation progresses.",
-    ).optional(),
-    region: z.string().describe(
-      "[Output Only] The URL of the region where the operation resides. Only applicable when performing regional operations.",
-    ).optional(),
-    selfLink: z.string().describe(
-      "[Output Only] Server-defined URL for the resource.",
-    ).optional(),
-    selfLinkWithId: z.string().describe(
-      "Output only. [Output Only] Server-defined URL for this resource with the resource id.",
-    ).optional(),
-    setAutoscalerLinkOperationMetadata: z.object({
-      zonalIgmIds: z.array(z.string()).describe(
-        "List of zonal IGM IDs part of the RMIG.",
-      ).optional(),
-      zoneToIgmIds: z.record(z.string(), z.string()).describe(
-        "Map of zone to an ID of the zonal IGM belonging to the RMIG.",
-      ).optional(),
-    }).optional(),
-    setCommonInstanceMetadataOperationMetadata: z.object({
-      clientOperationId: z.string().describe(
-        "[Output Only] The client operation id.",
-      ).optional(),
-      perLocationOperations: z.record(
-        z.string(),
-        z.object({
-          error: z.object({
-            code: z.unknown().describe(
-              "The status code, which should be an enum value of google.rpc.Code.",
-            ).optional(),
-            details: z.unknown().describe(
-              "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-            ).optional(),
-            message: z.unknown().describe(
-              "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-            ).optional(),
-          }).describe(
-            "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-          ).optional(),
-          state: z.enum([
-            "UNSPECIFIED",
-            "PROPAGATING",
-            "PROPAGATED",
-            "ABANDONED",
-            "FAILED",
-            "DONE",
-          ]).describe(
-            "[Output Only] Status of the action, which can be one of the following: `PROPAGATING`, `PROPAGATED`, `ABANDONED`, `FAILED`, or `DONE`.",
-          ).optional(),
-        }),
-      ).describe(
-        "[Output Only] Status information per location (location name is key). Example key: zones/us-central1-a",
-      ).optional(),
-    }).optional(),
-    startTime: z.string().describe(
-      "[Output Only] The time that this operation was started by the server. This value is in RFC3339 text format.",
-    ).optional(),
-    status: z.enum(["PENDING", "RUNNING", "DONE"]).describe(
-      "[Output Only] The status of the operation, which can be one of the following: `PENDING`, `RUNNING`, or `DONE`.",
-    ).optional(),
-    statusMessage: z.string().describe(
-      "[Output Only] An optional textual description of the current status of the operation.",
-    ).optional(),
-    targetId: z.string().describe(
-      "[Output Only] The unique target ID, which identifies a specific incarnation of the target resource.",
-    ).optional(),
-    targetLink: z.string().describe(
-      "[Output Only] The URL of the resource that the operation modifies. For operations related to creating a snapshot, this points to the disk that the snapshot was created from.",
-    ).optional(),
-    user: z.string().describe(
-      "[Output Only] User who requested the operation, for example: `user@example.com` or `alice_smith_identifier (global/workforcePools/example-com-us-employees)`.",
-    ).optional(),
-    warnings: z.array(z.object({
-      code: z.enum([
-        "DEPRECATED_RESOURCE_USED",
-        "NO_RESULTS_ON_PAGE",
-        "UNREACHABLE",
-        "NEXT_HOP_ADDRESS_NOT_ASSIGNED",
-        "NEXT_HOP_INSTANCE_NOT_FOUND",
-        "NEXT_HOP_INSTANCE_NOT_ON_NETWORK",
-        "NEXT_HOP_CANNOT_IP_FORWARD",
-        "NEXT_HOP_NOT_RUNNING",
-        "INJECTED_KERNELS_DEPRECATED",
-        "REQUIRED_TOS_AGREEMENT",
-        "DISK_SIZE_LARGER_THAN_IMAGE_SIZE",
-        "RESOURCE_NOT_DELETED",
-        "SINGLE_INSTANCE_PROPERTY_TEMPLATE",
-        "NOT_CRITICAL_ERROR",
-        "CLEANUP_FAILED",
-        "FIELD_VALUE_OVERRIDEN",
-        "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING",
-        "NETWORK_ENDPOINT_NOT_DETACHED",
-        "PAGE_MISSING_RESULTS",
-        "SSL_POLICY_ENABLED_FEATURES_NOT_FETCHED",
-        "RESOURCE_NOT_FOUND_WARNING",
-        "MISSING_TYPE_DEPENDENCY",
-        "EXTERNAL_API_WARNING",
-        "SCHEMA_VALIDATION_IGNORED",
-        "UNDECLARED_PROPERTIES",
-        "EXPERIMENTAL_TYPE_USED",
-        "DEPRECATED_TYPE_USED",
-        "PARTIAL_SUCCESS",
-        "LARGE_DEPLOYMENT_WARNING",
-        "NEXT_HOP_INSTANCE_HAS_NO_IPV6_INTERFACE",
-        "INVALID_HEALTH_CHECK_FOR_DYNAMIC_WIEGHTED_LB",
-        "LIST_OVERHEAD_QUOTA_EXCEED",
-        "QUOTA_INFO_UNAVAILABLE",
-        "RESOURCE_USES_GLOBAL_DNS",
-        "RATE_LIMIT_EXCEEDED",
-        "UPCOMING_MAINTENANCES_UNAVAILABLE",
-        "RESERVED_ENTRY_136",
-        "RESERVED_ENTRY_139",
-        "RESERVED_ENTRY_141",
-        "RESERVED_ENTRY_142",
-        "RESERVED_ENTRY_143",
-      ]).describe(
-        "[Output Only] A warning code, if applicable. For example, Compute Engine returns NO_RESULTS_ON_PAGE if there are no results in the response.",
-      ).optional(),
-      data: z.array(z.object({
-        key: z.unknown().describe(
-          "[Output Only] A key that provides more detail on the warning being returned. For example, for warnings where there are no results in a list request for a particular zone, this key might be scope and the key value might be the zone name. Other examples might be a key indicating a deprecated resource and a suggested replacement, or a warning about invalid network settings (for example, if an instance attempts to perform IP forwarding but is not enabled for IP forwarding).",
-        ).optional(),
-        value: z.unknown().describe(
-          "[Output Only] A warning data value corresponding to the key.",
-        ).optional(),
-      })).describe(
-        '[Output Only] Metadata about this warning in key: value format. For example: "data": [ { "key": "scope", "value": "zones/us-east1-d" }',
-      ).optional(),
-      message: z.string().describe(
-        "[Output Only] A human-readable description of the warning code.",
-      ).optional(),
-    })).describe(
-      "[Output Only] If warning messages are generated during processing of the operation, this field will be populated.",
-    ).optional(),
-    zone: z.string().describe(
-      "[Output Only] The URL of the zone where the operation resides. Only applicable when performing per-zone operations.",
-    ).optional(),
-  }).describe(
-    "Represents an Operation resource. Google Compute Engine has three Operation resources: * [Global](/compute/docs/reference/rest/{$api_version}/globalOperations) * [Regional](/compute/docs/reference/rest/{$api_version}/regionOperations) * [Zonal](/compute/docs/reference/rest/{$api_version}/zoneOperations) You can use an operation resource to manage asynchronous API requests. For more information, read Handling API responses. Operations can be global, regional or zonal. - For global operations, use the `globalOperations` resource. - For regional operations, use the `regionOperations` resource. - For zonal operations, use the `zoneOperations` resource. For more information, read Global, Regional, and Zonal Resources. Note that completed Operation resources have a limited retention period.",
-  ).optional(),
   target: z.object({
     config: z.object({
       content: z.string().describe("The contents of the file.").optional(),
-    }).optional(),
+    }).describe("The configuration to use for this deployment.").optional(),
     imports: z.array(z.object({
       content: z.string().describe("The contents of the file.").optional(),
       name: z.string().describe("The name of the file.").optional(),
     })).describe(
       "Specifies any files to import for this configuration. This can be used to import templates or other files. For example, you might import a text file in order to use the file in a template.",
     ).optional(),
-  }).optional(),
-  update: z.object({
-    description: z.string().describe(
-      "Output only. An optional user-provided description of the deployment after the current update has been applied.",
-    ).optional(),
-    labels: z.array(z.object({
-      key: z.string().describe("Key of the label").optional(),
-      value: z.string().describe("Value of the label").optional(),
-    })).describe(
-      "Map of One Platform labels; provided by the client when the resource is created or updated. Specifically: Label keys must be between 1 and 63 characters long and must conform to the following regular expression: `[a-z]([-a-z0-9]*[a-z0-9])?` Label values must be between 0 and 63 characters long and must conform to the regular expression `([a-z]([-a-z0-9]*[a-z0-9])?)?`.",
-    ).optional(),
-    manifest: z.string().describe(
-      "Output only. URL of the manifest representing the update configuration of this deployment.",
-    ).optional(),
-  }).optional(),
+  }).describe(
+    "[Input Only] The parameters that define your deployment, including the deployment configuration and relevant templates.",
+  ).optional(),
   createPolicy: z.string().describe(
     "Sets the policy to use for creating new resources.",
   ).optional(),
@@ -624,286 +357,19 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
   ).optional(),
-  operation: z.object({
-    clientOperationId: z.string().describe(
-      "[Output Only] The value of `requestId` if you provided it in the request. Not present otherwise.",
-    ).optional(),
-    creationTimestamp: z.string().describe(
-      "[Deprecated] This field is deprecated.",
-    ).optional(),
-    description: z.string().describe(
-      "[Output Only] A textual description of the operation, which is set when the operation is created.",
-    ).optional(),
-    endTime: z.string().describe(
-      "[Output Only] The time that this operation was completed. This value is in RFC3339 text format.",
-    ).optional(),
-    error: z.object({
-      errors: z.array(z.object({
-        arguments: z.array(z.unknown()).describe(
-          'Output only. [Output Only] Optional error details WARNING: DO NOT MAKE VISIBLE This is for internal use-only (like componentization) (thus the visibility "none") and in case of public exposure it is strongly recommended to follow pattern of: https://aip.dev/193 and expose as details field.',
-        ).optional(),
-        code: z.string().describe(
-          "[Output Only] The error type identifier for this error.",
-        ).optional(),
-        debugInfo: z.object({
-          detail: z.unknown().describe(
-            "Additional debugging information provided by the server.",
-          ).optional(),
-          stackEntries: z.unknown().describe(
-            "The stack trace entries indicating where the error occurred.",
-          ).optional(),
-        }).describe("Describes additional debugging info.").optional(),
-        errorDetails: z.array(z.unknown()).describe(
-          "[Output Only] An optional list of messages that contain the error details. There is a set of defined message types to use for providing details.The syntax depends on the error code. For example, QuotaExceededInfo will have details when the error code is QUOTA_EXCEEDED.",
-        ).optional(),
-        location: z.string().describe(
-          "[Output Only] Indicates the field in the request that caused the error. This property is optional.",
-        ).optional(),
-        message: z.string().describe(
-          "[Output Only] An optional, human-readable error message.",
-        ).optional(),
-      })).describe(
-        "[Output Only] The array of errors encountered while processing this operation.",
-      ).optional(),
-    }).describe(
-      "[Output Only] If errors are generated during processing of the operation, this field will be populated.",
-    ).optional(),
-    firewallPolicyRuleOperationMetadata: z.object({
-      allocatedPriority: z.number().int().describe(
-        "The priority allocated for the firewall policy rule if query parameters specified minPriority/maxPriority.",
-      ).optional(),
-    }).optional(),
-    getVersionOperationMetadata: z.object({
-      inlineSbomInfo: z.object({
-        currentComponentVersions: z.record(z.string(), z.string()).describe(
-          "SBOM versions currently applied to the resource. The key is the component name and the value is the version.",
-        ).optional(),
-        targetComponentVersions: z.record(z.string(), z.string()).describe(
-          "SBOM versions scheduled for the next maintenance. The key is the component name and the value is the version.",
-        ).optional(),
-      }).optional(),
-    }).optional(),
-    httpErrorMessage: z.string().describe(
-      "[Output Only] If the operation fails, this field contains the HTTP error message that was returned, such as `NOT FOUND`.",
-    ).optional(),
-    httpErrorStatusCode: z.number().int().describe(
-      "[Output Only] If the operation fails, this field contains the HTTP error status code that was returned. For example, a `404` means the resource was not found.",
-    ).optional(),
-    id: z.string().describe(
-      "[Output Only] The unique identifier for the operation. This identifier is defined by the server.",
-    ).optional(),
-    insertTime: z.string().describe(
-      "[Output Only] The time that this operation was requested. This value is in RFC3339 text format.",
-    ).optional(),
-    instancesBulkInsertOperationMetadata: z.object({
-      machineType: z.string().describe(
-        "[Output Only] The machine type of the VMs that were created used internally only by KCP flex bulk insert.",
-      ).optional(),
-      perLocationStatus: z.record(
-        z.string(),
-        z.object({
-          createdVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs successfully created so far.",
-          ).optional(),
-          deletedVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs that got deleted during rollback.",
-          ).optional(),
-          failedToCreateVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs that started creating but encountered an error.",
-          ).optional(),
-          status: z.enum([
-            "STATUS_UNSPECIFIED",
-            "CREATING",
-            "ROLLING_BACK",
-            "DONE",
-          ]).describe(
-            "[Output Only] Creation status of BulkInsert operation - information if the flow is rolling forward or rolling back.",
-          ).optional(),
-          targetVmCount: z.number().int().describe(
-            "[Output Only] Count of VMs originally planned to be created.",
-          ).optional(),
-        }),
-      ).describe(
-        "Status information per location (location name is key). Example key: zones/us-central1-a",
-      ).optional(),
-    }).optional(),
-    kind: z.string().describe(
-      "Output only. [Output Only] Type of the resource. Always `compute#operation` for Operation resources.",
-    ).optional(),
-    name: z.string().describe("[Output Only] Name of the operation.")
-      .optional(),
-    operationGroupId: z.string().describe(
-      "Output only. [Output Only] An ID that represents a group of operations, such as when a group of operations results from a `bulkInsert` API request.",
-    ).optional(),
-    operationType: z.string().describe(
-      "[Output Only] The type of operation, such as `insert`, `update`, or `delete`, and so on.",
-    ).optional(),
-    progress: z.number().int().describe(
-      "[Output Only] An optional progress indicator that ranges from 0 to 100. There is no requirement that this be linear or support any granularity of operations. This should not be used to guess when the operation will be complete. This number should monotonically increase as the operation progresses.",
-    ).optional(),
-    region: z.string().describe(
-      "[Output Only] The URL of the region where the operation resides. Only applicable when performing regional operations.",
-    ).optional(),
-    selfLink: z.string().describe(
-      "[Output Only] Server-defined URL for the resource.",
-    ).optional(),
-    selfLinkWithId: z.string().describe(
-      "Output only. [Output Only] Server-defined URL for this resource with the resource id.",
-    ).optional(),
-    setAutoscalerLinkOperationMetadata: z.object({
-      zonalIgmIds: z.array(z.string()).describe(
-        "List of zonal IGM IDs part of the RMIG.",
-      ).optional(),
-      zoneToIgmIds: z.record(z.string(), z.string()).describe(
-        "Map of zone to an ID of the zonal IGM belonging to the RMIG.",
-      ).optional(),
-    }).optional(),
-    setCommonInstanceMetadataOperationMetadata: z.object({
-      clientOperationId: z.string().describe(
-        "[Output Only] The client operation id.",
-      ).optional(),
-      perLocationOperations: z.record(
-        z.string(),
-        z.object({
-          error: z.object({
-            code: z.unknown().describe(
-              "The status code, which should be an enum value of google.rpc.Code.",
-            ).optional(),
-            details: z.unknown().describe(
-              "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-            ).optional(),
-            message: z.unknown().describe(
-              "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-            ).optional(),
-          }).describe(
-            "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-          ).optional(),
-          state: z.enum([
-            "UNSPECIFIED",
-            "PROPAGATING",
-            "PROPAGATED",
-            "ABANDONED",
-            "FAILED",
-            "DONE",
-          ]).describe(
-            "[Output Only] Status of the action, which can be one of the following: `PROPAGATING`, `PROPAGATED`, `ABANDONED`, `FAILED`, or `DONE`.",
-          ).optional(),
-        }),
-      ).describe(
-        "[Output Only] Status information per location (location name is key). Example key: zones/us-central1-a",
-      ).optional(),
-    }).optional(),
-    startTime: z.string().describe(
-      "[Output Only] The time that this operation was started by the server. This value is in RFC3339 text format.",
-    ).optional(),
-    status: z.enum(["PENDING", "RUNNING", "DONE"]).describe(
-      "[Output Only] The status of the operation, which can be one of the following: `PENDING`, `RUNNING`, or `DONE`.",
-    ).optional(),
-    statusMessage: z.string().describe(
-      "[Output Only] An optional textual description of the current status of the operation.",
-    ).optional(),
-    targetId: z.string().describe(
-      "[Output Only] The unique target ID, which identifies a specific incarnation of the target resource.",
-    ).optional(),
-    targetLink: z.string().describe(
-      "[Output Only] The URL of the resource that the operation modifies. For operations related to creating a snapshot, this points to the disk that the snapshot was created from.",
-    ).optional(),
-    user: z.string().describe(
-      "[Output Only] User who requested the operation, for example: `user@example.com` or `alice_smith_identifier (global/workforcePools/example-com-us-employees)`.",
-    ).optional(),
-    warnings: z.array(z.object({
-      code: z.enum([
-        "DEPRECATED_RESOURCE_USED",
-        "NO_RESULTS_ON_PAGE",
-        "UNREACHABLE",
-        "NEXT_HOP_ADDRESS_NOT_ASSIGNED",
-        "NEXT_HOP_INSTANCE_NOT_FOUND",
-        "NEXT_HOP_INSTANCE_NOT_ON_NETWORK",
-        "NEXT_HOP_CANNOT_IP_FORWARD",
-        "NEXT_HOP_NOT_RUNNING",
-        "INJECTED_KERNELS_DEPRECATED",
-        "REQUIRED_TOS_AGREEMENT",
-        "DISK_SIZE_LARGER_THAN_IMAGE_SIZE",
-        "RESOURCE_NOT_DELETED",
-        "SINGLE_INSTANCE_PROPERTY_TEMPLATE",
-        "NOT_CRITICAL_ERROR",
-        "CLEANUP_FAILED",
-        "FIELD_VALUE_OVERRIDEN",
-        "RESOURCE_IN_USE_BY_OTHER_RESOURCE_WARNING",
-        "NETWORK_ENDPOINT_NOT_DETACHED",
-        "PAGE_MISSING_RESULTS",
-        "SSL_POLICY_ENABLED_FEATURES_NOT_FETCHED",
-        "RESOURCE_NOT_FOUND_WARNING",
-        "MISSING_TYPE_DEPENDENCY",
-        "EXTERNAL_API_WARNING",
-        "SCHEMA_VALIDATION_IGNORED",
-        "UNDECLARED_PROPERTIES",
-        "EXPERIMENTAL_TYPE_USED",
-        "DEPRECATED_TYPE_USED",
-        "PARTIAL_SUCCESS",
-        "LARGE_DEPLOYMENT_WARNING",
-        "NEXT_HOP_INSTANCE_HAS_NO_IPV6_INTERFACE",
-        "INVALID_HEALTH_CHECK_FOR_DYNAMIC_WIEGHTED_LB",
-        "LIST_OVERHEAD_QUOTA_EXCEED",
-        "QUOTA_INFO_UNAVAILABLE",
-        "RESOURCE_USES_GLOBAL_DNS",
-        "RATE_LIMIT_EXCEEDED",
-        "UPCOMING_MAINTENANCES_UNAVAILABLE",
-        "RESERVED_ENTRY_136",
-        "RESERVED_ENTRY_139",
-        "RESERVED_ENTRY_141",
-        "RESERVED_ENTRY_142",
-        "RESERVED_ENTRY_143",
-      ]).describe(
-        "[Output Only] A warning code, if applicable. For example, Compute Engine returns NO_RESULTS_ON_PAGE if there are no results in the response.",
-      ).optional(),
-      data: z.array(z.object({
-        key: z.unknown().describe(
-          "[Output Only] A key that provides more detail on the warning being returned. For example, for warnings where there are no results in a list request for a particular zone, this key might be scope and the key value might be the zone name. Other examples might be a key indicating a deprecated resource and a suggested replacement, or a warning about invalid network settings (for example, if an instance attempts to perform IP forwarding but is not enabled for IP forwarding).",
-        ).optional(),
-        value: z.unknown().describe(
-          "[Output Only] A warning data value corresponding to the key.",
-        ).optional(),
-      })).describe(
-        '[Output Only] Metadata about this warning in key: value format. For example: "data": [ { "key": "scope", "value": "zones/us-east1-d" }',
-      ).optional(),
-      message: z.string().describe(
-        "[Output Only] A human-readable description of the warning code.",
-      ).optional(),
-    })).describe(
-      "[Output Only] If warning messages are generated during processing of the operation, this field will be populated.",
-    ).optional(),
-    zone: z.string().describe(
-      "[Output Only] The URL of the zone where the operation resides. Only applicable when performing per-zone operations.",
-    ).optional(),
-  }).describe(
-    "Represents an Operation resource. Google Compute Engine has three Operation resources: * [Global](/compute/docs/reference/rest/{$api_version}/globalOperations) * [Regional](/compute/docs/reference/rest/{$api_version}/regionOperations) * [Zonal](/compute/docs/reference/rest/{$api_version}/zoneOperations) You can use an operation resource to manage asynchronous API requests. For more information, read Handling API responses. Operations can be global, regional or zonal. - For global operations, use the `globalOperations` resource. - For regional operations, use the `regionOperations` resource. - For zonal operations, use the `zoneOperations` resource. For more information, read Global, Regional, and Zonal Resources. Note that completed Operation resources have a limited retention period.",
-  ).optional(),
   target: z.object({
     config: z.object({
       content: z.string().describe("The contents of the file.").optional(),
-    }).optional(),
+    }).describe("The configuration to use for this deployment.").optional(),
     imports: z.array(z.object({
       content: z.string().describe("The contents of the file.").optional(),
       name: z.string().describe("The name of the file.").optional(),
     })).describe(
       "Specifies any files to import for this configuration. This can be used to import templates or other files. For example, you might import a text file in order to use the file in a template.",
     ).optional(),
-  }).optional(),
-  update: z.object({
-    description: z.string().describe(
-      "Output only. An optional user-provided description of the deployment after the current update has been applied.",
-    ).optional(),
-    labels: z.array(z.object({
-      key: z.string().describe("Key of the label").optional(),
-      value: z.string().describe("Value of the label").optional(),
-    })).describe(
-      "Map of One Platform labels; provided by the client when the resource is created or updated. Specifically: Label keys must be between 1 and 63 characters long and must conform to the following regular expression: `[a-z]([-a-z0-9]*[a-z0-9])?` Label values must be between 0 and 63 characters long and must conform to the regular expression `([a-z]([-a-z0-9]*[a-z0-9])?)?`.",
-    ).optional(),
-    manifest: z.string().describe(
-      "Output only. URL of the manifest representing the update configuration of this deployment.",
-    ).optional(),
-  }).optional(),
+  }).describe(
+    "[Input Only] The parameters that define your deployment, including the deployment configuration and relevant templates.",
+  ).optional(),
   createPolicy: z.string().describe(
     "Sets the policy to use for creating new resources.",
   ).optional(),
@@ -938,7 +404,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deployment Manager Deployments. Registered at `@swamp/gcp/deploymentmanager/deployments`. */
 export const model = {
   type: "@swamp/gcp/deploymentmanager/deployments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1050,6 +516,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: operation, update",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { operation: _operation, update: _update, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1080,9 +554,7 @@ export const model = {
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["operation"] !== undefined) body["operation"] = g["operation"];
         if (g["target"] !== undefined) body["target"] = g["target"];
-        if (g["update"] !== undefined) body["update"] = g["update"];
         if (g["createPolicy"] !== undefined) {
           params["createPolicy"] = String(g["createPolicy"]);
         }
@@ -1187,9 +659,7 @@ export const model = {
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["operation"] !== undefined) body["operation"] = g["operation"];
         if (g["target"] !== undefined) body["target"] = g["target"];
-        if (g["update"] !== undefined) body["update"] = g["update"];
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

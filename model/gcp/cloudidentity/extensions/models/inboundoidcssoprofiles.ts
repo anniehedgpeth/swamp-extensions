@@ -150,7 +150,7 @@ const GlobalArgsSchema = z.object({
     issuerUri: z.string().describe(
       "Required. The Issuer identifier for the IdP. Must be a URL. The discovery URL will be derived from this as described in Section 4 of [the OIDC specification](https://openid.net/specs/openid-connect-discovery-1_0.html).",
     ).optional(),
-  }).describe("OIDC IDP (identity provider) configuration.").optional(),
+  }).describe("OIDC identity provider configuration.").optional(),
   rpConfig: z.object({
     clientId: z.string().describe("OAuth2 client ID for OIDC.").optional(),
     clientSecret: z.string().describe(
@@ -159,7 +159,9 @@ const GlobalArgsSchema = z.object({
     redirectUris: z.array(z.string()).describe(
       "Output only. The URL(s) that this client may use in authentication requests.",
     ).optional(),
-  }).describe("OIDC RP (relying party) configuration.").optional(),
+  }).describe(
+    "OIDC relying party (RP) configuration for this OIDC SSO profile. These are the RP details provided by Google that should be configured on the corresponding identity provider.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -198,7 +200,7 @@ const InputsSchema = z.object({
     issuerUri: z.string().describe(
       "Required. The Issuer identifier for the IdP. Must be a URL. The discovery URL will be derived from this as described in Section 4 of [the OIDC specification](https://openid.net/specs/openid-connect-discovery-1_0.html).",
     ).optional(),
-  }).describe("OIDC IDP (identity provider) configuration.").optional(),
+  }).describe("OIDC identity provider configuration.").optional(),
   rpConfig: z.object({
     clientId: z.string().describe("OAuth2 client ID for OIDC.").optional(),
     clientSecret: z.string().describe(
@@ -207,7 +209,9 @@ const InputsSchema = z.object({
     redirectUris: z.array(z.string()).describe(
       "Output only. The URL(s) that this client may use in authentication requests.",
     ).optional(),
-  }).describe("OIDC RP (relying party) configuration.").optional(),
+  }).describe(
+    "OIDC relying party (RP) configuration for this OIDC SSO profile. These are the RP details provided by Google that should be configured on the corresponding identity provider.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -233,7 +237,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity InboundOidcSsoProfiles. Registered at `@swamp/gcp/cloudidentity/inboundoidcssoprofiles`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/inboundoidcssoprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -332,6 +336,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

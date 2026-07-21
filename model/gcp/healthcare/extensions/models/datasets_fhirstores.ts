@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
       "Optional. URI for a Cloud Storage directory where the server writes result files, in the format `gs://{bucket-id}/{path/to/destination/dir}`. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in `uri_prefix`.",
     ).optional(),
   }).describe(
-    "The configuration for exporting to Cloud Storage using the bulk export API.",
+    "Optional. FHIR bulk export exports resources to the specified Cloud Storage destination. A Cloud Storage destination is a URI for a Cloud Storage directory where result files will be written. Only used in the spec-defined bulk $export methods. The Cloud Healthcare Service Agent requires the `roles/storage.objectAdmin` Cloud IAM role on the destination.",
   ).optional(),
   complexDataTypeReferenceParsing: z.enum([
     "COMPLEX_DATA_TYPE_REFERENCE_PARSING_UNSPECIFIED",
@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Controls the amount of detail to include as part of the audit logs.",
       ).optional(),
     }).describe(
-      "Configures consent audit log config for FHIR create, read, update, and delete (CRUD) operations. Cloud audit log for healthcare API must be [enabled](https://cloud.google.com/logging/docs/audit/configure-data-access#config-console-enable). The consent-related logs are included as part of `protoPayload.metadata`.",
+      "Optional. Specifies how the server logs the consent-aware requests. If not specified, the `AccessDeterminationLogConfig.LogLevel.MINIMUM` option is used.",
     ).optional(),
     accessEnforced: z.boolean().describe(
       "Optional. The default value is false. If set to true, when accessing FHIR resources, the consent headers will be verified against consents given by patients. See the ConsentEnforcementVersion for the supported consent headers.",
@@ -196,7 +196,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Specifies the default server behavior when the header is empty. If not specified, the `ScopeProfile.PERMIT_EMPTY_SCOPE` option is used.",
       ).optional(),
-    }).describe("How the server handles the consent header.").optional(),
+    }).describe(
+      "Optional. Different options to configure the behaviour of the server when handling the `X-Consent-Scope` header.",
+    ).optional(),
     enforcedAdminConsents: z.array(z.string()).describe(
       "Output only. The versioned names of the enforced admin Consent resource(s), in the format `projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}/_history/{version_id}`. For FHIR stores with `disable_resource_versioning=true`, the format is `projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}`. This field can only be updated using ApplyAdminConsents.",
     ).optional(),
@@ -204,7 +206,7 @@ const GlobalArgsSchema = z.object({
       "Required. Specifies which consent enforcement version is being used for this FHIR store. This field can only be set once by either CreateFhirStore or UpdateFhirStore. After that, you must call ApplyConsents to change the version.",
     ).optional(),
   }).describe(
-    "Configures whether to enforce consent for the FHIR store and which consent enforcement version is being used.",
+    "Optional. Specifies whether this store has consent enforcement. Not available for DSTU2 FHIR version due to absence of Consent resources. Not supported for R5 FHIR version.",
   ).optional(),
   defaultSearchHandlingStrict: z.boolean().describe(
     "Optional. If true, overrides the default search behavior for this FHIR store to `handling=strict` which returns an error for unrecognized search parameters. If false, uses the FHIR specification default `handling=lenient` which ignores unrecognized search parameters. The handling can always be changed from the default on an individual API call by setting the HTTP header `Prefer: handling=strict` or `Prefer: handling=lenient`. Defaults to false.",
@@ -229,7 +231,7 @@ const GlobalArgsSchema = z.object({
       "Indicates whether or not to send Pub/Sub notifications on bulk import. Only supported for DICOM imports.",
     ).optional(),
   }).describe(
-    "Specifies where to send notifications upon changes to a data store.",
+    'Deprecated. Use `notification_configs` instead. If non-empty, publish all resource modifications of this FHIR store to this destination. The Pub/Sub message attributes contain a map with a string describing the action that has triggered the notification. For example, "action":"CreateResource". Not supported in R5. Use `notification_configs` instead.',
   ).optional(),
   notificationConfigs: z.array(z.object({
     pubsubTopic: z.string().describe(
@@ -258,8 +260,9 @@ const GlobalArgsSchema = z.object({
             "Number of milliseconds for which to keep the storage for a partition.",
           ).optional(),
           type: z.unknown().describe("Type of partitioning.").optional(),
-        }).describe("Configuration for FHIR BigQuery time-partitioned tables.")
-          .optional(),
+        }).describe(
+          "The configuration for exported BigQuery tables to be partitioned by FHIR resource's last updated time column.",
+        ).optional(),
         recursiveStructureDepth: z.string().describe(
           "The depth for all recursive structures in the output analytics schema. For example, `concept` in the CodeSystem resource is a recursive structure; when the depth is 2, the CodeSystem table will have a column called `concept.concept` but not `concept.concept.concept`. If not specified or set to 0, the server will use the default value 2. The maximum depth allowed is 5.",
         ).optional(),
@@ -271,7 +274,7 @@ const GlobalArgsSchema = z.object({
           "Specifies the output schema type. Schema type is required.",
         ).optional(),
       }).describe(
-        "Configuration for the FHIR BigQuery schema. Determines how the server generates the schema.",
+        "Optional. The configuration for the exported BigQuery schema.",
       ).optional(),
       writeDisposition: z.enum([
         "WRITE_DISPOSITION_UNSPECIFIED",
@@ -281,23 +284,26 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Determines if existing data in the destination dataset is overwritten, appended to, or not written if the tables contain data. If a write_disposition is specified, the `force` parameter is ignored.",
       ).optional(),
-    }).describe("The configuration for exporting to BigQuery.").optional(),
+    }).describe(
+      'Optional. The destination BigQuery structure that contains both the dataset location and corresponding schema config. The output is organized in one table per resource type. The server reuses the existing tables (if any) that are named after the resource types. For example, "Patient", "Observation". When there is no existing table for a given resource type, the server attempts to create one. When a table schema doesn\'t align with the schema config, either because of existing incompatible schema or out of band incompatible modification, the server does not stream in new data. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any resource mutation that generates more than 1 MB of BigQuery data is not streamed. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. Results are written to BigQuery tables according to the parameters in BigQueryDestination.WriteDisposition. Different versions of the same resource are distinguishable by the meta.versionId and meta.lastUpdated columns. The operation (CREATE/UPDATE/DELETE) that results in the new version is recorded in the meta.tag. The tables contain all historical resource versions since streaming was enabled. For query convenience, the server also creates one view per table of the same name containing only the current resource version. The streamed data in the BigQuery dataset is not guaranteed to be completely unique. The combination of the id and meta.versionId columns should ideally identify a single unique row. But in rare cases, duplicates may exist. At query time, users may use the SQL select statement to keep only one of the duplicate rows given an id and meta.versionId pair. Alternatively, the server created view mentioned above also filters out duplicates. If a resource mutation cannot be streamed to BigQuery, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).',
+    ).optional(),
     deidentifiedStoreDestination: z.object({
       config: z.object({
         dicom: z.object({
           filterProfile: z.unknown().describe(
             "Tag filtering profile that determines which tags to keep/remove.",
           ).optional(),
-          keepList: z.unknown().describe("List of tags to be filtered.")
-            .optional(),
-          removeList: z.unknown().describe("List of tags to be filtered.")
-            .optional(),
+          keepList: z.unknown().describe(
+            "List of tags to keep. Remove all other tags.",
+          ).optional(),
+          removeList: z.unknown().describe(
+            "List of tags to remove. Keep all other tags.",
+          ).optional(),
           skipIdRedaction: z.unknown().describe(
             "Optional. If true, skip replacing StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, and MediaStorageSOPInstanceUID and leave them untouched. The Cloud Healthcare API regenerates these UIDs by default based on the DICOM Standard's reasoning: \"Whilst these UIDs cannot be mapped directly to an individual out of context, given access to the original images, or to a database of the original images containing the UIDs, it would be possible to recover the individual's identity.\" https://dicom.nema.org/medical/dicom/current/output/chtml/part15/sect_E.3.9.html",
           ).optional(),
-        }).describe(
-          "Specifies the parameters needed for de-identification of DICOM stores.",
-        ).optional(),
+        }).describe("Optional. Configures de-id of application/DICOM content.")
+          .optional(),
         fhir: z.object({
           defaultKeepExtensions: z.unknown().describe(
             "Optional. The behaviour for handling FHIR extensions that aren't otherwise specified for de-identification. If true, all extensions are preserved during de-identification by default. If false or unspecified, all extensions are removed during de-identification by default.",
@@ -305,15 +311,14 @@ const GlobalArgsSchema = z.object({
           fieldMetadataList: z.unknown().describe(
             "Optional. Specifies FHIR paths to match and how to transform them. Any field that is not matched by a FieldMetadata is passed through to the output dataset unmodified. All extensions will be processed according to `default_keep_extensions`.",
           ).optional(),
-        }).describe(
-          "Specifies how to handle de-identification of a FHIR store.",
-        ).optional(),
+        }).describe("Optional. Configures de-id of application/FHIR content.")
+          .optional(),
         image: z.object({
           textRedactionMode: z.unknown().describe(
             "Optional. Determines how to redact text from image.",
           ).optional(),
         }).describe(
-          "Specifies how to handle de-identification of image pixels.",
+          "Optional. Configures de-identification of image pixels wherever they are found in the source_dataset.",
         ).optional(),
         text: z.object({
           additionalTransformations: z.unknown().describe(
@@ -325,18 +330,20 @@ const GlobalArgsSchema = z.object({
           transformations: z.unknown().describe(
             "Optional. The transformations to apply to the detected data. Deprecated. Use `additional_transformations` instead.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Optional. Configures de-identification of text wherever it is found in the source_dataset.",
+        ).optional(),
         useRegionalDataProcessing: z.boolean().describe(
           "Optional. Ensures in-flight data remains in the region of origin during de-identification. The default value is false. Using this option results in a significant reduction of throughput, and is not compatible with `LOCATION` or `ORGANIZATION_NAME` infoTypes. `LOCATION` must be excluded within TextConfig, and must also be excluded within ImageConfig if image redaction is required.",
         ).optional(),
       }).describe(
-        "Configures de-id options specific to different types of content. Each submessage customizes the handling of an https://tools.ietf.org/html/rfc6838 media type or subtype. Configs are applied in a nested manner at runtime.",
+        "Optional. The configuration to use when de-identifying resources that are added to this store.",
       ).optional(),
       store: z.string().describe(
         "Optional. The full resource name of a Cloud Healthcare FHIR store, for example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}`.",
       ).optional(),
     }).describe(
-      "Contains configuration for streaming de-identified FHIR export.",
+      "The destination FHIR store for de-identified resources. After this field is added, all subsequent creates/updates/patches to the source store will be de-identified using the provided configuration and applied to the destination store. Resources deleted from the source store will be deleted from the destination store. Importing resources to the source store will not trigger the streaming. If the source store already contains resources when this option is enabled, those resources will not be copied to the destination store unless they are subsequently updated. This may result in invalid references in the destination store. Before adding this config, you must grant the healthcare.fhirResources.update permission on the destination store to your project's **Cloud Healthcare Service Agent** [service account](https://cloud.google.com/healthcare/docs/how-tos/permissions-healthcare-api-gcp-products#the_cloud_healthcare_service_agent). The destination store must set enable_update_create to true. The destination store must have disable_referential_integrity set to true. If a resource cannot be de-identified, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)). Not supported for R5 stores.",
     ).optional(),
     resourceTypes: z.array(z.string()).describe(
       'Optional. Supply a FHIR resource type (such as "Patient" or "Observation"). See https://www.hl7.org/fhir/valueset-resource-types.html for a list of all FHIR resource types. The server treats an empty list as an intent to stream all the supported resource types in this FHIR store.',
@@ -363,8 +370,9 @@ const GlobalArgsSchema = z.object({
     enabledImplementationGuides: z.array(z.string()).describe(
       'Optional. A list of implementation guide URLs in this FHIR store that are used to configure the profiles to use for validation. For example, to use the US Core profiles for validation, set `enabled_implementation_guides` to `["http://hl7.org/fhir/us/core/ImplementationGuide/ig"]`. If `enabled_implementation_guides` is empty or omitted, then incoming resources are only required to conform to the base FHIR profiles. Otherwise, a resource must conform to at least one profile listed in the `global` property of one of the enabled ImplementationGuides. The Cloud Healthcare API does not currently enforce all of the rules in a StructureDefinition. The following rules are supported: - min/max - minValue/maxValue - maxLength - type - fixed[x] - pattern[x] on simple types - slicing, when using "value" as the discriminator type - FHIRPath constraints (only when `enable_fhirpath_profile_validation` is true) When a URL cannot be resolved (for example, in a type assertion), the server does not return an error.',
     ).optional(),
-  }).describe("Contains the configuration for FHIR profiles and validation.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for how to validate incoming FHIR resources against configured profiles.",
+  ).optional(),
   version: z.enum(["VERSION_UNSPECIFIED", "DSTU2", "STU3", "R4", "R5"])
     .describe(
       "Required. Immutable. The FHIR specification version that this FHIR store supports natively. This field is immutable after store creation. Requests are rejected if they contain FHIR resources of a different version. Version is required for every FHIR store.",
@@ -475,7 +483,7 @@ const InputsSchema = z.object({
       "Optional. URI for a Cloud Storage directory where the server writes result files, in the format `gs://{bucket-id}/{path/to/destination/dir}`. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in `uri_prefix`.",
     ).optional(),
   }).describe(
-    "The configuration for exporting to Cloud Storage using the bulk export API.",
+    "Optional. FHIR bulk export exports resources to the specified Cloud Storage destination. A Cloud Storage destination is a URI for a Cloud Storage directory where result files will be written. Only used in the spec-defined bulk $export methods. The Cloud Healthcare Service Agent requires the `roles/storage.objectAdmin` Cloud IAM role on the destination.",
   ).optional(),
   complexDataTypeReferenceParsing: z.enum([
     "COMPLEX_DATA_TYPE_REFERENCE_PARSING_UNSPECIFIED",
@@ -495,7 +503,7 @@ const InputsSchema = z.object({
         "Optional. Controls the amount of detail to include as part of the audit logs.",
       ).optional(),
     }).describe(
-      "Configures consent audit log config for FHIR create, read, update, and delete (CRUD) operations. Cloud audit log for healthcare API must be [enabled](https://cloud.google.com/logging/docs/audit/configure-data-access#config-console-enable). The consent-related logs are included as part of `protoPayload.metadata`.",
+      "Optional. Specifies how the server logs the consent-aware requests. If not specified, the `AccessDeterminationLogConfig.LogLevel.MINIMUM` option is used.",
     ).optional(),
     accessEnforced: z.boolean().describe(
       "Optional. The default value is false. If set to true, when accessing FHIR resources, the consent headers will be verified against consents given by patients. See the ConsentEnforcementVersion for the supported consent headers.",
@@ -508,7 +516,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Specifies the default server behavior when the header is empty. If not specified, the `ScopeProfile.PERMIT_EMPTY_SCOPE` option is used.",
       ).optional(),
-    }).describe("How the server handles the consent header.").optional(),
+    }).describe(
+      "Optional. Different options to configure the behaviour of the server when handling the `X-Consent-Scope` header.",
+    ).optional(),
     enforcedAdminConsents: z.array(z.string()).describe(
       "Output only. The versioned names of the enforced admin Consent resource(s), in the format `projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}/_history/{version_id}`. For FHIR stores with `disable_resource_versioning=true`, the format is `projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}`. This field can only be updated using ApplyAdminConsents.",
     ).optional(),
@@ -516,7 +526,7 @@ const InputsSchema = z.object({
       "Required. Specifies which consent enforcement version is being used for this FHIR store. This field can only be set once by either CreateFhirStore or UpdateFhirStore. After that, you must call ApplyConsents to change the version.",
     ).optional(),
   }).describe(
-    "Configures whether to enforce consent for the FHIR store and which consent enforcement version is being used.",
+    "Optional. Specifies whether this store has consent enforcement. Not available for DSTU2 FHIR version due to absence of Consent resources. Not supported for R5 FHIR version.",
   ).optional(),
   defaultSearchHandlingStrict: z.boolean().describe(
     "Optional. If true, overrides the default search behavior for this FHIR store to `handling=strict` which returns an error for unrecognized search parameters. If false, uses the FHIR specification default `handling=lenient` which ignores unrecognized search parameters. The handling can always be changed from the default on an individual API call by setting the HTTP header `Prefer: handling=strict` or `Prefer: handling=lenient`. Defaults to false.",
@@ -541,7 +551,7 @@ const InputsSchema = z.object({
       "Indicates whether or not to send Pub/Sub notifications on bulk import. Only supported for DICOM imports.",
     ).optional(),
   }).describe(
-    "Specifies where to send notifications upon changes to a data store.",
+    'Deprecated. Use `notification_configs` instead. If non-empty, publish all resource modifications of this FHIR store to this destination. The Pub/Sub message attributes contain a map with a string describing the action that has triggered the notification. For example, "action":"CreateResource". Not supported in R5. Use `notification_configs` instead.',
   ).optional(),
   notificationConfigs: z.array(z.object({
     pubsubTopic: z.string().describe(
@@ -570,8 +580,9 @@ const InputsSchema = z.object({
             "Number of milliseconds for which to keep the storage for a partition.",
           ).optional(),
           type: z.unknown().describe("Type of partitioning.").optional(),
-        }).describe("Configuration for FHIR BigQuery time-partitioned tables.")
-          .optional(),
+        }).describe(
+          "The configuration for exported BigQuery tables to be partitioned by FHIR resource's last updated time column.",
+        ).optional(),
         recursiveStructureDepth: z.string().describe(
           "The depth for all recursive structures in the output analytics schema. For example, `concept` in the CodeSystem resource is a recursive structure; when the depth is 2, the CodeSystem table will have a column called `concept.concept` but not `concept.concept.concept`. If not specified or set to 0, the server will use the default value 2. The maximum depth allowed is 5.",
         ).optional(),
@@ -583,7 +594,7 @@ const InputsSchema = z.object({
           "Specifies the output schema type. Schema type is required.",
         ).optional(),
       }).describe(
-        "Configuration for the FHIR BigQuery schema. Determines how the server generates the schema.",
+        "Optional. The configuration for the exported BigQuery schema.",
       ).optional(),
       writeDisposition: z.enum([
         "WRITE_DISPOSITION_UNSPECIFIED",
@@ -593,23 +604,26 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Determines if existing data in the destination dataset is overwritten, appended to, or not written if the tables contain data. If a write_disposition is specified, the `force` parameter is ignored.",
       ).optional(),
-    }).describe("The configuration for exporting to BigQuery.").optional(),
+    }).describe(
+      'Optional. The destination BigQuery structure that contains both the dataset location and corresponding schema config. The output is organized in one table per resource type. The server reuses the existing tables (if any) that are named after the resource types. For example, "Patient", "Observation". When there is no existing table for a given resource type, the server attempts to create one. When a table schema doesn\'t align with the schema config, either because of existing incompatible schema or out of band incompatible modification, the server does not stream in new data. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any resource mutation that generates more than 1 MB of BigQuery data is not streamed. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. Results are written to BigQuery tables according to the parameters in BigQueryDestination.WriteDisposition. Different versions of the same resource are distinguishable by the meta.versionId and meta.lastUpdated columns. The operation (CREATE/UPDATE/DELETE) that results in the new version is recorded in the meta.tag. The tables contain all historical resource versions since streaming was enabled. For query convenience, the server also creates one view per table of the same name containing only the current resource version. The streamed data in the BigQuery dataset is not guaranteed to be completely unique. The combination of the id and meta.versionId columns should ideally identify a single unique row. But in rare cases, duplicates may exist. At query time, users may use the SQL select statement to keep only one of the duplicate rows given an id and meta.versionId pair. Alternatively, the server created view mentioned above also filters out duplicates. If a resource mutation cannot be streamed to BigQuery, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).',
+    ).optional(),
     deidentifiedStoreDestination: z.object({
       config: z.object({
         dicom: z.object({
           filterProfile: z.unknown().describe(
             "Tag filtering profile that determines which tags to keep/remove.",
           ).optional(),
-          keepList: z.unknown().describe("List of tags to be filtered.")
-            .optional(),
-          removeList: z.unknown().describe("List of tags to be filtered.")
-            .optional(),
+          keepList: z.unknown().describe(
+            "List of tags to keep. Remove all other tags.",
+          ).optional(),
+          removeList: z.unknown().describe(
+            "List of tags to remove. Keep all other tags.",
+          ).optional(),
           skipIdRedaction: z.unknown().describe(
             "Optional. If true, skip replacing StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, and MediaStorageSOPInstanceUID and leave them untouched. The Cloud Healthcare API regenerates these UIDs by default based on the DICOM Standard's reasoning: \"Whilst these UIDs cannot be mapped directly to an individual out of context, given access to the original images, or to a database of the original images containing the UIDs, it would be possible to recover the individual's identity.\" https://dicom.nema.org/medical/dicom/current/output/chtml/part15/sect_E.3.9.html",
           ).optional(),
-        }).describe(
-          "Specifies the parameters needed for de-identification of DICOM stores.",
-        ).optional(),
+        }).describe("Optional. Configures de-id of application/DICOM content.")
+          .optional(),
         fhir: z.object({
           defaultKeepExtensions: z.unknown().describe(
             "Optional. The behaviour for handling FHIR extensions that aren't otherwise specified for de-identification. If true, all extensions are preserved during de-identification by default. If false or unspecified, all extensions are removed during de-identification by default.",
@@ -617,15 +631,14 @@ const InputsSchema = z.object({
           fieldMetadataList: z.unknown().describe(
             "Optional. Specifies FHIR paths to match and how to transform them. Any field that is not matched by a FieldMetadata is passed through to the output dataset unmodified. All extensions will be processed according to `default_keep_extensions`.",
           ).optional(),
-        }).describe(
-          "Specifies how to handle de-identification of a FHIR store.",
-        ).optional(),
+        }).describe("Optional. Configures de-id of application/FHIR content.")
+          .optional(),
         image: z.object({
           textRedactionMode: z.unknown().describe(
             "Optional. Determines how to redact text from image.",
           ).optional(),
         }).describe(
-          "Specifies how to handle de-identification of image pixels.",
+          "Optional. Configures de-identification of image pixels wherever they are found in the source_dataset.",
         ).optional(),
         text: z.object({
           additionalTransformations: z.unknown().describe(
@@ -637,18 +650,20 @@ const InputsSchema = z.object({
           transformations: z.unknown().describe(
             "Optional. The transformations to apply to the detected data. Deprecated. Use `additional_transformations` instead.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Optional. Configures de-identification of text wherever it is found in the source_dataset.",
+        ).optional(),
         useRegionalDataProcessing: z.boolean().describe(
           "Optional. Ensures in-flight data remains in the region of origin during de-identification. The default value is false. Using this option results in a significant reduction of throughput, and is not compatible with `LOCATION` or `ORGANIZATION_NAME` infoTypes. `LOCATION` must be excluded within TextConfig, and must also be excluded within ImageConfig if image redaction is required.",
         ).optional(),
       }).describe(
-        "Configures de-id options specific to different types of content. Each submessage customizes the handling of an https://tools.ietf.org/html/rfc6838 media type or subtype. Configs are applied in a nested manner at runtime.",
+        "Optional. The configuration to use when de-identifying resources that are added to this store.",
       ).optional(),
       store: z.string().describe(
         "Optional. The full resource name of a Cloud Healthcare FHIR store, for example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}`.",
       ).optional(),
     }).describe(
-      "Contains configuration for streaming de-identified FHIR export.",
+      "The destination FHIR store for de-identified resources. After this field is added, all subsequent creates/updates/patches to the source store will be de-identified using the provided configuration and applied to the destination store. Resources deleted from the source store will be deleted from the destination store. Importing resources to the source store will not trigger the streaming. If the source store already contains resources when this option is enabled, those resources will not be copied to the destination store unless they are subsequently updated. This may result in invalid references in the destination store. Before adding this config, you must grant the healthcare.fhirResources.update permission on the destination store to your project's **Cloud Healthcare Service Agent** [service account](https://cloud.google.com/healthcare/docs/how-tos/permissions-healthcare-api-gcp-products#the_cloud_healthcare_service_agent). The destination store must set enable_update_create to true. The destination store must have disable_referential_integrity set to true. If a resource cannot be de-identified, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)). Not supported for R5 stores.",
     ).optional(),
     resourceTypes: z.array(z.string()).describe(
       'Optional. Supply a FHIR resource type (such as "Patient" or "Observation"). See https://www.hl7.org/fhir/valueset-resource-types.html for a list of all FHIR resource types. The server treats an empty list as an intent to stream all the supported resource types in this FHIR store.',
@@ -675,8 +690,9 @@ const InputsSchema = z.object({
     enabledImplementationGuides: z.array(z.string()).describe(
       'Optional. A list of implementation guide URLs in this FHIR store that are used to configure the profiles to use for validation. For example, to use the US Core profiles for validation, set `enabled_implementation_guides` to `["http://hl7.org/fhir/us/core/ImplementationGuide/ig"]`. If `enabled_implementation_guides` is empty or omitted, then incoming resources are only required to conform to the base FHIR profiles. Otherwise, a resource must conform to at least one profile listed in the `global` property of one of the enabled ImplementationGuides. The Cloud Healthcare API does not currently enforce all of the rules in a StructureDefinition. The following rules are supported: - min/max - minValue/maxValue - maxLength - type - fixed[x] - pattern[x] on simple types - slicing, when using "value" as the discriminator type - FHIRPath constraints (only when `enable_fhirpath_profile_validation` is true) When a URL cannot be resolved (for example, in a type assertion), the server does not return an error.',
     ).optional(),
-  }).describe("Contains the configuration for FHIR profiles and validation.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for how to validate incoming FHIR resources against configured profiles.",
+  ).optional(),
   version: z.enum(["VERSION_UNSPECIFIED", "DSTU2", "STU3", "R4", "R5"])
     .describe(
       "Required. Immutable. The FHIR specification version that this FHIR store supports natively. This field is immutable after store creation. Requests are rejected if they contain FHIR resources of a different version. Version is required for every FHIR store.",
@@ -715,7 +731,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Healthcare Datasets.FhirStores. Registered at `@swamp/gcp/healthcare/datasets-fhirstores`. */
 export const model = {
   type: "@swamp/gcp/healthcare/datasets-fhirstores",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -852,6 +868,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -928,14 +949,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

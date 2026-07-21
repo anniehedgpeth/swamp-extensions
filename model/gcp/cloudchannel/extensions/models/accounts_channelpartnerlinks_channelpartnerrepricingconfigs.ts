@@ -170,28 +170,22 @@ const GlobalArgsSchema = z.object({
             "The decimal value, as a string. The string representation consists of an optional sign, `+` (`U+002B`) or `-` (`U+002D`), followed by a sequence of zero or more decimal digits (\"the integer\"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as `0`. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character `e` (`U+0065`) or `E` (`U+0045`) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`). - Replacing a zero-length integer value with `0` (`.5` -> `0.5`). - Coercing the exponent character to upper-case, with explicit sign (`2.5e8` -> `2.5E+8`). - Removing an explicitly-provided zero exponent (`2.5E0` -> `2.5`). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: `2.5E-1`  `0.25`). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the `.` character is supported to divide the integer and the fraction; `,` **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '' | [Sign] Significand [Exponent]; Sign = '+' | '-'; Significand = Digits '.' | [Digits] '.' Digits; Exponent = ('e' | 'E') [Sign] Digits; Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if precision would be lost. Services **should** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if the service receives a value outside of the supported range.",
           ).optional(),
         }).describe(
-          "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
+          'The percentage of the bill to adjust. For example: Mark down by 1% => "-1.00" Mark up by 1% => "1.00" Pass-Through => "0.00"',
         ).optional(),
-      }).describe(
-        "An adjustment that applies a flat markup or markdown to an entire bill.",
-      ).optional(),
-    }).describe(
-      "A type that represents the various adjustments you can apply to a bill.",
-    ).optional(),
+      }).describe("Flat markup or markdown on an entire bill.").optional(),
+    }).describe("Required. Information about the adjustment.").optional(),
     channelPartnerGranularity: z.object({}).describe(
-      "Applies the repricing configuration at the channel partner level. The channel partner value is derived from the resource name. Takes an empty json object. Deprecated: This is no longer supported. Use RepricingConfig.EntitlementGranularity instead.",
+      "Applies the repricing configuration at the channel partner level. Only ChannelPartnerRepricingConfig supports this value. Deprecated: This is no longer supported. Use RepricingConfig.entitlement_granularity instead.",
     ).optional(),
     conditionalOverrides: z.array(z.object({
       adjustment: z.object({
         percentageAdjustment: z.object({
           percentage: z.unknown().describe(
-            "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
+            'The percentage of the bill to adjust. For example: Mark down by 1% => "-1.00" Mark up by 1% => "1.00" Pass-Through => "0.00"',
           ).optional(),
-        }).describe(
-          "An adjustment that applies a flat markup or markdown to an entire bill.",
-        ).optional(),
+        }).describe("Flat markup or markdown on an entire bill.").optional(),
       }).describe(
-        "A type that represents the various adjustments you can apply to a bill.",
+        "Required. Information about the applied override's adjustment.",
       ).optional(),
       rebillingBasis: z.enum([
         "REBILLING_BASIS_UNSPECIFIED",
@@ -205,11 +199,9 @@ const GlobalArgsSchema = z.object({
           skuGroup: z.unknown().describe(
             'Specifies a SKU group (https://cloud.google.com/skus/sku-groups). Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".',
           ).optional(),
-        }).describe(
-          "A condition that applies the override if a line item SKU is found in the SKU group.",
-        ).optional(),
+        }).describe("SKU Group condition for override.").optional(),
       }).describe(
-        "Represents the various repricing conditions you can use for a conditional override.",
+        "Required. Specifies the condition which, if met, will apply the override.",
       ).optional(),
     })).describe(
       "The conditional overrides to apply for this configuration. If you list multiple overrides, only the first valid override is used. If you don't list any overrides, the API uses the normal adjustment and rebilling basis.",
@@ -225,14 +217,15 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      'Required. The YearMonth when these adjustments activate. The Day field needs to be "0" since we only accept YearMonth repricing boundaries.',
     ).optional(),
     entitlementGranularity: z.object({
       entitlement: z.string().describe(
         "Resource name of the entitlement. Format: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}",
       ).optional(),
-    }).describe("Applies the repricing configuration at the entitlement level.")
-      .optional(),
+    }).describe(
+      "Required. Applies the repricing configuration at the entitlement level. Note: If a ChannelPartnerRepricingConfig using RepricingConfig.EntitlementGranularity becomes effective, then no existing or future RepricingConfig.ChannelPartnerGranularity will apply to the RepricingConfig.EntitlementGranularity.entitlement. This is the recommended value for both CustomerRepricingConfig and ChannelPartnerRepricingConfig.",
+    ).optional(),
     rebillingBasis: z.enum([
       "REBILLING_BASIS_UNSPECIFIED",
       "COST_AT_LIST",
@@ -241,7 +234,7 @@ const GlobalArgsSchema = z.object({
       "Required. The RebillingBasis to use for this bill. Specifies the relative cost based on repricing costs you will apply.",
     ).optional(),
   }).describe(
-    "Configuration for repricing a Google bill over a period of time.",
+    "Required. The configuration for bill modifications made by a reseller before sending it to ChannelPartner.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -301,28 +294,22 @@ const InputsSchema = z.object({
             "The decimal value, as a string. The string representation consists of an optional sign, `+` (`U+002B`) or `-` (`U+002D`), followed by a sequence of zero or more decimal digits (\"the integer\"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as `0`. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character `e` (`U+0065`) or `E` (`U+0045`) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`). - Replacing a zero-length integer value with `0` (`.5` -> `0.5`). - Coercing the exponent character to upper-case, with explicit sign (`2.5e8` -> `2.5E+8`). - Removing an explicitly-provided zero exponent (`2.5E0` -> `2.5`). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: `2.5E-1`  `0.25`). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the `.` character is supported to divide the integer and the fraction; `,` **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '' | [Sign] Significand [Exponent]; Sign = '+' | '-'; Significand = Digits '.' | [Digits] '.' Digits; Exponent = ('e' | 'E') [Sign] Digits; Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if precision would be lost. Services **should** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if the service receives a value outside of the supported range.",
           ).optional(),
         }).describe(
-          "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
+          'The percentage of the bill to adjust. For example: Mark down by 1% => "-1.00" Mark up by 1% => "1.00" Pass-Through => "0.00"',
         ).optional(),
-      }).describe(
-        "An adjustment that applies a flat markup or markdown to an entire bill.",
-      ).optional(),
-    }).describe(
-      "A type that represents the various adjustments you can apply to a bill.",
-    ).optional(),
+      }).describe("Flat markup or markdown on an entire bill.").optional(),
+    }).describe("Required. Information about the adjustment.").optional(),
     channelPartnerGranularity: z.object({}).describe(
-      "Applies the repricing configuration at the channel partner level. The channel partner value is derived from the resource name. Takes an empty json object. Deprecated: This is no longer supported. Use RepricingConfig.EntitlementGranularity instead.",
+      "Applies the repricing configuration at the channel partner level. Only ChannelPartnerRepricingConfig supports this value. Deprecated: This is no longer supported. Use RepricingConfig.entitlement_granularity instead.",
     ).optional(),
     conditionalOverrides: z.array(z.object({
       adjustment: z.object({
         percentageAdjustment: z.object({
           percentage: z.unknown().describe(
-            "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
+            'The percentage of the bill to adjust. For example: Mark down by 1% => "-1.00" Mark up by 1% => "1.00" Pass-Through => "0.00"',
           ).optional(),
-        }).describe(
-          "An adjustment that applies a flat markup or markdown to an entire bill.",
-        ).optional(),
+        }).describe("Flat markup or markdown on an entire bill.").optional(),
       }).describe(
-        "A type that represents the various adjustments you can apply to a bill.",
+        "Required. Information about the applied override's adjustment.",
       ).optional(),
       rebillingBasis: z.enum([
         "REBILLING_BASIS_UNSPECIFIED",
@@ -336,11 +323,9 @@ const InputsSchema = z.object({
           skuGroup: z.unknown().describe(
             'Specifies a SKU group (https://cloud.google.com/skus/sku-groups). Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".',
           ).optional(),
-        }).describe(
-          "A condition that applies the override if a line item SKU is found in the SKU group.",
-        ).optional(),
+        }).describe("SKU Group condition for override.").optional(),
       }).describe(
-        "Represents the various repricing conditions you can use for a conditional override.",
+        "Required. Specifies the condition which, if met, will apply the override.",
       ).optional(),
     })).describe(
       "The conditional overrides to apply for this configuration. If you list multiple overrides, only the first valid override is used. If you don't list any overrides, the API uses the normal adjustment and rebilling basis.",
@@ -356,14 +341,15 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      'Required. The YearMonth when these adjustments activate. The Day field needs to be "0" since we only accept YearMonth repricing boundaries.',
     ).optional(),
     entitlementGranularity: z.object({
       entitlement: z.string().describe(
         "Resource name of the entitlement. Format: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}",
       ).optional(),
-    }).describe("Applies the repricing configuration at the entitlement level.")
-      .optional(),
+    }).describe(
+      "Required. Applies the repricing configuration at the entitlement level. Note: If a ChannelPartnerRepricingConfig using RepricingConfig.EntitlementGranularity becomes effective, then no existing or future RepricingConfig.ChannelPartnerGranularity will apply to the RepricingConfig.EntitlementGranularity.entitlement. This is the recommended value for both CustomerRepricingConfig and ChannelPartnerRepricingConfig.",
+    ).optional(),
     rebillingBasis: z.enum([
       "REBILLING_BASIS_UNSPECIFIED",
       "COST_AT_LIST",
@@ -372,7 +358,7 @@ const InputsSchema = z.object({
       "Required. The RebillingBasis to use for this bill. Specifies the relative cost based on repricing costs you will apply.",
     ).optional(),
   }).describe(
-    "Configuration for repricing a Google bill over a period of time.",
+    "Required. The configuration for bill modifications made by a reseller before sending it to ChannelPartner.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -403,7 +389,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/cloudchannel/accounts-channelpartnerlinks-channelpartnerrepricingconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -500,6 +486,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -539,14 +530,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

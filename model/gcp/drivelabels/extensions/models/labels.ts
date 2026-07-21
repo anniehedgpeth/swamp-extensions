@@ -162,52 +162,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  appliedCapabilities: z.object({
-    canApply: z.boolean().describe(
-      "Whether the user can apply this label to items.",
-    ).optional(),
-    canRead: z.boolean().describe(
-      "Whether the user can read applied metadata related to this label.",
-    ).optional(),
-    canRemove: z.boolean().describe(
-      "Whether the user can remove this label from items.",
-    ).optional(),
-  }).describe("The capabilities a user has on this label's applied metadata.")
-    .optional(),
-  appliedLabelPolicy: z.object({
-    copyMode: z.enum([
-      "COPY_MODE_UNSPECIFIED",
-      "DO_NOT_COPY",
-      "ALWAYS_COPY",
-      "COPY_APPLIABLE",
-    ]).describe(
-      "Indicates how the applied label and field values should be copied when a Drive item is copied.",
-    ).optional(),
-  }).describe("Behavior of this label when it's applied to Drive items.")
-    .optional(),
-  creator: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  disabler: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  displayHints: z.object({
-    disabled: z.boolean().describe(
-      "Whether the label should be shown in the UI as disabled.",
-    ).optional(),
-    hiddenInSearch: z.boolean().describe(
-      "This label should be hidden in the search menu when searching for Drive items.",
-    ).optional(),
-    priority: z.string().describe("The order to display labels in a list.")
-      .optional(),
-    shownInApply: z.boolean().describe(
-      "This label should be shown in the apply menu when applying values to a Drive item.",
-    ).optional(),
-  }).describe("The UI display hints for rendering the label.").optional(),
   enabledAppSettings: z.object({
     enabledApps: z.array(z.object({
       app: z.enum(["APP_UNSPECIFIED", "DRIVE", "GMAIL"]).describe(
@@ -215,9 +169,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Optional. The list of apps where the label can be used.")
       .optional(),
-  }).describe(
-    "Describes the Google Workspace apps in which the label can be used.",
-  ).optional(),
+  }).describe("Optional. The `EnabledAppSettings` for this Label.").optional(),
   fields: z.array(z.object({
     appliedCapabilities: z.object({
       canRead: z.boolean().describe(
@@ -229,8 +181,9 @@ const GlobalArgsSchema = z.object({
       canWrite: z.boolean().describe(
         "Whether the user can set this field on Drive items.",
       ).optional(),
-    }).describe("The capabilities related to this field on applied metadata.")
-      .optional(),
+    }).describe(
+      "Output only. The capabilities this user has on this field and its value when the label is applied on Drive items.",
+    ).optional(),
     createTime: z.string().describe(
       "Output only. The time this field was created.",
     ).optional(),
@@ -238,7 +191,7 @@ const GlobalArgsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe("Output only. The user who created this field.").optional(),
     dateOptions: z.object({
       dateFormat: z.string().describe("Output only. ICU date format.")
         .optional(),
@@ -259,9 +212,8 @@ const GlobalArgsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
+      }).describe("Output only. Maximum valid value (year, month, day).")
+        .optional(),
       minValue: z.object({
         day: z.number().int().describe(
           "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -272,10 +224,9 @@ const GlobalArgsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
-    }).describe("Options for the date field type.").optional(),
+      }).describe("Output only. Minimum valid value (year, month, day).")
+        .optional(),
+    }).describe("Date field options.").optional(),
     disableTime: z.string().describe(
       "Output only. The time this field was disabled. This value has no meaning when the field is not disabled.",
     ).optional(),
@@ -283,7 +234,9 @@ const GlobalArgsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe(
+      "Output only. The user who disabled this field. This value has no meaning when the field is not disabled.",
+    ).optional(),
     displayHints: z.object({
       disabled: z.boolean().describe(
         "Whether the field should be shown in the UI as disabled.",
@@ -297,7 +250,8 @@ const GlobalArgsSchema = z.object({
       shownInApply: z.boolean().describe(
         "This field should be shown in the apply menu when applying values to a Drive item.",
       ).optional(),
-    }).describe("UI display hints for rendering a field.").optional(),
+    }).describe("Output only. UI display hints for rendering a field.")
+      .optional(),
     id: z.string().describe(
       "Output only. The key of a field, unique within a label or library. This value is autogenerated. Matches the regex: `([a-zA-Z0-9])+`.",
     ).optional(),
@@ -308,7 +262,7 @@ const GlobalArgsSchema = z.object({
       minValue: z.string().describe(
         "Output only. The minimum valid value for the integer field.",
       ).optional(),
-    }).describe("Options for the Integer field type.").optional(),
+    }).describe("Integer field options.").optional(),
     lifecycle: z.object({
       disabledPolicy: z.object({
         hideInSearch: z.boolean().describe(
@@ -318,7 +272,7 @@ const GlobalArgsSchema = z.object({
           "Whether to show this disabled object in the apply menu on Drive items. * When `true`, the object is generally shown in the UI as disabled and is unselectable. * When `false`, the object is generally hidden in the UI.",
         ).optional(),
       }).describe(
-        "The policy that governs how to treat a disabled label, field, or selection choice in different contexts.",
+        "The policy that governs how to show a disabled label, field, or selection choice.",
       ).optional(),
       hasUnpublishedChanges: z.boolean().describe(
         "Output only. Whether the object associated with this lifecycle has unpublished changes.",
@@ -332,16 +286,12 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Output only. The state of the object associated with this lifecycle.",
       ).optional(),
-    }).describe(
-      "The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * `UNPUBLISHED_DRAFT` (starting state) * `UNPUBLISHED_DRAFT` -> `PUBLISHED` * `UNPUBLISHED_DRAFT` -> (Deleted) * `PUBLISHED` -> `DISABLED` * `DISABLED` -> `PUBLISHED` * `DISABLED` -> (Deleted) The published and disabled states have some distinct characteristics: * `Published`: Some kinds of changes might be made to an object in this state, in which case `has_unpublished_changes` will be true. Also, some kinds of changes aren't permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * `Disabled`: When disabled, the configured `DisabledPolicy` takes effect.",
-    ).optional(),
+    }).describe("Output only. The lifecycle of this field.").optional(),
     lockStatus: z.object({
       locked: z.boolean().describe(
         "Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it's not the direct target of a label lock, in which case this field is set to false.",
       ).optional(),
-    }).describe(
-      "Contains information about whether a label component should be considered locked.",
-    ).optional(),
+    }).describe("Output only. The `LockStatus` of this field.").optional(),
     properties: z.object({
       displayName: z.string().describe(
         "Required. The display text to show in the UI identifying this field.",
@@ -357,7 +307,9 @@ const GlobalArgsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe(
+      "Output only. The user who published this field. This value has no meaning when the field is not published.",
+    ).optional(),
     queryKey: z.string().describe(
       'Output only. The key to use when constructing Drive search queries to find files based on values defined for this field on files. For example, "`{query_key}` > 2001-01-01".',
     ).optional(),
@@ -374,46 +326,53 @@ const GlobalArgsSchema = z.object({
       canUpdate: z.boolean().describe("Whether the user can change this field.")
         .optional(),
     }).describe(
-      "The capabilities related to this field when editing the field.",
+      "Output only. The capabilities this user has when editing this field.",
     ).optional(),
     selectionOptions: z.object({
       choices: z.array(z.object({
         appliedCapabilities: z.unknown().describe(
-          "The capabilities related to this choice on applied metadata.",
+          "Output only. The capabilities related to this choice on applied metadata.",
         ).optional(),
         createTime: z.unknown().describe(
           "Output only. The time this choice was created.",
         ).optional(),
-        creator: z.unknown().describe("Information about a user.").optional(),
+        creator: z.unknown().describe(
+          "Output only. The user who created this choice.",
+        ).optional(),
         disableTime: z.unknown().describe(
           "Output only. The time this choice was disabled. This value has no meaning when the choice is not disabled.",
         ).optional(),
-        disabler: z.unknown().describe("Information about a user.").optional(),
+        disabler: z.unknown().describe(
+          "Output only. The user who disabled this choice. This value has no meaning when the option is not disabled.",
+        ).optional(),
         displayHints: z.unknown().describe(
-          "UI display hints for rendering an option.",
+          "Output only. UI display hints for rendering a choice.",
         ).optional(),
         id: z.unknown().describe(
           "The unique value of the choice. This ID is autogenerated. Matches the regex: `([a-zA-Z0-9_])+`.",
         ).optional(),
-        lifecycle: z.unknown().describe(
-          "The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * `UNPUBLISHED_DRAFT` (starting state) * `UNPUBLISHED_DRAFT` -> `PUBLISHED` * `UNPUBLISHED_DRAFT` -> (Deleted) * `PUBLISHED` -> `DISABLED` * `DISABLED` -> `PUBLISHED` * `DISABLED` -> (Deleted) The published and disabled states have some distinct characteristics: * `Published`: Some kinds of changes might be made to an object in this state, in which case `has_unpublished_changes` will be true. Also, some kinds of changes aren't permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * `Disabled`: When disabled, the configured `DisabledPolicy` takes effect.",
-        ).optional(),
+        lifecycle: z.unknown().describe("Output only. Lifecycle of the choice.")
+          .optional(),
         lockStatus: z.unknown().describe(
-          "Contains information about whether a label component should be considered locked.",
+          "Output only. The `LockStatus` of this choice.",
         ).optional(),
         properties: z.unknown().describe("Basic properties of the choice.")
           .optional(),
         publishTime: z.unknown().describe(
           "Output only. The time this choice was published. This value has no meaning when the choice is not published.",
         ).optional(),
-        publisher: z.unknown().describe("Information about a user.").optional(),
+        publisher: z.unknown().describe(
+          "Output only. The user who published this choice. This value has no meaning when the choice is not published.",
+        ).optional(),
         schemaCapabilities: z.unknown().describe(
-          "The capabilities related to this choice when editing the choice.",
+          "Output only. The capabilities related to this option when editing the option.",
         ).optional(),
         updateTime: z.unknown().describe(
           "Output only. The time this choice was updated last.",
         ).optional(),
-        updater: z.unknown().describe("Information about a user.").optional(),
+        updater: z.unknown().describe(
+          "Output only. The user who updated this choice last.",
+        ).optional(),
       })).describe(
         "The options available for this selection field. The list order is consistent, and modified with `insert_before_choice`.",
       ).optional(),
@@ -422,9 +381,9 @@ const GlobalArgsSchema = z.object({
           "Maximum number of entries permitted.",
         ).optional(),
       }).describe(
-        "Options for a multi-valued variant of an associated field type.",
+        "When specified, indicates this field supports a list of values. Once the field is published, this cannot be changed.",
       ).optional(),
-    }).describe("Options for the selection field type.").optional(),
+    }).describe("Selection field options.").optional(),
     textOptions: z.object({
       maxLength: z.number().int().describe(
         "Output only. The maximum valid length of values for the text field.",
@@ -432,7 +391,7 @@ const GlobalArgsSchema = z.object({
       minLength: z.number().int().describe(
         "Output only. The minimum valid length of values for the text field.",
       ).optional(),
-    }).describe("Options for the Text field type.").optional(),
+    }).describe("Text field options.").optional(),
     updateTime: z.string().describe(
       "Output only. The time this field was updated.",
     ).optional(),
@@ -440,84 +399,27 @@ const GlobalArgsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe("Output only. The user who modified this field.").optional(),
     userOptions: z.object({
       listOptions: z.object({
         maxEntries: z.number().int().describe(
           "Maximum number of entries permitted.",
         ).optional(),
       }).describe(
-        "Options for a multi-valued variant of an associated field type.",
+        "When specified, indicates that this field supports a list of values. Once the field is published, this cannot be changed.",
       ).optional(),
-    }).describe("Options for the user field type.").optional(),
+    }).describe("User field options.").optional(),
   })).describe("List of fields in descending priority order.").optional(),
   labelType: z.enum(["LABEL_TYPE_UNSPECIFIED", "SHARED", "ADMIN", "GOOGLE_APP"])
     .describe("Required. The type of label.").optional(),
   learnMoreUri: z.string().describe(
     "Custom URL to present to users to allow them to learn more about this label and how it should be used.",
   ).optional(),
-  lifecycle: z.object({
-    disabledPolicy: z.object({
-      hideInSearch: z.boolean().describe(
-        "Whether to hide this disabled object in the search menu for Drive items. * When `false`, the object is generally shown in the UI as disabled but it appears in the search results when searching for Drive items. * When `true`, the object is generally hidden in the UI when searching for Drive items.",
-      ).optional(),
-      showInApply: z.boolean().describe(
-        "Whether to show this disabled object in the apply menu on Drive items. * When `true`, the object is generally shown in the UI as disabled and is unselectable. * When `false`, the object is generally hidden in the UI.",
-      ).optional(),
-    }).describe(
-      "The policy that governs how to treat a disabled label, field, or selection choice in different contexts.",
-    ).optional(),
-    hasUnpublishedChanges: z.boolean().describe(
-      "Output only. Whether the object associated with this lifecycle has unpublished changes.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "UNPUBLISHED_DRAFT",
-      "PUBLISHED",
-      "DISABLED",
-      "DELETED",
-    ]).describe(
-      "Output only. The state of the object associated with this lifecycle.",
-    ).optional(),
-  }).describe(
-    "The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * `UNPUBLISHED_DRAFT` (starting state) * `UNPUBLISHED_DRAFT` -> `PUBLISHED` * `UNPUBLISHED_DRAFT` -> (Deleted) * `PUBLISHED` -> `DISABLED` * `DISABLED` -> `PUBLISHED` * `DISABLED` -> (Deleted) The published and disabled states have some distinct characteristics: * `Published`: Some kinds of changes might be made to an object in this state, in which case `has_unpublished_changes` will be true. Also, some kinds of changes aren't permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * `Disabled`: When disabled, the configured `DisabledPolicy` takes effect.",
-  ).optional(),
-  lockStatus: z.object({
-    locked: z.boolean().describe(
-      "Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it's not the direct target of a label lock, in which case this field is set to false.",
-    ).optional(),
-  }).describe(
-    "Contains information about whether a label component should be considered locked.",
-  ).optional(),
   properties: z.object({
     description: z.string().describe("The description of the label.")
       .optional(),
     title: z.string().describe("Required. Title of the label.").optional(),
-  }).describe("Basic properties of the label.").optional(),
-  publisher: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  revisionCreator: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  schemaCapabilities: z.object({
-    canDelete: z.boolean().describe(
-      "Whether the user can delete this label. The user must have permission and the label must be disabled.",
-    ).optional(),
-    canDisable: z.boolean().describe(
-      "Whether the user can disable this label. The user must have permission and this label must not already be disabled.",
-    ).optional(),
-    canEnable: z.boolean().describe(
-      "Whether the user can enable this label. The user must have permission and this label must be disabled.",
-    ).optional(),
-    canUpdate: z.boolean().describe("Whether the user can change this label.")
-      .optional(),
-  }).describe("The capabilities related to this label when editing the label.")
-    .optional(),
+  }).describe("Required. The basic properties of the label.").optional(),
   languageCode: z.string().describe(
     "The BCP-47 language code to use for evaluating localized field labels in response. When not specified, values in the default configured language will be used.",
   ).optional(),
@@ -700,52 +602,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  appliedCapabilities: z.object({
-    canApply: z.boolean().describe(
-      "Whether the user can apply this label to items.",
-    ).optional(),
-    canRead: z.boolean().describe(
-      "Whether the user can read applied metadata related to this label.",
-    ).optional(),
-    canRemove: z.boolean().describe(
-      "Whether the user can remove this label from items.",
-    ).optional(),
-  }).describe("The capabilities a user has on this label's applied metadata.")
-    .optional(),
-  appliedLabelPolicy: z.object({
-    copyMode: z.enum([
-      "COPY_MODE_UNSPECIFIED",
-      "DO_NOT_COPY",
-      "ALWAYS_COPY",
-      "COPY_APPLIABLE",
-    ]).describe(
-      "Indicates how the applied label and field values should be copied when a Drive item is copied.",
-    ).optional(),
-  }).describe("Behavior of this label when it's applied to Drive items.")
-    .optional(),
-  creator: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  disabler: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  displayHints: z.object({
-    disabled: z.boolean().describe(
-      "Whether the label should be shown in the UI as disabled.",
-    ).optional(),
-    hiddenInSearch: z.boolean().describe(
-      "This label should be hidden in the search menu when searching for Drive items.",
-    ).optional(),
-    priority: z.string().describe("The order to display labels in a list.")
-      .optional(),
-    shownInApply: z.boolean().describe(
-      "This label should be shown in the apply menu when applying values to a Drive item.",
-    ).optional(),
-  }).describe("The UI display hints for rendering the label.").optional(),
   enabledAppSettings: z.object({
     enabledApps: z.array(z.object({
       app: z.enum(["APP_UNSPECIFIED", "DRIVE", "GMAIL"]).describe(
@@ -753,9 +609,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Optional. The list of apps where the label can be used.")
       .optional(),
-  }).describe(
-    "Describes the Google Workspace apps in which the label can be used.",
-  ).optional(),
+  }).describe("Optional. The `EnabledAppSettings` for this Label.").optional(),
   fields: z.array(z.object({
     appliedCapabilities: z.object({
       canRead: z.boolean().describe(
@@ -767,8 +621,9 @@ const InputsSchema = z.object({
       canWrite: z.boolean().describe(
         "Whether the user can set this field on Drive items.",
       ).optional(),
-    }).describe("The capabilities related to this field on applied metadata.")
-      .optional(),
+    }).describe(
+      "Output only. The capabilities this user has on this field and its value when the label is applied on Drive items.",
+    ).optional(),
     createTime: z.string().describe(
       "Output only. The time this field was created.",
     ).optional(),
@@ -776,7 +631,7 @@ const InputsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe("Output only. The user who created this field.").optional(),
     dateOptions: z.object({
       dateFormat: z.string().describe("Output only. ICU date format.")
         .optional(),
@@ -797,9 +652,8 @@ const InputsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
+      }).describe("Output only. Maximum valid value (year, month, day).")
+        .optional(),
       minValue: z.object({
         day: z.number().int().describe(
           "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -810,10 +664,9 @@ const InputsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
-    }).describe("Options for the date field type.").optional(),
+      }).describe("Output only. Minimum valid value (year, month, day).")
+        .optional(),
+    }).describe("Date field options.").optional(),
     disableTime: z.string().describe(
       "Output only. The time this field was disabled. This value has no meaning when the field is not disabled.",
     ).optional(),
@@ -821,7 +674,9 @@ const InputsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe(
+      "Output only. The user who disabled this field. This value has no meaning when the field is not disabled.",
+    ).optional(),
     displayHints: z.object({
       disabled: z.boolean().describe(
         "Whether the field should be shown in the UI as disabled.",
@@ -835,7 +690,8 @@ const InputsSchema = z.object({
       shownInApply: z.boolean().describe(
         "This field should be shown in the apply menu when applying values to a Drive item.",
       ).optional(),
-    }).describe("UI display hints for rendering a field.").optional(),
+    }).describe("Output only. UI display hints for rendering a field.")
+      .optional(),
     id: z.string().describe(
       "Output only. The key of a field, unique within a label or library. This value is autogenerated. Matches the regex: `([a-zA-Z0-9])+`.",
     ).optional(),
@@ -846,7 +702,7 @@ const InputsSchema = z.object({
       minValue: z.string().describe(
         "Output only. The minimum valid value for the integer field.",
       ).optional(),
-    }).describe("Options for the Integer field type.").optional(),
+    }).describe("Integer field options.").optional(),
     lifecycle: z.object({
       disabledPolicy: z.object({
         hideInSearch: z.boolean().describe(
@@ -856,7 +712,7 @@ const InputsSchema = z.object({
           "Whether to show this disabled object in the apply menu on Drive items. * When `true`, the object is generally shown in the UI as disabled and is unselectable. * When `false`, the object is generally hidden in the UI.",
         ).optional(),
       }).describe(
-        "The policy that governs how to treat a disabled label, field, or selection choice in different contexts.",
+        "The policy that governs how to show a disabled label, field, or selection choice.",
       ).optional(),
       hasUnpublishedChanges: z.boolean().describe(
         "Output only. Whether the object associated with this lifecycle has unpublished changes.",
@@ -870,16 +726,12 @@ const InputsSchema = z.object({
       ]).describe(
         "Output only. The state of the object associated with this lifecycle.",
       ).optional(),
-    }).describe(
-      "The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * `UNPUBLISHED_DRAFT` (starting state) * `UNPUBLISHED_DRAFT` -> `PUBLISHED` * `UNPUBLISHED_DRAFT` -> (Deleted) * `PUBLISHED` -> `DISABLED` * `DISABLED` -> `PUBLISHED` * `DISABLED` -> (Deleted) The published and disabled states have some distinct characteristics: * `Published`: Some kinds of changes might be made to an object in this state, in which case `has_unpublished_changes` will be true. Also, some kinds of changes aren't permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * `Disabled`: When disabled, the configured `DisabledPolicy` takes effect.",
-    ).optional(),
+    }).describe("Output only. The lifecycle of this field.").optional(),
     lockStatus: z.object({
       locked: z.boolean().describe(
         "Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it's not the direct target of a label lock, in which case this field is set to false.",
       ).optional(),
-    }).describe(
-      "Contains information about whether a label component should be considered locked.",
-    ).optional(),
+    }).describe("Output only. The `LockStatus` of this field.").optional(),
     properties: z.object({
       displayName: z.string().describe(
         "Required. The display text to show in the UI identifying this field.",
@@ -895,7 +747,9 @@ const InputsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe(
+      "Output only. The user who published this field. This value has no meaning when the field is not published.",
+    ).optional(),
     queryKey: z.string().describe(
       'Output only. The key to use when constructing Drive search queries to find files based on values defined for this field on files. For example, "`{query_key}` > 2001-01-01".',
     ).optional(),
@@ -912,46 +766,53 @@ const InputsSchema = z.object({
       canUpdate: z.boolean().describe("Whether the user can change this field.")
         .optional(),
     }).describe(
-      "The capabilities related to this field when editing the field.",
+      "Output only. The capabilities this user has when editing this field.",
     ).optional(),
     selectionOptions: z.object({
       choices: z.array(z.object({
         appliedCapabilities: z.unknown().describe(
-          "The capabilities related to this choice on applied metadata.",
+          "Output only. The capabilities related to this choice on applied metadata.",
         ).optional(),
         createTime: z.unknown().describe(
           "Output only. The time this choice was created.",
         ).optional(),
-        creator: z.unknown().describe("Information about a user.").optional(),
+        creator: z.unknown().describe(
+          "Output only. The user who created this choice.",
+        ).optional(),
         disableTime: z.unknown().describe(
           "Output only. The time this choice was disabled. This value has no meaning when the choice is not disabled.",
         ).optional(),
-        disabler: z.unknown().describe("Information about a user.").optional(),
+        disabler: z.unknown().describe(
+          "Output only. The user who disabled this choice. This value has no meaning when the option is not disabled.",
+        ).optional(),
         displayHints: z.unknown().describe(
-          "UI display hints for rendering an option.",
+          "Output only. UI display hints for rendering a choice.",
         ).optional(),
         id: z.unknown().describe(
           "The unique value of the choice. This ID is autogenerated. Matches the regex: `([a-zA-Z0-9_])+`.",
         ).optional(),
-        lifecycle: z.unknown().describe(
-          "The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * `UNPUBLISHED_DRAFT` (starting state) * `UNPUBLISHED_DRAFT` -> `PUBLISHED` * `UNPUBLISHED_DRAFT` -> (Deleted) * `PUBLISHED` -> `DISABLED` * `DISABLED` -> `PUBLISHED` * `DISABLED` -> (Deleted) The published and disabled states have some distinct characteristics: * `Published`: Some kinds of changes might be made to an object in this state, in which case `has_unpublished_changes` will be true. Also, some kinds of changes aren't permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * `Disabled`: When disabled, the configured `DisabledPolicy` takes effect.",
-        ).optional(),
+        lifecycle: z.unknown().describe("Output only. Lifecycle of the choice.")
+          .optional(),
         lockStatus: z.unknown().describe(
-          "Contains information about whether a label component should be considered locked.",
+          "Output only. The `LockStatus` of this choice.",
         ).optional(),
         properties: z.unknown().describe("Basic properties of the choice.")
           .optional(),
         publishTime: z.unknown().describe(
           "Output only. The time this choice was published. This value has no meaning when the choice is not published.",
         ).optional(),
-        publisher: z.unknown().describe("Information about a user.").optional(),
+        publisher: z.unknown().describe(
+          "Output only. The user who published this choice. This value has no meaning when the choice is not published.",
+        ).optional(),
         schemaCapabilities: z.unknown().describe(
-          "The capabilities related to this choice when editing the choice.",
+          "Output only. The capabilities related to this option when editing the option.",
         ).optional(),
         updateTime: z.unknown().describe(
           "Output only. The time this choice was updated last.",
         ).optional(),
-        updater: z.unknown().describe("Information about a user.").optional(),
+        updater: z.unknown().describe(
+          "Output only. The user who updated this choice last.",
+        ).optional(),
       })).describe(
         "The options available for this selection field. The list order is consistent, and modified with `insert_before_choice`.",
       ).optional(),
@@ -960,9 +821,9 @@ const InputsSchema = z.object({
           "Maximum number of entries permitted.",
         ).optional(),
       }).describe(
-        "Options for a multi-valued variant of an associated field type.",
+        "When specified, indicates this field supports a list of values. Once the field is published, this cannot be changed.",
       ).optional(),
-    }).describe("Options for the selection field type.").optional(),
+    }).describe("Selection field options.").optional(),
     textOptions: z.object({
       maxLength: z.number().int().describe(
         "Output only. The maximum valid length of values for the text field.",
@@ -970,7 +831,7 @@ const InputsSchema = z.object({
       minLength: z.number().int().describe(
         "Output only. The minimum valid length of values for the text field.",
       ).optional(),
-    }).describe("Options for the Text field type.").optional(),
+    }).describe("Text field options.").optional(),
     updateTime: z.string().describe(
       "Output only. The time this field was updated.",
     ).optional(),
@@ -978,84 +839,27 @@ const InputsSchema = z.object({
       person: z.string().describe(
         "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
       ).optional(),
-    }).describe("Information about a user.").optional(),
+    }).describe("Output only. The user who modified this field.").optional(),
     userOptions: z.object({
       listOptions: z.object({
         maxEntries: z.number().int().describe(
           "Maximum number of entries permitted.",
         ).optional(),
       }).describe(
-        "Options for a multi-valued variant of an associated field type.",
+        "When specified, indicates that this field supports a list of values. Once the field is published, this cannot be changed.",
       ).optional(),
-    }).describe("Options for the user field type.").optional(),
+    }).describe("User field options.").optional(),
   })).describe("List of fields in descending priority order.").optional(),
   labelType: z.enum(["LABEL_TYPE_UNSPECIFIED", "SHARED", "ADMIN", "GOOGLE_APP"])
     .describe("Required. The type of label.").optional(),
   learnMoreUri: z.string().describe(
     "Custom URL to present to users to allow them to learn more about this label and how it should be used.",
   ).optional(),
-  lifecycle: z.object({
-    disabledPolicy: z.object({
-      hideInSearch: z.boolean().describe(
-        "Whether to hide this disabled object in the search menu for Drive items. * When `false`, the object is generally shown in the UI as disabled but it appears in the search results when searching for Drive items. * When `true`, the object is generally hidden in the UI when searching for Drive items.",
-      ).optional(),
-      showInApply: z.boolean().describe(
-        "Whether to show this disabled object in the apply menu on Drive items. * When `true`, the object is generally shown in the UI as disabled and is unselectable. * When `false`, the object is generally hidden in the UI.",
-      ).optional(),
-    }).describe(
-      "The policy that governs how to treat a disabled label, field, or selection choice in different contexts.",
-    ).optional(),
-    hasUnpublishedChanges: z.boolean().describe(
-      "Output only. Whether the object associated with this lifecycle has unpublished changes.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "UNPUBLISHED_DRAFT",
-      "PUBLISHED",
-      "DISABLED",
-      "DELETED",
-    ]).describe(
-      "Output only. The state of the object associated with this lifecycle.",
-    ).optional(),
-  }).describe(
-    "The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * `UNPUBLISHED_DRAFT` (starting state) * `UNPUBLISHED_DRAFT` -> `PUBLISHED` * `UNPUBLISHED_DRAFT` -> (Deleted) * `PUBLISHED` -> `DISABLED` * `DISABLED` -> `PUBLISHED` * `DISABLED` -> (Deleted) The published and disabled states have some distinct characteristics: * `Published`: Some kinds of changes might be made to an object in this state, in which case `has_unpublished_changes` will be true. Also, some kinds of changes aren't permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * `Disabled`: When disabled, the configured `DisabledPolicy` takes effect.",
-  ).optional(),
-  lockStatus: z.object({
-    locked: z.boolean().describe(
-      "Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it's not the direct target of a label lock, in which case this field is set to false.",
-    ).optional(),
-  }).describe(
-    "Contains information about whether a label component should be considered locked.",
-  ).optional(),
   properties: z.object({
     description: z.string().describe("The description of the label.")
       .optional(),
     title: z.string().describe("Required. Title of the label.").optional(),
-  }).describe("Basic properties of the label.").optional(),
-  publisher: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  revisionCreator: z.object({
-    person: z.string().describe(
-      "The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, `people/12345678`.",
-    ).optional(),
-  }).describe("Information about a user.").optional(),
-  schemaCapabilities: z.object({
-    canDelete: z.boolean().describe(
-      "Whether the user can delete this label. The user must have permission and the label must be disabled.",
-    ).optional(),
-    canDisable: z.boolean().describe(
-      "Whether the user can disable this label. The user must have permission and this label must not already be disabled.",
-    ).optional(),
-    canEnable: z.boolean().describe(
-      "Whether the user can enable this label. The user must have permission and this label must be disabled.",
-    ).optional(),
-    canUpdate: z.boolean().describe("Whether the user can change this label.")
-      .optional(),
-  }).describe("The capabilities related to this label when editing the label.")
-    .optional(),
+  }).describe("Required. The basic properties of the label.").optional(),
   languageCode: z.string().describe(
     "The BCP-47 language code to use for evaluating localized field labels in response. When not specified, values in the default configured language will be used.",
   ).optional(),
@@ -1087,7 +891,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Drive Labels Labels. Registered at `@swamp/gcp/drivelabels/labels`. */
 export const model = {
   type: "@swamp/gcp/drivelabels/labels",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1189,6 +993,27 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: appliedCapabilities, appliedLabelPolicy, creator, disabler, displayHints, lifecycle, lockStatus, publisher, revisionCreator, schemaCapabilities",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          appliedCapabilities: _appliedCapabilities,
+          appliedLabelPolicy: _appliedLabelPolicy,
+          creator: _creator,
+          disabler: _disabler,
+          displayHints: _displayHints,
+          lifecycle: _lifecycle,
+          lockStatus: _lockStatus,
+          publisher: _publisher,
+          revisionCreator: _revisionCreator,
+          schemaCapabilities: _schemaCapabilities,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1211,17 +1036,6 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["appliedCapabilities"] !== undefined) {
-          body["appliedCapabilities"] = g["appliedCapabilities"];
-        }
-        if (g["appliedLabelPolicy"] !== undefined) {
-          body["appliedLabelPolicy"] = g["appliedLabelPolicy"];
-        }
-        if (g["creator"] !== undefined) body["creator"] = g["creator"];
-        if (g["disabler"] !== undefined) body["disabler"] = g["disabler"];
-        if (g["displayHints"] !== undefined) {
-          body["displayHints"] = g["displayHints"];
-        }
         if (g["enabledAppSettings"] !== undefined) {
           body["enabledAppSettings"] = g["enabledAppSettings"];
         }
@@ -1230,16 +1044,7 @@ export const model = {
         if (g["learnMoreUri"] !== undefined) {
           body["learnMoreUri"] = g["learnMoreUri"];
         }
-        if (g["lifecycle"] !== undefined) body["lifecycle"] = g["lifecycle"];
-        if (g["lockStatus"] !== undefined) body["lockStatus"] = g["lockStatus"];
         if (g["properties"] !== undefined) body["properties"] = g["properties"];
-        if (g["publisher"] !== undefined) body["publisher"] = g["publisher"];
-        if (g["revisionCreator"] !== undefined) {
-          body["revisionCreator"] = g["revisionCreator"];
-        }
-        if (g["schemaCapabilities"] !== undefined) {
-          body["schemaCapabilities"] = g["schemaCapabilities"];
-        }
         if (g["languageCode"] !== undefined) {
           params["languageCode"] = String(g["languageCode"]);
         }
@@ -1254,12 +1059,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

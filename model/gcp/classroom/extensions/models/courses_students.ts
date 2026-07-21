@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       givenName: z.string().describe("The user's first name. Read-only.")
         .optional(),
-    }).describe("Details of the user's name.").optional(),
+    }).describe("Name of the user. Read-only.").optional(),
     permissions: z.array(z.object({
       permission: z.enum(["PERMISSION_UNSPECIFIED", "CREATE_COURSE"]).describe(
         "Permission value.",
@@ -195,7 +195,7 @@ const GlobalArgsSchema = z.object({
     verifiedTeacher: z.boolean().describe(
       "Represents whether a Google Workspace for Education user's domain administrator has explicitly verified them as being a teacher. This field is always false if the user is not a member of a Google Workspace for Education domain. Read-only",
     ).optional(),
-  }).describe("Global information for a user.").optional(),
+  }).describe("Global user information for the student. Read-only.").optional(),
   studentWorkFolder: z.object({
     alternateLink: z.string().describe(
       "URL that can be used to access the Drive folder. Read-only.",
@@ -203,7 +203,9 @@ const GlobalArgsSchema = z.object({
     id: z.string().describe("Drive API resource ID.").optional(),
     title: z.string().describe("Title of the Drive folder. Read-only.")
       .optional(),
-  }).describe("Representation of a Google Drive folder.").optional(),
+  }).describe(
+    "Information about a Drive Folder for this student's work in this course. Only visible to the student and domain administrators. Read-only.",
+  ).optional(),
   userId: z.string().describe(
     'Identifier of the user. When specified as a parameter of a request, this identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal `"me"`, indicating the requesting user',
   ).optional(),
@@ -259,7 +261,7 @@ const InputsSchema = z.object({
       ).optional(),
       givenName: z.string().describe("The user's first name. Read-only.")
         .optional(),
-    }).describe("Details of the user's name.").optional(),
+    }).describe("Name of the user. Read-only.").optional(),
     permissions: z.array(z.object({
       permission: z.enum(["PERMISSION_UNSPECIFIED", "CREATE_COURSE"]).describe(
         "Permission value.",
@@ -271,7 +273,7 @@ const InputsSchema = z.object({
     verifiedTeacher: z.boolean().describe(
       "Represents whether a Google Workspace for Education user's domain administrator has explicitly verified them as being a teacher. This field is always false if the user is not a member of a Google Workspace for Education domain. Read-only",
     ).optional(),
-  }).describe("Global information for a user.").optional(),
+  }).describe("Global user information for the student. Read-only.").optional(),
   studentWorkFolder: z.object({
     alternateLink: z.string().describe(
       "URL that can be used to access the Drive folder. Read-only.",
@@ -279,7 +281,9 @@ const InputsSchema = z.object({
     id: z.string().describe("Drive API resource ID.").optional(),
     title: z.string().describe("Title of the Drive folder. Read-only.")
       .optional(),
-  }).describe("Representation of a Google Drive folder.").optional(),
+  }).describe(
+    "Information about a Drive Folder for this student's work in this course. Only visible to the student and domain administrators. Read-only.",
+  ).optional(),
   userId: z.string().describe(
     'Identifier of the user. When specified as a parameter of a request, this identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal `"me"`, indicating the requesting user',
   ).optional(),
@@ -311,7 +315,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.Students. Registered at `@swamp/gcp/classroom/courses-students`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-students",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -403,6 +407,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -443,12 +452,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "courseId": String(g["courseId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

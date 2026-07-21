@@ -167,25 +167,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  alloydbClusterBackupPlanAssociationProperties: z.object({
-    clusterUid: z.string().describe(
-      "Output only. The cluster UID of the AlloyDB cluster.",
-    ).optional(),
-  }).describe("Properties for an AlloyDB cluster backup plan association.")
-    .optional(),
   backupPlan: z.string().describe(
     "Required. Resource name of backup plan which needs to be applied on workload. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}",
   ).optional(),
-  cloudSqlInstanceBackupPlanAssociationProperties: z.object({
-    instanceCreateTime: z.string().describe(
-      "Output only. The time when the instance was created.",
-    ).optional(),
-  }).describe("Cloud SQL instance's BPA properties.").optional(),
-  filestoreInstanceBackupPlanAssociationProperties: z.object({
-    instanceCreateTime: z.string().describe(
-      "Output only. The time when the instance was created.",
-    ).optional(),
-  }).describe("Filestore instance's BPA properties.").optional(),
   resource: z.string().describe(
     'Required. Immutable. Resource name of workload on which the backup plan is applied. The format can either be the resource name (e.g., "projects/my-project/zones/us-central1-a/instances/my-instance") or the full resource URI (e.g., "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a/instances/my-instance").',
   ).optional(),
@@ -243,25 +227,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  alloydbClusterBackupPlanAssociationProperties: z.object({
-    clusterUid: z.string().describe(
-      "Output only. The cluster UID of the AlloyDB cluster.",
-    ).optional(),
-  }).describe("Properties for an AlloyDB cluster backup plan association.")
-    .optional(),
   backupPlan: z.string().describe(
     "Required. Resource name of backup plan which needs to be applied on workload. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}",
   ).optional(),
-  cloudSqlInstanceBackupPlanAssociationProperties: z.object({
-    instanceCreateTime: z.string().describe(
-      "Output only. The time when the instance was created.",
-    ).optional(),
-  }).describe("Cloud SQL instance's BPA properties.").optional(),
-  filestoreInstanceBackupPlanAssociationProperties: z.object({
-    instanceCreateTime: z.string().describe(
-      "Output only. The time when the instance was created.",
-    ).optional(),
-  }).describe("Filestore instance's BPA properties.").optional(),
   resource: z.string().describe(
     'Required. Immutable. Resource name of workload on which the backup plan is applied. The format can either be the resource name (e.g., "projects/my-project/zones/us-central1-a/instances/my-instance") or the full resource URI (e.g., "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a/instances/my-instance").',
   ).optional(),
@@ -302,7 +270,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupPlanAssociations. Registered at `@swamp/gcp/backupdr/backupplanassociations`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupplanassociations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -409,6 +377,23 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: alloydbClusterBackupPlanAssociationProperties, cloudSqlInstanceBackupPlanAssociationProperties, filestoreInstanceBackupPlanAssociationProperties",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          alloydbClusterBackupPlanAssociationProperties:
+            _alloydbClusterBackupPlanAssociationProperties,
+          cloudSqlInstanceBackupPlanAssociationProperties:
+            _cloudSqlInstanceBackupPlanAssociationProperties,
+          filestoreInstanceBackupPlanAssociationProperties:
+            _filestoreInstanceBackupPlanAssociationProperties,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -438,23 +423,7 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["alloydbClusterBackupPlanAssociationProperties"] !== undefined) {
-          body["alloydbClusterBackupPlanAssociationProperties"] =
-            g["alloydbClusterBackupPlanAssociationProperties"];
-        }
         if (g["backupPlan"] !== undefined) body["backupPlan"] = g["backupPlan"];
-        if (
-          g["cloudSqlInstanceBackupPlanAssociationProperties"] !== undefined
-        ) {
-          body["cloudSqlInstanceBackupPlanAssociationProperties"] =
-            g["cloudSqlInstanceBackupPlanAssociationProperties"];
-        }
-        if (
-          g["filestoreInstanceBackupPlanAssociationProperties"] !== undefined
-        ) {
-          body["filestoreInstanceBackupPlanAssociationProperties"] =
-            g["filestoreInstanceBackupPlanAssociationProperties"];
-        }
         if (g["resource"] !== undefined) body["resource"] = g["resource"];
         if (g["resourceType"] !== undefined) {
           body["resourceType"] = g["resourceType"];
@@ -486,16 +455,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -588,23 +548,7 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["alloydbClusterBackupPlanAssociationProperties"] !== undefined) {
-          body["alloydbClusterBackupPlanAssociationProperties"] =
-            g["alloydbClusterBackupPlanAssociationProperties"];
-        }
         if (g["backupPlan"] !== undefined) body["backupPlan"] = g["backupPlan"];
-        if (
-          g["cloudSqlInstanceBackupPlanAssociationProperties"] !== undefined
-        ) {
-          body["cloudSqlInstanceBackupPlanAssociationProperties"] =
-            g["cloudSqlInstanceBackupPlanAssociationProperties"];
-        }
-        if (
-          g["filestoreInstanceBackupPlanAssociationProperties"] !== undefined
-        ) {
-          body["filestoreInstanceBackupPlanAssociationProperties"] =
-            g["filestoreInstanceBackupPlanAssociationProperties"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

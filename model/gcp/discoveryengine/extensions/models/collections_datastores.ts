@@ -177,73 +177,7 @@ const GlobalArgsSchema = z.object({
     disableInitialIndex: z.boolean().describe(
       "If set true, initial indexing is disabled for the DataStore.",
     ).optional(),
-  }).describe("Configuration data for advance site search.").optional(),
-  billingEstimation: z.object({
-    structuredDataSize: z.string().describe(
-      "Data size for structured data in terms of bytes.",
-    ).optional(),
-    structuredDataUpdateTime: z.string().describe(
-      "Last updated timestamp for structured data.",
-    ).optional(),
-    unstructuredDataSize: z.string().describe(
-      "Data size for unstructured data in terms of bytes.",
-    ).optional(),
-    unstructuredDataUpdateTime: z.string().describe(
-      "Last updated timestamp for unstructured data.",
-    ).optional(),
-    websiteDataSize: z.string().describe(
-      "Data size for websites in terms of bytes.",
-    ).optional(),
-    websiteDataUpdateTime: z.string().describe(
-      "Last updated timestamp for websites.",
-    ).optional(),
-  }).describe("Estimation of data size per data store.").optional(),
-  cmekConfig: z.object({
-    isDefault: z.boolean().describe(
-      "Output only. The default CmekConfig for the Customer.",
-    ).optional(),
-    kmsKey: z.string().describe(
-      "Required. KMS key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. KMS key version resource name which will be used to encrypt resources `/cryptoKeyVersions/{keyVersion}`.",
-    ).optional(),
-    lastRotationTimestampMicros: z.string().describe(
-      "Output only. The timestamp of the last key rotation.",
-    ).optional(),
-    name: z.string().describe(
-      "Required. The name of the CmekConfig of the form `projects/{project}/locations/{location}/cmekConfig` or `projects/{project}/locations/{location}/cmekConfigs/{cmek_config}`.",
-    ).optional(),
-    notebooklmState: z.enum([
-      "NOTEBOOK_LM_STATE_UNSPECIFIED",
-      "NOTEBOOK_LM_NOT_READY",
-      "NOTEBOOK_LM_READY",
-      "NOTEBOOK_LM_NOT_ENABLED",
-    ]).describe(
-      "Output only. Whether the NotebookLM Corpus is ready to be used.",
-    ).optional(),
-    singleRegionKeys: z.array(z.object({
-      kmsKey: z.string().describe(
-        "Required. Single-regional kms key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-      ).optional(),
-    })).describe(
-      "Optional. Single-regional CMEKs that are required for some VAIS features.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "KEY_ISSUE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UNUSABLE",
-      "ACTIVE_ROTATING",
-      "DELETED",
-      "EXPIRED",
-    ]).describe("Output only. The states of the CmekConfig.").optional(),
-  }).describe(
-    "Configurations used to enable CMEK data encryption with Cloud KMS keys.",
-  ).optional(),
+  }).describe("Optional. Configuration for advanced site search.").optional(),
   configurableBillingApproach: z.enum([
     "CONFIGURABLE_BILLING_APPROACH_UNSPECIFIED",
     "CONFIGURABLE_SUBSCRIPTION_INDEXING_CORE",
@@ -272,10 +206,10 @@ const GlobalArgsSchema = z.object({
           "Whether to include appending different levels of headings to chunks from the middle of the document to prevent context loss. Default value: False.",
         ).optional(),
       }).describe("Configuration for the layout based chunking.").optional(),
-    }).describe("Configuration for chunking config.").optional(),
+    }).describe("Whether chunking mode is enabled.").optional(),
     defaultParsingConfig: z.object({
       digitalParsingConfig: z.object({}).describe(
-        "The digital parsing configurations for documents.",
+        "Configurations applied to digital parser.",
       ).optional(),
       layoutParsingConfig: z.object({
         enableGetProcessedDocument: z.boolean().describe(
@@ -302,8 +236,7 @@ const GlobalArgsSchema = z.object({
         structuredContentTypes: z.array(z.string()).describe(
           "Optional. Contains the required structure types to extract from the document. Supported values: * `shareholder-structure`",
         ).optional(),
-      }).describe("The layout parsing configurations for documents.")
-        .optional(),
+      }).describe("Configurations applied to layout parser.").optional(),
       ocrParsingConfig: z.object({
         enhancedDocumentElements: z.array(z.string()).describe(
           "[DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to `layout_parsing_config`.",
@@ -311,9 +244,11 @@ const GlobalArgsSchema = z.object({
         useNativeText: z.boolean().describe(
           "If true, will use native text instead of OCR text on pages containing native text.",
         ).optional(),
-      }).describe("The OCR parsing configurations for documents.").optional(),
+      }).describe(
+        "Configurations applied to OCR parser. Currently it only applies to PDFs.",
+      ).optional(),
     }).describe(
-      "Related configurations applied to a specific type of document parser.",
+      "Configurations for default Document parser. If not specified, we will configure it as default DigitalParsingConfig, and the default parsing config will be applied to all file types for Document parsing.",
     ).optional(),
     name: z.string().describe(
       "The full resource name of the Document Processing Config. Format: `projects/*/locations/*/collections/*/dataStores/*/documentProcessingConfig`.",
@@ -322,7 +257,7 @@ const GlobalArgsSchema = z.object({
       z.string(),
       z.object({
         digitalParsingConfig: z.object({}).describe(
-          "The digital parsing configurations for documents.",
+          "Configurations applied to digital parser.",
         ).optional(),
         layoutParsingConfig: z.object({
           enableGetProcessedDocument: z.boolean().describe(
@@ -349,8 +284,7 @@ const GlobalArgsSchema = z.object({
           structuredContentTypes: z.array(z.unknown()).describe(
             "Optional. Contains the required structure types to extract from the document. Supported values: * `shareholder-structure`",
           ).optional(),
-        }).describe("The layout parsing configurations for documents.")
-          .optional(),
+        }).describe("Configurations applied to layout parser.").optional(),
         ocrParsingConfig: z.object({
           enhancedDocumentElements: z.array(z.unknown()).describe(
             "[DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to `layout_parsing_config`.",
@@ -358,21 +292,22 @@ const GlobalArgsSchema = z.object({
           useNativeText: z.boolean().describe(
             "If true, will use native text instead of OCR text on pages containing native text.",
           ).optional(),
-        }).describe("The OCR parsing configurations for documents.").optional(),
+        }).describe(
+          "Configurations applied to OCR parser. Currently it only applies to PDFs.",
+        ).optional(),
       }),
     ).describe(
       "Map from file type to override the default parsing configuration based on the file type. Supported keys: * `pdf`: Override parsing config for PDF files, either digital parsing, ocr parsing or layout parsing is supported. * `html`: Override parsing config for HTML files, only digital parsing and layout parsing are supported. * `docx`: Override parsing config for DOCX files, only digital parsing and layout parsing are supported. * `pptx`: Override parsing config for PPTX files, only digital parsing and layout parsing are supported. * `xlsm`: Override parsing config for XLSM files, only digital parsing and layout parsing are supported. * `xlsx`: Override parsing config for XLSX files, only digital parsing and layout parsing are supported.",
     ).optional(),
-  }).describe(
-    "A singleton resource of DataStore. If it's empty when DataStore is created and DataStore is set to DataStore.ContentConfig.CONTENT_REQUIRED, the default parser will default to digital parser.",
-  ).optional(),
+  }).describe("Configuration for Document understanding and enrichment.")
+    .optional(),
   federatedSearchConfig: z.object({
     alloyDbConfig: z.object({
       alloydbAiNlConfig: z.object({
         nlConfigId: z.string().describe(
           "Optional. AlloyDb AI NL config id, i.e. the value that was used for calling `SELECT alloydb_ai_nl.g_create_configuration(...)`. Can be empty.",
         ).optional(),
-      }).describe("Configuration for AlloyDB AI Natural Language.").optional(),
+      }).describe("Optional. Configuration for Magic.").optional(),
       alloydbConnectionConfig: z.object({
         authMode: z.enum([
           "AUTH_MODE_UNSPECIFIED",
@@ -394,16 +329,21 @@ const GlobalArgsSchema = z.object({
         user: z.string().describe(
           "Required. Database user. If auth_mode = END_USER_ACCOUNT, it can be unset. In that case, the user will be inferred on the AlloyDB side, based on the authenticated user.",
         ).optional(),
-      }).describe("Configuration for connecting to AlloyDB.").optional(),
+      }).describe("Required. Configuration for connecting to AlloyDB.")
+        .optional(),
       returnedFields: z.array(z.string()).describe(
         "Optional. Fields to be returned in the search results. If empty, all fields will be returned.",
       ).optional(),
-    }).describe("Stores information for connecting to AlloyDB.").optional(),
+    }).describe(
+      "AlloyDB config. If set, this DataStore is connected to AlloyDB.",
+    ).optional(),
     notebooklmConfig: z.object({
       searchConfig: z.string().describe(
         "Required. Search config name. Format: projects/*/locations/global/notebookLmSearchConfigs/*",
       ).optional(),
-    }).describe("Config for connecting to NotebookLM Enterprise.").optional(),
+    }).describe(
+      "NotebookLM config. If set, this DataStore is connected to NotebookLM Enterprise.",
+    ).optional(),
     thirdPartyOauthConfig: z.object({
       appName: z.string().describe(
         'Optional. The type of the application. E.g., "jira", "box", etc.',
@@ -411,9 +351,12 @@ const GlobalArgsSchema = z.object({
       instanceName: z.string().describe(
         'Optional. The instance name identifying the 3P app, e.g., "vaissptbots-my". This is different from the instance_uri which is the full URL of the 3P app e.g., "https://vaissptbots-my.sharepoint.com".',
       ).optional(),
-    }).describe("Stores information for third party applicationOAuth.")
-      .optional(),
-  }).describe("Stores information for federated search.").optional(),
+    }).describe(
+      "Third Party OAuth config. If set, this DataStore is connected to a third party application.",
+    ).optional(),
+  }).describe(
+    "Optional. If set, this DataStore is a federated search DataStore.",
+  ).optional(),
   healthcareFhirConfig: z.object({
     enableConfigurableSchema: z.boolean().describe(
       "Whether to enable configurable schema for `HEALTHCARE_FHIR` vertical. If set to `true`, the predefined healthcare fhir schema can be extended for more customized searching and filtering.",
@@ -424,7 +367,7 @@ const GlobalArgsSchema = z.object({
     initialFilterGroups: z.array(z.string()).describe(
       "Optional. Names of the Group resources to use as a basis for the initial patient filter, in format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Group/{group_id}`. The filter group must be a FHIR resource name of type Group, and the filter will be constructed from the direct members of the group which are Patient resources.",
     ).optional(),
-  }).describe("Config to data store for `HEALTHCARE_FHIR` vertical.")
+  }).describe("Optional. Configuration for `HEALTHCARE_FHIR` vertical.")
     .optional(),
   identityMappingStore: z.string().describe(
     "Immutable. The fully qualified resource name of the associated IdentityMappingStore. This field can only be set for acl_enabled DataStores with `THIRD_PARTY` or `GSUITE` IdP. Format: `projects/{project}/locations/{location}/identityMappingStores/{identity_mapping_store}`.",
@@ -449,15 +392,14 @@ const GlobalArgsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]).describe(
       "Mode of Natural Language Query Understanding. If this field is unset, the behavior defaults to NaturalLanguageQueryUnderstandingConfig.Mode.DISABLED.",
     ).optional(),
-  }).describe("Configuration for Natural Language Query Understanding.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for Natural Language Query Understanding.",
+  ).optional(),
   servingConfigDataStore: z.object({
     disabledForServing: z.boolean().describe(
       "Optional. If set true, the DataStore will not be available for serving search requests.",
     ).optional(),
-  }).describe(
-    "Stores information regarding the serving configurations at DataStore level.",
-  ).optional(),
+  }).describe("Optional. Stores serving config at DataStore level.").optional(),
   solutionTypes: z.array(
     z.enum([
       "SOLUTION_TYPE_UNSPECIFIED",
@@ -479,8 +421,9 @@ const GlobalArgsSchema = z.object({
     structSchema: z.record(z.string(), z.string()).describe(
       "The structured representation of the schema.",
     ).optional(),
-  }).describe("Defines the structure and layout of a type of document data.")
-    .optional(),
+  }).describe(
+    "The start schema to use for this DataStore when provisioning it. If unset, a default vertical specialized schema will be used. This field is only used by CreateDataStore API, and will be ignored if used in other APIs. This field will be omitted from all API responses including CreateDataStore API. To retrieve a schema of a DataStore, use SchemaService.GetSchema API instead. The provided schema will be validated against certain rules on schema. Learn more from [this doc](https://cloud.google.com/generative-ai-app-builder/docs/provide-schema).",
+  ).optional(),
   workspaceConfig: z.object({
     dasherCustomerId: z.string().describe(
       "Output only. Obfuscated Dasher customer ID. Derived by the server from the project's GCP organization at data store creation time; any value supplied in the request payload is ignored.",
@@ -504,7 +447,7 @@ const GlobalArgsSchema = z.object({
       "GOOGLE_WORKSPACE",
     ]).describe("The Google Workspace data source.").optional(),
   }).describe(
-    "Config to store data store type configuration for workspace data",
+    "Config to store data store type configuration for workspace data. This must be set when DataStore.content_config is set as DataStore.ContentConfig.GOOGLE_WORKSPACE.",
   ).optional(),
   cmekConfigName: z.string().describe(
     "Resource name of the CmekConfig to use for protecting this DataStore.",
@@ -658,73 +601,7 @@ const InputsSchema = z.object({
     disableInitialIndex: z.boolean().describe(
       "If set true, initial indexing is disabled for the DataStore.",
     ).optional(),
-  }).describe("Configuration data for advance site search.").optional(),
-  billingEstimation: z.object({
-    structuredDataSize: z.string().describe(
-      "Data size for structured data in terms of bytes.",
-    ).optional(),
-    structuredDataUpdateTime: z.string().describe(
-      "Last updated timestamp for structured data.",
-    ).optional(),
-    unstructuredDataSize: z.string().describe(
-      "Data size for unstructured data in terms of bytes.",
-    ).optional(),
-    unstructuredDataUpdateTime: z.string().describe(
-      "Last updated timestamp for unstructured data.",
-    ).optional(),
-    websiteDataSize: z.string().describe(
-      "Data size for websites in terms of bytes.",
-    ).optional(),
-    websiteDataUpdateTime: z.string().describe(
-      "Last updated timestamp for websites.",
-    ).optional(),
-  }).describe("Estimation of data size per data store.").optional(),
-  cmekConfig: z.object({
-    isDefault: z.boolean().describe(
-      "Output only. The default CmekConfig for the Customer.",
-    ).optional(),
-    kmsKey: z.string().describe(
-      "Required. KMS key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. KMS key version resource name which will be used to encrypt resources `/cryptoKeyVersions/{keyVersion}`.",
-    ).optional(),
-    lastRotationTimestampMicros: z.string().describe(
-      "Output only. The timestamp of the last key rotation.",
-    ).optional(),
-    name: z.string().describe(
-      "Required. The name of the CmekConfig of the form `projects/{project}/locations/{location}/cmekConfig` or `projects/{project}/locations/{location}/cmekConfigs/{cmek_config}`.",
-    ).optional(),
-    notebooklmState: z.enum([
-      "NOTEBOOK_LM_STATE_UNSPECIFIED",
-      "NOTEBOOK_LM_NOT_READY",
-      "NOTEBOOK_LM_READY",
-      "NOTEBOOK_LM_NOT_ENABLED",
-    ]).describe(
-      "Output only. Whether the NotebookLM Corpus is ready to be used.",
-    ).optional(),
-    singleRegionKeys: z.array(z.object({
-      kmsKey: z.string().describe(
-        "Required. Single-regional kms key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-      ).optional(),
-    })).describe(
-      "Optional. Single-regional CMEKs that are required for some VAIS features.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "KEY_ISSUE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UNUSABLE",
-      "ACTIVE_ROTATING",
-      "DELETED",
-      "EXPIRED",
-    ]).describe("Output only. The states of the CmekConfig.").optional(),
-  }).describe(
-    "Configurations used to enable CMEK data encryption with Cloud KMS keys.",
-  ).optional(),
+  }).describe("Optional. Configuration for advanced site search.").optional(),
   configurableBillingApproach: z.enum([
     "CONFIGURABLE_BILLING_APPROACH_UNSPECIFIED",
     "CONFIGURABLE_SUBSCRIPTION_INDEXING_CORE",
@@ -753,10 +630,10 @@ const InputsSchema = z.object({
           "Whether to include appending different levels of headings to chunks from the middle of the document to prevent context loss. Default value: False.",
         ).optional(),
       }).describe("Configuration for the layout based chunking.").optional(),
-    }).describe("Configuration for chunking config.").optional(),
+    }).describe("Whether chunking mode is enabled.").optional(),
     defaultParsingConfig: z.object({
       digitalParsingConfig: z.object({}).describe(
-        "The digital parsing configurations for documents.",
+        "Configurations applied to digital parser.",
       ).optional(),
       layoutParsingConfig: z.object({
         enableGetProcessedDocument: z.boolean().describe(
@@ -783,8 +660,7 @@ const InputsSchema = z.object({
         structuredContentTypes: z.array(z.string()).describe(
           "Optional. Contains the required structure types to extract from the document. Supported values: * `shareholder-structure`",
         ).optional(),
-      }).describe("The layout parsing configurations for documents.")
-        .optional(),
+      }).describe("Configurations applied to layout parser.").optional(),
       ocrParsingConfig: z.object({
         enhancedDocumentElements: z.array(z.string()).describe(
           "[DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to `layout_parsing_config`.",
@@ -792,9 +668,11 @@ const InputsSchema = z.object({
         useNativeText: z.boolean().describe(
           "If true, will use native text instead of OCR text on pages containing native text.",
         ).optional(),
-      }).describe("The OCR parsing configurations for documents.").optional(),
+      }).describe(
+        "Configurations applied to OCR parser. Currently it only applies to PDFs.",
+      ).optional(),
     }).describe(
-      "Related configurations applied to a specific type of document parser.",
+      "Configurations for default Document parser. If not specified, we will configure it as default DigitalParsingConfig, and the default parsing config will be applied to all file types for Document parsing.",
     ).optional(),
     name: z.string().describe(
       "The full resource name of the Document Processing Config. Format: `projects/*/locations/*/collections/*/dataStores/*/documentProcessingConfig`.",
@@ -803,7 +681,7 @@ const InputsSchema = z.object({
       z.string(),
       z.object({
         digitalParsingConfig: z.object({}).describe(
-          "The digital parsing configurations for documents.",
+          "Configurations applied to digital parser.",
         ).optional(),
         layoutParsingConfig: z.object({
           enableGetProcessedDocument: z.boolean().describe(
@@ -830,8 +708,7 @@ const InputsSchema = z.object({
           structuredContentTypes: z.array(z.unknown()).describe(
             "Optional. Contains the required structure types to extract from the document. Supported values: * `shareholder-structure`",
           ).optional(),
-        }).describe("The layout parsing configurations for documents.")
-          .optional(),
+        }).describe("Configurations applied to layout parser.").optional(),
         ocrParsingConfig: z.object({
           enhancedDocumentElements: z.array(z.unknown()).describe(
             "[DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to `layout_parsing_config`.",
@@ -839,21 +716,22 @@ const InputsSchema = z.object({
           useNativeText: z.boolean().describe(
             "If true, will use native text instead of OCR text on pages containing native text.",
           ).optional(),
-        }).describe("The OCR parsing configurations for documents.").optional(),
+        }).describe(
+          "Configurations applied to OCR parser. Currently it only applies to PDFs.",
+        ).optional(),
       }),
     ).describe(
       "Map from file type to override the default parsing configuration based on the file type. Supported keys: * `pdf`: Override parsing config for PDF files, either digital parsing, ocr parsing or layout parsing is supported. * `html`: Override parsing config for HTML files, only digital parsing and layout parsing are supported. * `docx`: Override parsing config for DOCX files, only digital parsing and layout parsing are supported. * `pptx`: Override parsing config for PPTX files, only digital parsing and layout parsing are supported. * `xlsm`: Override parsing config for XLSM files, only digital parsing and layout parsing are supported. * `xlsx`: Override parsing config for XLSX files, only digital parsing and layout parsing are supported.",
     ).optional(),
-  }).describe(
-    "A singleton resource of DataStore. If it's empty when DataStore is created and DataStore is set to DataStore.ContentConfig.CONTENT_REQUIRED, the default parser will default to digital parser.",
-  ).optional(),
+  }).describe("Configuration for Document understanding and enrichment.")
+    .optional(),
   federatedSearchConfig: z.object({
     alloyDbConfig: z.object({
       alloydbAiNlConfig: z.object({
         nlConfigId: z.string().describe(
           "Optional. AlloyDb AI NL config id, i.e. the value that was used for calling `SELECT alloydb_ai_nl.g_create_configuration(...)`. Can be empty.",
         ).optional(),
-      }).describe("Configuration for AlloyDB AI Natural Language.").optional(),
+      }).describe("Optional. Configuration for Magic.").optional(),
       alloydbConnectionConfig: z.object({
         authMode: z.enum([
           "AUTH_MODE_UNSPECIFIED",
@@ -875,16 +753,21 @@ const InputsSchema = z.object({
         user: z.string().describe(
           "Required. Database user. If auth_mode = END_USER_ACCOUNT, it can be unset. In that case, the user will be inferred on the AlloyDB side, based on the authenticated user.",
         ).optional(),
-      }).describe("Configuration for connecting to AlloyDB.").optional(),
+      }).describe("Required. Configuration for connecting to AlloyDB.")
+        .optional(),
       returnedFields: z.array(z.string()).describe(
         "Optional. Fields to be returned in the search results. If empty, all fields will be returned.",
       ).optional(),
-    }).describe("Stores information for connecting to AlloyDB.").optional(),
+    }).describe(
+      "AlloyDB config. If set, this DataStore is connected to AlloyDB.",
+    ).optional(),
     notebooklmConfig: z.object({
       searchConfig: z.string().describe(
         "Required. Search config name. Format: projects/*/locations/global/notebookLmSearchConfigs/*",
       ).optional(),
-    }).describe("Config for connecting to NotebookLM Enterprise.").optional(),
+    }).describe(
+      "NotebookLM config. If set, this DataStore is connected to NotebookLM Enterprise.",
+    ).optional(),
     thirdPartyOauthConfig: z.object({
       appName: z.string().describe(
         'Optional. The type of the application. E.g., "jira", "box", etc.',
@@ -892,9 +775,12 @@ const InputsSchema = z.object({
       instanceName: z.string().describe(
         'Optional. The instance name identifying the 3P app, e.g., "vaissptbots-my". This is different from the instance_uri which is the full URL of the 3P app e.g., "https://vaissptbots-my.sharepoint.com".',
       ).optional(),
-    }).describe("Stores information for third party applicationOAuth.")
-      .optional(),
-  }).describe("Stores information for federated search.").optional(),
+    }).describe(
+      "Third Party OAuth config. If set, this DataStore is connected to a third party application.",
+    ).optional(),
+  }).describe(
+    "Optional. If set, this DataStore is a federated search DataStore.",
+  ).optional(),
   healthcareFhirConfig: z.object({
     enableConfigurableSchema: z.boolean().describe(
       "Whether to enable configurable schema for `HEALTHCARE_FHIR` vertical. If set to `true`, the predefined healthcare fhir schema can be extended for more customized searching and filtering.",
@@ -905,7 +791,7 @@ const InputsSchema = z.object({
     initialFilterGroups: z.array(z.string()).describe(
       "Optional. Names of the Group resources to use as a basis for the initial patient filter, in format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Group/{group_id}`. The filter group must be a FHIR resource name of type Group, and the filter will be constructed from the direct members of the group which are Patient resources.",
     ).optional(),
-  }).describe("Config to data store for `HEALTHCARE_FHIR` vertical.")
+  }).describe("Optional. Configuration for `HEALTHCARE_FHIR` vertical.")
     .optional(),
   identityMappingStore: z.string().describe(
     "Immutable. The fully qualified resource name of the associated IdentityMappingStore. This field can only be set for acl_enabled DataStores with `THIRD_PARTY` or `GSUITE` IdP. Format: `projects/{project}/locations/{location}/identityMappingStores/{identity_mapping_store}`.",
@@ -930,15 +816,14 @@ const InputsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]).describe(
       "Mode of Natural Language Query Understanding. If this field is unset, the behavior defaults to NaturalLanguageQueryUnderstandingConfig.Mode.DISABLED.",
     ).optional(),
-  }).describe("Configuration for Natural Language Query Understanding.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for Natural Language Query Understanding.",
+  ).optional(),
   servingConfigDataStore: z.object({
     disabledForServing: z.boolean().describe(
       "Optional. If set true, the DataStore will not be available for serving search requests.",
     ).optional(),
-  }).describe(
-    "Stores information regarding the serving configurations at DataStore level.",
-  ).optional(),
+  }).describe("Optional. Stores serving config at DataStore level.").optional(),
   solutionTypes: z.array(
     z.enum([
       "SOLUTION_TYPE_UNSPECIFIED",
@@ -960,8 +845,9 @@ const InputsSchema = z.object({
     structSchema: z.record(z.string(), z.string()).describe(
       "The structured representation of the schema.",
     ).optional(),
-  }).describe("Defines the structure and layout of a type of document data.")
-    .optional(),
+  }).describe(
+    "The start schema to use for this DataStore when provisioning it. If unset, a default vertical specialized schema will be used. This field is only used by CreateDataStore API, and will be ignored if used in other APIs. This field will be omitted from all API responses including CreateDataStore API. To retrieve a schema of a DataStore, use SchemaService.GetSchema API instead. The provided schema will be validated against certain rules on schema. Learn more from [this doc](https://cloud.google.com/generative-ai-app-builder/docs/provide-schema).",
+  ).optional(),
   workspaceConfig: z.object({
     dasherCustomerId: z.string().describe(
       "Output only. Obfuscated Dasher customer ID. Derived by the server from the project's GCP organization at data store creation time; any value supplied in the request payload is ignored.",
@@ -985,7 +871,7 @@ const InputsSchema = z.object({
       "GOOGLE_WORKSPACE",
     ]).describe("The Google Workspace data source.").optional(),
   }).describe(
-    "Config to store data store type configuration for workspace data",
+    "Config to store data store type configuration for workspace data. This must be set when DataStore.content_config is set as DataStore.ContentConfig.GOOGLE_WORKSPACE.",
   ).optional(),
   cmekConfigName: z.string().describe(
     "Resource name of the CmekConfig to use for protecting this DataStore.",
@@ -1033,7 +919,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores. Registered at `@swamp/gcp/discoveryengine/collections-datastores`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1165,6 +1051,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: billingEstimation, cmekConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          billingEstimation: _billingEstimation,
+          cmekConfig: _cmekConfig,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1192,10 +1090,6 @@ export const model = {
         if (g["advancedSiteSearchConfig"] !== undefined) {
           body["advancedSiteSearchConfig"] = g["advancedSiteSearchConfig"];
         }
-        if (g["billingEstimation"] !== undefined) {
-          body["billingEstimation"] = g["billingEstimation"];
-        }
-        if (g["cmekConfig"] !== undefined) body["cmekConfig"] = g["cmekConfig"];
         if (g["configurableBillingApproach"] !== undefined) {
           body["configurableBillingApproach"] =
             g["configurableBillingApproach"];
@@ -1368,10 +1262,6 @@ export const model = {
         if (g["advancedSiteSearchConfig"] !== undefined) {
           body["advancedSiteSearchConfig"] = g["advancedSiteSearchConfig"];
         }
-        if (g["billingEstimation"] !== undefined) {
-          body["billingEstimation"] = g["billingEstimation"];
-        }
-        if (g["cmekConfig"] !== undefined) body["cmekConfig"] = g["cmekConfig"];
         if (g["configurableBillingApproach"] !== undefined) {
           body["configurableBillingApproach"] =
             g["configurableBillingApproach"];

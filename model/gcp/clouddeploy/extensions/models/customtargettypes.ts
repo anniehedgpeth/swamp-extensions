@@ -206,8 +206,9 @@ const GlobalArgsSchema = z.object({
         repo: z.string().describe(
           "Required. Git repository the package should be cloned from.",
         ).optional(),
-      }).describe("Git repository containing Skaffold Config modules.")
-        .optional(),
+      }).describe(
+        "Optional. Remote git repository containing the Skaffold Config modules.",
+      ).optional(),
       googleCloudBuildRepo: z.object({
         path: z.string().describe(
           "Optional. Relative path from the repository root to the Skaffold Config file.",
@@ -218,8 +219,9 @@ const GlobalArgsSchema = z.object({
         repository: z.string().describe(
           "Required. Name of the Cloud Build V2 Repository. Format is projects/{project}/locations/{location}/connections/{connection}/repositories/{repository}.",
         ).optional(),
-      }).describe("Cloud Build V2 Repository containing Skaffold Configs.")
-        .optional(),
+      }).describe(
+        "Optional. Cloud Build V2 repository containing the Skaffold Config modules.",
+      ).optional(),
       googleCloudStorage: z.object({
         path: z.string().describe(
           "Optional. Relative path from the source to the Skaffold file.",
@@ -227,8 +229,9 @@ const GlobalArgsSchema = z.object({
         source: z.string().describe(
           'Required. Cloud Storage source paths to copy recursively. For example, providing "gs://my-bucket/dir/configs/*" will result in Skaffold copying all files within the "dir/configs" directory in the bucket "my-bucket".',
         ).optional(),
-      }).describe("Cloud Storage bucket containing Skaffold Config modules.")
-        .optional(),
+      }).describe(
+        "Optional. Cloud Storage bucket containing the Skaffold Config modules.",
+      ).optional(),
     })).describe(
       "Optional. List of Skaffold modules Cloud Deploy will include in the Skaffold Config as required before performing diagnose.",
     ).optional(),
@@ -236,7 +239,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The Skaffold custom action responsible for render operations. If not provided then Cloud Deploy will perform the render operations via `skaffold render`.",
     ).optional(),
   }).describe(
-    "CustomTargetSkaffoldActions represents the `CustomTargetType` configuration using Skaffold custom actions.",
+    "Optional. Configures render and deploy for the `CustomTargetType` using Skaffold custom actions.",
   ).optional(),
   description: z.string().describe(
     "Optional. Description of the `CustomTargetType`. Max length is 255 characters.",
@@ -263,11 +266,10 @@ const GlobalArgsSchema = z.object({
           "Required. Image is the container image to use.",
         ).optional(),
       }).describe(
-        "This task is represented by a container that is executed in the Cloud Build execution environment.",
+        "Optional. This task is represented by a container that is executed in the Cloud Build execution environment.",
       ).optional(),
-    }).describe(
-      "A Task represents a unit of work that is executed as part of a Job.",
-    ).optional(),
+    }).describe("Required. The task responsible for deploy operations.")
+      .optional(),
     render: z.object({
       container: z.object({
         args: z.array(z.string()).describe(
@@ -283,13 +285,13 @@ const GlobalArgsSchema = z.object({
           "Required. Image is the container image to use.",
         ).optional(),
       }).describe(
-        "This task is represented by a container that is executed in the Cloud Build execution environment.",
+        "Optional. This task is represented by a container that is executed in the Cloud Build execution environment.",
       ).optional(),
     }).describe(
-      "A Task represents a unit of work that is executed as part of a Job.",
+      "Optional. The task responsible for render operations. If not provided then Cloud Deploy will perform its default rendering operation.",
     ).optional(),
   }).describe(
-    "CustomTargetTasks represents the `CustomTargetType` configuration using tasks.",
+    "Optional. Configures render and deploy for the `CustomTargetType` using tasks.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server knows to ignore the request if it has already been completed. The server guarantees that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -378,8 +380,9 @@ const InputsSchema = z.object({
         repo: z.string().describe(
           "Required. Git repository the package should be cloned from.",
         ).optional(),
-      }).describe("Git repository containing Skaffold Config modules.")
-        .optional(),
+      }).describe(
+        "Optional. Remote git repository containing the Skaffold Config modules.",
+      ).optional(),
       googleCloudBuildRepo: z.object({
         path: z.string().describe(
           "Optional. Relative path from the repository root to the Skaffold Config file.",
@@ -390,8 +393,9 @@ const InputsSchema = z.object({
         repository: z.string().describe(
           "Required. Name of the Cloud Build V2 Repository. Format is projects/{project}/locations/{location}/connections/{connection}/repositories/{repository}.",
         ).optional(),
-      }).describe("Cloud Build V2 Repository containing Skaffold Configs.")
-        .optional(),
+      }).describe(
+        "Optional. Cloud Build V2 repository containing the Skaffold Config modules.",
+      ).optional(),
       googleCloudStorage: z.object({
         path: z.string().describe(
           "Optional. Relative path from the source to the Skaffold file.",
@@ -399,8 +403,9 @@ const InputsSchema = z.object({
         source: z.string().describe(
           'Required. Cloud Storage source paths to copy recursively. For example, providing "gs://my-bucket/dir/configs/*" will result in Skaffold copying all files within the "dir/configs" directory in the bucket "my-bucket".',
         ).optional(),
-      }).describe("Cloud Storage bucket containing Skaffold Config modules.")
-        .optional(),
+      }).describe(
+        "Optional. Cloud Storage bucket containing the Skaffold Config modules.",
+      ).optional(),
     })).describe(
       "Optional. List of Skaffold modules Cloud Deploy will include in the Skaffold Config as required before performing diagnose.",
     ).optional(),
@@ -408,7 +413,7 @@ const InputsSchema = z.object({
       "Optional. The Skaffold custom action responsible for render operations. If not provided then Cloud Deploy will perform the render operations via `skaffold render`.",
     ).optional(),
   }).describe(
-    "CustomTargetSkaffoldActions represents the `CustomTargetType` configuration using Skaffold custom actions.",
+    "Optional. Configures render and deploy for the `CustomTargetType` using Skaffold custom actions.",
   ).optional(),
   description: z.string().describe(
     "Optional. Description of the `CustomTargetType`. Max length is 255 characters.",
@@ -435,11 +440,10 @@ const InputsSchema = z.object({
           "Required. Image is the container image to use.",
         ).optional(),
       }).describe(
-        "This task is represented by a container that is executed in the Cloud Build execution environment.",
+        "Optional. This task is represented by a container that is executed in the Cloud Build execution environment.",
       ).optional(),
-    }).describe(
-      "A Task represents a unit of work that is executed as part of a Job.",
-    ).optional(),
+    }).describe("Required. The task responsible for deploy operations.")
+      .optional(),
     render: z.object({
       container: z.object({
         args: z.array(z.string()).describe(
@@ -455,13 +459,13 @@ const InputsSchema = z.object({
           "Required. Image is the container image to use.",
         ).optional(),
       }).describe(
-        "This task is represented by a container that is executed in the Cloud Build execution environment.",
+        "Optional. This task is represented by a container that is executed in the Cloud Build execution environment.",
       ).optional(),
     }).describe(
-      "A Task represents a unit of work that is executed as part of a Job.",
+      "Optional. The task responsible for render operations. If not provided then Cloud Deploy will perform its default rendering operation.",
     ).optional(),
   }).describe(
-    "CustomTargetTasks represents the `CustomTargetType` configuration using tasks.",
+    "Optional. Configures render and deploy for the `CustomTargetType` using tasks.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server knows to ignore the request if it has already been completed. The server guarantees that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -494,7 +498,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy CustomTargetTypes. Registered at `@swamp/gcp/clouddeploy/customtargettypes`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/customtargettypes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -613,6 +617,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

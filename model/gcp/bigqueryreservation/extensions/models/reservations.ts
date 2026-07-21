@@ -159,7 +159,9 @@ const GlobalArgsSchema = z.object({
     maxSlots: z.string().describe(
       "Optional. Number of slots to be scaled when needed.",
     ).optional(),
-  }).describe("Auto scaling settings.").optional(),
+  }).describe(
+    "Optional. The configuration parameters for the auto scaling feature.",
+  ).optional(),
   concurrency: z.string().describe(
     "Optional. Job concurrency target which sets a soft upper bound on the number of jobs that can run concurrently in this reservation. This is a soft target due to asynchronous nature of the system and various optimizations for small queries. Default value is 0 which means that concurrency target will be automatically computed by the system. NOTE: this field is exposed as target job concurrency in the Information Schema, DDL and BigQuery CLI.",
   ).optional(),
@@ -181,31 +183,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the reservation, e.g., `projects/*/locations/*/reservations/team1-prod`. The reservation_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.",
   ).optional(),
-  replicationStatus: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    lastErrorTime: z.string().describe(
-      "Output only. The time at which the last error was encountered while trying to replicate changes from the primary to the secondary. This field is only available if the replication has not succeeded since.",
-    ).optional(),
-    lastReplicationTime: z.string().describe(
-      "Output only. A timestamp corresponding to the last change on the primary that was successfully replicated to the secondary.",
-    ).optional(),
-    softFailoverStartTime: z.string().describe(
-      "Output only. The time at which a soft failover for the reservation and its associated datasets was initiated. After this field is set, all subsequent changes to the reservation will be rejected unless a hard failover overrides this operation. This field will be cleared once the failover is complete.",
-    ).optional(),
-  }).describe("Disaster Recovery(DR) replication status of the reservation.")
-    .optional(),
   reservationGroup: z.string().describe(
     "Optional. The reservation group that this reservation belongs to. You can set this property when you create or update a reservation. Reservations do not need to belong to a reservation group. Format: projects/{project}/locations/{location}/reservationGroups/{reservation_group} or just {reservation_group}",
   ).optional(),
@@ -225,7 +202,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If present and > 0, the reservation will attempt to limit the slot consumption of queries running for any particular project within it to the given value. This feature is not yet generally available.",
     ).optional(),
   }).describe(
-    "The scheduling policy controls how a reservation's resources are distributed.",
+    "Optional. The scheduling policy to use for jobs and queries running under this reservation. The scheduling policy controls how the reservation's resources are distributed. This feature is not yet generally available.",
   ).optional(),
   secondaryLocation: z.string().describe(
     "Optional. The current location of the reservation's secondary replica. This field is only set for reservations using the managed disaster recovery feature. Users can set this in create reservation calls to create a failover reservation or in update reservation calls to convert a non-failover reservation to a failover reservation(or vice versa).",
@@ -291,7 +268,9 @@ const InputsSchema = z.object({
     maxSlots: z.string().describe(
       "Optional. Number of slots to be scaled when needed.",
     ).optional(),
-  }).describe("Auto scaling settings.").optional(),
+  }).describe(
+    "Optional. The configuration parameters for the auto scaling feature.",
+  ).optional(),
   concurrency: z.string().describe(
     "Optional. Job concurrency target which sets a soft upper bound on the number of jobs that can run concurrently in this reservation. This is a soft target due to asynchronous nature of the system and various optimizations for small queries. Default value is 0 which means that concurrency target will be automatically computed by the system. NOTE: this field is exposed as target job concurrency in the Information Schema, DDL and BigQuery CLI.",
   ).optional(),
@@ -313,31 +292,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the reservation, e.g., `projects/*/locations/*/reservations/team1-prod`. The reservation_id must only contain lower case alphanumeric characters or dashes. It must start with a letter and must not end with a dash. Its maximum length is 64 characters.",
   ).optional(),
-  replicationStatus: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    lastErrorTime: z.string().describe(
-      "Output only. The time at which the last error was encountered while trying to replicate changes from the primary to the secondary. This field is only available if the replication has not succeeded since.",
-    ).optional(),
-    lastReplicationTime: z.string().describe(
-      "Output only. A timestamp corresponding to the last change on the primary that was successfully replicated to the secondary.",
-    ).optional(),
-    softFailoverStartTime: z.string().describe(
-      "Output only. The time at which a soft failover for the reservation and its associated datasets was initiated. After this field is set, all subsequent changes to the reservation will be rejected unless a hard failover overrides this operation. This field will be cleared once the failover is complete.",
-    ).optional(),
-  }).describe("Disaster Recovery(DR) replication status of the reservation.")
-    .optional(),
   reservationGroup: z.string().describe(
     "Optional. The reservation group that this reservation belongs to. You can set this property when you create or update a reservation. Reservations do not need to belong to a reservation group. Format: projects/{project}/locations/{location}/reservationGroups/{reservation_group} or just {reservation_group}",
   ).optional(),
@@ -357,7 +311,7 @@ const InputsSchema = z.object({
       "Optional. If present and > 0, the reservation will attempt to limit the slot consumption of queries running for any particular project within it to the given value. This feature is not yet generally available.",
     ).optional(),
   }).describe(
-    "The scheduling policy controls how a reservation's resources are distributed.",
+    "Optional. The scheduling policy to use for jobs and queries running under this reservation. The scheduling policy controls how the reservation's resources are distributed. This feature is not yet generally available.",
   ).optional(),
   secondaryLocation: z.string().describe(
     "Optional. The current location of the reservation's secondary replica. This field is only set for reservations using the managed disaster recovery feature. Users can set this in create reservation calls to create a failover reservation or in update reservation calls to convert a non-failover reservation to a failover reservation(or vice versa).",
@@ -396,7 +350,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation Reservations. Registered at `@swamp/gcp/bigqueryreservation/reservations`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/reservations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -503,6 +457,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: replicationStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { replicationStatus: _replicationStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -539,9 +501,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["maxSlots"] !== undefined) body["maxSlots"] = g["maxSlots"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["replicationStatus"] !== undefined) {
-          body["replicationStatus"] = g["replicationStatus"];
-        }
         if (g["reservationGroup"] !== undefined) {
           body["reservationGroup"] = g["reservationGroup"];
         }
@@ -676,9 +635,6 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["maxSlots"] !== undefined) body["maxSlots"] = g["maxSlots"];
-        if (g["replicationStatus"] !== undefined) {
-          body["replicationStatus"] = g["replicationStatus"];
-        }
         if (g["reservationGroup"] !== undefined) {
           body["reservationGroup"] = g["reservationGroup"];
         }

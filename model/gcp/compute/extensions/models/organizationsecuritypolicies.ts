@@ -179,9 +179,8 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Configuration options for layer7 adaptive protection for various customizable thresholds.",
       ).optional(),
-    }).describe(
-      "Configuration options for L7 DDoS detection. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
-    ).optional(),
+    }).describe("If set to true, enables Cloud Armor Machine Learning.")
+      .optional(),
   }).describe(
     "Configuration options for Cloud Armor Adaptive Protection (CAAP).",
   ).optional(),
@@ -190,7 +189,9 @@ const GlobalArgsSchema = z.object({
       contentTypes: z.array(z.string()).describe(
         'A list of custom Content-Type header values to apply the JSON parsing. As per RFC 1341, a Content-Type header value has the following format: Content-Type:= type "/" subtype *[";" parameter] When configuring a custom Content-Type header value, only the type/subtype needs to be specified, and the parameters should be excluded.',
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Custom configuration to apply the JSON parsing. Only applicable when json_parsing is set to STANDARD.",
+    ).optional(),
     jsonParsing: z.enum(["DISABLED", "STANDARD", "STANDARD_WITH_GRAPHQL"])
       .optional(),
     logLevel: z.enum(["NORMAL", "VERBOSE"]).optional(),
@@ -274,7 +275,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "The list of request headers to add or overwrite if they're already present.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Optional, additional actions that are performed on headers. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
+    ).optional(),
     kind: z.string().describe(
       "Output only. [Output only] Type of the resource. Alwayscompute#securityPolicyRule for security policy rules",
     ).optional(),
@@ -283,7 +286,9 @@ const GlobalArgsSchema = z.object({
         srcIpRanges: z.array(z.unknown()).describe(
           "CIDR IP address range. Maximum number of src_ip_ranges allowed is 10.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The configuration options available when specifying versioned_expr. This field must be specified if versioned_expr is specified and cannot be specified if versioned_expr is not specified.",
+      ).optional(),
       expr: z.object({
         description: z.string().describe(
           "Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.",
@@ -298,7 +303,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
         ).optional(),
       }).describe(
-        'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+        "User defined CEVAL expression. A CEVAL expression is used to specify match criteria such as origin.ip, source.region_code and contents in the request header. Expressions containing `evaluateThreatIntelligence` require a Cloud Armor Enterprise subscription and are not supported in Edge Policies nor in Regional Policies. Expressions containing `evaluatePreconfiguredExpr('sourceiplist-*')` require a Cloud Armor Enterprise subscription and are only supported in Global Security Policies.",
       ).optional(),
       exprOptions: z.object({
         recaptchaOptions: z.object({
@@ -308,13 +313,17 @@ const GlobalArgsSchema = z.object({
           sessionTokenSiteKeys: z.unknown().describe(
             "A list of site keys to be used during the validation of reCAPTCHA session-tokens. The provided site keys need to be created from reCAPTCHA API under the same project where the security policy is created.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "reCAPTCHA configuration options to be applied for the rule. If the rule does not evaluate reCAPTCHA tokens, this field has no effect.",
+        ).optional(),
+      }).describe(
+        "The configuration options available when specifying a user defined CEVAL expression (i.e., 'expr').",
+      ).optional(),
       versionedExpr: z.enum(["SRC_IPS_V1"]).describe(
         "Preconfigured versioned expression. If this field is specified, config must also be specified. Available preconfigured expressions along with their requirements are: SRC_IPS_V1 - must specify the corresponding src_ip_range field in config.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming traffic is evaluated against. Exactly one field must be specified.",
+      "A match condition that incoming traffic is evaluated against. If it evaluates to true, the corresponding 'action' is enforced.",
     ).optional(),
     networkMatch: z.object({
       destIpRanges: z.array(z.string()).describe(
@@ -349,7 +358,7 @@ const GlobalArgsSchema = z.object({
         "User-defined fields. Each element names a defined field and lists the matching values for that field.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming network traffic is evaluated against.",
+      "A match condition that incoming packets are evaluated against for CLOUD_ARMOR_NETWORK security policies. If it matches, the corresponding 'action' is enforced. The match criteria for a rule consists of built-in match fields (like 'srcIpRanges') and potentially multiple user-defined match fields ('userDefinedFields'). Field values may be extracted directly from the packet or derived from it (e.g. 'srcRegionCodes'). Some fields may not be present in every packet (e.g. 'srcPorts'). A user-defined field is only present if the base header is found in the packet and the entire field is in bounds. Each match field may specify which values can match it, listing one or more ranges, prefixes, or exact values that are considered a match for the field. A field value must be present in order to match a specified match field. If no match values are specified for a match field, then any field value is considered to match it, and it's not required to be present. For strings specifying '*' is also equivalent to match all. For a packet to match a rule, all specified match fields must match the corresponding field values derived from the packet. Example: networkMatch: srcIpRanges: - \"192.0.2.0/24\" - \"198.51.100.0/24\" userDefinedFields: - name: \"ipv4_fragment_offset\" values: - \"1-0x1fff\" The above match condition matches packets with a source IP in 192.0.2.0/24 or 198.51.100.0/24 and a user-defined field named \"ipv4_fragment_offset\" with a value between 1 and 0x1fff inclusive.",
     ).optional(),
     preconfiguredWafConfig: z.object({
       exclusions: z.array(z.object({
@@ -374,7 +383,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "A list of exclusions to apply during preconfigured WAF evaluation.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Preconfigured WAF configuration to be applied for the rule. If the rule does not evaluate preconfigured WAF rules, i.e., if evaluatePreconfiguredWaf() is not used, this field will have no effect.",
+    ).optional(),
     preview: z.boolean().describe(
       "If set to true, the specified action is not enforced.",
     ).optional(),
@@ -392,7 +403,9 @@ const GlobalArgsSchema = z.object({
         intervalSec: z.number().int().describe(
           "Interval over which the threshold is computed.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Can only be specified if the action for the rule is \"rate_based_ban\". If specified, the key will be banned for the configured 'ban_duration_sec' when the number of requests that exceed the 'rate_limit_threshold' also exceed this 'ban_threshold'.",
+      ).optional(),
       conformAction: z.string().describe(
         'Action to take for requests that are under the configured rate limit threshold. Valid option is "allow" only.',
       ).optional(),
@@ -434,7 +447,9 @@ const GlobalArgsSchema = z.object({
         type: z.enum(["EXTERNAL_302", "GOOGLE_RECAPTCHA"]).describe(
           "Type of the redirect action. Possible values are: - GOOGLE_RECAPTCHA: redirect to reCAPTCHA for manual challenge assessment. - EXTERNAL_302: redirect to a different URL via a 302 response.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Parameters defining the redirect action that is used as the exceed action. Cannot be specified if the exceed action is not redirect. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
+      ).optional(),
       rateLimitThreshold: z.object({
         count: z.number().int().describe(
           "Number of HTTP(S) requests for calculating the threshold.",
@@ -442,8 +457,10 @@ const GlobalArgsSchema = z.object({
         intervalSec: z.number().int().describe(
           "Interval over which the threshold is computed.",
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Threshold at which to begin ratelimiting.").optional(),
+    }).describe(
+      'Must be specified if the action is "rate_based_ban" or "throttle" or "fairshare". Cannot be specified for any other actions.',
+    ).optional(),
     redirectOptions: z.object({
       target: z.string().describe(
         "Target for the redirect action. This is required if the type is EXTERNAL_302 and cannot be specified for GOOGLE_RECAPTCHA.",
@@ -451,7 +468,9 @@ const GlobalArgsSchema = z.object({
       type: z.enum(["EXTERNAL_302", "GOOGLE_RECAPTCHA"]).describe(
         "Type of the redirect action. Possible values are: - GOOGLE_RECAPTCHA: redirect to reCAPTCHA for manual challenge assessment. - EXTERNAL_302: redirect to a different URL via a 302 response.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Parameters defining the redirect action. Cannot be specified for any other actions. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
+    ).optional(),
   })).describe(
     'A list of rules that belong to this policy. There must always be a default rule which is a rule with priority 2147483647 and match all condition (for the match condition this means match "*" for srcIpRanges and for the networkMatch condition every field must be either match "*" or not set). If no rules are provided when creating a security policy, a default rule with action "allow" will be added.',
   ).optional(),
@@ -670,9 +689,8 @@ const InputsSchema = z.object({
       })).describe(
         "Configuration options for layer7 adaptive protection for various customizable thresholds.",
       ).optional(),
-    }).describe(
-      "Configuration options for L7 DDoS detection. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
-    ).optional(),
+    }).describe("If set to true, enables Cloud Armor Machine Learning.")
+      .optional(),
   }).describe(
     "Configuration options for Cloud Armor Adaptive Protection (CAAP).",
   ).optional(),
@@ -681,7 +699,9 @@ const InputsSchema = z.object({
       contentTypes: z.array(z.string()).describe(
         'A list of custom Content-Type header values to apply the JSON parsing. As per RFC 1341, a Content-Type header value has the following format: Content-Type:= type "/" subtype *[";" parameter] When configuring a custom Content-Type header value, only the type/subtype needs to be specified, and the parameters should be excluded.',
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Custom configuration to apply the JSON parsing. Only applicable when json_parsing is set to STANDARD.",
+    ).optional(),
     jsonParsing: z.enum(["DISABLED", "STANDARD", "STANDARD_WITH_GRAPHQL"])
       .optional(),
     logLevel: z.enum(["NORMAL", "VERBOSE"]).optional(),
@@ -765,7 +785,9 @@ const InputsSchema = z.object({
       })).describe(
         "The list of request headers to add or overwrite if they're already present.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Optional, additional actions that are performed on headers. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
+    ).optional(),
     kind: z.string().describe(
       "Output only. [Output only] Type of the resource. Alwayscompute#securityPolicyRule for security policy rules",
     ).optional(),
@@ -774,7 +796,9 @@ const InputsSchema = z.object({
         srcIpRanges: z.array(z.unknown()).describe(
           "CIDR IP address range. Maximum number of src_ip_ranges allowed is 10.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The configuration options available when specifying versioned_expr. This field must be specified if versioned_expr is specified and cannot be specified if versioned_expr is not specified.",
+      ).optional(),
       expr: z.object({
         description: z.string().describe(
           "Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.",
@@ -789,7 +813,7 @@ const InputsSchema = z.object({
           "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
         ).optional(),
       }).describe(
-        'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+        "User defined CEVAL expression. A CEVAL expression is used to specify match criteria such as origin.ip, source.region_code and contents in the request header. Expressions containing `evaluateThreatIntelligence` require a Cloud Armor Enterprise subscription and are not supported in Edge Policies nor in Regional Policies. Expressions containing `evaluatePreconfiguredExpr('sourceiplist-*')` require a Cloud Armor Enterprise subscription and are only supported in Global Security Policies.",
       ).optional(),
       exprOptions: z.object({
         recaptchaOptions: z.object({
@@ -799,13 +823,17 @@ const InputsSchema = z.object({
           sessionTokenSiteKeys: z.unknown().describe(
             "A list of site keys to be used during the validation of reCAPTCHA session-tokens. The provided site keys need to be created from reCAPTCHA API under the same project where the security policy is created.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "reCAPTCHA configuration options to be applied for the rule. If the rule does not evaluate reCAPTCHA tokens, this field has no effect.",
+        ).optional(),
+      }).describe(
+        "The configuration options available when specifying a user defined CEVAL expression (i.e., 'expr').",
+      ).optional(),
       versionedExpr: z.enum(["SRC_IPS_V1"]).describe(
         "Preconfigured versioned expression. If this field is specified, config must also be specified. Available preconfigured expressions along with their requirements are: SRC_IPS_V1 - must specify the corresponding src_ip_range field in config.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming traffic is evaluated against. Exactly one field must be specified.",
+      "A match condition that incoming traffic is evaluated against. If it evaluates to true, the corresponding 'action' is enforced.",
     ).optional(),
     networkMatch: z.object({
       destIpRanges: z.array(z.string()).describe(
@@ -840,7 +868,7 @@ const InputsSchema = z.object({
         "User-defined fields. Each element names a defined field and lists the matching values for that field.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming network traffic is evaluated against.",
+      "A match condition that incoming packets are evaluated against for CLOUD_ARMOR_NETWORK security policies. If it matches, the corresponding 'action' is enforced. The match criteria for a rule consists of built-in match fields (like 'srcIpRanges') and potentially multiple user-defined match fields ('userDefinedFields'). Field values may be extracted directly from the packet or derived from it (e.g. 'srcRegionCodes'). Some fields may not be present in every packet (e.g. 'srcPorts'). A user-defined field is only present if the base header is found in the packet and the entire field is in bounds. Each match field may specify which values can match it, listing one or more ranges, prefixes, or exact values that are considered a match for the field. A field value must be present in order to match a specified match field. If no match values are specified for a match field, then any field value is considered to match it, and it's not required to be present. For strings specifying '*' is also equivalent to match all. For a packet to match a rule, all specified match fields must match the corresponding field values derived from the packet. Example: networkMatch: srcIpRanges: - \"192.0.2.0/24\" - \"198.51.100.0/24\" userDefinedFields: - name: \"ipv4_fragment_offset\" values: - \"1-0x1fff\" The above match condition matches packets with a source IP in 192.0.2.0/24 or 198.51.100.0/24 and a user-defined field named \"ipv4_fragment_offset\" with a value between 1 and 0x1fff inclusive.",
     ).optional(),
     preconfiguredWafConfig: z.object({
       exclusions: z.array(z.object({
@@ -865,7 +893,9 @@ const InputsSchema = z.object({
       })).describe(
         "A list of exclusions to apply during preconfigured WAF evaluation.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Preconfigured WAF configuration to be applied for the rule. If the rule does not evaluate preconfigured WAF rules, i.e., if evaluatePreconfiguredWaf() is not used, this field will have no effect.",
+    ).optional(),
     preview: z.boolean().describe(
       "If set to true, the specified action is not enforced.",
     ).optional(),
@@ -883,7 +913,9 @@ const InputsSchema = z.object({
         intervalSec: z.number().int().describe(
           "Interval over which the threshold is computed.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Can only be specified if the action for the rule is \"rate_based_ban\". If specified, the key will be banned for the configured 'ban_duration_sec' when the number of requests that exceed the 'rate_limit_threshold' also exceed this 'ban_threshold'.",
+      ).optional(),
       conformAction: z.string().describe(
         'Action to take for requests that are under the configured rate limit threshold. Valid option is "allow" only.',
       ).optional(),
@@ -925,7 +957,9 @@ const InputsSchema = z.object({
         type: z.enum(["EXTERNAL_302", "GOOGLE_RECAPTCHA"]).describe(
           "Type of the redirect action. Possible values are: - GOOGLE_RECAPTCHA: redirect to reCAPTCHA for manual challenge assessment. - EXTERNAL_302: redirect to a different URL via a 302 response.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Parameters defining the redirect action that is used as the exceed action. Cannot be specified if the exceed action is not redirect. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
+      ).optional(),
       rateLimitThreshold: z.object({
         count: z.number().int().describe(
           "Number of HTTP(S) requests for calculating the threshold.",
@@ -933,8 +967,10 @@ const InputsSchema = z.object({
         intervalSec: z.number().int().describe(
           "Interval over which the threshold is computed.",
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Threshold at which to begin ratelimiting.").optional(),
+    }).describe(
+      'Must be specified if the action is "rate_based_ban" or "throttle" or "fairshare". Cannot be specified for any other actions.',
+    ).optional(),
     redirectOptions: z.object({
       target: z.string().describe(
         "Target for the redirect action. This is required if the type is EXTERNAL_302 and cannot be specified for GOOGLE_RECAPTCHA.",
@@ -942,7 +978,9 @@ const InputsSchema = z.object({
       type: z.enum(["EXTERNAL_302", "GOOGLE_RECAPTCHA"]).describe(
         "Type of the redirect action. Possible values are: - GOOGLE_RECAPTCHA: redirect to reCAPTCHA for manual challenge assessment. - EXTERNAL_302: redirect to a different URL via a 302 response.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Parameters defining the redirect action. Cannot be specified for any other actions. This field is only supported in Global Security Policies of type CLOUD_ARMOR.",
+    ).optional(),
   })).describe(
     'A list of rules that belong to this policy. There must always be a default rule which is a rule with priority 2147483647 and match all condition (for the match condition this means match "*" for srcIpRanges and for the networkMatch condition every field must be either match "*" or not set). If no rules are provided when creating a security policy, a default rule with action "allow" will be added.',
   ).optional(),
@@ -1004,7 +1042,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine OrganizationSecurityPolicies. Registered at `@swamp/gcp/compute/organizationsecuritypolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/organizationsecuritypolicies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1128,6 +1166,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

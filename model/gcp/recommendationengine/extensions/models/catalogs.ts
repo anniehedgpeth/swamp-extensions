@@ -112,9 +112,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. Level of the catalog at which predictions are made. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details.",
     ).optional(),
-  }).describe(
-    "Configures the catalog level that users send events to, and the level at which predictions are made.",
-  ).optional(),
+  }).describe("Required. The catalog item level configuration.").optional(),
   defaultEventStoreId: z.string().describe(
     "Required. The ID of the default event store.",
   ).optional(),
@@ -159,9 +157,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. Level of the catalog at which predictions are made. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details.",
     ).optional(),
-  }).describe(
-    "Configures the catalog level that users send events to, and the level at which predictions are made.",
-  ).optional(),
+  }).describe("Required. The catalog item level configuration.").optional(),
   defaultEventStoreId: z.string().describe(
     "Required. The ID of the default event store.",
   ).optional(),
@@ -197,7 +193,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Recommendations AI (Beta) Catalogs. Registered at `@swamp/gcp/recommendationengine/catalogs`. */
 export const model = {
   type: "@swamp/gcp/recommendationengine/catalogs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -291,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

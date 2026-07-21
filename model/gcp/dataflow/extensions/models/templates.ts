@@ -170,7 +170,7 @@ const GlobalArgsSchema = z.object({
     zone: z.string().describe(
       "Optional. The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.",
     ).optional(),
-  }).describe("The environment values to set at runtime.").optional(),
+  }).describe("The runtime environment for the job.").optional(),
   gcsPath: z.string().describe(
     "Required. A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with `gs://`.",
   ).optional(),
@@ -319,7 +319,7 @@ const InputsSchema = z.object({
     zone: z.string().describe(
       "Optional. The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.",
     ).optional(),
-  }).describe("The environment values to set at runtime.").optional(),
+  }).describe("The runtime environment for the job.").optional(),
   gcsPath: z.string().describe(
     "Required. A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with `gs://`.",
   ).optional(),
@@ -357,7 +357,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Templates. Registered at `@swamp/gcp/dataflow/templates`. */
 export const model = {
   type: "@swamp/gcp/dataflow/templates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -451,6 +451,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

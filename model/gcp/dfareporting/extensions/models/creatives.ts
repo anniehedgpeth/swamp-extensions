@@ -260,7 +260,9 @@ const GlobalArgsSchema = z.object({
     landingPageId: z.string().describe(
       "ID of the landing page for the click-through URL.",
     ).optional(),
-  }).describe("Click-through URL").optional(),
+  }).describe(
+    "Click-through URL for backup image. Applicable to ENHANCED_BANNER when the primary asset type is not HTML_IMAGE.",
+  ).optional(),
   backupImageFeatures: z.array(
     z.enum([
       "CSS_FONT_FACE",
@@ -342,7 +344,9 @@ const GlobalArgsSchema = z.object({
       .describe(
         "Type of browser window for which the backup image of the flash creative can be displayed.",
       ).optional(),
-  }).describe("Target Window.").optional(),
+  }).describe(
+    "Target window for backup image. Applicable to the following creative types: FLASH_INPAGE and HTML5_BANNER. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.",
+  ).optional(),
   clickTags: z.array(z.object({
     clickThroughUrl: z.object({
       computedClickThroughUrl: z.string().describe(
@@ -354,7 +358,9 @@ const GlobalArgsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Parameter value for the specified click tag. This field contains a click-through url.",
+    ).optional(),
     eventName: z.string().describe(
       "Advertiser event name associated with the click tag. This field is used by DISPLAY_IMAGE_GALLERY and HTML5_BANNER creatives. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.",
     ).optional(),
@@ -417,7 +423,9 @@ const GlobalArgsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Exit click-through URL for the event. This field is used only for exit events.",
+    ).optional(),
     id: z.string().describe(
       "ID of this event. This is a required field and should not be modified after insertion.",
     ).optional(),
@@ -439,7 +447,7 @@ const GlobalArgsSchema = z.object({
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
       }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
+        "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
       ).optional(),
       offset: z.object({
         left: z.number().int().describe(
@@ -448,7 +456,9 @@ const GlobalArgsSchema = z.object({
         top: z.number().int().describe(
           "Offset distance from top side of an asset or a window.",
         ).optional(),
-      }).describe("Offset Position.").optional(),
+      }).describe(
+        "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+      ).optional(),
       positionType: z.enum(["CENTER", "COORDINATES"]).describe(
         "Popup window position either centered or at specific coordinate.",
       ).optional(),
@@ -468,7 +478,9 @@ const GlobalArgsSchema = z.object({
         "Whether to display the browser tool bar.",
       ).optional(),
       title: z.string().describe("Title of popup window.").optional(),
-    }).describe("Popup Window Properties.").optional(),
+    }).describe(
+      "Properties for rich media popup windows. This field is used only for exit events.",
+    ).optional(),
     targetType: z.enum([
       "TARGET_BLANK",
       "TARGET_TOP",
@@ -532,7 +544,9 @@ const GlobalArgsSchema = z.object({
         .describe(
           "Type of asset to upload. This is a required field. FLASH and IMAGE are no longer supported for new uploads. All image assets should use HTML_IMAGE.",
         ).optional(),
-    }).describe("Creative Asset ID.").optional(),
+    }).describe(
+      "Identifier of this asset. This is the same identifier returned during creative asset insert operation. This is a required field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.",
+    ).optional(),
     audioBitRate: z.number().int().describe(
       "Audio stream bit rate in kbps. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.",
     ).optional(),
@@ -572,7 +586,9 @@ const GlobalArgsSchema = z.object({
         landingPageId: z.string().describe(
           "ID of the landing page for the click-through URL.",
         ).optional(),
-      }).describe("Click-through URL").optional(),
+      }).describe(
+        "Exit click-through URL for the event. This field is used only for exit events.",
+      ).optional(),
       id: z.string().describe(
         "ID of this event. This is a required field and should not be modified after insertion.",
       ).optional(),
@@ -594,7 +610,7 @@ const GlobalArgsSchema = z.object({
             "Width of this size. Acceptable values are 0 to 32767, inclusive.",
           ).optional(),
         }).describe(
-          "Represents the dimensions of ads, placements, creatives, or creative assets.",
+          "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
         ).optional(),
         offset: z.object({
           left: z.unknown().describe(
@@ -603,7 +619,9 @@ const GlobalArgsSchema = z.object({
           top: z.unknown().describe(
             "Offset distance from top side of an asset or a window.",
           ).optional(),
-        }).describe("Offset Position.").optional(),
+        }).describe(
+          "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+        ).optional(),
         positionType: z.enum(["CENTER", "COORDINATES"]).describe(
           "Popup window position either centered or at specific coordinate.",
         ).optional(),
@@ -623,7 +641,9 @@ const GlobalArgsSchema = z.object({
           "Whether to display the browser tool bar.",
         ).optional(),
         title: z.string().describe("Title of popup window.").optional(),
-      }).describe("Popup Window Properties.").optional(),
+      }).describe(
+        "Properties for rich media popup windows. This field is used only for exit events.",
+      ).optional(),
       targetType: z.enum([
         "TARGET_BLANK",
         "TARGET_TOP",
@@ -634,7 +654,9 @@ const GlobalArgsSchema = z.object({
       videoReportingId: z.string().describe(
         "Video reporting ID, used to differentiate multiple videos in a single creative. This is a read-only field.",
       ).optional(),
-    }).describe("Creative Custom Event.").optional(),
+    }).describe(
+      "Exit event configured for the backup image. Applicable to the following creative types: all RICH_MEDIA.",
+    ).optional(),
     bitRate: z.number().int().describe(
       "Detected bit-rate for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.",
     ).optional(),
@@ -663,7 +685,7 @@ const GlobalArgsSchema = z.object({
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
     }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
+      "Size of an asset when collapsed. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID. Additionally, applicable to assets whose displayType is ASSET_DISPLAY_TYPE_EXPANDING or ASSET_DISPLAY_TYPE_PEEL_DOWN.",
     ).optional(),
     companionCreativeIds: z.array(z.string()).describe(
       "List of companion creatives assigned to an in-stream video creative asset. Acceptable values include IDs of existing flash and image creatives. Applicable to INSTREAM_VIDEO creative type with dynamicAssetSelection set to true.",
@@ -784,7 +806,7 @@ const GlobalArgsSchema = z.object({
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
     }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
+      "Detected expanded dimension for video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO and all VPAID.",
     ).optional(),
     fileSize: z.string().describe(
       "File size associated with this creative asset. This is a read-only field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.",
@@ -827,7 +849,9 @@ const GlobalArgsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "Dimension value for the ID of the asset. This is a read-only, auto-generated field.",
+    ).optional(),
     mediaDuration: z.number().describe(
       "Detected duration for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.",
     ).optional(),
@@ -841,7 +865,9 @@ const GlobalArgsSchema = z.object({
       top: z.number().int().describe(
         "Offset distance from top side of an asset or a window.",
       ).optional(),
-    }).describe("Offset Position.").optional(),
+    }).describe(
+      "Offset position for an asset in collapsed mode. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID. Additionally, only applicable to assets whose displayType is ASSET_DISPLAY_TYPE_EXPANDING or ASSET_DISPLAY_TYPE_PEEL_DOWN.",
+    ).optional(),
     orientation: z.enum(["LANDSCAPE", "PORTRAIT", "SQUARE"]).describe(
       "Orientation of video asset. This is a read-only, auto-generated field.",
     ).optional(),
@@ -858,7 +884,9 @@ const GlobalArgsSchema = z.object({
       top: z.number().int().describe(
         "Offset distance from top side of an asset or a window.",
       ).optional(),
-    }).describe("Offset Position.").optional(),
+    }).describe(
+      "Offset position for an asset. Applicable to the following creative types: all RICH_MEDIA.",
+    ).optional(),
     positionLeftUnit: z.enum([
       "OFFSET_UNIT_PIXEL",
       "OFFSET_UNIT_PERCENT",
@@ -913,7 +941,7 @@ const GlobalArgsSchema = z.object({
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
     }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
+      "Size associated with this creative asset. This is a required field when applicable; however for IMAGE and FLASH_INPAGE, creatives if left blank, this field will be automatically set using the actual size of the associated image asset. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER, IMAGE, and all RICH_MEDIA. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.",
     ).optional(),
     sslCompliant: z.boolean().describe(
       "Whether the asset is SSL-compliant. This is a read-only field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.",
@@ -991,7 +1019,9 @@ const GlobalArgsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Exit click-through URL for the event. This field is used only for exit events.",
+    ).optional(),
     id: z.string().describe(
       "ID of this event. This is a required field and should not be modified after insertion.",
     ).optional(),
@@ -1013,7 +1043,7 @@ const GlobalArgsSchema = z.object({
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
       }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
+        "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
       ).optional(),
       offset: z.object({
         left: z.number().int().describe(
@@ -1022,7 +1052,9 @@ const GlobalArgsSchema = z.object({
         top: z.number().int().describe(
           "Offset distance from top side of an asset or a window.",
         ).optional(),
-      }).describe("Offset Position.").optional(),
+      }).describe(
+        "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+      ).optional(),
       positionType: z.enum(["CENTER", "COORDINATES"]).describe(
         "Popup window position either centered or at specific coordinate.",
       ).optional(),
@@ -1042,7 +1074,9 @@ const GlobalArgsSchema = z.object({
         "Whether to display the browser tool bar.",
       ).optional(),
       title: z.string().describe("Title of popup window.").optional(),
-    }).describe("Popup Window Properties.").optional(),
+    }).describe(
+      "Properties for rich media popup windows. This field is used only for exit events.",
+    ).optional(),
     targetType: z.enum([
       "TARGET_BLANK",
       "TARGET_TOP",
@@ -1068,7 +1102,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     windowHeight: z.number().int().describe("Height of the window.").optional(),
     windowWidth: z.number().int().describe("Width of the window.").optional(),
-  }).describe("FsCommand.").optional(),
+  }).describe(
+    "OpenWindow FSCommand of this creative. This lets the SWF file communicate with either Flash Player or the program hosting Flash Player, such as a web browser. This is only triggered if allowScriptAccess field is true. Applicable to the following creative types: FLASH_INPAGE.",
+  ).optional(),
   htmlCode: z.string().describe(
     "HTML code for the creative. This is a required field when applicable. This field is ignored if htmlCodeLocked is true. Applicable to the following creative types: all CUSTOM, FLASH_INPAGE, and HTML5_BANNER, and all RICH_MEDIA.",
   ).optional(),
@@ -1096,12 +1132,16 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this creative. This is a read-only field. Applicable to all creative types.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Creative last modification information. This is a read-only field. Applicable to all creative types.",
+  ).optional(),
   latestTraffickedCreativeId: z.string().describe(
     "Latest Studio trafficked creative ID associated with rich media and VPAID creatives. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.",
   ).optional(),
@@ -1146,16 +1186,16 @@ const GlobalArgsSchema = z.object({
       width: z.number().int().describe(
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
-    }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
-    ).optional(),
+    }).describe("OBA icon size.").optional(),
     xPosition: z.string().describe(
       "OBA icon x coordinate position. Accepted values are left or right.",
     ).optional(),
     yPosition: z.string().describe(
       "OBA icon y coordinate position. Accepted values are top or bottom.",
     ).optional(),
-  }).describe("Online Behavioral Advertiser icon.").optional(),
+  }).describe(
+    "Online behavioral advertising icon to be added to the creative. Applicable to the following creative types: all INSTREAM_VIDEO.",
+  ).optional(),
   overrideCss: z.string().describe(
     "Override CSS value for rich media creatives. Applicable to the following creative types: all RICH_MEDIA.",
   ).optional(),
@@ -1166,7 +1206,9 @@ const GlobalArgsSchema = z.object({
     offsetSeconds: z.number().int().describe(
       "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
     ).optional(),
-  }).describe("Video Offset").optional(),
+  }).describe(
+    "Amount of time to play the video before counting a view. Applicable to the following creative types: all INSTREAM_VIDEO.",
+  ).optional(),
   redirectUrl: z.string().describe(
     "URL of hosted image or hosted video or another ad tag. For INSTREAM_VIDEO_REDIRECT creatives this is the in-stream video redirect URL. The standard for a VAST (Video Ad Serving Template) ad response allows for a redirect link to another VAST 2.0 or 3.0 call. This is a required field when applicable. Applicable to the following creative types: DISPLAY_REDIRECT, INTERNAL_REDIRECT, INTERSTITIAL_INTERNAL_REDIRECT, and INSTREAM_VIDEO_REDIRECT",
   ).optional(),
@@ -1191,7 +1233,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the rendering ID of this creative. This is a read-only field. Applicable to all creative types.",
+  ).optional(),
   requiredFlashPluginVersion: z.string().describe(
     "The minimum required Flash plugin version for this creative. For example, 11.2.202.235. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.",
   ).optional(),
@@ -1215,7 +1259,7 @@ const GlobalArgsSchema = z.object({
       "Width of this size. Acceptable values are 0 to 32767, inclusive.",
     ).optional(),
   }).describe(
-    "Represents the dimensions of ads, placements, creatives, or creative assets.",
+    "Size associated with this creative. When inserting or updating a creative either the size ID field or size width and height fields can be used. This is a required field when applicable; however for IMAGE, FLASH_INPAGE creatives, and for DISPLAY creatives with a primary asset of type HTML_IMAGE, if left blank, this field will be automatically set using the actual size of the associated image assets. Applicable to the following creative types: DISPLAY, DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER, IMAGE, and all RICH_MEDIA.",
   ).optional(),
   skipOffset: z.object({
     offsetPercentage: z.number().int().describe(
@@ -1224,7 +1268,9 @@ const GlobalArgsSchema = z.object({
     offsetSeconds: z.number().int().describe(
       "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
     ).optional(),
-  }).describe("Video Offset").optional(),
+  }).describe(
+    "Amount of time to play the video before the skip button appears. Applicable to the following creative types: all INSTREAM_VIDEO.",
+  ).optional(),
   skippable: z.boolean().describe(
     "Whether the user can choose to skip the creative. Applicable to the following creative types: all INSTREAM_VIDEO and all VPAID.",
   ).optional(),
@@ -1313,7 +1359,9 @@ const GlobalArgsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Exit click-through URL for the event. This field is used only for exit events.",
+    ).optional(),
     id: z.string().describe(
       "ID of this event. This is a required field and should not be modified after insertion.",
     ).optional(),
@@ -1335,7 +1383,7 @@ const GlobalArgsSchema = z.object({
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
       }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
+        "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
       ).optional(),
       offset: z.object({
         left: z.number().int().describe(
@@ -1344,7 +1392,9 @@ const GlobalArgsSchema = z.object({
         top: z.number().int().describe(
           "Offset distance from top side of an asset or a window.",
         ).optional(),
-      }).describe("Offset Position.").optional(),
+      }).describe(
+        "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+      ).optional(),
       positionType: z.enum(["CENTER", "COORDINATES"]).describe(
         "Popup window position either centered or at specific coordinate.",
       ).optional(),
@@ -1364,7 +1414,9 @@ const GlobalArgsSchema = z.object({
         "Whether to display the browser tool bar.",
       ).optional(),
       title: z.string().describe("Title of popup window.").optional(),
-    }).describe("Popup Window Properties.").optional(),
+    }).describe(
+      "Properties for rich media popup windows. This field is used only for exit events.",
+    ).optional(),
     targetType: z.enum([
       "TARGET_BLANK",
       "TARGET_TOP",
@@ -1423,7 +1475,7 @@ const GlobalArgsSchema = z.object({
       'ID value for this creative. Only alphanumeric characters and the following symbols are valid: "_/\\-". Maximum length is 64 characters. Read only when registry is DCM.',
     ).optional(),
   }).describe(
-    "A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and VPAID.",
+    "A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO and INSTREAM_VIDEO and VPAID.",
   ).optional(),
   version: z.number().int().describe(
     "The version number helps you keep track of multiple versions of your creative in your reports. The version number will always be auto-generated during insert operations to start at 1. For tracking creatives the version cannot be incremented and will always remain at 1. For all other creative types the version can be incremented only by 1 during update operations. In addition, the version will be automatically incremented by 1 when undergoing Rich Media creative merging. Applicable to all creative types.",
@@ -1894,7 +1946,9 @@ const InputsSchema = z.object({
     landingPageId: z.string().describe(
       "ID of the landing page for the click-through URL.",
     ).optional(),
-  }).describe("Click-through URL").optional(),
+  }).describe(
+    "Click-through URL for backup image. Applicable to ENHANCED_BANNER when the primary asset type is not HTML_IMAGE.",
+  ).optional(),
   backupImageFeatures: z.array(
     z.enum([
       "CSS_FONT_FACE",
@@ -1976,7 +2030,9 @@ const InputsSchema = z.object({
       .describe(
         "Type of browser window for which the backup image of the flash creative can be displayed.",
       ).optional(),
-  }).describe("Target Window.").optional(),
+  }).describe(
+    "Target window for backup image. Applicable to the following creative types: FLASH_INPAGE and HTML5_BANNER. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.",
+  ).optional(),
   clickTags: z.array(z.object({
     clickThroughUrl: z.object({
       computedClickThroughUrl: z.string().describe(
@@ -1988,7 +2044,9 @@ const InputsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Parameter value for the specified click tag. This field contains a click-through url.",
+    ).optional(),
     eventName: z.string().describe(
       "Advertiser event name associated with the click tag. This field is used by DISPLAY_IMAGE_GALLERY and HTML5_BANNER creatives. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.",
     ).optional(),
@@ -2051,7 +2109,9 @@ const InputsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Exit click-through URL for the event. This field is used only for exit events.",
+    ).optional(),
     id: z.string().describe(
       "ID of this event. This is a required field and should not be modified after insertion.",
     ).optional(),
@@ -2073,7 +2133,7 @@ const InputsSchema = z.object({
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
       }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
+        "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
       ).optional(),
       offset: z.object({
         left: z.number().int().describe(
@@ -2082,7 +2142,9 @@ const InputsSchema = z.object({
         top: z.number().int().describe(
           "Offset distance from top side of an asset or a window.",
         ).optional(),
-      }).describe("Offset Position.").optional(),
+      }).describe(
+        "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+      ).optional(),
       positionType: z.enum(["CENTER", "COORDINATES"]).describe(
         "Popup window position either centered or at specific coordinate.",
       ).optional(),
@@ -2102,7 +2164,9 @@ const InputsSchema = z.object({
         "Whether to display the browser tool bar.",
       ).optional(),
       title: z.string().describe("Title of popup window.").optional(),
-    }).describe("Popup Window Properties.").optional(),
+    }).describe(
+      "Properties for rich media popup windows. This field is used only for exit events.",
+    ).optional(),
     targetType: z.enum([
       "TARGET_BLANK",
       "TARGET_TOP",
@@ -2166,7 +2230,9 @@ const InputsSchema = z.object({
         .describe(
           "Type of asset to upload. This is a required field. FLASH and IMAGE are no longer supported for new uploads. All image assets should use HTML_IMAGE.",
         ).optional(),
-    }).describe("Creative Asset ID.").optional(),
+    }).describe(
+      "Identifier of this asset. This is the same identifier returned during creative asset insert operation. This is a required field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.",
+    ).optional(),
     audioBitRate: z.number().int().describe(
       "Audio stream bit rate in kbps. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.",
     ).optional(),
@@ -2206,7 +2272,9 @@ const InputsSchema = z.object({
         landingPageId: z.string().describe(
           "ID of the landing page for the click-through URL.",
         ).optional(),
-      }).describe("Click-through URL").optional(),
+      }).describe(
+        "Exit click-through URL for the event. This field is used only for exit events.",
+      ).optional(),
       id: z.string().describe(
         "ID of this event. This is a required field and should not be modified after insertion.",
       ).optional(),
@@ -2228,7 +2296,7 @@ const InputsSchema = z.object({
             "Width of this size. Acceptable values are 0 to 32767, inclusive.",
           ).optional(),
         }).describe(
-          "Represents the dimensions of ads, placements, creatives, or creative assets.",
+          "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
         ).optional(),
         offset: z.object({
           left: z.unknown().describe(
@@ -2237,7 +2305,9 @@ const InputsSchema = z.object({
           top: z.unknown().describe(
             "Offset distance from top side of an asset or a window.",
           ).optional(),
-        }).describe("Offset Position.").optional(),
+        }).describe(
+          "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+        ).optional(),
         positionType: z.enum(["CENTER", "COORDINATES"]).describe(
           "Popup window position either centered or at specific coordinate.",
         ).optional(),
@@ -2257,7 +2327,9 @@ const InputsSchema = z.object({
           "Whether to display the browser tool bar.",
         ).optional(),
         title: z.string().describe("Title of popup window.").optional(),
-      }).describe("Popup Window Properties.").optional(),
+      }).describe(
+        "Properties for rich media popup windows. This field is used only for exit events.",
+      ).optional(),
       targetType: z.enum([
         "TARGET_BLANK",
         "TARGET_TOP",
@@ -2268,7 +2340,9 @@ const InputsSchema = z.object({
       videoReportingId: z.string().describe(
         "Video reporting ID, used to differentiate multiple videos in a single creative. This is a read-only field.",
       ).optional(),
-    }).describe("Creative Custom Event.").optional(),
+    }).describe(
+      "Exit event configured for the backup image. Applicable to the following creative types: all RICH_MEDIA.",
+    ).optional(),
     bitRate: z.number().int().describe(
       "Detected bit-rate for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.",
     ).optional(),
@@ -2297,7 +2371,7 @@ const InputsSchema = z.object({
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
     }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
+      "Size of an asset when collapsed. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID. Additionally, applicable to assets whose displayType is ASSET_DISPLAY_TYPE_EXPANDING or ASSET_DISPLAY_TYPE_PEEL_DOWN.",
     ).optional(),
     companionCreativeIds: z.array(z.string()).describe(
       "List of companion creatives assigned to an in-stream video creative asset. Acceptable values include IDs of existing flash and image creatives. Applicable to INSTREAM_VIDEO creative type with dynamicAssetSelection set to true.",
@@ -2418,7 +2492,7 @@ const InputsSchema = z.object({
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
     }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
+      "Detected expanded dimension for video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_VIDEO and all VPAID.",
     ).optional(),
     fileSize: z.string().describe(
       "File size associated with this creative asset. This is a read-only field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.",
@@ -2461,7 +2535,9 @@ const InputsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "Dimension value for the ID of the asset. This is a read-only, auto-generated field.",
+    ).optional(),
     mediaDuration: z.number().describe(
       "Detected duration for audio or video asset. This is a read-only field. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and all VPAID.",
     ).optional(),
@@ -2475,7 +2551,9 @@ const InputsSchema = z.object({
       top: z.number().int().describe(
         "Offset distance from top side of an asset or a window.",
       ).optional(),
-    }).describe("Offset Position.").optional(),
+    }).describe(
+      "Offset position for an asset in collapsed mode. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID. Additionally, only applicable to assets whose displayType is ASSET_DISPLAY_TYPE_EXPANDING or ASSET_DISPLAY_TYPE_PEEL_DOWN.",
+    ).optional(),
     orientation: z.enum(["LANDSCAPE", "PORTRAIT", "SQUARE"]).describe(
       "Orientation of video asset. This is a read-only, auto-generated field.",
     ).optional(),
@@ -2492,7 +2570,9 @@ const InputsSchema = z.object({
       top: z.number().int().describe(
         "Offset distance from top side of an asset or a window.",
       ).optional(),
-    }).describe("Offset Position.").optional(),
+    }).describe(
+      "Offset position for an asset. Applicable to the following creative types: all RICH_MEDIA.",
+    ).optional(),
     positionLeftUnit: z.enum([
       "OFFSET_UNIT_PIXEL",
       "OFFSET_UNIT_PERCENT",
@@ -2547,7 +2627,7 @@ const InputsSchema = z.object({
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
     }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
+      "Size associated with this creative asset. This is a required field when applicable; however for IMAGE and FLASH_INPAGE, creatives if left blank, this field will be automatically set using the actual size of the associated image asset. Applicable to the following creative types: DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER, IMAGE, and all RICH_MEDIA. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.",
     ).optional(),
     sslCompliant: z.boolean().describe(
       "Whether the asset is SSL-compliant. This is a read-only field. Applicable to all but the following creative types: all REDIRECT and TRACKING_TEXT.",
@@ -2625,7 +2705,9 @@ const InputsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Exit click-through URL for the event. This field is used only for exit events.",
+    ).optional(),
     id: z.string().describe(
       "ID of this event. This is a required field and should not be modified after insertion.",
     ).optional(),
@@ -2647,7 +2729,7 @@ const InputsSchema = z.object({
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
       }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
+        "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
       ).optional(),
       offset: z.object({
         left: z.number().int().describe(
@@ -2656,7 +2738,9 @@ const InputsSchema = z.object({
         top: z.number().int().describe(
           "Offset distance from top side of an asset or a window.",
         ).optional(),
-      }).describe("Offset Position.").optional(),
+      }).describe(
+        "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+      ).optional(),
       positionType: z.enum(["CENTER", "COORDINATES"]).describe(
         "Popup window position either centered or at specific coordinate.",
       ).optional(),
@@ -2676,7 +2760,9 @@ const InputsSchema = z.object({
         "Whether to display the browser tool bar.",
       ).optional(),
       title: z.string().describe("Title of popup window.").optional(),
-    }).describe("Popup Window Properties.").optional(),
+    }).describe(
+      "Properties for rich media popup windows. This field is used only for exit events.",
+    ).optional(),
     targetType: z.enum([
       "TARGET_BLANK",
       "TARGET_TOP",
@@ -2702,7 +2788,9 @@ const InputsSchema = z.object({
     ).optional(),
     windowHeight: z.number().int().describe("Height of the window.").optional(),
     windowWidth: z.number().int().describe("Width of the window.").optional(),
-  }).describe("FsCommand.").optional(),
+  }).describe(
+    "OpenWindow FSCommand of this creative. This lets the SWF file communicate with either Flash Player or the program hosting Flash Player, such as a web browser. This is only triggered if allowScriptAccess field is true. Applicable to the following creative types: FLASH_INPAGE.",
+  ).optional(),
   htmlCode: z.string().describe(
     "HTML code for the creative. This is a required field when applicable. This field is ignored if htmlCodeLocked is true. Applicable to the following creative types: all CUSTOM, FLASH_INPAGE, and HTML5_BANNER, and all RICH_MEDIA.",
   ).optional(),
@@ -2730,12 +2818,16 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this creative. This is a read-only field. Applicable to all creative types.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Creative last modification information. This is a read-only field. Applicable to all creative types.",
+  ).optional(),
   latestTraffickedCreativeId: z.string().describe(
     "Latest Studio trafficked creative ID associated with rich media and VPAID creatives. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.",
   ).optional(),
@@ -2780,16 +2872,16 @@ const InputsSchema = z.object({
       width: z.number().int().describe(
         "Width of this size. Acceptable values are 0 to 32767, inclusive.",
       ).optional(),
-    }).describe(
-      "Represents the dimensions of ads, placements, creatives, or creative assets.",
-    ).optional(),
+    }).describe("OBA icon size.").optional(),
     xPosition: z.string().describe(
       "OBA icon x coordinate position. Accepted values are left or right.",
     ).optional(),
     yPosition: z.string().describe(
       "OBA icon y coordinate position. Accepted values are top or bottom.",
     ).optional(),
-  }).describe("Online Behavioral Advertiser icon.").optional(),
+  }).describe(
+    "Online behavioral advertising icon to be added to the creative. Applicable to the following creative types: all INSTREAM_VIDEO.",
+  ).optional(),
   overrideCss: z.string().describe(
     "Override CSS value for rich media creatives. Applicable to the following creative types: all RICH_MEDIA.",
   ).optional(),
@@ -2800,7 +2892,9 @@ const InputsSchema = z.object({
     offsetSeconds: z.number().int().describe(
       "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
     ).optional(),
-  }).describe("Video Offset").optional(),
+  }).describe(
+    "Amount of time to play the video before counting a view. Applicable to the following creative types: all INSTREAM_VIDEO.",
+  ).optional(),
   redirectUrl: z.string().describe(
     "URL of hosted image or hosted video or another ad tag. For INSTREAM_VIDEO_REDIRECT creatives this is the in-stream video redirect URL. The standard for a VAST (Video Ad Serving Template) ad response allows for a redirect link to another VAST 2.0 or 3.0 call. This is a required field when applicable. Applicable to the following creative types: DISPLAY_REDIRECT, INTERNAL_REDIRECT, INTERSTITIAL_INTERNAL_REDIRECT, and INSTREAM_VIDEO_REDIRECT",
   ).optional(),
@@ -2825,7 +2919,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the rendering ID of this creative. This is a read-only field. Applicable to all creative types.",
+  ).optional(),
   requiredFlashPluginVersion: z.string().describe(
     "The minimum required Flash plugin version for this creative. For example, 11.2.202.235. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA, and all VPAID.",
   ).optional(),
@@ -2849,7 +2945,7 @@ const InputsSchema = z.object({
       "Width of this size. Acceptable values are 0 to 32767, inclusive.",
     ).optional(),
   }).describe(
-    "Represents the dimensions of ads, placements, creatives, or creative assets.",
+    "Size associated with this creative. When inserting or updating a creative either the size ID field or size width and height fields can be used. This is a required field when applicable; however for IMAGE, FLASH_INPAGE creatives, and for DISPLAY creatives with a primary asset of type HTML_IMAGE, if left blank, this field will be automatically set using the actual size of the associated image assets. Applicable to the following creative types: DISPLAY, DISPLAY_IMAGE_GALLERY, FLASH_INPAGE, HTML5_BANNER, IMAGE, and all RICH_MEDIA.",
   ).optional(),
   skipOffset: z.object({
     offsetPercentage: z.number().int().describe(
@@ -2858,7 +2954,9 @@ const InputsSchema = z.object({
     offsetSeconds: z.number().int().describe(
       "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
     ).optional(),
-  }).describe("Video Offset").optional(),
+  }).describe(
+    "Amount of time to play the video before the skip button appears. Applicable to the following creative types: all INSTREAM_VIDEO.",
+  ).optional(),
   skippable: z.boolean().describe(
     "Whether the user can choose to skip the creative. Applicable to the following creative types: all INSTREAM_VIDEO and all VPAID.",
   ).optional(),
@@ -2947,7 +3045,9 @@ const InputsSchema = z.object({
       landingPageId: z.string().describe(
         "ID of the landing page for the click-through URL.",
       ).optional(),
-    }).describe("Click-through URL").optional(),
+    }).describe(
+      "Exit click-through URL for the event. This field is used only for exit events.",
+    ).optional(),
     id: z.string().describe(
       "ID of this event. This is a required field and should not be modified after insertion.",
     ).optional(),
@@ -2969,7 +3069,7 @@ const InputsSchema = z.object({
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
       }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
+        "Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID",
       ).optional(),
       offset: z.object({
         left: z.number().int().describe(
@@ -2978,7 +3078,9 @@ const InputsSchema = z.object({
         top: z.number().int().describe(
           "Offset distance from top side of an asset or a window.",
         ).optional(),
-      }).describe("Offset Position.").optional(),
+      }).describe(
+        "Upper-left corner coordinates of the popup window. Applicable if positionType is COORDINATES.",
+      ).optional(),
       positionType: z.enum(["CENTER", "COORDINATES"]).describe(
         "Popup window position either centered or at specific coordinate.",
       ).optional(),
@@ -2998,7 +3100,9 @@ const InputsSchema = z.object({
         "Whether to display the browser tool bar.",
       ).optional(),
       title: z.string().describe("Title of popup window.").optional(),
-    }).describe("Popup Window Properties.").optional(),
+    }).describe(
+      "Properties for rich media popup windows. This field is used only for exit events.",
+    ).optional(),
     targetType: z.enum([
       "TARGET_BLANK",
       "TARGET_TOP",
@@ -3057,7 +3161,7 @@ const InputsSchema = z.object({
       'ID value for this creative. Only alphanumeric characters and the following symbols are valid: "_/\\-". Maximum length is 64 characters. Read only when registry is DCM.',
     ).optional(),
   }).describe(
-    "A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and VPAID.",
+    "A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO and INSTREAM_VIDEO and VPAID.",
   ).optional(),
   version: z.number().int().describe(
     "The version number helps you keep track of multiple versions of your creative in your reports. The version number will always be auto-generated during insert operations to start at 1. For tracking creatives the version cannot be incremented and will always remain at 1. For all other creative types the version can be incremented only by 1 during update operations. In addition, the version will be automatically incremented by 1 when undergoing Rich Media creative merging. Applicable to all creative types.",
@@ -3090,7 +3194,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Creatives. Registered at `@swamp/gcp/dfareporting/creatives`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/creatives",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3214,6 +3318,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

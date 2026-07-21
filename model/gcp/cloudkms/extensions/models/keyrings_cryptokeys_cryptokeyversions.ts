@@ -165,31 +165,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  attestation: z.object({
-    certChains: z.object({
-      caviumCerts: z.array(z.string()).describe(
-        "Cavium certificate chain corresponding to the attestation.",
-      ).optional(),
-      googleCardCerts: z.array(z.string()).describe(
-        "Google card certificate chain corresponding to the attestation.",
-      ).optional(),
-      googlePartitionCerts: z.array(z.string()).describe(
-        "Google partition certificate chain corresponding to the attestation.",
-      ).optional(),
-    }).describe(
-      "Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.",
-    ).optional(),
-    content: z.string().describe(
-      "Output only. The attestation data provided by the HSM when the key operation was performed.",
-    ).optional(),
-    format: z.enum([
-      "ATTESTATION_FORMAT_UNSPECIFIED",
-      "CAVIUM_V1_COMPRESSED",
-      "CAVIUM_V2_COMPRESSED",
-    ]).describe("Output only. The format of the attestation data.").optional(),
-  }).describe(
-    "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
-  ).optional(),
   externalProtectionLevelOptions: z.object({
     ekmConnectionBackendOverride: z.string().describe(
       "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
@@ -268,31 +243,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  attestation: z.object({
-    certChains: z.object({
-      caviumCerts: z.array(z.string()).describe(
-        "Cavium certificate chain corresponding to the attestation.",
-      ).optional(),
-      googleCardCerts: z.array(z.string()).describe(
-        "Google card certificate chain corresponding to the attestation.",
-      ).optional(),
-      googlePartitionCerts: z.array(z.string()).describe(
-        "Google partition certificate chain corresponding to the attestation.",
-      ).optional(),
-    }).describe(
-      "Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.",
-    ).optional(),
-    content: z.string().describe(
-      "Output only. The attestation data provided by the HSM when the key operation was performed.",
-    ).optional(),
-    format: z.enum([
-      "ATTESTATION_FORMAT_UNSPECIFIED",
-      "CAVIUM_V1_COMPRESSED",
-      "CAVIUM_V2_COMPRESSED",
-    ]).describe("Output only. The format of the attestation data.").optional(),
-  }).describe(
-    "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
-  ).optional(),
   externalProtectionLevelOptions: z.object({
     ekmConnectionBackendOverride: z.string().describe(
       "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
@@ -353,7 +303,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.CryptoKeys.CryptoKeyVersions. Registered at `@swamp/gcp/cloudkms/keyrings-cryptokeys-cryptokeyversions`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-cryptokeys-cryptokeyversions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -474,6 +424,14 @@ export const model = {
       description: "Added: trustedWrappingEnabled",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: attestation",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { attestation: _attestation, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -501,9 +459,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["attestation"] !== undefined) {
-          body["attestation"] = g["attestation"];
-        }
         if (g["externalProtectionLevelOptions"] !== undefined) {
           body["externalProtectionLevelOptions"] =
             g["externalProtectionLevelOptions"];
@@ -531,14 +486,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -629,9 +577,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["attestation"] !== undefined) {
-          body["attestation"] = g["attestation"];
-        }
         if (g["externalProtectionLevelOptions"] !== undefined) {
           body["externalProtectionLevelOptions"] =
             g["externalProtectionLevelOptions"];

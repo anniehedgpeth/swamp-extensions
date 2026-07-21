@@ -242,18 +242,6 @@ const GlobalArgsSchema = z.object({
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
     ).optional(),
-  topology: z.object({
-    endpoints: z.array(z.object({
-      city: z.string().describe(
-        "Output only. The InterconnectLocation.city (metropolitan area designator) that all interconnects are located in.",
-      ).optional(),
-      label: z.string().describe(
-        "Output only. Endpoint label from the wire group.",
-      ).optional(),
-    })).describe(
-      "Output only. Topology details for all endpoints in the wire group.",
-    ).optional(),
-  }).describe("Topology details for the wire group.").optional(),
   wireProperties: z.object({
     bandwidthAllocation: z.enum(["ALLOCATE_PER_WIRE", "SHARED_WITH_WIRE_GROUP"])
       .describe(
@@ -265,7 +253,7 @@ const GlobalArgsSchema = z.object({
     faultResponse: z.enum(["DISABLE_PORT", "NONE"]).describe(
       "Response when a fault is detected in a pseudowire: - NONE: default. - DISABLE_PORT: set the port line protocol down when inline probes detect a fault. This setting is only permitted on port mode pseudowires.",
     ).optional(),
-  }).describe("The properties of a wire.").optional(),
+  }).describe("Properties for all wires in the wire group.").optional(),
   crossSiteNetwork: z.string().describe(
     "The crossSiteNetwork for this resource",
   ),
@@ -346,18 +334,6 @@ const InputsSchema = z.object({
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
     ).optional(),
-  topology: z.object({
-    endpoints: z.array(z.object({
-      city: z.string().describe(
-        "Output only. The InterconnectLocation.city (metropolitan area designator) that all interconnects are located in.",
-      ).optional(),
-      label: z.string().describe(
-        "Output only. Endpoint label from the wire group.",
-      ).optional(),
-    })).describe(
-      "Output only. Topology details for all endpoints in the wire group.",
-    ).optional(),
-  }).describe("Topology details for the wire group.").optional(),
   wireProperties: z.object({
     bandwidthAllocation: z.enum(["ALLOCATE_PER_WIRE", "SHARED_WITH_WIRE_GROUP"])
       .describe(
@@ -369,7 +345,7 @@ const InputsSchema = z.object({
     faultResponse: z.enum(["DISABLE_PORT", "NONE"]).describe(
       "Response when a fault is detected in a pseudowire: - NONE: default. - DISABLE_PORT: set the port line protocol down when inline probes detect a fault. This setting is only permitted on port mode pseudowires.",
     ).optional(),
-  }).describe("The properties of a wire.").optional(),
+  }).describe("Properties for all wires in the wire group.").optional(),
   crossSiteNetwork: z.string().describe(
     "The crossSiteNetwork for this resource",
   ).optional(),
@@ -401,7 +377,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine WireGroups. Registered at `@swamp/gcp/compute/wiregroups`. */
 export const model = {
   type: "@swamp/gcp/compute/wiregroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -508,6 +484,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: topology",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { topology: _topology, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -540,7 +524,6 @@ export const model = {
         }
         if (g["endpoints"] !== undefined) body["endpoints"] = g["endpoints"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["topology"] !== undefined) body["topology"] = g["topology"];
         if (g["wireProperties"] !== undefined) {
           body["wireProperties"] = g["wireProperties"];
         }
@@ -652,7 +635,6 @@ export const model = {
         }
         if (g["endpoints"] !== undefined) body["endpoints"] = g["endpoints"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["topology"] !== undefined) body["topology"] = g["topology"];
         if (g["wireProperties"] !== undefined) {
           body["wireProperties"] = g["wireProperties"];
         }

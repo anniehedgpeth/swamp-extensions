@@ -169,7 +169,7 @@ const GlobalArgsSchema = z.object({
       "App version. By default, the task is sent to the version which is the default version when the task is attempted. For some queues or tasks which were created using the App Engine Task Queue API, host is not parsable into service, version, and instance. For example, some tasks which were created using the App Engine SDK use a custom domain name; custom domains are not parsed by Cloud Tasks. If host is not parsable, then service, version, and instance are the empty string.",
     ).optional(),
   }).describe(
-    "App Engine Routing. Defines routing characteristics specific to App Engine - service, version, and instance. For more information about services, versions, and instances see [An Overview of App Engine](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine), [Microservices Architecture on Google App Engine](https://cloud.google.com/appengine/docs/python/microservices-on-app-engine), [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed), and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed). Using AppEngineRouting requires [`appengine.applications.get`](https://cloud.google.com/appengine/docs/admin-api/access-control) Google IAM permission for the project and the following scope: `https://www.googleapis.com/auth/cloud-platform`",
+    "Overrides for task-level app_engine_routing. These settings apply only to App Engine tasks in this queue. Http tasks are not affected. If set, `app_engine_routing_override` is used for all App Engine tasks in the queue, no matter what the setting is for the task-level app_engine_routing.",
   ).optional(),
   httpTarget: z.object({
     headerOverrides: z.array(z.object({
@@ -177,7 +177,7 @@ const GlobalArgsSchema = z.object({
         key: z.string().describe("The Key of the header.").optional(),
         value: z.string().describe("The Value of the header.").optional(),
       }).describe(
-        "Defines a header message. A header can have a key and a value.",
+        "Header embodying a key and a value. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).",
       ).optional(),
     })).describe(
       'HTTP target headers. This map contains the header field names and values. Headers will be set when running the CreateTask and/or BufferTask. These headers represent a subset of the headers that will be configured for the task\'s HTTP request. Some HTTP request headers will be ignored or replaced. A partial list of headers that will be ignored or replaced is: * Several predefined headers, prefixed with "X-CloudTasks-", can be used to define properties of the task. * Host: This will be computed by Cloud Tasks and derived from HttpRequest.url. * Content-Length: This will be computed by Cloud Tasks. `Content-Type` won\'t be set by Cloud Tasks. You can explicitly set `Content-Type` to a media type when the task is created. For example,`Content-Type` can be set to `"application/octet-stream"` or `"application/json"`. The default value is set to "application/json"`. * User-Agent: This will be set to `"Google-Cloud-Tasks"`. Headers which can have multiple values (according to RFC2616) can be specified using comma-separated values. The size of the headers must be less than 80KB. Queue-level headers to override headers of all the tasks in the queue. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).',
@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
         "[Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OAuth token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.",
       ).optional(),
     }).describe(
-      "Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.",
+      "If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) is generated and attached as the `Authorization` header in the HTTP request. This type of authorization should generally be used only when calling Google APIs hosted on *.googleapis.com. Note that both the service account email and the scope MUST be specified when using the queue-level authorization override.",
     ).optional(),
     oidcToken: z.object({
       audience: z.string().describe(
@@ -212,7 +212,7 @@ const GlobalArgsSchema = z.object({
         "[Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OIDC token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.",
       ).optional(),
     }).describe(
-      "Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect). This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.",
+      "If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token is generated and attached as an `Authorization` header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself. Note that both the service account email and the audience MUST be specified when using the queue-level authorization override.",
     ).optional(),
     uriOverride: z.object({
       host: z.string().describe(
@@ -223,7 +223,7 @@ const GlobalArgsSchema = z.object({
           "The URI path (e.g., /users/1234). Default is an empty string.",
         ).optional(),
       }).describe(
-        "PathOverride. Path message defines path override for HTTP targets.",
+        "URI path. When specified, replaces the existing path of the task URL. Setting the path value to an empty string clears the URI path segment.",
       ).optional(),
       port: z.string().describe(
         'Port override. When specified, replaces the port part of the task URI. For instance, for a URI "https://www.example.com/example" and port=123, the overridden URI becomes "https://www.example.com:123/example". Note that the port value must be a positive integer. Setting the port to 0 (Zero) clears the URI port.',
@@ -233,7 +233,7 @@ const GlobalArgsSchema = z.object({
           "The query parameters (e.g., qparam1=123&qparam2=456). Default is an empty string.",
         ).optional(),
       }).describe(
-        "QueryOverride. Query message defines query override for HTTP targets.",
+        "URI query. When specified, replaces the query part of the task URI. Setting the query value to an empty string clears the URI query segment.",
       ).optional(),
       scheme: z.enum(["SCHEME_UNSPECIFIED", "HTTP", "HTTPS"]).describe(
         "Scheme override. When specified, the task URI scheme is replaced by the provided value (HTTP or HTTPS).",
@@ -246,11 +246,9 @@ const GlobalArgsSchema = z.object({
         "URI Override Enforce Mode When specified, determines the Target UriOverride mode. If not specified, it defaults to ALWAYS.",
       ).optional(),
     }).describe(
-      "URI Override. When specified, all the HTTP tasks inside the queue will be partially or fully overridden depending on the configured values.",
+      "URI override. When specified, overrides the execution URI for all the tasks in the queue.",
     ).optional(),
-  }).describe(
-    "HTTP target. When specified as a Queue, all the tasks with [HttpRequest] will be overridden according to the target.",
-  ).optional(),
+  }).describe("Modifies HTTP target for HTTP tasks.").optional(),
   rateLimits: z.object({
     maxBurstSize: z.number().int().describe(
       "Output only. The max burst size. Max burst size limits how fast tasks in queue are processed when many tasks are in the queue and the rate is high. This field allows the queue to have a high rate so processing starts shortly after a task is enqueued, but still limits resource usage when many tasks are enqueued in a short period of time. The [token bucket](https://wikipedia.org/wiki/Token_Bucket) algorithm is used to control the rate of task dispatches. Each queue has a token bucket that holds tokens, up to the maximum specified by `max_burst_size`. Each time a task is dispatched, a token is removed from the bucket. Tasks will be dispatched until the queue's bucket runs out of tokens. The bucket will be continuously refilled with new tokens based on `max_dispatches_per_second`. Cloud Tasks automatically sets an appropriate `max_burst_size` based on the value of `max_dispatches_per_second`. The value is dynamically optimized to ensure queue stability and throughput. It is generally at least equal to `max_dispatches_per_second` but might be higher to accommodate bursts of traffic. For queues that were created or updated using `queue.yaml/xml`, `max_burst_size` is equal to [bucket_size](https://cloud.google.com/appengine/docs/standard/python/config/queueref#bucket_size). Since `max_burst_size` is output only, if UpdateQueue is called on a queue created by `queue.yaml/xml`, `max_burst_size` will be reset based on the value of `max_dispatches_per_second`, regardless of whether `max_dispatches_per_second` is updated.",
@@ -262,7 +260,7 @@ const GlobalArgsSchema = z.object({
       "The maximum rate at which tasks are dispatched from this queue. If unspecified when the queue is created, Cloud Tasks will pick the default. The maximum allowed value is 500. This field has the same meaning as [rate in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#rate).",
     ).optional(),
   }).describe(
-    "Rate limits. This message determines the maximum rate that tasks can be dispatched by a queue, regardless of whether the dispatch is a first task attempt or a retry. Note: The debugging command, RunTask, will run a task even if the queue has reached its RateLimits.",
+    "Rate limits for task dispatches. rate_limits and retry_config are related because they both control task attempts. However they control task attempts in different ways: * rate_limits controls the total rate of dispatches from a queue (i.e. all traffic dispatched from the queue, regardless of whether the dispatch is from a first attempt or a retry). * retry_config controls what happens to a particular task after its first attempt fails. That is, retry_config controls task retries (the second attempt, third attempt, etc). The queue's actual dispatch rate is the result of: * Number of tasks in the queue * User-specified throttling: rate_limits, retry_config, and the queue's state. * System throttling due to `429` (Too Many Requests) or `503` (Service Unavailable) responses from the worker, high error rates, or to smooth sudden large traffic spikes.",
   ).optional(),
   retryConfig: z.object({
     maxAttempts: z.number().int().describe(
@@ -281,14 +279,14 @@ const GlobalArgsSchema = z.object({
       'A task will be scheduled for retry between min_backoff and max_backoff duration after it fails, if the queue\'s RetryConfig specifies that the task should be retried. The value must be given as a string that indicates the length of time (in seconds) followed by `s` (for "seconds"). For more information on the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). `min_backoff` will be truncated to the nearest second. If unspecified when the queue is created, Cloud Tasks will pick the default. This field has the same meaning as [min_backoff_seconds in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).',
     ).optional(),
   }).describe(
-    "Retry config. These settings determine when a failed task attempt is retried.",
+    "Settings that determine the retry behavior. * For tasks created using Cloud Tasks: the queue-level retry settings apply to all tasks in the queue that were created using Cloud Tasks. Retry settings cannot be set on individual tasks. * For tasks created using the App Engine SDK: the queue-level retry settings apply to all tasks in the queue which do not have retry settings explicitly set on the task and were created by the App Engine SDK. See [App Engine documentation](https://cloud.google.com/appengine/docs/standard/python/taskqueue/push/retrying-tasks).",
   ).optional(),
   stackdriverLoggingConfig: z.object({
     samplingRatio: z.number().describe(
       "Specifies the fraction of operations to write to [Stackdriver Logging](https://cloud.google.com/logging/docs/). This field may contain any value between 0.0 and 1.0, inclusive. 0.0 is the default and means that no operations are logged.",
     ).optional(),
   }).describe(
-    "Configuration options for writing logs to [Stackdriver Logging](https://cloud.google.com/logging/docs/).",
+    "Configuration options for writing logs to [Stackdriver Logging](https://cloud.google.com/logging/docs/). If this field is unset, then no logs are written.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -373,7 +371,7 @@ const InputsSchema = z.object({
       "App version. By default, the task is sent to the version which is the default version when the task is attempted. For some queues or tasks which were created using the App Engine Task Queue API, host is not parsable into service, version, and instance. For example, some tasks which were created using the App Engine SDK use a custom domain name; custom domains are not parsed by Cloud Tasks. If host is not parsable, then service, version, and instance are the empty string.",
     ).optional(),
   }).describe(
-    "App Engine Routing. Defines routing characteristics specific to App Engine - service, version, and instance. For more information about services, versions, and instances see [An Overview of App Engine](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine), [Microservices Architecture on Google App Engine](https://cloud.google.com/appengine/docs/python/microservices-on-app-engine), [App Engine Standard request routing](https://cloud.google.com/appengine/docs/standard/python/how-requests-are-routed), and [App Engine Flex request routing](https://cloud.google.com/appengine/docs/flexible/python/how-requests-are-routed). Using AppEngineRouting requires [`appengine.applications.get`](https://cloud.google.com/appengine/docs/admin-api/access-control) Google IAM permission for the project and the following scope: `https://www.googleapis.com/auth/cloud-platform`",
+    "Overrides for task-level app_engine_routing. These settings apply only to App Engine tasks in this queue. Http tasks are not affected. If set, `app_engine_routing_override` is used for all App Engine tasks in the queue, no matter what the setting is for the task-level app_engine_routing.",
   ).optional(),
   httpTarget: z.object({
     headerOverrides: z.array(z.object({
@@ -381,7 +379,7 @@ const InputsSchema = z.object({
         key: z.string().describe("The Key of the header.").optional(),
         value: z.string().describe("The Value of the header.").optional(),
       }).describe(
-        "Defines a header message. A header can have a key and a value.",
+        "Header embodying a key and a value. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).",
       ).optional(),
     })).describe(
       'HTTP target headers. This map contains the header field names and values. Headers will be set when running the CreateTask and/or BufferTask. These headers represent a subset of the headers that will be configured for the task\'s HTTP request. Some HTTP request headers will be ignored or replaced. A partial list of headers that will be ignored or replaced is: * Several predefined headers, prefixed with "X-CloudTasks-", can be used to define properties of the task. * Host: This will be computed by Cloud Tasks and derived from HttpRequest.url. * Content-Length: This will be computed by Cloud Tasks. `Content-Type` won\'t be set by Cloud Tasks. You can explicitly set `Content-Type` to a media type when the task is created. For example,`Content-Type` can be set to `"application/octet-stream"` or `"application/json"`. The default value is set to "application/json"`. * User-Agent: This will be set to `"Google-Cloud-Tasks"`. Headers which can have multiple values (according to RFC2616) can be specified using comma-separated values. The size of the headers must be less than 80KB. Queue-level headers to override headers of all the tasks in the queue. Do not put business sensitive or personally identifying data in the HTTP Header Override Configuration or other similar fields in accordance with Section 12 (Resource Fields) of the [Service Specific Terms](https://cloud.google.com/terms/service-terms).',
@@ -406,7 +404,7 @@ const InputsSchema = z.object({
         "[Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OAuth token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.",
       ).optional(),
     }).describe(
-      "Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.",
+      "If specified, an [OAuth token](https://developers.google.com/identity/protocols/OAuth2) is generated and attached as the `Authorization` header in the HTTP request. This type of authorization should generally be used only when calling Google APIs hosted on *.googleapis.com. Note that both the service account email and the scope MUST be specified when using the queue-level authorization override.",
     ).optional(),
     oidcToken: z.object({
       audience: z.string().describe(
@@ -416,7 +414,7 @@ const InputsSchema = z.object({
         "[Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating OIDC token. The service account must be within the same project as the queue. The caller must have iam.serviceAccounts.actAs permission for the service account.",
       ).optional(),
     }).describe(
-      "Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect). This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself.",
+      "If specified, an [OIDC](https://developers.google.com/identity/protocols/OpenIDConnect) token is generated and attached as an `Authorization` header in the HTTP request. This type of authorization can be used for many scenarios, including calling Cloud Run, or endpoints where you intend to validate the token yourself. Note that both the service account email and the audience MUST be specified when using the queue-level authorization override.",
     ).optional(),
     uriOverride: z.object({
       host: z.string().describe(
@@ -427,7 +425,7 @@ const InputsSchema = z.object({
           "The URI path (e.g., /users/1234). Default is an empty string.",
         ).optional(),
       }).describe(
-        "PathOverride. Path message defines path override for HTTP targets.",
+        "URI path. When specified, replaces the existing path of the task URL. Setting the path value to an empty string clears the URI path segment.",
       ).optional(),
       port: z.string().describe(
         'Port override. When specified, replaces the port part of the task URI. For instance, for a URI "https://www.example.com/example" and port=123, the overridden URI becomes "https://www.example.com:123/example". Note that the port value must be a positive integer. Setting the port to 0 (Zero) clears the URI port.',
@@ -437,7 +435,7 @@ const InputsSchema = z.object({
           "The query parameters (e.g., qparam1=123&qparam2=456). Default is an empty string.",
         ).optional(),
       }).describe(
-        "QueryOverride. Query message defines query override for HTTP targets.",
+        "URI query. When specified, replaces the query part of the task URI. Setting the query value to an empty string clears the URI query segment.",
       ).optional(),
       scheme: z.enum(["SCHEME_UNSPECIFIED", "HTTP", "HTTPS"]).describe(
         "Scheme override. When specified, the task URI scheme is replaced by the provided value (HTTP or HTTPS).",
@@ -450,11 +448,9 @@ const InputsSchema = z.object({
         "URI Override Enforce Mode When specified, determines the Target UriOverride mode. If not specified, it defaults to ALWAYS.",
       ).optional(),
     }).describe(
-      "URI Override. When specified, all the HTTP tasks inside the queue will be partially or fully overridden depending on the configured values.",
+      "URI override. When specified, overrides the execution URI for all the tasks in the queue.",
     ).optional(),
-  }).describe(
-    "HTTP target. When specified as a Queue, all the tasks with [HttpRequest] will be overridden according to the target.",
-  ).optional(),
+  }).describe("Modifies HTTP target for HTTP tasks.").optional(),
   rateLimits: z.object({
     maxBurstSize: z.number().int().describe(
       "Output only. The max burst size. Max burst size limits how fast tasks in queue are processed when many tasks are in the queue and the rate is high. This field allows the queue to have a high rate so processing starts shortly after a task is enqueued, but still limits resource usage when many tasks are enqueued in a short period of time. The [token bucket](https://wikipedia.org/wiki/Token_Bucket) algorithm is used to control the rate of task dispatches. Each queue has a token bucket that holds tokens, up to the maximum specified by `max_burst_size`. Each time a task is dispatched, a token is removed from the bucket. Tasks will be dispatched until the queue's bucket runs out of tokens. The bucket will be continuously refilled with new tokens based on `max_dispatches_per_second`. Cloud Tasks automatically sets an appropriate `max_burst_size` based on the value of `max_dispatches_per_second`. The value is dynamically optimized to ensure queue stability and throughput. It is generally at least equal to `max_dispatches_per_second` but might be higher to accommodate bursts of traffic. For queues that were created or updated using `queue.yaml/xml`, `max_burst_size` is equal to [bucket_size](https://cloud.google.com/appengine/docs/standard/python/config/queueref#bucket_size). Since `max_burst_size` is output only, if UpdateQueue is called on a queue created by `queue.yaml/xml`, `max_burst_size` will be reset based on the value of `max_dispatches_per_second`, regardless of whether `max_dispatches_per_second` is updated.",
@@ -466,7 +462,7 @@ const InputsSchema = z.object({
       "The maximum rate at which tasks are dispatched from this queue. If unspecified when the queue is created, Cloud Tasks will pick the default. The maximum allowed value is 500. This field has the same meaning as [rate in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#rate).",
     ).optional(),
   }).describe(
-    "Rate limits. This message determines the maximum rate that tasks can be dispatched by a queue, regardless of whether the dispatch is a first task attempt or a retry. Note: The debugging command, RunTask, will run a task even if the queue has reached its RateLimits.",
+    "Rate limits for task dispatches. rate_limits and retry_config are related because they both control task attempts. However they control task attempts in different ways: * rate_limits controls the total rate of dispatches from a queue (i.e. all traffic dispatched from the queue, regardless of whether the dispatch is from a first attempt or a retry). * retry_config controls what happens to a particular task after its first attempt fails. That is, retry_config controls task retries (the second attempt, third attempt, etc). The queue's actual dispatch rate is the result of: * Number of tasks in the queue * User-specified throttling: rate_limits, retry_config, and the queue's state. * System throttling due to `429` (Too Many Requests) or `503` (Service Unavailable) responses from the worker, high error rates, or to smooth sudden large traffic spikes.",
   ).optional(),
   retryConfig: z.object({
     maxAttempts: z.number().int().describe(
@@ -485,14 +481,14 @@ const InputsSchema = z.object({
       'A task will be scheduled for retry between min_backoff and max_backoff duration after it fails, if the queue\'s RetryConfig specifies that the task should be retried. The value must be given as a string that indicates the length of time (in seconds) followed by `s` (for "seconds"). For more information on the format, see the documentation for [Duration](https://protobuf.dev/reference/protobuf/google.protobuf/#duration). `min_backoff` will be truncated to the nearest second. If unspecified when the queue is created, Cloud Tasks will pick the default. This field has the same meaning as [min_backoff_seconds in queue.yaml/xml](https://cloud.google.com/appengine/docs/standard/python/config/queueref#retry_parameters).',
     ).optional(),
   }).describe(
-    "Retry config. These settings determine when a failed task attempt is retried.",
+    "Settings that determine the retry behavior. * For tasks created using Cloud Tasks: the queue-level retry settings apply to all tasks in the queue that were created using Cloud Tasks. Retry settings cannot be set on individual tasks. * For tasks created using the App Engine SDK: the queue-level retry settings apply to all tasks in the queue which do not have retry settings explicitly set on the task and were created by the App Engine SDK. See [App Engine documentation](https://cloud.google.com/appengine/docs/standard/python/taskqueue/push/retrying-tasks).",
   ).optional(),
   stackdriverLoggingConfig: z.object({
     samplingRatio: z.number().describe(
       "Specifies the fraction of operations to write to [Stackdriver Logging](https://cloud.google.com/logging/docs/). This field may contain any value between 0.0 and 1.0, inclusive. 0.0 is the default and means that no operations are logged.",
     ).optional(),
   }).describe(
-    "Configuration options for writing logs to [Stackdriver Logging](https://cloud.google.com/logging/docs/).",
+    "Configuration options for writing logs to [Stackdriver Logging](https://cloud.google.com/logging/docs/). If this field is unset, then no logs are written.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -522,7 +518,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tasks Queues. Registered at `@swamp/gcp/cloudtasks/queues`. */
 export const model = {
   type: "@swamp/gcp/cloudtasks/queues",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -639,6 +635,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -698,16 +699,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -803,9 +795,6 @@ export const model = {
         }
         if (g["httpTarget"] !== undefined) body["httpTarget"] = g["httpTarget"];
         if (g["rateLimits"] !== undefined) body["rateLimits"] = g["rateLimits"];
-        if (g["retryConfig"] !== undefined) {
-          body["retryConfig"] = g["retryConfig"];
-        }
         if (g["stackdriverLoggingConfig"] !== undefined) {
           body["stackdriverLoggingConfig"] = g["stackdriverLoggingConfig"];
         }

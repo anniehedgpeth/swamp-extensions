@@ -155,7 +155,7 @@ const GlobalArgsSchema = z.object({
   connection: z.object({
     cloudSql: z.object({
       cloudSqlIam: z.object({}).describe(
-        "Use IAM authentication to connect. This requires the Cloud SQL IAM feature to be enabled on the instance, which is not the default for Cloud SQL. See https://cloud.google.com/sql/docs/postgres/authentication and https://cloud.google.com/sql/docs/mysql/authentication.",
+        "Built-in IAM authentication (must be configured in Cloud SQL).",
       ).optional(),
       connectionName: z.string().describe(
         "Optional. Immutable. The Cloud SQL instance for which the connection is defined. Only one connection per instance is allowed. This can only be set at creation time, and cannot be updated. It is an error to use a connection_name from different project or region than the one that holds the connection. For example, a Connection resource for Cloud SQL connection_name `project-id:us-central1:sql-instance` must be created under the parent `projects/project-id/locations/us-central1`",
@@ -175,10 +175,9 @@ const GlobalArgsSchema = z.object({
           "Required. The name of the Secret Manager resource that stores the password, in the form `projects/project-id/secrets/secret-name/versions/version`.",
         ).optional(),
         username: z.string().describe("Required. The username.").optional(),
-      }).describe(
-        "A credential consisting of a username and password, where the password is stored in a Secret Manager resource. Note: Secret Manager [charges apply](https://cloud.google.com/secret-manager/pricing).",
-      ).optional(),
-    }).describe("Cloud SQL connection properties.").optional(),
+      }).describe("A username and password stored in Secret Manager.")
+        .optional(),
+    }).describe("Connect to a Cloud SQL instance.").optional(),
     errors: z.array(z.object({
       details: z.object({
         code: z.number().int().describe(
@@ -190,9 +189,7 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -215,7 +212,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Required. The connection's state in its lifecycle.")
       .optional(),
   }).describe(
-    "A data connection to allow the DLP API to profile data in locations that require additional configuration.",
+    "Required. The connection with new values for the relevant fields.",
   ).optional(),
   updateMask: z.string().describe(
     "Optional. Mask to control which fields get updated.",
@@ -260,7 +257,7 @@ const InputsSchema = z.object({
   connection: z.object({
     cloudSql: z.object({
       cloudSqlIam: z.object({}).describe(
-        "Use IAM authentication to connect. This requires the Cloud SQL IAM feature to be enabled on the instance, which is not the default for Cloud SQL. See https://cloud.google.com/sql/docs/postgres/authentication and https://cloud.google.com/sql/docs/mysql/authentication.",
+        "Built-in IAM authentication (must be configured in Cloud SQL).",
       ).optional(),
       connectionName: z.string().describe(
         "Optional. Immutable. The Cloud SQL instance for which the connection is defined. Only one connection per instance is allowed. This can only be set at creation time, and cannot be updated. It is an error to use a connection_name from different project or region than the one that holds the connection. For example, a Connection resource for Cloud SQL connection_name `project-id:us-central1:sql-instance` must be created under the parent `projects/project-id/locations/us-central1`",
@@ -280,10 +277,9 @@ const InputsSchema = z.object({
           "Required. The name of the Secret Manager resource that stores the password, in the form `projects/project-id/secrets/secret-name/versions/version`.",
         ).optional(),
         username: z.string().describe("Required. The username.").optional(),
-      }).describe(
-        "A credential consisting of a username and password, where the password is stored in a Secret Manager resource. Note: Secret Manager [charges apply](https://cloud.google.com/secret-manager/pricing).",
-      ).optional(),
-    }).describe("Cloud SQL connection properties.").optional(),
+      }).describe("A username and password stored in Secret Manager.")
+        .optional(),
+    }).describe("Connect to a Cloud SQL instance.").optional(),
     errors: z.array(z.object({
       details: z.object({
         code: z.number().int().describe(
@@ -295,9 +291,7 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -320,7 +314,7 @@ const InputsSchema = z.object({
     ]).describe("Required. The connection's state in its lifecycle.")
       .optional(),
   }).describe(
-    "A data connection to allow the DLP API to profile data in locations that require additional configuration.",
+    "Required. The connection with new values for the relevant fields.",
   ).optional(),
   updateMask: z.string().describe(
     "Optional. Mask to control which fields get updated.",
@@ -353,7 +347,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) Connections. Registered at `@swamp/gcp/dlp/connections`. */
 export const model = {
   type: "@swamp/gcp/dlp/connections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -455,6 +449,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -502,14 +501,7 @@ export const model = {
               "failedValues": ["ERROR"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

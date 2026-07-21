@@ -146,9 +146,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -163,10 +161,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -179,9 +177,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -196,10 +192,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -211,13 +207,12 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval").optional(),
     kcal: z.number().describe(
       "Required. Energy burned during an activity, measured in kilocalories.",
     ).optional(),
   }).describe(
-    "Energy burned as part of an activity, excluding the basal energy burn.",
+    "Optional. Data for points in the `active-energy-burned` interval data type collection.",
   ).optional(),
   activeMinutes: z.object({
     activeMinutesByActivityLevel: z.array(z.object({
@@ -245,9 +240,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -262,10 +255,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -278,9 +271,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -295,10 +286,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -310,9 +301,10 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Record of active minutes in a given time interval.").optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `active-minutes` interval data type collection.",
+  ).optional(),
   activeZoneMinutes: z.object({
     activeZoneMinutes: z.string().describe(
       "Required. Number of Active Zone Minutes earned in the given time interval. Note: active_zone_minutes equals to 1 for low intensity (fat burn) zones or 2 for high intensity zones (cardio, peak).",
@@ -337,9 +329,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -354,10 +344,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -370,9 +360,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -387,10 +375,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -402,10 +390,10 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Record of active zone minutes in a given time interval.")
-    .optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `active-zone-minutes` interval data type collection, measured in minutes.",
+  ).optional(),
   activityLevel: z.object({
     activityLevelType: z.enum([
       "ACTIVITY_LEVEL_TYPE_UNSPECIFIED",
@@ -427,9 +415,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -444,10 +430,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -460,9 +446,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -477,10 +461,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -492,10 +476,9 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "Internal type to capture activity level during a certain time interval.",
+    "Optional. Data for points in the `activity-level` daily data type collection.",
   ).optional(),
   altitude: z.object({
     gainMillimeters: z.string().describe(
@@ -513,9 +496,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -530,10 +511,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -546,9 +527,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -563,10 +542,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -578,10 +557,9 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "Captures the altitude gain (i.e. deltas), and not level above sea, for a user in millimeters.",
+    "Optional. Data for points in the `altitude` interval data type collection.",
   ).optional(),
   basalEnergyBurned: z.object({
     interval: z.object({
@@ -596,9 +574,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -613,10 +589,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -629,9 +605,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -646,10 +620,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -661,13 +635,12 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
     kcal: z.number().describe(
       "Required. Number of calories burned due to basal metabolic rate in kilocalories over the observed interval.",
     ).optional(),
   }).describe(
-    "Number of calories burned due to basal metabolic rate (BMR) over a period of time.",
+    "Optional. Data for points in the `basal-energy-burned` interval data type collection.",
   ).optional(),
   bloodGlucose: z.object({
     bloodGlucoseMilligramsPerDeciliter: z.number().describe(
@@ -710,9 +683,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -727,10 +698,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -738,7 +709,7 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which blood glucose was measured.")
       .optional(),
     specimen: z.enum([
       "SPECIMEN_UNSPECIFIED",
@@ -752,7 +723,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Type of body fluid used to measure the blood glucose.",
     ).optional(),
   }).describe(
-    "Represents a blood glucose level measurement. LINT: LEGACY_NAMES",
+    "Optional. Data for points in the `blood-glucose` sample data type collection.",
   ).optional(),
   bodyFat: z.object({
     percentage: z.number().describe(
@@ -770,9 +741,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -787,10 +756,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -798,9 +767,11 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which body fat was measured.")
       .optional(),
-  }).describe("Body fat measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `body-fat` sample data type collection.",
+  ).optional(),
   coreBodyTemperature: z.object({
     id: z.string().describe(
       "Optional. The unique identifier of the core body temperature measurement.",
@@ -839,9 +810,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -856,10 +825,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -867,13 +836,14 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
-      .optional(),
+    }).describe(
+      "Required. The time at which core body temperature was measured.",
+    ).optional(),
     temperatureCelsius: z.number().describe(
       "Required. The core body temperature in Celsius.",
     ).optional(),
   }).describe(
-    "Core body temperature measurement, distinct from peripheral body temperature, reflects the temperature of the body's internal organs.",
+    "Optional. Data for points in the `core-body-temperature` sample data type collection.",
   ).optional(),
   dailyHeartRateVariability: z.object({
     averageHeartRateVariabilityMilliseconds: z.number().describe(
@@ -890,7 +860,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in the user's timezone) of heart rate variability measurement.",
     ).optional(),
     deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds: z.number()
       .describe(
@@ -903,7 +873,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Non-REM heart rate",
     ).optional(),
   }).describe(
-    "Represents the daily heart rate variability data type. At least one of the following fields must be set: - `average_heart_rate_variability_milliseconds` - `non_rem_heart_rate_beats_per_minute` - `entropy` - `deep_sleep_root_mean_square_of_successive_differences_milliseconds`",
+    "Optional. Data for points in the `daily-heart-rate-variability` daily data type collection.",
   ).optional(),
   dailyHeartRateZones: z.object({
     date: z.object({
@@ -917,7 +887,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in user's timezone) of the heart rate zones record.",
     ).optional(),
     heartRateZones: z.array(z.object({
       heartRateZoneType: z.enum([
@@ -935,7 +905,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Required. The heart rate zones.").optional(),
   }).describe(
-    "User's heart rate zone thresholds based on the Karvonen algorithm for a specific day.",
+    "Optional. Data for points in the `daily-heart-rate-zones` daily data type collection.",
   ).optional(),
   dailyOxygenSaturation: z.object({
     averagePercentage: z.number().describe(
@@ -952,7 +922,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in user's timezone) of the daily oxygen saturation record.",
     ).optional(),
     lowerBoundPercentage: z.number().describe(
       "Required. The lower bound of the confidence interval of oxygen saturation samples during sleep.",
@@ -964,7 +934,7 @@ const GlobalArgsSchema = z.object({
       "Required. The upper bound of the confidence interval of oxygen saturation samples during sleep.",
     ).optional(),
   }).describe(
-    "A daily oxygen saturation (SpO2) record. Represents the user's daily oxygen saturation summary, typically calculated during sleep.",
+    "Optional. Data for points in the `daily-oxygen-saturation` daily data type collection.",
   ).optional(),
   dailyRespiratoryRate: z.object({
     breathsPerMinute: z.number().describe(
@@ -981,10 +951,10 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. The date on which the respiratory rate was measured.",
     ).optional(),
   }).describe(
-    "A daily average respiratory rate (breaths per minute) for a day of the year. One data point per day calculated for the main sleep.",
+    "Optional. Data for points in the `daily-respiratory-rate` daily data type collection.",
   ).optional(),
   dailyRestingHeartRate: z.object({
     beatsPerMinute: z.string().describe(
@@ -998,7 +968,8 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Required. The method used to calculate the resting heart rate.",
       ).optional(),
-    }).describe("Metadata for the daily resting heart rate.").optional(),
+    }).describe("Optional. Metadata for the daily resting heart rate.")
+      .optional(),
     date: z.object({
       day: z.number().int().describe(
         "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -1010,10 +981,10 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in the user's timezone) of the resting heart rate measurement.",
     ).optional(),
   }).describe(
-    "Measures the daily resting heart rate for a user, calculated using the all day heart rate measurements.",
+    "Optional. Data for points in the `daily-resting-heart-rate` daily data type collection.",
   ).optional(),
   dailySleepTemperatureDerivations: z.object({
     baselineTemperatureCelsius: z.number().describe(
@@ -1030,7 +1001,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date for which the sleep temperature derivations are calculated.",
     ).optional(),
     nightlyTemperatureCelsius: z.number().describe(
       "Required. The user's nightly skin temperature. It is the mean of skin temperature samples taken from the user’s sleep.",
@@ -1039,7 +1010,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The standard deviation of the user’s relative nightly skin temperature (temperature - baseline) over the past 30 days.",
     ).optional(),
   }).describe(
-    "Provides derived sleep temperature values, calculated from skin or internal device temperature readings during sleep.",
+    "Optional. Data for points in the `daily-sleep-temperature-derivations` daily data type collection.",
   ).optional(),
   dailyVo2Max: z.object({
     cardioFitnessLevel: z.enum([
@@ -1063,9 +1034,8 @@ const GlobalArgsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. The date for which the Daily VO2 max was measured.")
+      .optional(),
     estimated: z.boolean().describe(
       "Optional. An estimated field is added to indicate when the confidence has decreased sufficiently to consider the value an estimation.",
     ).optional(),
@@ -1076,7 +1046,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The covariance of the VO2 max value.",
     ).optional(),
   }).describe(
-    "Contains a daily summary of the user's VO2 max (cardio fitness score), which is the maximum rate of oxygen the body can use during exercise.",
+    "Optional. Data for points in the `daily-vo2-max` daily data type collection.",
   ).optional(),
   dataSource: z.object({
     application: z.object({
@@ -1090,7 +1060,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The client ID of the application that recorded the data. This ID is a legacy Fitbit API client ID, which is different from a Google OAuth client ID. Example format: `ABC123`. This field is system-populated and used for tracing data from legacy Fitbit API integrations. This field is system-populated when the data is uploaded from a legacy Fitbit API integration.",
       ).optional(),
     }).describe(
-      "Optional metadata for the application that provided this data.",
+      "Output only. Captures metadata for the application that provided this data.",
     ).optional(),
     device: z.object({
       displayName: z.string().describe(
@@ -1113,7 +1083,7 @@ const GlobalArgsSchema = z.object({
         "Optional. An optional manufacturer of the device.",
       ).optional(),
     }).describe(
-      "Captures metadata about the device that recorded the measurement.",
+      "Optional. Captures metadata for raw data points originating from devices. We expect this data source to be used for data points written on device sync.",
     ).optional(),
     platform: z.enum([
       "PLATFORM_UNSPECIFIED",
@@ -1135,9 +1105,7 @@ const GlobalArgsSchema = z.object({
       "ACTIVELY_MEASURED",
       "UNKNOWN",
     ]).describe("Optional. Captures how the data was recorded.").optional(),
-  }).describe(
-    "Data Source definition to track the origin of data. Each health data point, regardless of the complexity or data model (whether a simple step count or a detailed sleep session) must retain information about its source of origin (e.g. the device or app that collected it).",
-  ).optional(),
+  }).describe("Optional. Data source information for the metric").optional(),
   distance: z.object({
     interval: z.object({
       civilEndTime: z.object({
@@ -1151,9 +1119,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1168,10 +1134,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -1184,9 +1150,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1201,10 +1165,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -1216,12 +1180,13 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
     millimeters: z.string().describe(
       "Required. Distance in millimeters over the observed interval.",
     ).optional(),
-  }).describe("Distance traveled over an interval of time.").optional(),
+  }).describe(
+    "Optional. Data for points in the `distance` interval data type collection.",
+  ).optional(),
   electrocardiogram: z.object({
     beatsPerMinuteAvg: z.string().describe(
       "Optional. Average heart rate recorded during ECG reading in beats per minute.",
@@ -1238,9 +1203,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1255,10 +1218,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -1271,9 +1234,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1288,10 +1249,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -1306,7 +1267,7 @@ const GlobalArgsSchema = z.object({
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
     }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
+      "Required. Observed interval. NOTE: Historical ECG data lacks timezone offsets, so `start_utc_offset` and `end_utc_offset` will be missing or default to zero. As a result, the civil time fields within this interval will default to UTC. It is recommended to use physical time fields instead for accurate time referencing. NOTE: The `start_time` and `end_time` of the interval are equal, representing the reading time.",
     ).optional(),
     leadNumber: z.number().int().describe(
       "Optional. The number of leads used for ECG reading.",
@@ -1328,7 +1289,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The service version used by the feature.",
       ).optional(),
     }).describe(
-      "Software as Medical Device (SaMD) metadata. Used to construct the Unique Device Identifier (UDI).",
+      "Output only. The meta information for the compatible device used to conduct the measurement. ECG measurements typically populate `firmware_version`, `feature_version`, and `device_model`.",
     ).optional(),
     millivoltsScalingFactor: z.number().int().describe(
       "Optional. The factor by which to divide waveform samples to get voltage in millivolts: millivolts = waveform_sample / millivolts_scaling_factor.",
@@ -1351,7 +1312,7 @@ const GlobalArgsSchema = z.object({
       "Optional. An array of voltage values representing lead I ECG values. Each sample represents voltage difference in ECG graph. The first value in array corresponds to the start of the reading.",
     ).optional(),
   }).describe(
-    "Represents an Electrocardiogram (ECG) measurement session. This data type is based on SaMD feature and any changes to it may require additional review.",
+    "Optional. Data for points in the `electrocardiogram` session data type collection.",
   ).optional(),
   exercise: z.object({
     activeDuration: z.string().describe("Optional. Duration excluding pauses.")
@@ -1388,7 +1349,7 @@ const GlobalArgsSchema = z.object({
       poolLengthMillimeters: z.string().describe(
         "Optional. Pool length in millimeters. Only present in the swimming exercises.",
       ).optional(),
-    }).describe("Additional exercise metadata.").optional(),
+    }).describe("Optional. Additional exercise metadata.").optional(),
     exerciseType: z.enum([
       "EXERCISE_TYPE_UNSPECIFIED",
       "AEROBIC_WORKOUT",
@@ -1586,9 +1547,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1603,10 +1562,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -1619,9 +1578,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1636,10 +1593,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -1653,9 +1610,7 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. Observed exercise interval").optional(),
     metricsSummary: z.object({
       activeZoneMinutes: z.string().describe(
         "Optional. Total active zone minutes for the exercise.",
@@ -1691,7 +1646,7 @@ const GlobalArgsSchema = z.object({
         vigorousTime: z.string().describe(
           "Optional. Time spent in vigorous heart rate zone.",
         ).optional(),
-      }).describe("Time spent in each heart rate zone.").optional(),
+      }).describe("Optional. Time spent in each heart rate zone.").optional(),
       mobilityMetrics: z.object({
         avgCadenceStepsPerMinute: z.number().describe(
           "Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.",
@@ -1708,7 +1663,9 @@ const GlobalArgsSchema = z.object({
         avgVerticalRatio: z.number().describe(
           "Optional. Vertical oscillation/stride length between [5.0, 11.0].",
         ).optional(),
-      }).describe("Mobility workouts specific metrics").optional(),
+      }).describe(
+        "Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.",
+      ).optional(),
       runVo2Max: z.number().describe(
         "Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.",
       ).optional(),
@@ -1718,7 +1675,7 @@ const GlobalArgsSchema = z.object({
       totalSwimLengths: z.number().describe(
         "Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.",
       ).optional(),
-    }).describe("Summary metrics for an exercise.").optional(),
+    }).describe("Required. Summary metrics for this exercise ()").optional(),
     notes: z.string().describe(
       "Optional. Standard free-form notes captured at manual logging.",
     ).optional(),
@@ -1765,7 +1722,7 @@ const GlobalArgsSchema = z.object({
           vigorousTime: z.unknown().describe(
             "Optional. Time spent in vigorous heart rate zone.",
           ).optional(),
-        }).describe("Time spent in each heart rate zone.").optional(),
+        }).describe("Optional. Time spent in each heart rate zone.").optional(),
         mobilityMetrics: z.object({
           avgCadenceStepsPerMinute: z.unknown().describe(
             "Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.",
@@ -1782,7 +1739,9 @@ const GlobalArgsSchema = z.object({
           avgVerticalRatio: z.unknown().describe(
             "Optional. Vertical oscillation/stride length between [5.0, 11.0].",
           ).optional(),
-        }).describe("Mobility workouts specific metrics").optional(),
+        }).describe(
+          "Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.",
+        ).optional(),
         runVo2Max: z.number().describe(
           "Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
@@ -1792,7 +1751,7 @@ const GlobalArgsSchema = z.object({
         totalSwimLengths: z.number().describe(
           "Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
-      }).describe("Summary metrics for an exercise.").optional(),
+      }).describe("Required. Summary metrics for this split.").optional(),
       splitType: z.enum([
         "SPLIT_TYPE_UNSPECIFIED",
         "MANUAL",
@@ -1852,7 +1811,7 @@ const GlobalArgsSchema = z.object({
           vigorousTime: z.unknown().describe(
             "Optional. Time spent in vigorous heart rate zone.",
           ).optional(),
-        }).describe("Time spent in each heart rate zone.").optional(),
+        }).describe("Optional. Time spent in each heart rate zone.").optional(),
         mobilityMetrics: z.object({
           avgCadenceStepsPerMinute: z.unknown().describe(
             "Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.",
@@ -1869,7 +1828,9 @@ const GlobalArgsSchema = z.object({
           avgVerticalRatio: z.unknown().describe(
             "Optional. Vertical oscillation/stride length between [5.0, 11.0].",
           ).optional(),
-        }).describe("Mobility workouts specific metrics").optional(),
+        }).describe(
+          "Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.",
+        ).optional(),
         runVo2Max: z.number().describe(
           "Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
@@ -1879,7 +1840,7 @@ const GlobalArgsSchema = z.object({
         totalSwimLengths: z.number().describe(
           "Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
-      }).describe("Summary metrics for an exercise.").optional(),
+      }).describe("Required. Summary metrics for this split.").optional(),
       splitType: z.enum([
         "SPLIT_TYPE_UNSPECIFIED",
         "MANUAL",
@@ -1899,8 +1860,9 @@ const GlobalArgsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. This is the timestamp of the last update to the exercise.",
     ).optional(),
-  }).describe("An exercise that stores information about a physical activity.")
-    .optional(),
+  }).describe(
+    "Optional. Data for points in the `exercise` session data type collection.",
+  ).optional(),
   floors: z.object({
     count: z.string().describe(
       "Required. Number of floors in the recorded interval",
@@ -1917,9 +1879,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1934,10 +1894,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -1950,9 +1910,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1967,10 +1925,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -1982,10 +1940,10 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Gained elevation measured in floors over the time interval")
-    .optional(),
+    }).describe("Required. Observed interval").optional(),
+  }).describe(
+    "Optional. Data for points in the `floors` interval data type collection.",
+  ).optional(),
   food: z.object({
     accessLevel: z.enum([
       "FOOD_ACCESS_LEVEL_UNSPECIFIED",
@@ -2009,9 +1967,8 @@ const GlobalArgsSchema = z.object({
       multiplier: z.number().describe(
         "Optional. Value representing the multiplier used to compute the energy when using this serving instead of the default serving.",
       ).optional(),
-    }).describe(
-      "Represents different properties and information about the serving of a specific food.",
-    ).optional(),
+    }).describe("Required. Value representing the default serving of the food.")
+      .optional(),
     description: z.string().describe("Optional. The description of the food.")
       .optional(),
     displayName: z.string().describe("Required. The display name of the food.")
@@ -2028,7 +1985,9 @@ const GlobalArgsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the average energy of the food for the default serving.",
+    ).optional(),
     energyFromFat: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -2041,7 +2000,9 @@ const GlobalArgsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the energy from fat of the food for the default serving.",
+    ).optional(),
     energyMax: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -2054,7 +2015,9 @@ const GlobalArgsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the maximum energy of the food for the default serving.",
+    ).optional(),
     energyMin: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -2067,7 +2030,9 @@ const GlobalArgsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the minimum energy of the food for the default serving.",
+    ).optional(),
     languageCode: z.string().describe(
       "Optional. The language code where the food is available in format xx-XX. Supported values are defined in Settings.food_language_code.",
     ).optional(),
@@ -2142,7 +2107,8 @@ const GlobalArgsSchema = z.object({
           "NANOGRAM",
         ]).describe("Optional. Value representing the user provided unit.")
           .optional(),
-      }).describe("Represents the weight quantity.").optional(),
+      }).describe("Required. The quantity of the nutrient, measured in grams.")
+        .optional(),
     })).describe(
       "Optional. Value representing the nutrients of the food for the default serving.",
     ).optional(),
@@ -2178,7 +2144,9 @@ const GlobalArgsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the total carbohydrate of the food for the default serving.",
+    ).optional(),
     totalFat: z.object({
       grams: z.number().describe("Required. The weight value in grams.")
         .optional(),
@@ -2194,8 +2162,10 @@ const GlobalArgsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
-  }).describe("Represents a food item.").optional(),
+    }).describe(
+      "Optional. Value representing the total fat of the food for the default serving.",
+    ).optional(),
+  }).describe("Optional. The food details.").optional(),
   foodMeasurementUnit: z.object({
     displayName: z.string().describe(
       'Required. The display name of the food measurement unit (e.g., "gram", "piece").',
@@ -2203,7 +2173,7 @@ const GlobalArgsSchema = z.object({
     pluralDisplayName: z.string().describe(
       'Optional. The plural display name of the food measurement unit (e.g., "grams", "pieces").',
     ).optional(),
-  }).describe("Represents a food measurement unit.").optional(),
+  }).describe("Optional. The food measurement unit details.").optional(),
   heartRate: z.object({
     beatsPerMinute: z.string().describe(
       "Required. The heart rate value in beats per minute.",
@@ -2227,7 +2197,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Indicates the location of the sensor that measured the heart rate.",
       ).optional(),
-    }).describe("Heart rate metadata.").optional(),
+    }).describe("Optional. Metadata about the heart rate sample.").optional(),
     sampleTime: z.object({
       civilTime: z.object({
         date: z.object({
@@ -2240,9 +2210,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2257,10 +2225,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -2268,9 +2236,10 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
-      .optional(),
-  }).describe("A heart rate measurement.").optional(),
+    }).describe("Required. Observation time").optional(),
+  }).describe(
+    "Optional. Data for points in the `heart-rate` sample data type collection.",
+  ).optional(),
   heartRateVariability: z.object({
     rootMeanSquareOfSuccessiveDifferencesMilliseconds: z.number().describe(
       "Optional. The root mean square of successive differences between normal heartbeats. This is a measure of heart rate variability used by Google Health.",
@@ -2287,9 +2256,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2304,10 +2271,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -2315,13 +2282,13 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time of the heart rate variability measurement.")
       .optional(),
     standardDeviationMilliseconds: z.number().describe(
       "Optional. The standard deviation of the heart rate variability measurement.",
     ).optional(),
   }).describe(
-    "Captures user's heart rate variability (HRV) as measured by the root mean square of successive differences (RMSSD) between normal heartbeats or by standard deviation of the inter-beat intervals (SDNN).",
+    "Optional. Data for points in the `heart-rate-variability` sample data type collection.",
   ).optional(),
   height: z.object({
     heightMillimeters: z.string().describe(
@@ -2339,9 +2306,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2356,10 +2321,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -2367,9 +2332,11 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which the height was recorded.")
       .optional(),
-  }).describe("Body height measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `height` sample data type collection.",
+  ).optional(),
   hydrationLog: z.object({
     amountConsumed: z.object({
       milliliters: z.number().describe(
@@ -2388,7 +2355,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Value representing the user provided unit, used only for user-facing input and display purposes. In the API format, all volume quantities are converted to milliliters.",
       ).optional(),
-    }).describe("Represents the volume quantity.").optional(),
+    }).describe("Required. Amount of liquid (ex. water) consumed.").optional(),
     interval: z.object({
       civilEndTime: z.object({
         date: z.object({
@@ -2401,9 +2368,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2418,10 +2383,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -2434,9 +2399,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2451,10 +2414,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -2468,10 +2431,10 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
-  }).describe("Holds information about a user logged hydration.").optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `hydration-log` session data type collection.",
+  ).optional(),
   irregularRhythmNotification: z.object({
     alertWindows: z.array(z.object({
       civilEndTime: z.object({
@@ -2485,9 +2448,7 @@ const GlobalArgsSchema = z.object({
           year: z.unknown().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.unknown().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2502,10 +2463,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -2518,9 +2479,7 @@ const GlobalArgsSchema = z.object({
           year: z.unknown().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.unknown().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2535,10 +2494,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the analysis window.",
@@ -2551,7 +2510,7 @@ const GlobalArgsSchema = z.object({
           "Required. The beats-per-minute value extrapolated from the time before the following heart beat. This is calculated as 60000 / rr, where rr is the gap between heart beats in milliseconds (IBI - Interbeat Interval).",
         ).optional(),
         civilTime: z.unknown().describe(
-          "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+          "Output only. The civil time in the timezone the subject is in at the time of the observation.",
         ).optional(),
         physicalTime: z.unknown().describe(
           "Required. The time of the heart beat measurement.",
@@ -2586,9 +2545,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2603,10 +2560,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -2619,9 +2576,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2636,10 +2591,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -2653,9 +2608,7 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. Observed interval.").optional(),
     medicalDeviceInfo: z.object({
       algorithmVersion: z.string().describe(
         "Output only. The algorithm version used by the feature.",
@@ -2673,10 +2626,10 @@ const GlobalArgsSchema = z.object({
         "Output only. The service version used by the feature.",
       ).optional(),
     }).describe(
-      "Software as Medical Device (SaMD) metadata. Used to construct the Unique Device Identifier (UDI).",
+      "Output only. The meta information for the compatible device used to conduct the measurement. Irregular Rhythm Notification measurements typically populate `algorithm_version`, `service_version`, and `device_model`.",
     ).optional(),
   }).describe(
-    "Represents an Irregular Rhythm Notification alert, indicating a potential sign of atrial fibrillation (AFib). This data type is based on SaMD feature and any changes to it may require additional review.",
+    "Optional. Data for points in the `irregular-rhythm-notification` session data type collection.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: `users/{user}/dataTypes/{data_type}/dataPoints/{data_point}` Example: `users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef` The `{user}` ID is a system-generated identifier, as described in Identity.health_user_id. The `{data_type}` ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. `heart-rate` for the `heart_rate` field. The `{data_point}` ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.",
@@ -2694,7 +2647,9 @@ const GlobalArgsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. The total energy of the food, measured in kilocalories (`kcal`).",
+    ).optional(),
     energyFromFat: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -2707,7 +2662,9 @@ const GlobalArgsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. The energy from fat, measured in kilocalories (`kcal`).",
+    ).optional(),
     food: z.string().describe(
       "Optional. The resource name of the Food item. Required when creating a nutrition log from an identified food. For anonymous food logs, use the `food_display_name` field instead.",
     ).optional(),
@@ -2726,9 +2683,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2743,10 +2698,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -2759,9 +2714,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2776,10 +2729,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -2793,9 +2746,8 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. The time window when the food was logged.")
+      .optional(),
     mealType: z.enum([
       "MEAL_TYPE_UNSPECIFIED",
       "BEFORE_BREAKFAST",
@@ -2868,7 +2820,8 @@ const GlobalArgsSchema = z.object({
           "NANOGRAM",
         ]).describe("Optional. Value representing the user provided unit.")
           .optional(),
-      }).describe("Represents the weight quantity.").optional(),
+      }).describe("Required. The quantity of the nutrient, measured in grams.")
+        .optional(),
     })).describe(
       "Optional. An array of individual nutrient values for the nutrition log.",
     ).optional(),
@@ -2881,9 +2834,8 @@ const GlobalArgsSchema = z.object({
       foodMeasurementUnitDisplayName: z.string().describe(
         'Output only. Legacy measurement unit for serving size in singular form (e.g. "piece", "gram").',
       ).optional(),
-    }).describe(
-      "Represents different properties and information about the serving of a specific food.",
-    ).optional(),
+    }).describe("Optional. The serving information for the logged food.")
+      .optional(),
     totalCarbohydrate: z.object({
       grams: z.number().describe("Required. The weight value in grams.")
         .optional(),
@@ -2899,7 +2851,8 @@ const GlobalArgsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
+    }).describe("Optional. The total carbohydrate content, measured in grams.")
+      .optional(),
     totalFat: z.object({
       grams: z.number().describe("Required. The weight value in grams.")
         .optional(),
@@ -2915,9 +2868,10 @@ const GlobalArgsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
+    }).describe("Optional. The total fat content, measured in grams.")
+      .optional(),
   }).describe(
-    "Holds information about food logged by a user. There are two ways of creating a nutrition log based on the food type: 1. Identified food: Using the food field, which is a reference to a Food resource. In this case fields `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat`, `food_display_name` will be populated based on the referenced food. 2. Anonymous food: Using the `food_display_name` field and setting the `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat` fields manually. The identified food is preferred over the anonymous food. Nutrition logs created from anonymous food are not editable.",
+    "Optional. Data for points in the `nutrition-log` session data type collection.",
   ).optional(),
   oxygenSaturation: z.object({
     percentage: z.number().describe(
@@ -2935,9 +2889,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -2952,10 +2904,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -2963,10 +2915,10 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which oxygen saturation was measured.")
       .optional(),
   }).describe(
-    "Captures the user's instantaneous oxygen saturation percentage (SpO2).",
+    "Optional. Data for points in the `oxygen-saturation` sample data type collection.",
   ).optional(),
   respiratoryRateSleepSummary: z.object({
     deepSleepStats: z.object({
@@ -2979,7 +2931,7 @@ const GlobalArgsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
+    }).describe("Optional. Respiratory rate statistics for deep sleep.")
       .optional(),
     fullSleepStats: z.object({
       breathsPerMinute: z.number().describe(
@@ -2991,8 +2943,7 @@ const GlobalArgsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
-      .optional(),
+    }).describe("Required. Full respiratory rate statistics.").optional(),
     lightSleepStats: z.object({
       breathsPerMinute: z.number().describe(
         "Required. Average breaths per minute.",
@@ -3003,7 +2954,7 @@ const GlobalArgsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
+    }).describe("Optional. Respiratory rate statistics for light sleep.")
       .optional(),
     remSleepStats: z.object({
       breathsPerMinute: z.number().describe(
@@ -3015,7 +2966,7 @@ const GlobalArgsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
+    }).describe("Optional. Respiratory rate statistics for REM sleep.")
       .optional(),
     sampleTime: z.object({
       civilTime: z.object({
@@ -3029,9 +2980,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3046,10 +2995,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -3057,10 +3006,10 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which respiratory rate was measured.")
       .optional(),
   }).describe(
-    "Records respiratory rate details during sleep. Can have multiple per day if the user sleeps multiple times.",
+    "Optional. Data for points in the `respiratory-rate-sleep-summary` sample data type collection.",
   ).optional(),
   runVo2Max: z.object({
     runVo2Max: z.number().describe("Required. Run VO2 max value in ml/kg/min.")
@@ -3077,9 +3026,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3094,10 +3041,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -3105,10 +3052,10 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which the metric was measured.")
       .optional(),
   }).describe(
-    "VO2 max value calculated based on the user's running activity. Value stored in ml/kg/min.",
+    "Optional. Data for points in the `run-vo2-max` sample data type collection.",
   ).optional(),
   sedentaryPeriod: z.object({
     interval: z.object({
@@ -3123,9 +3070,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3140,10 +3085,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -3156,9 +3101,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3173,10 +3116,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -3188,10 +3131,9 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "SedentaryPeriod SedentaryPeriod data represents the periods of time that the user was sedentary (i.e. not moving while wearing the device).",
+    "Optional. Data for points in the `sedentary-period` interval data type collection.",
   ).optional(),
   sleep: z.object({
     createTime: z.string().describe(
@@ -3209,9 +3151,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3226,10 +3166,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -3242,9 +3182,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3259,10 +3197,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -3276,9 +3214,7 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. Observed sleep interval.").optional(),
     metadata: z.object({
       externalId: z.string().describe(
         "Optional. Sleep identifier relevant in the context of the data source.",
@@ -3305,8 +3241,9 @@ const GlobalArgsSchema = z.object({
         "PROCESSING_INTERNAL_ERROR",
       ]).describe("Output only. Sleep stages algorithm processing status.")
         .optional(),
-    }).describe("Additional information about how the sleep was processed.")
-      .optional(),
+    }).describe(
+      "Optional. Sleep metadata: processing, main, manually edited, stages status.",
+    ).optional(),
     outOfBedSegments: z.array(z.object({
       endTime: z.string().describe("Required. Segment end time.").optional(),
       endUtcOffset: z.string().describe(
@@ -3386,14 +3323,17 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Output only. List of summaries (total duration and segment count) per each sleep stage type.",
       ).optional(),
-    }).describe("Sleep summary: metrics and stages summary.").optional(),
+    }).describe("Output only. Sleep summary: metrics and stages summary.")
+      .optional(),
     type: z.enum(["SLEEP_TYPE_UNSPECIFIED", "CLASSIC", "STAGES"]).describe(
       "Optional. SleepType: classic or stages.",
     ).optional(),
     updateTime: z.string().describe(
       "Output only. Last update time of this sleep observation.",
     ).optional(),
-  }).describe("A sleep session possibly including stages.").optional(),
+  }).describe(
+    "Optional. Data for points in the `sleep` session data type collection.",
+  ).optional(),
   steps: z.object({
     count: z.string().describe(
       "Required. Number of steps in the recorded interval.",
@@ -3410,9 +3350,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3427,10 +3365,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -3443,9 +3381,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3460,10 +3396,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -3475,9 +3411,10 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Step count over the time interval.").optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `steps` interval data type collection.",
+  ).optional(),
   swimLengthsData: z.object({
     interval: z.object({
       civilEndTime: z.object({
@@ -3491,9 +3428,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3508,10 +3443,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -3524,9 +3459,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3541,10 +3474,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -3556,8 +3489,7 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
     strokeCount: z.string().describe("Required. Number of strokes in the lap.")
       .optional(),
     swimStrokeType: z.enum([
@@ -3567,7 +3499,9 @@ const GlobalArgsSchema = z.object({
       "BREASTSTROKE",
       "BUTTERFLY",
     ]).describe("Required. Swim stroke type.").optional(),
-  }).describe("Swim lengths data over the time interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `swim-lengths-data` interval data type collection.",
+  ).optional(),
   timeInHeartRateZone: z.object({
     heartRateZoneType: z.enum([
       "HEART_RATE_ZONE_TYPE_UNSPECIFIED",
@@ -3588,9 +3522,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3605,10 +3537,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -3621,9 +3553,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3638,10 +3568,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -3653,10 +3583,9 @@ const GlobalArgsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "Time in heart rate zone record. It's an interval spent in specific heart rate zone.",
+    "Optional. Data for points in the `time-in-heart-rate-zone` interval data type collection.",
   ).optional(),
   vo2Max: z.object({
     measurementMethod: z.enum([
@@ -3686,9 +3615,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3703,10 +3630,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -3714,12 +3641,13 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
-      .optional(),
+    }).describe("Required. The time at which VO2 max was measured.").optional(),
     vo2Max: z.number().describe(
       "Required. VO2 max value measured as in ml consumed oxygen / kg of body weight / min.",
     ).optional(),
-  }).describe("VO2 max measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `vo2-max` sample data type collection.",
+  ).optional(),
   weight: z.object({
     notes: z.string().describe(
       "Optional. Standard free-form notes captured at manual logging.",
@@ -3736,9 +3664,7 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -3753,10 +3679,10 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -3764,11 +3690,13 @@ const GlobalArgsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which the weight was measured")
       .optional(),
     weightGrams: z.number().describe("Required. Weight of a user in grams.")
       .optional(),
-  }).describe("Body weight measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `weight` sample data type collection.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -5061,9 +4989,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5078,10 +5004,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -5094,9 +5020,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5111,10 +5035,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -5126,13 +5050,12 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval").optional(),
     kcal: z.number().describe(
       "Required. Energy burned during an activity, measured in kilocalories.",
     ).optional(),
   }).describe(
-    "Energy burned as part of an activity, excluding the basal energy burn.",
+    "Optional. Data for points in the `active-energy-burned` interval data type collection.",
   ).optional(),
   activeMinutes: z.object({
     activeMinutesByActivityLevel: z.array(z.object({
@@ -5160,9 +5083,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5177,10 +5098,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -5193,9 +5114,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5210,10 +5129,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -5225,9 +5144,10 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Record of active minutes in a given time interval.").optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `active-minutes` interval data type collection.",
+  ).optional(),
   activeZoneMinutes: z.object({
     activeZoneMinutes: z.string().describe(
       "Required. Number of Active Zone Minutes earned in the given time interval. Note: active_zone_minutes equals to 1 for low intensity (fat burn) zones or 2 for high intensity zones (cardio, peak).",
@@ -5252,9 +5172,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5269,10 +5187,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -5285,9 +5203,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5302,10 +5218,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -5317,10 +5233,10 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Record of active zone minutes in a given time interval.")
-    .optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `active-zone-minutes` interval data type collection, measured in minutes.",
+  ).optional(),
   activityLevel: z.object({
     activityLevelType: z.enum([
       "ACTIVITY_LEVEL_TYPE_UNSPECIFIED",
@@ -5342,9 +5258,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5359,10 +5273,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -5375,9 +5289,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5392,10 +5304,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -5407,10 +5319,9 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "Internal type to capture activity level during a certain time interval.",
+    "Optional. Data for points in the `activity-level` daily data type collection.",
   ).optional(),
   altitude: z.object({
     gainMillimeters: z.string().describe(
@@ -5428,9 +5339,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5445,10 +5354,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -5461,9 +5370,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5478,10 +5385,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -5493,10 +5400,9 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "Captures the altitude gain (i.e. deltas), and not level above sea, for a user in millimeters.",
+    "Optional. Data for points in the `altitude` interval data type collection.",
   ).optional(),
   basalEnergyBurned: z.object({
     interval: z.object({
@@ -5511,9 +5417,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5528,10 +5432,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -5544,9 +5448,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5561,10 +5463,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -5576,13 +5478,12 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
     kcal: z.number().describe(
       "Required. Number of calories burned due to basal metabolic rate in kilocalories over the observed interval.",
     ).optional(),
   }).describe(
-    "Number of calories burned due to basal metabolic rate (BMR) over a period of time.",
+    "Optional. Data for points in the `basal-energy-burned` interval data type collection.",
   ).optional(),
   bloodGlucose: z.object({
     bloodGlucoseMilligramsPerDeciliter: z.number().describe(
@@ -5625,9 +5526,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5642,10 +5541,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -5653,7 +5552,7 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which blood glucose was measured.")
       .optional(),
     specimen: z.enum([
       "SPECIMEN_UNSPECIFIED",
@@ -5667,7 +5566,7 @@ const InputsSchema = z.object({
       "Optional. Type of body fluid used to measure the blood glucose.",
     ).optional(),
   }).describe(
-    "Represents a blood glucose level measurement. LINT: LEGACY_NAMES",
+    "Optional. Data for points in the `blood-glucose` sample data type collection.",
   ).optional(),
   bodyFat: z.object({
     percentage: z.number().describe(
@@ -5685,9 +5584,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5702,10 +5599,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -5713,9 +5610,11 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which body fat was measured.")
       .optional(),
-  }).describe("Body fat measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `body-fat` sample data type collection.",
+  ).optional(),
   coreBodyTemperature: z.object({
     id: z.string().describe(
       "Optional. The unique identifier of the core body temperature measurement.",
@@ -5754,9 +5653,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -5771,10 +5668,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -5782,13 +5679,14 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
-      .optional(),
+    }).describe(
+      "Required. The time at which core body temperature was measured.",
+    ).optional(),
     temperatureCelsius: z.number().describe(
       "Required. The core body temperature in Celsius.",
     ).optional(),
   }).describe(
-    "Core body temperature measurement, distinct from peripheral body temperature, reflects the temperature of the body's internal organs.",
+    "Optional. Data for points in the `core-body-temperature` sample data type collection.",
   ).optional(),
   dailyHeartRateVariability: z.object({
     averageHeartRateVariabilityMilliseconds: z.number().describe(
@@ -5805,7 +5703,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in the user's timezone) of heart rate variability measurement.",
     ).optional(),
     deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds: z.number()
       .describe(
@@ -5818,7 +5716,7 @@ const InputsSchema = z.object({
       "Optional. Non-REM heart rate",
     ).optional(),
   }).describe(
-    "Represents the daily heart rate variability data type. At least one of the following fields must be set: - `average_heart_rate_variability_milliseconds` - `non_rem_heart_rate_beats_per_minute` - `entropy` - `deep_sleep_root_mean_square_of_successive_differences_milliseconds`",
+    "Optional. Data for points in the `daily-heart-rate-variability` daily data type collection.",
   ).optional(),
   dailyHeartRateZones: z.object({
     date: z.object({
@@ -5832,7 +5730,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in user's timezone) of the heart rate zones record.",
     ).optional(),
     heartRateZones: z.array(z.object({
       heartRateZoneType: z.enum([
@@ -5850,7 +5748,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Required. The heart rate zones.").optional(),
   }).describe(
-    "User's heart rate zone thresholds based on the Karvonen algorithm for a specific day.",
+    "Optional. Data for points in the `daily-heart-rate-zones` daily data type collection.",
   ).optional(),
   dailyOxygenSaturation: z.object({
     averagePercentage: z.number().describe(
@@ -5867,7 +5765,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in user's timezone) of the daily oxygen saturation record.",
     ).optional(),
     lowerBoundPercentage: z.number().describe(
       "Required. The lower bound of the confidence interval of oxygen saturation samples during sleep.",
@@ -5879,7 +5777,7 @@ const InputsSchema = z.object({
       "Required. The upper bound of the confidence interval of oxygen saturation samples during sleep.",
     ).optional(),
   }).describe(
-    "A daily oxygen saturation (SpO2) record. Represents the user's daily oxygen saturation summary, typically calculated during sleep.",
+    "Optional. Data for points in the `daily-oxygen-saturation` daily data type collection.",
   ).optional(),
   dailyRespiratoryRate: z.object({
     breathsPerMinute: z.number().describe(
@@ -5896,10 +5794,10 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. The date on which the respiratory rate was measured.",
     ).optional(),
   }).describe(
-    "A daily average respiratory rate (breaths per minute) for a day of the year. One data point per day calculated for the main sleep.",
+    "Optional. Data for points in the `daily-respiratory-rate` daily data type collection.",
   ).optional(),
   dailyRestingHeartRate: z.object({
     beatsPerMinute: z.string().describe(
@@ -5913,7 +5811,8 @@ const InputsSchema = z.object({
       ]).describe(
         "Required. The method used to calculate the resting heart rate.",
       ).optional(),
-    }).describe("Metadata for the daily resting heart rate.").optional(),
+    }).describe("Optional. Metadata for the daily resting heart rate.")
+      .optional(),
     date: z.object({
       day: z.number().int().describe(
         "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -5925,10 +5824,10 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date (in the user's timezone) of the resting heart rate measurement.",
     ).optional(),
   }).describe(
-    "Measures the daily resting heart rate for a user, calculated using the all day heart rate measurements.",
+    "Optional. Data for points in the `daily-resting-heart-rate` daily data type collection.",
   ).optional(),
   dailySleepTemperatureDerivations: z.object({
     baselineTemperatureCelsius: z.number().describe(
@@ -5945,7 +5844,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Date for which the sleep temperature derivations are calculated.",
     ).optional(),
     nightlyTemperatureCelsius: z.number().describe(
       "Required. The user's nightly skin temperature. It is the mean of skin temperature samples taken from the user’s sleep.",
@@ -5954,7 +5853,7 @@ const InputsSchema = z.object({
       "Optional. The standard deviation of the user’s relative nightly skin temperature (temperature - baseline) over the past 30 days.",
     ).optional(),
   }).describe(
-    "Provides derived sleep temperature values, calculated from skin or internal device temperature readings during sleep.",
+    "Optional. Data for points in the `daily-sleep-temperature-derivations` daily data type collection.",
   ).optional(),
   dailyVo2Max: z.object({
     cardioFitnessLevel: z.enum([
@@ -5978,9 +5877,8 @@ const InputsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. The date for which the Daily VO2 max was measured.")
+      .optional(),
     estimated: z.boolean().describe(
       "Optional. An estimated field is added to indicate when the confidence has decreased sufficiently to consider the value an estimation.",
     ).optional(),
@@ -5991,7 +5889,7 @@ const InputsSchema = z.object({
       "Optional. The covariance of the VO2 max value.",
     ).optional(),
   }).describe(
-    "Contains a daily summary of the user's VO2 max (cardio fitness score), which is the maximum rate of oxygen the body can use during exercise.",
+    "Optional. Data for points in the `daily-vo2-max` daily data type collection.",
   ).optional(),
   dataSource: z.object({
     application: z.object({
@@ -6005,7 +5903,7 @@ const InputsSchema = z.object({
         "Output only. The client ID of the application that recorded the data. This ID is a legacy Fitbit API client ID, which is different from a Google OAuth client ID. Example format: `ABC123`. This field is system-populated and used for tracing data from legacy Fitbit API integrations. This field is system-populated when the data is uploaded from a legacy Fitbit API integration.",
       ).optional(),
     }).describe(
-      "Optional metadata for the application that provided this data.",
+      "Output only. Captures metadata for the application that provided this data.",
     ).optional(),
     device: z.object({
       displayName: z.string().describe(
@@ -6028,7 +5926,7 @@ const InputsSchema = z.object({
         "Optional. An optional manufacturer of the device.",
       ).optional(),
     }).describe(
-      "Captures metadata about the device that recorded the measurement.",
+      "Optional. Captures metadata for raw data points originating from devices. We expect this data source to be used for data points written on device sync.",
     ).optional(),
     platform: z.enum([
       "PLATFORM_UNSPECIFIED",
@@ -6050,9 +5948,7 @@ const InputsSchema = z.object({
       "ACTIVELY_MEASURED",
       "UNKNOWN",
     ]).describe("Optional. Captures how the data was recorded.").optional(),
-  }).describe(
-    "Data Source definition to track the origin of data. Each health data point, regardless of the complexity or data model (whether a simple step count or a detailed sleep session) must retain information about its source of origin (e.g. the device or app that collected it).",
-  ).optional(),
+  }).describe("Optional. Data source information for the metric").optional(),
   distance: z.object({
     interval: z.object({
       civilEndTime: z.object({
@@ -6066,9 +5962,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6083,10 +5977,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -6099,9 +5993,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6116,10 +6008,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -6131,12 +6023,13 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
     millimeters: z.string().describe(
       "Required. Distance in millimeters over the observed interval.",
     ).optional(),
-  }).describe("Distance traveled over an interval of time.").optional(),
+  }).describe(
+    "Optional. Data for points in the `distance` interval data type collection.",
+  ).optional(),
   electrocardiogram: z.object({
     beatsPerMinuteAvg: z.string().describe(
       "Optional. Average heart rate recorded during ECG reading in beats per minute.",
@@ -6153,9 +6046,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6170,10 +6061,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -6186,9 +6077,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6203,10 +6092,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -6221,7 +6110,7 @@ const InputsSchema = z.object({
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
     }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
+      "Required. Observed interval. NOTE: Historical ECG data lacks timezone offsets, so `start_utc_offset` and `end_utc_offset` will be missing or default to zero. As a result, the civil time fields within this interval will default to UTC. It is recommended to use physical time fields instead for accurate time referencing. NOTE: The `start_time` and `end_time` of the interval are equal, representing the reading time.",
     ).optional(),
     leadNumber: z.number().int().describe(
       "Optional. The number of leads used for ECG reading.",
@@ -6243,7 +6132,7 @@ const InputsSchema = z.object({
         "Output only. The service version used by the feature.",
       ).optional(),
     }).describe(
-      "Software as Medical Device (SaMD) metadata. Used to construct the Unique Device Identifier (UDI).",
+      "Output only. The meta information for the compatible device used to conduct the measurement. ECG measurements typically populate `firmware_version`, `feature_version`, and `device_model`.",
     ).optional(),
     millivoltsScalingFactor: z.number().int().describe(
       "Optional. The factor by which to divide waveform samples to get voltage in millivolts: millivolts = waveform_sample / millivolts_scaling_factor.",
@@ -6266,7 +6155,7 @@ const InputsSchema = z.object({
       "Optional. An array of voltage values representing lead I ECG values. Each sample represents voltage difference in ECG graph. The first value in array corresponds to the start of the reading.",
     ).optional(),
   }).describe(
-    "Represents an Electrocardiogram (ECG) measurement session. This data type is based on SaMD feature and any changes to it may require additional review.",
+    "Optional. Data for points in the `electrocardiogram` session data type collection.",
   ).optional(),
   exercise: z.object({
     activeDuration: z.string().describe("Optional. Duration excluding pauses.")
@@ -6303,7 +6192,7 @@ const InputsSchema = z.object({
       poolLengthMillimeters: z.string().describe(
         "Optional. Pool length in millimeters. Only present in the swimming exercises.",
       ).optional(),
-    }).describe("Additional exercise metadata.").optional(),
+    }).describe("Optional. Additional exercise metadata.").optional(),
     exerciseType: z.enum([
       "EXERCISE_TYPE_UNSPECIFIED",
       "AEROBIC_WORKOUT",
@@ -6501,9 +6390,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6518,10 +6405,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -6534,9 +6421,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6551,10 +6436,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -6568,9 +6453,7 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. Observed exercise interval").optional(),
     metricsSummary: z.object({
       activeZoneMinutes: z.string().describe(
         "Optional. Total active zone minutes for the exercise.",
@@ -6606,7 +6489,7 @@ const InputsSchema = z.object({
         vigorousTime: z.string().describe(
           "Optional. Time spent in vigorous heart rate zone.",
         ).optional(),
-      }).describe("Time spent in each heart rate zone.").optional(),
+      }).describe("Optional. Time spent in each heart rate zone.").optional(),
       mobilityMetrics: z.object({
         avgCadenceStepsPerMinute: z.number().describe(
           "Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.",
@@ -6623,7 +6506,9 @@ const InputsSchema = z.object({
         avgVerticalRatio: z.number().describe(
           "Optional. Vertical oscillation/stride length between [5.0, 11.0].",
         ).optional(),
-      }).describe("Mobility workouts specific metrics").optional(),
+      }).describe(
+        "Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.",
+      ).optional(),
       runVo2Max: z.number().describe(
         "Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.",
       ).optional(),
@@ -6633,7 +6518,7 @@ const InputsSchema = z.object({
       totalSwimLengths: z.number().describe(
         "Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.",
       ).optional(),
-    }).describe("Summary metrics for an exercise.").optional(),
+    }).describe("Required. Summary metrics for this exercise ()").optional(),
     notes: z.string().describe(
       "Optional. Standard free-form notes captured at manual logging.",
     ).optional(),
@@ -6680,7 +6565,7 @@ const InputsSchema = z.object({
           vigorousTime: z.unknown().describe(
             "Optional. Time spent in vigorous heart rate zone.",
           ).optional(),
-        }).describe("Time spent in each heart rate zone.").optional(),
+        }).describe("Optional. Time spent in each heart rate zone.").optional(),
         mobilityMetrics: z.object({
           avgCadenceStepsPerMinute: z.unknown().describe(
             "Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.",
@@ -6697,7 +6582,9 @@ const InputsSchema = z.object({
           avgVerticalRatio: z.unknown().describe(
             "Optional. Vertical oscillation/stride length between [5.0, 11.0].",
           ).optional(),
-        }).describe("Mobility workouts specific metrics").optional(),
+        }).describe(
+          "Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.",
+        ).optional(),
         runVo2Max: z.number().describe(
           "Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
@@ -6707,7 +6594,7 @@ const InputsSchema = z.object({
         totalSwimLengths: z.number().describe(
           "Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
-      }).describe("Summary metrics for an exercise.").optional(),
+      }).describe("Required. Summary metrics for this split.").optional(),
       splitType: z.enum([
         "SPLIT_TYPE_UNSPECIFIED",
         "MANUAL",
@@ -6767,7 +6654,7 @@ const InputsSchema = z.object({
           vigorousTime: z.unknown().describe(
             "Optional. Time spent in vigorous heart rate zone.",
           ).optional(),
-        }).describe("Time spent in each heart rate zone.").optional(),
+        }).describe("Optional. Time spent in each heart rate zone.").optional(),
         mobilityMetrics: z.object({
           avgCadenceStepsPerMinute: z.unknown().describe(
             "Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.",
@@ -6784,7 +6671,9 @@ const InputsSchema = z.object({
           avgVerticalRatio: z.unknown().describe(
             "Optional. Vertical oscillation/stride length between [5.0, 11.0].",
           ).optional(),
-        }).describe("Mobility workouts specific metrics").optional(),
+        }).describe(
+          "Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.",
+        ).optional(),
         runVo2Max: z.number().describe(
           "Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
@@ -6794,7 +6683,7 @@ const InputsSchema = z.object({
         totalSwimLengths: z.number().describe(
           "Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.",
         ).optional(),
-      }).describe("Summary metrics for an exercise.").optional(),
+      }).describe("Required. Summary metrics for this split.").optional(),
       splitType: z.enum([
         "SPLIT_TYPE_UNSPECIFIED",
         "MANUAL",
@@ -6814,8 +6703,9 @@ const InputsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. This is the timestamp of the last update to the exercise.",
     ).optional(),
-  }).describe("An exercise that stores information about a physical activity.")
-    .optional(),
+  }).describe(
+    "Optional. Data for points in the `exercise` session data type collection.",
+  ).optional(),
   floors: z.object({
     count: z.string().describe(
       "Required. Number of floors in the recorded interval",
@@ -6832,9 +6722,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6849,10 +6737,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -6865,9 +6753,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -6882,10 +6768,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -6897,10 +6783,10 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Gained elevation measured in floors over the time interval")
-    .optional(),
+    }).describe("Required. Observed interval").optional(),
+  }).describe(
+    "Optional. Data for points in the `floors` interval data type collection.",
+  ).optional(),
   food: z.object({
     accessLevel: z.enum([
       "FOOD_ACCESS_LEVEL_UNSPECIFIED",
@@ -6924,9 +6810,8 @@ const InputsSchema = z.object({
       multiplier: z.number().describe(
         "Optional. Value representing the multiplier used to compute the energy when using this serving instead of the default serving.",
       ).optional(),
-    }).describe(
-      "Represents different properties and information about the serving of a specific food.",
-    ).optional(),
+    }).describe("Required. Value representing the default serving of the food.")
+      .optional(),
     description: z.string().describe("Optional. The description of the food.")
       .optional(),
     displayName: z.string().describe("Required. The display name of the food.")
@@ -6943,7 +6828,9 @@ const InputsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the average energy of the food for the default serving.",
+    ).optional(),
     energyFromFat: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -6956,7 +6843,9 @@ const InputsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the energy from fat of the food for the default serving.",
+    ).optional(),
     energyMax: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -6969,7 +6858,9 @@ const InputsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the maximum energy of the food for the default serving.",
+    ).optional(),
     energyMin: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -6982,7 +6873,9 @@ const InputsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the minimum energy of the food for the default serving.",
+    ).optional(),
     languageCode: z.string().describe(
       "Optional. The language code where the food is available in format xx-XX. Supported values are defined in Settings.food_language_code.",
     ).optional(),
@@ -7057,7 +6950,8 @@ const InputsSchema = z.object({
           "NANOGRAM",
         ]).describe("Optional. Value representing the user provided unit.")
           .optional(),
-      }).describe("Represents the weight quantity.").optional(),
+      }).describe("Required. The quantity of the nutrient, measured in grams.")
+        .optional(),
     })).describe(
       "Optional. Value representing the nutrients of the food for the default serving.",
     ).optional(),
@@ -7093,7 +6987,9 @@ const InputsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
+    }).describe(
+      "Optional. Value representing the total carbohydrate of the food for the default serving.",
+    ).optional(),
     totalFat: z.object({
       grams: z.number().describe("Required. The weight value in grams.")
         .optional(),
@@ -7109,8 +7005,10 @@ const InputsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
-  }).describe("Represents a food item.").optional(),
+    }).describe(
+      "Optional. Value representing the total fat of the food for the default serving.",
+    ).optional(),
+  }).describe("Optional. The food details.").optional(),
   foodMeasurementUnit: z.object({
     displayName: z.string().describe(
       'Required. The display name of the food measurement unit (e.g., "gram", "piece").',
@@ -7118,7 +7016,7 @@ const InputsSchema = z.object({
     pluralDisplayName: z.string().describe(
       'Optional. The plural display name of the food measurement unit (e.g., "grams", "pieces").',
     ).optional(),
-  }).describe("Represents a food measurement unit.").optional(),
+  }).describe("Optional. The food measurement unit details.").optional(),
   heartRate: z.object({
     beatsPerMinute: z.string().describe(
       "Required. The heart rate value in beats per minute.",
@@ -7142,7 +7040,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Indicates the location of the sensor that measured the heart rate.",
       ).optional(),
-    }).describe("Heart rate metadata.").optional(),
+    }).describe("Optional. Metadata about the heart rate sample.").optional(),
     sampleTime: z.object({
       civilTime: z.object({
         date: z.object({
@@ -7155,9 +7053,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7172,10 +7068,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -7183,9 +7079,10 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
-      .optional(),
-  }).describe("A heart rate measurement.").optional(),
+    }).describe("Required. Observation time").optional(),
+  }).describe(
+    "Optional. Data for points in the `heart-rate` sample data type collection.",
+  ).optional(),
   heartRateVariability: z.object({
     rootMeanSquareOfSuccessiveDifferencesMilliseconds: z.number().describe(
       "Optional. The root mean square of successive differences between normal heartbeats. This is a measure of heart rate variability used by Google Health.",
@@ -7202,9 +7099,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7219,10 +7114,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -7230,13 +7125,13 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time of the heart rate variability measurement.")
       .optional(),
     standardDeviationMilliseconds: z.number().describe(
       "Optional. The standard deviation of the heart rate variability measurement.",
     ).optional(),
   }).describe(
-    "Captures user's heart rate variability (HRV) as measured by the root mean square of successive differences (RMSSD) between normal heartbeats or by standard deviation of the inter-beat intervals (SDNN).",
+    "Optional. Data for points in the `heart-rate-variability` sample data type collection.",
   ).optional(),
   height: z.object({
     heightMillimeters: z.string().describe(
@@ -7254,9 +7149,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7271,10 +7164,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -7282,9 +7175,11 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which the height was recorded.")
       .optional(),
-  }).describe("Body height measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `height` sample data type collection.",
+  ).optional(),
   hydrationLog: z.object({
     amountConsumed: z.object({
       milliliters: z.number().describe(
@@ -7303,7 +7198,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Value representing the user provided unit, used only for user-facing input and display purposes. In the API format, all volume quantities are converted to milliliters.",
       ).optional(),
-    }).describe("Represents the volume quantity.").optional(),
+    }).describe("Required. Amount of liquid (ex. water) consumed.").optional(),
     interval: z.object({
       civilEndTime: z.object({
         date: z.object({
@@ -7316,9 +7211,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7333,10 +7226,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -7349,9 +7242,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7366,10 +7257,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -7383,10 +7274,10 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
-  }).describe("Holds information about a user logged hydration.").optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `hydration-log` session data type collection.",
+  ).optional(),
   irregularRhythmNotification: z.object({
     alertWindows: z.array(z.object({
       civilEndTime: z.object({
@@ -7400,9 +7291,7 @@ const InputsSchema = z.object({
           year: z.unknown().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.unknown().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7417,10 +7306,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -7433,9 +7322,7 @@ const InputsSchema = z.object({
           year: z.unknown().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.unknown().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7450,10 +7337,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the analysis window.",
@@ -7466,7 +7353,7 @@ const InputsSchema = z.object({
           "Required. The beats-per-minute value extrapolated from the time before the following heart beat. This is calculated as 60000 / rr, where rr is the gap between heart beats in milliseconds (IBI - Interbeat Interval).",
         ).optional(),
         civilTime: z.unknown().describe(
-          "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+          "Output only. The civil time in the timezone the subject is in at the time of the observation.",
         ).optional(),
         physicalTime: z.unknown().describe(
           "Required. The time of the heart beat measurement.",
@@ -7501,9 +7388,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7518,10 +7403,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -7534,9 +7419,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7551,10 +7434,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -7568,9 +7451,7 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. Observed interval.").optional(),
     medicalDeviceInfo: z.object({
       algorithmVersion: z.string().describe(
         "Output only. The algorithm version used by the feature.",
@@ -7588,10 +7469,10 @@ const InputsSchema = z.object({
         "Output only. The service version used by the feature.",
       ).optional(),
     }).describe(
-      "Software as Medical Device (SaMD) metadata. Used to construct the Unique Device Identifier (UDI).",
+      "Output only. The meta information for the compatible device used to conduct the measurement. Irregular Rhythm Notification measurements typically populate `algorithm_version`, `service_version`, and `device_model`.",
     ).optional(),
   }).describe(
-    "Represents an Irregular Rhythm Notification alert, indicating a potential sign of atrial fibrillation (AFib). This data type is based on SaMD feature and any changes to it may require additional review.",
+    "Optional. Data for points in the `irregular-rhythm-notification` session data type collection.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: `users/{user}/dataTypes/{data_type}/dataPoints/{data_point}` Example: `users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef` The `{user}` ID is a system-generated identifier, as described in Identity.health_user_id. The `{data_type}` ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. `heart-rate` for the `heart_rate` field. The `{data_point}` ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.",
@@ -7609,7 +7490,9 @@ const InputsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. The total energy of the food, measured in kilocalories (`kcal`).",
+    ).optional(),
     energyFromFat: z.object({
       kcal: z.number().describe("Required. The energy value in kilocalories.")
         .optional(),
@@ -7622,7 +7505,9 @@ const InputsSchema = z.object({
         "CALORIE",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the energy quantity.").optional(),
+    }).describe(
+      "Optional. The energy from fat, measured in kilocalories (`kcal`).",
+    ).optional(),
     food: z.string().describe(
       "Optional. The resource name of the Food item. Required when creating a nutrition log from an identified food. For anonymous food logs, use the `food_display_name` field instead.",
     ).optional(),
@@ -7641,9 +7526,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7658,10 +7541,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -7674,9 +7557,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7691,10 +7572,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -7708,9 +7589,8 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. The time window when the food was logged.")
+      .optional(),
     mealType: z.enum([
       "MEAL_TYPE_UNSPECIFIED",
       "BEFORE_BREAKFAST",
@@ -7783,7 +7663,8 @@ const InputsSchema = z.object({
           "NANOGRAM",
         ]).describe("Optional. Value representing the user provided unit.")
           .optional(),
-      }).describe("Represents the weight quantity.").optional(),
+      }).describe("Required. The quantity of the nutrient, measured in grams.")
+        .optional(),
     })).describe(
       "Optional. An array of individual nutrient values for the nutrition log.",
     ).optional(),
@@ -7796,9 +7677,8 @@ const InputsSchema = z.object({
       foodMeasurementUnitDisplayName: z.string().describe(
         'Output only. Legacy measurement unit for serving size in singular form (e.g. "piece", "gram").',
       ).optional(),
-    }).describe(
-      "Represents different properties and information about the serving of a specific food.",
-    ).optional(),
+    }).describe("Optional. The serving information for the logged food.")
+      .optional(),
     totalCarbohydrate: z.object({
       grams: z.number().describe("Required. The weight value in grams.")
         .optional(),
@@ -7814,7 +7694,8 @@ const InputsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
+    }).describe("Optional. The total carbohydrate content, measured in grams.")
+      .optional(),
     totalFat: z.object({
       grams: z.number().describe("Required. The weight value in grams.")
         .optional(),
@@ -7830,9 +7711,10 @@ const InputsSchema = z.object({
         "NANOGRAM",
       ]).describe("Optional. Value representing the user provided unit.")
         .optional(),
-    }).describe("Represents the weight quantity.").optional(),
+    }).describe("Optional. The total fat content, measured in grams.")
+      .optional(),
   }).describe(
-    "Holds information about food logged by a user. There are two ways of creating a nutrition log based on the food type: 1. Identified food: Using the food field, which is a reference to a Food resource. In this case fields `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat`, `food_display_name` will be populated based on the referenced food. 2. Anonymous food: Using the `food_display_name` field and setting the `nutrients`, `energy`, `energy_from_fat`, `total_carbohydrate`, `total_fat` fields manually. The identified food is preferred over the anonymous food. Nutrition logs created from anonymous food are not editable.",
+    "Optional. Data for points in the `nutrition-log` session data type collection.",
   ).optional(),
   oxygenSaturation: z.object({
     percentage: z.number().describe(
@@ -7850,9 +7732,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7867,10 +7747,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -7878,10 +7758,10 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which oxygen saturation was measured.")
       .optional(),
   }).describe(
-    "Captures the user's instantaneous oxygen saturation percentage (SpO2).",
+    "Optional. Data for points in the `oxygen-saturation` sample data type collection.",
   ).optional(),
   respiratoryRateSleepSummary: z.object({
     deepSleepStats: z.object({
@@ -7894,7 +7774,7 @@ const InputsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
+    }).describe("Optional. Respiratory rate statistics for deep sleep.")
       .optional(),
     fullSleepStats: z.object({
       breathsPerMinute: z.number().describe(
@@ -7906,8 +7786,7 @@ const InputsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
-      .optional(),
+    }).describe("Required. Full respiratory rate statistics.").optional(),
     lightSleepStats: z.object({
       breathsPerMinute: z.number().describe(
         "Required. Average breaths per minute.",
@@ -7918,7 +7797,7 @@ const InputsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
+    }).describe("Optional. Respiratory rate statistics for light sleep.")
       .optional(),
     remSleepStats: z.object({
       breathsPerMinute: z.number().describe(
@@ -7930,7 +7809,7 @@ const InputsSchema = z.object({
       standardDeviation: z.number().describe(
         "Optional. Standard deviation of the respiratory rate during sleep.",
       ).optional(),
-    }).describe("Respiratory rate statistics for a given sleep stage.")
+    }).describe("Optional. Respiratory rate statistics for REM sleep.")
       .optional(),
     sampleTime: z.object({
       civilTime: z.object({
@@ -7944,9 +7823,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -7961,10 +7838,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -7972,10 +7849,10 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which respiratory rate was measured.")
       .optional(),
   }).describe(
-    "Records respiratory rate details during sleep. Can have multiple per day if the user sleeps multiple times.",
+    "Optional. Data for points in the `respiratory-rate-sleep-summary` sample data type collection.",
   ).optional(),
   runVo2Max: z.object({
     runVo2Max: z.number().describe("Required. Run VO2 max value in ml/kg/min.")
@@ -7992,9 +7869,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8009,10 +7884,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -8020,10 +7895,10 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which the metric was measured.")
       .optional(),
   }).describe(
-    "VO2 max value calculated based on the user's running activity. Value stored in ml/kg/min.",
+    "Optional. Data for points in the `run-vo2-max` sample data type collection.",
   ).optional(),
   sedentaryPeriod: z.object({
     interval: z.object({
@@ -8038,9 +7913,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8055,10 +7928,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -8071,9 +7944,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8088,10 +7959,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -8103,10 +7974,9 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "SedentaryPeriod SedentaryPeriod data represents the periods of time that the user was sedentary (i.e. not moving while wearing the device).",
+    "Optional. Data for points in the `sedentary-period` interval data type collection.",
   ).optional(),
   sleep: z.object({
     createTime: z.string().describe(
@@ -8124,9 +7994,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8141,10 +8009,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session end time in civil time in the timezone the subject is in at the end of the session.",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -8157,9 +8025,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8174,10 +8040,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Session start time in civil time in the timezone the subject is in at the start of the session.",
       ).optional(),
       endTime: z.string().describe(
         "Required. The end time of the observed session.",
@@ -8191,9 +8057,7 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the session relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe(
-      "Represents a time interval of session data point, which bundles multiple observed metrics together.",
-    ).optional(),
+    }).describe("Required. Observed sleep interval.").optional(),
     metadata: z.object({
       externalId: z.string().describe(
         "Optional. Sleep identifier relevant in the context of the data source.",
@@ -8220,8 +8084,9 @@ const InputsSchema = z.object({
         "PROCESSING_INTERNAL_ERROR",
       ]).describe("Output only. Sleep stages algorithm processing status.")
         .optional(),
-    }).describe("Additional information about how the sleep was processed.")
-      .optional(),
+    }).describe(
+      "Optional. Sleep metadata: processing, main, manually edited, stages status.",
+    ).optional(),
     outOfBedSegments: z.array(z.object({
       endTime: z.string().describe("Required. Segment end time.").optional(),
       endUtcOffset: z.string().describe(
@@ -8301,14 +8166,17 @@ const InputsSchema = z.object({
       })).describe(
         "Output only. List of summaries (total duration and segment count) per each sleep stage type.",
       ).optional(),
-    }).describe("Sleep summary: metrics and stages summary.").optional(),
+    }).describe("Output only. Sleep summary: metrics and stages summary.")
+      .optional(),
     type: z.enum(["SLEEP_TYPE_UNSPECIFIED", "CLASSIC", "STAGES"]).describe(
       "Optional. SleepType: classic or stages.",
     ).optional(),
     updateTime: z.string().describe(
       "Output only. Last update time of this sleep observation.",
     ).optional(),
-  }).describe("A sleep session possibly including stages.").optional(),
+  }).describe(
+    "Optional. Data for points in the `sleep` session data type collection.",
+  ).optional(),
   steps: z.object({
     count: z.string().describe(
       "Required. Number of steps in the recorded interval.",
@@ -8325,9 +8193,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8342,10 +8208,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -8358,9 +8224,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8375,10 +8239,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -8390,9 +8254,10 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
-  }).describe("Step count over the time interval.").optional(),
+    }).describe("Required. Observed interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `steps` interval data type collection.",
+  ).optional(),
   swimLengthsData: z.object({
     interval: z.object({
       civilEndTime: z.object({
@@ -8406,9 +8271,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8423,10 +8286,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -8439,9 +8302,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8456,10 +8317,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -8471,8 +8332,7 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
     strokeCount: z.string().describe("Required. Number of strokes in the lap.")
       .optional(),
     swimStrokeType: z.enum([
@@ -8482,7 +8342,9 @@ const InputsSchema = z.object({
       "BREASTSTROKE",
       "BUTTERFLY",
     ]).describe("Required. Swim stroke type.").optional(),
-  }).describe("Swim lengths data over the time interval.").optional(),
+  }).describe(
+    "Optional. Data for points in the `swim-lengths-data` interval data type collection.",
+  ).optional(),
   timeInHeartRateZone: z.object({
     heartRateZoneType: z.enum([
       "HEART_RATE_ZONE_TYPE_UNSPECIFIED",
@@ -8503,9 +8365,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8520,10 +8380,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
       ).optional(),
       civilStartTime: z.object({
         date: z.object({
@@ -8536,9 +8396,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8553,10 +8411,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
       ).optional(),
       endTime: z.string().describe("Required. Observed interval end time.")
         .optional(),
@@ -8568,10 +8426,9 @@ const InputsSchema = z.object({
       startUtcOffset: z.string().describe(
         "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a time interval of an observed data point.")
-      .optional(),
+    }).describe("Required. Observed interval.").optional(),
   }).describe(
-    "Time in heart rate zone record. It's an interval spent in specific heart rate zone.",
+    "Optional. Data for points in the `time-in-heart-rate-zone` interval data type collection.",
   ).optional(),
   vo2Max: z.object({
     measurementMethod: z.enum([
@@ -8601,9 +8458,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8618,10 +8473,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -8629,12 +8484,13 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
-      .optional(),
+    }).describe("Required. The time at which VO2 max was measured.").optional(),
     vo2Max: z.number().describe(
       "Required. VO2 max value measured as in ml consumed oxygen / kg of body weight / min.",
     ).optional(),
-  }).describe("VO2 max measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `vo2-max` sample data type collection.",
+  ).optional(),
   weight: z.object({
     notes: z.string().describe(
       "Optional. Standard free-form notes captured at manual logging.",
@@ -8651,9 +8507,7 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("Required. Calendar date.").optional(),
         time: z.object({
           hours: z.number().int().describe(
             'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -8668,10 +8522,10 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
         ).optional(),
       }).describe(
-        "Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.",
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
       ).optional(),
       physicalTime: z.string().describe(
         "Required. The time of the observation.",
@@ -8679,11 +8533,13 @@ const InputsSchema = z.object({
       utcOffset: z.string().describe(
         "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
       ).optional(),
-    }).describe("Represents a sample time of an observed data point.")
+    }).describe("Required. The time at which the weight was measured")
       .optional(),
     weightGrams: z.number().describe("Required. Weight of a user in grams.")
       .optional(),
-  }).describe("Body weight measurement.").optional(),
+  }).describe(
+    "Optional. Data for points in the `weight` sample data type collection.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -8712,7 +8568,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Users.DataTypes.DataPoints. Registered at `@swamp/gcp/health/users-datatypes-datapoints`. */
 export const model = {
   type: "@swamp/gcp/health/users-datatypes-datapoints",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -8920,6 +8776,11 @@ export const model = {
       toVersion: "2026.07.20.2",
       description:
         "Added: activeEnergyBurned, basalEnergyBurned, bloodGlucose, coreBodyTemperature, electrocardiogram, food, foodMeasurementUnit, height, irregularRhythmNotification, nutritionLog, swimLengthsData",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

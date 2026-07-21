@@ -139,51 +139,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  actuationOutput: z.object({
-    actuateLogs: z.string().describe(
-      "A link to the Cloud Storage file that stores build logs.",
-    ).optional(),
-    ansibleError: z.string().describe(
-      "Output only. Error message returned from Ansible.",
-    ).optional(),
-    ansibleFailedTask: z.array(z.string()).describe(
-      "Output only. Failed task name returned from Ansible.",
-    ).optional(),
-    blueprintId: z.string().describe(
-      "Reference to the Blueprint Controller deployment and revision resource.",
-    ).optional(),
-    cloudbuildId: z.string().describe(
-      "Cloud Build instance UUID associated with this revision, without any suffix or prefix",
-    ).optional(),
-    errorCode: z.enum([
-      "ERROR_CODE_UNSPECIFIED",
-      "TERRAFORM_FAILED",
-      "PERMISSION_DENIED_IN_TERRAFORM",
-      "QUOTA_EXCEED_IN_TERRAFORM",
-      "ANSIBLE_FAILED",
-      "CONSTRAINT_VIOLATION_IN_TERRAFORM",
-      "RESOURCE_ALREADY_EXISTS_IN_TERRAFORM",
-      "RESOURCE_UNAVAILABLE_IN_TERRAFORM",
-      "PERMISSION_DENIED_IN_ANSIBLE",
-      "INVALID_SECRET_IN_ANSIBLE",
-      "TERRAFORM_DELETION_FAILED",
-      "RESOURCE_IN_USE_IN_TERRAFORM_DELETION",
-      "ANSIBLE_START_FAILED",
-    ]).describe(
-      "Output only. Code describing any errors that may have occurred. If not specified, there is no error in actuation.",
-    ).optional(),
-    errorLogs: z.string().describe("A link to the actuation Cloud Build log.")
-      .optional(),
-    hasUserFacingErrorMsg: z.boolean().describe(
-      "Output only. Whether the error message is user facing. If true, the error message will be shown in the UI.",
-    ).optional(),
-    terraformError: z.string().describe(
-      "Output only. Error message returned from Terraform.",
-    ).optional(),
-    terraformTemplate: z.string().describe(
-      "Reference to the Terraform template used.",
-    ).optional(),
-  }).describe("Message for output of actuation.").optional(),
   name: z.string().describe(
     "The name of the actuation resource. The format is projects/{project}/locations/{location}/deployments/{deployment}/actuations/{actuation}.",
   ).optional(),
@@ -228,51 +183,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  actuationOutput: z.object({
-    actuateLogs: z.string().describe(
-      "A link to the Cloud Storage file that stores build logs.",
-    ).optional(),
-    ansibleError: z.string().describe(
-      "Output only. Error message returned from Ansible.",
-    ).optional(),
-    ansibleFailedTask: z.array(z.string()).describe(
-      "Output only. Failed task name returned from Ansible.",
-    ).optional(),
-    blueprintId: z.string().describe(
-      "Reference to the Blueprint Controller deployment and revision resource.",
-    ).optional(),
-    cloudbuildId: z.string().describe(
-      "Cloud Build instance UUID associated with this revision, without any suffix or prefix",
-    ).optional(),
-    errorCode: z.enum([
-      "ERROR_CODE_UNSPECIFIED",
-      "TERRAFORM_FAILED",
-      "PERMISSION_DENIED_IN_TERRAFORM",
-      "QUOTA_EXCEED_IN_TERRAFORM",
-      "ANSIBLE_FAILED",
-      "CONSTRAINT_VIOLATION_IN_TERRAFORM",
-      "RESOURCE_ALREADY_EXISTS_IN_TERRAFORM",
-      "RESOURCE_UNAVAILABLE_IN_TERRAFORM",
-      "PERMISSION_DENIED_IN_ANSIBLE",
-      "INVALID_SECRET_IN_ANSIBLE",
-      "TERRAFORM_DELETION_FAILED",
-      "RESOURCE_IN_USE_IN_TERRAFORM_DELETION",
-      "ANSIBLE_START_FAILED",
-    ]).describe(
-      "Output only. Code describing any errors that may have occurred. If not specified, there is no error in actuation.",
-    ).optional(),
-    errorLogs: z.string().describe("A link to the actuation Cloud Build log.")
-      .optional(),
-    hasUserFacingErrorMsg: z.boolean().describe(
-      "Output only. Whether the error message is user facing. If true, the error message will be shown in the UI.",
-    ).optional(),
-    terraformError: z.string().describe(
-      "Output only. Error message returned from Terraform.",
-    ).optional(),
-    terraformTemplate: z.string().describe(
-      "Reference to the Terraform template used.",
-    ).optional(),
-  }).describe("Message for output of actuation.").optional(),
   name: z.string().describe(
     "The name of the actuation resource. The format is projects/{project}/locations/{location}/deployments/{deployment}/actuations/{actuation}.",
   ).optional(),
@@ -310,7 +220,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workload Manager Deployments.Actuations. Registered at `@swamp/gcp/workloadmanager/deployments-actuations`. */
 export const model = {
   type: "@swamp/gcp/workloadmanager/deployments-actuations",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -427,6 +337,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: actuationOutput",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { actuationOutput: _actuationOutput, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -454,9 +372,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["actuationOutput"] !== undefined) {
-          body["actuationOutput"] = g["actuationOutput"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);

@@ -223,7 +223,7 @@ const GlobalArgsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "SINGLETON", "GROUP"]).describe(
         "Optional. Type of the review URI.",
       ).optional(),
-    }).describe("The URI of the review landing page.").optional(),
+    }).describe("Optional. The URI of the review landing page.").optional(),
     reviewTime: z.string().describe(
       "Required. The timestamp indicating when the review was written.",
     ).optional(),
@@ -249,92 +249,10 @@ const GlobalArgsSchema = z.object({
     transactionId: z.string().describe(
       "Optional. A permanent, unique identifier for the transaction associated with the review in the publisher's system. This ID can be used to indicate that multiple reviews are associated with the same transaction.",
     ).optional(),
-  }).describe("Attributes.").optional(),
+  }).describe("Optional. A list of product review attributes.").optional(),
   productReviewId: z.string().describe(
     "Required. The permanent, unique identifier for the product review in the publisher’s system.",
   ).optional(),
-  productReviewStatus: z.object({
-    createTime: z.string().describe(
-      "Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-    destinationStatuses: z.array(z.object({
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The name of the reporting context.").optional(),
-    })).describe(
-      "Output only. The intended destinations for the product review.",
-    ).optional(),
-    itemLevelIssues: z.array(z.object({
-      attribute: z.string().describe(
-        "Output only. The attribute's name, if the issue is caused by a single attribute.",
-      ).optional(),
-      code: z.string().describe("Output only. The error code of the issue.")
-        .optional(),
-      description: z.string().describe(
-        "Output only. A short issue description in English.",
-      ).optional(),
-      detail: z.string().describe(
-        "Output only. A detailed issue description in English.",
-      ).optional(),
-      documentation: z.string().describe(
-        "Output only. The URL of a web page to help with resolving this issue.",
-      ).optional(),
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The reporting context the issue applies to.")
-        .optional(),
-      resolution: z.string().describe(
-        "Output only. Whether the issue can be resolved by the merchant.",
-      ).optional(),
-      severity: z.enum(["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"])
-        .describe(
-          "Output only. How this issue affects serving of the product review.",
-        ).optional(),
-    })).describe(
-      "Output only. A list of all issues associated with the product review.",
-    ).optional(),
-    lastUpdateTime: z.string().describe(
-      "Output only. Date on which the item has been last updated, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-  }).describe("Product review status.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -497,7 +415,7 @@ const InputsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "SINGLETON", "GROUP"]).describe(
         "Optional. Type of the review URI.",
       ).optional(),
-    }).describe("The URI of the review landing page.").optional(),
+    }).describe("Optional. The URI of the review landing page.").optional(),
     reviewTime: z.string().describe(
       "Required. The timestamp indicating when the review was written.",
     ).optional(),
@@ -523,92 +441,10 @@ const InputsSchema = z.object({
     transactionId: z.string().describe(
       "Optional. A permanent, unique identifier for the transaction associated with the review in the publisher's system. This ID can be used to indicate that multiple reviews are associated with the same transaction.",
     ).optional(),
-  }).describe("Attributes.").optional(),
+  }).describe("Optional. A list of product review attributes.").optional(),
   productReviewId: z.string().describe(
     "Required. The permanent, unique identifier for the product review in the publisher’s system.",
   ).optional(),
-  productReviewStatus: z.object({
-    createTime: z.string().describe(
-      "Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-    destinationStatuses: z.array(z.object({
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The name of the reporting context.").optional(),
-    })).describe(
-      "Output only. The intended destinations for the product review.",
-    ).optional(),
-    itemLevelIssues: z.array(z.object({
-      attribute: z.string().describe(
-        "Output only. The attribute's name, if the issue is caused by a single attribute.",
-      ).optional(),
-      code: z.string().describe("Output only. The error code of the issue.")
-        .optional(),
-      description: z.string().describe(
-        "Output only. A short issue description in English.",
-      ).optional(),
-      detail: z.string().describe(
-        "Output only. A detailed issue description in English.",
-      ).optional(),
-      documentation: z.string().describe(
-        "Output only. The URL of a web page to help with resolving this issue.",
-      ).optional(),
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The reporting context the issue applies to.")
-        .optional(),
-      resolution: z.string().describe(
-        "Output only. Whether the issue can be resolved by the merchant.",
-      ).optional(),
-      severity: z.enum(["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"])
-        .describe(
-          "Output only. How this issue affects serving of the product review.",
-        ).optional(),
-    })).describe(
-      "Output only. A list of all issues associated with the product review.",
-    ).optional(),
-    lastUpdateTime: z.string().describe(
-      "Output only. Date on which the item has been last updated, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-  }).describe("Product review status.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -637,7 +473,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.ProductReviews. Registered at `@swamp/gcp/merchantapi/accounts-productreviews`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-productreviews",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -739,6 +575,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: productReviewStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { productReviewStatus: _productReviewStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -771,9 +615,6 @@ export const model = {
         }
         if (g["productReviewId"] !== undefined) {
           body["productReviewId"] = g["productReviewId"];
-        }
-        if (g["productReviewStatus"] !== undefined) {
-          body["productReviewStatus"] = g["productReviewStatus"];
         }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(

@@ -254,7 +254,7 @@ const GlobalArgsSchema = z.object({
       "Whether the subscription offer in any new locations Play may launch in the future. If not specified, this will default to false.",
     ).optional(),
   }).describe(
-    "Configuration for any new locations Play may launch in specified on a subscription offer.",
+    "The configuration for any new locations Play may launch in the future.",
   ).optional(),
   packageName: z.string().describe(
     "Required. Immutable. The package name of the app the parent subscription belongs to.",
@@ -275,8 +275,9 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in EUR to use for any new locations Play may launch in.",
+        ).optional(),
         usdPrice: z.object({
           currencyCode: z.unknown().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -287,13 +288,14 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in USD to use for any new locations Play may launch in.",
+        ).optional(),
       }).describe(
-        "Pricing information for any new locations Play may launch in.",
+        "The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for any new locations Play may launch in.",
       ).optional(),
       free: z.object({}).describe(
-        "Represents the free price override configuration for any new locations Play may launch for a single offer phase.",
+        "Set to specify this offer is free to obtain.",
       ).optional(),
       otherRegionsPrices: z.object({
         eurPrice: z.object({
@@ -306,8 +308,9 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in EUR to use for any new locations Play may launch in.",
+        ).optional(),
         usdPrice: z.object({
           currencyCode: z.unknown().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -318,17 +321,17 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in USD to use for any new locations Play may launch in.",
+        ).optional(),
       }).describe(
-        "Pricing information for any new locations Play may launch in.",
+        "The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for any new locations Play may launch in.",
       ).optional(),
       relativeDiscount: z.number().describe(
         "The fraction of the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a 50% discount for a phase of a duration of 3 months would correspond to a price of $1.50. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in any new locations Play may launch in.",
       ).optional(),
-    }).describe(
-      "Configuration for any new locations Play may launch in for a single offer phase.",
-    ).optional(),
+    }).describe("Pricing information for any new locations Play may launch in.")
+      .optional(),
     recurrenceCount: z.number().int().describe(
       "Required. The number of times this phase repeats. If this offer phase is not free, each recurrence charges the user the price of this offer phase.",
     ).optional(),
@@ -343,10 +346,11 @@ const GlobalArgsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for this region.",
+      ).optional(),
       free: z.object({}).describe(
-        "Represents the free price override configuration for a single phase of a subscription offer",
+        "Set to specify this offer is free to obtain.",
       ).optional(),
       price: z.object({
         currencyCode: z.unknown().describe(
@@ -358,8 +362,9 @@ const GlobalArgsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for this region.",
+      ).optional(),
       regionCode: z.string().describe(
         "Required. Immutable. The region to which this config applies.",
       ).optional(),
@@ -389,20 +394,18 @@ const GlobalArgsSchema = z.object({
     acquisitionRule: z.object({
       scope: z.object({
         anySubscriptionInApp: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to any subscription in the parent app.",
+          "The scope of the current targeting rule is any subscription in the parent app.",
         ).optional(),
         specificSubscriptionInApp: z.string().describe(
           "The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.",
         ).optional(),
         thisSubscription: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.",
+          "The scope of the current targeting rule is the subscription in which this offer is defined.",
         ).optional(),
       }).describe(
-        "Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.",
+        'Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "any subscription in app".',
       ).optional(),
-    }).describe(
-      "Represents a targeting rule of the form: User never had {scope} before.",
-    ).optional(),
+    }).describe("Offer targeting rule for new user acquisition.").optional(),
     upgradeRule: z.object({
       billingPeriodDuration: z.string().describe(
         "The specific billing period duration, specified in ISO 8601 format, that a user must be currently subscribed to to be eligible for this rule. If not specified, users subscribed to any billing period are matched.",
@@ -412,22 +415,22 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       scope: z.object({
         anySubscriptionInApp: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to any subscription in the parent app.",
+          "The scope of the current targeting rule is any subscription in the parent app.",
         ).optional(),
         specificSubscriptionInApp: z.string().describe(
           "The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.",
         ).optional(),
         thisSubscription: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.",
+          "The scope of the current targeting rule is the subscription in which this offer is defined.",
         ).optional(),
       }).describe(
-        "Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.",
+        'Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "specific subscription in app".',
       ).optional(),
-    }).describe(
-      "Represents a targeting rule of the form: User currently has {scope} [with billing period {billing_period}].",
-    ).optional(),
-  }).describe("Defines the rule a user needs to satisfy to receive this offer.")
-    .optional(),
+    }).describe("Offer targeting rule for upgrading users' existing plans.")
+      .optional(),
+  }).describe(
+    "The requirements that users need to fulfil to be eligible for this offer. Represents the requirements that Play will evaluate to decide whether an offer should be returned. Developers may further filter these offers themselves.",
+  ).optional(),
   regionsVersion_version: z.string().describe(
     "Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region's version and set of regional prices and currencies will succeed even though a new version is available.",
   ).optional(),
@@ -542,7 +545,7 @@ const InputsSchema = z.object({
       "Whether the subscription offer in any new locations Play may launch in the future. If not specified, this will default to false.",
     ).optional(),
   }).describe(
-    "Configuration for any new locations Play may launch in specified on a subscription offer.",
+    "The configuration for any new locations Play may launch in the future.",
   ).optional(),
   packageName: z.string().describe(
     "Required. Immutable. The package name of the app the parent subscription belongs to.",
@@ -563,8 +566,9 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in EUR to use for any new locations Play may launch in.",
+        ).optional(),
         usdPrice: z.object({
           currencyCode: z.unknown().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -575,13 +579,14 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in USD to use for any new locations Play may launch in.",
+        ).optional(),
       }).describe(
-        "Pricing information for any new locations Play may launch in.",
+        "The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for any new locations Play may launch in.",
       ).optional(),
       free: z.object({}).describe(
-        "Represents the free price override configuration for any new locations Play may launch for a single offer phase.",
+        "Set to specify this offer is free to obtain.",
       ).optional(),
       otherRegionsPrices: z.object({
         eurPrice: z.object({
@@ -594,8 +599,9 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in EUR to use for any new locations Play may launch in.",
+        ).optional(),
         usdPrice: z.object({
           currencyCode: z.unknown().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -606,17 +612,17 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Required. Price in USD to use for any new locations Play may launch in.",
+        ).optional(),
       }).describe(
-        "Pricing information for any new locations Play may launch in.",
+        "The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for any new locations Play may launch in.",
       ).optional(),
       relativeDiscount: z.number().describe(
         "The fraction of the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a 50% discount for a phase of a duration of 3 months would correspond to a price of $1.50. The discount must be specified as a fraction strictly larger than 0 and strictly smaller than 1. The resulting price will be rounded to the nearest billable unit (e.g. cents for USD). The relative discount is considered invalid if the discounted price ends up being smaller than the minimum price allowed in any new locations Play may launch in.",
       ).optional(),
-    }).describe(
-      "Configuration for any new locations Play may launch in for a single offer phase.",
-    ).optional(),
+    }).describe("Pricing information for any new locations Play may launch in.")
+      .optional(),
     recurrenceCount: z.number().int().describe(
       "Required. The number of times this phase repeats. If this offer phase is not free, each recurrence charges the user the price of this offer phase.",
     ).optional(),
@@ -631,10 +637,11 @@ const InputsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for this region.",
+      ).optional(),
       free: z.object({}).describe(
-        "Represents the free price override configuration for a single phase of a subscription offer",
+        "Set to specify this offer is free to obtain.",
       ).optional(),
       price: z.object({
         currencyCode: z.unknown().describe(
@@ -646,8 +653,9 @@ const InputsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for this region.",
+      ).optional(),
       regionCode: z.string().describe(
         "Required. Immutable. The region to which this config applies.",
       ).optional(),
@@ -677,20 +685,18 @@ const InputsSchema = z.object({
     acquisitionRule: z.object({
       scope: z.object({
         anySubscriptionInApp: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to any subscription in the parent app.",
+          "The scope of the current targeting rule is any subscription in the parent app.",
         ).optional(),
         specificSubscriptionInApp: z.string().describe(
           "The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.",
         ).optional(),
         thisSubscription: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.",
+          "The scope of the current targeting rule is the subscription in which this offer is defined.",
         ).optional(),
       }).describe(
-        "Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.",
+        'Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "any subscription in app".',
       ).optional(),
-    }).describe(
-      "Represents a targeting rule of the form: User never had {scope} before.",
-    ).optional(),
+    }).describe("Offer targeting rule for new user acquisition.").optional(),
     upgradeRule: z.object({
       billingPeriodDuration: z.string().describe(
         "The specific billing period duration, specified in ISO 8601 format, that a user must be currently subscribed to to be eligible for this rule. If not specified, users subscribed to any billing period are matched.",
@@ -700,22 +706,22 @@ const InputsSchema = z.object({
       ).optional(),
       scope: z.object({
         anySubscriptionInApp: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to any subscription in the parent app.",
+          "The scope of the current targeting rule is any subscription in the parent app.",
         ).optional(),
         specificSubscriptionInApp: z.string().describe(
           "The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.",
         ).optional(),
         thisSubscription: z.object({}).describe(
-          "Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.",
+          "The scope of the current targeting rule is the subscription in which this offer is defined.",
         ).optional(),
       }).describe(
-        "Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.",
+        'Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "specific subscription in app".',
       ).optional(),
-    }).describe(
-      "Represents a targeting rule of the form: User currently has {scope} [with billing period {billing_period}].",
-    ).optional(),
-  }).describe("Defines the rule a user needs to satisfy to receive this offer.")
-    .optional(),
+    }).describe("Offer targeting rule for upgrading users' existing plans.")
+      .optional(),
+  }).describe(
+    "The requirements that users need to fulfil to be eligible for this offer. Represents the requirements that Play will evaluate to decide whether an offer should be returned. Developers may further filter these offers themselves.",
+  ).optional(),
   regionsVersion_version: z.string().describe(
     "Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region's version and set of regional prices and currencies will succeed even though a new version is available.",
   ).optional(),
@@ -745,7 +751,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/androidpublisher/monetization-subscriptions-baseplans-offers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -847,6 +853,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -910,16 +921,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "packageName": String(g["packageName"] ?? ""),
-              "productId": String(g["productId"] ?? ""),
-              "basePlanId": String(g["basePlanId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

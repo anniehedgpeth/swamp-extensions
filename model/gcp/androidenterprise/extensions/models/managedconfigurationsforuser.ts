@@ -177,7 +177,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("The variable set that is attributed to the user.").optional(),
   }).describe(
-    "A configuration variables resource contains the managed configuration settings ID to be applied to a single user, as well as the variable set that is attributed to the user. The variable set will be used to replace placeholders in the managed configuration settings.",
+    "Contains the ID of the managed configuration profile and the set of configuration variables (if any) defined for the user.",
   ).optional(),
   kind: z.string().describe("Deprecated.").optional(),
   managedProperty: z.array(z.object({
@@ -190,7 +190,9 @@ const GlobalArgsSchema = z.object({
       managedProperty: z.array(z.record(z.string(), z.unknown())).describe(
         "The list of managed properties.",
       ).optional(),
-    }).describe("A bundle of managed properties.").optional(),
+    }).describe(
+      "The bundle of managed properties - this will only be present if type of the property is bundle.",
+    ).optional(),
     valueBundleArray: z.array(z.object({
       managedProperty: z.array(z.unknown()).describe(
         "The list of managed properties.",
@@ -261,7 +263,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("The variable set that is attributed to the user.").optional(),
   }).describe(
-    "A configuration variables resource contains the managed configuration settings ID to be applied to a single user, as well as the variable set that is attributed to the user. The variable set will be used to replace placeholders in the managed configuration settings.",
+    "Contains the ID of the managed configuration profile and the set of configuration variables (if any) defined for the user.",
   ).optional(),
   kind: z.string().describe("Deprecated.").optional(),
   managedProperty: z.array(z.object({
@@ -274,7 +276,9 @@ const InputsSchema = z.object({
       managedProperty: z.array(z.record(z.string(), z.unknown())).describe(
         "The list of managed properties.",
       ).optional(),
-    }).describe("A bundle of managed properties.").optional(),
+    }).describe(
+      "The bundle of managed properties - this will only be present if type of the property is bundle.",
+    ).optional(),
     valueBundleArray: z.array(z.object({
       managedProperty: z.array(z.unknown()).describe(
         "The list of managed properties.",
@@ -323,7 +327,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play EMM Managedconfigurationsforuser. Registered at `@swamp/gcp/androidenterprise/managedconfigurationsforuser`. */
 export const model = {
   type: "@swamp/gcp/androidenterprise/managedconfigurationsforuser",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -427,6 +431,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

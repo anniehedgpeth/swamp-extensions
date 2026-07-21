@@ -153,19 +153,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   displayName: z.string().describe("The private connection display name.")
     .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'The resource labels for private connections to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: `{ "name": "wrench", "mass": "1.3kg", "count": "3" }`.',
   ).optional(),
@@ -174,9 +161,7 @@ const GlobalArgsSchema = z.object({
     networkAttachment: z.string().describe(
       "Required. Fully qualified name of the Network Attachment that DMS will connect to. Format: `projects/{{project}}/regions/{{region}}/networkAttachments/{{name}}`",
     ).optional(),
-  }).describe(
-    "The PSC Interface configuration is used to create PSC Interface between DMS's internal VPC and the consumer's PSC.",
-  ).optional(),
+  }).describe("PSC Interface configuration.").optional(),
   vpcPeeringConfig: z.object({
     subnet: z.string().describe(
       "Required. A free subnet for peering. (CIDR of /29)",
@@ -184,9 +169,7 @@ const GlobalArgsSchema = z.object({
     vpcName: z.string().describe(
       "Required. Fully qualified name of the VPC that Database Migration Service will peer to.",
     ).optional(),
-  }).describe(
-    "The VPC peering configuration is used to create VPC peering with the consumer's VPC.",
-  ).optional(),
+  }).describe("VPC peering configuration.").optional(),
   privateConnectionId: z.string().describe(
     "Required. The private connection identifier.",
   ).optional(),
@@ -233,19 +216,6 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   displayName: z.string().describe("The private connection display name.")
     .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'The resource labels for private connections to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: `{ "name": "wrench", "mass": "1.3kg", "count": "3" }`.',
   ).optional(),
@@ -254,9 +224,7 @@ const InputsSchema = z.object({
     networkAttachment: z.string().describe(
       "Required. Fully qualified name of the Network Attachment that DMS will connect to. Format: `projects/{{project}}/regions/{{region}}/networkAttachments/{{name}}`",
     ).optional(),
-  }).describe(
-    "The PSC Interface configuration is used to create PSC Interface between DMS's internal VPC and the consumer's PSC.",
-  ).optional(),
+  }).describe("PSC Interface configuration.").optional(),
   vpcPeeringConfig: z.object({
     subnet: z.string().describe(
       "Required. A free subnet for peering. (CIDR of /29)",
@@ -264,9 +232,7 @@ const InputsSchema = z.object({
     vpcName: z.string().describe(
       "Required. Fully qualified name of the VPC that Database Migration Service will peer to.",
     ).optional(),
-  }).describe(
-    "The VPC peering configuration is used to create VPC peering with the consumer's VPC.",
-  ).optional(),
+  }).describe("VPC peering configuration.").optional(),
   privateConnectionId: z.string().describe(
     "Required. The private connection identifier.",
   ).optional(),
@@ -304,7 +270,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration PrivateConnections. Registered at `@swamp/gcp/datamigration/privateconnections`. */
 export const model = {
   type: "@swamp/gcp/datamigration/privateconnections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -411,6 +377,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -439,7 +413,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["pscInterfaceConfig"] !== undefined) {

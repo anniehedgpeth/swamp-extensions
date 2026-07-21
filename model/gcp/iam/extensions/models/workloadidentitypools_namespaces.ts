@@ -163,11 +163,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   name: z.string().describe("Identifier. The resource name of the namespace.")
     .optional(),
-  ownerService: z.object({
-    principalSubject: z.string().describe(
-      'Required. The service agent principal subject, e.g. "serviceAccount:service-1234@gcp-sa-gkehub.iam.gserviceaccount.com".',
-    ).optional(),
-  }).describe("The Google Cloud service that owns this namespace.").optional(),
   workloadIdentityPoolNamespaceId: z.string().describe(
     'Required. The ID to use for the namespace. This value must: * contain at most 63 characters * contain only lowercase alphanumeric characters or `-` * start with an alphanumeric character * end with an alphanumeric character The prefix "gcp-" will be reserved for future uses.',
   ).optional(),
@@ -205,11 +200,6 @@ const InputsSchema = z.object({
   ).optional(),
   name: z.string().describe("Identifier. The resource name of the namespace.")
     .optional(),
-  ownerService: z.object({
-    principalSubject: z.string().describe(
-      'Required. The service agent principal subject, e.g. "serviceAccount:service-1234@gcp-sa-gkehub.iam.gserviceaccount.com".',
-    ).optional(),
-  }).describe("The Google Cloud service that owns this namespace.").optional(),
   workloadIdentityPoolNamespaceId: z.string().describe(
     'Required. The ID to use for the namespace. This value must: * contain at most 63 characters * contain only lowercase alphanumeric characters or `-` * start with an alphanumeric character * end with an alphanumeric character The prefix "gcp-" will be reserved for future uses.',
   ).optional(),
@@ -244,7 +234,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkloadIdentityPools.Namespaces. Registered at `@swamp/gcp/iam/workloadidentitypools-namespaces`. */
 export const model = {
   type: "@swamp/gcp/iam/workloadidentitypools-namespaces",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: ownerService",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { ownerService: _ownerService, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -276,9 +276,6 @@ export const model = {
         }
         if (g["disabled"] !== undefined) body["disabled"] = g["disabled"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["ownerService"] !== undefined) {
-          body["ownerService"] = g["ownerService"];
-        }
         if (g["workloadIdentityPoolNamespaceId"] !== undefined) {
           params["workloadIdentityPoolNamespaceId"] = String(
             g["workloadIdentityPoolNamespaceId"],
@@ -404,9 +401,6 @@ export const model = {
           body["description"] = g["description"];
         }
         if (g["disabled"] !== undefined) body["disabled"] = g["disabled"];
-        if (g["ownerService"] !== undefined) {
-          body["ownerService"] = g["ownerService"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

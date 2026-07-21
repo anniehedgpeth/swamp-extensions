@@ -167,19 +167,6 @@ const GlobalArgsSchema = z.object({
     "ENTERPRISE",
     "ENTERPRISE_PLUS",
   ]).describe("Optional. Edition of the capacity commitment.").optional(),
-  failureStatus: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   plan: z.enum([
     "COMMITMENT_PLAN_UNSPECIFIED",
     "FLEX",
@@ -252,19 +239,6 @@ const InputsSchema = z.object({
     "ENTERPRISE",
     "ENTERPRISE_PLUS",
   ]).describe("Optional. Edition of the capacity commitment.").optional(),
-  failureStatus: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   plan: z.enum([
     "COMMITMENT_PLAN_UNSPECIFIED",
     "FLEX",
@@ -328,7 +302,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation CapacityCommitments. Registered at `@swamp/gcp/bigqueryreservation/capacitycommitments`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/capacitycommitments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -435,6 +409,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: failureStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { failureStatus: _failureStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -465,9 +447,6 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["edition"] !== undefined) body["edition"] = g["edition"];
-        if (g["failureStatus"] !== undefined) {
-          body["failureStatus"] = g["failureStatus"];
-        }
         if (g["plan"] !== undefined) body["plan"] = g["plan"];
         if (g["renewalPlan"] !== undefined) {
           body["renewalPlan"] = g["renewalPlan"];
@@ -500,16 +479,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -601,9 +571,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["edition"] !== undefined) body["edition"] = g["edition"];
-        if (g["failureStatus"] !== undefined) {
-          body["failureStatus"] = g["failureStatus"];
-        }
         if (g["plan"] !== undefined) body["plan"] = g["plan"];
         if (g["renewalPlan"] !== undefined) {
           body["renewalPlan"] = g["renewalPlan"];

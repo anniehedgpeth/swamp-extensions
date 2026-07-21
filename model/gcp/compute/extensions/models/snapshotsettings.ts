@@ -108,7 +108,9 @@ const GlobalArgsSchema = z.object({
     policy: z.enum(["ALL_REGIONS", "POLICY_UNSPECIFIED", "SPECIFIC_REGIONS"])
       .describe("Policy of which location is allowed to access snapshot.")
       .optional(),
-  }).optional(),
+  }).describe(
+    "(Regional snapshots use only)Policy of which location is allowed to access snapshot.",
+  ).optional(),
   storageLocation: z.object({
     locations: z.record(
       z.string(),
@@ -126,7 +128,9 @@ const GlobalArgsSchema = z.object({
       "SPECIFIC_LOCATIONS",
       "STORAGE_LOCATION_POLICY_UNSPECIFIED",
     ]).describe("The chosen location policy.").optional(),
-  }).optional(),
+  }).describe(
+    "Policy of which storage location is going to be resolved, and additional data that particularizes how the policy is going to be carried out.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -160,7 +164,9 @@ const InputsSchema = z.object({
     policy: z.enum(["ALL_REGIONS", "POLICY_UNSPECIFIED", "SPECIFIC_REGIONS"])
       .describe("Policy of which location is allowed to access snapshot.")
       .optional(),
-  }).optional(),
+  }).describe(
+    "(Regional snapshots use only)Policy of which location is allowed to access snapshot.",
+  ).optional(),
   storageLocation: z.object({
     locations: z.record(
       z.string(),
@@ -178,7 +184,9 @@ const InputsSchema = z.object({
       "SPECIFIC_LOCATIONS",
       "STORAGE_LOCATION_POLICY_UNSPECIFIED",
     ]).describe("The chosen location policy.").optional(),
-  }).optional(),
+  }).describe(
+    "Policy of which storage location is going to be resolved, and additional data that particularizes how the policy is going to be carried out.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -204,7 +212,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine SnapshotSettings. Registered at `@swamp/gcp/compute/snapshotsettings`. */
 export const model = {
   type: "@swamp/gcp/compute/snapshotsettings",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -354,6 +362,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: accessLocation",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

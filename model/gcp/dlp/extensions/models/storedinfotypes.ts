@@ -165,18 +165,14 @@ const GlobalArgsSchema = z.object({
           "A URL representing a file or path (no wildcards) in Cloud Storage. Example: `gs://[BUCKET_NAME]/dictionary.txt`",
         ).optional(),
       }).describe(
-        "Message representing a single file or path in Cloud Storage.",
+        "Newline-delimited file of words in Cloud Storage. Only a single file is accepted.",
       ).optional(),
       wordList: z.object({
         words: z.array(z.string()).describe(
           "Words or phrases defining the dictionary. The dictionary must contain at least one phrase and every phrase must contain at least 2 characters that are letters or digits. [required]",
         ).optional(),
-      }).describe(
-        "Message defining a list of words or phrases to search for in the data.",
-      ).optional(),
-    }).describe(
-      'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
-    ).optional(),
+      }).describe("List of words or phrases to search for.").optional(),
+    }).describe("Store dictionary-based CustomInfoType.").optional(),
     displayName: z.string().describe(
       "Display name of the StoredInfoType (max 256 characters).",
     ).optional(),
@@ -184,33 +180,33 @@ const GlobalArgsSchema = z.object({
       bigQueryField: z.object({
         field: z.object({
           name: z.string().describe("Name describing the field.").optional(),
-        }).describe("General identifier of a data field in a storage service.")
-          .optional(),
+        }).describe("Designated field in the BigQuery table.").optional(),
         table: z.object({
           datasetId: z.string().describe("Dataset ID of the table.").optional(),
           projectId: z.string().describe(
             "The Google Cloud project ID of the project containing the table. If omitted, project ID is inferred from the API call.",
           ).optional(),
           tableId: z.string().describe("Name of the table.").optional(),
-        }).describe(
-          "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
-        ).optional(),
-      }).describe("Message defining a field of a BigQuery table.").optional(),
+        }).describe("Source table of the field.").optional(),
+      }).describe(
+        "Field in a BigQuery table where each cell represents a dictionary phrase.",
+      ).optional(),
       cloudStorageFileSet: z.object({
         url: z.string().describe(
           "The url, in the format `gs:///`. Trailing wildcard in the path is allowed.",
         ).optional(),
-      }).describe("Message representing a set of files in Cloud Storage.")
-        .optional(),
+      }).describe(
+        "Set of files containing newline-delimited lists of dictionary phrases.",
+      ).optional(),
       outputPath: z.object({
         path: z.string().describe(
           "A URL representing a file or path (no wildcards) in Cloud Storage. Example: `gs://[BUCKET_NAME]/dictionary.txt`",
         ).optional(),
       }).describe(
-        "Message representing a single file or path in Cloud Storage.",
+        "Location to store dictionary artifacts in Cloud Storage. These files will only be accessible by project owners and the DLP API. If any of these artifacts are modified, the dictionary is considered invalid and can no longer be used.",
       ).optional(),
     }).describe(
-      "Configuration for a custom dictionary created from a data source of any size up to the maximum size defined in the [limits](https://cloud.google.com/sensitive-data-protection/limits) page. The artifacts of dictionary creation are stored in the specified Cloud Storage location. Consider using `CustomInfoType.Dictionary` for smaller dictionaries that satisfy the size requirements.",
+      "StoredInfoType where findings are defined by a dictionary of phrases.",
     ).optional(),
     regex: z.object({
       groupIndexes: z.array(z.number().int()).describe(
@@ -219,9 +215,9 @@ const GlobalArgsSchema = z.object({
       pattern: z.string().describe(
         "Pattern defining the regular expression. Its syntax (https://github.com/google/re2/wiki/Syntax) can be found under the google/re2 repository on GitHub.",
       ).optional(),
-    }).describe("Message defining a custom regular expression.").optional(),
+    }).describe("Store regular expression-based StoredInfoType.").optional(),
   }).describe(
-    "Configuration for stored infoTypes. All fields and subfield are provided by the user. For more information, see https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes.",
+    "Updated configuration for the storedInfoType. If not provided, a new version of the storedInfoType will be created with the existing configuration.",
   ).optional(),
   locationId: z.string().describe("Deprecated. This field has no effect.")
     .optional(),
@@ -355,18 +351,14 @@ const InputsSchema = z.object({
           "A URL representing a file or path (no wildcards) in Cloud Storage. Example: `gs://[BUCKET_NAME]/dictionary.txt`",
         ).optional(),
       }).describe(
-        "Message representing a single file or path in Cloud Storage.",
+        "Newline-delimited file of words in Cloud Storage. Only a single file is accepted.",
       ).optional(),
       wordList: z.object({
         words: z.array(z.string()).describe(
           "Words or phrases defining the dictionary. The dictionary must contain at least one phrase and every phrase must contain at least 2 characters that are letters or digits. [required]",
         ).optional(),
-      }).describe(
-        "Message defining a list of words or phrases to search for in the data.",
-      ).optional(),
-    }).describe(
-      'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
-    ).optional(),
+      }).describe("List of words or phrases to search for.").optional(),
+    }).describe("Store dictionary-based CustomInfoType.").optional(),
     displayName: z.string().describe(
       "Display name of the StoredInfoType (max 256 characters).",
     ).optional(),
@@ -374,33 +366,33 @@ const InputsSchema = z.object({
       bigQueryField: z.object({
         field: z.object({
           name: z.string().describe("Name describing the field.").optional(),
-        }).describe("General identifier of a data field in a storage service.")
-          .optional(),
+        }).describe("Designated field in the BigQuery table.").optional(),
         table: z.object({
           datasetId: z.string().describe("Dataset ID of the table.").optional(),
           projectId: z.string().describe(
             "The Google Cloud project ID of the project containing the table. If omitted, project ID is inferred from the API call.",
           ).optional(),
           tableId: z.string().describe("Name of the table.").optional(),
-        }).describe(
-          "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
-        ).optional(),
-      }).describe("Message defining a field of a BigQuery table.").optional(),
+        }).describe("Source table of the field.").optional(),
+      }).describe(
+        "Field in a BigQuery table where each cell represents a dictionary phrase.",
+      ).optional(),
       cloudStorageFileSet: z.object({
         url: z.string().describe(
           "The url, in the format `gs:///`. Trailing wildcard in the path is allowed.",
         ).optional(),
-      }).describe("Message representing a set of files in Cloud Storage.")
-        .optional(),
+      }).describe(
+        "Set of files containing newline-delimited lists of dictionary phrases.",
+      ).optional(),
       outputPath: z.object({
         path: z.string().describe(
           "A URL representing a file or path (no wildcards) in Cloud Storage. Example: `gs://[BUCKET_NAME]/dictionary.txt`",
         ).optional(),
       }).describe(
-        "Message representing a single file or path in Cloud Storage.",
+        "Location to store dictionary artifacts in Cloud Storage. These files will only be accessible by project owners and the DLP API. If any of these artifacts are modified, the dictionary is considered invalid and can no longer be used.",
       ).optional(),
     }).describe(
-      "Configuration for a custom dictionary created from a data source of any size up to the maximum size defined in the [limits](https://cloud.google.com/sensitive-data-protection/limits) page. The artifacts of dictionary creation are stored in the specified Cloud Storage location. Consider using `CustomInfoType.Dictionary` for smaller dictionaries that satisfy the size requirements.",
+      "StoredInfoType where findings are defined by a dictionary of phrases.",
     ).optional(),
     regex: z.object({
       groupIndexes: z.array(z.number().int()).describe(
@@ -409,9 +401,9 @@ const InputsSchema = z.object({
       pattern: z.string().describe(
         "Pattern defining the regular expression. Its syntax (https://github.com/google/re2/wiki/Syntax) can be found under the google/re2 repository on GitHub.",
       ).optional(),
-    }).describe("Message defining a custom regular expression.").optional(),
+    }).describe("Store regular expression-based StoredInfoType.").optional(),
   }).describe(
-    "Configuration for stored infoTypes. All fields and subfield are provided by the user. For more information, see https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes.",
+    "Updated configuration for the storedInfoType. If not provided, a new version of the storedInfoType will be created with the existing configuration.",
   ).optional(),
   locationId: z.string().describe("Deprecated. This field has no effect.")
     .optional(),
@@ -448,7 +440,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) StoredInfoTypes. Registered at `@swamp/gcp/dlp/storedinfotypes`. */
 export const model = {
   type: "@swamp/gcp/dlp/storedinfotypes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -555,6 +547,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -596,18 +593,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? "") ||
-              buildResourceName(
-                String(g["parent"] ?? ""),
-                String(g["storedInfoTypeId"] ?? ""),
-              ),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

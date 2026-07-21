@@ -148,7 +148,7 @@ const GlobalArgsSchema = z.object({
       "Whether or not the channel has any copyright strikes.",
     ).optional(),
   }).describe(
-    "The auditDetails object encapsulates channel data that is relevant for YouTube Partners during the audit process.",
+    "The auditionDetails object encapsulates channel data that is relevant for YouTube Partners during the audition process.",
   ).optional(),
   brandingSettings: z.object({
     channel: z.object({
@@ -197,12 +197,14 @@ const GlobalArgsSchema = z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe(
+        "The URL for the background image shown on the video watch page. The image should be 1200px by 615px, with a maximum file size of 128k.",
+      ).optional(),
       bannerExternalUrl: z.string().describe(
         "This is generated when a ChannelBanner.Insert request has succeeded for the given channel.",
       ).optional(),
@@ -252,48 +254,53 @@ const GlobalArgsSchema = z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe("The image map script for the large banner image.")
+        .optional(),
       largeBrandedBannerImageUrl: z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe(
+        "The URL for the 854px by 70px image that appears below the video player in the expanded video view of the video watch page.",
+      ).optional(),
       smallBrandedBannerImageImapScript: z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe("The image map script for the small banner image.")
+        .optional(),
       smallBrandedBannerImageUrl: z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe(
+        "The URL for the 640px by 70px banner image that appears below the video player in the default view of the video watch page. The URL for the image that appears above the top-left corner of the video player. This is a 25-pixel-high image with a flexible width that cannot exceed 170 pixels.",
+      ).optional(),
       trackingImageUrl: z.string().describe(
         "The URL for a 1px by 1px tracking pixel that can be used to collect statistics for views of the channel or video pages.",
       ).optional(),
       watchIconImageUrl: z.string().optional(),
-    }).describe("Branding properties for images associated with the channel.")
-      .optional(),
+    }).describe("Branding properties for branding images.").optional(),
     watch: z.object({
       backgroundColor: z.string().describe(
         "The text color for the video watch page's branded area.",
@@ -304,9 +311,10 @@ const GlobalArgsSchema = z.object({
       textColor: z.string().describe(
         "The background color for the video watch page's branded area.",
       ).optional(),
-    }).describe("Branding properties for the watch. All deprecated.")
-      .optional(),
-  }).describe("Branding properties of a YouTube channel.").optional(),
+    }).describe("Branding properties for the watch page.").optional(),
+  }).describe(
+    "The brandingSettings object encapsulates information about the branding of the channel.",
+  ).optional(),
   contentDetails: z.object({
     relatedPlaylists: z.object({
       favorites: z.string().describe(
@@ -325,7 +333,9 @@ const GlobalArgsSchema = z.object({
         'The ID of the playlist that contains the channel"s watch later playlist. Use the playlistItems.insert and playlistItems.delete to add or remove items from that list.',
       ).optional(),
     }).optional(),
-  }).describe("Details about the content of a channel.").optional(),
+  }).describe(
+    "The contentDetails object encapsulates information about the channel's content.",
+  ).optional(),
   contentOwnerDetails: z.object({
     contentOwner: z.string().describe(
       "The ID of the content owner linked to the channel.",
@@ -381,7 +391,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       title: z.string().describe("The localized strings for channel's title.")
         .optional(),
-    }).describe("Channel localization setting").optional(),
+    }).describe("Localized title and description, read-only.").optional(),
     publishedAt: z.string().describe(
       "The date and time that the channel was created.",
     ).optional(),
@@ -394,8 +404,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -404,8 +413,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -414,7 +422,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -424,8 +432,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -434,13 +441,13 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the channel. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail. When displaying thumbnails in your application, make sure that your code uses the image URLs exactly as they are returned in API responses. For example, your application should not use the http domain instead of the https domain in a URL returned in an API response. Beginning in July 2018, channel thumbnail URLs will only be available in the https domain, which is how the URLs appear in API responses. After that time, you might see broken images in your application if it tries to load YouTube images from the http domain. Thumbnail images might be empty for newly created channels and might take up to one day to populate.",
+    ).optional(),
     title: z.string().describe("The channel's title.").optional(),
   }).describe(
-    "Basic details about a channel, including title, description and thumbnails.",
+    "The snippet object contains basic details about the channel, such as its title, description, and thumbnail images.",
   ).optional(),
   statistics: z.object({
     commentCount: z.string().describe("The number of comments for the channel.")
@@ -457,9 +464,8 @@ const GlobalArgsSchema = z.object({
     viewCount: z.string().describe(
       "The number of times the channel has been viewed.",
     ).optional(),
-  }).describe(
-    "Statistics about a channel: number of subscribers, number of videos in the channel, etc.",
-  ).optional(),
+  }).describe("The statistics object encapsulates statistics for the channel.")
+    .optional(),
   status: z.object({
     isChannelMonetizationEnabled: z.boolean().describe(
       "Whether the channel is considered ypp monetization enabled. See go/yppornot for more details.",
@@ -480,7 +486,9 @@ const GlobalArgsSchema = z.object({
       "Privacy status of the channel.",
     ).optional(),
     selfDeclaredMadeForKids: z.boolean().optional(),
-  }).describe("JSON template for the status part of a channel.").optional(),
+  }).describe(
+    "The status object encapsulates information about the privacy status of the channel.",
+  ).optional(),
   topicDetails: z.object({
     topicCategories: z.array(z.string()).describe(
       "A list of Wikipedia URLs that describe the channel's content.",
@@ -488,7 +496,9 @@ const GlobalArgsSchema = z.object({
     topicIds: z.array(z.string()).describe(
       "A list of Freebase topic IDs associated with the channel. You can retrieve information about each topic using the Freebase Topic API.",
     ).optional(),
-  }).describe("Freebase topic information related to the channel.").optional(),
+  }).describe(
+    "The topicDetails object encapsulates information about Freebase topics associated with the channel.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set *part=contentDetails*, the API response will also contain all of those nested properties.",
   ),
@@ -698,7 +708,7 @@ const InputsSchema = z.object({
       "Whether or not the channel has any copyright strikes.",
     ).optional(),
   }).describe(
-    "The auditDetails object encapsulates channel data that is relevant for YouTube Partners during the audit process.",
+    "The auditionDetails object encapsulates channel data that is relevant for YouTube Partners during the audition process.",
   ).optional(),
   brandingSettings: z.object({
     channel: z.object({
@@ -747,12 +757,14 @@ const InputsSchema = z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe(
+        "The URL for the background image shown on the video watch page. The image should be 1200px by 615px, with a maximum file size of 128k.",
+      ).optional(),
       bannerExternalUrl: z.string().describe(
         "This is generated when a ChannelBanner.Insert request has succeeded for the given channel.",
       ).optional(),
@@ -802,48 +814,53 @@ const InputsSchema = z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe("The image map script for the large banner image.")
+        .optional(),
       largeBrandedBannerImageUrl: z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe(
+        "The URL for the 854px by 70px image that appears below the video player in the expanded video view of the video watch page.",
+      ).optional(),
       smallBrandedBannerImageImapScript: z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe("The image map script for the small banner image.")
+        .optional(),
       smallBrandedBannerImageUrl: z.object({
         default: z.string().optional(),
         defaultLanguage: z.object({
           value: z.string().optional(),
-        }).optional(),
+        }).describe("The language of the default property.").optional(),
         localized: z.array(z.object({
           language: z.unknown().optional(),
           value: z.unknown().optional(),
         })).optional(),
-      }).optional(),
+      }).describe(
+        "The URL for the 640px by 70px banner image that appears below the video player in the default view of the video watch page. The URL for the image that appears above the top-left corner of the video player. This is a 25-pixel-high image with a flexible width that cannot exceed 170 pixels.",
+      ).optional(),
       trackingImageUrl: z.string().describe(
         "The URL for a 1px by 1px tracking pixel that can be used to collect statistics for views of the channel or video pages.",
       ).optional(),
       watchIconImageUrl: z.string().optional(),
-    }).describe("Branding properties for images associated with the channel.")
-      .optional(),
+    }).describe("Branding properties for branding images.").optional(),
     watch: z.object({
       backgroundColor: z.string().describe(
         "The text color for the video watch page's branded area.",
@@ -854,9 +871,10 @@ const InputsSchema = z.object({
       textColor: z.string().describe(
         "The background color for the video watch page's branded area.",
       ).optional(),
-    }).describe("Branding properties for the watch. All deprecated.")
-      .optional(),
-  }).describe("Branding properties of a YouTube channel.").optional(),
+    }).describe("Branding properties for the watch page.").optional(),
+  }).describe(
+    "The brandingSettings object encapsulates information about the branding of the channel.",
+  ).optional(),
   contentDetails: z.object({
     relatedPlaylists: z.object({
       favorites: z.string().describe(
@@ -875,7 +893,9 @@ const InputsSchema = z.object({
         'The ID of the playlist that contains the channel"s watch later playlist. Use the playlistItems.insert and playlistItems.delete to add or remove items from that list.',
       ).optional(),
     }).optional(),
-  }).describe("Details about the content of a channel.").optional(),
+  }).describe(
+    "The contentDetails object encapsulates information about the channel's content.",
+  ).optional(),
   contentOwnerDetails: z.object({
     contentOwner: z.string().describe(
       "The ID of the content owner linked to the channel.",
@@ -931,7 +951,7 @@ const InputsSchema = z.object({
       ).optional(),
       title: z.string().describe("The localized strings for channel's title.")
         .optional(),
-    }).describe("Channel localization setting").optional(),
+    }).describe("Localized title and description, read-only.").optional(),
     publishedAt: z.string().describe(
       "The date and time that the channel was created.",
     ).optional(),
@@ -944,8 +964,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -954,8 +973,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -964,7 +982,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -974,8 +992,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -984,13 +1001,13 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the channel. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail. When displaying thumbnails in your application, make sure that your code uses the image URLs exactly as they are returned in API responses. For example, your application should not use the http domain instead of the https domain in a URL returned in an API response. Beginning in July 2018, channel thumbnail URLs will only be available in the https domain, which is how the URLs appear in API responses. After that time, you might see broken images in your application if it tries to load YouTube images from the http domain. Thumbnail images might be empty for newly created channels and might take up to one day to populate.",
+    ).optional(),
     title: z.string().describe("The channel's title.").optional(),
   }).describe(
-    "Basic details about a channel, including title, description and thumbnails.",
+    "The snippet object contains basic details about the channel, such as its title, description, and thumbnail images.",
   ).optional(),
   statistics: z.object({
     commentCount: z.string().describe("The number of comments for the channel.")
@@ -1007,9 +1024,8 @@ const InputsSchema = z.object({
     viewCount: z.string().describe(
       "The number of times the channel has been viewed.",
     ).optional(),
-  }).describe(
-    "Statistics about a channel: number of subscribers, number of videos in the channel, etc.",
-  ).optional(),
+  }).describe("The statistics object encapsulates statistics for the channel.")
+    .optional(),
   status: z.object({
     isChannelMonetizationEnabled: z.boolean().describe(
       "Whether the channel is considered ypp monetization enabled. See go/yppornot for more details.",
@@ -1030,7 +1046,9 @@ const InputsSchema = z.object({
       "Privacy status of the channel.",
     ).optional(),
     selfDeclaredMadeForKids: z.boolean().optional(),
-  }).describe("JSON template for the status part of a channel.").optional(),
+  }).describe(
+    "The status object encapsulates information about the privacy status of the channel.",
+  ).optional(),
   topicDetails: z.object({
     topicCategories: z.array(z.string()).describe(
       "A list of Wikipedia URLs that describe the channel's content.",
@@ -1038,7 +1056,9 @@ const InputsSchema = z.object({
     topicIds: z.array(z.string()).describe(
       "A list of Freebase topic IDs associated with the channel. You can retrieve information about each topic using the Freebase Topic API.",
     ).optional(),
-  }).describe("Freebase topic information related to the channel.").optional(),
+  }).describe(
+    "The topicDetails object encapsulates information about Freebase topics associated with the channel.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set *part=contentDetails*, the API response will also contain all of those nested properties.",
   ).optional(),
@@ -1067,7 +1087,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Channels. Registered at `@swamp/gcp/youtube/channels`. */
 export const model = {
   type: "@swamp/gcp/youtube/channels",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1161,6 +1181,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

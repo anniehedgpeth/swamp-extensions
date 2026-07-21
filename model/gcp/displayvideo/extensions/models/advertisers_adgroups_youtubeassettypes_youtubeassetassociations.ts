@@ -181,7 +181,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The selected affiliate location chain IDs. This field is required if affiliate_location_matching_type is `SELECTED_CHAINS`.",
         ).optional(),
       }).describe(
-        "The matching function for an affiliate location asset filter.",
+        "Optional. The matching function that determines how the affiliate location asset filter matches affiliate location assets. This field is required and can only be set for if affiliate_location_matching_type is `SELECTED_CHAINS`.",
       ).optional(),
       affiliateLocationMatchingType: z.enum([
         "AFFILIATE_LOCATION_MATCHING_TYPE_UNSPECIFIED",
@@ -195,7 +195,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The ID of the asset set that matches the affiliate location assets eligible for serving.",
       ).optional(),
     }).describe(
-      "An asset filter that matches eligible affiliate location assets for serving.",
+      "An affiliate location asset filter. This can be set only when youtube_asset_type is `YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION`.",
     ).optional(),
     locationAssetFilter: z.object({
       assetSetId: z.string().describe(
@@ -211,8 +211,9 @@ const GlobalArgsSchema = z.object({
         locationAssetIds: z.array(z.string()).describe(
           "Optional. The selected location asset IDs. This field is required if location_matching_type is `SELECTED_ASSETS`.",
         ).optional(),
-      }).describe("The matching function for a location asset filter.")
-        .optional(),
+      }).describe(
+        "Optional. The matching function that determines how the location asset filter matches location assets. This field is required and can only be set for if location_matching_type is `FILTER` or `SELECTED_ASSETS`.",
+      ).optional(),
       locationMatchingType: z.enum([
         "LOCATION_MATCHING_TYPE_UNSPECIFIED",
         "SELECT_ALL",
@@ -222,15 +223,16 @@ const GlobalArgsSchema = z.object({
       ]).describe("Required. The matching type of this location asset filter.")
         .optional(),
     }).describe(
-      "An asset filter that matches eligible location assets for serving.",
+      "A location asset filter. This can be set only when youtube_asset_type is `YOUTUBE_ASSET_TYPE_LOCATION`.",
     ).optional(),
     sitelinkAsset: z.object({
       assetId: z.string().describe("Required. ID of the sitelink asset.")
         .optional(),
-    }).describe("A sitelink asset.").optional(),
-  }).describe(
-    "A YouTube asset linked to a resource in a YoutubeAssetAssociation.",
-  ).optional(),
+    }).describe(
+      "A sitelink asset. This can be set only when youtube_asset_type is `YOUTUBE_ASSET_TYPE_SITELINK`.",
+    ).optional(),
+  }).describe("Required. The YouTube asset associated with the resource.")
+    .optional(),
   name: z.string().describe(
     "Identifier. The resource name of the association. For line item-level associations: The name pattern is `advertisers/{advertiser_id}/lineItems/{line_item_id}/youtubeAssetTypes/{youtube_asset_type}/youtubeAssetAssociations/{youtube_asset_association_id}`. For ad group-level associations: The name pattern is `advertisers/{advertiser_id}/adGroups/{ad_group_id}/youtubeAssetTypes/{youtube_asset_type}/youtubeAssetAssociations/{youtube_asset_association_id}`. For `YOUTUBE_ASSET_TYPE_LOCATION` and `YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION` associations: `youtube_asset_association_id` is the ID of the asset set linked, or 0 if the location_matching_type or affiliate_location_matching_type is `DISABLED`. For `YOUTUBE_ASSET_TYPE_SITELINK` associations: `youtube_asset_association_id` is be the ID of the sitelink asset linked.",
   ).optional(),
@@ -296,7 +298,7 @@ const InputsSchema = z.object({
           "Optional. The selected affiliate location chain IDs. This field is required if affiliate_location_matching_type is `SELECTED_CHAINS`.",
         ).optional(),
       }).describe(
-        "The matching function for an affiliate location asset filter.",
+        "Optional. The matching function that determines how the affiliate location asset filter matches affiliate location assets. This field is required and can only be set for if affiliate_location_matching_type is `SELECTED_CHAINS`.",
       ).optional(),
       affiliateLocationMatchingType: z.enum([
         "AFFILIATE_LOCATION_MATCHING_TYPE_UNSPECIFIED",
@@ -310,7 +312,7 @@ const InputsSchema = z.object({
         "Output only. The ID of the asset set that matches the affiliate location assets eligible for serving.",
       ).optional(),
     }).describe(
-      "An asset filter that matches eligible affiliate location assets for serving.",
+      "An affiliate location asset filter. This can be set only when youtube_asset_type is `YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION`.",
     ).optional(),
     locationAssetFilter: z.object({
       assetSetId: z.string().describe(
@@ -326,8 +328,9 @@ const InputsSchema = z.object({
         locationAssetIds: z.array(z.string()).describe(
           "Optional. The selected location asset IDs. This field is required if location_matching_type is `SELECTED_ASSETS`.",
         ).optional(),
-      }).describe("The matching function for a location asset filter.")
-        .optional(),
+      }).describe(
+        "Optional. The matching function that determines how the location asset filter matches location assets. This field is required and can only be set for if location_matching_type is `FILTER` or `SELECTED_ASSETS`.",
+      ).optional(),
       locationMatchingType: z.enum([
         "LOCATION_MATCHING_TYPE_UNSPECIFIED",
         "SELECT_ALL",
@@ -337,15 +340,16 @@ const InputsSchema = z.object({
       ]).describe("Required. The matching type of this location asset filter.")
         .optional(),
     }).describe(
-      "An asset filter that matches eligible location assets for serving.",
+      "A location asset filter. This can be set only when youtube_asset_type is `YOUTUBE_ASSET_TYPE_LOCATION`.",
     ).optional(),
     sitelinkAsset: z.object({
       assetId: z.string().describe("Required. ID of the sitelink asset.")
         .optional(),
-    }).describe("A sitelink asset.").optional(),
-  }).describe(
-    "A YouTube asset linked to a resource in a YoutubeAssetAssociation.",
-  ).optional(),
+    }).describe(
+      "A sitelink asset. This can be set only when youtube_asset_type is `YOUTUBE_ASSET_TYPE_SITELINK`.",
+    ).optional(),
+  }).describe("Required. The YouTube asset associated with the resource.")
+    .optional(),
   name: z.string().describe(
     "Identifier. The resource name of the association. For line item-level associations: The name pattern is `advertisers/{advertiser_id}/lineItems/{line_item_id}/youtubeAssetTypes/{youtube_asset_type}/youtubeAssetAssociations/{youtube_asset_association_id}`. For ad group-level associations: The name pattern is `advertisers/{advertiser_id}/adGroups/{ad_group_id}/youtubeAssetTypes/{youtube_asset_type}/youtubeAssetAssociations/{youtube_asset_association_id}`. For `YOUTUBE_ASSET_TYPE_LOCATION` and `YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION` associations: `youtube_asset_association_id` is the ID of the asset set linked, or 0 if the location_matching_type or affiliate_location_matching_type is `DISABLED`. For `YOUTUBE_ASSET_TYPE_SITELINK` associations: `youtube_asset_association_id` is be the ID of the sitelink asset linked.",
   ).optional(),
@@ -389,7 +393,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/advertisers-adgroups-youtubeassettypes-youtubeassetassociations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -483,6 +487,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -193,13 +193,13 @@ const GlobalArgsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Optional. This field is used to configure how often to send a full update of all non-healthy backends. If unspecified, full updates are not sent. If specified, must be in the range between 600 seconds to 3600 seconds. Nanos are disallowed. Can only be set for regional notification endpoints.",
     ).optional(),
     retryDurationSec: z.number().int().describe(
       "How much time (in seconds) is spent attempting notification retries until a successful response is received. Default is 30s. Limit is 20m (1200s). Must be a positive number.",
     ).optional(),
   }).describe(
-    "Represents a gRPC setting that describes one gRPC notification endpoint and the retry duration attempting to send notification to this endpoint.",
+    "Settings of the gRPC notification endpoint including the endpoint URL and the retry duration.",
   ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
@@ -261,13 +261,13 @@ const InputsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Optional. This field is used to configure how often to send a full update of all non-healthy backends. If unspecified, full updates are not sent. If specified, must be in the range between 600 seconds to 3600 seconds. Nanos are disallowed. Can only be set for regional notification endpoints.",
     ).optional(),
     retryDurationSec: z.number().int().describe(
       "How much time (in seconds) is spent attempting notification retries until a successful response is received. Default is 30s. Limit is 20m (1200s). Must be a positive number.",
     ).optional(),
   }).describe(
-    "Represents a gRPC setting that describes one gRPC notification endpoint and the retry duration attempting to send notification to this endpoint.",
+    "Settings of the gRPC notification endpoint including the endpoint URL and the retry duration.",
   ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
@@ -304,7 +304,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionNotificationEndpoints. Registered at `@swamp/gcp/compute/regionnotificationendpoints`. */
 export const model = {
   type: "@swamp/gcp/compute/regionnotificationendpoints",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -403,6 +403,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

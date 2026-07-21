@@ -114,7 +114,9 @@ const GlobalArgsSchema = z.object({
     workforceIdentityPoolProvider: z.string().describe(
       "Optional. The workforce identity pool provider used to access the widget.",
     ).optional(),
-  }).describe("Describes widget access settings.").optional(),
+  }).describe(
+    "Will be used for all widget access settings seen in cloud console integration page. Replaces top deprecated top level properties.",
+  ).optional(),
   assistantSettings: z.object({
     defaultWebGroundingToggleOff: z.boolean().describe(
       "Output only. This field controls the default web grounding toggle for end users if `web_grounding_type` is set to `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`. By default, this field is set to false. If `web_grounding_type` is `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`, end users will have web grounding enabled by default on UI. If true, grounding toggle will be disabled by default on UI. End users can still enable web grounding in the UI if web grounding is enabled.",
@@ -131,7 +133,9 @@ const GlobalArgsSchema = z.object({
       "WEB_GROUNDING_TYPE_GOOGLE_SEARCH",
       "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
     ]).describe("Optional. The type of web grounding to use.").optional(),
-  }).describe("Describes the assistant settings of the widget.").optional(),
+  }).describe(
+    "Optional. Output only. Describes the assistant settings of the widget.",
+  ).optional(),
   batchAuthStatuses: z.array(z.object({
     batchAuthorizationGroup: z.string().describe(
       "Output only. The batch authorization group the placeholder belongs to.",
@@ -151,8 +155,9 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The authorization state update timestamp.",
       ).optional(),
-    }).describe("Read-only connector in CollectionComponent auth state.")
-      .optional(),
+    }).describe(
+      "Output only. The current authorization state for this connector.",
+    ).optional(),
     placeholder: z.string().describe(
       "Output only. It is the batch authorization group placeholder full resource name. This is not a real data connector (not existed in DataConnector table in spanner). It's a resource name existing only in the connector_authorization in the user table. E.g. projects/{project}/locations/{location}/collections/oauth_placeholder_google_workspace/dataStores/dataConnector.",
     ).optional(),
@@ -175,7 +180,7 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The authorization state update timestamp.",
       ).optional(),
-    }).describe("Read-only connector in CollectionComponent auth state.")
+    }).describe("Output only. The auth uri of the connector source.")
       .optional(),
     connectorIconLink: z.string().describe(
       "Output only. The icon link of the connector source.",
@@ -249,7 +254,7 @@ const GlobalArgsSchema = z.object({
         "Specifies whether to return the confidence score from the extractive segments in each search result. This feature is available only for new or allowlisted data stores. To allowlist your data store, contact your Customer Engineer. The default value is `false`.",
       ).optional(),
     }).describe(
-      "A specification for configuring the extractive content in a search response.",
+      "If there is no extractive_content_spec provided, there will be no extractive answer in the search response.",
     ).optional(),
     searchResultMode: z.enum([
       "SEARCH_RESULT_MODE_UNSPECIFIED",
@@ -269,7 +274,7 @@ const GlobalArgsSchema = z.object({
         'If `true`, then return snippet. If no snippet can be generated, we return "No snippet is available for this page." A `snippet_status` with `SUCCESS` or `NO_SNIPPET_AVAILABLE` will also be returned.',
       ).optional(),
     }).describe(
-      "A specification for configuring snippets in a search response.",
+      "If `snippetSpec` is not specified, snippets are not included in the search response.",
     ).optional(),
     summarySpec: z.object({
       ignoreAdversarialQuery: z.boolean().describe(
@@ -294,13 +299,16 @@ const GlobalArgsSchema = z.object({
         preamble: z.string().describe(
           "Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.",
         ).optional(),
-      }).describe("Specification of the prompt to use with the model.")
-        .optional(),
+      }).describe(
+        "If specified, the spec will be used to modify the prompt provided to the LLM.",
+      ).optional(),
       modelSpec: z.object({
         version: z.string().describe(
           "The model version used to generate the summary. Supported values are: * `stable`: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * `preview`: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).",
         ).optional(),
-      }).describe("Specification of the model.").optional(),
+      }).describe(
+        "If specified, the spec will be used to modify the model specification provided to the LLM.",
+      ).optional(),
       summaryResultCount: z.number().int().describe(
         "The number of top results to generate the summary from. If the number of results returned is less than `summaryResultCount`, the summary is generated from all of the results. At most 10 results for documents mode, or 50 for chunks mode, can be used to generate a summary. The chunks mode is used when SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.",
       ).optional(),
@@ -308,10 +316,11 @@ const GlobalArgsSchema = z.object({
         "If true, answer will be generated from most relevant chunks from top search results. This feature will improve summary quality. Note that with this feature enabled, not all top search results will be referenced and included in the reference list, so the citation source index only points to the search results listed in the reference list.",
       ).optional(),
     }).describe(
-      "A specification for configuring a summary returned in a search response.",
+      "If `summarySpec` is not specified, summaries are not included in the search response.",
     ).optional(),
-  }).describe("A specification for configuring the behavior of content search.")
-    .optional(),
+  }).describe(
+    "The content search spec that configs the desired behavior of content search.",
+  ).optional(),
   createTime: z.string().describe(
     "Output only. Timestamp the WidgetConfig was created.",
   ).optional(),
@@ -319,7 +328,9 @@ const GlobalArgsSchema = z.object({
     customerType: z.enum(["DEFAULT_CUSTOMER", "GOVERNMENT_CUSTOMER"]).describe(
       "Customer type.",
     ).optional(),
-  }).describe("Customer provided configurations.").optional(),
+  }).describe(
+    "Optional. Output only. Describes the customer related configurations, currently only used for government customers. This field cannot be modified after project onboarding.",
+  ).optional(),
   dataStoreType: z.enum([
     "DATA_STORE_TYPE_UNSPECIFIED",
     "SITE_SEARCH",
@@ -345,13 +356,12 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       icon: z.object({
         url: z.string().describe("Image URL.").optional(),
-      }).describe("Options to store an image.").optional(),
+      }).describe("Optional. Icon URL of shortcut.").optional(),
       title: z.string().describe("Optional. Title of the shortcut.").optional(),
     })).describe("Optional. The shortcuts to display on the homepage.")
       .optional(),
-  }).describe(
-    "Describes the homepage setting of the widget. It includes all homepage related settings and configurations, such as shortcuts.",
-  ).optional(),
+  }).describe("Optional. Describes the homepage settings of the widget.")
+    .optional(),
   industryVertical: z.enum([
     "INDUSTRY_VERTICAL_UNSPECIFIED",
     "GENERIC",
@@ -403,8 +413,10 @@ const GlobalArgsSchema = z.object({
   uiBranding: z.object({
     logo: z.object({
       url: z.string().describe("Image URL.").optional(),
-    }).describe("Options to store an image.").optional(),
-  }).describe("Describes widget UI branding settings.").optional(),
+    }).describe("Logo image.").optional(),
+  }).describe(
+    "Describes search widget UI branding settings, such as the widget title, logo, favicons, and colors.",
+  ).optional(),
   uiSettings: z.object({
     dataStoreUiConfigs: z.array(z.object({
       facetField: z.array(z.object({
@@ -511,7 +523,7 @@ const GlobalArgsSchema = z.object({
       resultCount: z.number().int().describe(
         "The number of top results to generate the answer from. Up to 10.",
       ).optional(),
-    }).describe("Describes configuration for generative answer.").optional(),
+    }).describe("Describes generative answer configuration.").optional(),
     googleDrivePickerEnabled: z.boolean().describe(
       "Output only. Whether the Google Drive file picker is available to end-users. Declared `optional` for the same field-presence reason as `onedrive_picker_enabled` above.",
     ).optional(),
@@ -537,7 +549,7 @@ const GlobalArgsSchema = z.object({
             "Output only. Regions where this model is launched.",
           ).optional(),
         }).describe(
-          'Admin-surface metadata. Populated only when the request originates from the Cloud Console admin "Feature Control" page; left unset for end-user surfaces (Web, Mobile). Lets the admin page render its toggle table directly from the backend instead of a hardcoded client-side registry.',
+          "Output only. Admin-surface metadata; populated only for the Console admin Feature Control page (see `AdminView`). Unset for end-user surfaces.",
         ).optional(),
         description: z.string().describe(
           "Output only. Localized description text (e.g. `State-of-the-art reasoning`). Localized using the same locale as `display_name`.",
@@ -558,7 +570,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The list of models that are available to the end-user in the model selector, in the order in which they should be displayed.",
       ).optional(),
     }).describe(
-      "The resolved, server-side view of model selector configuration for the end-user. The backend computes this per-request by applying, in order: Mendel flag evaluation, regional availability rules based on the engine's location, and admin-panel overrides from `model_configs`. The backend is the single source of truth for this configuration; clients should render `resolved_models` directly in the model selector dropdown, in the order provided, without applying their own filtering, ordering, or localization.",
+      "Output only. The resolved, server-side view of model selector configuration. Holds both the ordered list of models that should appear in the model selector dropdown and the model that should be selected by default. Clients should render this directly without applying their own filtering, ordering, or localization. The legacy `model_configs` map above is retained for backward compatibility with clients that have not yet migrated to consuming this field.",
     ).optional(),
     modelConfigs: z.record(
       z.string(),
@@ -577,7 +589,7 @@ const GlobalArgsSchema = z.object({
       "Controls whether result extract is display and how (snippet or extractive answer). Default to no result if unspecified.",
     ).optional(),
   }).describe(
-    "Describes general widget (or web app) UI settings as seen in the cloud console UI configuration page.",
+    "Describes general widget search settings as seen in cloud console widget configuration page. Replaces top deprecated top level properties.",
   ).optional(),
   updateTime: z.string().describe(
     "Output only. Timestamp the WidgetConfig was updated.",
@@ -803,7 +815,9 @@ const InputsSchema = z.object({
     workforceIdentityPoolProvider: z.string().describe(
       "Optional. The workforce identity pool provider used to access the widget.",
     ).optional(),
-  }).describe("Describes widget access settings.").optional(),
+  }).describe(
+    "Will be used for all widget access settings seen in cloud console integration page. Replaces top deprecated top level properties.",
+  ).optional(),
   assistantSettings: z.object({
     defaultWebGroundingToggleOff: z.boolean().describe(
       "Output only. This field controls the default web grounding toggle for end users if `web_grounding_type` is set to `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`. By default, this field is set to false. If `web_grounding_type` is `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`, end users will have web grounding enabled by default on UI. If true, grounding toggle will be disabled by default on UI. End users can still enable web grounding in the UI if web grounding is enabled.",
@@ -820,7 +834,9 @@ const InputsSchema = z.object({
       "WEB_GROUNDING_TYPE_GOOGLE_SEARCH",
       "WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH",
     ]).describe("Optional. The type of web grounding to use.").optional(),
-  }).describe("Describes the assistant settings of the widget.").optional(),
+  }).describe(
+    "Optional. Output only. Describes the assistant settings of the widget.",
+  ).optional(),
   batchAuthStatuses: z.array(z.object({
     batchAuthorizationGroup: z.string().describe(
       "Output only. The batch authorization group the placeholder belongs to.",
@@ -840,8 +856,9 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The authorization state update timestamp.",
       ).optional(),
-    }).describe("Read-only connector in CollectionComponent auth state.")
-      .optional(),
+    }).describe(
+      "Output only. The current authorization state for this connector.",
+    ).optional(),
     placeholder: z.string().describe(
       "Output only. It is the batch authorization group placeholder full resource name. This is not a real data connector (not existed in DataConnector table in spanner). It's a resource name existing only in the connector_authorization in the user table. E.g. projects/{project}/locations/{location}/collections/oauth_placeholder_google_workspace/dataStores/dataConnector.",
     ).optional(),
@@ -864,7 +881,7 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The authorization state update timestamp.",
       ).optional(),
-    }).describe("Read-only connector in CollectionComponent auth state.")
+    }).describe("Output only. The auth uri of the connector source.")
       .optional(),
     connectorIconLink: z.string().describe(
       "Output only. The icon link of the connector source.",
@@ -938,7 +955,7 @@ const InputsSchema = z.object({
         "Specifies whether to return the confidence score from the extractive segments in each search result. This feature is available only for new or allowlisted data stores. To allowlist your data store, contact your Customer Engineer. The default value is `false`.",
       ).optional(),
     }).describe(
-      "A specification for configuring the extractive content in a search response.",
+      "If there is no extractive_content_spec provided, there will be no extractive answer in the search response.",
     ).optional(),
     searchResultMode: z.enum([
       "SEARCH_RESULT_MODE_UNSPECIFIED",
@@ -958,7 +975,7 @@ const InputsSchema = z.object({
         'If `true`, then return snippet. If no snippet can be generated, we return "No snippet is available for this page." A `snippet_status` with `SUCCESS` or `NO_SNIPPET_AVAILABLE` will also be returned.',
       ).optional(),
     }).describe(
-      "A specification for configuring snippets in a search response.",
+      "If `snippetSpec` is not specified, snippets are not included in the search response.",
     ).optional(),
     summarySpec: z.object({
       ignoreAdversarialQuery: z.boolean().describe(
@@ -983,13 +1000,16 @@ const InputsSchema = z.object({
         preamble: z.string().describe(
           "Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.",
         ).optional(),
-      }).describe("Specification of the prompt to use with the model.")
-        .optional(),
+      }).describe(
+        "If specified, the spec will be used to modify the prompt provided to the LLM.",
+      ).optional(),
       modelSpec: z.object({
         version: z.string().describe(
           "The model version used to generate the summary. Supported values are: * `stable`: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * `preview`: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).",
         ).optional(),
-      }).describe("Specification of the model.").optional(),
+      }).describe(
+        "If specified, the spec will be used to modify the model specification provided to the LLM.",
+      ).optional(),
       summaryResultCount: z.number().int().describe(
         "The number of top results to generate the summary from. If the number of results returned is less than `summaryResultCount`, the summary is generated from all of the results. At most 10 results for documents mode, or 50 for chunks mode, can be used to generate a summary. The chunks mode is used when SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.",
       ).optional(),
@@ -997,10 +1017,11 @@ const InputsSchema = z.object({
         "If true, answer will be generated from most relevant chunks from top search results. This feature will improve summary quality. Note that with this feature enabled, not all top search results will be referenced and included in the reference list, so the citation source index only points to the search results listed in the reference list.",
       ).optional(),
     }).describe(
-      "A specification for configuring a summary returned in a search response.",
+      "If `summarySpec` is not specified, summaries are not included in the search response.",
     ).optional(),
-  }).describe("A specification for configuring the behavior of content search.")
-    .optional(),
+  }).describe(
+    "The content search spec that configs the desired behavior of content search.",
+  ).optional(),
   createTime: z.string().describe(
     "Output only. Timestamp the WidgetConfig was created.",
   ).optional(),
@@ -1008,7 +1029,9 @@ const InputsSchema = z.object({
     customerType: z.enum(["DEFAULT_CUSTOMER", "GOVERNMENT_CUSTOMER"]).describe(
       "Customer type.",
     ).optional(),
-  }).describe("Customer provided configurations.").optional(),
+  }).describe(
+    "Optional. Output only. Describes the customer related configurations, currently only used for government customers. This field cannot be modified after project onboarding.",
+  ).optional(),
   dataStoreType: z.enum([
     "DATA_STORE_TYPE_UNSPECIFIED",
     "SITE_SEARCH",
@@ -1034,13 +1057,12 @@ const InputsSchema = z.object({
       ).optional(),
       icon: z.object({
         url: z.string().describe("Image URL.").optional(),
-      }).describe("Options to store an image.").optional(),
+      }).describe("Optional. Icon URL of shortcut.").optional(),
       title: z.string().describe("Optional. Title of the shortcut.").optional(),
     })).describe("Optional. The shortcuts to display on the homepage.")
       .optional(),
-  }).describe(
-    "Describes the homepage setting of the widget. It includes all homepage related settings and configurations, such as shortcuts.",
-  ).optional(),
+  }).describe("Optional. Describes the homepage settings of the widget.")
+    .optional(),
   industryVertical: z.enum([
     "INDUSTRY_VERTICAL_UNSPECIFIED",
     "GENERIC",
@@ -1092,8 +1114,10 @@ const InputsSchema = z.object({
   uiBranding: z.object({
     logo: z.object({
       url: z.string().describe("Image URL.").optional(),
-    }).describe("Options to store an image.").optional(),
-  }).describe("Describes widget UI branding settings.").optional(),
+    }).describe("Logo image.").optional(),
+  }).describe(
+    "Describes search widget UI branding settings, such as the widget title, logo, favicons, and colors.",
+  ).optional(),
   uiSettings: z.object({
     dataStoreUiConfigs: z.array(z.object({
       facetField: z.array(z.object({
@@ -1200,7 +1224,7 @@ const InputsSchema = z.object({
       resultCount: z.number().int().describe(
         "The number of top results to generate the answer from. Up to 10.",
       ).optional(),
-    }).describe("Describes configuration for generative answer.").optional(),
+    }).describe("Describes generative answer configuration.").optional(),
     googleDrivePickerEnabled: z.boolean().describe(
       "Output only. Whether the Google Drive file picker is available to end-users. Declared `optional` for the same field-presence reason as `onedrive_picker_enabled` above.",
     ).optional(),
@@ -1226,7 +1250,7 @@ const InputsSchema = z.object({
             "Output only. Regions where this model is launched.",
           ).optional(),
         }).describe(
-          'Admin-surface metadata. Populated only when the request originates from the Cloud Console admin "Feature Control" page; left unset for end-user surfaces (Web, Mobile). Lets the admin page render its toggle table directly from the backend instead of a hardcoded client-side registry.',
+          "Output only. Admin-surface metadata; populated only for the Console admin Feature Control page (see `AdminView`). Unset for end-user surfaces.",
         ).optional(),
         description: z.string().describe(
           "Output only. Localized description text (e.g. `State-of-the-art reasoning`). Localized using the same locale as `display_name`.",
@@ -1247,7 +1271,7 @@ const InputsSchema = z.object({
         "Output only. The list of models that are available to the end-user in the model selector, in the order in which they should be displayed.",
       ).optional(),
     }).describe(
-      "The resolved, server-side view of model selector configuration for the end-user. The backend computes this per-request by applying, in order: Mendel flag evaluation, regional availability rules based on the engine's location, and admin-panel overrides from `model_configs`. The backend is the single source of truth for this configuration; clients should render `resolved_models` directly in the model selector dropdown, in the order provided, without applying their own filtering, ordering, or localization.",
+      "Output only. The resolved, server-side view of model selector configuration. Holds both the ordered list of models that should appear in the model selector dropdown and the model that should be selected by default. Clients should render this directly without applying their own filtering, ordering, or localization. The legacy `model_configs` map above is retained for backward compatibility with clients that have not yet migrated to consuming this field.",
     ).optional(),
     modelConfigs: z.record(
       z.string(),
@@ -1266,7 +1290,7 @@ const InputsSchema = z.object({
       "Controls whether result extract is display and how (snippet or extractive answer). Default to no result if unspecified.",
     ).optional(),
   }).describe(
-    "Describes general widget (or web app) UI settings as seen in the cloud console UI configuration page.",
+    "Describes general widget search settings as seen in cloud console widget configuration page. Replaces top deprecated top level properties.",
   ).optional(),
   updateTime: z.string().describe(
     "Output only. Timestamp the WidgetConfig was updated.",
@@ -1296,7 +1320,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-widgetconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1479,6 +1503,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: batchAuthStatuses",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

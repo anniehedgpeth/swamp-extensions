@@ -174,7 +174,7 @@ const GlobalArgsSchema = z.object({
     alternateUsePermission: z.string().describe(
       "Immutable. The IAM permission grantable on the EntryGroup to allow access to instantiate Aspects of Dataplex Universal Catalog owned AspectTypes, only settable for Dataplex Universal Catalog owned Types.",
     ).optional(),
-  }).describe("Authorization for an AspectType.").optional(),
+  }).describe("Immutable. Defines the Authorization for this type.").optional(),
   dataClassification: z.enum([
     "DATA_CLASSIFICATION_UNSPECIFIED",
     "METADATA_AND_DATA",
@@ -205,7 +205,7 @@ const GlobalArgsSchema = z.object({
       stringValues: z.array(z.string()).describe(
         "Optional. Suggested hints for string fields. You can use them to suggest values to users through console.",
       ).optional(),
-    }).describe("Definition of the annotations of a field.").optional(),
+    }).describe("Optional. Specifies annotations on this field.").optional(),
     arrayItems: z.record(z.string(), z.unknown()).describe(
       "Circular reference to GoogleCloudDataplexV1AspectTypeMetadataTemplate",
     ).optional(),
@@ -213,7 +213,8 @@ const GlobalArgsSchema = z.object({
       required: z.boolean().describe(
         "Optional. Marks this field as optional or required.",
       ).optional(),
-    }).describe("Definition of the constraints of a field.").optional(),
+    }).describe("Optional. Specifies the constraints on this field.")
+      .optional(),
     enumValues: z.array(z.object({
       deprecated: z.string().describe(
         "Optional. You can set this message if you need to deprecate an enum value.",
@@ -246,7 +247,7 @@ const GlobalArgsSchema = z.object({
     typeRef: z.string().describe(
       "Optional. A reference to another field definition (not an inline definition). The value must be equal to the value of an id field defined elsewhere in the MetadataTemplate. Only fields with record type can refer to other fields.",
     ).optional(),
-  }).describe("MetadataTemplate definition for an AspectType.").optional(),
+  }).describe("Required. MetadataTemplate of the aspect.").optional(),
   aspectTypeId: z.string().describe("Required. AspectType identifier.")
     .optional(),
   location: z.string().describe(
@@ -308,7 +309,7 @@ const InputsSchema = z.object({
     alternateUsePermission: z.string().describe(
       "Immutable. The IAM permission grantable on the EntryGroup to allow access to instantiate Aspects of Dataplex Universal Catalog owned AspectTypes, only settable for Dataplex Universal Catalog owned Types.",
     ).optional(),
-  }).describe("Authorization for an AspectType.").optional(),
+  }).describe("Immutable. Defines the Authorization for this type.").optional(),
   dataClassification: z.enum([
     "DATA_CLASSIFICATION_UNSPECIFIED",
     "METADATA_AND_DATA",
@@ -339,7 +340,7 @@ const InputsSchema = z.object({
       stringValues: z.array(z.string()).describe(
         "Optional. Suggested hints for string fields. You can use them to suggest values to users through console.",
       ).optional(),
-    }).describe("Definition of the annotations of a field.").optional(),
+    }).describe("Optional. Specifies annotations on this field.").optional(),
     arrayItems: z.record(z.string(), z.unknown()).describe(
       "Circular reference to GoogleCloudDataplexV1AspectTypeMetadataTemplate",
     ).optional(),
@@ -347,7 +348,8 @@ const InputsSchema = z.object({
       required: z.boolean().describe(
         "Optional. Marks this field as optional or required.",
       ).optional(),
-    }).describe("Definition of the constraints of a field.").optional(),
+    }).describe("Optional. Specifies the constraints on this field.")
+      .optional(),
     enumValues: z.array(z.object({
       deprecated: z.string().describe(
         "Optional. You can set this message if you need to deprecate an enum value.",
@@ -380,7 +382,7 @@ const InputsSchema = z.object({
     typeRef: z.string().describe(
       "Optional. A reference to another field definition (not an inline definition). The value must be equal to the value of an id field defined elsewhere in the MetadataTemplate. Only fields with record type can refer to other fields.",
     ).optional(),
-  }).describe("MetadataTemplate definition for an AspectType.").optional(),
+  }).describe("Required. MetadataTemplate of the aspect.").optional(),
   aspectTypeId: z.string().describe("Required. AspectType identifier.")
     .optional(),
   location: z.string().describe(
@@ -411,7 +413,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex AspectTypes. Registered at `@swamp/gcp/dataplex/aspecttypes`. */
 export const model = {
   type: "@swamp/gcp/dataplex/aspecttypes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -520,6 +522,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -674,9 +681,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["authorization"] !== undefined) {
-          body["authorization"] = g["authorization"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

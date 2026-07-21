@@ -192,7 +192,7 @@ const GlobalArgsSchema = z.object({
         sampleRateHertz: z.number().int().describe(
           "The audio sample rate in Hertz. The default is 48000 Hertz.",
         ).optional(),
-      }).describe("Audio stream resource.").optional(),
+      }).describe("Encoding of an audio stream.").optional(),
       key: z.string().describe("A unique key for this elementary stream.")
         .optional(),
       textStream: z.object({
@@ -253,7 +253,7 @@ const GlobalArgsSchema = z.object({
             "The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
           hlg: z.unknown().describe(
-            "Convert the input video to a Hybrid Log Gamma (HLG) video.",
+            "Optional. HLG color format setting for H264.",
           ).optional(),
           pixelFormat: z.unknown().describe(
             "Pixel format to use. The default is `yuv420p`. Supported pixel formats: - `yuv420p` pixel format - `yuv422p` pixel format - `yuv444p` pixel format - `yuv420p10` 10-bit HDR pixel format - `yuv422p10` 10-bit HDR pixel format - `yuv444p10` 10-bit HDR pixel format - `yuv420p12` 12-bit HDR pixel format - `yuv422p12` 12-bit HDR pixel format - `yuv444p12` 12-bit HDR pixel format",
@@ -268,7 +268,7 @@ const GlobalArgsSchema = z.object({
             "Specify the mode. The default is `vbr`. Supported rate control modes: - `vbr` - variable bitrate - `crf` - constant rate factor",
           ).optional(),
           sdr: z.unknown().describe(
-            "Convert the input video to a Standard Dynamic Range (SDR) video.",
+            "Optional. SDR color format setting for H264.",
           ).optional(),
           tune: z.unknown().describe(
             "Enforces the specified codec tune. The available options are [FFmpeg-compatible](https://trac.ffmpeg.org/wiki/Encode/H.264#Tune). Note that certain values for this field may cause the transcoder to override other fields you set in the `H264CodecSettings` message.",
@@ -318,13 +318,13 @@ const GlobalArgsSchema = z.object({
             "Select the GOP size based on the specified frame count. Must be greater than zero.",
           ).optional(),
           hdr10: z.unknown().describe(
-            "Convert the input video to a High Dynamic Range 10 (HDR10) video.",
+            "Optional. HDR10 color format setting for H265.",
           ).optional(),
           heightPixels: z.unknown().describe(
             "The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
           hlg: z.unknown().describe(
-            "Convert the input video to a Hybrid Log Gamma (HLG) video.",
+            "Optional. HLG color format setting for H265.",
           ).optional(),
           pixelFormat: z.unknown().describe(
             "Pixel format to use. The default is `yuv420p`. Supported pixel formats: - `yuv420p` pixel format - `yuv422p` pixel format - `yuv444p` pixel format - `yuv420p10` 10-bit HDR pixel format - `yuv422p10` 10-bit HDR pixel format - `yuv444p10` 10-bit HDR pixel format - `yuv420p12` 12-bit HDR pixel format - `yuv422p12` 12-bit HDR pixel format - `yuv444p12` 12-bit HDR pixel format",
@@ -339,7 +339,7 @@ const GlobalArgsSchema = z.object({
             "Specify the mode. The default is `vbr`. Supported rate control modes: - `vbr` - variable bitrate - `crf` - constant rate factor",
           ).optional(),
           sdr: z.unknown().describe(
-            "Convert the input video to a Standard Dynamic Range (SDR) video.",
+            "Optional. SDR color format setting for H265.",
           ).optional(),
           tune: z.unknown().describe(
             "Enforces the specified codec tune. The available options are [FFmpeg-compatible](https://trac.ffmpeg.org/wiki/Encode/H.265). Note that certain values for this field may cause the transcoder to override other fields you set in the `H265CodecSettings` message.",
@@ -377,7 +377,7 @@ const GlobalArgsSchema = z.object({
             "The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
           hlg: z.unknown().describe(
-            "Convert the input video to a Hybrid Log Gamma (HLG) video.",
+            "Optional. HLG color format setting for VP9.",
           ).optional(),
           pixelFormat: z.unknown().describe(
             "Pixel format to use. The default is `yuv420p`. Supported pixel formats: - `yuv420p` pixel format - `yuv422p` pixel format - `yuv444p` pixel format - `yuv420p10` 10-bit HDR pixel format - `yuv422p10` 10-bit HDR pixel format - `yuv444p10` 10-bit HDR pixel format - `yuv420p12` 12-bit HDR pixel format - `yuv422p12` 12-bit HDR pixel format - `yuv444p12` 12-bit HDR pixel format",
@@ -389,13 +389,13 @@ const GlobalArgsSchema = z.object({
             "Specify the mode. The default is `vbr`. Supported rate control modes: - `vbr` - variable bitrate",
           ).optional(),
           sdr: z.unknown().describe(
-            "Convert the input video to a Standard Dynamic Range (SDR) video.",
+            "Optional. SDR color format setting for VP9.",
           ).optional(),
           widthPixels: z.unknown().describe(
             "The width of the video in pixels. Must be an even integer. When not specified, the width is adjusted to match the specified height and input aspect ratio. If both are omitted, the input width is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the width, in pixels, per the horizontal ASR. The API calculates the height per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
         }).describe("VP9 codec settings.").optional(),
-      }).describe("Video stream resource.").optional(),
+      }).describe("Encoding of a video stream.").optional(),
     })).describe("List of elementary streams.").optional(),
     encryptions: z.array(z.object({
       aes128: z.object({}).describe("Configuration for AES-128 encryption.")
@@ -405,7 +405,9 @@ const GlobalArgsSchema = z.object({
         fairplay: z.object({}).describe("Fairplay configuration.").optional(),
         playready: z.object({}).describe("Playready configuration.").optional(),
         widevine: z.object({}).describe("Widevine configuration.").optional(),
-      }).describe("Defines configuration for DRM systems in use.").optional(),
+      }).describe(
+        "Required. DRM system(s) to use; at least one must be specified. If a DRM system is omitted, it is considered disabled.",
+      ).optional(),
       id: z.string().describe(
         "Required. Identifier for this set of encryption options.",
       ).optional(),
@@ -422,8 +424,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           'Required. The name of the Secret Version containing the encryption key in the following format: `projects/{project}/secrets/{secret_id}/versions/{version_number}` Note that only numbered versions are supported. Aliases like "latest" are not supported.',
         ).optional(),
-      }).describe("Configuration for secrets stored in Google Secret Manager.")
-        .optional(),
+      }).describe("Keys are stored in Google Secret Manager.").optional(),
     })).describe(
       "List of encryption configurations for the content. Each configuration has an ID. Specify this ID in the MuxStream.encryption_id field to indicate the configuration to use for that `MuxStream` output.",
     ).optional(),
@@ -432,9 +433,7 @@ const GlobalArgsSchema = z.object({
         trackDefinitions: z.array(z.unknown()).describe(
           "Optional. A list of track definitions for the input asset.",
         ).optional(),
-      }).describe(
-        "Input attributes that provide additional information about the input asset.",
-      ).optional(),
+      }).describe("Optional. Input Attributes.").optional(),
       key: z.string().describe(
         "A unique key for this input. Must be specified when using advanced mapping and edit lists.",
       ).optional(),
@@ -460,9 +459,7 @@ const GlobalArgsSchema = z.object({
           saturation: z.unknown().describe(
             "Control color saturation of the video. Enter a value between -1 and 1, where -1 is fully desaturated and 1 is maximum saturation. 0 is no change. The default is 0.",
           ).optional(),
-        }).describe(
-          "Color preprocessing configuration. **Note:** This configuration is not supported.",
-        ).optional(),
+        }).describe("Color preprocessing configuration.").optional(),
         crop: z.object({
           bottomPixels: z.unknown().describe(
             "The number of pixels to crop from the bottom. The default is 0.",
@@ -476,9 +473,7 @@ const GlobalArgsSchema = z.object({
           topPixels: z.unknown().describe(
             "The number of pixels to crop from the top. The default is 0.",
           ).optional(),
-        }).describe(
-          "Video cropping configuration for the input video. The cropped input video is scaled to match the output resolution.",
-        ).optional(),
+        }).describe("Specify the video cropping configuration.").optional(),
         deblock: z.object({
           enabled: z.unknown().describe(
             "Enable deblocker. The default is `false`.",
@@ -486,17 +481,15 @@ const GlobalArgsSchema = z.object({
           strength: z.unknown().describe(
             "Set strength of the deblocker. Enter a value between 0 and 1. The higher the value, the stronger the block removal. 0 is no deblocking. The default is 0.",
           ).optional(),
-        }).describe(
-          "Deblock preprocessing configuration. **Note:** This configuration is not supported.",
-        ).optional(),
+        }).describe("Deblock preprocessing configuration.").optional(),
         deinterlace: z.object({
           bwdif: z.unknown().describe(
-            "Bob Weaver Deinterlacing Filter Configuration.",
+            "Specifies the Bob Weaver Deinterlacing Filter Configuration.",
           ).optional(),
           yadif: z.unknown().describe(
-            "Yet Another Deinterlacing Filter Configuration.",
+            "Specifies the Yet Another Deinterlacing Filter Configuration.",
           ).optional(),
-        }).describe("Deinterlace configuration for input video.").optional(),
+        }).describe("Specify the video deinterlace configuration.").optional(),
         denoise: z.object({
           strength: z.unknown().describe(
             "Set strength of the denoise. Enter a value between 0 and 1. The higher the value, the smoother the image. 0 is no denoising. The default is 0.",
@@ -504,9 +497,7 @@ const GlobalArgsSchema = z.object({
           tune: z.unknown().describe(
             "Set the denoiser mode. The default is `standard`. Supported denoiser modes: - `standard` - `grain`",
           ).optional(),
-        }).describe(
-          "Denoise preprocessing configuration. **Note:** This configuration is not supported.",
-        ).optional(),
+        }).describe("Denoise preprocessing configuration.").optional(),
         pad: z.object({
           bottomPixels: z.unknown().describe(
             "The number of pixels to add to the bottom. The default is 0.",
@@ -520,9 +511,7 @@ const GlobalArgsSchema = z.object({
           topPixels: z.unknown().describe(
             "The number of pixels to add to the top. The default is 0.",
           ).optional(),
-        }).describe(
-          "Pad filter configuration for the input video. The padded input video is scaled after padding with black to match the output resolution.",
-        ).optional(),
+        }).describe("Specify the video pad filter configuration.").optional(),
       }).describe("Preprocessing configurations.").optional(),
       uri: z.string().describe(
         "URI of the media. Input files must be at least 5 seconds in duration and stored in Cloud Storage (for example, `gs://bucket/inputs/file.mp4`). If empty, the value is populated from Job.input_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).",
@@ -565,7 +554,7 @@ const GlobalArgsSchema = z.object({
         codecTag: z.string().describe(
           "Optional. Specify the codec tag string that will be used in the media bitstream. When not specified, the codec appropriate value is used. Supported H265 codec tags: - `hvc1` (default) - `hev1`",
         ).optional(),
-      }).describe("`fmp4` container configuration.").optional(),
+      }).describe("Optional. `fmp4` container configuration.").optional(),
       key: z.string().describe("A unique key for this multiplexed stream.")
         .optional(),
       segmentSettings: z.object({
@@ -582,13 +571,11 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "URI for the output file(s). For example, `gs://my-bucket/outputs/`. Must be a directory and not a top-level bucket. If empty, the value is populated from Job.output_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).",
       ).optional(),
-    }).describe("Location of output file(s) in a Cloud Storage bucket.")
-      .optional(),
+    }).describe("Output configuration.").optional(),
     overlays: z.array(z.object({
       animations: z.array(z.object({
-        animationEnd: z.unknown().describe(
-          "End previous overlay animation from the video. Without `AnimationEnd`, the overlay object will keep the state of previous animation until the end of the video.",
-        ).optional(),
+        animationEnd: z.unknown().describe("End previous animation.")
+          .optional(),
         animationFade: z.unknown().describe(
           "Display overlay object with fade animation.",
         ).optional(),
@@ -604,19 +591,20 @@ const GlobalArgsSchema = z.object({
         resolution: z.object({
           x: z.unknown().describe("Normalized x coordinate.").optional(),
           y: z.unknown().describe("Normalized y coordinate.").optional(),
-        }).describe("2D normalized coordinates. Default: `{0.0, 0.0}`")
-          .optional(),
+        }).describe(
+          "Normalized image resolution, based on output video resolution. Valid values: `0.0`–`1.0`. To respect the original image aspect ratio, set either `x` or `y` to `0.0`. To use the original image resolution, set both `x` and `y` to `0.0`.",
+        ).optional(),
         uri: z.string().describe(
           "Required. URI of the image in Cloud Storage. For example, `gs://bucket/inputs/image.png`. Only PNG and JPEG images are supported.",
         ).optional(),
-      }).describe("Overlaid image.").optional(),
+      }).describe("Image overlay.").optional(),
     })).describe("List of overlays on the output video, in descending Z-order.")
       .optional(),
     pubsubDestination: z.object({
       topic: z.string().describe(
         "The name of the Pub/Sub topic to publish job completion notification to. For example: `projects/{project}/topics/{topic}`.",
       ).optional(),
-    }).describe("A Pub/Sub destination.").optional(),
+    }).describe("Destination on Pub/Sub.").optional(),
     spriteSheets: z.array(z.object({
       columnCount: z.number().int().describe(
         "The maximum number of sprites per row in a sprite sheet. The default is 0, which indicates no maximum limit.",
@@ -654,20 +642,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "List of output sprite sheets. Spritesheets require at least one VideoStream in the Jobconfig.",
     ).optional(),
-  }).describe("Job configuration").optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
+  }).describe("The configuration for this job.").optional(),
   fillContentGaps: z.boolean().describe(
     "Optional. Insert silence and duplicate frames when timestamp gaps are detected in a given stream.",
   ).optional(),
@@ -1003,7 +978,7 @@ const InputsSchema = z.object({
         sampleRateHertz: z.number().int().describe(
           "The audio sample rate in Hertz. The default is 48000 Hertz.",
         ).optional(),
-      }).describe("Audio stream resource.").optional(),
+      }).describe("Encoding of an audio stream.").optional(),
       key: z.string().describe("A unique key for this elementary stream.")
         .optional(),
       textStream: z.object({
@@ -1064,7 +1039,7 @@ const InputsSchema = z.object({
             "The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
           hlg: z.unknown().describe(
-            "Convert the input video to a Hybrid Log Gamma (HLG) video.",
+            "Optional. HLG color format setting for H264.",
           ).optional(),
           pixelFormat: z.unknown().describe(
             "Pixel format to use. The default is `yuv420p`. Supported pixel formats: - `yuv420p` pixel format - `yuv422p` pixel format - `yuv444p` pixel format - `yuv420p10` 10-bit HDR pixel format - `yuv422p10` 10-bit HDR pixel format - `yuv444p10` 10-bit HDR pixel format - `yuv420p12` 12-bit HDR pixel format - `yuv422p12` 12-bit HDR pixel format - `yuv444p12` 12-bit HDR pixel format",
@@ -1079,7 +1054,7 @@ const InputsSchema = z.object({
             "Specify the mode. The default is `vbr`. Supported rate control modes: - `vbr` - variable bitrate - `crf` - constant rate factor",
           ).optional(),
           sdr: z.unknown().describe(
-            "Convert the input video to a Standard Dynamic Range (SDR) video.",
+            "Optional. SDR color format setting for H264.",
           ).optional(),
           tune: z.unknown().describe(
             "Enforces the specified codec tune. The available options are [FFmpeg-compatible](https://trac.ffmpeg.org/wiki/Encode/H.264#Tune). Note that certain values for this field may cause the transcoder to override other fields you set in the `H264CodecSettings` message.",
@@ -1129,13 +1104,13 @@ const InputsSchema = z.object({
             "Select the GOP size based on the specified frame count. Must be greater than zero.",
           ).optional(),
           hdr10: z.unknown().describe(
-            "Convert the input video to a High Dynamic Range 10 (HDR10) video.",
+            "Optional. HDR10 color format setting for H265.",
           ).optional(),
           heightPixels: z.unknown().describe(
             "The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
           hlg: z.unknown().describe(
-            "Convert the input video to a Hybrid Log Gamma (HLG) video.",
+            "Optional. HLG color format setting for H265.",
           ).optional(),
           pixelFormat: z.unknown().describe(
             "Pixel format to use. The default is `yuv420p`. Supported pixel formats: - `yuv420p` pixel format - `yuv422p` pixel format - `yuv444p` pixel format - `yuv420p10` 10-bit HDR pixel format - `yuv422p10` 10-bit HDR pixel format - `yuv444p10` 10-bit HDR pixel format - `yuv420p12` 12-bit HDR pixel format - `yuv422p12` 12-bit HDR pixel format - `yuv444p12` 12-bit HDR pixel format",
@@ -1150,7 +1125,7 @@ const InputsSchema = z.object({
             "Specify the mode. The default is `vbr`. Supported rate control modes: - `vbr` - variable bitrate - `crf` - constant rate factor",
           ).optional(),
           sdr: z.unknown().describe(
-            "Convert the input video to a Standard Dynamic Range (SDR) video.",
+            "Optional. SDR color format setting for H265.",
           ).optional(),
           tune: z.unknown().describe(
             "Enforces the specified codec tune. The available options are [FFmpeg-compatible](https://trac.ffmpeg.org/wiki/Encode/H.265). Note that certain values for this field may cause the transcoder to override other fields you set in the `H265CodecSettings` message.",
@@ -1188,7 +1163,7 @@ const InputsSchema = z.object({
             "The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
           hlg: z.unknown().describe(
-            "Convert the input video to a Hybrid Log Gamma (HLG) video.",
+            "Optional. HLG color format setting for VP9.",
           ).optional(),
           pixelFormat: z.unknown().describe(
             "Pixel format to use. The default is `yuv420p`. Supported pixel formats: - `yuv420p` pixel format - `yuv422p` pixel format - `yuv444p` pixel format - `yuv420p10` 10-bit HDR pixel format - `yuv422p10` 10-bit HDR pixel format - `yuv444p10` 10-bit HDR pixel format - `yuv420p12` 12-bit HDR pixel format - `yuv422p12` 12-bit HDR pixel format - `yuv444p12` 12-bit HDR pixel format",
@@ -1200,13 +1175,13 @@ const InputsSchema = z.object({
             "Specify the mode. The default is `vbr`. Supported rate control modes: - `vbr` - variable bitrate",
           ).optional(),
           sdr: z.unknown().describe(
-            "Convert the input video to a Standard Dynamic Range (SDR) video.",
+            "Optional. SDR color format setting for VP9.",
           ).optional(),
           widthPixels: z.unknown().describe(
             "The width of the video in pixels. Must be an even integer. When not specified, the width is adjusted to match the specified height and input aspect ratio. If both are omitted, the input width is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the width, in pixels, per the horizontal ASR. The API calculates the height per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.",
           ).optional(),
         }).describe("VP9 codec settings.").optional(),
-      }).describe("Video stream resource.").optional(),
+      }).describe("Encoding of a video stream.").optional(),
     })).describe("List of elementary streams.").optional(),
     encryptions: z.array(z.object({
       aes128: z.object({}).describe("Configuration for AES-128 encryption.")
@@ -1216,7 +1191,9 @@ const InputsSchema = z.object({
         fairplay: z.object({}).describe("Fairplay configuration.").optional(),
         playready: z.object({}).describe("Playready configuration.").optional(),
         widevine: z.object({}).describe("Widevine configuration.").optional(),
-      }).describe("Defines configuration for DRM systems in use.").optional(),
+      }).describe(
+        "Required. DRM system(s) to use; at least one must be specified. If a DRM system is omitted, it is considered disabled.",
+      ).optional(),
       id: z.string().describe(
         "Required. Identifier for this set of encryption options.",
       ).optional(),
@@ -1233,8 +1210,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           'Required. The name of the Secret Version containing the encryption key in the following format: `projects/{project}/secrets/{secret_id}/versions/{version_number}` Note that only numbered versions are supported. Aliases like "latest" are not supported.',
         ).optional(),
-      }).describe("Configuration for secrets stored in Google Secret Manager.")
-        .optional(),
+      }).describe("Keys are stored in Google Secret Manager.").optional(),
     })).describe(
       "List of encryption configurations for the content. Each configuration has an ID. Specify this ID in the MuxStream.encryption_id field to indicate the configuration to use for that `MuxStream` output.",
     ).optional(),
@@ -1243,9 +1219,7 @@ const InputsSchema = z.object({
         trackDefinitions: z.array(z.unknown()).describe(
           "Optional. A list of track definitions for the input asset.",
         ).optional(),
-      }).describe(
-        "Input attributes that provide additional information about the input asset.",
-      ).optional(),
+      }).describe("Optional. Input Attributes.").optional(),
       key: z.string().describe(
         "A unique key for this input. Must be specified when using advanced mapping and edit lists.",
       ).optional(),
@@ -1271,9 +1245,7 @@ const InputsSchema = z.object({
           saturation: z.unknown().describe(
             "Control color saturation of the video. Enter a value between -1 and 1, where -1 is fully desaturated and 1 is maximum saturation. 0 is no change. The default is 0.",
           ).optional(),
-        }).describe(
-          "Color preprocessing configuration. **Note:** This configuration is not supported.",
-        ).optional(),
+        }).describe("Color preprocessing configuration.").optional(),
         crop: z.object({
           bottomPixels: z.unknown().describe(
             "The number of pixels to crop from the bottom. The default is 0.",
@@ -1287,9 +1259,7 @@ const InputsSchema = z.object({
           topPixels: z.unknown().describe(
             "The number of pixels to crop from the top. The default is 0.",
           ).optional(),
-        }).describe(
-          "Video cropping configuration for the input video. The cropped input video is scaled to match the output resolution.",
-        ).optional(),
+        }).describe("Specify the video cropping configuration.").optional(),
         deblock: z.object({
           enabled: z.unknown().describe(
             "Enable deblocker. The default is `false`.",
@@ -1297,17 +1267,15 @@ const InputsSchema = z.object({
           strength: z.unknown().describe(
             "Set strength of the deblocker. Enter a value between 0 and 1. The higher the value, the stronger the block removal. 0 is no deblocking. The default is 0.",
           ).optional(),
-        }).describe(
-          "Deblock preprocessing configuration. **Note:** This configuration is not supported.",
-        ).optional(),
+        }).describe("Deblock preprocessing configuration.").optional(),
         deinterlace: z.object({
           bwdif: z.unknown().describe(
-            "Bob Weaver Deinterlacing Filter Configuration.",
+            "Specifies the Bob Weaver Deinterlacing Filter Configuration.",
           ).optional(),
           yadif: z.unknown().describe(
-            "Yet Another Deinterlacing Filter Configuration.",
+            "Specifies the Yet Another Deinterlacing Filter Configuration.",
           ).optional(),
-        }).describe("Deinterlace configuration for input video.").optional(),
+        }).describe("Specify the video deinterlace configuration.").optional(),
         denoise: z.object({
           strength: z.unknown().describe(
             "Set strength of the denoise. Enter a value between 0 and 1. The higher the value, the smoother the image. 0 is no denoising. The default is 0.",
@@ -1315,9 +1283,7 @@ const InputsSchema = z.object({
           tune: z.unknown().describe(
             "Set the denoiser mode. The default is `standard`. Supported denoiser modes: - `standard` - `grain`",
           ).optional(),
-        }).describe(
-          "Denoise preprocessing configuration. **Note:** This configuration is not supported.",
-        ).optional(),
+        }).describe("Denoise preprocessing configuration.").optional(),
         pad: z.object({
           bottomPixels: z.unknown().describe(
             "The number of pixels to add to the bottom. The default is 0.",
@@ -1331,9 +1297,7 @@ const InputsSchema = z.object({
           topPixels: z.unknown().describe(
             "The number of pixels to add to the top. The default is 0.",
           ).optional(),
-        }).describe(
-          "Pad filter configuration for the input video. The padded input video is scaled after padding with black to match the output resolution.",
-        ).optional(),
+        }).describe("Specify the video pad filter configuration.").optional(),
       }).describe("Preprocessing configurations.").optional(),
       uri: z.string().describe(
         "URI of the media. Input files must be at least 5 seconds in duration and stored in Cloud Storage (for example, `gs://bucket/inputs/file.mp4`). If empty, the value is populated from Job.input_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).",
@@ -1376,7 +1340,7 @@ const InputsSchema = z.object({
         codecTag: z.string().describe(
           "Optional. Specify the codec tag string that will be used in the media bitstream. When not specified, the codec appropriate value is used. Supported H265 codec tags: - `hvc1` (default) - `hev1`",
         ).optional(),
-      }).describe("`fmp4` container configuration.").optional(),
+      }).describe("Optional. `fmp4` container configuration.").optional(),
       key: z.string().describe("A unique key for this multiplexed stream.")
         .optional(),
       segmentSettings: z.object({
@@ -1393,13 +1357,11 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "URI for the output file(s). For example, `gs://my-bucket/outputs/`. Must be a directory and not a top-level bucket. If empty, the value is populated from Job.output_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).",
       ).optional(),
-    }).describe("Location of output file(s) in a Cloud Storage bucket.")
-      .optional(),
+    }).describe("Output configuration.").optional(),
     overlays: z.array(z.object({
       animations: z.array(z.object({
-        animationEnd: z.unknown().describe(
-          "End previous overlay animation from the video. Without `AnimationEnd`, the overlay object will keep the state of previous animation until the end of the video.",
-        ).optional(),
+        animationEnd: z.unknown().describe("End previous animation.")
+          .optional(),
         animationFade: z.unknown().describe(
           "Display overlay object with fade animation.",
         ).optional(),
@@ -1415,19 +1377,20 @@ const InputsSchema = z.object({
         resolution: z.object({
           x: z.unknown().describe("Normalized x coordinate.").optional(),
           y: z.unknown().describe("Normalized y coordinate.").optional(),
-        }).describe("2D normalized coordinates. Default: `{0.0, 0.0}`")
-          .optional(),
+        }).describe(
+          "Normalized image resolution, based on output video resolution. Valid values: `0.0`–`1.0`. To respect the original image aspect ratio, set either `x` or `y` to `0.0`. To use the original image resolution, set both `x` and `y` to `0.0`.",
+        ).optional(),
         uri: z.string().describe(
           "Required. URI of the image in Cloud Storage. For example, `gs://bucket/inputs/image.png`. Only PNG and JPEG images are supported.",
         ).optional(),
-      }).describe("Overlaid image.").optional(),
+      }).describe("Image overlay.").optional(),
     })).describe("List of overlays on the output video, in descending Z-order.")
       .optional(),
     pubsubDestination: z.object({
       topic: z.string().describe(
         "The name of the Pub/Sub topic to publish job completion notification to. For example: `projects/{project}/topics/{topic}`.",
       ).optional(),
-    }).describe("A Pub/Sub destination.").optional(),
+    }).describe("Destination on Pub/Sub.").optional(),
     spriteSheets: z.array(z.object({
       columnCount: z.number().int().describe(
         "The maximum number of sprites per row in a sprite sheet. The default is 0, which indicates no maximum limit.",
@@ -1465,20 +1428,7 @@ const InputsSchema = z.object({
     })).describe(
       "List of output sprite sheets. Spritesheets require at least one VideoStream in the Jobconfig.",
     ).optional(),
-  }).describe("Job configuration").optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
+  }).describe("The configuration for this job.").optional(),
   fillContentGaps: z.boolean().describe(
     "Optional. Insert silence and duplicate frames when timestamp gaps are detected in a given stream.",
   ).optional(),
@@ -1542,7 +1492,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Transcoder Jobs. Registered at `@swamp/gcp/transcoder/jobs`. */
 export const model = {
   type: "@swamp/gcp/transcoder/jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1654,6 +1604,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1686,7 +1644,6 @@ export const model = {
           body["batchModePriority"] = g["batchModePriority"];
         }
         if (g["config"] !== undefined) body["config"] = g["config"];
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["fillContentGaps"] !== undefined) {
           body["fillContentGaps"] = g["fillContentGaps"];
         }

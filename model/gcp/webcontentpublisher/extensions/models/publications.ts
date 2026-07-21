@@ -154,22 +154,6 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Optional. Additional domain properties verified for the publication.",
   ).optional(),
-  contentPolicyStatus: z.object({
-    policyInfoUrl: z.string().describe(
-      "Output only. URL pointing to more details about the policy violation or status.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "OK",
-      "VIOLATION_GRACE_PERIOD",
-      "VIOLATION_ACTIVE",
-      "ORGANIZATION_VIOLATION_GRACE_PERIOD",
-      "ORGANIZATION_VIOLATION_ACTIVE",
-      "ORGANIZATION_VIOLATION_ACTIVE_IMMEDIATE",
-    ]).describe("Output only. The current policy state.").optional(),
-  }).describe(
-    "The content policy status of the publication, indicating any violations.",
-  ).optional(),
   displayName: z.string().describe(
     "Required. The user-visible display name of the publication.",
   ).optional(),
@@ -187,7 +171,7 @@ const GlobalArgsSchema = z.object({
       'Required. The URL of the domain property (e.g., "https://example.com").',
     ).optional(),
   }).describe(
-    "Represents a domain property associated with a publication, typically used to verify ownership and scope access.",
+    "Required. The primary domain property associated with the publication.",
   ).optional(),
   publicationPrivacyPolicyUrl: z.string().describe(
     "Optional. The URL to the publisher's Privacy Policy.",
@@ -215,11 +199,9 @@ const GlobalArgsSchema = z.object({
       userAccepted: z.boolean().describe(
         "Required. Whether the user has accepted the Terms of Service.",
       ).optional(),
-    }).describe("Details about the acceptance of the Terms of Service (TOS).")
-      .optional(),
-  }).describe(
-    "Configuration and status of the Reader Revenue Manager (RRM) product for a publication.",
-  ).optional(),
+    }).describe("Optional. The details of the TOS acceptance.").optional(),
+  }).describe("Optional. Reader Revenue Manager product settings and status.")
+    .optional(),
   slProduct: z.object({
     enabled: z.boolean().describe(
       "Optional. Whether the Subscription Linking product is enabled.",
@@ -227,7 +209,7 @@ const GlobalArgsSchema = z.object({
     gcpProjectNumber: z.string().describe(
       "Optional. The Google Cloud Project number associated with the publication.",
     ).optional(),
-  }).describe("Subscription Linking (SL) product settings and status.")
+  }).describe("Optional. Subscription Linking product configurations.")
     .optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -290,22 +272,6 @@ const InputsSchema = z.object({
   })).describe(
     "Optional. Additional domain properties verified for the publication.",
   ).optional(),
-  contentPolicyStatus: z.object({
-    policyInfoUrl: z.string().describe(
-      "Output only. URL pointing to more details about the policy violation or status.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "OK",
-      "VIOLATION_GRACE_PERIOD",
-      "VIOLATION_ACTIVE",
-      "ORGANIZATION_VIOLATION_GRACE_PERIOD",
-      "ORGANIZATION_VIOLATION_ACTIVE",
-      "ORGANIZATION_VIOLATION_ACTIVE_IMMEDIATE",
-    ]).describe("Output only. The current policy state.").optional(),
-  }).describe(
-    "The content policy status of the publication, indicating any violations.",
-  ).optional(),
   displayName: z.string().describe(
     "Required. The user-visible display name of the publication.",
   ).optional(),
@@ -323,7 +289,7 @@ const InputsSchema = z.object({
       'Required. The URL of the domain property (e.g., "https://example.com").',
     ).optional(),
   }).describe(
-    "Represents a domain property associated with a publication, typically used to verify ownership and scope access.",
+    "Required. The primary domain property associated with the publication.",
   ).optional(),
   publicationPrivacyPolicyUrl: z.string().describe(
     "Optional. The URL to the publisher's Privacy Policy.",
@@ -351,11 +317,9 @@ const InputsSchema = z.object({
       userAccepted: z.boolean().describe(
         "Required. Whether the user has accepted the Terms of Service.",
       ).optional(),
-    }).describe("Details about the acceptance of the Terms of Service (TOS).")
-      .optional(),
-  }).describe(
-    "Configuration and status of the Reader Revenue Manager (RRM) product for a publication.",
-  ).optional(),
+    }).describe("Optional. The details of the TOS acceptance.").optional(),
+  }).describe("Optional. Reader Revenue Manager product settings and status.")
+    .optional(),
   slProduct: z.object({
     enabled: z.boolean().describe(
       "Optional. Whether the Subscription Linking product is enabled.",
@@ -363,7 +327,7 @@ const InputsSchema = z.object({
     gcpProjectNumber: z.string().describe(
       "Optional. The Google Cloud Project number associated with the publication.",
     ).optional(),
-  }).describe("Subscription Linking (SL) product settings and status.")
+  }).describe("Optional. Subscription Linking product configurations.")
     .optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -393,7 +357,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications. Registered at `@swamp/gcp/webcontentpublisher/publications`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -420,6 +384,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: contentPolicyStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { contentPolicyStatus: _contentPolicyStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -445,9 +417,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["additionalDomains"] !== undefined) {
           body["additionalDomains"] = g["additionalDomains"];
-        }
-        if (g["contentPolicyStatus"] !== undefined) {
-          body["contentPolicyStatus"] = g["contentPolicyStatus"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
@@ -575,9 +544,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["additionalDomains"] !== undefined) {
           body["additionalDomains"] = g["additionalDomains"];
-        }
-        if (g["contentPolicyStatus"] !== undefined) {
-          body["contentPolicyStatus"] = g["contentPolicyStatus"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];

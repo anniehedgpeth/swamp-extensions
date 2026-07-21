@@ -176,7 +176,9 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
     ).optional(),
-  }).describe("Configuration for Cloud KMS encryption settings.").optional(),
+  }).describe(
+    "Custom encryption configuration (e.g., Cloud KMS keys). This shows the encryption configuration of the model data while stored in BigQuery storage. This field can be used with PatchModel to update encryption key for an already encrypted model.",
+  ).optional(),
   etag: z.string().describe("Output only. A hash of this resource.").optional(),
   expirationTime: z.string().describe(
     "Optional. The time when this model expires, in milliseconds since the epoch. If not present, the model will persist indefinitely. Expired models will be deleted and their storage reclaimed. The defaultTableExpirationMs property of the encapsulating dataset can be used to set a default expirationTime on newly created models.",
@@ -195,7 +197,9 @@ const GlobalArgsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -219,7 +223,7 @@ const GlobalArgsSchema = z.object({
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
     }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+      'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
     ).optional(),
   })).describe(
     "Output only. Input feature columns for the model inference. If the model is trained with TRANSFORM clause, these are the input of the TRANSFORM clause.",
@@ -232,232 +236,246 @@ const GlobalArgsSchema = z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Activation functions of neural network models.").optional(),
     batchSize: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Mini batch sample size.").optional(),
     boosterType: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Booster type for boosted tree models.").optional(),
     colsampleBylevel: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample ratio of columns for each level for boosted tree models.",
+    ).optional(),
     colsampleBynode: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample ratio of columns for each node(split) for boosted tree models.",
+    ).optional(),
     colsampleBytree: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample ratio of columns when constructing each tree for boosted tree models.",
+    ).optional(),
     dartNormalizeType: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Dart normalization type for boosted tree models.").optional(),
     dropout: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Dropout probability for dnn model training and boosted tree models using dart booster.",
+    ).optional(),
     hiddenUnits: z.object({
       candidates: z.array(z.object({
         elements: z.array(z.unknown()).describe("Elements in the int array.")
           .optional(),
       })).describe("Candidates for the int array parameter.").optional(),
-    }).describe("Search space for int array.").optional(),
+    }).describe("Hidden units for neural network models.").optional(),
     l1Reg: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("L1 regularization coefficient.").optional(),
     l2Reg: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("L2 regularization coefficient.").optional(),
     learnRate: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("Learning rate of training jobs.").optional(),
     maxTreeDepth: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Maximum depth of a tree for boosted tree models.").optional(),
     minSplitLoss: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("Minimum split loss for boosted tree models.").optional(),
     minTreeChildWeight: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe(
+      "Minimum sum of instance weight needed in a child for boosted tree models.",
+    ).optional(),
     numClusters: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Number of clusters for k-means.").optional(),
     numFactors: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Number of latent factors to train on.").optional(),
     numParallelTree: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Number of parallel trees for boosted tree models.").optional(),
     optimizer: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Optimizer of TF models.").optional(),
     subsample: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample the training data to grow tree to prevent overfitting for boosted tree models.",
+    ).optional(),
     treeMethod: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Tree construction algorithm for boosted tree models.")
+      .optional(),
     walsAlpha: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
-  }).describe(
-    "Hyperparameter search spaces. These should be a subset of training_options.",
-  ).optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Hyperparameter for matrix factoration when implicit feedback type is specified.",
+    ).optional(),
+  }).describe("Output only. All hyperparameter search spaces in this model.")
+    .optional(),
   hparamTrials: z.array(z.object({
     endTimeMs: z.string().describe("Ending time of the trial.").optional(),
     errorMessage: z.string().describe(
@@ -485,8 +503,7 @@ const GlobalArgsSchema = z.object({
         timeSeriesId: z.array(z.unknown()).describe(
           "Id to differentiate different time series for the large-scale case.",
         ).optional(),
-      }).describe("Model evaluation metrics for ARIMA forecasting models.")
-        .optional(),
+      }).describe("Populated for ARIMA models.").optional(),
       binaryClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
           accuracy: z.unknown().describe(
@@ -510,9 +527,7 @@ const GlobalArgsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         binaryConfusionMatrixList: z.array(z.unknown()).describe(
           "Binary confusion matrix at multiple thresholds.",
         ).optional(),
@@ -522,9 +537,8 @@ const GlobalArgsSchema = z.object({
         positiveLabel: z.string().describe(
           "Label representing the positive class.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for binary classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for binary classification/classifier models.")
+        .optional(),
       clusteringMetrics: z.object({
         clusters: z.array(z.unknown()).describe("Information for all clusters.")
           .optional(),
@@ -533,13 +547,13 @@ const GlobalArgsSchema = z.object({
         meanSquaredDistance: z.number().describe(
           "Mean of squared distances between each sample to its cluster centroid.",
         ).optional(),
-      }).describe("Evaluation metrics for clustering models.").optional(),
+      }).describe("Populated for clustering models.").optional(),
       dimensionalityReductionMetrics: z.object({
         totalExplainedVarianceRatio: z.number().describe(
           "Total percentage of variance explained by the selected principal components.",
         ).optional(),
       }).describe(
-        "Model evaluation metrics for dimensionality reduction models.",
+        "Evaluation metrics when the model is a dimensionality reduction model, which currently includes PCA.",
       ).optional(),
       multiClassClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
@@ -564,15 +578,12 @@ const GlobalArgsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         confusionMatrixList: z.array(z.unknown()).describe(
           "Confusion matrix at different thresholds.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for multi-class classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for multi-class classification/classifier models.")
+        .optional(),
       rankingMetrics: z.object({
         averageRank: z.number().describe(
           "Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.",
@@ -587,7 +598,7 @@ const GlobalArgsSchema = z.object({
           "A metric to determine the goodness of a ranking calculated from the predicted confidence by comparing it to an ideal rank measured by the original ratings.",
         ).optional(),
       }).describe(
-        "Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.",
+        "Populated for implicit feedback type matrix factorization models.",
       ).optional(),
       regressionMetrics: z.object({
         meanAbsoluteError: z.number().describe("Mean absolute error.")
@@ -601,10 +612,10 @@ const GlobalArgsSchema = z.object({
           "R^2 score. This corresponds to r2_score in ML.EVALUATE.",
         ).optional(),
       }).describe(
-        "Evaluation metrics for regression and explicit feedback type matrix factorization models.",
+        "Populated for regression models and explicit feedback type matrix factorization models.",
       ).optional(),
     }).describe(
-      "Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.",
+      "Evaluation metrics of this trial calculated on the test data. Empty in Job API.",
     ).optional(),
     hparamTuningEvaluationMetrics: z.object({
       arimaForecastingMetrics: z.object({
@@ -625,8 +636,7 @@ const GlobalArgsSchema = z.object({
         timeSeriesId: z.array(z.unknown()).describe(
           "Id to differentiate different time series for the large-scale case.",
         ).optional(),
-      }).describe("Model evaluation metrics for ARIMA forecasting models.")
-        .optional(),
+      }).describe("Populated for ARIMA models.").optional(),
       binaryClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
           accuracy: z.unknown().describe(
@@ -650,9 +660,7 @@ const GlobalArgsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         binaryConfusionMatrixList: z.array(z.unknown()).describe(
           "Binary confusion matrix at multiple thresholds.",
         ).optional(),
@@ -662,9 +670,8 @@ const GlobalArgsSchema = z.object({
         positiveLabel: z.string().describe(
           "Label representing the positive class.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for binary classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for binary classification/classifier models.")
+        .optional(),
       clusteringMetrics: z.object({
         clusters: z.array(z.unknown()).describe("Information for all clusters.")
           .optional(),
@@ -673,13 +680,13 @@ const GlobalArgsSchema = z.object({
         meanSquaredDistance: z.number().describe(
           "Mean of squared distances between each sample to its cluster centroid.",
         ).optional(),
-      }).describe("Evaluation metrics for clustering models.").optional(),
+      }).describe("Populated for clustering models.").optional(),
       dimensionalityReductionMetrics: z.object({
         totalExplainedVarianceRatio: z.number().describe(
           "Total percentage of variance explained by the selected principal components.",
         ).optional(),
       }).describe(
-        "Model evaluation metrics for dimensionality reduction models.",
+        "Evaluation metrics when the model is a dimensionality reduction model, which currently includes PCA.",
       ).optional(),
       multiClassClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
@@ -704,15 +711,12 @@ const GlobalArgsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         confusionMatrixList: z.array(z.unknown()).describe(
           "Confusion matrix at different thresholds.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for multi-class classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for multi-class classification/classifier models.")
+        .optional(),
       rankingMetrics: z.object({
         averageRank: z.number().describe(
           "Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.",
@@ -727,7 +731,7 @@ const GlobalArgsSchema = z.object({
           "A metric to determine the goodness of a ranking calculated from the predicted confidence by comparing it to an ideal rank measured by the original ratings.",
         ).optional(),
       }).describe(
-        "Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.",
+        "Populated for implicit feedback type matrix factorization models.",
       ).optional(),
       regressionMetrics: z.object({
         meanAbsoluteError: z.number().describe("Mean absolute error.")
@@ -741,10 +745,10 @@ const GlobalArgsSchema = z.object({
           "R^2 score. This corresponds to r2_score in ML.EVALUATE.",
         ).optional(),
       }).describe(
-        "Evaluation metrics for regression and explicit feedback type matrix factorization models.",
+        "Populated for regression models and explicit feedback type matrix factorization models.",
       ).optional(),
     }).describe(
-      "Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.",
+      "Hyperparameter tuning evaluation metrics of this trial calculated on the eval data. Unlike evaluation_metrics, only the fields corresponding to the hparam_tuning_objectives are set.",
     ).optional(),
     hparams: z.object({
       activationFn: z.string().describe(
@@ -1160,7 +1164,7 @@ const GlobalArgsSchema = z.object({
         p: z.string().describe("Order of the autoregressive part.").optional(),
         q: z.string().describe("Order of the moving-average part.").optional(),
       }).describe(
-        "Arima order, can be used for both non-seasonal and seasonal parts.",
+        "A specification of the non-seasonal part of the ARIMA model: the three components (p, d, q) are the AR order, the degree of differencing, and the MA order.",
       ).optional(),
       numClusters: z.string().describe(
         "Number of clusters for clustering models.",
@@ -1263,7 +1267,7 @@ const GlobalArgsSchema = z.object({
       xgboostVersion: z.string().describe(
         "User-selected XGBoost versions for training of XGBoost models.",
       ).optional(),
-    }).describe("Options used in model training.").optional(),
+    }).describe("The hyperprameters selected for this trial.").optional(),
     startTimeMs: z.string().describe("Starting time of the trial.").optional(),
     status: z.enum([
       "TRIAL_STATUS_UNSPECIFIED",
@@ -1295,7 +1299,9 @@ const GlobalArgsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -1319,7 +1325,7 @@ const GlobalArgsSchema = z.object({
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
     }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+      'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
     ).optional(),
   })).describe(
     'Output only. Label columns that were used to train this model. The output of the model will have a "predicted_" prefix to these columns.',
@@ -1343,7 +1349,7 @@ const GlobalArgsSchema = z.object({
     projectId: z.string().describe(
       "Required. The ID of the project containing this model.",
     ).optional(),
-  }).describe("Id path of a model.").optional(),
+  }).describe("Required. Unique identifier for this model.").optional(),
   modelType: z.enum([
     "MODEL_TYPE_UNSPECIFIED",
     "LINEAR_REGRESSION",
@@ -1398,7 +1404,7 @@ const GlobalArgsSchema = z.object({
     speechRecognizer: z.string().describe(
       "Output only. The name of the speech recognizer to use for speech recognition. The expected format is `projects/{project}/locations/{location}/recognizers/{recognizer}`. Customers can specify this field at model creation. If not specified, a default recognizer `projects/{model project}/locations/global/recognizers/_` will be used. See more details at [recognizers](https://cloud.google.com/speech-to-text/v2/docs/reference/rest/v2/projects.locations.recognizers)",
     ).optional(),
-  }).describe("Remote Model Info").optional(),
+  }).describe("Output only. Remote model info").optional(),
   trainingRuns: z.array(z.object({
     classLevelGlobalExplanations: z.array(z.object({
       classLabel: z.string().describe(
@@ -1421,7 +1427,8 @@ const GlobalArgsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
         ).optional(),
-      }).optional(),
+      }).describe("Table reference of the evaluation data after split.")
+        .optional(),
       testTable: z.object({
         datasetId: z.string().describe(
           "Required. The ID of the dataset containing this table.",
@@ -1432,7 +1439,7 @@ const GlobalArgsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
         ).optional(),
-      }).optional(),
+      }).describe("Table reference of the test data after split.").optional(),
       trainingTable: z.object({
         datasetId: z.string().describe(
           "Required. The ID of the dataset containing this table.",
@@ -1443,9 +1450,10 @@ const GlobalArgsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
         ).optional(),
-      }).optional(),
+      }).describe("Table reference of the training data after split.")
+        .optional(),
     }).describe(
-      "Data split result. This contains references to the training and evaluation data tables that were used to train the model.",
+      "Output only. Data split result of the training run. Only set when the input data is actually split.",
     ).optional(),
     evaluationMetrics: z.object({
       arimaForecastingMetrics: z.object({
@@ -1466,8 +1474,7 @@ const GlobalArgsSchema = z.object({
         timeSeriesId: z.array(z.unknown()).describe(
           "Id to differentiate different time series for the large-scale case.",
         ).optional(),
-      }).describe("Model evaluation metrics for ARIMA forecasting models.")
-        .optional(),
+      }).describe("Populated for ARIMA models.").optional(),
       binaryClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
           accuracy: z.unknown().describe(
@@ -1491,9 +1498,7 @@ const GlobalArgsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         binaryConfusionMatrixList: z.array(z.unknown()).describe(
           "Binary confusion matrix at multiple thresholds.",
         ).optional(),
@@ -1503,9 +1508,8 @@ const GlobalArgsSchema = z.object({
         positiveLabel: z.string().describe(
           "Label representing the positive class.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for binary classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for binary classification/classifier models.")
+        .optional(),
       clusteringMetrics: z.object({
         clusters: z.array(z.unknown()).describe("Information for all clusters.")
           .optional(),
@@ -1514,13 +1518,13 @@ const GlobalArgsSchema = z.object({
         meanSquaredDistance: z.number().describe(
           "Mean of squared distances between each sample to its cluster centroid.",
         ).optional(),
-      }).describe("Evaluation metrics for clustering models.").optional(),
+      }).describe("Populated for clustering models.").optional(),
       dimensionalityReductionMetrics: z.object({
         totalExplainedVarianceRatio: z.number().describe(
           "Total percentage of variance explained by the selected principal components.",
         ).optional(),
       }).describe(
-        "Model evaluation metrics for dimensionality reduction models.",
+        "Evaluation metrics when the model is a dimensionality reduction model, which currently includes PCA.",
       ).optional(),
       multiClassClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
@@ -1545,15 +1549,12 @@ const GlobalArgsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         confusionMatrixList: z.array(z.unknown()).describe(
           "Confusion matrix at different thresholds.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for multi-class classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for multi-class classification/classifier models.")
+        .optional(),
       rankingMetrics: z.object({
         averageRank: z.number().describe(
           "Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.",
@@ -1568,7 +1569,7 @@ const GlobalArgsSchema = z.object({
           "A metric to determine the goodness of a ranking calculated from the predicted confidence by comparing it to an ideal rank measured by the original ratings.",
         ).optional(),
       }).describe(
-        "Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.",
+        "Populated for implicit feedback type matrix factorization models.",
       ).optional(),
       regressionMetrics: z.object({
         meanAbsoluteError: z.number().describe("Mean absolute error.")
@@ -1582,10 +1583,10 @@ const GlobalArgsSchema = z.object({
           "R^2 score. This corresponds to r2_score in ML.EVALUATE.",
         ).optional(),
       }).describe(
-        "Evaluation metrics for regression and explicit feedback type matrix factorization models.",
+        "Populated for regression models and explicit feedback type matrix factorization models.",
       ).optional(),
     }).describe(
-      "Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.",
+      "Output only. The evaluation metrics over training/eval data that were computed at the end of training.",
     ).optional(),
     modelLevelGlobalExplanation: z.object({
       classLabel: z.string().describe(
@@ -1600,7 +1601,7 @@ const GlobalArgsSchema = z.object({
         "A list of the top global explanations. Sorted by absolute value of attribution in descending order.",
       ).optional(),
     }).describe(
-      "Global explanations containing the top most important features after training.",
+      "Output only. Global explanation contains the explanation of top features on the model level. Applies to both regression and classification models.",
     ).optional(),
     results: z.array(z.object({
       arimaResult: z.object({
@@ -1610,9 +1611,7 @@ const GlobalArgsSchema = z.object({
         seasonalPeriods: z.unknown().describe(
           "Seasonal periods. Repeated because multiple periods are supported for one time series.",
         ).optional(),
-      }).describe(
-        "(Auto-)arima fitting result. Wrap everything in ArimaResult for easier refactoring if we want to use model-specific iteration results.",
-      ).optional(),
+      }).describe("Arima result.").optional(),
       clusterInfos: z.array(z.unknown()).describe(
         "Information about top clusters for clustering models.",
       ).optional(),
@@ -2052,7 +2051,7 @@ const GlobalArgsSchema = z.object({
         p: z.string().describe("Order of the autoregressive part.").optional(),
         q: z.string().describe("Order of the moving-average part.").optional(),
       }).describe(
-        "Arima order, can be used for both non-seasonal and seasonal parts.",
+        "A specification of the non-seasonal part of the ARIMA model: the three components (p, d, q) are the AR order, the degree of differencing, and the MA order.",
       ).optional(),
       numClusters: z.string().describe(
         "Number of clusters for clustering models.",
@@ -2155,7 +2154,9 @@ const GlobalArgsSchema = z.object({
       xgboostVersion: z.string().describe(
         "User-selected XGBoost versions for training of XGBoost models.",
       ).optional(),
-    }).describe("Options used in model training.").optional(),
+    }).describe(
+      "Output only. Options that were used for this training run, includes user specified and default options that were used.",
+    ).optional(),
     trainingStartTime: z.string().describe(
       "Output only. The start time of this training run, in milliseconds since epoch.",
     ).optional(),
@@ -2183,7 +2184,9 @@ const GlobalArgsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -2206,9 +2209,8 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
-    }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
-    ).optional(),
+    }).describe("Output only. Data type of the column after the transform.")
+      .optional(),
   })).describe(
     "Output only. This field will be populated if a TRANSFORM clause was used to train a model. TRANSFORM clause (if used) takes feature_columns as input and outputs transform_columns. transform_columns then are used to train the model.",
   ).optional(),
@@ -2910,7 +2912,9 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
     ).optional(),
-  }).describe("Configuration for Cloud KMS encryption settings.").optional(),
+  }).describe(
+    "Custom encryption configuration (e.g., Cloud KMS keys). This shows the encryption configuration of the model data while stored in BigQuery storage. This field can be used with PatchModel to update encryption key for an already encrypted model.",
+  ).optional(),
   etag: z.string().describe("Output only. A hash of this resource.").optional(),
   expirationTime: z.string().describe(
     "Optional. The time when this model expires, in milliseconds since the epoch. If not present, the model will persist indefinitely. Expired models will be deleted and their storage reclaimed. The defaultTableExpirationMs property of the encapsulating dataset can be used to set a default expirationTime on newly created models.",
@@ -2929,7 +2933,9 @@ const InputsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -2953,7 +2959,7 @@ const InputsSchema = z.object({
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
     }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+      'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
     ).optional(),
   })).describe(
     "Output only. Input feature columns for the model inference. If the model is trained with TRANSFORM clause, these are the input of the TRANSFORM clause.",
@@ -2966,232 +2972,246 @@ const InputsSchema = z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Activation functions of neural network models.").optional(),
     batchSize: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Mini batch sample size.").optional(),
     boosterType: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Booster type for boosted tree models.").optional(),
     colsampleBylevel: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample ratio of columns for each level for boosted tree models.",
+    ).optional(),
     colsampleBynode: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample ratio of columns for each node(split) for boosted tree models.",
+    ).optional(),
     colsampleBytree: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample ratio of columns when constructing each tree for boosted tree models.",
+    ).optional(),
     dartNormalizeType: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Dart normalization type for boosted tree models.").optional(),
     dropout: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Dropout probability for dnn model training and boosted tree models using dart booster.",
+    ).optional(),
     hiddenUnits: z.object({
       candidates: z.array(z.object({
         elements: z.array(z.unknown()).describe("Elements in the int array.")
           .optional(),
       })).describe("Candidates for the int array parameter.").optional(),
-    }).describe("Search space for int array.").optional(),
+    }).describe("Hidden units for neural network models.").optional(),
     l1Reg: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("L1 regularization coefficient.").optional(),
     l2Reg: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("L2 regularization coefficient.").optional(),
     learnRate: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("Learning rate of training jobs.").optional(),
     maxTreeDepth: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Maximum depth of a tree for boosted tree models.").optional(),
     minSplitLoss: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe("Minimum split loss for boosted tree models.").optional(),
     minTreeChildWeight: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe(
+      "Minimum sum of instance weight needed in a child for boosted tree models.",
+    ).optional(),
     numClusters: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Number of clusters for k-means.").optional(),
     numFactors: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Number of latent factors to train on.").optional(),
     numParallelTree: z.object({
       candidates: z.object({
         candidates: z.array(z.string()).describe(
           "Candidates for the int parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of an int hyperparameter.").optional(),
+      }).describe("Candidates of the int hyperparameter.").optional(),
       range: z.object({
         max: z.string().describe("Max value of the int parameter.").optional(),
         min: z.string().describe("Min value of the int parameter.").optional(),
-      }).describe("Range of an int hyperparameter.").optional(),
-    }).describe("Search space for an int hyperparameter.").optional(),
+      }).describe("Range of the int hyperparameter.").optional(),
+    }).describe("Number of parallel trees for boosted tree models.").optional(),
     optimizer: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Optimizer of TF models.").optional(),
     subsample: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Subsample the training data to grow tree to prevent overfitting for boosted tree models.",
+    ).optional(),
     treeMethod: z.object({
       candidates: z.array(z.string()).describe(
         "Canididates for the string or enum parameter in lower case.",
       ).optional(),
-    }).describe("Search space for string and enum.").optional(),
+    }).describe("Tree construction algorithm for boosted tree models.")
+      .optional(),
     walsAlpha: z.object({
       candidates: z.object({
         candidates: z.array(z.number()).describe(
           "Candidates for the double parameter in increasing order.",
         ).optional(),
-      }).describe("Discrete candidates of a double hyperparameter.").optional(),
+      }).describe("Candidates of the double hyperparameter.").optional(),
       range: z.object({
         max: z.number().describe("Max value of the double parameter.")
           .optional(),
         min: z.number().describe("Min value of the double parameter.")
           .optional(),
-      }).describe("Range of a double hyperparameter.").optional(),
-    }).describe("Search space for a double hyperparameter.").optional(),
-  }).describe(
-    "Hyperparameter search spaces. These should be a subset of training_options.",
-  ).optional(),
+      }).describe("Range of the double hyperparameter.").optional(),
+    }).describe(
+      "Hyperparameter for matrix factoration when implicit feedback type is specified.",
+    ).optional(),
+  }).describe("Output only. All hyperparameter search spaces in this model.")
+    .optional(),
   hparamTrials: z.array(z.object({
     endTimeMs: z.string().describe("Ending time of the trial.").optional(),
     errorMessage: z.string().describe(
@@ -3219,8 +3239,7 @@ const InputsSchema = z.object({
         timeSeriesId: z.array(z.unknown()).describe(
           "Id to differentiate different time series for the large-scale case.",
         ).optional(),
-      }).describe("Model evaluation metrics for ARIMA forecasting models.")
-        .optional(),
+      }).describe("Populated for ARIMA models.").optional(),
       binaryClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
           accuracy: z.unknown().describe(
@@ -3244,9 +3263,7 @@ const InputsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         binaryConfusionMatrixList: z.array(z.unknown()).describe(
           "Binary confusion matrix at multiple thresholds.",
         ).optional(),
@@ -3256,9 +3273,8 @@ const InputsSchema = z.object({
         positiveLabel: z.string().describe(
           "Label representing the positive class.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for binary classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for binary classification/classifier models.")
+        .optional(),
       clusteringMetrics: z.object({
         clusters: z.array(z.unknown()).describe("Information for all clusters.")
           .optional(),
@@ -3267,13 +3283,13 @@ const InputsSchema = z.object({
         meanSquaredDistance: z.number().describe(
           "Mean of squared distances between each sample to its cluster centroid.",
         ).optional(),
-      }).describe("Evaluation metrics for clustering models.").optional(),
+      }).describe("Populated for clustering models.").optional(),
       dimensionalityReductionMetrics: z.object({
         totalExplainedVarianceRatio: z.number().describe(
           "Total percentage of variance explained by the selected principal components.",
         ).optional(),
       }).describe(
-        "Model evaluation metrics for dimensionality reduction models.",
+        "Evaluation metrics when the model is a dimensionality reduction model, which currently includes PCA.",
       ).optional(),
       multiClassClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
@@ -3298,15 +3314,12 @@ const InputsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         confusionMatrixList: z.array(z.unknown()).describe(
           "Confusion matrix at different thresholds.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for multi-class classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for multi-class classification/classifier models.")
+        .optional(),
       rankingMetrics: z.object({
         averageRank: z.number().describe(
           "Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.",
@@ -3321,7 +3334,7 @@ const InputsSchema = z.object({
           "A metric to determine the goodness of a ranking calculated from the predicted confidence by comparing it to an ideal rank measured by the original ratings.",
         ).optional(),
       }).describe(
-        "Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.",
+        "Populated for implicit feedback type matrix factorization models.",
       ).optional(),
       regressionMetrics: z.object({
         meanAbsoluteError: z.number().describe("Mean absolute error.")
@@ -3335,10 +3348,10 @@ const InputsSchema = z.object({
           "R^2 score. This corresponds to r2_score in ML.EVALUATE.",
         ).optional(),
       }).describe(
-        "Evaluation metrics for regression and explicit feedback type matrix factorization models.",
+        "Populated for regression models and explicit feedback type matrix factorization models.",
       ).optional(),
     }).describe(
-      "Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.",
+      "Evaluation metrics of this trial calculated on the test data. Empty in Job API.",
     ).optional(),
     hparamTuningEvaluationMetrics: z.object({
       arimaForecastingMetrics: z.object({
@@ -3359,8 +3372,7 @@ const InputsSchema = z.object({
         timeSeriesId: z.array(z.unknown()).describe(
           "Id to differentiate different time series for the large-scale case.",
         ).optional(),
-      }).describe("Model evaluation metrics for ARIMA forecasting models.")
-        .optional(),
+      }).describe("Populated for ARIMA models.").optional(),
       binaryClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
           accuracy: z.unknown().describe(
@@ -3384,9 +3396,7 @@ const InputsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         binaryConfusionMatrixList: z.array(z.unknown()).describe(
           "Binary confusion matrix at multiple thresholds.",
         ).optional(),
@@ -3396,9 +3406,8 @@ const InputsSchema = z.object({
         positiveLabel: z.string().describe(
           "Label representing the positive class.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for binary classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for binary classification/classifier models.")
+        .optional(),
       clusteringMetrics: z.object({
         clusters: z.array(z.unknown()).describe("Information for all clusters.")
           .optional(),
@@ -3407,13 +3416,13 @@ const InputsSchema = z.object({
         meanSquaredDistance: z.number().describe(
           "Mean of squared distances between each sample to its cluster centroid.",
         ).optional(),
-      }).describe("Evaluation metrics for clustering models.").optional(),
+      }).describe("Populated for clustering models.").optional(),
       dimensionalityReductionMetrics: z.object({
         totalExplainedVarianceRatio: z.number().describe(
           "Total percentage of variance explained by the selected principal components.",
         ).optional(),
       }).describe(
-        "Model evaluation metrics for dimensionality reduction models.",
+        "Evaluation metrics when the model is a dimensionality reduction model, which currently includes PCA.",
       ).optional(),
       multiClassClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
@@ -3438,15 +3447,12 @@ const InputsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         confusionMatrixList: z.array(z.unknown()).describe(
           "Confusion matrix at different thresholds.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for multi-class classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for multi-class classification/classifier models.")
+        .optional(),
       rankingMetrics: z.object({
         averageRank: z.number().describe(
           "Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.",
@@ -3461,7 +3467,7 @@ const InputsSchema = z.object({
           "A metric to determine the goodness of a ranking calculated from the predicted confidence by comparing it to an ideal rank measured by the original ratings.",
         ).optional(),
       }).describe(
-        "Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.",
+        "Populated for implicit feedback type matrix factorization models.",
       ).optional(),
       regressionMetrics: z.object({
         meanAbsoluteError: z.number().describe("Mean absolute error.")
@@ -3475,10 +3481,10 @@ const InputsSchema = z.object({
           "R^2 score. This corresponds to r2_score in ML.EVALUATE.",
         ).optional(),
       }).describe(
-        "Evaluation metrics for regression and explicit feedback type matrix factorization models.",
+        "Populated for regression models and explicit feedback type matrix factorization models.",
       ).optional(),
     }).describe(
-      "Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.",
+      "Hyperparameter tuning evaluation metrics of this trial calculated on the eval data. Unlike evaluation_metrics, only the fields corresponding to the hparam_tuning_objectives are set.",
     ).optional(),
     hparams: z.object({
       activationFn: z.string().describe(
@@ -3894,7 +3900,7 @@ const InputsSchema = z.object({
         p: z.string().describe("Order of the autoregressive part.").optional(),
         q: z.string().describe("Order of the moving-average part.").optional(),
       }).describe(
-        "Arima order, can be used for both non-seasonal and seasonal parts.",
+        "A specification of the non-seasonal part of the ARIMA model: the three components (p, d, q) are the AR order, the degree of differencing, and the MA order.",
       ).optional(),
       numClusters: z.string().describe(
         "Number of clusters for clustering models.",
@@ -3997,7 +4003,7 @@ const InputsSchema = z.object({
       xgboostVersion: z.string().describe(
         "User-selected XGBoost versions for training of XGBoost models.",
       ).optional(),
-    }).describe("Options used in model training.").optional(),
+    }).describe("The hyperprameters selected for this trial.").optional(),
     startTimeMs: z.string().describe("Starting time of the trial.").optional(),
     status: z.enum([
       "TRIAL_STATUS_UNSPECIFIED",
@@ -4029,7 +4035,9 @@ const InputsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -4053,7 +4061,7 @@ const InputsSchema = z.object({
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
     }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+      'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
     ).optional(),
   })).describe(
     'Output only. Label columns that were used to train this model. The output of the model will have a "predicted_" prefix to these columns.',
@@ -4077,7 +4085,7 @@ const InputsSchema = z.object({
     projectId: z.string().describe(
       "Required. The ID of the project containing this model.",
     ).optional(),
-  }).describe("Id path of a model.").optional(),
+  }).describe("Required. Unique identifier for this model.").optional(),
   modelType: z.enum([
     "MODEL_TYPE_UNSPECIFIED",
     "LINEAR_REGRESSION",
@@ -4132,7 +4140,7 @@ const InputsSchema = z.object({
     speechRecognizer: z.string().describe(
       "Output only. The name of the speech recognizer to use for speech recognition. The expected format is `projects/{project}/locations/{location}/recognizers/{recognizer}`. Customers can specify this field at model creation. If not specified, a default recognizer `projects/{model project}/locations/global/recognizers/_` will be used. See more details at [recognizers](https://cloud.google.com/speech-to-text/v2/docs/reference/rest/v2/projects.locations.recognizers)",
     ).optional(),
-  }).describe("Remote Model Info").optional(),
+  }).describe("Output only. Remote model info").optional(),
   trainingRuns: z.array(z.object({
     classLevelGlobalExplanations: z.array(z.object({
       classLabel: z.string().describe(
@@ -4155,7 +4163,8 @@ const InputsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
         ).optional(),
-      }).optional(),
+      }).describe("Table reference of the evaluation data after split.")
+        .optional(),
       testTable: z.object({
         datasetId: z.string().describe(
           "Required. The ID of the dataset containing this table.",
@@ -4166,7 +4175,7 @@ const InputsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
         ).optional(),
-      }).optional(),
+      }).describe("Table reference of the test data after split.").optional(),
       trainingTable: z.object({
         datasetId: z.string().describe(
           "Required. The ID of the dataset containing this table.",
@@ -4177,9 +4186,10 @@ const InputsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
         ).optional(),
-      }).optional(),
+      }).describe("Table reference of the training data after split.")
+        .optional(),
     }).describe(
-      "Data split result. This contains references to the training and evaluation data tables that were used to train the model.",
+      "Output only. Data split result of the training run. Only set when the input data is actually split.",
     ).optional(),
     evaluationMetrics: z.object({
       arimaForecastingMetrics: z.object({
@@ -4200,8 +4210,7 @@ const InputsSchema = z.object({
         timeSeriesId: z.array(z.unknown()).describe(
           "Id to differentiate different time series for the large-scale case.",
         ).optional(),
-      }).describe("Model evaluation metrics for ARIMA forecasting models.")
-        .optional(),
+      }).describe("Populated for ARIMA models.").optional(),
       binaryClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
           accuracy: z.unknown().describe(
@@ -4225,9 +4234,7 @@ const InputsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         binaryConfusionMatrixList: z.array(z.unknown()).describe(
           "Binary confusion matrix at multiple thresholds.",
         ).optional(),
@@ -4237,9 +4244,8 @@ const InputsSchema = z.object({
         positiveLabel: z.string().describe(
           "Label representing the positive class.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for binary classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for binary classification/classifier models.")
+        .optional(),
       clusteringMetrics: z.object({
         clusters: z.array(z.unknown()).describe("Information for all clusters.")
           .optional(),
@@ -4248,13 +4254,13 @@ const InputsSchema = z.object({
         meanSquaredDistance: z.number().describe(
           "Mean of squared distances between each sample to its cluster centroid.",
         ).optional(),
-      }).describe("Evaluation metrics for clustering models.").optional(),
+      }).describe("Populated for clustering models.").optional(),
       dimensionalityReductionMetrics: z.object({
         totalExplainedVarianceRatio: z.number().describe(
           "Total percentage of variance explained by the selected principal components.",
         ).optional(),
       }).describe(
-        "Model evaluation metrics for dimensionality reduction models.",
+        "Evaluation metrics when the model is a dimensionality reduction model, which currently includes PCA.",
       ).optional(),
       multiClassClassificationMetrics: z.object({
         aggregateClassificationMetrics: z.object({
@@ -4279,15 +4285,12 @@ const InputsSchema = z.object({
           threshold: z.unknown().describe(
             "Threshold at which the metrics are computed. For binary classification models this is the positive class threshold. For multi-class classification models this is the confidence threshold.",
           ).optional(),
-        }).describe(
-          "Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.",
-        ).optional(),
+        }).describe("Aggregate classification metrics.").optional(),
         confusionMatrixList: z.array(z.unknown()).describe(
           "Confusion matrix at different thresholds.",
         ).optional(),
-      }).describe(
-        "Evaluation metrics for multi-class classification/classifier models.",
-      ).optional(),
+      }).describe("Populated for multi-class classification/classifier models.")
+        .optional(),
       rankingMetrics: z.object({
         averageRank: z.number().describe(
           "Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.",
@@ -4302,7 +4305,7 @@ const InputsSchema = z.object({
           "A metric to determine the goodness of a ranking calculated from the predicted confidence by comparing it to an ideal rank measured by the original ratings.",
         ).optional(),
       }).describe(
-        "Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.",
+        "Populated for implicit feedback type matrix factorization models.",
       ).optional(),
       regressionMetrics: z.object({
         meanAbsoluteError: z.number().describe("Mean absolute error.")
@@ -4316,10 +4319,10 @@ const InputsSchema = z.object({
           "R^2 score. This corresponds to r2_score in ML.EVALUATE.",
         ).optional(),
       }).describe(
-        "Evaluation metrics for regression and explicit feedback type matrix factorization models.",
+        "Populated for regression models and explicit feedback type matrix factorization models.",
       ).optional(),
     }).describe(
-      "Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.",
+      "Output only. The evaluation metrics over training/eval data that were computed at the end of training.",
     ).optional(),
     modelLevelGlobalExplanation: z.object({
       classLabel: z.string().describe(
@@ -4334,7 +4337,7 @@ const InputsSchema = z.object({
         "A list of the top global explanations. Sorted by absolute value of attribution in descending order.",
       ).optional(),
     }).describe(
-      "Global explanations containing the top most important features after training.",
+      "Output only. Global explanation contains the explanation of top features on the model level. Applies to both regression and classification models.",
     ).optional(),
     results: z.array(z.object({
       arimaResult: z.object({
@@ -4344,9 +4347,7 @@ const InputsSchema = z.object({
         seasonalPeriods: z.unknown().describe(
           "Seasonal periods. Repeated because multiple periods are supported for one time series.",
         ).optional(),
-      }).describe(
-        "(Auto-)arima fitting result. Wrap everything in ArimaResult for easier refactoring if we want to use model-specific iteration results.",
-      ).optional(),
+      }).describe("Arima result.").optional(),
       clusterInfos: z.array(z.unknown()).describe(
         "Information about top clusters for clustering models.",
       ).optional(),
@@ -4786,7 +4787,7 @@ const InputsSchema = z.object({
         p: z.string().describe("Order of the autoregressive part.").optional(),
         q: z.string().describe("Order of the moving-average part.").optional(),
       }).describe(
-        "Arima order, can be used for both non-seasonal and seasonal parts.",
+        "A specification of the non-seasonal part of the ARIMA model: the three components (p, d, q) are the AR order, the degree of differencing, and the MA order.",
       ).optional(),
       numClusters: z.string().describe(
         "Number of clusters for clustering models.",
@@ -4889,7 +4890,9 @@ const InputsSchema = z.object({
       xgboostVersion: z.string().describe(
         "User-selected XGBoost versions for training of XGBoost models.",
       ).optional(),
-    }).describe("Options used in model training.").optional(),
+    }).describe(
+      "Output only. Options that were used for this training run, includes user specified and default options that were used.",
+    ).optional(),
     trainingStartTime: z.string().describe(
       "Output only. The start time of this training run, in milliseconds since epoch.",
     ).optional(),
@@ -4917,7 +4920,9 @@ const InputsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -4940,9 +4945,8 @@ const InputsSchema = z.object({
       ]).describe(
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
-    }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
-    ).optional(),
+    }).describe("Output only. Data type of the column after the transform.")
+      .optional(),
   })).describe(
     "Output only. This field will be populated if a TRANSFORM clause was used to train a model. TRANSFORM clause (if used) takes feature_columns as input and outputs transform_columns. transform_columns then are used to train the model.",
   ).optional(),
@@ -4973,7 +4977,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Models. Registered at `@swamp/gcp/bigquery/models`. */
 export const model = {
   type: "@swamp/gcp/bigquery/models",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -5087,6 +5091,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

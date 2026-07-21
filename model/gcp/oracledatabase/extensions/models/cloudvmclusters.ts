@@ -163,21 +163,6 @@ const GlobalArgsSchema = z.object({
   exascaleDbStorageVault: z.string().describe(
     "Optional. The name of ExascaleDbStorageVault associated with the VM Cluster. Format: projects/{project}/locations/{location}/exascaleDbStorageVaults/{exascale_db_storage_vault}",
   ).optional(),
-  identityConnector: z.object({
-    connectionState: z.enum([
-      "CONNECTION_STATE_UNSPECIFIED",
-      "CONNECTED",
-      "PARTIALLY_CONNECTED",
-      "DISCONNECTED",
-      "UNKNOWN",
-    ]).describe("Output only. The connection state of the identity connector.")
-      .optional(),
-    serviceAgentEmail: z.string().describe(
-      "Output only. A google managed service account on which customers can grant roles to access resources in the customer project. Example: `p176944527254-55-75119d87fd8f@gcp-sa-oci.iam.gserviceaccount.com`",
-    ).optional(),
-  }).describe(
-    "The identity connector details which will allow OCI to securely access the resources in the customer project.",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels or tags associated with the VM Cluster.",
   ).optional(),
@@ -225,7 +210,8 @@ const GlobalArgsSchema = z.object({
       incidentLogsEnabled: z.boolean().describe(
         "Optional. Indicates whether incident logs and trace collection are enabled for the VM cluster",
       ).optional(),
-    }).describe("Data collection options for diagnostics.").optional(),
+    }).describe("Optional. Data collection options for diagnostics.")
+      .optional(),
     diskRedundancy: z.enum(["DISK_REDUNDANCY_UNSPECIFIED", "HIGH", "NORMAL"])
       .describe("Optional. The type of redundancy.").optional(),
     dnsListenerIp: z.string().describe("Output only. DNS listener IP.")
@@ -314,11 +300,9 @@ const GlobalArgsSchema = z.object({
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
     }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+      "Optional. Time zone of VM Cluster to set. Defaults to UTC if not specified.",
     ).optional(),
-  }).describe(
-    "Various properties and settings associated with Exadata VM cluster.",
-  ).optional(),
+  }).describe("Optional. Various properties of the VM Cluster.").optional(),
   cloudVmClusterId: z.string().describe(
     "Required. The ID of the VM Cluster to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -418,21 +402,6 @@ const InputsSchema = z.object({
   exascaleDbStorageVault: z.string().describe(
     "Optional. The name of ExascaleDbStorageVault associated with the VM Cluster. Format: projects/{project}/locations/{location}/exascaleDbStorageVaults/{exascale_db_storage_vault}",
   ).optional(),
-  identityConnector: z.object({
-    connectionState: z.enum([
-      "CONNECTION_STATE_UNSPECIFIED",
-      "CONNECTED",
-      "PARTIALLY_CONNECTED",
-      "DISCONNECTED",
-      "UNKNOWN",
-    ]).describe("Output only. The connection state of the identity connector.")
-      .optional(),
-    serviceAgentEmail: z.string().describe(
-      "Output only. A google managed service account on which customers can grant roles to access resources in the customer project. Example: `p176944527254-55-75119d87fd8f@gcp-sa-oci.iam.gserviceaccount.com`",
-    ).optional(),
-  }).describe(
-    "The identity connector details which will allow OCI to securely access the resources in the customer project.",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels or tags associated with the VM Cluster.",
   ).optional(),
@@ -480,7 +449,8 @@ const InputsSchema = z.object({
       incidentLogsEnabled: z.boolean().describe(
         "Optional. Indicates whether incident logs and trace collection are enabled for the VM cluster",
       ).optional(),
-    }).describe("Data collection options for diagnostics.").optional(),
+    }).describe("Optional. Data collection options for diagnostics.")
+      .optional(),
     diskRedundancy: z.enum(["DISK_REDUNDANCY_UNSPECIFIED", "HIGH", "NORMAL"])
       .describe("Optional. The type of redundancy.").optional(),
     dnsListenerIp: z.string().describe("Output only. DNS listener IP.")
@@ -569,11 +539,9 @@ const InputsSchema = z.object({
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
     }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+      "Optional. Time zone of VM Cluster to set. Defaults to UTC if not specified.",
     ).optional(),
-  }).describe(
-    "Various properties and settings associated with Exadata VM cluster.",
-  ).optional(),
+  }).describe("Optional. Various properties of the VM Cluster.").optional(),
   cloudVmClusterId: z.string().describe(
     "Required. The ID of the VM Cluster to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -608,7 +576,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud CloudVmClusters. Registered at `@swamp/gcp/oracledatabase/cloudvmclusters`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/cloudvmclusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -734,6 +702,14 @@ export const model = {
       description: "Added: exascaleDbStorageVault",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: identityConnector",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { identityConnector: _identityConnector, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -774,9 +750,6 @@ export const model = {
         }
         if (g["exascaleDbStorageVault"] !== undefined) {
           body["exascaleDbStorageVault"] = g["exascaleDbStorageVault"];
-        }
-        if (g["identityConnector"] !== undefined) {
-          body["identityConnector"] = g["identityConnector"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];

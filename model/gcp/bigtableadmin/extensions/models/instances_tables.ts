@@ -175,18 +175,22 @@ const GlobalArgsSchema = z.object({
       retentionPeriod: z.string().describe(
         "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
       ).optional(),
-    }).describe("Defines an automated backup policy for a table").optional(),
+    }).describe(
+      "If specified, automated backups are enabled for this table. Otherwise, automated backups are disabled.",
+    ).optional(),
     changeStreamConfig: z.object({
       retentionPeriod: z.string().describe(
         "How long the change stream should be retained. Change stream data older than the retention period will not be returned when reading the change stream from the table. Values must be at least 1 day and at most 7 days, and will be truncated to microsecond granularity.",
       ).optional(),
-    }).describe("Change stream configuration.").optional(),
+    }).describe(
+      "If specified, enable the change stream on this table. Otherwise, the change stream is disabled and the change stream is not retained.",
+    ).optional(),
     clusterStates: z.record(
       z.string(),
       z.object({
         encryptionInfo: z.array(z.object({
           encryptionStatus: z.unknown().describe(
-            "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+            "Output only. The status of encrypt/decrypt calls on underlying data for this resource. Regardless of status, the existing data is always encrypted at rest.",
           ).optional(),
           encryptionType: z.unknown().describe(
             "Output only. The type of encryption used to protect this resource.",
@@ -220,7 +224,7 @@ const GlobalArgsSchema = z.object({
               "Only delete cells which would be deleted by every element of `rules`.",
             ).optional(),
           }).describe(
-            "A GcRule which deletes cells matching all of the given rules.",
+            "Delete cells that would be deleted by every nested rule.",
           ).optional(),
           maxAge: z.string().describe(
             "Delete cells in a column older than the given age. Values must be at least one millisecond, and will be truncated to microsecond granularity.",
@@ -232,11 +236,10 @@ const GlobalArgsSchema = z.object({
             rules: z.unknown().describe(
               "Delete cells which would be deleted by any element of `rules`.",
             ).optional(),
-          }).describe(
-            "A GcRule which deletes cells matching any of the given rules.",
-          ).optional(),
+          }).describe("Delete cells that would be deleted by any nested rule.")
+            .optional(),
         }).describe(
-          "Rule for determining which cells to delete during garbage collection.",
+          "Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it's possible for reads to return a cell even if it matches the active GC expression for its family.",
         ).optional(),
         stats: z.object({
           averageCellsPerColumn: z.number().describe(
@@ -249,52 +252,36 @@ const GlobalArgsSchema = z.object({
             "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
           ).optional(),
         }).describe(
-          "Approximate statistics related to a single column family within a table. This information may change rapidly, interpreting these values at a point in time may already preset out-of-date information. Everything below is approximate, unless otherwise specified.",
+          "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
         ).optional(),
         valueType: z.object({
           aggregateType: z.object({
             hllppUniqueCount: z.unknown().describe(
-              "Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: `Int64` (the unique count estimate)",
+              "HyperLogLogPlusPlusUniqueCount aggregator.",
             ).optional(),
             inputType: z.unknown().describe("Circular reference to Type")
               .optional(),
-            max: z.unknown().describe(
-              "Computes the max of the input values. Allowed input: `Int64` State: same as input",
-            ).optional(),
-            min: z.unknown().describe(
-              "Computes the min of the input values. Allowed input: `Int64` State: same as input",
-            ).optional(),
+            max: z.unknown().describe("Max aggregator.").optional(),
+            min: z.unknown().describe("Min aggregator.").optional(),
             stateType: z.unknown().describe("Circular reference to Type")
               .optional(),
-            sum: z.unknown().describe(
-              "Computes the sum of the input values. Allowed input: `Int64` State: same as input",
-            ).optional(),
-          }).describe(
-            "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-          ).optional(),
+            sum: z.unknown().describe("Sum aggregator.").optional(),
+          }).describe("Aggregate").optional(),
           arrayType: z.object({
             elementType: z.unknown().describe("Circular reference to Type")
               .optional(),
-          }).describe(
-            "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-          ).optional(),
+          }).describe("Array").optional(),
           boolType: z.object({
             encoding: z.unknown().describe(
-              "Defines rules used to convert to or from lower level types.",
+              "Specifies the encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "bool Values of type `Bool` are stored in `Value.bool_value`.",
-          ).optional(),
+          }).describe("Bool").optional(),
           bytesType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-          ).optional(),
-          dateType: z.object({}).describe(
-            "Date Values of type `Date` are stored in `Value.date_value`.",
-          ).optional(),
+          }).describe("Bytes").optional(),
+          dateType: z.object({}).describe("Date").optional(),
           enumType: z.object({
             enumName: z.unknown().describe(
               'The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".',
@@ -302,40 +289,26 @@ const GlobalArgsSchema = z.object({
             schemaBundleId: z.unknown().describe(
               "The ID of the schema bundle that this enum is defined in.",
             ).optional(),
-          }).describe(
-            "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-          ).optional(),
-          float32Type: z.object({}).describe(
-            "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-          ).optional(),
-          float64Type: z.object({}).describe(
-            "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-          ).optional(),
-          geographyType: z.object({}).describe(
-            "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-          ).optional(),
+          }).describe("Enum").optional(),
+          float32Type: z.object({}).describe("Float32").optional(),
+          float64Type: z.object({}).describe("Float64").optional(),
+          geographyType: z.object({}).describe("Geography").optional(),
           int32Type: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
+          }).describe("Int32").optional(),
           int64Type: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-          ).optional(),
+          }).describe("Int64").optional(),
           mapType: z.object({
             keyType: z.unknown().describe("Circular reference to Type")
               .optional(),
             valueType: z.unknown().describe("Circular reference to Type")
               .optional(),
-          }).describe(
-            "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-          ).optional(),
+          }).describe("Map").optional(),
           protoType: z.object({
             messageName: z.unknown().describe(
               'The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".',
@@ -343,35 +316,27 @@ const GlobalArgsSchema = z.object({
             schemaBundleId: z.unknown().describe(
               "The ID of the schema bundle that this proto is defined in.",
             ).optional(),
-          }).describe(
-            "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-          ).optional(),
+          }).describe("Proto").optional(),
           stringType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "String Values of type `String` are stored in `Value.string_value`.",
-          ).optional(),
+          }).describe("String").optional(),
           structType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
             fields: z.unknown().describe(
               "The names and types of the fields in this struct.",
             ).optional(),
-          }).describe(
-            "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
-          ).optional(),
+          }).describe("Struct").optional(),
           timestampType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-          ).optional(),
+          }).describe("Timestamp").optional(),
         }).describe(
-          '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
+          "The type of data stored in each of this family's cell values, including its full encoding. If omitted, the family only serves raw untyped bytes. For now, only the `Aggregate` type is supported. `Aggregate` can only be set at family creation and is immutable afterwards. This field is mutually exclusive with `sql_type`. If `value_type` is `Aggregate`, written data must be compatible with: * `value_type.input_type` for `AddInput` mutations",
         ).optional(),
       }),
     ).describe(
@@ -403,87 +368,57 @@ const GlobalArgsSchema = z.object({
         startTime: z.string().describe(
           "Output only. The time that the backup was started. Row data in the backup will be no older than this timestamp.",
         ).optional(),
-      }).describe("Information about a backup.").optional(),
+      }).describe(
+        "Information about the backup used to restore the table. The backup may no longer exist.",
+      ).optional(),
       sourceType: z.enum(["RESTORE_SOURCE_TYPE_UNSPECIFIED", "BACKUP"])
         .describe("The type of the restore source.").optional(),
-    }).describe("Information about a table restore.").optional(),
+    }).describe(
+      "Output only. If this table was restored from another data source (e.g. a backup), this field will be populated with information about the restore.",
+    ).optional(),
     rowKeySchema: z.object({
       encoding: z.object({
         delimitedBytes: z.object({
           delimiter: z.string().describe(
             "Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.",
           ).optional(),
-        }).describe(
-          "Fields are encoded independently and concatenated with a configurable `delimiter` in between. A struct with no fields defined is encoded as a single `delimiter`. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes <= `delimiter[0]` - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. - This encoding does not support `DESC` field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain `delimiter[0]`.",
-        ).optional(),
+        }).describe("Use `DelimitedBytes` encoding.").optional(),
         orderedCodeBytes: z.object({}).describe(
-          'Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is `ASC` or `UNSPECIFIED`, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes `0x00` with the fixed byte pair `{0x00, 0xFF}`. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair `{0x00, 0x00}`. - Append the fixed byte pair `{0x00, 0x01}` to each remaining field, except for the last remaining field if it is `ASC`. - Bitwise negate all `DESC` fields. - Concatenate the results, or emit the fixed byte pair `{0x00, 0x00}` if there are no remaining fields to concatenate. Examples: ` - STRUCT() -> "\\00\\00" - STRUCT("") -> "\\00\\00" - STRUCT("", "") -> "\\00\\00" - STRUCT("", "B") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "") -> "A" - STRUCT("", "B", "") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "", "C") -> "A" + "\\00\\01" + "\\00\\00" + "\\00\\01" + "C" ` Examples for struct with `DESC` fields: ` - STRUCT("" DESC) -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "", "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "A") -> "\\xFF\\xFF" + "\\xFF\\xFE" + "A" - STRUCT("A", "" DESC, "") -> "A" + "\\00\\01" + "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("", "A" DESC) -> "\\x00\\x00" + "\\x00\\x01" + "\\xBE" + "\\xFF\\xFE" ` Since null bytes are always escaped, this encoding can cause size blowup for encodings like `Int64.BigEndianBytes` that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or `UNSPECIFIED` order are treated as `ASC`. - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.',
+          "User `OrderedCodeBytes` encoding.",
         ).optional(),
-        singleton: z.object({}).describe(
-          "Uses the encoding of `fields[0].type` as-is. Only valid if `fields.size == 1`. This encoding does not support `DESC` field ordering.",
-        ).optional(),
-      }).describe("Rules used to convert to or from lower level types.")
-        .optional(),
+        singleton: z.object({}).describe("Use `Singleton` encoding.")
+          .optional(),
+      }).describe(
+        "The encoding to use when converting to or from lower level types.",
+      ).optional(),
       fields: z.array(z.object({
         fieldName: z.string().describe(
           "The field name (optional). Fields without a `field_name` are considered anonymous and cannot be referenced by name.",
         ).optional(),
         type: z.object({
-          aggregateType: z.unknown().describe(
-            "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-          ).optional(),
-          arrayType: z.unknown().describe(
-            "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-          ).optional(),
-          boolType: z.unknown().describe(
-            "bool Values of type `Bool` are stored in `Value.bool_value`.",
-          ).optional(),
-          bytesType: z.unknown().describe(
-            "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-          ).optional(),
-          dateType: z.unknown().describe(
-            "Date Values of type `Date` are stored in `Value.date_value`.",
-          ).optional(),
-          enumType: z.unknown().describe(
-            "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-          ).optional(),
-          float32Type: z.unknown().describe(
-            "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-          ).optional(),
-          float64Type: z.unknown().describe(
-            "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-          ).optional(),
-          geographyType: z.unknown().describe(
-            "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-          ).optional(),
-          int32Type: z.unknown().describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
-          int64Type: z.unknown().describe(
-            "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-          ).optional(),
-          mapType: z.unknown().describe(
-            "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-          ).optional(),
-          protoType: z.unknown().describe(
-            "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-          ).optional(),
-          stringType: z.unknown().describe(
-            "String Values of type `String` are stored in `Value.string_value`.",
-          ).optional(),
+          aggregateType: z.unknown().describe("Aggregate").optional(),
+          arrayType: z.unknown().describe("Array").optional(),
+          boolType: z.unknown().describe("Bool").optional(),
+          bytesType: z.unknown().describe("Bytes").optional(),
+          dateType: z.unknown().describe("Date").optional(),
+          enumType: z.unknown().describe("Enum").optional(),
+          float32Type: z.unknown().describe("Float32").optional(),
+          float64Type: z.unknown().describe("Float64").optional(),
+          geographyType: z.unknown().describe("Geography").optional(),
+          int32Type: z.unknown().describe("Int32").optional(),
+          int64Type: z.unknown().describe("Int64").optional(),
+          mapType: z.unknown().describe("Map").optional(),
+          protoType: z.unknown().describe("Proto").optional(),
+          stringType: z.unknown().describe("String").optional(),
           structType: z.unknown().describe(
             "Circular reference to GoogleBigtableAdminV2TypeStruct",
           ).optional(),
-          timestampType: z.unknown().describe(
-            "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-          ).optional(),
-        }).describe(
-          '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
-        ).optional(),
+          timestampType: z.unknown().describe("Timestamp").optional(),
+        }).describe("The type of values in this field.").optional(),
       })).describe("The names and types of the fields in this struct.")
         .optional(),
     }).describe(
-      "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
+      'The row key schema for this table. The schema is used to decode the raw row key bytes into a structured format. The order of field declarations in this schema is important, as it reflects how the raw row key bytes are structured. Currently, this only affects how the key is read via a GoogleSQL query from the ExecuteQuery API. For a SQL query, the _key column is still read as raw bytes. But queries can reference the key fields by name, which will be decoded from _key using provided type and encoding. Queries that reference key fields will fail if they encounter an invalid row key. For example, if _key = "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" with the following schema: { fields { field_name: "id" type { string { encoding: utf8_bytes {} } } } fields { field_name: "date" type { string { encoding: utf8_bytes {} } } } fields { field_name: "product_code" type { int64 { encoding: big_endian_bytes {} } } } encoding { delimited_bytes { delimiter: "#" } } } The decoded key parts would be: id = "some_id", date = "2024-04-30", product_code = 1245427 The query "SELECT _key, product_code FROM table" will return two columns: /------------------------------------------------------\\ | _key | product_code | | --------------------------------------|--------------| | "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" | 1245427 | \\------------------------------------------------------/ The schema has the following invariants: (1) The decoded field values are order-preserved. For read, the field values will be decoded in sorted mode from the raw bytes. (2) Every field in the schema must specify a non-empty name. (3) Every field must specify a type with an associated encoding. The type is limited to scalar types only: Array, Map, Aggregate, and Struct are not allowed. (4) The field names must not collide with existing column family names and reserved keywords "_key" and "_timestamp". The following update operations are allowed for row_key_schema: - Update from an empty schema to a new schema. - Remove the existing schema. This operation requires setting the `ignore_warnings` flag to `true`, since it might be a backward incompatible change. Without the flag, the update request will fail with an INVALID_ARGUMENT error. Any other row key schema update operation (e.g. update existing schema columns names or types) is currently unsupported.',
     ).optional(),
     stats: z.object({
       averageCellsPerColumn: z.number().describe(
@@ -498,21 +433,20 @@ const GlobalArgsSchema = z.object({
       rowCount: z.string().describe("How many rows are in the table.")
         .optional(),
     }).describe(
-      "Approximate statistics related to a table. These statistics are calculated infrequently, while simultaneously, data in the table can change rapidly. Thus the values reported here (e.g. row count) are very likely out-of date, even the instant they are received in this API. Thus, only treat these values as approximate. IMPORTANT: Everything below is approximate, unless otherwise specified.",
+      "Output only. Only available with STATS_VIEW, this includes summary statistics about the entire table contents. For statistics about a specific column family, see ColumnFamilyStats in the mapped ColumnFamily collection above.",
     ).optional(),
     tieredStorageConfig: z.object({
       infrequentAccess: z.object({
         includeIfOlderThan: z.string().describe(
           "Include cells older than the given age. For the infrequent access tier, this value must be at least 30 days.",
         ).optional(),
-      }).describe("Rule to specify what data is stored in a storage tier.")
-        .optional(),
+      }).describe(
+        "Rule to specify what data is stored in the infrequent access(IA) tier. The IA tier allows storing more data per node with reduced performance.",
+      ).optional(),
     }).describe(
-      "Config for tiered storage. A valid config must have a valid TieredStorageRule. Otherwise the whole TieredStorageConfig must be unset. By default all data is stored in the SSD tier (only SSD instances can configure tiered storage).",
+      "Rules to specify what data is stored in each storage tier. Different tiers store data differently, providing different trade-offs between cost and performance. Different parts of a table can be stored separately on different tiers. If a config is specified, tiered storage is enabled for this table. Otherwise, tiered storage is disabled. Only SSD instances can configure tiered storage.",
     ).optional(),
-  }).describe(
-    "A collection of user data indexed by row, column, and timestamp. Each table is served using the resources of its parent cluster.",
-  ).optional(),
+  }).describe("Required. The Table to create.").optional(),
   tableId: z.string().describe(
     "Required. The name by which the new table should be referred to within the parent instance, e.g., `foobar` rather than `{parent}/tables/foobar`. Maximum 50 characters.",
   ).optional(),
@@ -526,12 +460,16 @@ const GlobalArgsSchema = z.object({
     retentionPeriod: z.string().describe(
       "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
     ).optional(),
-  }).describe("Defines an automated backup policy for a table").optional(),
+  }).describe(
+    "If specified, automated backups are enabled for this table. Otherwise, automated backups are disabled.",
+  ).optional(),
   changeStreamConfig: z.object({
     retentionPeriod: z.string().describe(
       "How long the change stream should be retained. Change stream data older than the retention period will not be returned when reading the change stream from the table. Values must be at least 1 day and at most 7 days, and will be truncated to microsecond granularity.",
     ).optional(),
-  }).describe("Change stream configuration.").optional(),
+  }).describe(
+    "If specified, enable the change stream on this table. Otherwise, the change stream is disabled and the change stream is not retained.",
+  ).optional(),
   clusterStates: z.record(
     z.string(),
     z.object({
@@ -547,7 +485,7 @@ const GlobalArgsSchema = z.object({
             "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
           ).optional(),
         }).describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+          "Output only. The status of encrypt/decrypt calls on underlying data for this resource. Regardless of status, the existing data is always encrypted at rest.",
         ).optional(),
         encryptionType: z.enum([
           "ENCRYPTION_TYPE_UNSPECIFIED",
@@ -584,9 +522,8 @@ const GlobalArgsSchema = z.object({
           rules: z.array(z.unknown()).describe(
             "Only delete cells which would be deleted by every element of `rules`.",
           ).optional(),
-        }).describe(
-          "A GcRule which deletes cells matching all of the given rules.",
-        ).optional(),
+        }).describe("Delete cells that would be deleted by every nested rule.")
+          .optional(),
         maxAge: z.string().describe(
           "Delete cells in a column older than the given age. Values must be at least one millisecond, and will be truncated to microsecond granularity.",
         ).optional(),
@@ -597,11 +534,10 @@ const GlobalArgsSchema = z.object({
           rules: z.array(z.unknown()).describe(
             "Delete cells which would be deleted by any element of `rules`.",
           ).optional(),
-        }).describe(
-          "A GcRule which deletes cells matching any of the given rules.",
-        ).optional(),
+        }).describe("Delete cells that would be deleted by any nested rule.")
+          .optional(),
       }).describe(
-        "Rule for determining which cells to delete during garbage collection.",
+        "Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it's possible for reads to return a cell even if it matches the active GC expression for its family.",
       ).optional(),
       stats: z.object({
         averageCellsPerColumn: z.number().describe(
@@ -614,58 +550,41 @@ const GlobalArgsSchema = z.object({
           "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
         ).optional(),
       }).describe(
-        "Approximate statistics related to a single column family within a table. This information may change rapidly, interpreting these values at a point in time may already preset out-of-date information. Everything below is approximate, unless otherwise specified.",
+        "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
       ).optional(),
       valueType: z.object({
         aggregateType: z.object({
           hllppUniqueCount: z.object({}).describe(
-            "Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: `Int64` (the unique count estimate)",
+            "HyperLogLogPlusPlusUniqueCount aggregator.",
           ).optional(),
           inputType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-          max: z.object({}).describe(
-            "Computes the max of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-          min: z.object({}).describe(
-            "Computes the min of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
+          max: z.object({}).describe("Max aggregator.").optional(),
+          min: z.object({}).describe("Min aggregator.").optional(),
           stateType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-          sum: z.object({}).describe(
-            "Computes the sum of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-        }).describe(
-          "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-        ).optional(),
+          sum: z.object({}).describe("Sum aggregator.").optional(),
+        }).describe("Aggregate").optional(),
         arrayType: z.object({
           elementType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-        }).describe(
-          "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-        ).optional(),
+        }).describe("Array").optional(),
         boolType: z.object({
           encoding: z.object({}).describe(
-            "Defines rules used to convert to or from lower level types.",
+            "Specifies the encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "bool Values of type `Bool` are stored in `Value.bool_value`.",
-        ).optional(),
+        }).describe("Bool").optional(),
         bytesType: z.object({
           encoding: z.object({
-            raw: z.unknown().describe(
-              "Leaves the value as-is. Sorted mode: all values are supported. Distinct mode: all values are supported.",
-            ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-        ).optional(),
-        dateType: z.object({}).describe(
-          "Date Values of type `Date` are stored in `Value.date_value`.",
-        ).optional(),
+            raw: z.unknown().describe("Use `Raw` encoding.").optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Bytes").optional(),
+        dateType: z.object({}).describe("Date").optional(),
         enumType: z.object({
           enumName: z.string().describe(
             'The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".',
@@ -673,44 +592,34 @@ const GlobalArgsSchema = z.object({
           schemaBundleId: z.string().describe(
             "The ID of the schema bundle that this enum is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-        ).optional(),
-        float32Type: z.object({}).describe(
-          "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-        ).optional(),
-        float64Type: z.object({}).describe(
-          "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-        ).optional(),
-        geographyType: z.object({}).describe(
-          "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
+        }).describe("Enum").optional(),
+        float32Type: z.object({}).describe("Float32").optional(),
+        float64Type: z.object({}).describe("Float64").optional(),
+        geographyType: z.object({}).describe("Geography").optional(),
         int32Type: z.object({
           encoding: z.object({
             bigEndianBytes: z.unknown().describe(
-              "Encodes the value as a 4-byte big-endian two's complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery `BINARY` encoding - HBase `Bytes.toBytes` - Java `ByteBuffer.putInt()` with `ByteOrder.BIG_ENDIAN`",
+              "Use `BigEndianBytes` encoding.",
             ).optional(),
             orderedCodeBytes: z.unknown().describe(
-              "Encodes the value in a variable length binary format of up to 5 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.",
+              "Use `OrderedCodeBytes` encoding.",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Int32").optional(),
         int64Type: z.object({
           encoding: z.object({
             bigEndianBytes: z.unknown().describe(
-              "Encodes the value as an 8-byte big-endian two's complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery `BINARY` encoding - HBase `Bytes.toBytes` - Java `ByteBuffer.putLong()` with `ByteOrder.BIG_ENDIAN`",
+              "Use `BigEndianBytes` encoding.",
             ).optional(),
             orderedCodeBytes: z.unknown().describe(
-              "Encodes the value in a variable length binary format of up to 10 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.",
+              "Use `OrderedCodeBytes` encoding.",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Int64").optional(),
         mapType: z.object({
           keyType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
@@ -718,9 +627,7 @@ const GlobalArgsSchema = z.object({
           valueType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-        }).describe(
-          "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-        ).optional(),
+        }).describe("Map").optional(),
         protoType: z.object({
           messageName: z.string().describe(
             'The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".',
@@ -728,53 +635,46 @@ const GlobalArgsSchema = z.object({
           schemaBundleId: z.string().describe(
             "The ID of the schema bundle that this proto is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-        ).optional(),
+        }).describe("Proto").optional(),
         stringType: z.object({
           encoding: z.object({
-            utf8Bytes: z.unknown().describe(
-              "UTF-8 encoding. Sorted mode: - All values are supported. - Code point order is preserved. Distinct mode: all values are supported. Compatible with: - BigQuery `TEXT` encoding - HBase `Bytes.toBytes` - Java `String#getBytes(StandardCharsets.UTF_8)`",
-            ).optional(),
+            utf8Bytes: z.unknown().describe("Use `Utf8Bytes` encoding.")
+              .optional(),
             utf8Raw: z.unknown().describe(
-              "Deprecated: prefer the equivalent `Utf8Bytes`.",
+              "Deprecated: if set, converts to an empty `utf8_bytes`.",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "String Values of type `String` are stored in `Value.string_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("String").optional(),
         structType: z.object({
           encoding: z.object({
             delimitedBytes: z.unknown().describe(
-              "Fields are encoded independently and concatenated with a configurable `delimiter` in between. A struct with no fields defined is encoded as a single `delimiter`. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes <= `delimiter[0]` - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. - This encoding does not support `DESC` field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain `delimiter[0]`.",
+              "Use `DelimitedBytes` encoding.",
             ).optional(),
             orderedCodeBytes: z.unknown().describe(
-              'Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is `ASC` or `UNSPECIFIED`, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes `0x00` with the fixed byte pair `{0x00, 0xFF}`. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair `{0x00, 0x00}`. - Append the fixed byte pair `{0x00, 0x01}` to each remaining field, except for the last remaining field if it is `ASC`. - Bitwise negate all `DESC` fields. - Concatenate the results, or emit the fixed byte pair `{0x00, 0x00}` if there are no remaining fields to concatenate. Examples: ` - STRUCT() -> "\\00\\00" - STRUCT("") -> "\\00\\00" - STRUCT("", "") -> "\\00\\00" - STRUCT("", "B") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "") -> "A" - STRUCT("", "B", "") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "", "C") -> "A" + "\\00\\01" + "\\00\\00" + "\\00\\01" + "C" ` Examples for struct with `DESC` fields: ` - STRUCT("" DESC) -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "", "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "A") -> "\\xFF\\xFF" + "\\xFF\\xFE" + "A" - STRUCT("A", "" DESC, "") -> "A" + "\\00\\01" + "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("", "A" DESC) -> "\\x00\\x00" + "\\x00\\x01" + "\\xBE" + "\\xFF\\xFE" ` Since null bytes are always escaped, this encoding can cause size blowup for encodings like `Int64.BigEndianBytes` that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or `UNSPECIFIED` order are treated as `ASC`. - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.',
+              "User `OrderedCodeBytes` encoding.",
             ).optional(),
-            singleton: z.unknown().describe(
-              "Uses the encoding of `fields[0].type` as-is. Only valid if `fields.size == 1`. This encoding does not support `DESC` field ordering.",
-            ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
+            singleton: z.unknown().describe("Use `Singleton` encoding.")
+              .optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
           fields: z.array(z.unknown()).describe(
             "The names and types of the fields in this struct.",
           ).optional(),
-        }).describe(
-          "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
-        ).optional(),
+        }).describe("Struct").optional(),
         timestampType: z.object({
           encoding: z.object({
             unixMicrosInt64: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "Encodes the number of microseconds since the Unix epoch using the given `Int64` encoding. Values must be microsecond-aligned. Compatible with: - Java `Instant.truncatedTo()` with `ChronoUnit.MICROS`",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Timestamp").optional(),
       }).describe(
-        '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
+        "The type of data stored in each of this family's cell values, including its full encoding. If omitted, the family only serves raw untyped bytes. For now, only the `Aggregate` type is supported. `Aggregate` can only be set at family creation and is immutable afterwards. This field is mutually exclusive with `sql_type`. If `value_type` is `Aggregate`, written data must be compatible with: * `value_type.input_type` for `AddInput` mutations",
       ).optional(),
     }),
   ).describe(
@@ -805,28 +705,29 @@ const GlobalArgsSchema = z.object({
       startTime: z.string().describe(
         "Output only. The time that the backup was started. Row data in the backup will be no older than this timestamp.",
       ).optional(),
-    }).describe("Information about a backup.").optional(),
+    }).describe(
+      "Information about the backup used to restore the table. The backup may no longer exist.",
+    ).optional(),
     sourceType: z.enum(["RESTORE_SOURCE_TYPE_UNSPECIFIED", "BACKUP"]).describe(
       "The type of the restore source.",
     ).optional(),
-  }).describe("Information about a table restore.").optional(),
+  }).describe(
+    "Output only. If this table was restored from another data source (e.g. a backup), this field will be populated with information about the restore.",
+  ).optional(),
   rowKeySchema: z.object({
     encoding: z.object({
       delimitedBytes: z.object({
         delimiter: z.string().describe(
           "Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.",
         ).optional(),
-      }).describe(
-        "Fields are encoded independently and concatenated with a configurable `delimiter` in between. A struct with no fields defined is encoded as a single `delimiter`. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes <= `delimiter[0]` - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. - This encoding does not support `DESC` field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain `delimiter[0]`.",
-      ).optional(),
+      }).describe("Use `DelimitedBytes` encoding.").optional(),
       orderedCodeBytes: z.object({}).describe(
-        'Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is `ASC` or `UNSPECIFIED`, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes `0x00` with the fixed byte pair `{0x00, 0xFF}`. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair `{0x00, 0x00}`. - Append the fixed byte pair `{0x00, 0x01}` to each remaining field, except for the last remaining field if it is `ASC`. - Bitwise negate all `DESC` fields. - Concatenate the results, or emit the fixed byte pair `{0x00, 0x00}` if there are no remaining fields to concatenate. Examples: ` - STRUCT() -> "\\00\\00" - STRUCT("") -> "\\00\\00" - STRUCT("", "") -> "\\00\\00" - STRUCT("", "B") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "") -> "A" - STRUCT("", "B", "") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "", "C") -> "A" + "\\00\\01" + "\\00\\00" + "\\00\\01" + "C" ` Examples for struct with `DESC` fields: ` - STRUCT("" DESC) -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "", "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "A") -> "\\xFF\\xFF" + "\\xFF\\xFE" + "A" - STRUCT("A", "" DESC, "") -> "A" + "\\00\\01" + "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("", "A" DESC) -> "\\x00\\x00" + "\\x00\\x01" + "\\xBE" + "\\xFF\\xFE" ` Since null bytes are always escaped, this encoding can cause size blowup for encodings like `Int64.BigEndianBytes` that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or `UNSPECIFIED` order are treated as `ASC`. - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.',
+        "User `OrderedCodeBytes` encoding.",
       ).optional(),
-      singleton: z.object({}).describe(
-        "Uses the encoding of `fields[0].type` as-is. Only valid if `fields.size == 1`. This encoding does not support `DESC` field ordering.",
-      ).optional(),
-    }).describe("Rules used to convert to or from lower level types.")
-      .optional(),
+      singleton: z.object({}).describe("Use `Singleton` encoding.").optional(),
+    }).describe(
+      "The encoding to use when converting to or from lower level types.",
+    ).optional(),
     fields: z.array(z.object({
       fieldName: z.string().describe(
         "The field name (optional). Fields without a `field_name` are considered anonymous and cannot be referenced by name.",
@@ -834,47 +735,31 @@ const GlobalArgsSchema = z.object({
       type: z.object({
         aggregateType: z.object({
           hllppUniqueCount: z.unknown().describe(
-            "Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: `Int64` (the unique count estimate)",
+            "HyperLogLogPlusPlusUniqueCount aggregator.",
           ).optional(),
           inputType: z.unknown().describe("Circular reference to Type")
             .optional(),
-          max: z.unknown().describe(
-            "Computes the max of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-          min: z.unknown().describe(
-            "Computes the min of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
+          max: z.unknown().describe("Max aggregator.").optional(),
+          min: z.unknown().describe("Min aggregator.").optional(),
           stateType: z.unknown().describe("Circular reference to Type")
             .optional(),
-          sum: z.unknown().describe(
-            "Computes the sum of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-        }).describe(
-          "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-        ).optional(),
+          sum: z.unknown().describe("Sum aggregator.").optional(),
+        }).describe("Aggregate").optional(),
         arrayType: z.object({
           elementType: z.unknown().describe("Circular reference to Type")
             .optional(),
-        }).describe(
-          "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-        ).optional(),
+        }).describe("Array").optional(),
         boolType: z.object({
           encoding: z.unknown().describe(
-            "Defines rules used to convert to or from lower level types.",
+            "Specifies the encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "bool Values of type `Bool` are stored in `Value.bool_value`.",
-        ).optional(),
+        }).describe("Bool").optional(),
         bytesType: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-        ).optional(),
-        dateType: z.object({}).describe(
-          "Date Values of type `Date` are stored in `Value.date_value`.",
-        ).optional(),
+        }).describe("Bytes").optional(),
+        dateType: z.object({}).describe("Date").optional(),
         enumType: z.object({
           enumName: z.unknown().describe(
             'The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".',
@@ -882,40 +767,26 @@ const GlobalArgsSchema = z.object({
           schemaBundleId: z.unknown().describe(
             "The ID of the schema bundle that this enum is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-        ).optional(),
-        float32Type: z.object({}).describe(
-          "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-        ).optional(),
-        float64Type: z.object({}).describe(
-          "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-        ).optional(),
-        geographyType: z.object({}).describe(
-          "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
+        }).describe("Enum").optional(),
+        float32Type: z.object({}).describe("Float32").optional(),
+        float64Type: z.object({}).describe("Float64").optional(),
+        geographyType: z.object({}).describe("Geography").optional(),
         int32Type: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-        ).optional(),
+        }).describe("Int32").optional(),
         int64Type: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-        ).optional(),
+        }).describe("Int64").optional(),
         mapType: z.object({
           keyType: z.unknown().describe("Circular reference to Type")
             .optional(),
           valueType: z.unknown().describe("Circular reference to Type")
             .optional(),
-        }).describe(
-          "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-        ).optional(),
+        }).describe("Map").optional(),
         protoType: z.object({
           messageName: z.unknown().describe(
             'The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".',
@@ -923,33 +794,25 @@ const GlobalArgsSchema = z.object({
           schemaBundleId: z.unknown().describe(
             "The ID of the schema bundle that this proto is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-        ).optional(),
+        }).describe("Proto").optional(),
         stringType: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "String Values of type `String` are stored in `Value.string_value`.",
-        ).optional(),
+        }).describe("String").optional(),
         structType: z.record(z.string(), z.unknown()).describe(
           "Circular reference to GoogleBigtableAdminV2TypeStruct",
         ).optional(),
         timestampType: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-        ).optional(),
-      }).describe(
-        '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
-      ).optional(),
+        }).describe("Timestamp").optional(),
+      }).describe("The type of values in this field.").optional(),
     })).describe("The names and types of the fields in this struct.")
       .optional(),
   }).describe(
-    "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
+    'The row key schema for this table. The schema is used to decode the raw row key bytes into a structured format. The order of field declarations in this schema is important, as it reflects how the raw row key bytes are structured. Currently, this only affects how the key is read via a GoogleSQL query from the ExecuteQuery API. For a SQL query, the _key column is still read as raw bytes. But queries can reference the key fields by name, which will be decoded from _key using provided type and encoding. Queries that reference key fields will fail if they encounter an invalid row key. For example, if _key = "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" with the following schema: { fields { field_name: "id" type { string { encoding: utf8_bytes {} } } } fields { field_name: "date" type { string { encoding: utf8_bytes {} } } } fields { field_name: "product_code" type { int64 { encoding: big_endian_bytes {} } } } encoding { delimited_bytes { delimiter: "#" } } } The decoded key parts would be: id = "some_id", date = "2024-04-30", product_code = 1245427 The query "SELECT _key, product_code FROM table" will return two columns: /------------------------------------------------------\\ | _key | product_code | | --------------------------------------|--------------| | "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" | 1245427 | \\------------------------------------------------------/ The schema has the following invariants: (1) The decoded field values are order-preserved. For read, the field values will be decoded in sorted mode from the raw bytes. (2) Every field in the schema must specify a non-empty name. (3) Every field must specify a type with an associated encoding. The type is limited to scalar types only: Array, Map, Aggregate, and Struct are not allowed. (4) The field names must not collide with existing column family names and reserved keywords "_key" and "_timestamp". The following update operations are allowed for row_key_schema: - Update from an empty schema to a new schema. - Remove the existing schema. This operation requires setting the `ignore_warnings` flag to `true`, since it might be a backward incompatible change. Without the flag, the update request will fail with an INVALID_ARGUMENT error. Any other row key schema update operation (e.g. update existing schema columns names or types) is currently unsupported.',
   ).optional(),
   stats: z.object({
     averageCellsPerColumn: z.number().describe(
@@ -963,17 +826,18 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     rowCount: z.string().describe("How many rows are in the table.").optional(),
   }).describe(
-    "Approximate statistics related to a table. These statistics are calculated infrequently, while simultaneously, data in the table can change rapidly. Thus the values reported here (e.g. row count) are very likely out-of date, even the instant they are received in this API. Thus, only treat these values as approximate. IMPORTANT: Everything below is approximate, unless otherwise specified.",
+    "Output only. Only available with STATS_VIEW, this includes summary statistics about the entire table contents. For statistics about a specific column family, see ColumnFamilyStats in the mapped ColumnFamily collection above.",
   ).optional(),
   tieredStorageConfig: z.object({
     infrequentAccess: z.object({
       includeIfOlderThan: z.string().describe(
         "Include cells older than the given age. For the infrequent access tier, this value must be at least 30 days.",
       ).optional(),
-    }).describe("Rule to specify what data is stored in a storage tier.")
-      .optional(),
+    }).describe(
+      "Rule to specify what data is stored in the infrequent access(IA) tier. The IA tier allows storing more data per node with reduced performance.",
+    ).optional(),
   }).describe(
-    "Config for tiered storage. A valid config must have a valid TieredStorageRule. Otherwise the whole TieredStorageConfig must be unset. By default all data is stored in the SSD tier (only SSD instances can configure tiered storage).",
+    "Rules to specify what data is stored in each storage tier. Different tiers store data differently, providing different trade-offs between cost and performance. Different parts of a table can be stored separately on different tiers. If a config is specified, tiered storage is enabled for this table. Otherwise, tiered storage is disabled. Only SSD instances can configure tiered storage.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1104,18 +968,22 @@ const InputsSchema = z.object({
       retentionPeriod: z.string().describe(
         "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
       ).optional(),
-    }).describe("Defines an automated backup policy for a table").optional(),
+    }).describe(
+      "If specified, automated backups are enabled for this table. Otherwise, automated backups are disabled.",
+    ).optional(),
     changeStreamConfig: z.object({
       retentionPeriod: z.string().describe(
         "How long the change stream should be retained. Change stream data older than the retention period will not be returned when reading the change stream from the table. Values must be at least 1 day and at most 7 days, and will be truncated to microsecond granularity.",
       ).optional(),
-    }).describe("Change stream configuration.").optional(),
+    }).describe(
+      "If specified, enable the change stream on this table. Otherwise, the change stream is disabled and the change stream is not retained.",
+    ).optional(),
     clusterStates: z.record(
       z.string(),
       z.object({
         encryptionInfo: z.array(z.object({
           encryptionStatus: z.unknown().describe(
-            "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+            "Output only. The status of encrypt/decrypt calls on underlying data for this resource. Regardless of status, the existing data is always encrypted at rest.",
           ).optional(),
           encryptionType: z.unknown().describe(
             "Output only. The type of encryption used to protect this resource.",
@@ -1149,7 +1017,7 @@ const InputsSchema = z.object({
               "Only delete cells which would be deleted by every element of `rules`.",
             ).optional(),
           }).describe(
-            "A GcRule which deletes cells matching all of the given rules.",
+            "Delete cells that would be deleted by every nested rule.",
           ).optional(),
           maxAge: z.string().describe(
             "Delete cells in a column older than the given age. Values must be at least one millisecond, and will be truncated to microsecond granularity.",
@@ -1161,11 +1029,10 @@ const InputsSchema = z.object({
             rules: z.unknown().describe(
               "Delete cells which would be deleted by any element of `rules`.",
             ).optional(),
-          }).describe(
-            "A GcRule which deletes cells matching any of the given rules.",
-          ).optional(),
+          }).describe("Delete cells that would be deleted by any nested rule.")
+            .optional(),
         }).describe(
-          "Rule for determining which cells to delete during garbage collection.",
+          "Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it's possible for reads to return a cell even if it matches the active GC expression for its family.",
         ).optional(),
         stats: z.object({
           averageCellsPerColumn: z.number().describe(
@@ -1178,52 +1045,36 @@ const InputsSchema = z.object({
             "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
           ).optional(),
         }).describe(
-          "Approximate statistics related to a single column family within a table. This information may change rapidly, interpreting these values at a point in time may already preset out-of-date information. Everything below is approximate, unless otherwise specified.",
+          "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
         ).optional(),
         valueType: z.object({
           aggregateType: z.object({
             hllppUniqueCount: z.unknown().describe(
-              "Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: `Int64` (the unique count estimate)",
+              "HyperLogLogPlusPlusUniqueCount aggregator.",
             ).optional(),
             inputType: z.unknown().describe("Circular reference to Type")
               .optional(),
-            max: z.unknown().describe(
-              "Computes the max of the input values. Allowed input: `Int64` State: same as input",
-            ).optional(),
-            min: z.unknown().describe(
-              "Computes the min of the input values. Allowed input: `Int64` State: same as input",
-            ).optional(),
+            max: z.unknown().describe("Max aggregator.").optional(),
+            min: z.unknown().describe("Min aggregator.").optional(),
             stateType: z.unknown().describe("Circular reference to Type")
               .optional(),
-            sum: z.unknown().describe(
-              "Computes the sum of the input values. Allowed input: `Int64` State: same as input",
-            ).optional(),
-          }).describe(
-            "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-          ).optional(),
+            sum: z.unknown().describe("Sum aggregator.").optional(),
+          }).describe("Aggregate").optional(),
           arrayType: z.object({
             elementType: z.unknown().describe("Circular reference to Type")
               .optional(),
-          }).describe(
-            "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-          ).optional(),
+          }).describe("Array").optional(),
           boolType: z.object({
             encoding: z.unknown().describe(
-              "Defines rules used to convert to or from lower level types.",
+              "Specifies the encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "bool Values of type `Bool` are stored in `Value.bool_value`.",
-          ).optional(),
+          }).describe("Bool").optional(),
           bytesType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-          ).optional(),
-          dateType: z.object({}).describe(
-            "Date Values of type `Date` are stored in `Value.date_value`.",
-          ).optional(),
+          }).describe("Bytes").optional(),
+          dateType: z.object({}).describe("Date").optional(),
           enumType: z.object({
             enumName: z.unknown().describe(
               'The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".',
@@ -1231,40 +1082,26 @@ const InputsSchema = z.object({
             schemaBundleId: z.unknown().describe(
               "The ID of the schema bundle that this enum is defined in.",
             ).optional(),
-          }).describe(
-            "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-          ).optional(),
-          float32Type: z.object({}).describe(
-            "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-          ).optional(),
-          float64Type: z.object({}).describe(
-            "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-          ).optional(),
-          geographyType: z.object({}).describe(
-            "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-          ).optional(),
+          }).describe("Enum").optional(),
+          float32Type: z.object({}).describe("Float32").optional(),
+          float64Type: z.object({}).describe("Float64").optional(),
+          geographyType: z.object({}).describe("Geography").optional(),
           int32Type: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
+          }).describe("Int32").optional(),
           int64Type: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-          ).optional(),
+          }).describe("Int64").optional(),
           mapType: z.object({
             keyType: z.unknown().describe("Circular reference to Type")
               .optional(),
             valueType: z.unknown().describe("Circular reference to Type")
               .optional(),
-          }).describe(
-            "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-          ).optional(),
+          }).describe("Map").optional(),
           protoType: z.object({
             messageName: z.unknown().describe(
               'The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".',
@@ -1272,35 +1109,27 @@ const InputsSchema = z.object({
             schemaBundleId: z.unknown().describe(
               "The ID of the schema bundle that this proto is defined in.",
             ).optional(),
-          }).describe(
-            "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-          ).optional(),
+          }).describe("Proto").optional(),
           stringType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "String Values of type `String` are stored in `Value.string_value`.",
-          ).optional(),
+          }).describe("String").optional(),
           structType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
             fields: z.unknown().describe(
               "The names and types of the fields in this struct.",
             ).optional(),
-          }).describe(
-            "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
-          ).optional(),
+          }).describe("Struct").optional(),
           timestampType: z.object({
             encoding: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "The encoding to use when converting to or from lower level types.",
             ).optional(),
-          }).describe(
-            "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-          ).optional(),
+          }).describe("Timestamp").optional(),
         }).describe(
-          '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
+          "The type of data stored in each of this family's cell values, including its full encoding. If omitted, the family only serves raw untyped bytes. For now, only the `Aggregate` type is supported. `Aggregate` can only be set at family creation and is immutable afterwards. This field is mutually exclusive with `sql_type`. If `value_type` is `Aggregate`, written data must be compatible with: * `value_type.input_type` for `AddInput` mutations",
         ).optional(),
       }),
     ).describe(
@@ -1332,87 +1161,57 @@ const InputsSchema = z.object({
         startTime: z.string().describe(
           "Output only. The time that the backup was started. Row data in the backup will be no older than this timestamp.",
         ).optional(),
-      }).describe("Information about a backup.").optional(),
+      }).describe(
+        "Information about the backup used to restore the table. The backup may no longer exist.",
+      ).optional(),
       sourceType: z.enum(["RESTORE_SOURCE_TYPE_UNSPECIFIED", "BACKUP"])
         .describe("The type of the restore source.").optional(),
-    }).describe("Information about a table restore.").optional(),
+    }).describe(
+      "Output only. If this table was restored from another data source (e.g. a backup), this field will be populated with information about the restore.",
+    ).optional(),
     rowKeySchema: z.object({
       encoding: z.object({
         delimitedBytes: z.object({
           delimiter: z.string().describe(
             "Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.",
           ).optional(),
-        }).describe(
-          "Fields are encoded independently and concatenated with a configurable `delimiter` in between. A struct with no fields defined is encoded as a single `delimiter`. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes <= `delimiter[0]` - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. - This encoding does not support `DESC` field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain `delimiter[0]`.",
-        ).optional(),
+        }).describe("Use `DelimitedBytes` encoding.").optional(),
         orderedCodeBytes: z.object({}).describe(
-          'Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is `ASC` or `UNSPECIFIED`, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes `0x00` with the fixed byte pair `{0x00, 0xFF}`. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair `{0x00, 0x00}`. - Append the fixed byte pair `{0x00, 0x01}` to each remaining field, except for the last remaining field if it is `ASC`. - Bitwise negate all `DESC` fields. - Concatenate the results, or emit the fixed byte pair `{0x00, 0x00}` if there are no remaining fields to concatenate. Examples: ` - STRUCT() -> "\\00\\00" - STRUCT("") -> "\\00\\00" - STRUCT("", "") -> "\\00\\00" - STRUCT("", "B") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "") -> "A" - STRUCT("", "B", "") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "", "C") -> "A" + "\\00\\01" + "\\00\\00" + "\\00\\01" + "C" ` Examples for struct with `DESC` fields: ` - STRUCT("" DESC) -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "", "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "A") -> "\\xFF\\xFF" + "\\xFF\\xFE" + "A" - STRUCT("A", "" DESC, "") -> "A" + "\\00\\01" + "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("", "A" DESC) -> "\\x00\\x00" + "\\x00\\x01" + "\\xBE" + "\\xFF\\xFE" ` Since null bytes are always escaped, this encoding can cause size blowup for encodings like `Int64.BigEndianBytes` that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or `UNSPECIFIED` order are treated as `ASC`. - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.',
+          "User `OrderedCodeBytes` encoding.",
         ).optional(),
-        singleton: z.object({}).describe(
-          "Uses the encoding of `fields[0].type` as-is. Only valid if `fields.size == 1`. This encoding does not support `DESC` field ordering.",
-        ).optional(),
-      }).describe("Rules used to convert to or from lower level types.")
-        .optional(),
+        singleton: z.object({}).describe("Use `Singleton` encoding.")
+          .optional(),
+      }).describe(
+        "The encoding to use when converting to or from lower level types.",
+      ).optional(),
       fields: z.array(z.object({
         fieldName: z.string().describe(
           "The field name (optional). Fields without a `field_name` are considered anonymous and cannot be referenced by name.",
         ).optional(),
         type: z.object({
-          aggregateType: z.unknown().describe(
-            "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-          ).optional(),
-          arrayType: z.unknown().describe(
-            "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-          ).optional(),
-          boolType: z.unknown().describe(
-            "bool Values of type `Bool` are stored in `Value.bool_value`.",
-          ).optional(),
-          bytesType: z.unknown().describe(
-            "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-          ).optional(),
-          dateType: z.unknown().describe(
-            "Date Values of type `Date` are stored in `Value.date_value`.",
-          ).optional(),
-          enumType: z.unknown().describe(
-            "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-          ).optional(),
-          float32Type: z.unknown().describe(
-            "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-          ).optional(),
-          float64Type: z.unknown().describe(
-            "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-          ).optional(),
-          geographyType: z.unknown().describe(
-            "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-          ).optional(),
-          int32Type: z.unknown().describe(
-            "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-          ).optional(),
-          int64Type: z.unknown().describe(
-            "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-          ).optional(),
-          mapType: z.unknown().describe(
-            "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-          ).optional(),
-          protoType: z.unknown().describe(
-            "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-          ).optional(),
-          stringType: z.unknown().describe(
-            "String Values of type `String` are stored in `Value.string_value`.",
-          ).optional(),
+          aggregateType: z.unknown().describe("Aggregate").optional(),
+          arrayType: z.unknown().describe("Array").optional(),
+          boolType: z.unknown().describe("Bool").optional(),
+          bytesType: z.unknown().describe("Bytes").optional(),
+          dateType: z.unknown().describe("Date").optional(),
+          enumType: z.unknown().describe("Enum").optional(),
+          float32Type: z.unknown().describe("Float32").optional(),
+          float64Type: z.unknown().describe("Float64").optional(),
+          geographyType: z.unknown().describe("Geography").optional(),
+          int32Type: z.unknown().describe("Int32").optional(),
+          int64Type: z.unknown().describe("Int64").optional(),
+          mapType: z.unknown().describe("Map").optional(),
+          protoType: z.unknown().describe("Proto").optional(),
+          stringType: z.unknown().describe("String").optional(),
           structType: z.unknown().describe(
             "Circular reference to GoogleBigtableAdminV2TypeStruct",
           ).optional(),
-          timestampType: z.unknown().describe(
-            "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-          ).optional(),
-        }).describe(
-          '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
-        ).optional(),
+          timestampType: z.unknown().describe("Timestamp").optional(),
+        }).describe("The type of values in this field.").optional(),
       })).describe("The names and types of the fields in this struct.")
         .optional(),
     }).describe(
-      "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
+      'The row key schema for this table. The schema is used to decode the raw row key bytes into a structured format. The order of field declarations in this schema is important, as it reflects how the raw row key bytes are structured. Currently, this only affects how the key is read via a GoogleSQL query from the ExecuteQuery API. For a SQL query, the _key column is still read as raw bytes. But queries can reference the key fields by name, which will be decoded from _key using provided type and encoding. Queries that reference key fields will fail if they encounter an invalid row key. For example, if _key = "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" with the following schema: { fields { field_name: "id" type { string { encoding: utf8_bytes {} } } } fields { field_name: "date" type { string { encoding: utf8_bytes {} } } } fields { field_name: "product_code" type { int64 { encoding: big_endian_bytes {} } } } encoding { delimited_bytes { delimiter: "#" } } } The decoded key parts would be: id = "some_id", date = "2024-04-30", product_code = 1245427 The query "SELECT _key, product_code FROM table" will return two columns: /------------------------------------------------------\\ | _key | product_code | | --------------------------------------|--------------| | "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" | 1245427 | \\------------------------------------------------------/ The schema has the following invariants: (1) The decoded field values are order-preserved. For read, the field values will be decoded in sorted mode from the raw bytes. (2) Every field in the schema must specify a non-empty name. (3) Every field must specify a type with an associated encoding. The type is limited to scalar types only: Array, Map, Aggregate, and Struct are not allowed. (4) The field names must not collide with existing column family names and reserved keywords "_key" and "_timestamp". The following update operations are allowed for row_key_schema: - Update from an empty schema to a new schema. - Remove the existing schema. This operation requires setting the `ignore_warnings` flag to `true`, since it might be a backward incompatible change. Without the flag, the update request will fail with an INVALID_ARGUMENT error. Any other row key schema update operation (e.g. update existing schema columns names or types) is currently unsupported.',
     ).optional(),
     stats: z.object({
       averageCellsPerColumn: z.number().describe(
@@ -1427,21 +1226,20 @@ const InputsSchema = z.object({
       rowCount: z.string().describe("How many rows are in the table.")
         .optional(),
     }).describe(
-      "Approximate statistics related to a table. These statistics are calculated infrequently, while simultaneously, data in the table can change rapidly. Thus the values reported here (e.g. row count) are very likely out-of date, even the instant they are received in this API. Thus, only treat these values as approximate. IMPORTANT: Everything below is approximate, unless otherwise specified.",
+      "Output only. Only available with STATS_VIEW, this includes summary statistics about the entire table contents. For statistics about a specific column family, see ColumnFamilyStats in the mapped ColumnFamily collection above.",
     ).optional(),
     tieredStorageConfig: z.object({
       infrequentAccess: z.object({
         includeIfOlderThan: z.string().describe(
           "Include cells older than the given age. For the infrequent access tier, this value must be at least 30 days.",
         ).optional(),
-      }).describe("Rule to specify what data is stored in a storage tier.")
-        .optional(),
+      }).describe(
+        "Rule to specify what data is stored in the infrequent access(IA) tier. The IA tier allows storing more data per node with reduced performance.",
+      ).optional(),
     }).describe(
-      "Config for tiered storage. A valid config must have a valid TieredStorageRule. Otherwise the whole TieredStorageConfig must be unset. By default all data is stored in the SSD tier (only SSD instances can configure tiered storage).",
+      "Rules to specify what data is stored in each storage tier. Different tiers store data differently, providing different trade-offs between cost and performance. Different parts of a table can be stored separately on different tiers. If a config is specified, tiered storage is enabled for this table. Otherwise, tiered storage is disabled. Only SSD instances can configure tiered storage.",
     ).optional(),
-  }).describe(
-    "A collection of user data indexed by row, column, and timestamp. Each table is served using the resources of its parent cluster.",
-  ).optional(),
+  }).describe("Required. The Table to create.").optional(),
   tableId: z.string().describe(
     "Required. The name by which the new table should be referred to within the parent instance, e.g., `foobar` rather than `{parent}/tables/foobar`. Maximum 50 characters.",
   ).optional(),
@@ -1455,12 +1253,16 @@ const InputsSchema = z.object({
     retentionPeriod: z.string().describe(
       "Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.",
     ).optional(),
-  }).describe("Defines an automated backup policy for a table").optional(),
+  }).describe(
+    "If specified, automated backups are enabled for this table. Otherwise, automated backups are disabled.",
+  ).optional(),
   changeStreamConfig: z.object({
     retentionPeriod: z.string().describe(
       "How long the change stream should be retained. Change stream data older than the retention period will not be returned when reading the change stream from the table. Values must be at least 1 day and at most 7 days, and will be truncated to microsecond granularity.",
     ).optional(),
-  }).describe("Change stream configuration.").optional(),
+  }).describe(
+    "If specified, enable the change stream on this table. Otherwise, the change stream is disabled and the change stream is not retained.",
+  ).optional(),
   clusterStates: z.record(
     z.string(),
     z.object({
@@ -1476,7 +1278,7 @@ const InputsSchema = z.object({
             "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
           ).optional(),
         }).describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+          "Output only. The status of encrypt/decrypt calls on underlying data for this resource. Regardless of status, the existing data is always encrypted at rest.",
         ).optional(),
         encryptionType: z.enum([
           "ENCRYPTION_TYPE_UNSPECIFIED",
@@ -1513,9 +1315,8 @@ const InputsSchema = z.object({
           rules: z.array(z.unknown()).describe(
             "Only delete cells which would be deleted by every element of `rules`.",
           ).optional(),
-        }).describe(
-          "A GcRule which deletes cells matching all of the given rules.",
-        ).optional(),
+        }).describe("Delete cells that would be deleted by every nested rule.")
+          .optional(),
         maxAge: z.string().describe(
           "Delete cells in a column older than the given age. Values must be at least one millisecond, and will be truncated to microsecond granularity.",
         ).optional(),
@@ -1526,11 +1327,10 @@ const InputsSchema = z.object({
           rules: z.array(z.unknown()).describe(
             "Delete cells which would be deleted by any element of `rules`.",
           ).optional(),
-        }).describe(
-          "A GcRule which deletes cells matching any of the given rules.",
-        ).optional(),
+        }).describe("Delete cells that would be deleted by any nested rule.")
+          .optional(),
       }).describe(
-        "Rule for determining which cells to delete during garbage collection.",
+        "Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it's possible for reads to return a cell even if it matches the active GC expression for its family.",
       ).optional(),
       stats: z.object({
         averageCellsPerColumn: z.number().describe(
@@ -1543,58 +1343,41 @@ const InputsSchema = z.object({
           "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
         ).optional(),
       }).describe(
-        "Approximate statistics related to a single column family within a table. This information may change rapidly, interpreting these values at a point in time may already preset out-of-date information. Everything below is approximate, unless otherwise specified.",
+        "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
       ).optional(),
       valueType: z.object({
         aggregateType: z.object({
           hllppUniqueCount: z.object({}).describe(
-            "Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: `Int64` (the unique count estimate)",
+            "HyperLogLogPlusPlusUniqueCount aggregator.",
           ).optional(),
           inputType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-          max: z.object({}).describe(
-            "Computes the max of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-          min: z.object({}).describe(
-            "Computes the min of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
+          max: z.object({}).describe("Max aggregator.").optional(),
+          min: z.object({}).describe("Min aggregator.").optional(),
           stateType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-          sum: z.object({}).describe(
-            "Computes the sum of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-        }).describe(
-          "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-        ).optional(),
+          sum: z.object({}).describe("Sum aggregator.").optional(),
+        }).describe("Aggregate").optional(),
         arrayType: z.object({
           elementType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-        }).describe(
-          "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-        ).optional(),
+        }).describe("Array").optional(),
         boolType: z.object({
           encoding: z.object({}).describe(
-            "Defines rules used to convert to or from lower level types.",
+            "Specifies the encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "bool Values of type `Bool` are stored in `Value.bool_value`.",
-        ).optional(),
+        }).describe("Bool").optional(),
         bytesType: z.object({
           encoding: z.object({
-            raw: z.unknown().describe(
-              "Leaves the value as-is. Sorted mode: all values are supported. Distinct mode: all values are supported.",
-            ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-        ).optional(),
-        dateType: z.object({}).describe(
-          "Date Values of type `Date` are stored in `Value.date_value`.",
-        ).optional(),
+            raw: z.unknown().describe("Use `Raw` encoding.").optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Bytes").optional(),
+        dateType: z.object({}).describe("Date").optional(),
         enumType: z.object({
           enumName: z.string().describe(
             'The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".',
@@ -1602,44 +1385,34 @@ const InputsSchema = z.object({
           schemaBundleId: z.string().describe(
             "The ID of the schema bundle that this enum is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-        ).optional(),
-        float32Type: z.object({}).describe(
-          "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-        ).optional(),
-        float64Type: z.object({}).describe(
-          "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-        ).optional(),
-        geographyType: z.object({}).describe(
-          "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
+        }).describe("Enum").optional(),
+        float32Type: z.object({}).describe("Float32").optional(),
+        float64Type: z.object({}).describe("Float64").optional(),
+        geographyType: z.object({}).describe("Geography").optional(),
         int32Type: z.object({
           encoding: z.object({
             bigEndianBytes: z.unknown().describe(
-              "Encodes the value as a 4-byte big-endian two's complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery `BINARY` encoding - HBase `Bytes.toBytes` - Java `ByteBuffer.putInt()` with `ByteOrder.BIG_ENDIAN`",
+              "Use `BigEndianBytes` encoding.",
             ).optional(),
             orderedCodeBytes: z.unknown().describe(
-              "Encodes the value in a variable length binary format of up to 5 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.",
+              "Use `OrderedCodeBytes` encoding.",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Int32").optional(),
         int64Type: z.object({
           encoding: z.object({
             bigEndianBytes: z.unknown().describe(
-              "Encodes the value as an 8-byte big-endian two's complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery `BINARY` encoding - HBase `Bytes.toBytes` - Java `ByteBuffer.putLong()` with `ByteOrder.BIG_ENDIAN`",
+              "Use `BigEndianBytes` encoding.",
             ).optional(),
             orderedCodeBytes: z.unknown().describe(
-              "Encodes the value in a variable length binary format of up to 10 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.",
+              "Use `OrderedCodeBytes` encoding.",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Int64").optional(),
         mapType: z.object({
           keyType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
@@ -1647,9 +1420,7 @@ const InputsSchema = z.object({
           valueType: z.record(z.string(), z.unknown()).describe(
             "Circular reference to Type",
           ).optional(),
-        }).describe(
-          "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-        ).optional(),
+        }).describe("Map").optional(),
         protoType: z.object({
           messageName: z.string().describe(
             'The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".',
@@ -1657,53 +1428,46 @@ const InputsSchema = z.object({
           schemaBundleId: z.string().describe(
             "The ID of the schema bundle that this proto is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-        ).optional(),
+        }).describe("Proto").optional(),
         stringType: z.object({
           encoding: z.object({
-            utf8Bytes: z.unknown().describe(
-              "UTF-8 encoding. Sorted mode: - All values are supported. - Code point order is preserved. Distinct mode: all values are supported. Compatible with: - BigQuery `TEXT` encoding - HBase `Bytes.toBytes` - Java `String#getBytes(StandardCharsets.UTF_8)`",
-            ).optional(),
+            utf8Bytes: z.unknown().describe("Use `Utf8Bytes` encoding.")
+              .optional(),
             utf8Raw: z.unknown().describe(
-              "Deprecated: prefer the equivalent `Utf8Bytes`.",
+              "Deprecated: if set, converts to an empty `utf8_bytes`.",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "String Values of type `String` are stored in `Value.string_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("String").optional(),
         structType: z.object({
           encoding: z.object({
             delimitedBytes: z.unknown().describe(
-              "Fields are encoded independently and concatenated with a configurable `delimiter` in between. A struct with no fields defined is encoded as a single `delimiter`. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes <= `delimiter[0]` - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. - This encoding does not support `DESC` field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain `delimiter[0]`.",
+              "Use `DelimitedBytes` encoding.",
             ).optional(),
             orderedCodeBytes: z.unknown().describe(
-              'Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is `ASC` or `UNSPECIFIED`, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes `0x00` with the fixed byte pair `{0x00, 0xFF}`. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair `{0x00, 0x00}`. - Append the fixed byte pair `{0x00, 0x01}` to each remaining field, except for the last remaining field if it is `ASC`. - Bitwise negate all `DESC` fields. - Concatenate the results, or emit the fixed byte pair `{0x00, 0x00}` if there are no remaining fields to concatenate. Examples: ` - STRUCT() -> "\\00\\00" - STRUCT("") -> "\\00\\00" - STRUCT("", "") -> "\\00\\00" - STRUCT("", "B") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "") -> "A" - STRUCT("", "B", "") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "", "C") -> "A" + "\\00\\01" + "\\00\\00" + "\\00\\01" + "C" ` Examples for struct with `DESC` fields: ` - STRUCT("" DESC) -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "", "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "A") -> "\\xFF\\xFF" + "\\xFF\\xFE" + "A" - STRUCT("A", "" DESC, "") -> "A" + "\\00\\01" + "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("", "A" DESC) -> "\\x00\\x00" + "\\x00\\x01" + "\\xBE" + "\\xFF\\xFE" ` Since null bytes are always escaped, this encoding can cause size blowup for encodings like `Int64.BigEndianBytes` that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or `UNSPECIFIED` order are treated as `ASC`. - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.',
+              "User `OrderedCodeBytes` encoding.",
             ).optional(),
-            singleton: z.unknown().describe(
-              "Uses the encoding of `fields[0].type` as-is. Only valid if `fields.size == 1`. This encoding does not support `DESC` field ordering.",
-            ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
+            singleton: z.unknown().describe("Use `Singleton` encoding.")
+              .optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
           fields: z.array(z.unknown()).describe(
             "The names and types of the fields in this struct.",
           ).optional(),
-        }).describe(
-          "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
-        ).optional(),
+        }).describe("Struct").optional(),
         timestampType: z.object({
           encoding: z.object({
             unixMicrosInt64: z.unknown().describe(
-              "Rules used to convert to or from lower level types.",
+              "Encodes the number of microseconds since the Unix epoch using the given `Int64` encoding. Values must be microsecond-aligned. Compatible with: - Java `Instant.truncatedTo()` with `ChronoUnit.MICROS`",
             ).optional(),
-          }).describe("Rules used to convert to or from lower level types.")
-            .optional(),
-        }).describe(
-          "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-        ).optional(),
+          }).describe(
+            "The encoding to use when converting to or from lower level types.",
+          ).optional(),
+        }).describe("Timestamp").optional(),
       }).describe(
-        '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
+        "The type of data stored in each of this family's cell values, including its full encoding. If omitted, the family only serves raw untyped bytes. For now, only the `Aggregate` type is supported. `Aggregate` can only be set at family creation and is immutable afterwards. This field is mutually exclusive with `sql_type`. If `value_type` is `Aggregate`, written data must be compatible with: * `value_type.input_type` for `AddInput` mutations",
       ).optional(),
     }),
   ).describe(
@@ -1734,28 +1498,29 @@ const InputsSchema = z.object({
       startTime: z.string().describe(
         "Output only. The time that the backup was started. Row data in the backup will be no older than this timestamp.",
       ).optional(),
-    }).describe("Information about a backup.").optional(),
+    }).describe(
+      "Information about the backup used to restore the table. The backup may no longer exist.",
+    ).optional(),
     sourceType: z.enum(["RESTORE_SOURCE_TYPE_UNSPECIFIED", "BACKUP"]).describe(
       "The type of the restore source.",
     ).optional(),
-  }).describe("Information about a table restore.").optional(),
+  }).describe(
+    "Output only. If this table was restored from another data source (e.g. a backup), this field will be populated with information about the restore.",
+  ).optional(),
   rowKeySchema: z.object({
     encoding: z.object({
       delimitedBytes: z.object({
         delimiter: z.string().describe(
           "Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.",
         ).optional(),
-      }).describe(
-        "Fields are encoded independently and concatenated with a configurable `delimiter` in between. A struct with no fields defined is encoded as a single `delimiter`. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes <= `delimiter[0]` - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. - This encoding does not support `DESC` field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain `delimiter[0]`.",
-      ).optional(),
+      }).describe("Use `DelimitedBytes` encoding.").optional(),
       orderedCodeBytes: z.object({}).describe(
-        'Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is `ASC` or `UNSPECIFIED`, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes `0x00` with the fixed byte pair `{0x00, 0xFF}`. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair `{0x00, 0x00}`. - Append the fixed byte pair `{0x00, 0x01}` to each remaining field, except for the last remaining field if it is `ASC`. - Bitwise negate all `DESC` fields. - Concatenate the results, or emit the fixed byte pair `{0x00, 0x00}` if there are no remaining fields to concatenate. Examples: ` - STRUCT() -> "\\00\\00" - STRUCT("") -> "\\00\\00" - STRUCT("", "") -> "\\00\\00" - STRUCT("", "B") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "") -> "A" - STRUCT("", "B", "") -> "\\00\\00" + "\\00\\01" + "B" - STRUCT("A", "", "C") -> "A" + "\\00\\01" + "\\00\\00" + "\\00\\01" + "C" ` Examples for struct with `DESC` fields: ` - STRUCT("" DESC) -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "", "") -> "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("" DESC, "A") -> "\\xFF\\xFF" + "\\xFF\\xFE" + "A" - STRUCT("A", "" DESC, "") -> "A" + "\\00\\01" + "\\xFF\\xFF" + "\\xFF\\xFE" - STRUCT("", "A" DESC) -> "\\x00\\x00" + "\\x00\\x01" + "\\xBE" + "\\xFF\\xFE" ` Since null bytes are always escaped, this encoding can cause size blowup for encodings like `Int64.BigEndianBytes` that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or `UNSPECIFIED` order are treated as `ASC`. - Element-wise order is preserved: `A < B` if `A[0] < B[0]`, or if `A[0] == B[0] && A[1] < B[1]`, etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.',
+        "User `OrderedCodeBytes` encoding.",
       ).optional(),
-      singleton: z.object({}).describe(
-        "Uses the encoding of `fields[0].type` as-is. Only valid if `fields.size == 1`. This encoding does not support `DESC` field ordering.",
-      ).optional(),
-    }).describe("Rules used to convert to or from lower level types.")
-      .optional(),
+      singleton: z.object({}).describe("Use `Singleton` encoding.").optional(),
+    }).describe(
+      "The encoding to use when converting to or from lower level types.",
+    ).optional(),
     fields: z.array(z.object({
       fieldName: z.string().describe(
         "The field name (optional). Fields without a `field_name` are considered anonymous and cannot be referenced by name.",
@@ -1763,47 +1528,31 @@ const InputsSchema = z.object({
       type: z.object({
         aggregateType: z.object({
           hllppUniqueCount: z.unknown().describe(
-            "Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: `Int64` (the unique count estimate)",
+            "HyperLogLogPlusPlusUniqueCount aggregator.",
           ).optional(),
           inputType: z.unknown().describe("Circular reference to Type")
             .optional(),
-          max: z.unknown().describe(
-            "Computes the max of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-          min: z.unknown().describe(
-            "Computes the min of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
+          max: z.unknown().describe("Max aggregator.").optional(),
+          min: z.unknown().describe("Min aggregator.").optional(),
           stateType: z.unknown().describe("Circular reference to Type")
             .optional(),
-          sum: z.unknown().describe(
-            "Computes the sum of the input values. Allowed input: `Int64` State: same as input",
-          ).optional(),
-        }).describe(
-          "A value that combines incremental updates into a summarized value. Data is never directly written or read using type `Aggregate`. Writes provide either the `input_type` or `state_type`, and reads always return the `state_type`.",
-        ).optional(),
+          sum: z.unknown().describe("Sum aggregator.").optional(),
+        }).describe("Aggregate").optional(),
         arrayType: z.object({
           elementType: z.unknown().describe("Circular reference to Type")
             .optional(),
-        }).describe(
-          "An ordered list of elements of a given type. Values of type `Array` are stored in `Value.array_value`.",
-        ).optional(),
+        }).describe("Array").optional(),
         boolType: z.object({
           encoding: z.unknown().describe(
-            "Defines rules used to convert to or from lower level types.",
+            "Specifies the encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "bool Values of type `Bool` are stored in `Value.bool_value`.",
-        ).optional(),
+        }).describe("Bool").optional(),
         bytesType: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Bytes Values of type `Bytes` are stored in `Value.bytes_value`.",
-        ).optional(),
-        dateType: z.object({}).describe(
-          "Date Values of type `Date` are stored in `Value.date_value`.",
-        ).optional(),
+        }).describe("Bytes").optional(),
+        dateType: z.object({}).describe("Date").optional(),
         enumType: z.object({
           enumName: z.unknown().describe(
             'The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".',
@@ -1811,40 +1560,26 @@ const InputsSchema = z.object({
           schemaBundleId: z.unknown().describe(
             "The ID of the schema bundle that this enum is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf enum type. Values of type `Enum` are stored in `Value.int_value`.",
-        ).optional(),
-        float32Type: z.object({}).describe(
-          "Float32 Values of type `Float32` are stored in `Value.float_value`.",
-        ).optional(),
-        float64Type: z.object({}).describe(
-          "Float64 Values of type `Float64` are stored in `Value.float_value`.",
-        ).optional(),
-        geographyType: z.object({}).describe(
-          "A geography type, representing a point or region on Earth. The value is stored in `Value.bytes_value` as Well-Known Binary (WKB) bytes.",
-        ).optional(),
+        }).describe("Enum").optional(),
+        float32Type: z.object({}).describe("Float32").optional(),
+        float64Type: z.object({}).describe("Float64").optional(),
+        geographyType: z.object({}).describe("Geography").optional(),
         int32Type: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Int32 Values of type `Int32` are stored in `Value.int_value`.",
-        ).optional(),
+        }).describe("Int32").optional(),
         int64Type: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Int64 Values of type `Int64` are stored in `Value.int_value`.",
-        ).optional(),
+        }).describe("Int64").optional(),
         mapType: z.object({
           keyType: z.unknown().describe("Circular reference to Type")
             .optional(),
           valueType: z.unknown().describe("Circular reference to Type")
             .optional(),
-        }).describe(
-          "A mapping of keys to values of a given type. Values of type `Map` are stored in a `Value.array_value` where each entry is another `Value.array_value` with two elements (the key and the value, in that order). Normally encoded Map values won't have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.",
-        ).optional(),
+        }).describe("Map").optional(),
         protoType: z.object({
           messageName: z.unknown().describe(
             'The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".',
@@ -1852,33 +1587,25 @@ const InputsSchema = z.object({
           schemaBundleId: z.unknown().describe(
             "The ID of the schema bundle that this proto is defined in.",
           ).optional(),
-        }).describe(
-          "A protobuf message type. Values of type `Proto` are stored in `Value.bytes_value`.",
-        ).optional(),
+        }).describe("Proto").optional(),
         stringType: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "String Values of type `String` are stored in `Value.string_value`.",
-        ).optional(),
+        }).describe("String").optional(),
         structType: z.record(z.string(), z.unknown()).describe(
           "Circular reference to GoogleBigtableAdminV2TypeStruct",
         ).optional(),
         timestampType: z.object({
           encoding: z.unknown().describe(
-            "Rules used to convert to or from lower level types.",
+            "The encoding to use when converting to or from lower level types.",
           ).optional(),
-        }).describe(
-          "Timestamp Values of type `Timestamp` are stored in `Value.timestamp_value`.",
-        ).optional(),
-      }).describe(
-        '`Type` represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable\'s existing untyped APIs, each `Type` includes an `Encoding` which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that `Encode(X)  INT64(-1)`, but `STRING("-00001") > STRING("00001")`.',
-      ).optional(),
+        }).describe("Timestamp").optional(),
+      }).describe("The type of values in this field.").optional(),
     })).describe("The names and types of the fields in this struct.")
       .optional(),
   }).describe(
-    "A structured data value, consisting of fields which map to dynamically typed values. Values of type `Struct` are stored in `Value.array_value` where entries are in the same order and number as `field_types`.",
+    'The row key schema for this table. The schema is used to decode the raw row key bytes into a structured format. The order of field declarations in this schema is important, as it reflects how the raw row key bytes are structured. Currently, this only affects how the key is read via a GoogleSQL query from the ExecuteQuery API. For a SQL query, the _key column is still read as raw bytes. But queries can reference the key fields by name, which will be decoded from _key using provided type and encoding. Queries that reference key fields will fail if they encounter an invalid row key. For example, if _key = "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" with the following schema: { fields { field_name: "id" type { string { encoding: utf8_bytes {} } } } fields { field_name: "date" type { string { encoding: utf8_bytes {} } } } fields { field_name: "product_code" type { int64 { encoding: big_endian_bytes {} } } } encoding { delimited_bytes { delimiter: "#" } } } The decoded key parts would be: id = "some_id", date = "2024-04-30", product_code = 1245427 The query "SELECT _key, product_code FROM table" will return two columns: /------------------------------------------------------\\ | _key | product_code | | --------------------------------------|--------------| | "some_id#2024-04-30#\\x00\\x13\\x00\\xf3" | 1245427 | \\------------------------------------------------------/ The schema has the following invariants: (1) The decoded field values are order-preserved. For read, the field values will be decoded in sorted mode from the raw bytes. (2) Every field in the schema must specify a non-empty name. (3) Every field must specify a type with an associated encoding. The type is limited to scalar types only: Array, Map, Aggregate, and Struct are not allowed. (4) The field names must not collide with existing column family names and reserved keywords "_key" and "_timestamp". The following update operations are allowed for row_key_schema: - Update from an empty schema to a new schema. - Remove the existing schema. This operation requires setting the `ignore_warnings` flag to `true`, since it might be a backward incompatible change. Without the flag, the update request will fail with an INVALID_ARGUMENT error. Any other row key schema update operation (e.g. update existing schema columns names or types) is currently unsupported.',
   ).optional(),
   stats: z.object({
     averageCellsPerColumn: z.number().describe(
@@ -1892,17 +1619,18 @@ const InputsSchema = z.object({
     ).optional(),
     rowCount: z.string().describe("How many rows are in the table.").optional(),
   }).describe(
-    "Approximate statistics related to a table. These statistics are calculated infrequently, while simultaneously, data in the table can change rapidly. Thus the values reported here (e.g. row count) are very likely out-of date, even the instant they are received in this API. Thus, only treat these values as approximate. IMPORTANT: Everything below is approximate, unless otherwise specified.",
+    "Output only. Only available with STATS_VIEW, this includes summary statistics about the entire table contents. For statistics about a specific column family, see ColumnFamilyStats in the mapped ColumnFamily collection above.",
   ).optional(),
   tieredStorageConfig: z.object({
     infrequentAccess: z.object({
       includeIfOlderThan: z.string().describe(
         "Include cells older than the given age. For the infrequent access tier, this value must be at least 30 days.",
       ).optional(),
-    }).describe("Rule to specify what data is stored in a storage tier.")
-      .optional(),
+    }).describe(
+      "Rule to specify what data is stored in the infrequent access(IA) tier. The IA tier allows storing more data per node with reduced performance.",
+    ).optional(),
   }).describe(
-    "Config for tiered storage. A valid config must have a valid TieredStorageRule. Otherwise the whole TieredStorageConfig must be unset. By default all data is stored in the SSD tier (only SSD instances can configure tiered storage).",
+    "Rules to specify what data is stored in each storage tier. Different tiers store data differently, providing different trade-offs between cost and performance. Different parts of a table can be stored separately on different tiers. If a config is specified, tiered storage is enabled for this table. Otherwise, tiered storage is disabled. Only SSD instances can configure tiered storage.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1935,7 +1663,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Tables. Registered at `@swamp/gcp/bigtableadmin/instances-tables`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-tables",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2079,6 +1807,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -183,7 +183,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as.internal are not available when an alternative name server is specified.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as.internal are not available when an alternative name server is specified.",
+  ).optional(),
   description: z.string().describe(
     "A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the policy's function.",
   ).optional(),
@@ -194,8 +196,9 @@ const GlobalArgsSchema = z.object({
         "Controls whether DNS64 is enabled globally for all networks bound to the policy.",
       ).optional(),
       kind: z.string().optional(),
-    }).optional(),
-  }).describe("DNS64 policies").optional(),
+    }).describe("The scope to which DNS64 config will be applied to.")
+      .optional(),
+  }).describe("Configurations related to DNS64 for this policy.").optional(),
   enableInboundForwarding: z.boolean().describe(
     "Allows networks bound to this policy to receive DNS queries sent by VMs or applications over VPN connections. When enabled, a virtual IP address is allocated from each of the subnetworks that are bound to this policy.",
   ).optional(),
@@ -267,7 +270,9 @@ const InputsSchema = z.object({
     })).describe(
       "Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as.internal are not available when an alternative name server is specified.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as.internal are not available when an alternative name server is specified.",
+  ).optional(),
   description: z.string().describe(
     "A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the policy's function.",
   ).optional(),
@@ -278,8 +283,9 @@ const InputsSchema = z.object({
         "Controls whether DNS64 is enabled globally for all networks bound to the policy.",
       ).optional(),
       kind: z.string().optional(),
-    }).optional(),
-  }).describe("DNS64 policies").optional(),
+    }).describe("The scope to which DNS64 config will be applied to.")
+      .optional(),
+  }).describe("Configurations related to DNS64 for this policy.").optional(),
   enableInboundForwarding: z.boolean().describe(
     "Allows networks bound to this policy to receive DNS queries sent by VMs or applications over VPN connections. When enabled, a virtual IP address is allocated from each of the subnetworks that are bound to this policy.",
   ).optional(),
@@ -323,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud DNS Policies. Registered at `@swamp/gcp/dns/policies`. */
 export const model = {
   type: "@swamp/gcp/dns/policies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -427,6 +433,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

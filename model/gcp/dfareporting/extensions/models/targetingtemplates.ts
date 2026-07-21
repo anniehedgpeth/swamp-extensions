@@ -175,13 +175,15 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   contextualKeywordTargeting: z.object({
     keywords: z.array(z.object({
       keyword: z.string().describe("The keyword that can be targeted by ads.")
         .optional(),
     })).describe("Contextual keywords that this ad targets").optional(),
-  }).describe("Contextual Keyword Targeting.").optional(),
+  }).describe("Optional. Contextual keyword targeting criteria.").optional(),
   dayPartTargeting: z.object({
     daysOfWeek: z.array(
       z.enum([
@@ -202,7 +204,7 @@ const GlobalArgsSchema = z.object({
     userLocalTime: z.boolean().describe(
       "Whether or not to use the user's local time. If false, the America/New York time zone applies.",
     ).optional(),
-  }).describe("Day Part Targeting.").optional(),
+  }).describe("Time and day targeting criteria.").optional(),
   geoTargeting: z.object({
     cities: z.array(z.object({
       countryCode: z.string().describe(
@@ -321,7 +323,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Regions to be targeted. For each region only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a region, do not target or exclude the country of the region.",
     ).optional(),
-  }).describe("Geographical Targeting.").optional(),
+  }).describe("Geographical targeting criteria.").optional(),
   id: z.string().describe(
     "ID of this targeting template. This is a read-only, auto-generated field.",
   ).optional(),
@@ -329,7 +331,7 @@ const GlobalArgsSchema = z.object({
     expression: z.string().describe(
       "Keyword expression being targeted by the ad.",
     ).optional(),
-  }).describe("Key Value Targeting Expression.").optional(),
+  }).describe("Key-value targeting criteria.").optional(),
   languageTargeting: z.object({
     languages: z.array(z.object({
       id: z.string().describe(
@@ -345,12 +347,12 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Languages that this ad targets. For each language only languageId is required. The other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Language Targeting.").optional(),
+  }).describe("Language targeting criteria.").optional(),
   listTargetingExpression: z.object({
     expression: z.string().describe(
       "Expression describing which lists are being targeted by the ad.",
     ).optional(),
-  }).describe("Remarketing List Targeting Expression.").optional(),
+  }).describe("Remarketing list targeting criteria.").optional(),
   name: z.string().describe(
     "Name of this targeting template. This field is required. It must be less than 256 characters long and unique within an advertiser.",
   ).optional(),
@@ -430,9 +432,8 @@ const GlobalArgsSchema = z.object({
           "Whether this operating system is for mobile.",
         ).optional(),
         name: z.string().describe("Name of this operating system.").optional(),
-      }).describe(
-        "Contains information about an operating system that can be targeted by ads.",
-      ).optional(),
+      }).describe("Operating system of this operating system version.")
+        .optional(),
     })).describe(
       "Operating system versions that this ad targets. To target all versions, use operatingSystems. For each operating system version, only id is required. The other fields are populated automatically when the ad is inserted or updated. If targeting an operating system version, do not set targeting for the corresponding operating system in operatingSystems.",
     ).optional(),
@@ -462,7 +463,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Platform types that this ad targets. For example, desktop, mobile, or tablet. For each platform type, only id is required, and the other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Technology Targeting.").optional(),
+  }).describe("Technology platform targeting criteria.").optional(),
   profileId: z.string().describe(
     "User profile ID associated with this request.",
   ),
@@ -634,13 +635,15 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   contextualKeywordTargeting: z.object({
     keywords: z.array(z.object({
       keyword: z.string().describe("The keyword that can be targeted by ads.")
         .optional(),
     })).describe("Contextual keywords that this ad targets").optional(),
-  }).describe("Contextual Keyword Targeting.").optional(),
+  }).describe("Optional. Contextual keyword targeting criteria.").optional(),
   dayPartTargeting: z.object({
     daysOfWeek: z.array(
       z.enum([
@@ -661,7 +664,7 @@ const InputsSchema = z.object({
     userLocalTime: z.boolean().describe(
       "Whether or not to use the user's local time. If false, the America/New York time zone applies.",
     ).optional(),
-  }).describe("Day Part Targeting.").optional(),
+  }).describe("Time and day targeting criteria.").optional(),
   geoTargeting: z.object({
     cities: z.array(z.object({
       countryCode: z.string().describe(
@@ -780,7 +783,7 @@ const InputsSchema = z.object({
     })).describe(
       "Regions to be targeted. For each region only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a region, do not target or exclude the country of the region.",
     ).optional(),
-  }).describe("Geographical Targeting.").optional(),
+  }).describe("Geographical targeting criteria.").optional(),
   id: z.string().describe(
     "ID of this targeting template. This is a read-only, auto-generated field.",
   ).optional(),
@@ -788,7 +791,7 @@ const InputsSchema = z.object({
     expression: z.string().describe(
       "Keyword expression being targeted by the ad.",
     ).optional(),
-  }).describe("Key Value Targeting Expression.").optional(),
+  }).describe("Key-value targeting criteria.").optional(),
   languageTargeting: z.object({
     languages: z.array(z.object({
       id: z.string().describe(
@@ -804,12 +807,12 @@ const InputsSchema = z.object({
     })).describe(
       "Languages that this ad targets. For each language only languageId is required. The other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Language Targeting.").optional(),
+  }).describe("Language targeting criteria.").optional(),
   listTargetingExpression: z.object({
     expression: z.string().describe(
       "Expression describing which lists are being targeted by the ad.",
     ).optional(),
-  }).describe("Remarketing List Targeting Expression.").optional(),
+  }).describe("Remarketing list targeting criteria.").optional(),
   name: z.string().describe(
     "Name of this targeting template. This field is required. It must be less than 256 characters long and unique within an advertiser.",
   ).optional(),
@@ -889,9 +892,8 @@ const InputsSchema = z.object({
           "Whether this operating system is for mobile.",
         ).optional(),
         name: z.string().describe("Name of this operating system.").optional(),
-      }).describe(
-        "Contains information about an operating system that can be targeted by ads.",
-      ).optional(),
+      }).describe("Operating system of this operating system version.")
+        .optional(),
     })).describe(
       "Operating system versions that this ad targets. To target all versions, use operatingSystems. For each operating system version, only id is required. The other fields are populated automatically when the ad is inserted or updated. If targeting an operating system version, do not set targeting for the corresponding operating system in operatingSystems.",
     ).optional(),
@@ -921,7 +923,7 @@ const InputsSchema = z.object({
     })).describe(
       "Platform types that this ad targets. For example, desktop, mobile, or tablet. For each platform type, only id is required, and the other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Technology Targeting.").optional(),
+  }).describe("Technology platform targeting criteria.").optional(),
   profileId: z.string().describe(
     "User profile ID associated with this request.",
   ).optional(),
@@ -950,7 +952,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 TargetingTemplates. Registered at `@swamp/gcp/dfareporting/targetingtemplates`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/targetingtemplates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1039,6 +1041,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

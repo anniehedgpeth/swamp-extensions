@@ -173,7 +173,9 @@ const GlobalArgsSchema = z.object({
     itemCount: z.number().int().describe(
       "The number of videos in the playlist.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The contentDetails object contains information like video count.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the playlist.",
   ).optional(),
@@ -191,7 +193,9 @@ const GlobalArgsSchema = z.object({
     embedHtml: z.string().describe(
       "An  tag that embeds a player that will play the playlist.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The player object contains information that you would use to play the playlist in an embedded player.",
+  ).optional(),
   snippet: z.object({
     channelId: z.string().describe(
       "The ID that YouTube uses to uniquely identify the channel that published the playlist.",
@@ -209,7 +213,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       title: z.string().describe("The localized strings for playlist's title.")
         .optional(),
-    }).describe("Playlist localization setting").optional(),
+    }).describe("Localized title and description, read-only.").optional(),
     publishedAt: z.string().describe(
       "The date and time that the playlist was created.",
     ).optional(),
@@ -228,8 +232,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -238,8 +241,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -248,7 +250,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -258,8 +260,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -268,13 +269,13 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the playlist. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe("The playlist's title.").optional(),
   }).describe(
-    "Basic details about a playlist, including title, description and thumbnails.",
+    "The snippet object contains basic details about the playlist, such as its title and description.",
   ).optional(),
   status: z.object({
     podcastStatus: z.enum(["enabled", "disabled"]).describe(
@@ -283,7 +284,8 @@ const GlobalArgsSchema = z.object({
     privacyStatus: z.enum(["public", "unlisted", "private"]).describe(
       "The playlist's privacy status.",
     ).optional(),
-  }).optional(),
+  }).describe("The status object contains status information for the playlist.")
+    .optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
   ),
@@ -365,7 +367,9 @@ const InputsSchema = z.object({
     itemCount: z.number().int().describe(
       "The number of videos in the playlist.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The contentDetails object contains information like video count.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the playlist.",
   ).optional(),
@@ -383,7 +387,9 @@ const InputsSchema = z.object({
     embedHtml: z.string().describe(
       "An  tag that embeds a player that will play the playlist.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The player object contains information that you would use to play the playlist in an embedded player.",
+  ).optional(),
   snippet: z.object({
     channelId: z.string().describe(
       "The ID that YouTube uses to uniquely identify the channel that published the playlist.",
@@ -401,7 +407,7 @@ const InputsSchema = z.object({
       ).optional(),
       title: z.string().describe("The localized strings for playlist's title.")
         .optional(),
-    }).describe("Playlist localization setting").optional(),
+    }).describe("Localized title and description, read-only.").optional(),
     publishedAt: z.string().describe(
       "The date and time that the playlist was created.",
     ).optional(),
@@ -420,8 +426,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -430,8 +435,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -440,7 +444,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -450,8 +454,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -460,13 +463,13 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the playlist. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe("The playlist's title.").optional(),
   }).describe(
-    "Basic details about a playlist, including title, description and thumbnails.",
+    "The snippet object contains basic details about the playlist, such as its title and description.",
   ).optional(),
   status: z.object({
     podcastStatus: z.enum(["enabled", "disabled"]).describe(
@@ -475,7 +478,8 @@ const InputsSchema = z.object({
     privacyStatus: z.enum(["public", "unlisted", "private"]).describe(
       "The playlist's privacy status.",
     ).optional(),
-  }).optional(),
+  }).describe("The status object contains status information for the playlist.")
+    .optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
   ).optional(),
@@ -510,7 +514,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Playlists. Registered at `@swamp/gcp/youtube/playlists`. */
 export const model = {
   type: "@swamp/gcp/youtube/playlists",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -602,6 +606,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -652,12 +661,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

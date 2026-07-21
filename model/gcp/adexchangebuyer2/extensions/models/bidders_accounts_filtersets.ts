@@ -149,7 +149,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "The end date of the range (inclusive). Must be within the 30 days leading up to current date, and must be equal to or after start_date.",
     ).optional(),
     startDate: z.object({
       day: z.number().int().describe(
@@ -162,10 +162,10 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "The start date of the range (inclusive). Must be within the 30 days leading up to current date, and must be equal to or before end_date.",
     ).optional(),
   }).describe(
-    "An absolute date range, specified by its start date and end date. The supported range of dates begins 30 days before today and ends today. Validity checked upon filter set creation. If a filter set with an absolute date range is run at a later date more than 30 days after start_date, it will fail.",
+    "An absolute date range, defined by a start date and an end date. Interpreted relative to Pacific time zone.",
   ).optional(),
   breakdownDimensions: z.array(
     z.enum(["BREAKDOWN_DIMENSION_UNSPECIFIED", "PUBLISHER_IDENTIFIER"]),
@@ -205,7 +205,7 @@ const GlobalArgsSchema = z.object({
       "The start timestamp of the real-time RTB metrics aggregation.",
     ).optional(),
   }).describe(
-    "An open-ended realtime time range specified by the start timestamp. For filter sets that specify a realtime time range RTB metrics continue to be aggregated throughout the lifetime of the filter set.",
+    "An open-ended realtime time range, defined by the aggregation start timestamp.",
   ).optional(),
   relativeDateRange: z.object({
     durationDays: z.number().int().describe(
@@ -215,7 +215,7 @@ const GlobalArgsSchema = z.object({
       "The end date of the filter set, specified as the number of days before today, for example, for a range where the last date is today: 0.",
     ).optional(),
   }).describe(
-    "A relative date range, specified by an offset and a duration. The supported range of dates begins 30 days before today and ends today, for example, the limits for these values are: offset_days >= 0 duration_days >= 1 offset_days + duration_days <= 30",
+    "A relative date range, defined by an offset from today and a duration. Interpreted relative to Pacific time zone.",
   ).optional(),
   sellerNetworkIds: z.array(z.number().int()).describe(
     "For Authorized Buyers only. The list of IDs of the seller (publisher) networks on which to filter; may be empty. The filters represented by multiple seller network IDs are ORed together (for example, if non-empty, results must match any one of the publisher networks). See [seller-network-ids](https://developers.google.com/authorized-buyers/rtb/downloads/seller-network-ids) file for the set of existing seller network IDs.",
@@ -287,7 +287,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "The end date of the range (inclusive). Must be within the 30 days leading up to current date, and must be equal to or after start_date.",
     ).optional(),
     startDate: z.object({
       day: z.number().int().describe(
@@ -300,10 +300,10 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "The start date of the range (inclusive). Must be within the 30 days leading up to current date, and must be equal to or before end_date.",
     ).optional(),
   }).describe(
-    "An absolute date range, specified by its start date and end date. The supported range of dates begins 30 days before today and ends today. Validity checked upon filter set creation. If a filter set with an absolute date range is run at a later date more than 30 days after start_date, it will fail.",
+    "An absolute date range, defined by a start date and an end date. Interpreted relative to Pacific time zone.",
   ).optional(),
   breakdownDimensions: z.array(
     z.enum(["BREAKDOWN_DIMENSION_UNSPECIFIED", "PUBLISHER_IDENTIFIER"]),
@@ -343,7 +343,7 @@ const InputsSchema = z.object({
       "The start timestamp of the real-time RTB metrics aggregation.",
     ).optional(),
   }).describe(
-    "An open-ended realtime time range specified by the start timestamp. For filter sets that specify a realtime time range RTB metrics continue to be aggregated throughout the lifetime of the filter set.",
+    "An open-ended realtime time range, defined by the aggregation start timestamp.",
   ).optional(),
   relativeDateRange: z.object({
     durationDays: z.number().int().describe(
@@ -353,7 +353,7 @@ const InputsSchema = z.object({
       "The end date of the filter set, specified as the number of days before today, for example, for a range where the last date is today: 0.",
     ).optional(),
   }).describe(
-    "A relative date range, specified by an offset and a duration. The supported range of dates begins 30 days before today and ends today, for example, the limits for these values are: offset_days >= 0 duration_days >= 1 offset_days + duration_days <= 30",
+    "A relative date range, defined by an offset from today and a duration. Interpreted relative to Pacific time zone.",
   ).optional(),
   sellerNetworkIds: z.array(z.number().int()).describe(
     "For Authorized Buyers only. The list of IDs of the seller (publisher) networks on which to filter; may be empty. The filters represented by multiple seller network IDs are ORed together (for example, if non-empty, results must match any one of the publisher networks). See [seller-network-ids](https://developers.google.com/authorized-buyers/rtb/downloads/seller-network-ids) file for the set of existing seller network IDs.",
@@ -396,7 +396,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Bidders.Accounts.FilterSets. Registered at `@swamp/gcp/adexchangebuyer2/bidders-accounts-filtersets`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/bidders-accounts-filtersets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -498,6 +498,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

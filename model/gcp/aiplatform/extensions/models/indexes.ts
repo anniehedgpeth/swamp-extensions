@@ -167,19 +167,8 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Immutable. Customer-managed encryption key spec for an Index. If set, this Index and all sub-resources of this Index will be secured by this key.",
   ).optional(),
-  indexStats: z.object({
-    shardsCount: z.number().int().describe(
-      "Output only. The number of shards in the Index.",
-    ).optional(),
-    sparseVectorsCount: z.string().describe(
-      "Output only. The number of sparse vectors in the Index.",
-    ).optional(),
-    vectorsCount: z.string().describe(
-      "Output only. The number of dense vectors in the Index.",
-    ).optional(),
-  }).describe("Stats of the Index.").optional(),
   indexUpdateMethod: z.enum([
     "INDEX_UPDATE_METHOD_UNSPECIFIED",
     "BATCH_UPDATE",
@@ -246,19 +235,8 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Immutable. Customer-managed encryption key spec for an Index. If set, this Index and all sub-resources of this Index will be secured by this key.",
   ).optional(),
-  indexStats: z.object({
-    shardsCount: z.number().int().describe(
-      "Output only. The number of shards in the Index.",
-    ).optional(),
-    sparseVectorsCount: z.string().describe(
-      "Output only. The number of sparse vectors in the Index.",
-    ).optional(),
-    vectorsCount: z.string().describe(
-      "Output only. The number of dense vectors in the Index.",
-    ).optional(),
-  }).describe("Stats of the Index.").optional(),
   indexUpdateMethod: z.enum([
     "INDEX_UPDATE_METHOD_UNSPECIFIED",
     "BATCH_UPDATE",
@@ -303,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Indexes. Registered at `@swamp/gcp/aiplatform/indexes`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/indexes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -435,6 +413,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: indexStats",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { indexStats: _indexStats, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -469,7 +455,6 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["indexStats"] !== undefined) body["indexStats"] = g["indexStats"];
         if (g["indexUpdateMethod"] !== undefined) {
           body["indexUpdateMethod"] = g["indexUpdateMethod"];
         }
@@ -591,10 +576,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["encryptionSpec"] !== undefined) {
-          body["encryptionSpec"] = g["encryptionSpec"];
-        }
-        if (g["indexStats"] !== undefined) body["indexStats"] = g["indexStats"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         const updateMaskKeys = Object.keys(body);

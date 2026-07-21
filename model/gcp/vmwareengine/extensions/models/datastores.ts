@@ -187,9 +187,9 @@ const GlobalArgsSchema = z.object({
       netappVolume: z.string().describe(
         "Google netapp volume resource name e.g. projects/my-project/locations/me-west1-b/volumes/my-volume",
       ).optional(),
-    }).describe("Google service file service configuration").optional(),
+    }).describe("Google file service configuration").optional(),
     googleVmwareFileService: z.object({}).describe(
-      "Volume message captures user inputs for creation of file services managed by GCVE",
+      "GCVE file service configuration",
     ).optional(),
     thirdPartyFileService: z.object({
       fileShare: z.string().describe("Required. Required Mount Folder name")
@@ -201,7 +201,7 @@ const GlobalArgsSchema = z.object({
         "Required. Server IP addresses of the NFS file service. NFS v3, provide a single IP address or DNS name. Multiple servers can be supported in future when NFS 4.1 protocol support is enabled.",
       ).optional(),
     }).describe("Third party file service configuration").optional(),
-  }).describe("The NFS datastore configuration.").optional(),
+  }).describe("Required. Settings for the NFS datastore.").optional(),
   datastoreId: z.string().describe(
     "Required. The user-provided identifier of the datastore to be created. This identifier must be unique among each `Datastore` within the parent and becomes the final token in the name URI. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
   ).optional(),
@@ -255,9 +255,9 @@ const InputsSchema = z.object({
       netappVolume: z.string().describe(
         "Google netapp volume resource name e.g. projects/my-project/locations/me-west1-b/volumes/my-volume",
       ).optional(),
-    }).describe("Google service file service configuration").optional(),
+    }).describe("Google file service configuration").optional(),
     googleVmwareFileService: z.object({}).describe(
-      "Volume message captures user inputs for creation of file services managed by GCVE",
+      "GCVE file service configuration",
     ).optional(),
     thirdPartyFileService: z.object({
       fileShare: z.string().describe("Required. Required Mount Folder name")
@@ -269,7 +269,7 @@ const InputsSchema = z.object({
         "Required. Server IP addresses of the NFS file service. NFS v3, provide a single IP address or DNS name. Multiple servers can be supported in future when NFS 4.1 protocol support is enabled.",
       ).optional(),
     }).describe("Third party file service configuration").optional(),
-  }).describe("The NFS datastore configuration.").optional(),
+  }).describe("Required. Settings for the NFS datastore.").optional(),
   datastoreId: z.string().describe(
     "Required. The user-provided identifier of the datastore to be created. This identifier must be unique among each `Datastore` within the parent and becomes the final token in the name URI. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
   ).optional(),
@@ -304,7 +304,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VMware Engine Datastores. Registered at `@swamp/gcp/vmwareengine/datastores`. */
 export const model = {
   type: "@swamp/gcp/vmwareengine/datastores",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -411,6 +411,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -470,16 +475,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

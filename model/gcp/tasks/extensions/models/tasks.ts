@@ -197,38 +197,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  assignmentInfo: z.object({
-    driveResourceInfo: z.object({
-      driveFileId: z.string().describe(
-        "Output only. Identifier of the file in the Drive API.",
-      ).optional(),
-      resourceKey: z.string().describe(
-        "Output only. Resource key required to access files shared via a shared link. Not required for all files. See also developers.google.com/drive/api/guides/resource-keys.",
-      ).optional(),
-    }).describe(
-      "Information about the Drive resource where a task was assigned from (the document, sheet, etc.).",
-    ).optional(),
-    linkToTask: z.string().describe(
-      "Output only. An absolute link to the original task in the surface of assignment (Docs, Chat spaces, etc.).",
-    ).optional(),
-    spaceInfo: z.object({
-      space: z.string().describe(
-        'Output only. The Chat space where this task originates from. The format is "spaces/{space}".',
-      ).optional(),
-    }).describe(
-      "Information about the Chat Space where a task was assigned from.",
-    ).optional(),
-    surfaceType: z.enum([
-      "CONTEXT_TYPE_UNSPECIFIED",
-      "GMAIL",
-      "DOCUMENT",
-      "SPACE",
-    ]).describe(
-      "Output only. The type of surface this assigned task originates from. Currently limited to DOCUMENT or SPACE.",
-    ).optional(),
-  }).describe(
-    "Information about the source of the task assignment (Document, Chat Space).",
-  ).optional(),
   completed: z.string().describe(
     "Completion date of the task (as a RFC 3339 timestamp). This field is omitted if the task has not been completed.",
   ).optional(),
@@ -299,38 +267,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  assignmentInfo: z.object({
-    driveResourceInfo: z.object({
-      driveFileId: z.string().describe(
-        "Output only. Identifier of the file in the Drive API.",
-      ).optional(),
-      resourceKey: z.string().describe(
-        "Output only. Resource key required to access files shared via a shared link. Not required for all files. See also developers.google.com/drive/api/guides/resource-keys.",
-      ).optional(),
-    }).describe(
-      "Information about the Drive resource where a task was assigned from (the document, sheet, etc.).",
-    ).optional(),
-    linkToTask: z.string().describe(
-      "Output only. An absolute link to the original task in the surface of assignment (Docs, Chat spaces, etc.).",
-    ).optional(),
-    spaceInfo: z.object({
-      space: z.string().describe(
-        'Output only. The Chat space where this task originates from. The format is "spaces/{space}".',
-      ).optional(),
-    }).describe(
-      "Information about the Chat Space where a task was assigned from.",
-    ).optional(),
-    surfaceType: z.enum([
-      "CONTEXT_TYPE_UNSPECIFIED",
-      "GMAIL",
-      "DOCUMENT",
-      "SPACE",
-    ]).describe(
-      "Output only. The type of surface this assigned task originates from. Currently limited to DOCUMENT or SPACE.",
-    ).optional(),
-  }).describe(
-    "Information about the source of the task assignment (Document, Chat Space).",
-  ).optional(),
   completed: z.string().describe(
     "Completion date of the task (as a RFC 3339 timestamp). This field is omitted if the task has not been completed.",
   ).optional(),
@@ -382,7 +318,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Tasks Tasks. Registered at `@swamp/gcp/tasks/tasks`. */
 export const model = {
   type: "@swamp/gcp/tasks/tasks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -474,6 +410,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: assignmentInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { assignmentInfo: _assignmentInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -498,9 +442,6 @@ export const model = {
           params["tasklist"] = String(g["tasklist"]);
         }
         const body: Record<string, unknown> = {};
-        if (g["assignmentInfo"] !== undefined) {
-          body["assignmentInfo"] = g["assignmentInfo"];
-        }
         if (g["completed"] !== undefined) body["completed"] = g["completed"];
         if (g["deleted"] !== undefined) body["deleted"] = g["deleted"];
         if (g["due"] !== undefined) body["due"] = g["due"];
@@ -520,12 +461,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "tasklist": String(g["tasklist"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -607,9 +543,6 @@ export const model = {
         }
         params["task"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["assignmentInfo"] !== undefined) {
-          body["assignmentInfo"] = g["assignmentInfo"];
-        }
         if (g["completed"] !== undefined) body["completed"] = g["completed"];
         if (g["deleted"] !== undefined) body["deleted"] = g["deleted"];
         if (g["due"] !== undefined) body["due"] = g["due"];

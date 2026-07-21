@@ -163,9 +163,8 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "Optional. Specifies the tag value as the short name, for example `sensitive`.",
       ).optional(),
-    }).describe(
-      "Data Governance tag This is a namespaced name specifying the key and the value. For example: `project-id/pii/sensitive`.",
-    ).optional(),
+    }).describe("Optional. Data Governance tag bound to the Data Policy.")
+      .optional(),
     dataMaskingPolicy: z.object({
       predefinedExpression: z.enum([
         "PREDEFINED_EXPRESSION_UNSPECIFIED",
@@ -181,7 +180,9 @@ const GlobalArgsSchema = z.object({
       routine: z.string().describe(
         "Optional. The name of the BigQuery routine that contains the custom masking routine, in the format of `projects/{project_number}/datasets/{dataset_id}/routines/{routine_id}`.",
       ).optional(),
-    }).describe("The policy used to specify data masking rule.").optional(),
+    }).describe(
+      "Optional. The data masking policy that specifies the data masking rule to use. It must be set if the data policy type is DATA_MASKING_POLICY.",
+    ).optional(),
     dataPolicyId: z.string().describe(
       "Output only. User-assigned (human readable) ID of the data policy that needs to be unique within a project. Used as {data_policy_id} in part of the resource name.",
     ).optional(),
@@ -206,7 +207,9 @@ const GlobalArgsSchema = z.object({
     version: z.enum(["VERSION_UNSPECIFIED", "V1", "V2"]).describe(
       "Output only. The version of the Data Policy resource.",
     ).optional(),
-  }).describe("Represents the label-policy binding.").optional(),
+  }).describe(
+    "Required. The data policy to create. The `name` field does not need to be provided for the data policy creation.",
+  ).optional(),
   dataPolicyId: z.string().describe(
     "Output only. User-assigned (human readable) ID of the data policy that needs to be unique within a project. Used as {data_policy_id} in part of the resource name.",
   ).optional(),
@@ -217,9 +220,8 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "Optional. Specifies the tag value as the short name, for example `sensitive`.",
     ).optional(),
-  }).describe(
-    "Data Governance tag This is a namespaced name specifying the key and the value. For example: `project-id/pii/sensitive`.",
-  ).optional(),
+  }).describe("Optional. Data Governance tag bound to the Data Policy.")
+    .optional(),
   dataMaskingPolicy: z.object({
     predefinedExpression: z.enum([
       "PREDEFINED_EXPRESSION_UNSPECIFIED",
@@ -235,7 +237,9 @@ const GlobalArgsSchema = z.object({
     routine: z.string().describe(
       "Optional. The name of the BigQuery routine that contains the custom masking routine, in the format of `projects/{project_number}/datasets/{dataset_id}/routines/{routine_id}`.",
     ).optional(),
-  }).describe("The policy used to specify data masking rule.").optional(),
+  }).describe(
+    "Optional. The data masking policy that specifies the data masking rule to use. It must be set if the data policy type is DATA_MASKING_POLICY.",
+  ).optional(),
   dataPolicyType: z.enum([
     "DATA_POLICY_TYPE_UNSPECIFIED",
     "DATA_MASKING_POLICY",
@@ -295,9 +299,8 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "Optional. Specifies the tag value as the short name, for example `sensitive`.",
       ).optional(),
-    }).describe(
-      "Data Governance tag This is a namespaced name specifying the key and the value. For example: `project-id/pii/sensitive`.",
-    ).optional(),
+    }).describe("Optional. Data Governance tag bound to the Data Policy.")
+      .optional(),
     dataMaskingPolicy: z.object({
       predefinedExpression: z.enum([
         "PREDEFINED_EXPRESSION_UNSPECIFIED",
@@ -313,7 +316,9 @@ const InputsSchema = z.object({
       routine: z.string().describe(
         "Optional. The name of the BigQuery routine that contains the custom masking routine, in the format of `projects/{project_number}/datasets/{dataset_id}/routines/{routine_id}`.",
       ).optional(),
-    }).describe("The policy used to specify data masking rule.").optional(),
+    }).describe(
+      "Optional. The data masking policy that specifies the data masking rule to use. It must be set if the data policy type is DATA_MASKING_POLICY.",
+    ).optional(),
     dataPolicyId: z.string().describe(
       "Output only. User-assigned (human readable) ID of the data policy that needs to be unique within a project. Used as {data_policy_id} in part of the resource name.",
     ).optional(),
@@ -338,7 +343,9 @@ const InputsSchema = z.object({
     version: z.enum(["VERSION_UNSPECIFIED", "V1", "V2"]).describe(
       "Output only. The version of the Data Policy resource.",
     ).optional(),
-  }).describe("Represents the label-policy binding.").optional(),
+  }).describe(
+    "Required. The data policy to create. The `name` field does not need to be provided for the data policy creation.",
+  ).optional(),
   dataPolicyId: z.string().describe(
     "Output only. User-assigned (human readable) ID of the data policy that needs to be unique within a project. Used as {data_policy_id} in part of the resource name.",
   ).optional(),
@@ -349,9 +356,8 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "Optional. Specifies the tag value as the short name, for example `sensitive`.",
     ).optional(),
-  }).describe(
-    "Data Governance tag This is a namespaced name specifying the key and the value. For example: `project-id/pii/sensitive`.",
-  ).optional(),
+  }).describe("Optional. Data Governance tag bound to the Data Policy.")
+    .optional(),
   dataMaskingPolicy: z.object({
     predefinedExpression: z.enum([
       "PREDEFINED_EXPRESSION_UNSPECIFIED",
@@ -367,7 +373,9 @@ const InputsSchema = z.object({
     routine: z.string().describe(
       "Optional. The name of the BigQuery routine that contains the custom masking routine, in the format of `projects/{project_number}/datasets/{dataset_id}/routines/{routine_id}`.",
     ).optional(),
-  }).describe("The policy used to specify data masking rule.").optional(),
+  }).describe(
+    "Optional. The data masking policy that specifies the data masking rule to use. It must be set if the data policy type is DATA_MASKING_POLICY.",
+  ).optional(),
   dataPolicyType: z.enum([
     "DATA_POLICY_TYPE_UNSPECIFIED",
     "DATA_MASKING_POLICY",
@@ -417,7 +425,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Data Policy DataPolicies. Registered at `@swamp/gcp/bigquerydatapolicy/datapolicies`. */
 export const model = {
   type: "@swamp/gcp/bigquerydatapolicy/datapolicies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -650,6 +658,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: dataGovernanceTag",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

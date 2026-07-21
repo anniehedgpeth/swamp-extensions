@@ -147,20 +147,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key spec for a TrainingPipeline. If set, this TrainingPipeline will be secured by this key. Note: Model trained by this TrainingPipeline is also secured by this key if model_to_upload is not set separately.",
   ).optional(),
   inputDataConfig: z.object({
     annotationSchemaUri: z.string().describe(
@@ -173,7 +160,9 @@ const GlobalArgsSchema = z.object({
       outputUri: z.string().describe(
         "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
       ).optional(),
-    }).describe("The BigQuery location for the output content.").optional(),
+    }).describe(
+      'Only applicable to custom training with tabular Dataset with BigQuery source. The BigQuery project location where the training data is to be written to. In the given project a new dataset is created with name `dataset___` where timestamp is in YYYY_MM_DDThh_mm_ss_sssZ format. All training input data is written into that dataset. In the dataset three tables are created, `training`, `validation` and `test`. * AIP_DATA_FORMAT = "bigquery". * AIP_TRAINING_DATA_URI = "bigquery_destination.dataset___.training" * AIP_VALIDATION_DATA_URI = "bigquery_destination.dataset___.validation" * AIP_TEST_DATA_URI = "bigquery_destination.dataset___.test"',
+    ).optional(),
     datasetId: z.string().describe(
       "Required. The ID of the Dataset in the same Project and Location which data will be used to train the Model. The Dataset must use schema compatible with Model being trained, and what is compatible should be described in the used TrainingPipeline's training_task_definition. For tabular Datasets, all their data is exported to training, to pick and choose from.",
     ).optional(),
@@ -187,9 +176,7 @@ const GlobalArgsSchema = z.object({
       validationFilter: z.string().describe(
         "Required. A filter on DataItems of the Dataset. DataItems that match this filter are used to validate the Model. A filter with same syntax as the one used in DatasetService.ListDataItems may be used. If a single DataItem is matched by more than one of the FilterSplit filters, then it is assigned to the first set that applies to it in the training, validation, test order.",
       ).optional(),
-    }).describe(
-      "Assigns input data to training, validation, and test sets based on the given filters, data pieces not matched by any filter are ignored. Currently only supported for Datasets containing DataItems. If any of the filters in this message are to match nothing, then they can be set as '-' (the minus sign). Supported only for unstructured Datasets.",
-    ).optional(),
+    }).describe("Split based on the provided filters for each set.").optional(),
     fractionSplit: z.object({
       testFraction: z.number().describe(
         "The fraction of the input data that is to be used to evaluate the Model.",
@@ -200,15 +187,14 @@ const GlobalArgsSchema = z.object({
       validationFraction: z.number().describe(
         "The fraction of the input data that is to be used to validate the Model.",
       ).optional(),
-    }).describe(
-      "Assigns the input data to training, validation, and test sets as per the given fractions. Any of `training_fraction`, `validation_fraction` and `test_fraction` may optionally be provided, they must sum to up to 1. If the provided ones sum to less than 1, the remainder is assigned to sets as decided by Vertex AI. If none of the fractions are set, by default roughly 80% of data is used for training, 10% for validation, and 10% for test.",
-    ).optional(),
+    }).describe("Split based on fractions defining the size of each set.")
+      .optional(),
     gcsDestination: z.object({
       outputUriPrefix: z.string().describe(
         "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
       ).optional(),
     }).describe(
-      "The Google Cloud Storage location where the output is to be written to.",
+      'The Cloud Storage location where the training data is to be written to. In the given directory a new directory is created with name: `dataset---` where timestamp is in YYYY-MM-DDThh:mm:ss.sssZ ISO-8601 format. All training input data is written into that directory. The Vertex AI environment variables representing Cloud Storage data URIs are represented in the Cloud Storage wildcard format to support sharded data. e.g.: "gs://.../training-*.jsonl" * AIP_DATA_FORMAT = "jsonl" for non-tabular data, "csv" for tabular data * AIP_TRAINING_DATA_URI = "gcs_destination/dataset---/training-*.${AIP_DATA_FORMAT}" * AIP_VALIDATION_DATA_URI = "gcs_destination/dataset---/validation-*.${AIP_DATA_FORMAT}" * AIP_TEST_DATA_URI = "gcs_destination/dataset---/test-*.${AIP_DATA_FORMAT}"',
     ).optional(),
     persistMlUseAssignment: z.boolean().describe(
       "Whether to persist the ML use assignment to data item system labels.",
@@ -218,7 +204,7 @@ const GlobalArgsSchema = z.object({
         "Required. The key is a name of one of the Dataset's data columns. The value of the key (either the label's value or value in the column) must be one of {`training`, `validation`, `test`}, and it defines to which set the given piece of data is assigned. If for a piece of data the key is not present or has an invalid value, that piece is ignored by the pipeline.",
       ).optional(),
     }).describe(
-      "Assigns input data to training, validation, and test sets based on the value of a provided key. Supported only for tabular Datasets.",
+      "Supported only for tabular Datasets. Split based on a predefined key.",
     ).optional(),
     savedQueryId: z.string().describe(
       "Only applicable to Datasets that have SavedQueries. The ID of a SavedQuery (annotation set) under the Dataset specified by dataset_id used for filtering Annotations for training. Only Annotations that are associated with this SavedQuery are used in respectively training. When used in conjunction with annotations_filter, the Annotations used for training are filtered by both saved_query_id and annotations_filter. Only one of saved_query_id and annotation_schema_uri should be specified as both of them represent the same thing: problem type.",
@@ -237,7 +223,7 @@ const GlobalArgsSchema = z.object({
         "The fraction of the input data that is to be used to validate the Model.",
       ).optional(),
     }).describe(
-      'Assigns input data to the training, validation, and test sets so that the distribution of values found in the categorical column (as specified by the `key` field) is mirrored within each split. The fraction values determine the relative sizes of the splits. For example, if the specified column has three values, with 50% of the rows having value "A", 25% value "B", and 25% value "C", and the split fractions are specified as 80/10/10, then the training set will constitute 80% of the training data, with about 50% of the training set rows having the value "A" for the specified column, about 25% having the value "B", and about 25% having the value "C". Only the top 500 occurring values are used; any values not in the top 500 values are randomly assigned to a split. If less than three rows contain a specific value, those rows are randomly assigned. Supported only for tabular Datasets.',
+      "Supported only for tabular Datasets. Split based on the distribution of the specified column.",
     ).optional(),
     timestampSplit: z.object({
       key: z.string().describe(
@@ -253,10 +239,10 @@ const GlobalArgsSchema = z.object({
         "The fraction of the input data that is to be used to validate the Model.",
       ).optional(),
     }).describe(
-      "Assigns input data to training, validation, and test sets based on a provided timestamps. The youngest data pieces are assigned to training set, next to validation set, and the oldest to the test set. Supported only for tabular Datasets.",
+      "Supported only for tabular Datasets. Split based on the timestamp of the input data pieces.",
     ).optional(),
   }).describe(
-    "Specifies Vertex AI owned input data to be used for training, and possibly evaluating, the Model.",
+    "Specifies Vertex AI owned input data that may be used for training the Model. The TrainingPipeline's training_task_definition should make clear whether this config is used and if there are any special requirements on how it should be filled. If nothing about this config is mentioned in the training_task_definition, then it should be assumed that the TrainingPipeline does not depend on this configuration.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize TrainingPipelines. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -273,9 +259,8 @@ const GlobalArgsSchema = z.object({
         baseModelUri: z.string().describe(
           "Required. The public base model URI.",
         ).optional(),
-      }).describe(
-        "Contains information about the source of the models generated from Generative AI Studio.",
-      ).optional(),
+      }).describe("Information about the base model of Genie models.")
+        .optional(),
       modelGardenSource: z.object({
         publicModelName: z.string().describe(
           "Required. The model garden source model resource name.",
@@ -286,11 +271,9 @@ const GlobalArgsSchema = z.object({
         versionId: z.string().describe(
           "Optional. The model garden source model version ID.",
         ).optional(),
-      }).describe(
-        "Contains information about the source of the models generated from Model Garden.",
-      ).optional(),
+      }).describe("Source information of Model Garden models.").optional(),
     }).describe(
-      "User input field to specify the base model source. Currently it only supports specifing the Model Garden models and Genie models.",
+      "Optional. User input field to specify the base model source. Currently it only supports specifing the Model Garden models and Genie models.",
     ).optional(),
     checkpoints: z.array(z.object({
       checkpointId: z.string().describe("The ID of the checkpoint.").optional(),
@@ -330,7 +313,9 @@ const GlobalArgsSchema = z.object({
           command: z.array(z.unknown()).describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe("ExecAction specifies a command to execute.").optional(),
+        }).describe(
+          "ExecAction probes the health of a container by executing a command.",
+        ).optional(),
         failureThreshold: z.number().int().describe(
           "Number of consecutive failures before the probe is considered failed. Defaults to 3. Minimum value is 1. Maps to Kubernetes probe argument 'failureThreshold'.",
         ).optional(),
@@ -342,7 +327,7 @@ const GlobalArgsSchema = z.object({
             "Service is the name of the service to place in the gRPC HealthCheckRequest. See https://github.com/grpc/grpc/blob/master/doc/health-checking.md. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
         }).describe(
-          "GrpcAction checks the health of a container using a gRPC service.",
+          "GrpcAction probes the health of a container by sending a gRPC request.",
         ).optional(),
         httpGet: z.object({
           host: z.string().describe(
@@ -360,7 +345,7 @@ const GlobalArgsSchema = z.object({
             'Scheme to use for connecting to the host. Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".',
           ).optional(),
         }).describe(
-          "HttpGetAction describes an action based on HTTP Get requests.",
+          "HttpGetAction probes the health of a container by sending an HTTP GET request.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds to wait before starting the probe. Defaults to 0. Minimum value is 0. Maps to Kubernetes probe argument 'initialDelaySeconds'.",
@@ -384,9 +369,8 @@ const GlobalArgsSchema = z.object({
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Must be greater or equal to period_seconds. Maps to Kubernetes probe argument 'timeoutSeconds'.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Immutable. Specification for Kubernetes readiness probe.")
+        .optional(),
       healthRoute: z.string().describe(
         "Immutable. HTTP path on the container to send health checks to. Vertex AI intermittently sends GET requests to this path on the container's IP address and port to check that the container is healthy. Read more about [health checks](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#health). For example, if you set this field to `/bar`, then Vertex AI intermittently sends a GET request to the `/bar` path on the port of your container specified by the first value of this `ModelContainerSpec`'s ports field. If you don't specify this field, it defaults to the following value when you deploy this Model to an Endpoint: /v1/endpoints/ENDPOINT/deployedModels/ DEPLOYED_MODEL:predict The placeholders in this value are replaced as follows: * ENDPOINT: The last segment (following `endpoints/`)of the Endpoint.name][] field of the Endpoint where this Model has been deployed. (Vertex AI makes this value available to your container code as the [`AIP_ENDPOINT_ID` environment variable](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#aip-variables).) * DEPLOYED_MODEL: DeployedModel.id of the `DeployedModel`. (Vertex AI makes this value available to your container code as the [`AIP_DEPLOYED_MODEL_ID` environment variable](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#aip-variables).)",
       ).optional(),
@@ -401,7 +385,9 @@ const GlobalArgsSchema = z.object({
           command: z.array(z.unknown()).describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe("ExecAction specifies a command to execute.").optional(),
+        }).describe(
+          "ExecAction probes the health of a container by executing a command.",
+        ).optional(),
         failureThreshold: z.number().int().describe(
           "Number of consecutive failures before the probe is considered failed. Defaults to 3. Minimum value is 1. Maps to Kubernetes probe argument 'failureThreshold'.",
         ).optional(),
@@ -413,7 +399,7 @@ const GlobalArgsSchema = z.object({
             "Service is the name of the service to place in the gRPC HealthCheckRequest. See https://github.com/grpc/grpc/blob/master/doc/health-checking.md. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
         }).describe(
-          "GrpcAction checks the health of a container using a gRPC service.",
+          "GrpcAction probes the health of a container by sending a gRPC request.",
         ).optional(),
         httpGet: z.object({
           host: z.string().describe(
@@ -431,7 +417,7 @@ const GlobalArgsSchema = z.object({
             'Scheme to use for connecting to the host. Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".',
           ).optional(),
         }).describe(
-          "HttpGetAction describes an action based on HTTP Get requests.",
+          "HttpGetAction probes the health of a container by sending an HTTP GET request.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds to wait before starting the probe. Defaults to 0. Minimum value is 0. Maps to Kubernetes probe argument 'initialDelaySeconds'.",
@@ -455,9 +441,8 @@ const GlobalArgsSchema = z.object({
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Must be greater or equal to period_seconds. Maps to Kubernetes probe argument 'timeoutSeconds'.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Immutable. Specification for Kubernetes liveness probe.")
+        .optional(),
       ports: z.array(z.object({
         containerPort: z.number().int().describe(
           "The number of the port to expose on the pod's IP address. Must be a valid port number, between 1 and 65535 inclusive.",
@@ -476,7 +461,9 @@ const GlobalArgsSchema = z.object({
           command: z.array(z.unknown()).describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe("ExecAction specifies a command to execute.").optional(),
+        }).describe(
+          "ExecAction probes the health of a container by executing a command.",
+        ).optional(),
         failureThreshold: z.number().int().describe(
           "Number of consecutive failures before the probe is considered failed. Defaults to 3. Minimum value is 1. Maps to Kubernetes probe argument 'failureThreshold'.",
         ).optional(),
@@ -488,7 +475,7 @@ const GlobalArgsSchema = z.object({
             "Service is the name of the service to place in the gRPC HealthCheckRequest. See https://github.com/grpc/grpc/blob/master/doc/health-checking.md. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
         }).describe(
-          "GrpcAction checks the health of a container using a gRPC service.",
+          "GrpcAction probes the health of a container by sending a gRPC request.",
         ).optional(),
         httpGet: z.object({
           host: z.string().describe(
@@ -506,7 +493,7 @@ const GlobalArgsSchema = z.object({
             'Scheme to use for connecting to the host. Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".',
           ).optional(),
         }).describe(
-          "HttpGetAction describes an action based on HTTP Get requests.",
+          "HttpGetAction probes the health of a container by sending an HTTP GET request.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds to wait before starting the probe. Defaults to 0. Minimum value is 0. Maps to Kubernetes probe argument 'initialDelaySeconds'.",
@@ -530,11 +517,10 @@ const GlobalArgsSchema = z.object({
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Must be greater or equal to period_seconds. Maps to Kubernetes probe argument 'timeoutSeconds'.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Immutable. Specification for Kubernetes startup probe.")
+        .optional(),
     }).describe(
-      "Specification of a container for serving predictions. Some fields in this message correspond to fields in the [Kubernetes Container v1 core specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core).",
+      "Input only. The specification of the container that is to be used when deploying this Model. The specification is ingested upon ModelService.UploadModel, and all binaries it contains are copied and stored internally by Vertex AI. Not required for AutoML Models.",
     ).optional(),
     createTime: z.string().describe(
       "Output only. Timestamp when this Model was uploaded into Vertex AI.",
@@ -558,8 +544,9 @@ const GlobalArgsSchema = z.object({
       validationDataItemsCount: z.string().describe(
         "Number of DataItems that were used for validating this Model during training.",
       ).optional(),
-    }).describe("Stats of data used for train or evaluate the Model.")
-      .optional(),
+    }).describe(
+      "Stats of data used for training or evaluating the Model. Only populated when the Model is trained by a TrainingPipeline with data_input_config.",
+    ).optional(),
     defaultCheckpointId: z.string().describe(
       "The default checkpoint id of a model version.",
     ).optional(),
@@ -586,7 +573,7 @@ const GlobalArgsSchema = z.object({
         "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
       ).optional(),
     }).describe(
-      "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+      "Customer-managed encryption key spec for a Model. If set, this Model and all sub-resources of this Model will be secured by this key.",
     ).optional(),
     etag: z.string().describe(
       'Used to perform consistent read-modify-write updates. If not set, a blind "overwrite" update happens.',
@@ -612,7 +599,7 @@ const GlobalArgsSchema = z.object({
               "Defines how the feature is encoded into the input tensor. Defaults to IDENTITY.",
             ).optional(),
             featureValueDomain: z.unknown().describe(
-              "Domain details of the input feature value. Provides numeric information about the feature, such as its range (min, max). If the feature has been pre-processed, for example with z-scoring, then it provides information about how to recover the original feature. For example, if the input feature is an image and it has been pre-processed to obtain 0-mean and stddev = 1 values, then original_mean, and original_stddev refer to the mean and stddev of the original feature (e.g. image tensor) from which input feature (with mean = 0 and stddev = 1) was obtained.",
+              "The domain details of the input feature value. Like min/max, original mean or standard deviation if normalized.",
             ).optional(),
             groupName: z.unknown().describe(
               "Name of the group that the input belongs to. Features with the same group name will be treated as one feature when computing attributions. Features grouped together can have different shapes in value. If provided, there will be one single attribution generated in Attribution.feature_attributions, keyed by the group name.",
@@ -659,7 +646,7 @@ const GlobalArgsSchema = z.object({
           "Required. Map from output names to output metadata. For Vertex AI-provided Tensorflow images, keys can be any user defined string that consists of any UTF-8 characters. For custom images, keys are the name of the output field in the prediction to be explained. Currently only one key is allowed.",
         ).optional(),
       }).describe(
-        "Metadata describing the Model's input and output for explanation.",
+        "Optional. Metadata describing the Model's input and output for explanation.",
       ).optional(),
       parameters: z.object({
         examples: z.object({
@@ -668,7 +655,7 @@ const GlobalArgsSchema = z.object({
               "The format in which instances are given, if not specified, assume it's JSONL format. Currently only JSONL format is supported.",
             ).optional(),
             gcsSource: z.unknown().describe(
-              "The Google Cloud Storage location for the input content.",
+              "The Cloud Storage location for the input instances.",
             ).optional(),
           }).describe("The Cloud Storage input instances.").optional(),
           nearestNeighborSearchConfig: z.string().describe(
@@ -684,10 +671,11 @@ const GlobalArgsSchema = z.object({
             query: z.unknown().describe(
               "Preset option controlling parameters for speed-precision trade-off when querying for examples. If omitted, defaults to `PRECISE`.",
             ).optional(),
-          }).describe("Preset configuration for example-based explanations")
-            .optional(),
+          }).describe(
+            "Simplified preset configuration, which automatically sets configuration values based on the desired query speed-precision trade-off and modality.",
+          ).optional(),
         }).describe(
-          "Example-based explainability that returns the nearest neighbors from the provided dataset.",
+          "Example-based explanations that returns the nearest neighbors from the provided dataset.",
         ).optional(),
         integratedGradientsAttribution: z.object({
           blurBaselineConfig: z.object({
@@ -695,11 +683,11 @@ const GlobalArgsSchema = z.object({
               "The standard deviation of the blur kernel for the blurred baseline. The same blurring parameter is used for both the height and the width dimension. If not set, the method defaults to the zero (i.e. black for images) baseline.",
             ).optional(),
           }).describe(
-            "Config for blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
+            "Config for IG with blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
           ).optional(),
           smoothGradConfig: z.object({
             featureNoiseSigma: z.unknown().describe(
-              "Noise sigma by features. Noise sigma represents the standard deviation of the gaussian kernel that will be used to add noise to interpolated inputs prior to computing gradients.",
+              "This is similar to noise_sigma, but provides additional flexibility. A separate noise sigma can be provided for each feature, which is useful if their distributions are different. No noise is added to features that are not set. If this field is unset, noise_sigma will be used for all features.",
             ).optional(),
             noiseSigma: z.unknown().describe(
               "This is a single float value and will be used to add noise to all the features. Use this field when all features are normalized to have the same distribution: scale to range [0, 1], [-1, 1] or z-scoring, where features are normalized to have 0-mean and 1-variance. Learn more about [normalization](https://developers.google.com/machine-learning/data-prep/transform/normalization). For best results the recommended value is about 10% - 20% of the standard deviation of the input feature. Refer to section 3.2 of the SmoothGrad paper: https://arxiv.org/pdf/1706.03825.pdf. Defaults to 0.1. If the distribution is different per feature, set feature_noise_sigma instead for each feature.",
@@ -714,7 +702,7 @@ const GlobalArgsSchema = z.object({
             "Required. The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is within the desired error range. Valid range of its value is [1, 100], inclusively.",
           ).optional(),
         }).describe(
-          "An attribution method that computes the Aumann-Shapley value taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
+          "An attribution method that computes Aumann-Shapley values taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
         ).optional(),
         outputIndices: z.array(z.string()).describe(
           "If populated, only returns attributions that have output_index contained in output_indices. It must be an ndarray of integers, with the same shape of the output it's explaining. If not populated, returns attributions for top_k indices of outputs. If neither top_k nor output_indices is populated, returns the argmax index of the outputs. Only applicable to Models that predict multiple outputs (e,g, multi-class Models that predict multiple classes).",
@@ -724,7 +712,7 @@ const GlobalArgsSchema = z.object({
             "Required. The number of feature permutations to consider when approximating the Shapley values. Valid range of its value is [1, 50], inclusively.",
           ).optional(),
         }).describe(
-          "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features.",
+          "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features. Refer to this paper for model details: https://arxiv.org/abs/1306.4265.",
         ).optional(),
         topK: z.number().int().describe(
           "If populated, returns attributions for top K indices of outputs (defaults to 1). Only applies to Models that predicts more than one outputs (e,g, multi-class Models). When set to -1, returns explanations for all outputs.",
@@ -735,11 +723,11 @@ const GlobalArgsSchema = z.object({
               "The standard deviation of the blur kernel for the blurred baseline. The same blurring parameter is used for both the height and the width dimension. If not set, the method defaults to the zero (i.e. black for images) baseline.",
             ).optional(),
           }).describe(
-            "Config for blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
+            "Config for XRAI with blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
           ).optional(),
           smoothGradConfig: z.object({
             featureNoiseSigma: z.unknown().describe(
-              "Noise sigma by features. Noise sigma represents the standard deviation of the gaussian kernel that will be used to add noise to interpolated inputs prior to computing gradients.",
+              "This is similar to noise_sigma, but provides additional flexibility. A separate noise sigma can be provided for each feature, which is useful if their distributions are different. No noise is added to features that are not set. If this field is unset, noise_sigma will be used for all features.",
             ).optional(),
             noiseSigma: z.unknown().describe(
               "This is a single float value and will be used to add noise to all the features. Use this field when all features are normalized to have the same distribution: scale to range [0, 1], [-1, 1] or z-scoring, where features are normalized to have 0-mean and 1-variance. Learn more about [normalization](https://developers.google.com/machine-learning/data-prep/transform/normalization). For best results the recommended value is about 10% - 20% of the standard deviation of the input feature. Refer to section 3.2 of the SmoothGrad paper: https://arxiv.org/pdf/1706.03825.pdf. Defaults to 0.1. If the distribution is different per feature, set feature_noise_sigma instead for each feature.",
@@ -754,11 +742,14 @@ const GlobalArgsSchema = z.object({
             "Required. The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is met within the desired error range. Valid range of its value is [1, 100], inclusively.",
           ).optional(),
         }).describe(
-          "An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Supported only by image Models.",
+          "An attribution method that redistributes Integrated Gradients attribution to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 XRAI currently performs better on natural images, like a picture of a house or an animal. If the images are taken in artificial environments, like a lab or manufacturing line, or from diagnostic equipment, like x-rays or quality-control cameras, use Integrated Gradients instead.",
         ).optional(),
-      }).describe("Parameters to configure explaining for Model's predictions.")
-        .optional(),
-    }).describe("Specification of Model explanation.").optional(),
+      }).describe(
+        "Required. Parameters that configure explaining of the Model's predictions.",
+      ).optional(),
+    }).describe(
+      "The default explanation specification for this Model. The Model can be used for requesting explanation after being deployed if it is populated. The Model can be used for batch explanation if it is populated. All fields of the explanation_spec can be overridden by explanation_spec of DeployModelRequest.deployed_model, or explanation_spec of BatchPredictionJob. If the default explanation specification is not set for this Model, this Model can still be used for requesting explanation by setting explanation_spec of DeployModelRequest.deployed_model and for batch explanation by setting explanation_spec of BatchPredictionJob.",
+    ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "The labels with user-defined metadata to organize your Models. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
     ).optional(),
@@ -785,8 +776,9 @@ const GlobalArgsSchema = z.object({
         "CUSTOM_TEXT_EMBEDDING",
         "MARKETPLACE",
       ]).describe("Type of the model source.").optional(),
-    }).describe("Detail description of the source information of the model.")
-      .optional(),
+    }).describe(
+      "Output only. Source of a model. It can either be automl training pipeline, custom training pipeline, BigQuery ML, or saved and tuned from Genie or Model Garden.",
+    ).optional(),
     name: z.string().describe("Identifier. The resource name of the Model.")
       .optional(),
     originalModelInfo: z.object({
@@ -794,7 +786,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The resource name of the Model this Model is a copy of, including the revision. Format: `projects/{project}/locations/{location}/models/{model_id}@{version_id}`",
       ).optional(),
     }).describe(
-      "Contains information about the original Model if this Model is a copy.",
+      "Output only. If this Model is a copy of another Model, this contains info about the original.",
     ).optional(),
     pipelineJob: z.string().describe(
       "Optional. This field is populated if the model is produced by a pipeline job.",
@@ -810,7 +802,7 @@ const GlobalArgsSchema = z.object({
         "Immutable. Points to a YAML file stored on Google Cloud Storage describing the format of a single prediction produced by this Model, which are returned via PredictResponse.predictions, ExplainResponse.explanations, and BatchPredictionJob.output_config. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). AutoML Models always have this field populated by Vertex AI. Note: The URI given on output will be immutable and probably different, including the URI scheme, than the one given on input. The output URI will point to a location where the user only has a read access.",
       ).optional(),
     }).describe(
-      "Contains the schemata used in Model's predictions and explanations via PredictionService.Predict, PredictionService.Explain and BatchPredictionJob.",
+      "The schemata that describe formats of the Model's predictions and explanations as given and returned via PredictionService.Predict and PredictionService.Explain.",
     ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
@@ -863,7 +855,9 @@ const GlobalArgsSchema = z.object({
     versionUpdateTime: z.string().describe(
       "Output only. Timestamp when this version was most recently updated.",
     ).optional(),
-  }).describe("A trained machine learning Model.").optional(),
+  }).describe(
+    "Describes the Model that may be uploaded (via ModelService.UploadModel) by this TrainingPipeline. The TrainingPipeline's training_task_definition should make clear whether this Model description should be populated, and if there are any special requirements regarding how it should be filled. If nothing is mentioned in the training_task_definition, then it should be assumed that this field should not be filled and the training task either uploads the Model without a need of this information, or that training task does not support uploading a Model as part of the pipeline. When the Pipeline's state becomes `PIPELINE_STATE_SUCCEEDED` and the trained Model had been uploaded into Vertex AI, then the model_to_upload's resource name is populated. The Model is always uploaded into the Project and Location in which this pipeline is.",
+  ).optional(),
   parentModel: z.string().describe(
     "Optional. When specify this field, the `model_to_upload` will not be uploaded as a new model, instead, it will become a new version of this `parent_model`.",
   ).optional(),
@@ -1173,20 +1167,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key spec for a TrainingPipeline. If set, this TrainingPipeline will be secured by this key. Note: Model trained by this TrainingPipeline is also secured by this key if model_to_upload is not set separately.",
   ).optional(),
   inputDataConfig: z.object({
     annotationSchemaUri: z.string().describe(
@@ -1199,7 +1180,9 @@ const InputsSchema = z.object({
       outputUri: z.string().describe(
         "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
       ).optional(),
-    }).describe("The BigQuery location for the output content.").optional(),
+    }).describe(
+      'Only applicable to custom training with tabular Dataset with BigQuery source. The BigQuery project location where the training data is to be written to. In the given project a new dataset is created with name `dataset___` where timestamp is in YYYY_MM_DDThh_mm_ss_sssZ format. All training input data is written into that dataset. In the dataset three tables are created, `training`, `validation` and `test`. * AIP_DATA_FORMAT = "bigquery". * AIP_TRAINING_DATA_URI = "bigquery_destination.dataset___.training" * AIP_VALIDATION_DATA_URI = "bigquery_destination.dataset___.validation" * AIP_TEST_DATA_URI = "bigquery_destination.dataset___.test"',
+    ).optional(),
     datasetId: z.string().describe(
       "Required. The ID of the Dataset in the same Project and Location which data will be used to train the Model. The Dataset must use schema compatible with Model being trained, and what is compatible should be described in the used TrainingPipeline's training_task_definition. For tabular Datasets, all their data is exported to training, to pick and choose from.",
     ).optional(),
@@ -1213,9 +1196,7 @@ const InputsSchema = z.object({
       validationFilter: z.string().describe(
         "Required. A filter on DataItems of the Dataset. DataItems that match this filter are used to validate the Model. A filter with same syntax as the one used in DatasetService.ListDataItems may be used. If a single DataItem is matched by more than one of the FilterSplit filters, then it is assigned to the first set that applies to it in the training, validation, test order.",
       ).optional(),
-    }).describe(
-      "Assigns input data to training, validation, and test sets based on the given filters, data pieces not matched by any filter are ignored. Currently only supported for Datasets containing DataItems. If any of the filters in this message are to match nothing, then they can be set as '-' (the minus sign). Supported only for unstructured Datasets.",
-    ).optional(),
+    }).describe("Split based on the provided filters for each set.").optional(),
     fractionSplit: z.object({
       testFraction: z.number().describe(
         "The fraction of the input data that is to be used to evaluate the Model.",
@@ -1226,15 +1207,14 @@ const InputsSchema = z.object({
       validationFraction: z.number().describe(
         "The fraction of the input data that is to be used to validate the Model.",
       ).optional(),
-    }).describe(
-      "Assigns the input data to training, validation, and test sets as per the given fractions. Any of `training_fraction`, `validation_fraction` and `test_fraction` may optionally be provided, they must sum to up to 1. If the provided ones sum to less than 1, the remainder is assigned to sets as decided by Vertex AI. If none of the fractions are set, by default roughly 80% of data is used for training, 10% for validation, and 10% for test.",
-    ).optional(),
+    }).describe("Split based on fractions defining the size of each set.")
+      .optional(),
     gcsDestination: z.object({
       outputUriPrefix: z.string().describe(
         "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
       ).optional(),
     }).describe(
-      "The Google Cloud Storage location where the output is to be written to.",
+      'The Cloud Storage location where the training data is to be written to. In the given directory a new directory is created with name: `dataset---` where timestamp is in YYYY-MM-DDThh:mm:ss.sssZ ISO-8601 format. All training input data is written into that directory. The Vertex AI environment variables representing Cloud Storage data URIs are represented in the Cloud Storage wildcard format to support sharded data. e.g.: "gs://.../training-*.jsonl" * AIP_DATA_FORMAT = "jsonl" for non-tabular data, "csv" for tabular data * AIP_TRAINING_DATA_URI = "gcs_destination/dataset---/training-*.${AIP_DATA_FORMAT}" * AIP_VALIDATION_DATA_URI = "gcs_destination/dataset---/validation-*.${AIP_DATA_FORMAT}" * AIP_TEST_DATA_URI = "gcs_destination/dataset---/test-*.${AIP_DATA_FORMAT}"',
     ).optional(),
     persistMlUseAssignment: z.boolean().describe(
       "Whether to persist the ML use assignment to data item system labels.",
@@ -1244,7 +1224,7 @@ const InputsSchema = z.object({
         "Required. The key is a name of one of the Dataset's data columns. The value of the key (either the label's value or value in the column) must be one of {`training`, `validation`, `test`}, and it defines to which set the given piece of data is assigned. If for a piece of data the key is not present or has an invalid value, that piece is ignored by the pipeline.",
       ).optional(),
     }).describe(
-      "Assigns input data to training, validation, and test sets based on the value of a provided key. Supported only for tabular Datasets.",
+      "Supported only for tabular Datasets. Split based on a predefined key.",
     ).optional(),
     savedQueryId: z.string().describe(
       "Only applicable to Datasets that have SavedQueries. The ID of a SavedQuery (annotation set) under the Dataset specified by dataset_id used for filtering Annotations for training. Only Annotations that are associated with this SavedQuery are used in respectively training. When used in conjunction with annotations_filter, the Annotations used for training are filtered by both saved_query_id and annotations_filter. Only one of saved_query_id and annotation_schema_uri should be specified as both of them represent the same thing: problem type.",
@@ -1263,7 +1243,7 @@ const InputsSchema = z.object({
         "The fraction of the input data that is to be used to validate the Model.",
       ).optional(),
     }).describe(
-      'Assigns input data to the training, validation, and test sets so that the distribution of values found in the categorical column (as specified by the `key` field) is mirrored within each split. The fraction values determine the relative sizes of the splits. For example, if the specified column has three values, with 50% of the rows having value "A", 25% value "B", and 25% value "C", and the split fractions are specified as 80/10/10, then the training set will constitute 80% of the training data, with about 50% of the training set rows having the value "A" for the specified column, about 25% having the value "B", and about 25% having the value "C". Only the top 500 occurring values are used; any values not in the top 500 values are randomly assigned to a split. If less than three rows contain a specific value, those rows are randomly assigned. Supported only for tabular Datasets.',
+      "Supported only for tabular Datasets. Split based on the distribution of the specified column.",
     ).optional(),
     timestampSplit: z.object({
       key: z.string().describe(
@@ -1279,10 +1259,10 @@ const InputsSchema = z.object({
         "The fraction of the input data that is to be used to validate the Model.",
       ).optional(),
     }).describe(
-      "Assigns input data to training, validation, and test sets based on a provided timestamps. The youngest data pieces are assigned to training set, next to validation set, and the oldest to the test set. Supported only for tabular Datasets.",
+      "Supported only for tabular Datasets. Split based on the timestamp of the input data pieces.",
     ).optional(),
   }).describe(
-    "Specifies Vertex AI owned input data to be used for training, and possibly evaluating, the Model.",
+    "Specifies Vertex AI owned input data that may be used for training the Model. The TrainingPipeline's training_task_definition should make clear whether this config is used and if there are any special requirements on how it should be filled. If nothing about this config is mentioned in the training_task_definition, then it should be assumed that the TrainingPipeline does not depend on this configuration.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize TrainingPipelines. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -1299,9 +1279,8 @@ const InputsSchema = z.object({
         baseModelUri: z.string().describe(
           "Required. The public base model URI.",
         ).optional(),
-      }).describe(
-        "Contains information about the source of the models generated from Generative AI Studio.",
-      ).optional(),
+      }).describe("Information about the base model of Genie models.")
+        .optional(),
       modelGardenSource: z.object({
         publicModelName: z.string().describe(
           "Required. The model garden source model resource name.",
@@ -1312,11 +1291,9 @@ const InputsSchema = z.object({
         versionId: z.string().describe(
           "Optional. The model garden source model version ID.",
         ).optional(),
-      }).describe(
-        "Contains information about the source of the models generated from Model Garden.",
-      ).optional(),
+      }).describe("Source information of Model Garden models.").optional(),
     }).describe(
-      "User input field to specify the base model source. Currently it only supports specifing the Model Garden models and Genie models.",
+      "Optional. User input field to specify the base model source. Currently it only supports specifing the Model Garden models and Genie models.",
     ).optional(),
     checkpoints: z.array(z.object({
       checkpointId: z.string().describe("The ID of the checkpoint.").optional(),
@@ -1356,7 +1333,9 @@ const InputsSchema = z.object({
           command: z.array(z.unknown()).describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe("ExecAction specifies a command to execute.").optional(),
+        }).describe(
+          "ExecAction probes the health of a container by executing a command.",
+        ).optional(),
         failureThreshold: z.number().int().describe(
           "Number of consecutive failures before the probe is considered failed. Defaults to 3. Minimum value is 1. Maps to Kubernetes probe argument 'failureThreshold'.",
         ).optional(),
@@ -1368,7 +1347,7 @@ const InputsSchema = z.object({
             "Service is the name of the service to place in the gRPC HealthCheckRequest. See https://github.com/grpc/grpc/blob/master/doc/health-checking.md. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
         }).describe(
-          "GrpcAction checks the health of a container using a gRPC service.",
+          "GrpcAction probes the health of a container by sending a gRPC request.",
         ).optional(),
         httpGet: z.object({
           host: z.string().describe(
@@ -1386,7 +1365,7 @@ const InputsSchema = z.object({
             'Scheme to use for connecting to the host. Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".',
           ).optional(),
         }).describe(
-          "HttpGetAction describes an action based on HTTP Get requests.",
+          "HttpGetAction probes the health of a container by sending an HTTP GET request.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds to wait before starting the probe. Defaults to 0. Minimum value is 0. Maps to Kubernetes probe argument 'initialDelaySeconds'.",
@@ -1410,9 +1389,8 @@ const InputsSchema = z.object({
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Must be greater or equal to period_seconds. Maps to Kubernetes probe argument 'timeoutSeconds'.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Immutable. Specification for Kubernetes readiness probe.")
+        .optional(),
       healthRoute: z.string().describe(
         "Immutable. HTTP path on the container to send health checks to. Vertex AI intermittently sends GET requests to this path on the container's IP address and port to check that the container is healthy. Read more about [health checks](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#health). For example, if you set this field to `/bar`, then Vertex AI intermittently sends a GET request to the `/bar` path on the port of your container specified by the first value of this `ModelContainerSpec`'s ports field. If you don't specify this field, it defaults to the following value when you deploy this Model to an Endpoint: /v1/endpoints/ENDPOINT/deployedModels/ DEPLOYED_MODEL:predict The placeholders in this value are replaced as follows: * ENDPOINT: The last segment (following `endpoints/`)of the Endpoint.name][] field of the Endpoint where this Model has been deployed. (Vertex AI makes this value available to your container code as the [`AIP_ENDPOINT_ID` environment variable](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#aip-variables).) * DEPLOYED_MODEL: DeployedModel.id of the `DeployedModel`. (Vertex AI makes this value available to your container code as the [`AIP_DEPLOYED_MODEL_ID` environment variable](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#aip-variables).)",
       ).optional(),
@@ -1427,7 +1405,9 @@ const InputsSchema = z.object({
           command: z.array(z.unknown()).describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe("ExecAction specifies a command to execute.").optional(),
+        }).describe(
+          "ExecAction probes the health of a container by executing a command.",
+        ).optional(),
         failureThreshold: z.number().int().describe(
           "Number of consecutive failures before the probe is considered failed. Defaults to 3. Minimum value is 1. Maps to Kubernetes probe argument 'failureThreshold'.",
         ).optional(),
@@ -1439,7 +1419,7 @@ const InputsSchema = z.object({
             "Service is the name of the service to place in the gRPC HealthCheckRequest. See https://github.com/grpc/grpc/blob/master/doc/health-checking.md. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
         }).describe(
-          "GrpcAction checks the health of a container using a gRPC service.",
+          "GrpcAction probes the health of a container by sending a gRPC request.",
         ).optional(),
         httpGet: z.object({
           host: z.string().describe(
@@ -1457,7 +1437,7 @@ const InputsSchema = z.object({
             'Scheme to use for connecting to the host. Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".',
           ).optional(),
         }).describe(
-          "HttpGetAction describes an action based on HTTP Get requests.",
+          "HttpGetAction probes the health of a container by sending an HTTP GET request.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds to wait before starting the probe. Defaults to 0. Minimum value is 0. Maps to Kubernetes probe argument 'initialDelaySeconds'.",
@@ -1481,9 +1461,8 @@ const InputsSchema = z.object({
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Must be greater or equal to period_seconds. Maps to Kubernetes probe argument 'timeoutSeconds'.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Immutable. Specification for Kubernetes liveness probe.")
+        .optional(),
       ports: z.array(z.object({
         containerPort: z.number().int().describe(
           "The number of the port to expose on the pod's IP address. Must be a valid port number, between 1 and 65535 inclusive.",
@@ -1502,7 +1481,9 @@ const InputsSchema = z.object({
           command: z.array(z.unknown()).describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe("ExecAction specifies a command to execute.").optional(),
+        }).describe(
+          "ExecAction probes the health of a container by executing a command.",
+        ).optional(),
         failureThreshold: z.number().int().describe(
           "Number of consecutive failures before the probe is considered failed. Defaults to 3. Minimum value is 1. Maps to Kubernetes probe argument 'failureThreshold'.",
         ).optional(),
@@ -1514,7 +1495,7 @@ const InputsSchema = z.object({
             "Service is the name of the service to place in the gRPC HealthCheckRequest. See https://github.com/grpc/grpc/blob/master/doc/health-checking.md. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
         }).describe(
-          "GrpcAction checks the health of a container using a gRPC service.",
+          "GrpcAction probes the health of a container by sending a gRPC request.",
         ).optional(),
         httpGet: z.object({
           host: z.string().describe(
@@ -1532,7 +1513,7 @@ const InputsSchema = z.object({
             'Scheme to use for connecting to the host. Defaults to HTTP. Acceptable values are "HTTP" or "HTTPS".',
           ).optional(),
         }).describe(
-          "HttpGetAction describes an action based on HTTP Get requests.",
+          "HttpGetAction probes the health of a container by sending an HTTP GET request.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds to wait before starting the probe. Defaults to 0. Minimum value is 0. Maps to Kubernetes probe argument 'initialDelaySeconds'.",
@@ -1556,11 +1537,10 @@ const InputsSchema = z.object({
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Must be greater or equal to period_seconds. Maps to Kubernetes probe argument 'timeoutSeconds'.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Immutable. Specification for Kubernetes startup probe.")
+        .optional(),
     }).describe(
-      "Specification of a container for serving predictions. Some fields in this message correspond to fields in the [Kubernetes Container v1 core specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core).",
+      "Input only. The specification of the container that is to be used when deploying this Model. The specification is ingested upon ModelService.UploadModel, and all binaries it contains are copied and stored internally by Vertex AI. Not required for AutoML Models.",
     ).optional(),
     createTime: z.string().describe(
       "Output only. Timestamp when this Model was uploaded into Vertex AI.",
@@ -1584,8 +1564,9 @@ const InputsSchema = z.object({
       validationDataItemsCount: z.string().describe(
         "Number of DataItems that were used for validating this Model during training.",
       ).optional(),
-    }).describe("Stats of data used for train or evaluate the Model.")
-      .optional(),
+    }).describe(
+      "Stats of data used for training or evaluating the Model. Only populated when the Model is trained by a TrainingPipeline with data_input_config.",
+    ).optional(),
     defaultCheckpointId: z.string().describe(
       "The default checkpoint id of a model version.",
     ).optional(),
@@ -1612,7 +1593,7 @@ const InputsSchema = z.object({
         "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
       ).optional(),
     }).describe(
-      "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+      "Customer-managed encryption key spec for a Model. If set, this Model and all sub-resources of this Model will be secured by this key.",
     ).optional(),
     etag: z.string().describe(
       'Used to perform consistent read-modify-write updates. If not set, a blind "overwrite" update happens.',
@@ -1638,7 +1619,7 @@ const InputsSchema = z.object({
               "Defines how the feature is encoded into the input tensor. Defaults to IDENTITY.",
             ).optional(),
             featureValueDomain: z.unknown().describe(
-              "Domain details of the input feature value. Provides numeric information about the feature, such as its range (min, max). If the feature has been pre-processed, for example with z-scoring, then it provides information about how to recover the original feature. For example, if the input feature is an image and it has been pre-processed to obtain 0-mean and stddev = 1 values, then original_mean, and original_stddev refer to the mean and stddev of the original feature (e.g. image tensor) from which input feature (with mean = 0 and stddev = 1) was obtained.",
+              "The domain details of the input feature value. Like min/max, original mean or standard deviation if normalized.",
             ).optional(),
             groupName: z.unknown().describe(
               "Name of the group that the input belongs to. Features with the same group name will be treated as one feature when computing attributions. Features grouped together can have different shapes in value. If provided, there will be one single attribution generated in Attribution.feature_attributions, keyed by the group name.",
@@ -1685,7 +1666,7 @@ const InputsSchema = z.object({
           "Required. Map from output names to output metadata. For Vertex AI-provided Tensorflow images, keys can be any user defined string that consists of any UTF-8 characters. For custom images, keys are the name of the output field in the prediction to be explained. Currently only one key is allowed.",
         ).optional(),
       }).describe(
-        "Metadata describing the Model's input and output for explanation.",
+        "Optional. Metadata describing the Model's input and output for explanation.",
       ).optional(),
       parameters: z.object({
         examples: z.object({
@@ -1694,7 +1675,7 @@ const InputsSchema = z.object({
               "The format in which instances are given, if not specified, assume it's JSONL format. Currently only JSONL format is supported.",
             ).optional(),
             gcsSource: z.unknown().describe(
-              "The Google Cloud Storage location for the input content.",
+              "The Cloud Storage location for the input instances.",
             ).optional(),
           }).describe("The Cloud Storage input instances.").optional(),
           nearestNeighborSearchConfig: z.string().describe(
@@ -1710,10 +1691,11 @@ const InputsSchema = z.object({
             query: z.unknown().describe(
               "Preset option controlling parameters for speed-precision trade-off when querying for examples. If omitted, defaults to `PRECISE`.",
             ).optional(),
-          }).describe("Preset configuration for example-based explanations")
-            .optional(),
+          }).describe(
+            "Simplified preset configuration, which automatically sets configuration values based on the desired query speed-precision trade-off and modality.",
+          ).optional(),
         }).describe(
-          "Example-based explainability that returns the nearest neighbors from the provided dataset.",
+          "Example-based explanations that returns the nearest neighbors from the provided dataset.",
         ).optional(),
         integratedGradientsAttribution: z.object({
           blurBaselineConfig: z.object({
@@ -1721,11 +1703,11 @@ const InputsSchema = z.object({
               "The standard deviation of the blur kernel for the blurred baseline. The same blurring parameter is used for both the height and the width dimension. If not set, the method defaults to the zero (i.e. black for images) baseline.",
             ).optional(),
           }).describe(
-            "Config for blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
+            "Config for IG with blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
           ).optional(),
           smoothGradConfig: z.object({
             featureNoiseSigma: z.unknown().describe(
-              "Noise sigma by features. Noise sigma represents the standard deviation of the gaussian kernel that will be used to add noise to interpolated inputs prior to computing gradients.",
+              "This is similar to noise_sigma, but provides additional flexibility. A separate noise sigma can be provided for each feature, which is useful if their distributions are different. No noise is added to features that are not set. If this field is unset, noise_sigma will be used for all features.",
             ).optional(),
             noiseSigma: z.unknown().describe(
               "This is a single float value and will be used to add noise to all the features. Use this field when all features are normalized to have the same distribution: scale to range [0, 1], [-1, 1] or z-scoring, where features are normalized to have 0-mean and 1-variance. Learn more about [normalization](https://developers.google.com/machine-learning/data-prep/transform/normalization). For best results the recommended value is about 10% - 20% of the standard deviation of the input feature. Refer to section 3.2 of the SmoothGrad paper: https://arxiv.org/pdf/1706.03825.pdf. Defaults to 0.1. If the distribution is different per feature, set feature_noise_sigma instead for each feature.",
@@ -1740,7 +1722,7 @@ const InputsSchema = z.object({
             "Required. The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is within the desired error range. Valid range of its value is [1, 100], inclusively.",
           ).optional(),
         }).describe(
-          "An attribution method that computes the Aumann-Shapley value taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
+          "An attribution method that computes Aumann-Shapley values taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
         ).optional(),
         outputIndices: z.array(z.string()).describe(
           "If populated, only returns attributions that have output_index contained in output_indices. It must be an ndarray of integers, with the same shape of the output it's explaining. If not populated, returns attributions for top_k indices of outputs. If neither top_k nor output_indices is populated, returns the argmax index of the outputs. Only applicable to Models that predict multiple outputs (e,g, multi-class Models that predict multiple classes).",
@@ -1750,7 +1732,7 @@ const InputsSchema = z.object({
             "Required. The number of feature permutations to consider when approximating the Shapley values. Valid range of its value is [1, 50], inclusively.",
           ).optional(),
         }).describe(
-          "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features.",
+          "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features. Refer to this paper for model details: https://arxiv.org/abs/1306.4265.",
         ).optional(),
         topK: z.number().int().describe(
           "If populated, returns attributions for top K indices of outputs (defaults to 1). Only applies to Models that predicts more than one outputs (e,g, multi-class Models). When set to -1, returns explanations for all outputs.",
@@ -1761,11 +1743,11 @@ const InputsSchema = z.object({
               "The standard deviation of the blur kernel for the blurred baseline. The same blurring parameter is used for both the height and the width dimension. If not set, the method defaults to the zero (i.e. black for images) baseline.",
             ).optional(),
           }).describe(
-            "Config for blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
+            "Config for XRAI with blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383",
           ).optional(),
           smoothGradConfig: z.object({
             featureNoiseSigma: z.unknown().describe(
-              "Noise sigma by features. Noise sigma represents the standard deviation of the gaussian kernel that will be used to add noise to interpolated inputs prior to computing gradients.",
+              "This is similar to noise_sigma, but provides additional flexibility. A separate noise sigma can be provided for each feature, which is useful if their distributions are different. No noise is added to features that are not set. If this field is unset, noise_sigma will be used for all features.",
             ).optional(),
             noiseSigma: z.unknown().describe(
               "This is a single float value and will be used to add noise to all the features. Use this field when all features are normalized to have the same distribution: scale to range [0, 1], [-1, 1] or z-scoring, where features are normalized to have 0-mean and 1-variance. Learn more about [normalization](https://developers.google.com/machine-learning/data-prep/transform/normalization). For best results the recommended value is about 10% - 20% of the standard deviation of the input feature. Refer to section 3.2 of the SmoothGrad paper: https://arxiv.org/pdf/1706.03825.pdf. Defaults to 0.1. If the distribution is different per feature, set feature_noise_sigma instead for each feature.",
@@ -1780,11 +1762,14 @@ const InputsSchema = z.object({
             "Required. The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is met within the desired error range. Valid range of its value is [1, 100], inclusively.",
           ).optional(),
         }).describe(
-          "An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Supported only by image Models.",
+          "An attribution method that redistributes Integrated Gradients attribution to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 XRAI currently performs better on natural images, like a picture of a house or an animal. If the images are taken in artificial environments, like a lab or manufacturing line, or from diagnostic equipment, like x-rays or quality-control cameras, use Integrated Gradients instead.",
         ).optional(),
-      }).describe("Parameters to configure explaining for Model's predictions.")
-        .optional(),
-    }).describe("Specification of Model explanation.").optional(),
+      }).describe(
+        "Required. Parameters that configure explaining of the Model's predictions.",
+      ).optional(),
+    }).describe(
+      "The default explanation specification for this Model. The Model can be used for requesting explanation after being deployed if it is populated. The Model can be used for batch explanation if it is populated. All fields of the explanation_spec can be overridden by explanation_spec of DeployModelRequest.deployed_model, or explanation_spec of BatchPredictionJob. If the default explanation specification is not set for this Model, this Model can still be used for requesting explanation by setting explanation_spec of DeployModelRequest.deployed_model and for batch explanation by setting explanation_spec of BatchPredictionJob.",
+    ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "The labels with user-defined metadata to organize your Models. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
     ).optional(),
@@ -1811,8 +1796,9 @@ const InputsSchema = z.object({
         "CUSTOM_TEXT_EMBEDDING",
         "MARKETPLACE",
       ]).describe("Type of the model source.").optional(),
-    }).describe("Detail description of the source information of the model.")
-      .optional(),
+    }).describe(
+      "Output only. Source of a model. It can either be automl training pipeline, custom training pipeline, BigQuery ML, or saved and tuned from Genie or Model Garden.",
+    ).optional(),
     name: z.string().describe("Identifier. The resource name of the Model.")
       .optional(),
     originalModelInfo: z.object({
@@ -1820,7 +1806,7 @@ const InputsSchema = z.object({
         "Output only. The resource name of the Model this Model is a copy of, including the revision. Format: `projects/{project}/locations/{location}/models/{model_id}@{version_id}`",
       ).optional(),
     }).describe(
-      "Contains information about the original Model if this Model is a copy.",
+      "Output only. If this Model is a copy of another Model, this contains info about the original.",
     ).optional(),
     pipelineJob: z.string().describe(
       "Optional. This field is populated if the model is produced by a pipeline job.",
@@ -1836,7 +1822,7 @@ const InputsSchema = z.object({
         "Immutable. Points to a YAML file stored on Google Cloud Storage describing the format of a single prediction produced by this Model, which are returned via PredictResponse.predictions, ExplainResponse.explanations, and BatchPredictionJob.output_config. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). AutoML Models always have this field populated by Vertex AI. Note: The URI given on output will be immutable and probably different, including the URI scheme, than the one given on input. The output URI will point to a location where the user only has a read access.",
       ).optional(),
     }).describe(
-      "Contains the schemata used in Model's predictions and explanations via PredictionService.Predict, PredictionService.Explain and BatchPredictionJob.",
+      "The schemata that describe formats of the Model's predictions and explanations as given and returned via PredictionService.Predict and PredictionService.Explain.",
     ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
@@ -1889,7 +1875,9 @@ const InputsSchema = z.object({
     versionUpdateTime: z.string().describe(
       "Output only. Timestamp when this version was most recently updated.",
     ).optional(),
-  }).describe("A trained machine learning Model.").optional(),
+  }).describe(
+    "Describes the Model that may be uploaded (via ModelService.UploadModel) by this TrainingPipeline. The TrainingPipeline's training_task_definition should make clear whether this Model description should be populated, and if there are any special requirements regarding how it should be filled. If nothing is mentioned in the training_task_definition, then it should be assumed that this field should not be filled and the training task either uploads the Model without a need of this information, or that training task does not support uploading a Model as part of the pipeline. When the Pipeline's state becomes `PIPELINE_STATE_SUCCEEDED` and the trained Model had been uploaded into Vertex AI, then the model_to_upload's resource name is populated. The Model is always uploaded into the Project and Location in which this pipeline is.",
+  ).optional(),
   parentModel: z.string().describe(
     "Optional. When specify this field, the `model_to_upload` will not be uploaded as a new model, instead, it will become a new version of this `parent_model`.",
   ).optional(),
@@ -1927,7 +1915,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform TrainingPipelines. Registered at `@swamp/gcp/aiplatform/trainingpipelines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/trainingpipelines",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2059,6 +2047,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2090,7 +2086,6 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["inputDataConfig"] !== undefined) {
           body["inputDataConfig"] = g["inputDataConfig"];
         }

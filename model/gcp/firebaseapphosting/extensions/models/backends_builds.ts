@@ -238,10 +238,9 @@ const GlobalArgsSchema = z.object({
         "Optional. Number of Cloud Run instances to maintain at minimum for each Cloud Run Service. By default, there are no minimum. Even if the service splits traffic across multiple revisions, the total number of instances for a service will be capped at this value.",
       ).optional(),
     }).describe(
-      "Configuration applied to the Cloud Run [`service`](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).",
+      "Optional. Additional configuration of the Cloud Run [`service`](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).",
     ).optional(),
-  }).describe("Additional configuration of the backend for this build.")
-    .optional(),
+  }).describe("Optional. Additional configuration of the service.").optional(),
   displayName: z.string().describe(
     "Optional. Human-readable name. 63 character limit.",
   ).optional(),
@@ -264,7 +263,7 @@ const GlobalArgsSchema = z.object({
           "Output only. Deprecated: Not used. The URI of a profile photo associated with the user who created the build.",
         ).optional(),
       }).describe(
-        "Deprecated: Not used. Metadata for the user who started the build.",
+        "Optional. Deprecated: Not used. The author contained in the metadata of a version control change.",
       ).optional(),
       description: z.string().describe(
         "Optional. An optional message that describes the uploaded version of the source code.",
@@ -278,9 +277,7 @@ const GlobalArgsSchema = z.object({
       userStorageUri: z.string().describe(
         "URI to an archive in Cloud Storage. The object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to deploy.",
       ).optional(),
-    }).describe(
-      "The URI of an storage archive or a signed URL to use as the build source.",
-    ).optional(),
+    }).describe("An archive source.").optional(),
     codebase: z.object({
       author: z.object({
         displayName: z.string().describe(
@@ -293,7 +290,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The URI of an image file associated with the user's account in an external source control provider, if available.",
         ).optional(),
       }).describe(
-        "Version control metadata for a user associated with a resolved codebase. Currently assumes a Git user.",
+        "Output only. The author contained in the metadata of a version control change.",
       ).optional(),
       branch: z.string().describe(
         "The branch in the codebase to build from, using the latest commit.",
@@ -318,17 +315,13 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "Output only. A URI linking to the codebase on an hosting provider's website. May not be valid if the commit has been rebased or force-pushed out of existence in the linked repository.",
       ).optional(),
-    }).describe(
-      "A codebase source, representing the state of the codebase that the build will be created at.",
-    ).optional(),
+    }).describe("A codebase source.").optional(),
     container: z.object({
       image: z.string().describe(
         "Required. A URI representing a container for the backend to use.",
       ).optional(),
-    }).describe(
-      "The URI of an Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) to use as the build source.",
-    ).optional(),
-  }).describe("The source for the build.").optional(),
+    }).describe("An Artifact Registry container image source.").optional(),
+  }).describe("Required. Immutable. The source for the build.").optional(),
   buildId: z.string().describe(
     "Required. Desired ID of the build being created.",
   ).optional(),
@@ -513,10 +506,9 @@ const InputsSchema = z.object({
         "Optional. Number of Cloud Run instances to maintain at minimum for each Cloud Run Service. By default, there are no minimum. Even if the service splits traffic across multiple revisions, the total number of instances for a service will be capped at this value.",
       ).optional(),
     }).describe(
-      "Configuration applied to the Cloud Run [`service`](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).",
+      "Optional. Additional configuration of the Cloud Run [`service`](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).",
     ).optional(),
-  }).describe("Additional configuration of the backend for this build.")
-    .optional(),
+  }).describe("Optional. Additional configuration of the service.").optional(),
   displayName: z.string().describe(
     "Optional. Human-readable name. 63 character limit.",
   ).optional(),
@@ -539,7 +531,7 @@ const InputsSchema = z.object({
           "Output only. Deprecated: Not used. The URI of a profile photo associated with the user who created the build.",
         ).optional(),
       }).describe(
-        "Deprecated: Not used. Metadata for the user who started the build.",
+        "Optional. Deprecated: Not used. The author contained in the metadata of a version control change.",
       ).optional(),
       description: z.string().describe(
         "Optional. An optional message that describes the uploaded version of the source code.",
@@ -553,9 +545,7 @@ const InputsSchema = z.object({
       userStorageUri: z.string().describe(
         "URI to an archive in Cloud Storage. The object must be a zipped (.zip) or gzipped archive file (.tar.gz) containing source to deploy.",
       ).optional(),
-    }).describe(
-      "The URI of an storage archive or a signed URL to use as the build source.",
-    ).optional(),
+    }).describe("An archive source.").optional(),
     codebase: z.object({
       author: z.object({
         displayName: z.string().describe(
@@ -568,7 +558,7 @@ const InputsSchema = z.object({
           "Output only. The URI of an image file associated with the user's account in an external source control provider, if available.",
         ).optional(),
       }).describe(
-        "Version control metadata for a user associated with a resolved codebase. Currently assumes a Git user.",
+        "Output only. The author contained in the metadata of a version control change.",
       ).optional(),
       branch: z.string().describe(
         "The branch in the codebase to build from, using the latest commit.",
@@ -593,17 +583,13 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "Output only. A URI linking to the codebase on an hosting provider's website. May not be valid if the commit has been rebased or force-pushed out of existence in the linked repository.",
       ).optional(),
-    }).describe(
-      "A codebase source, representing the state of the codebase that the build will be created at.",
-    ).optional(),
+    }).describe("A codebase source.").optional(),
     container: z.object({
       image: z.string().describe(
         "Required. A URI representing a container for the backend to use.",
       ).optional(),
-    }).describe(
-      "The URI of an Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) to use as the build source.",
-    ).optional(),
-  }).describe("The source for the build.").optional(),
+    }).describe("An Artifact Registry container image source.").optional(),
+  }).describe("Required. Immutable. The source for the build.").optional(),
   buildId: z.string().describe(
     "Required. Desired ID of the build being created.",
   ).optional(),
@@ -641,7 +627,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Hosting Backends.Builds. Registered at `@swamp/gcp/firebaseapphosting/backends-builds`. */
 export const model = {
   type: "@swamp/gcp/firebaseapphosting/backends-builds",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -745,6 +731,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

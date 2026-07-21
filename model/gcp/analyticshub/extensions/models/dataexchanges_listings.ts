@@ -197,7 +197,7 @@ const GlobalArgsSchema = z.object({
         "Optional. If true, restrict export of query result derived from restricted linked dataset table.",
       ).optional(),
     }).describe(
-      "Restricted export policy used to configure restricted export on linked dataset.",
+      "Optional. If set, restricted export policy will be propagated and enforced on the linked dataset.",
     ).optional(),
     selectedResources: z.array(z.object({
       routine: z.string().describe(
@@ -209,9 +209,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. Resource in this dataset that is selectively shared. This field is required for data clean room exchanges.",
     ).optional(),
-  }).describe(
-    "A reference to a shared dataset. It is an existing BigQuery dataset with a collection of objects such as tables and views that you want to share with subscribers. When subscriber's subscribe to a listing, Analytics Hub creates a linked dataset in the subscriber's project. A Linked dataset is an opaque, read-only BigQuery dataset that serves as a _symbolic link_ to a shared dataset.",
-  ).optional(),
+  }).describe("Shared dataset i.e. BigQuery dataset source.").optional(),
   categories: z.array(
     z.enum([
       "CATEGORY_UNSPECIFIED",
@@ -239,31 +237,15 @@ const GlobalArgsSchema = z.object({
   ).describe(
     "Optional. Categories of the listing. Up to five categories are allowed.",
   ).optional(),
-  commercialInfo: z.object({
-    cloudMarketplace: z.object({
-      commercialState: z.enum([
-        "COMMERCIAL_STATE_UNSPECIFIED",
-        "ONBOARDING",
-        "ACTIVE",
-      ]).describe(
-        "Output only. Commercial state of the Marketplace Data Product.",
-      ).optional(),
-      service: z.string().describe(
-        "Output only. Resource name of the commercial service associated with the Marketplace Data Product. e.g. example.com",
-      ).optional(),
-    }).describe(
-      "Specifies the details of the Marketplace Data Product associated with the Listing.",
-    ).optional(),
-  }).describe(
-    "Commercial info contains the information about the commercial data products associated with the listing.",
-  ).optional(),
   dataProvider: z.object({
     name: z.string().describe("Optional. Name of the data provider.")
       .optional(),
     primaryContact: z.string().describe(
       "Optional. Email or URL of the data provider. Max Length: 1000 bytes.",
     ).optional(),
-  }).describe("Contains details of the data provider.").optional(),
+  }).describe(
+    "Optional. Details of the data provider who owns the source data.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Short description of the listing. The description must not contain Unicode non-characters and C0 and C1 control codes except tabs (HT), new lines (LF), carriage returns (CR), and page breaks (FF). Default value is an empty string. Max length: 2000 bytes.",
   ).optional(),
@@ -295,7 +277,9 @@ const GlobalArgsSchema = z.object({
     primaryContact: z.string().describe(
       "Optional. Email or URL of the listing publisher. Max Length: 1000 bytes.",
     ).optional(),
-  }).describe("Contains details of the listing publisher.").optional(),
+  }).describe(
+    "Optional. Details of the publisher who owns the listing and who can share the source data.",
+  ).optional(),
   pubsubTopic: z.object({
     dataAffinityRegions: z.array(z.string()).describe(
       "Optional. Region hint on where the data might be published. Data affinity regions are modifiable. See https://cloud.google.com/about/locations for full listing of possible Cloud regions.",
@@ -318,7 +302,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If true, restrict export of query result derived from restricted linked dataset table.",
     ).optional(),
   }).describe(
-    "Restricted export config, used to configure restricted export on linked dataset.",
+    "Optional. If set, restricted export configuration will be propagated and enforced on the linked dataset.",
   ).optional(),
   storedProcedureConfig: z.object({
     allowedStoredProcedureTypes: z.array(
@@ -329,7 +313,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If true, enable sharing of stored procedure.",
     ).optional(),
   }).describe(
-    "Stored procedure configuration, used to configure stored procedure sharing on linked dataset.",
+    "Optional. If set, stored procedure configuration will be propagated and enforced on the linked dataset.",
   ).optional(),
   listingId: z.string().describe(
     "Required. The ID of the listing to create. Must contain only Unicode letters, numbers (0-9), underscores (_). Max length: 100 bytes.",
@@ -450,7 +434,7 @@ const InputsSchema = z.object({
         "Optional. If true, restrict export of query result derived from restricted linked dataset table.",
       ).optional(),
     }).describe(
-      "Restricted export policy used to configure restricted export on linked dataset.",
+      "Optional. If set, restricted export policy will be propagated and enforced on the linked dataset.",
     ).optional(),
     selectedResources: z.array(z.object({
       routine: z.string().describe(
@@ -462,9 +446,7 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. Resource in this dataset that is selectively shared. This field is required for data clean room exchanges.",
     ).optional(),
-  }).describe(
-    "A reference to a shared dataset. It is an existing BigQuery dataset with a collection of objects such as tables and views that you want to share with subscribers. When subscriber's subscribe to a listing, Analytics Hub creates a linked dataset in the subscriber's project. A Linked dataset is an opaque, read-only BigQuery dataset that serves as a _symbolic link_ to a shared dataset.",
-  ).optional(),
+  }).describe("Shared dataset i.e. BigQuery dataset source.").optional(),
   categories: z.array(
     z.enum([
       "CATEGORY_UNSPECIFIED",
@@ -492,31 +474,15 @@ const InputsSchema = z.object({
   ).describe(
     "Optional. Categories of the listing. Up to five categories are allowed.",
   ).optional(),
-  commercialInfo: z.object({
-    cloudMarketplace: z.object({
-      commercialState: z.enum([
-        "COMMERCIAL_STATE_UNSPECIFIED",
-        "ONBOARDING",
-        "ACTIVE",
-      ]).describe(
-        "Output only. Commercial state of the Marketplace Data Product.",
-      ).optional(),
-      service: z.string().describe(
-        "Output only. Resource name of the commercial service associated with the Marketplace Data Product. e.g. example.com",
-      ).optional(),
-    }).describe(
-      "Specifies the details of the Marketplace Data Product associated with the Listing.",
-    ).optional(),
-  }).describe(
-    "Commercial info contains the information about the commercial data products associated with the listing.",
-  ).optional(),
   dataProvider: z.object({
     name: z.string().describe("Optional. Name of the data provider.")
       .optional(),
     primaryContact: z.string().describe(
       "Optional. Email or URL of the data provider. Max Length: 1000 bytes.",
     ).optional(),
-  }).describe("Contains details of the data provider.").optional(),
+  }).describe(
+    "Optional. Details of the data provider who owns the source data.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Short description of the listing. The description must not contain Unicode non-characters and C0 and C1 control codes except tabs (HT), new lines (LF), carriage returns (CR), and page breaks (FF). Default value is an empty string. Max length: 2000 bytes.",
   ).optional(),
@@ -548,7 +514,9 @@ const InputsSchema = z.object({
     primaryContact: z.string().describe(
       "Optional. Email or URL of the listing publisher. Max Length: 1000 bytes.",
     ).optional(),
-  }).describe("Contains details of the listing publisher.").optional(),
+  }).describe(
+    "Optional. Details of the publisher who owns the listing and who can share the source data.",
+  ).optional(),
   pubsubTopic: z.object({
     dataAffinityRegions: z.array(z.string()).describe(
       "Optional. Region hint on where the data might be published. Data affinity regions are modifiable. See https://cloud.google.com/about/locations for full listing of possible Cloud regions.",
@@ -571,7 +539,7 @@ const InputsSchema = z.object({
       "Optional. If true, restrict export of query result derived from restricted linked dataset table.",
     ).optional(),
   }).describe(
-    "Restricted export config, used to configure restricted export on linked dataset.",
+    "Optional. If set, restricted export configuration will be propagated and enforced on the linked dataset.",
   ).optional(),
   storedProcedureConfig: z.object({
     allowedStoredProcedureTypes: z.array(
@@ -582,7 +550,7 @@ const InputsSchema = z.object({
       "Optional. If true, enable sharing of stored procedure.",
     ).optional(),
   }).describe(
-    "Stored procedure configuration, used to configure stored procedure sharing on linked dataset.",
+    "Optional. If set, stored procedure configuration will be propagated and enforced on the linked dataset.",
   ).optional(),
   listingId: z.string().describe(
     "Required. The ID of the listing to create. Must contain only Unicode letters, numbers (0-9), underscores (_). Max length: 100 bytes.",
@@ -618,7 +586,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Analytics Hub DataExchanges.Listings. Registered at `@swamp/gcp/analyticshub/dataexchanges-listings`. */
 export const model = {
   type: "@swamp/gcp/analyticshub/dataexchanges-listings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -725,6 +693,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: commercialInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { commercialInfo: _commercialInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -759,9 +735,6 @@ export const model = {
           body["bigqueryDataset"] = g["bigqueryDataset"];
         }
         if (g["categories"] !== undefined) body["categories"] = g["categories"];
-        if (g["commercialInfo"] !== undefined) {
-          body["commercialInfo"] = g["commercialInfo"];
-        }
         if (g["dataProvider"] !== undefined) {
           body["dataProvider"] = g["dataProvider"];
         }
@@ -925,9 +898,6 @@ export const model = {
           body["bigqueryDataset"] = g["bigqueryDataset"];
         }
         if (g["categories"] !== undefined) body["categories"] = g["categories"];
-        if (g["commercialInfo"] !== undefined) {
-          body["commercialInfo"] = g["commercialInfo"];
-        }
         if (g["dataProvider"] !== undefined) {
           body["dataProvider"] = g["dataProvider"];
         }

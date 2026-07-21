@@ -104,7 +104,7 @@ const GlobalArgsSchema = z.object({
     title: z.string().describe(
       "Required. The title of the form which is visible to responders.",
     ).optional(),
-  }).describe("The general information for a form.").optional(),
+  }).describe("Required. The title and description of the form.").optional(),
   items: z.array(z.object({
     description: z.string().describe("The description of the item.").optional(),
     imageItem: z.object({
@@ -120,18 +120,17 @@ const GlobalArgsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of an image.").optional(),
         sourceUri: z.string().describe(
           "Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.",
         ).optional(),
-      }).describe("Data representing an image.").optional(),
-    }).describe("An item containing an image.").optional(),
+      }).describe("Required. The image displayed in the item.").optional(),
+    }).describe("Displays an image on the page.").optional(),
     itemId: z.string().describe(
       "The item ID. On creation, it can be provided but the ID must not be already used in the form. If not provided, a new ID is assigned.",
     ).optional(),
-    pageBreakItem: z.object({}).describe(
-      "A page break. The title and description of this item are shown at the top of the new page.",
-    ).optional(),
+    pageBreakItem: z.object({}).describe("Starts a new page with a title.")
+      .optional(),
     questionGroupItem: z.object({
       grid: z.object({
         columns: z.object({
@@ -143,12 +142,14 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("Required. The type of choice question.")
             .optional(),
-        }).describe("A radio/checkbox/dropdown question.").optional(),
+        }).describe(
+          "Required. The choices shared by each question in the grid. In other words, the values of the columns. Only `CHECK_BOX` and `RADIO` choices are allowed.",
+        ).optional(),
         shuffleQuestions: z.boolean().describe(
           "If `true`, the questions are randomly ordered. In other words, the rows appear in a different order for every respondent.",
         ).optional(),
       }).describe(
-        "A grid of choices (radio or check boxes) with each row constituting a separate question. Each row has the same choices, which are shown as the columns.",
+        "The question group is a grid with rows of multiple choice questions that share the same options. When `grid` is set, all questions in the group must be of kind `row`.",
       ).optional(),
       image: z.object({
         altText: z.string().describe(
@@ -162,45 +163,48 @@ const GlobalArgsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of an image.").optional(),
         sourceUri: z.string().describe(
           "Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.",
         ).optional(),
-      }).describe("Data representing an image.").optional(),
+      }).describe(
+        "The image displayed within the question group above the specific questions.",
+      ).optional(),
       questions: z.array(z.object({
         choiceQuestion: z.unknown().describe(
-          "A radio/checkbox/dropdown question.",
+          "A respondent can choose from a pre-defined set of options.",
         ).optional(),
-        dateQuestion: z.unknown().describe(
-          "A date question. Date questions default to just month + day.",
-        ).optional(),
+        dateQuestion: z.unknown().describe("A respondent can enter a date.")
+          .optional(),
         fileUploadQuestion: z.unknown().describe(
-          "A file upload question. The API currently does not support creating file upload questions.",
+          "A respondent can upload one or more files.",
         ).optional(),
-        grading: z.unknown().describe("Grading for a single question")
+        grading: z.unknown().describe("Grading setup for the question.")
           .optional(),
         questionId: z.unknown().describe(
           "Read only. The question ID. On creation, it can be provided but the ID must not be already used in the form. If not provided, a new ID is assigned.",
         ).optional(),
         ratingQuestion: z.unknown().describe(
-          "A rating question. The user has a range of icons to choose from.",
+          "A respondent can choose a rating from a pre-defined set of icons.",
         ).optional(),
         required: z.unknown().describe(
           "Whether the question must be answered in order for a respondent to submit their response.",
         ).optional(),
-        rowQuestion: z.unknown().describe(
-          "Configuration for a question that is part of a question group.",
-        ).optional(),
+        rowQuestion: z.unknown().describe("A row of a QuestionGroupItem.")
+          .optional(),
         scaleQuestion: z.unknown().describe(
-          "A scale question. The user has a range of numeric values to choose from.",
+          "A respondent can choose a number from a range.",
         ).optional(),
-        textQuestion: z.unknown().describe("A text-based question.").optional(),
-        timeQuestion: z.unknown().describe("A time question.").optional(),
+        textQuestion: z.unknown().describe(
+          "A respondent can enter a free text response.",
+        ).optional(),
+        timeQuestion: z.unknown().describe("A respondent can enter a time.")
+          .optional(),
       })).describe(
         "Required. A list of questions that belong in this question group. A question must only belong to one group. The `kind` of the group may affect what types of questions are allowed.",
       ).optional(),
     }).describe(
-      "Defines a question that comprises multiple questions grouped together.",
+      "Poses one or more questions to the user with a single major prompt.",
     ).optional(),
     questionItem: z.object({
       image: z.object({
@@ -215,11 +219,11 @@ const GlobalArgsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of an image.").optional(),
         sourceUri: z.string().describe(
           "Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.",
         ).optional(),
-      }).describe("Data representing an image.").optional(),
+      }).describe("The image displayed within the question.").optional(),
       question: z.object({
         choiceQuestion: z.object({
           options: z.unknown().describe(
@@ -230,7 +234,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("Required. The type of choice question.")
             .optional(),
-        }).describe("A radio/checkbox/dropdown question.").optional(),
+        }).describe(
+          "A respondent can choose from a pre-defined set of options.",
+        ).optional(),
         dateQuestion: z.object({
           includeTime: z.unknown().describe(
             "Whether to include the time as part of the question.",
@@ -238,9 +244,7 @@ const GlobalArgsSchema = z.object({
           includeYear: z.unknown().describe(
             "Whether to include the year as part of the question.",
           ).optional(),
-        }).describe(
-          "A date question. Date questions default to just month + day.",
-        ).optional(),
+        }).describe("A respondent can enter a date.").optional(),
         fileUploadQuestion: z.object({
           folderId: z.unknown().describe(
             "Required. The ID of the Drive folder where uploaded files are stored.",
@@ -253,25 +257,24 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           types: z.unknown().describe("File types accepted by this question.")
             .optional(),
-        }).describe(
-          "A file upload question. The API currently does not support creating file upload questions.",
-        ).optional(),
+        }).describe("A respondent can upload one or more files.").optional(),
         grading: z.object({
-          correctAnswers: z.unknown().describe("The answer key for a question.")
-            .optional(),
+          correctAnswers: z.unknown().describe(
+            "Required. The answer key for the question. Responses are automatically graded based on this field.",
+          ).optional(),
           generalFeedback: z.unknown().describe(
-            "Feedback for a respondent about their response to a question.",
+            "The feedback displayed for all answers. This is commonly used for short answer questions when a quiz owner wants to quickly give respondents some sense of whether they answered the question correctly before they've had a chance to officially grade the response. General feedback cannot be set for automatically graded multiple choice questions.",
           ).optional(),
           pointValue: z.unknown().describe(
             "Required. The maximum number of points a respondent can automatically get for a correct answer. This must not be negative.",
           ).optional(),
           whenRight: z.unknown().describe(
-            "Feedback for a respondent about their response to a question.",
+            "The feedback displayed for correct responses. This feedback can only be set for multiple choice questions that have correct answers provided.",
           ).optional(),
           whenWrong: z.unknown().describe(
-            "Feedback for a respondent about their response to a question.",
+            "The feedback displayed for incorrect responses. This feedback can only be set for multiple choice questions that have correct answers provided.",
           ).optional(),
-        }).describe("Grading for a single question").optional(),
+        }).describe("Grading setup for the question.").optional(),
         questionId: z.string().describe(
           "Read only. The question ID. On creation, it can be provided but the ID must not be already used in the form. If not provided, a new ID is assigned.",
         ).optional(),
@@ -283,7 +286,7 @@ const GlobalArgsSchema = z.object({
             "Required. The rating scale level of the rating question.",
           ).optional(),
         }).describe(
-          "A rating question. The user has a range of icons to choose from.",
+          "A respondent can choose a rating from a pre-defined set of icons.",
         ).optional(),
         required: z.boolean().describe(
           "Whether the question must be answered in order for a respondent to submit their response.",
@@ -292,9 +295,7 @@ const GlobalArgsSchema = z.object({
           title: z.unknown().describe(
             "Required. The title for the single row in the QuestionGroupItem.",
           ).optional(),
-        }).describe(
-          "Configuration for a question that is part of a question group.",
-        ).optional(),
+        }).describe("A row of a QuestionGroupItem.").optional(),
         scaleQuestion: z.object({
           high: z.unknown().describe(
             "Required. The highest possible value for the scale.",
@@ -308,24 +309,23 @@ const GlobalArgsSchema = z.object({
           lowLabel: z.unknown().describe(
             "The label to display describing the lowest point on the scale.",
           ).optional(),
-        }).describe(
-          "A scale question. The user has a range of numeric values to choose from.",
-        ).optional(),
+        }).describe("A respondent can choose a number from a range.")
+          .optional(),
         textQuestion: z.object({
           paragraph: z.unknown().describe(
             "Whether the question is a paragraph question or not. If not, the question is a short text question.",
           ).optional(),
-        }).describe("A text-based question.").optional(),
+        }).describe("A respondent can enter a free text response.").optional(),
         timeQuestion: z.object({
           duration: z.unknown().describe(
             "`true` if the question is about an elapsed time. Otherwise it is about a time of day.",
           ).optional(),
-        }).describe("A time question.").optional(),
-      }).describe(
-        "Any question. The specific type of question is known by its `kind`.",
-      ).optional(),
-    }).describe("A form item containing a single question.").optional(),
-    textItem: z.object({}).describe("A text item.").optional(),
+        }).describe("A respondent can enter a time.").optional(),
+      }).describe("Required. The displayed question.").optional(),
+    }).describe("Poses a question to the user.").optional(),
+    textItem: z.object({}).describe(
+      "Displays a title and description on the page.",
+    ).optional(),
     title: z.string().describe("The title of the item.").optional(),
     videoItem: z.object({
       caption: z.string().describe("The text displayed below the video.")
@@ -336,23 +336,13 @@ const GlobalArgsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of a video.").optional(),
         youtubeUri: z.string().describe("Required. A YouTube URI.").optional(),
-      }).describe("Data representing a video.").optional(),
-    }).describe("An item containing a video.").optional(),
+      }).describe("Required. The video displayed in the item.").optional(),
+    }).describe("Displays a video on the page.").optional(),
   })).describe(
     "Required. A list of the form's items, which can include section headers, questions, embedded media, etc.",
   ).optional(),
-  publishSettings: z.object({
-    publishState: z.object({
-      isAcceptingResponses: z.boolean().describe(
-        "Required. Whether the form accepts responses. If `is_published` is set to `false`, this field is forced to `false`.",
-      ).optional(),
-      isPublished: z.boolean().describe(
-        "Required. Whether the form is published and visible to others.",
-      ).optional(),
-    }).describe("The publishing state of a form.").optional(),
-  }).describe("The publishing settings of a form.").optional(),
   settings: z.object({
     emailCollectionType: z.enum([
       "EMAIL_COLLECTION_TYPE_UNSPECIFIED",
@@ -366,10 +356,10 @@ const GlobalArgsSchema = z.object({
       isQuiz: z.boolean().describe(
         "Whether this form is a quiz or not. When true, responses are graded based on question Grading. Upon setting to false, all question Grading is deleted.",
       ).optional(),
-    }).describe(
-      "Settings related to quiz forms and grading. These must be updated with the UpdateSettingsRequest.",
-    ).optional(),
-  }).describe("A form's settings.").optional(),
+    }).describe("Settings related to quiz forms and grading.").optional(),
+  }).describe(
+    "The form's settings. This must be updated with UpdateSettingsRequest; it is ignored during CreateForm and UpdateFormInfoRequest.",
+  ).optional(),
   unpublished: z.string().describe(
     "Optional. Whether the form is unpublished. If set to `true`, the form doesn't accept responses. If set to `false` or unset, the form is published and accepts responses.",
   ).optional(),
@@ -531,7 +521,7 @@ const InputsSchema = z.object({
     title: z.string().describe(
       "Required. The title of the form which is visible to responders.",
     ).optional(),
-  }).describe("The general information for a form.").optional(),
+  }).describe("Required. The title and description of the form.").optional(),
   items: z.array(z.object({
     description: z.string().describe("The description of the item.").optional(),
     imageItem: z.object({
@@ -547,18 +537,17 @@ const InputsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of an image.").optional(),
         sourceUri: z.string().describe(
           "Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.",
         ).optional(),
-      }).describe("Data representing an image.").optional(),
-    }).describe("An item containing an image.").optional(),
+      }).describe("Required. The image displayed in the item.").optional(),
+    }).describe("Displays an image on the page.").optional(),
     itemId: z.string().describe(
       "The item ID. On creation, it can be provided but the ID must not be already used in the form. If not provided, a new ID is assigned.",
     ).optional(),
-    pageBreakItem: z.object({}).describe(
-      "A page break. The title and description of this item are shown at the top of the new page.",
-    ).optional(),
+    pageBreakItem: z.object({}).describe("Starts a new page with a title.")
+      .optional(),
     questionGroupItem: z.object({
       grid: z.object({
         columns: z.object({
@@ -570,12 +559,14 @@ const InputsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("Required. The type of choice question.")
             .optional(),
-        }).describe("A radio/checkbox/dropdown question.").optional(),
+        }).describe(
+          "Required. The choices shared by each question in the grid. In other words, the values of the columns. Only `CHECK_BOX` and `RADIO` choices are allowed.",
+        ).optional(),
         shuffleQuestions: z.boolean().describe(
           "If `true`, the questions are randomly ordered. In other words, the rows appear in a different order for every respondent.",
         ).optional(),
       }).describe(
-        "A grid of choices (radio or check boxes) with each row constituting a separate question. Each row has the same choices, which are shown as the columns.",
+        "The question group is a grid with rows of multiple choice questions that share the same options. When `grid` is set, all questions in the group must be of kind `row`.",
       ).optional(),
       image: z.object({
         altText: z.string().describe(
@@ -589,45 +580,48 @@ const InputsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of an image.").optional(),
         sourceUri: z.string().describe(
           "Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.",
         ).optional(),
-      }).describe("Data representing an image.").optional(),
+      }).describe(
+        "The image displayed within the question group above the specific questions.",
+      ).optional(),
       questions: z.array(z.object({
         choiceQuestion: z.unknown().describe(
-          "A radio/checkbox/dropdown question.",
+          "A respondent can choose from a pre-defined set of options.",
         ).optional(),
-        dateQuestion: z.unknown().describe(
-          "A date question. Date questions default to just month + day.",
-        ).optional(),
+        dateQuestion: z.unknown().describe("A respondent can enter a date.")
+          .optional(),
         fileUploadQuestion: z.unknown().describe(
-          "A file upload question. The API currently does not support creating file upload questions.",
+          "A respondent can upload one or more files.",
         ).optional(),
-        grading: z.unknown().describe("Grading for a single question")
+        grading: z.unknown().describe("Grading setup for the question.")
           .optional(),
         questionId: z.unknown().describe(
           "Read only. The question ID. On creation, it can be provided but the ID must not be already used in the form. If not provided, a new ID is assigned.",
         ).optional(),
         ratingQuestion: z.unknown().describe(
-          "A rating question. The user has a range of icons to choose from.",
+          "A respondent can choose a rating from a pre-defined set of icons.",
         ).optional(),
         required: z.unknown().describe(
           "Whether the question must be answered in order for a respondent to submit their response.",
         ).optional(),
-        rowQuestion: z.unknown().describe(
-          "Configuration for a question that is part of a question group.",
-        ).optional(),
+        rowQuestion: z.unknown().describe("A row of a QuestionGroupItem.")
+          .optional(),
         scaleQuestion: z.unknown().describe(
-          "A scale question. The user has a range of numeric values to choose from.",
+          "A respondent can choose a number from a range.",
         ).optional(),
-        textQuestion: z.unknown().describe("A text-based question.").optional(),
-        timeQuestion: z.unknown().describe("A time question.").optional(),
+        textQuestion: z.unknown().describe(
+          "A respondent can enter a free text response.",
+        ).optional(),
+        timeQuestion: z.unknown().describe("A respondent can enter a time.")
+          .optional(),
       })).describe(
         "Required. A list of questions that belong in this question group. A question must only belong to one group. The `kind` of the group may affect what types of questions are allowed.",
       ).optional(),
     }).describe(
-      "Defines a question that comprises multiple questions grouped together.",
+      "Poses one or more questions to the user with a single major prompt.",
     ).optional(),
     questionItem: z.object({
       image: z.object({
@@ -642,11 +636,11 @@ const InputsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of an image.").optional(),
         sourceUri: z.string().describe(
           "Input only. The source URI is the URI used to insert the image. The source URI can be empty when fetched.",
         ).optional(),
-      }).describe("Data representing an image.").optional(),
+      }).describe("The image displayed within the question.").optional(),
       question: z.object({
         choiceQuestion: z.object({
           options: z.unknown().describe(
@@ -657,7 +651,9 @@ const InputsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("Required. The type of choice question.")
             .optional(),
-        }).describe("A radio/checkbox/dropdown question.").optional(),
+        }).describe(
+          "A respondent can choose from a pre-defined set of options.",
+        ).optional(),
         dateQuestion: z.object({
           includeTime: z.unknown().describe(
             "Whether to include the time as part of the question.",
@@ -665,9 +661,7 @@ const InputsSchema = z.object({
           includeYear: z.unknown().describe(
             "Whether to include the year as part of the question.",
           ).optional(),
-        }).describe(
-          "A date question. Date questions default to just month + day.",
-        ).optional(),
+        }).describe("A respondent can enter a date.").optional(),
         fileUploadQuestion: z.object({
           folderId: z.unknown().describe(
             "Required. The ID of the Drive folder where uploaded files are stored.",
@@ -680,25 +674,24 @@ const InputsSchema = z.object({
           ).optional(),
           types: z.unknown().describe("File types accepted by this question.")
             .optional(),
-        }).describe(
-          "A file upload question. The API currently does not support creating file upload questions.",
-        ).optional(),
+        }).describe("A respondent can upload one or more files.").optional(),
         grading: z.object({
-          correctAnswers: z.unknown().describe("The answer key for a question.")
-            .optional(),
+          correctAnswers: z.unknown().describe(
+            "Required. The answer key for the question. Responses are automatically graded based on this field.",
+          ).optional(),
           generalFeedback: z.unknown().describe(
-            "Feedback for a respondent about their response to a question.",
+            "The feedback displayed for all answers. This is commonly used for short answer questions when a quiz owner wants to quickly give respondents some sense of whether they answered the question correctly before they've had a chance to officially grade the response. General feedback cannot be set for automatically graded multiple choice questions.",
           ).optional(),
           pointValue: z.unknown().describe(
             "Required. The maximum number of points a respondent can automatically get for a correct answer. This must not be negative.",
           ).optional(),
           whenRight: z.unknown().describe(
-            "Feedback for a respondent about their response to a question.",
+            "The feedback displayed for correct responses. This feedback can only be set for multiple choice questions that have correct answers provided.",
           ).optional(),
           whenWrong: z.unknown().describe(
-            "Feedback for a respondent about their response to a question.",
+            "The feedback displayed for incorrect responses. This feedback can only be set for multiple choice questions that have correct answers provided.",
           ).optional(),
-        }).describe("Grading for a single question").optional(),
+        }).describe("Grading setup for the question.").optional(),
         questionId: z.string().describe(
           "Read only. The question ID. On creation, it can be provided but the ID must not be already used in the form. If not provided, a new ID is assigned.",
         ).optional(),
@@ -710,7 +703,7 @@ const InputsSchema = z.object({
             "Required. The rating scale level of the rating question.",
           ).optional(),
         }).describe(
-          "A rating question. The user has a range of icons to choose from.",
+          "A respondent can choose a rating from a pre-defined set of icons.",
         ).optional(),
         required: z.boolean().describe(
           "Whether the question must be answered in order for a respondent to submit their response.",
@@ -719,9 +712,7 @@ const InputsSchema = z.object({
           title: z.unknown().describe(
             "Required. The title for the single row in the QuestionGroupItem.",
           ).optional(),
-        }).describe(
-          "Configuration for a question that is part of a question group.",
-        ).optional(),
+        }).describe("A row of a QuestionGroupItem.").optional(),
         scaleQuestion: z.object({
           high: z.unknown().describe(
             "Required. The highest possible value for the scale.",
@@ -735,24 +726,23 @@ const InputsSchema = z.object({
           lowLabel: z.unknown().describe(
             "The label to display describing the lowest point on the scale.",
           ).optional(),
-        }).describe(
-          "A scale question. The user has a range of numeric values to choose from.",
-        ).optional(),
+        }).describe("A respondent can choose a number from a range.")
+          .optional(),
         textQuestion: z.object({
           paragraph: z.unknown().describe(
             "Whether the question is a paragraph question or not. If not, the question is a short text question.",
           ).optional(),
-        }).describe("A text-based question.").optional(),
+        }).describe("A respondent can enter a free text response.").optional(),
         timeQuestion: z.object({
           duration: z.unknown().describe(
             "`true` if the question is about an elapsed time. Otherwise it is about a time of day.",
           ).optional(),
-        }).describe("A time question.").optional(),
-      }).describe(
-        "Any question. The specific type of question is known by its `kind`.",
-      ).optional(),
-    }).describe("A form item containing a single question.").optional(),
-    textItem: z.object({}).describe("A text item.").optional(),
+        }).describe("A respondent can enter a time.").optional(),
+      }).describe("Required. The displayed question.").optional(),
+    }).describe("Poses a question to the user.").optional(),
+    textItem: z.object({}).describe(
+      "Displays a title and description on the page.",
+    ).optional(),
     title: z.string().describe("The title of the item.").optional(),
     videoItem: z.object({
       caption: z.string().describe("The text displayed below the video.")
@@ -763,23 +753,13 @@ const InputsSchema = z.object({
           width: z.unknown().describe(
             "The width of the media in pixels. When the media is displayed, it is scaled to the smaller of this value or the width of the displayed form. The original aspect ratio of the media is preserved. If a width is not specified when the media is added to the form, it is set to the width of the media source. Width must be between 0 and 740, inclusive. Setting width to 0 or unspecified is only permitted when updating the media source.",
           ).optional(),
-        }).describe("Properties of the media.").optional(),
+        }).describe("Properties of a video.").optional(),
         youtubeUri: z.string().describe("Required. A YouTube URI.").optional(),
-      }).describe("Data representing a video.").optional(),
-    }).describe("An item containing a video.").optional(),
+      }).describe("Required. The video displayed in the item.").optional(),
+    }).describe("Displays a video on the page.").optional(),
   })).describe(
     "Required. A list of the form's items, which can include section headers, questions, embedded media, etc.",
   ).optional(),
-  publishSettings: z.object({
-    publishState: z.object({
-      isAcceptingResponses: z.boolean().describe(
-        "Required. Whether the form accepts responses. If `is_published` is set to `false`, this field is forced to `false`.",
-      ).optional(),
-      isPublished: z.boolean().describe(
-        "Required. Whether the form is published and visible to others.",
-      ).optional(),
-    }).describe("The publishing state of a form.").optional(),
-  }).describe("The publishing settings of a form.").optional(),
   settings: z.object({
     emailCollectionType: z.enum([
       "EMAIL_COLLECTION_TYPE_UNSPECIFIED",
@@ -793,10 +773,10 @@ const InputsSchema = z.object({
       isQuiz: z.boolean().describe(
         "Whether this form is a quiz or not. When true, responses are graded based on question Grading. Upon setting to false, all question Grading is deleted.",
       ).optional(),
-    }).describe(
-      "Settings related to quiz forms and grading. These must be updated with the UpdateSettingsRequest.",
-    ).optional(),
-  }).describe("A form's settings.").optional(),
+    }).describe("Settings related to quiz forms and grading.").optional(),
+  }).describe(
+    "The form's settings. This must be updated with UpdateSettingsRequest; it is ignored during CreateForm and UpdateFormInfoRequest.",
+  ).optional(),
   unpublished: z.string().describe(
     "Optional. Whether the form is unpublished. If set to `true`, the form doesn't accept responses. If set to `false` or unset, the form is published and accepts responses.",
   ).optional(),
@@ -825,7 +805,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Forms Forms. Registered at `@swamp/gcp/forms/forms`. */
 export const model = {
   type: "@swamp/gcp/forms/forms",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -922,6 +902,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: publishSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { publishSettings: _publishSettings, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -946,9 +934,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["info"] !== undefined) body["info"] = g["info"];
         if (g["items"] !== undefined) body["items"] = g["items"];
-        if (g["publishSettings"] !== undefined) {
-          body["publishSettings"] = g["publishSettings"];
-        }
         if (g["settings"] !== undefined) body["settings"] = g["settings"];
         if (g["unpublished"] !== undefined) {
           params["unpublished"] = String(g["unpublished"]);

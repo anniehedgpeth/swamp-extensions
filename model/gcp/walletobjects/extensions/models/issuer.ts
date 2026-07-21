@@ -116,7 +116,8 @@ const GlobalArgsSchema = z.object({
     url: z.string().describe(
       "The HTTPS url configured by the merchant. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot.",
     ).optional(),
-  }).optional(),
+  }).describe("Allows the issuer to provide their callback settings.")
+    .optional(),
   contactInfo: z.object({
     alertsEmails: z.array(z.string()).describe(
       "Email addresses which will receive alerts.",
@@ -124,7 +125,7 @@ const GlobalArgsSchema = z.object({
     email: z.string().describe("The primary contact email address.").optional(),
     name: z.string().describe("The primary contact name.").optional(),
     phone: z.string().describe("The primary contact phone number.").optional(),
-  }).optional(),
+  }).describe("Issuer contact information.").optional(),
   homepageUrl: z.string().describe("URL for the issuer's home page.")
     .optional(),
   issuerId: z.string().describe(
@@ -145,7 +146,9 @@ const GlobalArgsSchema = z.object({
     smartTapMerchantId: z.string().describe(
       "Available only to Smart Tap enabled partners. Contact support for additional guidance.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Available only to Smart Tap enabled partners. Contact support for additional guidance.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -185,7 +188,8 @@ const InputsSchema = z.object({
     url: z.string().describe(
       "The HTTPS url configured by the merchant. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot.",
     ).optional(),
-  }).optional(),
+  }).describe("Allows the issuer to provide their callback settings.")
+    .optional(),
   contactInfo: z.object({
     alertsEmails: z.array(z.string()).describe(
       "Email addresses which will receive alerts.",
@@ -193,7 +197,7 @@ const InputsSchema = z.object({
     email: z.string().describe("The primary contact email address.").optional(),
     name: z.string().describe("The primary contact name.").optional(),
     phone: z.string().describe("The primary contact phone number.").optional(),
-  }).optional(),
+  }).describe("Issuer contact information.").optional(),
   homepageUrl: z.string().describe("URL for the issuer's home page.")
     .optional(),
   issuerId: z.string().describe(
@@ -214,7 +218,9 @@ const InputsSchema = z.object({
     smartTapMerchantId: z.string().describe(
       "Available only to Smart Tap enabled partners. Contact support for additional guidance.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Available only to Smart Tap enabled partners. Contact support for additional guidance.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -240,7 +246,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Wallet Issuer. Registered at `@swamp/gcp/walletobjects/issuer`. */
 export const model = {
   type: "@swamp/gcp/walletobjects/issuer",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -334,6 +340,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

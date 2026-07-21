@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
       includedIds: z.array(z.string()).describe("The IDs included in a config.")
         .optional(),
     }).describe(
-      "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+      "Lists of included and excluded mobile app categories as defined in https://developers.google.com/adwords/api/docs/appendix/mobileappcategories.csv.",
     ).optional(),
     mobileAppTargeting: z.object({
       targetingMode: z.enum([
@@ -173,10 +173,10 @@ const GlobalArgsSchema = z.object({
       ]).describe("How the items in this list should be targeted.").optional(),
       values: z.array(z.string()).describe("The values specified.").optional(),
     }).describe(
-      "Generic targeting with string values used in app, website and publisher targeting.",
+      "Targeted app IDs. App IDs can refer to those found in an app store or ones that are not published in an app store. A maximum of 30,000 app IDs can be targeted.",
     ).optional(),
   }).describe(
-    "A subset of app inventory to target. Bid requests that match criteria in at least one of the specified dimensions will be sent.",
+    "Targeting on a subset of app inventory. If APP is listed in targeted_environments, the specified targeting is applied. A maximum of 30,000 app IDs can be targeted. An unset value for targeting allows all app-based bid requests to be sent. Apps can either be targeting positively (bid requests will be sent only if the destination app is listed in the targeting dimension) or negatively (bid requests will be sent only if the destination app is not listed in the targeting dimension).",
   ).optional(),
   displayName: z.string().describe(
     "The diplay name associated with this config. This name must be unique among all the pretargeting configs a bidder has.",
@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
     includedIds: z.array(z.string()).describe("The IDs included in a config.")
       .optional(),
   }).describe(
-    "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+    "The geos included or excluded in this config defined in https://storage.googleapis.com/adx-rtb-dictionaries/geo-table.csv",
   ).optional(),
   includedCreativeDimensions: z.array(z.object({
     height: z.string().describe("The height of the creative in pixels.")
@@ -260,7 +260,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("How the items in this list should be targeted.").optional(),
     values: z.array(z.string()).describe("The values specified.").optional(),
   }).describe(
-    "Generic targeting with string values used in app, website and publisher targeting.",
+    "Targeting on a subset of publisher inventory. Publishers can either be targeted positively (bid requests will be sent only if the publisher is listed in the targeting dimension) or negatively (bid requests will be sent only if the publisher is not listed in the targeting dimension). A maximum of 10,000 publisher IDs can be targeted. Publisher IDs are found in [ads.txt](https://iabtechlab.com/ads-txt/) / [app-ads.txt](https://iabtechlab.com/app-ads-txt/) and in bid requests in the `BidRequest.publisher_id` field on the [Google RTB protocol](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) or the `BidRequest.site.publisher.id` / `BidRequest.app.publisher.id` field on the [OpenRTB protocol](https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto). Publisher IDs will be returned in the order that they were entered.",
   ).optional(),
   userListTargeting: z.object({
     excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -268,7 +268,7 @@ const GlobalArgsSchema = z.object({
     includedIds: z.array(z.string()).describe("The IDs included in a config.")
       .optional(),
   }).describe(
-    "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+    "The remarketing lists included or excluded in this config as defined in UserList.",
   ).optional(),
   verticalTargeting: z.object({
     excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -276,7 +276,7 @@ const GlobalArgsSchema = z.object({
     includedIds: z.array(z.string()).describe("The IDs included in a config.")
       .optional(),
   }).describe(
-    "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+    "The verticals included or excluded in this config as defined in https://developers.google.com/authorized-buyers/rtb/downloads/publisher-verticals",
   ).optional(),
   webTargeting: z.object({
     targetingMode: z.enum([
@@ -286,7 +286,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("How the items in this list should be targeted.").optional(),
     values: z.array(z.string()).describe("The values specified.").optional(),
   }).describe(
-    "Generic targeting with string values used in app, website and publisher targeting.",
+    "Targeting on a subset of site inventory. If WEB is listed in included_environments, the specified targeting is applied. A maximum of 50,000 site URLs can be targeted. An unset value for targeting allows all web-based bid requests to be sent. Sites can either be targeting positively (bid requests will be sent only if the destination site is listed in the targeting dimension) or negatively (bid requests will be sent only if the destination site is not listed in the pretargeting config).",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -361,7 +361,7 @@ const InputsSchema = z.object({
       includedIds: z.array(z.string()).describe("The IDs included in a config.")
         .optional(),
     }).describe(
-      "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+      "Lists of included and excluded mobile app categories as defined in https://developers.google.com/adwords/api/docs/appendix/mobileappcategories.csv.",
     ).optional(),
     mobileAppTargeting: z.object({
       targetingMode: z.enum([
@@ -371,10 +371,10 @@ const InputsSchema = z.object({
       ]).describe("How the items in this list should be targeted.").optional(),
       values: z.array(z.string()).describe("The values specified.").optional(),
     }).describe(
-      "Generic targeting with string values used in app, website and publisher targeting.",
+      "Targeted app IDs. App IDs can refer to those found in an app store or ones that are not published in an app store. A maximum of 30,000 app IDs can be targeted.",
     ).optional(),
   }).describe(
-    "A subset of app inventory to target. Bid requests that match criteria in at least one of the specified dimensions will be sent.",
+    "Targeting on a subset of app inventory. If APP is listed in targeted_environments, the specified targeting is applied. A maximum of 30,000 app IDs can be targeted. An unset value for targeting allows all app-based bid requests to be sent. Apps can either be targeting positively (bid requests will be sent only if the destination app is listed in the targeting dimension) or negatively (bid requests will be sent only if the destination app is not listed in the targeting dimension).",
   ).optional(),
   displayName: z.string().describe(
     "The diplay name associated with this config. This name must be unique among all the pretargeting configs a bidder has.",
@@ -388,7 +388,7 @@ const InputsSchema = z.object({
     includedIds: z.array(z.string()).describe("The IDs included in a config.")
       .optional(),
   }).describe(
-    "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+    "The geos included or excluded in this config defined in https://storage.googleapis.com/adx-rtb-dictionaries/geo-table.csv",
   ).optional(),
   includedCreativeDimensions: z.array(z.object({
     height: z.string().describe("The height of the creative in pixels.")
@@ -458,7 +458,7 @@ const InputsSchema = z.object({
     ]).describe("How the items in this list should be targeted.").optional(),
     values: z.array(z.string()).describe("The values specified.").optional(),
   }).describe(
-    "Generic targeting with string values used in app, website and publisher targeting.",
+    "Targeting on a subset of publisher inventory. Publishers can either be targeted positively (bid requests will be sent only if the publisher is listed in the targeting dimension) or negatively (bid requests will be sent only if the publisher is not listed in the targeting dimension). A maximum of 10,000 publisher IDs can be targeted. Publisher IDs are found in [ads.txt](https://iabtechlab.com/ads-txt/) / [app-ads.txt](https://iabtechlab.com/app-ads-txt/) and in bid requests in the `BidRequest.publisher_id` field on the [Google RTB protocol](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) or the `BidRequest.site.publisher.id` / `BidRequest.app.publisher.id` field on the [OpenRTB protocol](https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto). Publisher IDs will be returned in the order that they were entered.",
   ).optional(),
   userListTargeting: z.object({
     excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -466,7 +466,7 @@ const InputsSchema = z.object({
     includedIds: z.array(z.string()).describe("The IDs included in a config.")
       .optional(),
   }).describe(
-    "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+    "The remarketing lists included or excluded in this config as defined in UserList.",
   ).optional(),
   verticalTargeting: z.object({
     excludedIds: z.array(z.string()).describe("The IDs excluded in a config.")
@@ -474,7 +474,7 @@ const InputsSchema = z.object({
     includedIds: z.array(z.string()).describe("The IDs included in a config.")
       .optional(),
   }).describe(
-    "Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.",
+    "The verticals included or excluded in this config as defined in https://developers.google.com/authorized-buyers/rtb/downloads/publisher-verticals",
   ).optional(),
   webTargeting: z.object({
     targetingMode: z.enum([
@@ -484,7 +484,7 @@ const InputsSchema = z.object({
     ]).describe("How the items in this list should be targeted.").optional(),
     values: z.array(z.string()).describe("The values specified.").optional(),
   }).describe(
-    "Generic targeting with string values used in app, website and publisher targeting.",
+    "Targeting on a subset of site inventory. If WEB is listed in included_environments, the specified targeting is applied. A maximum of 50,000 site URLs can be targeted. An unset value for targeting allows all web-based bid requests to be sent. Sites can either be targeting positively (bid requests will be sent only if the destination site is listed in the targeting dimension) or negatively (bid requests will be sent only if the destination site is not listed in the pretargeting config).",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -514,7 +514,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Real-time Bidding Bidders.PretargetingConfigs. Registered at `@swamp/gcp/realtimebidding/bidders-pretargetingconfigs`. */
 export const model = {
   type: "@swamp/gcp/realtimebidding/bidders-pretargetingconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -627,6 +627,11 @@ export const model = {
         } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

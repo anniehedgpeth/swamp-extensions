@@ -189,26 +189,14 @@ const GlobalArgsSchema = z.object({
       "If true, email notifications will be sent on transfer run failures.",
     ).optional(),
   }).describe(
-    "Represents preferences for sending email notifications for transfer run events.",
+    "Email notifications will be sent according to these preferences to the email address of the user who owns this transfer config.",
   ).optional(),
   encryptionConfiguration: z.object({
     kmsKeyName: z.string().describe(
       "The name of the KMS key used for encrypting BigQuery data.",
     ).optional(),
-  }).describe("Represents the encryption configuration for a transfer.")
-    .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
   }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "The encryption configuration part. Currently, it is only used for the optional KMS key name. The BigQuery service account of your project must be granted permissions to use the key. Read methods will return the key name applied in effect. Write methods will apply the key if it is present, or otherwise try to apply project default keys if it is absent.",
   ).optional(),
   managedTableType: z.enum([
     "MANAGED_TABLE_TYPE_UNSPECIFIED",
@@ -220,7 +208,7 @@ const GlobalArgsSchema = z.object({
       entryGroup: z.string().describe(
         "Required. The Dataplex Universal Catalog entry group for importing the metadata. entry_group has the format of `projects/{project_id}/locations/{region}/entryGroups/{entry_group_id}`.",
       ).optional(),
-    }).describe("Configuration for Dataplex destination.").optional(),
+    }).describe("The Dataplex Universal Catalog configuration.").optional(),
   }).describe("The metadata destination of the transfer config.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the transfer config. Transfer config names have the form either `projects/{project_id}/locations/{region}/transferConfigs/{config_id}` or `projects/{project_id}/transferConfigs/{config_id}`, where `config_id` is usually a UUID, even though it is not guaranteed or required. The name is ignored when creating a transfer config.",
@@ -228,9 +216,6 @@ const GlobalArgsSchema = z.object({
   notificationPubsubTopic: z.string().describe(
     "Pub/Sub topic where notifications will be sent after transfer runs associated with this transfer config finish. The format for specifying a pubsub topic is: `projects/{project_id}/topics/{topic_id}`",
   ).optional(),
-  ownerInfo: z.object({
-    email: z.string().describe("E-mail address of the user.").optional(),
-  }).describe("Information about a user.").optional(),
   params: z.record(z.string(), z.string()).describe(
     "Parameters specific to each data source. For more information see the bq tab in the 'Setting up a data transfer' section for each data source. For example the parameters for Cloud Storage transfers are listed here: https://cloud.google.com/bigquery-transfer/docs/cloud-storage-transfer#bq",
   ).optional(),
@@ -253,10 +238,11 @@ const GlobalArgsSchema = z.object({
       pubsubSubscription: z.string().describe(
         "Pub/Sub subscription name used to receive events. Only Google Cloud Storage data source support this option. Format: projects/{project}/subscriptions/{subscription}",
       ).optional(),
-    }).describe("Options customizing EventDriven transfers schedule.")
-      .optional(),
+    }).describe(
+      "Event driven transfer schedule options. If set, the transfer will be scheduled upon events arrial.",
+    ).optional(),
     manualSchedule: z.object({}).describe(
-      "Options customizing manual transfers schedule.",
+      "Manual transfer schedule. If set, the transfer run will not be auto-scheduled by the system, unless the client invokes StartManualTransferRuns. This is equivalent to disable_auto_scheduling = true.",
     ).optional(),
     timeBasedSchedule: z.object({
       endTime: z.string().describe(
@@ -269,10 +255,10 @@ const GlobalArgsSchema = z.object({
         "Specifies time to start scheduling transfer runs. The first run will be scheduled at or after the start time according to a recurrence pattern defined in the schedule string. The start time can be changed at any moment.",
       ).optional(),
     }).describe(
-      "Options customizing the time based transfer schedule. Options are migrated from the original ScheduleOptions message.",
+      "Time based transfer schedule options. This is the default schedule option.",
     ).optional(),
   }).describe(
-    "V2 options customizing different types of data transfer schedule. This field supports existing time-based and manual transfer schedule. Also supports Event-Driven transfer schedule. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.",
+    'Options customizing different types of data transfer schedule. This field replaces "schedule" and "schedule_options" fields. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.',
   ).optional(),
   userId: z.string().describe(
     "Deprecated. Unique ID of the user on whose behalf transfer is done.",
@@ -367,26 +353,14 @@ const InputsSchema = z.object({
       "If true, email notifications will be sent on transfer run failures.",
     ).optional(),
   }).describe(
-    "Represents preferences for sending email notifications for transfer run events.",
+    "Email notifications will be sent according to these preferences to the email address of the user who owns this transfer config.",
   ).optional(),
   encryptionConfiguration: z.object({
     kmsKeyName: z.string().describe(
       "The name of the KMS key used for encrypting BigQuery data.",
     ).optional(),
-  }).describe("Represents the encryption configuration for a transfer.")
-    .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
   }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "The encryption configuration part. Currently, it is only used for the optional KMS key name. The BigQuery service account of your project must be granted permissions to use the key. Read methods will return the key name applied in effect. Write methods will apply the key if it is present, or otherwise try to apply project default keys if it is absent.",
   ).optional(),
   managedTableType: z.enum([
     "MANAGED_TABLE_TYPE_UNSPECIFIED",
@@ -398,7 +372,7 @@ const InputsSchema = z.object({
       entryGroup: z.string().describe(
         "Required. The Dataplex Universal Catalog entry group for importing the metadata. entry_group has the format of `projects/{project_id}/locations/{region}/entryGroups/{entry_group_id}`.",
       ).optional(),
-    }).describe("Configuration for Dataplex destination.").optional(),
+    }).describe("The Dataplex Universal Catalog configuration.").optional(),
   }).describe("The metadata destination of the transfer config.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the transfer config. Transfer config names have the form either `projects/{project_id}/locations/{region}/transferConfigs/{config_id}` or `projects/{project_id}/transferConfigs/{config_id}`, where `config_id` is usually a UUID, even though it is not guaranteed or required. The name is ignored when creating a transfer config.",
@@ -406,9 +380,6 @@ const InputsSchema = z.object({
   notificationPubsubTopic: z.string().describe(
     "Pub/Sub topic where notifications will be sent after transfer runs associated with this transfer config finish. The format for specifying a pubsub topic is: `projects/{project_id}/topics/{topic_id}`",
   ).optional(),
-  ownerInfo: z.object({
-    email: z.string().describe("E-mail address of the user.").optional(),
-  }).describe("Information about a user.").optional(),
   params: z.record(z.string(), z.string()).describe(
     "Parameters specific to each data source. For more information see the bq tab in the 'Setting up a data transfer' section for each data source. For example the parameters for Cloud Storage transfers are listed here: https://cloud.google.com/bigquery-transfer/docs/cloud-storage-transfer#bq",
   ).optional(),
@@ -431,10 +402,11 @@ const InputsSchema = z.object({
       pubsubSubscription: z.string().describe(
         "Pub/Sub subscription name used to receive events. Only Google Cloud Storage data source support this option. Format: projects/{project}/subscriptions/{subscription}",
       ).optional(),
-    }).describe("Options customizing EventDriven transfers schedule.")
-      .optional(),
+    }).describe(
+      "Event driven transfer schedule options. If set, the transfer will be scheduled upon events arrial.",
+    ).optional(),
     manualSchedule: z.object({}).describe(
-      "Options customizing manual transfers schedule.",
+      "Manual transfer schedule. If set, the transfer run will not be auto-scheduled by the system, unless the client invokes StartManualTransferRuns. This is equivalent to disable_auto_scheduling = true.",
     ).optional(),
     timeBasedSchedule: z.object({
       endTime: z.string().describe(
@@ -447,10 +419,10 @@ const InputsSchema = z.object({
         "Specifies time to start scheduling transfer runs. The first run will be scheduled at or after the start time according to a recurrence pattern defined in the schedule string. The start time can be changed at any moment.",
       ).optional(),
     }).describe(
-      "Options customizing the time based transfer schedule. Options are migrated from the original ScheduleOptions message.",
+      "Time based transfer schedule options. This is the default schedule option.",
     ).optional(),
   }).describe(
-    "V2 options customizing different types of data transfer schedule. This field supports existing time-based and manual transfer schedule. Also supports Event-Driven transfer schedule. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.",
+    'Options customizing different types of data transfer schedule. This field replaces "schedule" and "schedule_options" fields. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.',
   ).optional(),
   userId: z.string().describe(
     "Deprecated. Unique ID of the user on whose behalf transfer is done.",
@@ -489,7 +461,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Data Transfer TransferConfigs. Registered at `@swamp/gcp/bigquerydatatransfer/transferconfigs`. */
 export const model = {
   type: "@swamp/gcp/bigquerydatatransfer/transferconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -605,6 +577,14 @@ export const model = {
       description: "Added: metadataDestination",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, ownerInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ownerInfo: _ownerInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -653,7 +633,6 @@ export const model = {
         if (g["encryptionConfiguration"] !== undefined) {
           body["encryptionConfiguration"] = g["encryptionConfiguration"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["managedTableType"] !== undefined) {
           body["managedTableType"] = g["managedTableType"];
         }
@@ -664,7 +643,6 @@ export const model = {
         if (g["notificationPubsubTopic"] !== undefined) {
           body["notificationPubsubTopic"] = g["notificationPubsubTopic"];
         }
-        if (g["ownerInfo"] !== undefined) body["ownerInfo"] = g["ownerInfo"];
         if (g["params"] !== undefined) body["params"] = g["params"];
         if (g["schedule"] !== undefined) body["schedule"] = g["schedule"];
         if (g["scheduleOptions"] !== undefined) {
@@ -814,7 +792,6 @@ export const model = {
         if (g["encryptionConfiguration"] !== undefined) {
           body["encryptionConfiguration"] = g["encryptionConfiguration"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["managedTableType"] !== undefined) {
           body["managedTableType"] = g["managedTableType"];
         }
@@ -824,7 +801,6 @@ export const model = {
         if (g["notificationPubsubTopic"] !== undefined) {
           body["notificationPubsubTopic"] = g["notificationPubsubTopic"];
         }
-        if (g["ownerInfo"] !== undefined) body["ownerInfo"] = g["ownerInfo"];
         if (g["params"] !== undefined) body["params"] = g["params"];
         if (g["schedule"] !== undefined) body["schedule"] = g["schedule"];
         if (g["scheduleOptions"] !== undefined) {

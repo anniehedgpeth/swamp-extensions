@@ -152,7 +152,8 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe("The cashback that can be used for future purchases.")
+        .optional(),
       loyaltyPoints: z.string().describe(
         "The amount of loyalty points earned on a purchase.",
       ).optional(),
@@ -164,7 +165,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "A date range during which the item is eligible for member price. If not specified, the member price is always applicable. The date range is represented by a pair of ISO 8601 dates separated by a space, comma, or slash.",
       ).optional(),
       price: z.object({
         amountMicros: z.string().describe(
@@ -173,7 +174,9 @@ const GlobalArgsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "The price for members of the given tier, that is, the instant discount price. Must be smaller or equal to the regular price.",
+      ).optional(),
       programLabel: z.string().describe(
         "The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a business entity and a loyalty program entity. The label must be provided if there are multiple loyalty programs available for the merchant, so that the system can associate the assets below (for example, price and points) with the correct business. The corresponding program must be linked to the Merchant Center account.",
       ).optional(),
@@ -216,7 +219,7 @@ const GlobalArgsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe("Optional. Price of the product at this store.").optional(),
     quantity: z.string().describe(
       "Optional. Quantity of the product available at this store. Must be greater than or equal to zero.",
     ).optional(),
@@ -227,7 +230,9 @@ const GlobalArgsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe(
+      "Optional. Sale price of the product at this store. Mandatory if `salePriceEffectiveDate` is defined.",
+    ).optional(),
     salePriceEffectiveDate: z.object({
       endTime: z.string().describe(
         "Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.",
@@ -235,10 +240,9 @@ const GlobalArgsSchema = z.object({
       startTime: z.string().describe(
         "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
       ).optional(),
-    }).describe(
-      "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
-    ).optional(),
-  }).describe("Local inventory attributes.").optional(),
+    }).describe("Optional. The `TimePeriod` of the sale at this store.")
+      .optional(),
+  }).describe("Optional. A list of local inventory attributes.").optional(),
   storeCode: z.string().describe(
     "Required. Immutable. Store code (the store ID from your Business Profile) of the physical store the product is sold in. See the [Local product inventory data specification](https://support.google.com/merchants/answer/3061342) for more information.",
   ).optional(),
@@ -340,7 +344,8 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe("The cashback that can be used for future purchases.")
+        .optional(),
       loyaltyPoints: z.string().describe(
         "The amount of loyalty points earned on a purchase.",
       ).optional(),
@@ -352,7 +357,7 @@ const InputsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "A date range during which the item is eligible for member price. If not specified, the member price is always applicable. The date range is represented by a pair of ISO 8601 dates separated by a space, comma, or slash.",
       ).optional(),
       price: z.object({
         amountMicros: z.string().describe(
@@ -361,7 +366,9 @@ const InputsSchema = z.object({
         currencyCode: z.string().describe(
           "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
         ).optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "The price for members of the given tier, that is, the instant discount price. Must be smaller or equal to the regular price.",
+      ).optional(),
       programLabel: z.string().describe(
         "The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a business entity and a loyalty program entity. The label must be provided if there are multiple loyalty programs available for the merchant, so that the system can associate the assets below (for example, price and points) with the correct business. The corresponding program must be linked to the Merchant Center account.",
       ).optional(),
@@ -404,7 +411,7 @@ const InputsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe("Optional. Price of the product at this store.").optional(),
     quantity: z.string().describe(
       "Optional. Quantity of the product available at this store. Must be greater than or equal to zero.",
     ).optional(),
@@ -415,7 +422,9 @@ const InputsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe(
+      "Optional. Sale price of the product at this store. Mandatory if `salePriceEffectiveDate` is defined.",
+    ).optional(),
     salePriceEffectiveDate: z.object({
       endTime: z.string().describe(
         "Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.",
@@ -423,10 +432,9 @@ const InputsSchema = z.object({
       startTime: z.string().describe(
         "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
       ).optional(),
-    }).describe(
-      "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
-    ).optional(),
-  }).describe("Local inventory attributes.").optional(),
+    }).describe("Optional. The `TimePeriod` of the sale at this store.")
+      .optional(),
+  }).describe("Optional. A list of local inventory attributes.").optional(),
   storeCode: z.string().describe(
     "Required. Immutable. Store code (the store ID from your Business Profile) of the physical store the product is sold in. See the [Local product inventory data specification](https://support.google.com/merchants/answer/3061342) for more information.",
   ).optional(),
@@ -458,7 +466,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Products.LocalInventories. Registered at `@swamp/gcp/merchantapi/accounts-products-localinventories`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-products-localinventories",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -492,14 +507,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

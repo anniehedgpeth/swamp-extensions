@@ -190,13 +190,19 @@ const GlobalArgsSchema = z.object({
           .optional(),
         widthPixels: z.number().int().describe("The width in pixels.")
           .optional(),
-      }).describe("Dimensions.").optional(),
-    }).describe("The configuration for display creatives.").optional(),
+      }).describe(
+        "The size requirements for display creatives that can be assigned to the inventory source.",
+      ).optional(),
+    }).describe(
+      "The configuration for display creatives. Applicable when creative_type is `CREATIVE_TYPE_STANDARD`.",
+    ).optional(),
     videoCreativeConfig: z.object({
       duration: z.string().describe(
         "The duration requirements for the video creatives that can be assigned to the inventory source.",
       ).optional(),
-    }).describe("The configuration for video creatives.").optional(),
+    }).describe(
+      "The configuration for video creatives. Applicable when creative_type is `CREATIVE_TYPE_VIDEO`.",
+    ).optional(),
   })).describe(
     "The creative requirements of the inventory source. Not applicable for auction packages.",
   ).optional(),
@@ -337,8 +343,9 @@ const GlobalArgsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe(
+      "Output only. The amount that the buyer has committed to spending on the inventory source up front. Only applicable for guaranteed inventory sources.",
+    ).optional(),
     rate: z.object({
       currencyCode: z.string().describe(
         "The three-letter currency code defined in ISO 4217.",
@@ -349,23 +356,11 @@ const GlobalArgsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe("The rate for the inventory source.").optional(),
     unitsPurchased: z.string().describe(
       "Required for guaranteed inventory sources. The number of impressions guaranteed by the seller.",
     ).optional(),
-  }).describe("The rate related settings of the inventory source.").optional(),
-  readWriteAccessors: z.object({
-    advertisers: z.object({
-      advertiserIds: z.array(z.string()).describe("The IDs of the advertisers.")
-        .optional(),
-    }).describe("The advertisers with access to the inventory source.")
-      .optional(),
-    partner: z.object({
-      partnerId: z.string().describe("The ID of the partner.").optional(),
-    }).describe("The partner with access to the inventory source.").optional(),
-  }).describe("The partner or advertisers with access to the inventory source.")
-    .optional(),
+  }).describe("Required. The rate details of the inventory source.").optional(),
   status: z.object({
     configStatus: z.enum([
       "INVENTORY_SOURCE_CONFIG_STATUS_UNSPECIFIED",
@@ -400,8 +395,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Output only. The status set by the seller for the inventory source. Only applicable for inventory sources synced directly from the publishers. Acceptable values are `ENTITY_STATUS_ACTIVE` and `ENTITY_STATUS_PAUSED`.",
     ).optional(),
-  }).describe("The status related settings of the inventory source.")
-    .optional(),
+  }).describe("The status settings of the inventory source.").optional(),
   timeRange: z.object({
     endTime: z.string().describe(
       "Required. The upper bound of a time range, inclusive.",
@@ -409,7 +403,9 @@ const GlobalArgsSchema = z.object({
     startTime: z.string().describe(
       "Required. The lower bound of a time range, inclusive.",
     ).optional(),
-  }).describe("A time range.").optional(),
+  }).describe(
+    "The time range when this inventory source starts and stops serving.",
+  ).optional(),
   advertiserId: z.string().describe(
     "The ID of the advertiser that the request is being made within.",
   ).optional(),
@@ -522,13 +518,19 @@ const InputsSchema = z.object({
           .optional(),
         widthPixels: z.number().int().describe("The width in pixels.")
           .optional(),
-      }).describe("Dimensions.").optional(),
-    }).describe("The configuration for display creatives.").optional(),
+      }).describe(
+        "The size requirements for display creatives that can be assigned to the inventory source.",
+      ).optional(),
+    }).describe(
+      "The configuration for display creatives. Applicable when creative_type is `CREATIVE_TYPE_STANDARD`.",
+    ).optional(),
     videoCreativeConfig: z.object({
       duration: z.string().describe(
         "The duration requirements for the video creatives that can be assigned to the inventory source.",
       ).optional(),
-    }).describe("The configuration for video creatives.").optional(),
+    }).describe(
+      "The configuration for video creatives. Applicable when creative_type is `CREATIVE_TYPE_VIDEO`.",
+    ).optional(),
   })).describe(
     "The creative requirements of the inventory source. Not applicable for auction packages.",
   ).optional(),
@@ -669,8 +671,9 @@ const InputsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe(
+      "Output only. The amount that the buyer has committed to spending on the inventory source up front. Only applicable for guaranteed inventory sources.",
+    ).optional(),
     rate: z.object({
       currencyCode: z.string().describe(
         "The three-letter currency code defined in ISO 4217.",
@@ -681,23 +684,11 @@ const InputsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe("The rate for the inventory source.").optional(),
     unitsPurchased: z.string().describe(
       "Required for guaranteed inventory sources. The number of impressions guaranteed by the seller.",
     ).optional(),
-  }).describe("The rate related settings of the inventory source.").optional(),
-  readWriteAccessors: z.object({
-    advertisers: z.object({
-      advertiserIds: z.array(z.string()).describe("The IDs of the advertisers.")
-        .optional(),
-    }).describe("The advertisers with access to the inventory source.")
-      .optional(),
-    partner: z.object({
-      partnerId: z.string().describe("The ID of the partner.").optional(),
-    }).describe("The partner with access to the inventory source.").optional(),
-  }).describe("The partner or advertisers with access to the inventory source.")
-    .optional(),
+  }).describe("Required. The rate details of the inventory source.").optional(),
   status: z.object({
     configStatus: z.enum([
       "INVENTORY_SOURCE_CONFIG_STATUS_UNSPECIFIED",
@@ -732,8 +723,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Output only. The status set by the seller for the inventory source. Only applicable for inventory sources synced directly from the publishers. Acceptable values are `ENTITY_STATUS_ACTIVE` and `ENTITY_STATUS_PAUSED`.",
     ).optional(),
-  }).describe("The status related settings of the inventory source.")
-    .optional(),
+  }).describe("The status settings of the inventory source.").optional(),
   timeRange: z.object({
     endTime: z.string().describe(
       "Required. The upper bound of a time range, inclusive.",
@@ -741,7 +731,9 @@ const InputsSchema = z.object({
     startTime: z.string().describe(
       "Required. The lower bound of a time range, inclusive.",
     ).optional(),
-  }).describe("A time range.").optional(),
+  }).describe(
+    "The time range when this inventory source starts and stops serving.",
+  ).optional(),
   advertiserId: z.string().describe(
     "The ID of the advertiser that the request is being made within.",
   ).optional(),
@@ -773,7 +765,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 InventorySources. Registered at `@swamp/gcp/displayvideo/inventorysources`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/inventorysources",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -910,6 +902,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: readWriteAccessors",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { readWriteAccessors: _readWriteAccessors, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -954,9 +954,6 @@ export const model = {
         }
         if (g["rateDetails"] !== undefined) {
           body["rateDetails"] = g["rateDetails"];
-        }
-        if (g["readWriteAccessors"] !== undefined) {
-          body["readWriteAccessors"] = g["readWriteAccessors"];
         }
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["timeRange"] !== undefined) body["timeRange"] = g["timeRange"];
@@ -1075,9 +1072,6 @@ export const model = {
         }
         if (g["rateDetails"] !== undefined) {
           body["rateDetails"] = g["rateDetails"];
-        }
-        if (g["readWriteAccessors"] !== undefined) {
-          body["readWriteAccessors"] = g["readWriteAccessors"];
         }
         if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["timeRange"] !== undefined) body["timeRange"] = g["timeRange"];

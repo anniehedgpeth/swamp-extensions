@@ -169,8 +169,7 @@ const GlobalArgsSchema = z.object({
       prompt: z.string().describe(
         "Required. The prompt to use for the generative answer.",
       ).optional(),
-    }).describe("The agent will immediately respond with a generative answer.")
-      .optional(),
+    }).describe("Optional. Respond with a generative answer.").optional(),
     respondImmediately: z.object({
       responses: z.array(z.object({
         disabled: z.boolean().describe(
@@ -182,17 +181,15 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The canned responses for the agent to choose from. The response is chosen randomly.",
       ).optional(),
-    }).describe(
-      "The agent will immediately respond with a preconfigured response.",
-    ).optional(),
+    }).describe("Optional. Immediately respond with a preconfigured response.")
+      .optional(),
     transferAgent: z.object({
       agent: z.string().describe(
         "Required. The name of the agent to transfer the conversation to. The agent must be in the same app as the current agent. Format: `projects/{project}/locations/{location}/apps/{app}/agents/{agent}`",
       ).optional(),
-    }).describe(
-      "The agent will transfer the conversation to a different agent.",
-    ).optional(),
-  }).describe("Action that is taken when a certain precondition is met.")
+    }).describe("Optional. Transfer the conversation to a different agent.")
+      .optional(),
+  }).describe("Optional. Action to take when the guardrail is triggered.")
     .optional(),
   codeCallback: z.object({
     afterAgentCallback: z.object({
@@ -209,7 +206,7 @@ const GlobalArgsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute after the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
     afterModelCallback: z.object({
       description: z.string().describe(
@@ -225,7 +222,7 @@ const GlobalArgsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute after the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
     beforeAgentCallback: z.object({
       description: z.string().describe(
@@ -241,7 +238,7 @@ const GlobalArgsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute before the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
     beforeModelCallback: z.object({
       description: z.string().describe(
@@ -257,10 +254,10 @@ const GlobalArgsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute before the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
   }).describe(
-    "Guardrail that blocks the conversation based on the code callbacks provided.",
+    "Optional. Guardrail that potentially blocks the conversation based on the result of the callback execution.",
   ).optional(),
   contentFilter: z.object({
     bannedContents: z.array(z.string()).describe(
@@ -282,7 +279,7 @@ const GlobalArgsSchema = z.object({
       "REGEXP_MATCH",
     ]).describe("Required. Match type for the content filter.").optional(),
   }).describe(
-    "Guardrail that bans certain content from being used in the conversation.",
+    "Optional. Guardrail that bans certain content from being used in the conversation.",
   ).optional(),
   description: z.string().describe("Optional. Description of the guardrail.")
     .optional(),
@@ -307,9 +304,7 @@ const GlobalArgsSchema = z.object({
       temperature: z.number().describe(
         "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
       ).optional(),
-    }).describe(
-      "Model settings contains various configurations for the LLM model.",
-    ).optional(),
+    }).describe("Optional. Model settings.").optional(),
     policyScope: z.enum([
       "POLICY_SCOPE_UNSPECIFIED",
       "USER_QUERY",
@@ -320,7 +315,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     prompt: z.string().describe("Required. Policy prompt.").optional(),
   }).describe(
-    "Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.",
+    "Optional. Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.",
   ).optional(),
   llmPromptSecurity: z.object({
     customPolicy: z.object({
@@ -340,9 +335,7 @@ const GlobalArgsSchema = z.object({
         temperature: z.number().describe(
           "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
         ).optional(),
-      }).describe(
-        "Model settings contains various configurations for the LLM model.",
-      ).optional(),
+      }).describe("Optional. Model settings.").optional(),
       policyScope: z.enum([
         "POLICY_SCOPE_UNSPECIFIED",
         "USER_QUERY",
@@ -353,19 +346,20 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       prompt: z.string().describe("Required. Policy prompt.").optional(),
     }).describe(
-      "Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.",
+      "Optional. Use a user-defined LlmPolicy to configure the security guardrail.",
     ).optional(),
     defaultSettings: z.object({
       defaultPromptTemplate: z.string().describe(
         "Output only. The default prompt template used by the system. This field is for display purposes to show the user what prompt the system uses by default. It is OUTPUT_ONLY.",
       ).optional(),
-    }).describe("Configuration for default system security settings.")
-      .optional(),
+    }).describe(
+      "Optional. Use the system's predefined default security settings. To select this mode, include an empty 'default_settings' message in the request. The 'default_prompt_template' field within will be populated by the server in the response.",
+    ).optional(),
     failOpen: z.boolean().describe(
       "Optional. Determines the behavior when the guardrail encounters an LLM error. - If true: the guardrail is bypassed. - If false (default): the guardrail triggers/blocks. Note: If a custom policy is provided, this field is ignored in favor of the policy's 'fail_open' configuration.",
     ).optional(),
   }).describe(
-    "Guardrail that blocks the conversation if the input is considered unsafe based on the LLM classification.",
+    "Optional. Guardrail that blocks the conversation if the prompt is considered unsafe based on the LLM classification.",
   ).optional(),
   modelSafety: z.object({
     safetySettings: z.array(z.object({
@@ -386,7 +380,7 @@ const GlobalArgsSchema = z.object({
       ]).describe("Required. The harm block threshold.").optional(),
     })).describe("Required. List of safety settings.").optional(),
   }).describe(
-    "Model safety settings overrides. When this is set, it will override the default settings and trigger the guardrail if the response is considered unsafe.",
+    "Optional. Guardrail that blocks the conversation if the LLM response is considered unsafe based on the model safety settings.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The unique identifier of the guardrail. Format: `projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}`",
@@ -505,8 +499,7 @@ const InputsSchema = z.object({
       prompt: z.string().describe(
         "Required. The prompt to use for the generative answer.",
       ).optional(),
-    }).describe("The agent will immediately respond with a generative answer.")
-      .optional(),
+    }).describe("Optional. Respond with a generative answer.").optional(),
     respondImmediately: z.object({
       responses: z.array(z.object({
         disabled: z.boolean().describe(
@@ -518,17 +511,15 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The canned responses for the agent to choose from. The response is chosen randomly.",
       ).optional(),
-    }).describe(
-      "The agent will immediately respond with a preconfigured response.",
-    ).optional(),
+    }).describe("Optional. Immediately respond with a preconfigured response.")
+      .optional(),
     transferAgent: z.object({
       agent: z.string().describe(
         "Required. The name of the agent to transfer the conversation to. The agent must be in the same app as the current agent. Format: `projects/{project}/locations/{location}/apps/{app}/agents/{agent}`",
       ).optional(),
-    }).describe(
-      "The agent will transfer the conversation to a different agent.",
-    ).optional(),
-  }).describe("Action that is taken when a certain precondition is met.")
+    }).describe("Optional. Transfer the conversation to a different agent.")
+      .optional(),
+  }).describe("Optional. Action to take when the guardrail is triggered.")
     .optional(),
   codeCallback: z.object({
     afterAgentCallback: z.object({
@@ -545,7 +536,7 @@ const InputsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute after the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
     afterModelCallback: z.object({
       description: z.string().describe(
@@ -561,7 +552,7 @@ const InputsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute after the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
     beforeAgentCallback: z.object({
       description: z.string().describe(
@@ -577,7 +568,7 @@ const InputsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute before the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
     beforeModelCallback: z.object({
       description: z.string().describe(
@@ -593,10 +584,10 @@ const InputsSchema = z.object({
         "Required. The python code to execute for the callback.",
       ).optional(),
     }).describe(
-      "A callback defines the custom logic to be executed at various stages of agent interaction.",
+      "Optional. The callback to execute before the model is called. If there are multiple calls to the model, the callback will be executed multiple times. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - 'decision': Either 'OK' or 'TRIGGER'. - 'reason': A string explaining the decision. A 'TRIGGER' decision may halt further processing.",
     ).optional(),
   }).describe(
-    "Guardrail that blocks the conversation based on the code callbacks provided.",
+    "Optional. Guardrail that potentially blocks the conversation based on the result of the callback execution.",
   ).optional(),
   contentFilter: z.object({
     bannedContents: z.array(z.string()).describe(
@@ -618,7 +609,7 @@ const InputsSchema = z.object({
       "REGEXP_MATCH",
     ]).describe("Required. Match type for the content filter.").optional(),
   }).describe(
-    "Guardrail that bans certain content from being used in the conversation.",
+    "Optional. Guardrail that bans certain content from being used in the conversation.",
   ).optional(),
   description: z.string().describe("Optional. Description of the guardrail.")
     .optional(),
@@ -643,9 +634,7 @@ const InputsSchema = z.object({
       temperature: z.number().describe(
         "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
       ).optional(),
-    }).describe(
-      "Model settings contains various configurations for the LLM model.",
-    ).optional(),
+    }).describe("Optional. Model settings.").optional(),
     policyScope: z.enum([
       "POLICY_SCOPE_UNSPECIFIED",
       "USER_QUERY",
@@ -656,7 +645,7 @@ const InputsSchema = z.object({
     ).optional(),
     prompt: z.string().describe("Required. Policy prompt.").optional(),
   }).describe(
-    "Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.",
+    "Optional. Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.",
   ).optional(),
   llmPromptSecurity: z.object({
     customPolicy: z.object({
@@ -676,9 +665,7 @@ const InputsSchema = z.object({
         temperature: z.number().describe(
           "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
         ).optional(),
-      }).describe(
-        "Model settings contains various configurations for the LLM model.",
-      ).optional(),
+      }).describe("Optional. Model settings.").optional(),
       policyScope: z.enum([
         "POLICY_SCOPE_UNSPECIFIED",
         "USER_QUERY",
@@ -689,19 +676,20 @@ const InputsSchema = z.object({
       ).optional(),
       prompt: z.string().describe("Required. Policy prompt.").optional(),
     }).describe(
-      "Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.",
+      "Optional. Use a user-defined LlmPolicy to configure the security guardrail.",
     ).optional(),
     defaultSettings: z.object({
       defaultPromptTemplate: z.string().describe(
         "Output only. The default prompt template used by the system. This field is for display purposes to show the user what prompt the system uses by default. It is OUTPUT_ONLY.",
       ).optional(),
-    }).describe("Configuration for default system security settings.")
-      .optional(),
+    }).describe(
+      "Optional. Use the system's predefined default security settings. To select this mode, include an empty 'default_settings' message in the request. The 'default_prompt_template' field within will be populated by the server in the response.",
+    ).optional(),
     failOpen: z.boolean().describe(
       "Optional. Determines the behavior when the guardrail encounters an LLM error. - If true: the guardrail is bypassed. - If false (default): the guardrail triggers/blocks. Note: If a custom policy is provided, this field is ignored in favor of the policy's 'fail_open' configuration.",
     ).optional(),
   }).describe(
-    "Guardrail that blocks the conversation if the input is considered unsafe based on the LLM classification.",
+    "Optional. Guardrail that blocks the conversation if the prompt is considered unsafe based on the LLM classification.",
   ).optional(),
   modelSafety: z.object({
     safetySettings: z.array(z.object({
@@ -722,7 +710,7 @@ const InputsSchema = z.object({
       ]).describe("Required. The harm block threshold.").optional(),
     })).describe("Required. List of safety settings.").optional(),
   }).describe(
-    "Model safety settings overrides. When this is set, it will override the default settings and trigger the guardrail if the response is considered unsafe.",
+    "Optional. Guardrail that blocks the conversation if the LLM response is considered unsafe based on the model safety settings.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The unique identifier of the guardrail. Format: `projects/{project}/locations/{location}/apps/{app}/guardrails/{guardrail}`",
@@ -761,7 +749,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Guardrails. Registered at `@swamp/gcp/ces/apps-guardrails`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-guardrails",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -865,6 +853,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

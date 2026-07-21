@@ -155,19 +155,6 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "The user-provided name for this ProductSet. Must not be empty. Must be at most 4096 characters long.",
   ).optional(),
-  indexError: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   name: z.string().describe(
     "The resource name of the ProductSet. Format is: `projects/PROJECT_ID/locations/LOC_ID/productSets/PRODUCT_SET_ID`. This field is ignored when creating a ProductSet.",
   ).optional(),
@@ -199,19 +186,6 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   displayName: z.string().describe(
     "The user-provided name for this ProductSet. Must not be empty. Must be at most 4096 characters long.",
-  ).optional(),
-  indexError: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
   ).optional(),
   name: z.string().describe(
     "The resource name of the ProductSet. Format is: `projects/PROJECT_ID/locations/LOC_ID/productSets/PRODUCT_SET_ID`. This field is ignored when creating a ProductSet.",
@@ -247,7 +221,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Vision ProductSets. Registered at `@swamp/gcp/vision/productsets`. */
 export const model = {
   type: "@swamp/gcp/vision/productsets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -354,6 +328,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: indexError",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { indexError: _indexError, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -382,7 +364,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["indexError"] !== undefined) body["indexError"] = g["indexError"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["productSetId"] !== undefined) {
           params["productSetId"] = String(g["productSetId"]);
@@ -496,7 +477,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["indexError"] !== undefined) body["indexError"] = g["indexError"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

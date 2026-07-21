@@ -177,7 +177,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The entry types that you want to listen to, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/entryTypes/{entry_type_id}. Only entries that belong to the specified entry types are published.",
     ).optional(),
   }).describe(
-    "Filters defines the type of changes that you want to listen to. You can have multiple entry type filters and multiple aspect type filters. All of the entry type filters are OR'ed together. All of the aspect type filters are OR'ed together. All of the entry type filters and aspect type filters are AND'ed together.",
+    "Optional. The filters of the metadata feed. Only the changes that match the filters are published.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels.",
@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The projects whose entries you want to listen to. Must be in the same organization as the feed. Must be in the format: projects/{project_id_or_number}.",
     ).optional(),
   }).describe(
-    "Scope defines the scope of the metadata feed. Scopes are exclusive. Only one of the scopes can be specified.",
+    "Required. The scope of the metadata feed. Only the in scope changes are published.",
   ).optional(),
   metadataFeedId: z.string().describe(
     "Optional. The metadata job ID. If not provided, a unique ID is generated with the prefix metadata-job-.",
@@ -248,7 +248,7 @@ const InputsSchema = z.object({
       "Optional. The entry types that you want to listen to, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/entryTypes/{entry_type_id}. Only entries that belong to the specified entry types are published.",
     ).optional(),
   }).describe(
-    "Filters defines the type of changes that you want to listen to. You can have multiple entry type filters and multiple aspect type filters. All of the entry type filters are OR'ed together. All of the aspect type filters are OR'ed together. All of the entry type filters and aspect type filters are AND'ed together.",
+    "Optional. The filters of the metadata feed. Only the changes that match the filters are published.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels.",
@@ -270,7 +270,7 @@ const InputsSchema = z.object({
       "Optional. The projects whose entries you want to listen to. Must be in the same organization as the feed. Must be in the format: projects/{project_id_or_number}.",
     ).optional(),
   }).describe(
-    "Scope defines the scope of the metadata feed. Scopes are exclusive. Only one of the scopes can be specified.",
+    "Required. The scope of the metadata feed. Only the in scope changes are published.",
   ).optional(),
   metadataFeedId: z.string().describe(
     "Optional. The metadata job ID. If not provided, a unique ID is generated with the prefix metadata-job-.",
@@ -303,7 +303,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex MetadataFeeds. Registered at `@swamp/gcp/dataplex/metadatafeeds`. */
 export const model = {
   type: "@swamp/gcp/dataplex/metadatafeeds",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -407,6 +407,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

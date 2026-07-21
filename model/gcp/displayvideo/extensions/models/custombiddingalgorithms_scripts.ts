@@ -153,8 +153,7 @@ const GlobalArgsSchema = z.object({
     resourceName: z.string().describe(
       "A resource name to be used in media.download to Download the script files. Or media.upload to Upload the script files. Resource names have the format `customBiddingAlgorithms/{custom_bidding_algorithm_id}/scriptRef/{ref_id}`.",
     ).optional(),
-  }).describe("The reference to the uploaded custom bidding script file.")
-    .optional(),
+  }).describe("The reference to the uploaded script file.").optional(),
   advertiserId: z.string().describe(
     "The ID of the advertiser that owns the parent custom bidding algorithm.",
   ).optional(),
@@ -196,8 +195,7 @@ const InputsSchema = z.object({
     resourceName: z.string().describe(
       "A resource name to be used in media.download to Download the script files. Or media.upload to Upload the script files. Resource names have the format `customBiddingAlgorithms/{custom_bidding_algorithm_id}/scriptRef/{ref_id}`.",
     ).optional(),
-  }).describe("The reference to the uploaded custom bidding script file.")
-    .optional(),
+  }).describe("The reference to the uploaded script file.").optional(),
   advertiserId: z.string().describe(
     "The ID of the advertiser that owns the parent custom bidding algorithm.",
   ).optional(),
@@ -229,7 +227,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 CustomBiddingAlgorithms.Scripts. Registered at `@swamp/gcp/displayvideo/custombiddingalgorithms-scripts`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/custombiddingalgorithms-scripts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -321,6 +319,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -364,16 +367,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "customBiddingAlgorithmId": String(
-                g["customBiddingAlgorithmId"] ?? "",
-              ),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

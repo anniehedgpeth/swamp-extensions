@@ -180,9 +180,7 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -204,14 +202,13 @@ const GlobalArgsSchema = z.object({
             "List of user-specified file type groups to transform. If specified, only the files with these file types are transformed. If empty, all supported files are transformed. Supported types may be automatically added over time. Any unsupported file types that are set in this field are excluded from de-identification. An error is recorded for each unsupported file in the TransformationDetails output table. Currently the only file types supported are: IMAGES, TEXT_FILES, CSV, TSV.",
           ).optional(),
           transformationConfig: z.unknown().describe(
-            "User specified templates and configs for how to deidentify structured, unstructures, and image files. User must provide either a unstructured deidentify template or at least one redact image config.",
+            "User specified deidentify templates and configs for structured, unstructured, and image files.",
           ).optional(),
           transformationDetailsStorageConfig: z.unknown().describe(
-            "Config for storing transformation details.",
+            "Config for storing transformation details. This field specifies the configuration for storing detailed metadata about each transformation performed during a de-identification process. The metadata is stored separately from the de-identified content itself and provides a granular record of both successful transformations and any failures that occurred. Enabling this configuration is essential for users who need to access comprehensive information about the status, outcome, and specifics of each transformation. The details are captured in the TransformationDetails message for each operation. Key use cases: * **Auditing and compliance** * Provides a verifiable audit trail of de-identification activities, which is crucial for meeting regulatory requirements and internal data governance policies. * Logs what data was transformed, what transformations were applied, when they occurred, and their success status. This helps demonstrate accountability and due diligence in protecting sensitive data. * **Troubleshooting and debugging** * Offers detailed error messages and context if a transformation fails. This information is useful for diagnosing and resolving issues in the de-identification pipeline. * Helps pinpoint the exact location and nature of failures, speeding up the debugging process. * **Process verification and quality assurance** * Allows users to confirm that de-identification rules and transformations were applied correctly and consistently across the dataset as intended. * Helps in verifying the effectiveness of the chosen de-identification strategies. * **Data lineage and impact analysis** * Creates a record of how data elements were modified, contributing to data lineage. This is useful for understanding the provenance of de-identified data. * Aids in assessing the potential impact of de-identification choices on downstream analytical processes or data usability. * **Reporting and operational insights** * You can analyze the metadata stored in a queryable BigQuery table to generate reports on transformation success rates, common error types, processing volumes (e.g., transformedBytes), and the types of transformations applied. * These insights can inform optimization of de-identification configurations and resource planning. To take advantage of these benefits, set this configuration. The stored details include a description of the transformation, success or error codes, error messages, the number of bytes transformed, the location of the transformed content, and identifiers for the job and source data.",
           ).optional(),
-        }).describe(
-          "Create a de-identified copy of a storage bucket. Only compatible with Cloud Storage buckets. A TransformationDetail will be created for each transformation. Compatible with: Inspection of Cloud Storage",
-        ).optional(),
+        }).describe("Create a de-identified copy of the input data.")
+          .optional(),
         jobNotificationEmails: z.object({}).describe(
           "Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).",
         ).optional(),
@@ -219,28 +216,25 @@ const GlobalArgsSchema = z.object({
           topic: z.unknown().describe(
             "Cloud Pub/Sub topic to send notifications to. The topic must have given publishing access rights to the DLP API service account executing the long running DlpJob sending the notifications. Format is projects/{project}/topics/{topic}.",
           ).optional(),
-        }).describe(
-          "Publish a message into a given Pub/Sub topic when DlpJob has completed. The message contains a single field, `DlpJobName`, which is equal to the finished job's [`DlpJob.name`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/projects.dlpJobs#DlpJob). Compatible with: Inspect, Risk",
-        ).optional(),
+        }).describe("Publish a notification to a Pub/Sub topic.").optional(),
         publishFindingsToCloudDataCatalog: z.object({}).describe(
-          "Publish findings of a DlpJob to Data Catalog. In Data Catalog, tag templates are applied to the resource that Cloud DLP scanned. Data Catalog tag templates are stored in the same project and region where the BigQuery table exists. For Cloud DLP to create and apply the tag template, the Cloud DLP service agent must have the `roles/datacatalog.tagTemplateOwner` permission on the project. The tag template contains fields summarizing the results of the DlpJob. Any field values previously written by another DlpJob are deleted. InfoType naming patterns are strictly enforced when using this feature. Findings are persisted in Data Catalog storage and are governed by service-specific policies for Data Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect",
+          "Deprecated because Data Catalog is being turned down. Use publish_findings_to_dataplex_catalog to publish findings to Dataplex Universal Catalog.",
         ).optional(),
         publishFindingsToDataplexCatalog: z.object({}).describe(
-          "Publish findings of a DlpJob to Dataplex Universal Catalog as a `sensitive-data-protection-job-result` aspect. For more information, see [Send inspection results to Dataplex Universal Catalog as aspects](https://cloud.google.com/sensitive-data-protection/docs/add-aspects-inspection-job). Aspects are stored in Dataplex Universal Catalog storage and are governed by service-specific policies for Dataplex Universal Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect",
+          "Publish findings as an aspect to Dataplex Universal Catalog.",
         ).optional(),
         publishSummaryToCscc: z.object({}).describe(
-          "Publish the result summary of a DlpJob to [Security Command Center](https://cloud.google.com/security-command-center). This action is available for only projects that belong to an organization. This action publishes the count of finding instances and their infoTypes. The summary of findings are persisted in Security Command Center and are governed by [service-specific policies for Security Command Center](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. Compatible with: Inspect",
+          "Publish summary to Cloud Security Command Center (Alpha).",
         ).optional(),
         publishToStackdriver: z.object({}).describe(
-          "Enable Stackdriver metric dlp.googleapis.com/finding_count. This will publish a metric to stack driver on each infotype requested and how many findings were found for it. CustomDetectors will be bucketed as 'Custom' under the Stackdriver label 'info_type'.",
+          "Enable Stackdriver metric dlp.googleapis.com/finding_count.",
         ).optional(),
         saveFindings: z.object({
           outputConfig: z.unknown().describe(
-            "Cloud repository for storing output.",
+            "Location to store findings outside of DLP.",
           ).optional(),
-        }).describe(
-          "If set, the detailed findings will be persisted to the specified OutputStorageConfig. Only a single instance of this action can be specified. Compatible with: Inspect, Risk",
-        ).optional(),
+        }).describe("Save resulting findings in a provided location.")
+          .optional(),
       })).describe("Actions to execute at the completion of the job.")
         .optional(),
       inspectConfig: z.object({
@@ -252,34 +246,33 @@ const GlobalArgsSchema = z.object({
             "Set of detection rules to apply to all findings of this CustomInfoType. Rules are applied in the order that they are specified. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
           dictionary: z.unknown().describe(
-            'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
+            "A list of phrases to detect as a CustomInfoType.",
           ).optional(),
           exclusionType: z.unknown().describe(
             "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
-          fileLabelInfoType: z.unknown().describe(
-            "Configuration for a custom infoType that detects file labels.",
-          ).optional(),
+          fileLabelInfoType: z.unknown().describe("File label to detect.")
+            .optional(),
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "CustomInfoType can either be a new infoType, or an extension of built-in infoType, when the name matches one of existing infoTypes and that infoType is specified in `InspectContent.info_types` field. Specifying the latter adds findings to the one detected by the system. If built-in info type is not specified in `InspectContent.info_types` list then the name is treated as a custom info type.",
           ).optional(),
           likelihood: z.unknown().describe(
             "Likelihood to return for this CustomInfoType. This base value can be altered by a detection rule if the finding meets the criteria specified by the rule. Defaults to `VERY_LIKELY` if not specified.",
           ).optional(),
           metadataKeyValueExpression: z.unknown().describe(
-            "Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.",
+            "Key-value pair to detect in the metadata.",
           ).optional(),
           regex: z.unknown().describe(
-            "Message defining a custom regular expression.",
+            "Regular expression based CustomInfoType.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Sensitivity for this CustomInfoType. If this CustomInfoType extends an existing InfoType, the sensitivity here will take precedence over that of the original InfoType. If unset for a CustomInfoType, it will default to HIGH. This only applies to data profiling.",
           ).optional(),
           storedType: z.unknown().describe(
-            "A reference to a StoredInfoType to use with scanning.",
+            "Loads an existing `StoredInfoType` resource.",
           ).optional(),
           surrogateType: z.unknown().describe(
-            'Message for detecting output from deidentification transformations such as [`CryptoReplaceFfxFpeConfig`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as `surrogate_info_type`. This CustomInfoType does not support the use of `detection_rules`.',
+            "Message for detecting output from deidentification transformations that support reversing.",
           ).optional(),
         })).describe(
           "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
@@ -295,7 +288,7 @@ const GlobalArgsSchema = z.object({
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
@@ -314,7 +307,7 @@ const GlobalArgsSchema = z.object({
             "Max number of findings that are returned per request or job. If you set this field in an InspectContentRequest, the resulting maximum value is the value that you set or 3,000, whichever is lower. This value isn't a hard limit. If an inspection reaches this limit, the inspection ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than this value.",
           ).optional(),
         }).describe(
-          "Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.",
+          "Configuration to control the number of findings returned. This is not used for data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error. When set within an InspectJobConfig, the specified maximum values aren't hard limits. If an inspection job reaches these limits, the job ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than these maximum values.",
         ).optional(),
         minLikelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
@@ -328,7 +321,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         minLikelihoodPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.",
           ).optional(),
           minLikelihood: z.unknown().describe(
             "Only returns findings equal to or above this threshold. This field is required or else the configuration fails.",
@@ -346,9 +339,7 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Set of rules to apply to the findings for this InspectConfig. Exclusion rules, contained in the set are executed in the end, other rules are executed in the order they are specified for each info type. Not supported for the `metadata_key_value_expression` CustomInfoType.",
         ).optional(),
-      }).describe(
-        "Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.",
-      ).optional(),
+      }).describe("How and what to scan for.").optional(),
       inspectTemplateName: z.string().describe(
         "If provided, will be used as the default for all values in InspectConfig. `inspect_config` will be merged into the values persisted as part of the template.",
       ).optional(),
@@ -381,11 +372,8 @@ const GlobalArgsSchema = z.object({
               "The Google Cloud project ID of the project containing the table. If omitted, project ID is inferred from the API call.",
             ).optional(),
             tableId: z.unknown().describe("Name of the table.").optional(),
-          }).describe(
-            "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
-          ).optional(),
-        }).describe("Options defining BigQuery table and row identifiers.")
-          .optional(),
+          }).describe("Complete BigQuery table reference.").optional(),
+        }).describe("BigQuery options.").optional(),
         cloudStorageOptions: z.object({
           bytesLimitPerFile: z.string().describe(
             "Max number of bytes to scan from a file. If a scanned file's size is bigger than this value then the rest of the bytes are omitted. Only one of `bytes_limit_per_file` and `bytes_limit_per_file_percent` can be specified. This field can't be set if de-identification is requested. For certain file types, setting this field has no effect. For more information, see [Limits on bytes scanned per file](https://cloud.google.com/sensitive-data-protection/docs/supported-file-types#max-byte-size-per-file).",
@@ -395,12 +383,12 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           fileSet: z.object({
             regexFileSet: z.unknown().describe(
-              'Message representing a set of files in a Cloud Storage bucket. Regular expressions are used to allow fine-grained control over which files in the bucket to include. Included files are those that match at least one item in `include_regex` and do not match any items in `exclude_regex`. Note that a file that matches items from both lists will _not_ be included. For a match to occur, the entire file path (i.e., everything in the url after the bucket name) must match the regular expression. For example, given the input `{bucket_name: "mybucket", include_regex: ["directory1/.*"], exclude_regex: ["directory1/excluded.*"]}`: * `gs://mybucket/directory1/myfile` will be included * `gs://mybucket/directory1/directory2/myfile` will be included (`.*` matches across `/`) * `gs://mybucket/directory0/directory1/myfile` will _not_ be included (the full path doesn\'t match any items in `include_regex`) * `gs://mybucket/directory1/excludedfile` will _not_ be included (the path matches an item in `exclude_regex`) If `include_regex` is left empty, it will match all files by default (this is equivalent to setting `include_regex: [".*"]`). Some other common use cases: * `{bucket_name: "mybucket", exclude_regex: [".*\\.pdf"]}` will include all files in `mybucket` except for.pdf files * `{bucket_name: "mybucket", include_regex: ["directory/[^/]+"]}` will include all files directly under `gs://mybucket/directory/`, without matching across `/`',
+              "The regex-filtered set of files to scan. Exactly one of `url` or `regex_file_set` must be set.",
             ).optional(),
             url: z.unknown().describe(
               "The Cloud Storage url of the file(s) to scan, in the format `gs:///`. Trailing wildcard in the path is allowed. If the url ends in a trailing slash, the bucket or directory represented by the url will be scanned non-recursively (content in sub-directories will not be scanned). This means that `gs://mybucket/` is equivalent to `gs://mybucket/*`, and `gs://mybucket/directory/` is equivalent to `gs://mybucket/directory/*`. Exactly one of `url` or `regex_file_set` must be set.",
             ).optional(),
-          }).describe("Set of files to scan.").optional(),
+          }).describe("The set of one or more files to scan.").optional(),
           fileTypes: z.array(z.unknown()).describe(
             "List of file type groups to include in the scan. If empty, all files are scanned and available data format processors are applied. In addition, the binary content of the selected files is always scanned as well. Images are scanned only as binary if the specified region does not support image inspection and no file_types were specified. Image inspection is restricted to 'global', 'us', 'asia', and 'europe'.",
           ).optional(),
@@ -412,13 +400,11 @@ const GlobalArgsSchema = z.object({
             "TOP",
             "RANDOM_START",
           ]).describe("How to sample the data.").optional(),
-        }).describe(
-          "Options defining a file or a set of files within a Cloud Storage bucket.",
-        ).optional(),
+        }).describe("Cloud Storage options.").optional(),
         datastoreOptions: z.object({
           kind: z.object({
             name: z.unknown().describe("The name of the kind.").optional(),
-          }).describe("A representation of a Datastore kind.").optional(),
+          }).describe("The kind to process.").optional(),
           partitionId: z.object({
             namespaceId: z.unknown().describe(
               "If not empty, the ID of the namespace to which the entities belong.",
@@ -427,11 +413,9 @@ const GlobalArgsSchema = z.object({
               "The ID of the project to which the entities belong.",
             ).optional(),
           }).describe(
-            "Datastore partition ID. A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty. A partition ID contains several dimensions: project ID and namespace ID.",
+            "A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty.",
           ).optional(),
-        }).describe(
-          "Options defining a data set within Google Cloud Datastore.",
-        ).optional(),
+        }).describe("Google Cloud Datastore options.").optional(),
         hybridOptions: z.object({
           description: z.string().describe(
             "A short description of where the data is coming from. Will be stored once in the job. 256 max length.",
@@ -447,11 +431,9 @@ const GlobalArgsSchema = z.object({
               "The columns that are the primary keys for table objects included in ContentItem. A copy of this cell's value will stored alongside alongside each finding so that the finding can be traced to the specific row it came from. No more than 3 may be provided.",
             ).optional(),
           }).describe(
-            "Instructions regarding the table content being inspected.",
+            "If the container is a table, additional information to make findings meaningful such as the columns that are primary keys.",
           ).optional(),
-        }).describe(
-          "Configuration to control jobs where the content being inspected is outside of Google Cloud Platform.",
-        ).optional(),
+        }).describe("Hybrid inspection options.").optional(),
         timespanConfig: z.object({
           enableAutoPopulationOfTimespanConfig: z.boolean().describe(
             "When the job is started by a JobTrigger we will automatically figure out a valid start_time to avoid scanning files that have not been modified since the last time the JobTrigger executed. This will be based on the time of the execution of the last run of the JobTrigger or the timespan end_time used in the last run of the JobTrigger. **For BigQuery** Inspect jobs triggered by automatic population will scan data that is at least three hours old when the job starts. This is because streaming buffer rows are not read during inspection and reading up to the current timestamp will result in skipped rows. See the [known issue](https://cloud.google.com/sensitive-data-protection/docs/known-issues#recently-streamed-data) related to this operation.",
@@ -465,13 +447,14 @@ const GlobalArgsSchema = z.object({
           timestampField: z.object({
             name: z.unknown().describe("Name describing the field.").optional(),
           }).describe(
-            "General identifier of a data field in a storage service.",
+            "Specification of the field containing the timestamp of scanned items. Used for data sources like Datastore and BigQuery. **For BigQuery** If this value is not specified and the table was modified between the given start and end times, the entire table will be scanned. If this value is specified, then rows are filtered based on the given start and end times. Rows with a `NULL` value in the provided BigQuery column are skipped. Valid data types of the provided BigQuery column are: `INTEGER`, `DATE`, `TIMESTAMP`, and `DATETIME`. If your BigQuery table is [partitioned at ingestion time](https://cloud.google.com/bigquery/docs/partitioned-tables#ingestion_time), you can use any of the following pseudo-columns as your timestamp field. When used with Cloud DLP, these pseudo-column names are case sensitive. - `_PARTITIONTIME` - `_PARTITIONDATE` - `_PARTITION_LOAD_TIME` **For Datastore** If this value is specified, then entities are filtered based on the given start and end times. If an entity does not contain the provided timestamp property or contains empty or invalid values, then it is included. Valid data types of the provided timestamp property are: `TIMESTAMP`. See the [known issue](https://cloud.google.com/sensitive-data-protection/docs/known-issues#bq-timespan) related to this operation.",
           ).optional(),
         }).describe(
-          "Configuration of the timespan of the items to include in scanning. Currently only supported when inspecting Cloud Storage and BigQuery.",
+          "Configuration of the timespan of the items to include in scanning.",
         ).optional(),
-      }).describe("Shared message indicating Cloud storage type.").optional(),
-    }).describe("Controls what and how to inspect for findings.").optional(),
+      }).describe("The data to scan.").optional(),
+    }).describe("For inspect jobs, a snapshot of the configuration.")
+      .optional(),
     lastRunTime: z.string().describe(
       "Output only. The timestamp of the last time this trigger executed.",
     ).optional(),
@@ -482,22 +465,22 @@ const GlobalArgsSchema = z.object({
       .describe("Required. A status for this trigger.").optional(),
     triggers: z.array(z.object({
       manual: z.object({}).describe(
-        "Job trigger option for hybrid jobs. Jobs must be manually created and finished.",
+        "For use with hybrid jobs. Jobs must be manually created and finished.",
       ).optional(),
       schedule: z.object({
         recurrencePeriodDuration: z.string().describe(
           "With this option a job is started on a regular periodic basis. For example: every day (86400 seconds). A scheduled start time will be skipped if the previous execution has not ended when its scheduled time occurs. This value must be set to a time duration greater than or equal to 1 day and can be no longer than 60 days.",
         ).optional(),
-      }).describe("Schedule for inspect job triggers.").optional(),
+      }).describe(
+        "Create a job on a repeating basis based on the elapse of time.",
+      ).optional(),
     })).describe(
       "A list of triggers which will be OR'ed together. Only one in the list needs to trigger for a job to be started. The list may contain only a single Schedule trigger and must have at least one object.",
     ).optional(),
     updateTime: z.string().describe(
       "Output only. The last update timestamp of a triggeredJob.",
     ).optional(),
-  }).describe(
-    "Contains a configuration to make API calls on a repeating basis. See https://cloud.google.com/sensitive-data-protection/docs/concepts-job-triggers to learn more.",
-  ).optional(),
+  }).describe("New JobTrigger value.").optional(),
   locationId: z.string().describe("Deprecated. This field has no effect.")
     .optional(),
   triggerId: z.string().describe(
@@ -722,9 +705,7 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -746,14 +727,13 @@ const InputsSchema = z.object({
             "List of user-specified file type groups to transform. If specified, only the files with these file types are transformed. If empty, all supported files are transformed. Supported types may be automatically added over time. Any unsupported file types that are set in this field are excluded from de-identification. An error is recorded for each unsupported file in the TransformationDetails output table. Currently the only file types supported are: IMAGES, TEXT_FILES, CSV, TSV.",
           ).optional(),
           transformationConfig: z.unknown().describe(
-            "User specified templates and configs for how to deidentify structured, unstructures, and image files. User must provide either a unstructured deidentify template or at least one redact image config.",
+            "User specified deidentify templates and configs for structured, unstructured, and image files.",
           ).optional(),
           transformationDetailsStorageConfig: z.unknown().describe(
-            "Config for storing transformation details.",
+            "Config for storing transformation details. This field specifies the configuration for storing detailed metadata about each transformation performed during a de-identification process. The metadata is stored separately from the de-identified content itself and provides a granular record of both successful transformations and any failures that occurred. Enabling this configuration is essential for users who need to access comprehensive information about the status, outcome, and specifics of each transformation. The details are captured in the TransformationDetails message for each operation. Key use cases: * **Auditing and compliance** * Provides a verifiable audit trail of de-identification activities, which is crucial for meeting regulatory requirements and internal data governance policies. * Logs what data was transformed, what transformations were applied, when they occurred, and their success status. This helps demonstrate accountability and due diligence in protecting sensitive data. * **Troubleshooting and debugging** * Offers detailed error messages and context if a transformation fails. This information is useful for diagnosing and resolving issues in the de-identification pipeline. * Helps pinpoint the exact location and nature of failures, speeding up the debugging process. * **Process verification and quality assurance** * Allows users to confirm that de-identification rules and transformations were applied correctly and consistently across the dataset as intended. * Helps in verifying the effectiveness of the chosen de-identification strategies. * **Data lineage and impact analysis** * Creates a record of how data elements were modified, contributing to data lineage. This is useful for understanding the provenance of de-identified data. * Aids in assessing the potential impact of de-identification choices on downstream analytical processes or data usability. * **Reporting and operational insights** * You can analyze the metadata stored in a queryable BigQuery table to generate reports on transformation success rates, common error types, processing volumes (e.g., transformedBytes), and the types of transformations applied. * These insights can inform optimization of de-identification configurations and resource planning. To take advantage of these benefits, set this configuration. The stored details include a description of the transformation, success or error codes, error messages, the number of bytes transformed, the location of the transformed content, and identifiers for the job and source data.",
           ).optional(),
-        }).describe(
-          "Create a de-identified copy of a storage bucket. Only compatible with Cloud Storage buckets. A TransformationDetail will be created for each transformation. Compatible with: Inspection of Cloud Storage",
-        ).optional(),
+        }).describe("Create a de-identified copy of the input data.")
+          .optional(),
         jobNotificationEmails: z.object({}).describe(
           "Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).",
         ).optional(),
@@ -761,28 +741,25 @@ const InputsSchema = z.object({
           topic: z.unknown().describe(
             "Cloud Pub/Sub topic to send notifications to. The topic must have given publishing access rights to the DLP API service account executing the long running DlpJob sending the notifications. Format is projects/{project}/topics/{topic}.",
           ).optional(),
-        }).describe(
-          "Publish a message into a given Pub/Sub topic when DlpJob has completed. The message contains a single field, `DlpJobName`, which is equal to the finished job's [`DlpJob.name`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/projects.dlpJobs#DlpJob). Compatible with: Inspect, Risk",
-        ).optional(),
+        }).describe("Publish a notification to a Pub/Sub topic.").optional(),
         publishFindingsToCloudDataCatalog: z.object({}).describe(
-          "Publish findings of a DlpJob to Data Catalog. In Data Catalog, tag templates are applied to the resource that Cloud DLP scanned. Data Catalog tag templates are stored in the same project and region where the BigQuery table exists. For Cloud DLP to create and apply the tag template, the Cloud DLP service agent must have the `roles/datacatalog.tagTemplateOwner` permission on the project. The tag template contains fields summarizing the results of the DlpJob. Any field values previously written by another DlpJob are deleted. InfoType naming patterns are strictly enforced when using this feature. Findings are persisted in Data Catalog storage and are governed by service-specific policies for Data Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect",
+          "Deprecated because Data Catalog is being turned down. Use publish_findings_to_dataplex_catalog to publish findings to Dataplex Universal Catalog.",
         ).optional(),
         publishFindingsToDataplexCatalog: z.object({}).describe(
-          "Publish findings of a DlpJob to Dataplex Universal Catalog as a `sensitive-data-protection-job-result` aspect. For more information, see [Send inspection results to Dataplex Universal Catalog as aspects](https://cloud.google.com/sensitive-data-protection/docs/add-aspects-inspection-job). Aspects are stored in Dataplex Universal Catalog storage and are governed by service-specific policies for Dataplex Universal Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect",
+          "Publish findings as an aspect to Dataplex Universal Catalog.",
         ).optional(),
         publishSummaryToCscc: z.object({}).describe(
-          "Publish the result summary of a DlpJob to [Security Command Center](https://cloud.google.com/security-command-center). This action is available for only projects that belong to an organization. This action publishes the count of finding instances and their infoTypes. The summary of findings are persisted in Security Command Center and are governed by [service-specific policies for Security Command Center](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. Compatible with: Inspect",
+          "Publish summary to Cloud Security Command Center (Alpha).",
         ).optional(),
         publishToStackdriver: z.object({}).describe(
-          "Enable Stackdriver metric dlp.googleapis.com/finding_count. This will publish a metric to stack driver on each infotype requested and how many findings were found for it. CustomDetectors will be bucketed as 'Custom' under the Stackdriver label 'info_type'.",
+          "Enable Stackdriver metric dlp.googleapis.com/finding_count.",
         ).optional(),
         saveFindings: z.object({
           outputConfig: z.unknown().describe(
-            "Cloud repository for storing output.",
+            "Location to store findings outside of DLP.",
           ).optional(),
-        }).describe(
-          "If set, the detailed findings will be persisted to the specified OutputStorageConfig. Only a single instance of this action can be specified. Compatible with: Inspect, Risk",
-        ).optional(),
+        }).describe("Save resulting findings in a provided location.")
+          .optional(),
       })).describe("Actions to execute at the completion of the job.")
         .optional(),
       inspectConfig: z.object({
@@ -794,34 +771,33 @@ const InputsSchema = z.object({
             "Set of detection rules to apply to all findings of this CustomInfoType. Rules are applied in the order that they are specified. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
           dictionary: z.unknown().describe(
-            'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
+            "A list of phrases to detect as a CustomInfoType.",
           ).optional(),
           exclusionType: z.unknown().describe(
             "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
-          fileLabelInfoType: z.unknown().describe(
-            "Configuration for a custom infoType that detects file labels.",
-          ).optional(),
+          fileLabelInfoType: z.unknown().describe("File label to detect.")
+            .optional(),
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "CustomInfoType can either be a new infoType, or an extension of built-in infoType, when the name matches one of existing infoTypes and that infoType is specified in `InspectContent.info_types` field. Specifying the latter adds findings to the one detected by the system. If built-in info type is not specified in `InspectContent.info_types` list then the name is treated as a custom info type.",
           ).optional(),
           likelihood: z.unknown().describe(
             "Likelihood to return for this CustomInfoType. This base value can be altered by a detection rule if the finding meets the criteria specified by the rule. Defaults to `VERY_LIKELY` if not specified.",
           ).optional(),
           metadataKeyValueExpression: z.unknown().describe(
-            "Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.",
+            "Key-value pair to detect in the metadata.",
           ).optional(),
           regex: z.unknown().describe(
-            "Message defining a custom regular expression.",
+            "Regular expression based CustomInfoType.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Sensitivity for this CustomInfoType. If this CustomInfoType extends an existing InfoType, the sensitivity here will take precedence over that of the original InfoType. If unset for a CustomInfoType, it will default to HIGH. This only applies to data profiling.",
           ).optional(),
           storedType: z.unknown().describe(
-            "A reference to a StoredInfoType to use with scanning.",
+            "Loads an existing `StoredInfoType` resource.",
           ).optional(),
           surrogateType: z.unknown().describe(
-            'Message for detecting output from deidentification transformations such as [`CryptoReplaceFfxFpeConfig`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as `surrogate_info_type`. This CustomInfoType does not support the use of `detection_rules`.',
+            "Message for detecting output from deidentification transformations that support reversing.",
           ).optional(),
         })).describe(
           "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
@@ -837,7 +813,7 @@ const InputsSchema = z.object({
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
@@ -856,7 +832,7 @@ const InputsSchema = z.object({
             "Max number of findings that are returned per request or job. If you set this field in an InspectContentRequest, the resulting maximum value is the value that you set or 3,000, whichever is lower. This value isn't a hard limit. If an inspection reaches this limit, the inspection ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than this value.",
           ).optional(),
         }).describe(
-          "Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.",
+          "Configuration to control the number of findings returned. This is not used for data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error. When set within an InspectJobConfig, the specified maximum values aren't hard limits. If an inspection job reaches these limits, the job ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than these maximum values.",
         ).optional(),
         minLikelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
@@ -870,7 +846,7 @@ const InputsSchema = z.object({
         ).optional(),
         minLikelihoodPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.",
           ).optional(),
           minLikelihood: z.unknown().describe(
             "Only returns findings equal to or above this threshold. This field is required or else the configuration fails.",
@@ -888,9 +864,7 @@ const InputsSchema = z.object({
         })).describe(
           "Set of rules to apply to the findings for this InspectConfig. Exclusion rules, contained in the set are executed in the end, other rules are executed in the order they are specified for each info type. Not supported for the `metadata_key_value_expression` CustomInfoType.",
         ).optional(),
-      }).describe(
-        "Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.",
-      ).optional(),
+      }).describe("How and what to scan for.").optional(),
       inspectTemplateName: z.string().describe(
         "If provided, will be used as the default for all values in InspectConfig. `inspect_config` will be merged into the values persisted as part of the template.",
       ).optional(),
@@ -923,11 +897,8 @@ const InputsSchema = z.object({
               "The Google Cloud project ID of the project containing the table. If omitted, project ID is inferred from the API call.",
             ).optional(),
             tableId: z.unknown().describe("Name of the table.").optional(),
-          }).describe(
-            "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
-          ).optional(),
-        }).describe("Options defining BigQuery table and row identifiers.")
-          .optional(),
+          }).describe("Complete BigQuery table reference.").optional(),
+        }).describe("BigQuery options.").optional(),
         cloudStorageOptions: z.object({
           bytesLimitPerFile: z.string().describe(
             "Max number of bytes to scan from a file. If a scanned file's size is bigger than this value then the rest of the bytes are omitted. Only one of `bytes_limit_per_file` and `bytes_limit_per_file_percent` can be specified. This field can't be set if de-identification is requested. For certain file types, setting this field has no effect. For more information, see [Limits on bytes scanned per file](https://cloud.google.com/sensitive-data-protection/docs/supported-file-types#max-byte-size-per-file).",
@@ -937,12 +908,12 @@ const InputsSchema = z.object({
           ).optional(),
           fileSet: z.object({
             regexFileSet: z.unknown().describe(
-              'Message representing a set of files in a Cloud Storage bucket. Regular expressions are used to allow fine-grained control over which files in the bucket to include. Included files are those that match at least one item in `include_regex` and do not match any items in `exclude_regex`. Note that a file that matches items from both lists will _not_ be included. For a match to occur, the entire file path (i.e., everything in the url after the bucket name) must match the regular expression. For example, given the input `{bucket_name: "mybucket", include_regex: ["directory1/.*"], exclude_regex: ["directory1/excluded.*"]}`: * `gs://mybucket/directory1/myfile` will be included * `gs://mybucket/directory1/directory2/myfile` will be included (`.*` matches across `/`) * `gs://mybucket/directory0/directory1/myfile` will _not_ be included (the full path doesn\'t match any items in `include_regex`) * `gs://mybucket/directory1/excludedfile` will _not_ be included (the path matches an item in `exclude_regex`) If `include_regex` is left empty, it will match all files by default (this is equivalent to setting `include_regex: [".*"]`). Some other common use cases: * `{bucket_name: "mybucket", exclude_regex: [".*\\.pdf"]}` will include all files in `mybucket` except for.pdf files * `{bucket_name: "mybucket", include_regex: ["directory/[^/]+"]}` will include all files directly under `gs://mybucket/directory/`, without matching across `/`',
+              "The regex-filtered set of files to scan. Exactly one of `url` or `regex_file_set` must be set.",
             ).optional(),
             url: z.unknown().describe(
               "The Cloud Storage url of the file(s) to scan, in the format `gs:///`. Trailing wildcard in the path is allowed. If the url ends in a trailing slash, the bucket or directory represented by the url will be scanned non-recursively (content in sub-directories will not be scanned). This means that `gs://mybucket/` is equivalent to `gs://mybucket/*`, and `gs://mybucket/directory/` is equivalent to `gs://mybucket/directory/*`. Exactly one of `url` or `regex_file_set` must be set.",
             ).optional(),
-          }).describe("Set of files to scan.").optional(),
+          }).describe("The set of one or more files to scan.").optional(),
           fileTypes: z.array(z.unknown()).describe(
             "List of file type groups to include in the scan. If empty, all files are scanned and available data format processors are applied. In addition, the binary content of the selected files is always scanned as well. Images are scanned only as binary if the specified region does not support image inspection and no file_types were specified. Image inspection is restricted to 'global', 'us', 'asia', and 'europe'.",
           ).optional(),
@@ -954,13 +925,11 @@ const InputsSchema = z.object({
             "TOP",
             "RANDOM_START",
           ]).describe("How to sample the data.").optional(),
-        }).describe(
-          "Options defining a file or a set of files within a Cloud Storage bucket.",
-        ).optional(),
+        }).describe("Cloud Storage options.").optional(),
         datastoreOptions: z.object({
           kind: z.object({
             name: z.unknown().describe("The name of the kind.").optional(),
-          }).describe("A representation of a Datastore kind.").optional(),
+          }).describe("The kind to process.").optional(),
           partitionId: z.object({
             namespaceId: z.unknown().describe(
               "If not empty, the ID of the namespace to which the entities belong.",
@@ -969,11 +938,9 @@ const InputsSchema = z.object({
               "The ID of the project to which the entities belong.",
             ).optional(),
           }).describe(
-            "Datastore partition ID. A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty. A partition ID contains several dimensions: project ID and namespace ID.",
+            "A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty.",
           ).optional(),
-        }).describe(
-          "Options defining a data set within Google Cloud Datastore.",
-        ).optional(),
+        }).describe("Google Cloud Datastore options.").optional(),
         hybridOptions: z.object({
           description: z.string().describe(
             "A short description of where the data is coming from. Will be stored once in the job. 256 max length.",
@@ -989,11 +956,9 @@ const InputsSchema = z.object({
               "The columns that are the primary keys for table objects included in ContentItem. A copy of this cell's value will stored alongside alongside each finding so that the finding can be traced to the specific row it came from. No more than 3 may be provided.",
             ).optional(),
           }).describe(
-            "Instructions regarding the table content being inspected.",
+            "If the container is a table, additional information to make findings meaningful such as the columns that are primary keys.",
           ).optional(),
-        }).describe(
-          "Configuration to control jobs where the content being inspected is outside of Google Cloud Platform.",
-        ).optional(),
+        }).describe("Hybrid inspection options.").optional(),
         timespanConfig: z.object({
           enableAutoPopulationOfTimespanConfig: z.boolean().describe(
             "When the job is started by a JobTrigger we will automatically figure out a valid start_time to avoid scanning files that have not been modified since the last time the JobTrigger executed. This will be based on the time of the execution of the last run of the JobTrigger or the timespan end_time used in the last run of the JobTrigger. **For BigQuery** Inspect jobs triggered by automatic population will scan data that is at least three hours old when the job starts. This is because streaming buffer rows are not read during inspection and reading up to the current timestamp will result in skipped rows. See the [known issue](https://cloud.google.com/sensitive-data-protection/docs/known-issues#recently-streamed-data) related to this operation.",
@@ -1007,13 +972,14 @@ const InputsSchema = z.object({
           timestampField: z.object({
             name: z.unknown().describe("Name describing the field.").optional(),
           }).describe(
-            "General identifier of a data field in a storage service.",
+            "Specification of the field containing the timestamp of scanned items. Used for data sources like Datastore and BigQuery. **For BigQuery** If this value is not specified and the table was modified between the given start and end times, the entire table will be scanned. If this value is specified, then rows are filtered based on the given start and end times. Rows with a `NULL` value in the provided BigQuery column are skipped. Valid data types of the provided BigQuery column are: `INTEGER`, `DATE`, `TIMESTAMP`, and `DATETIME`. If your BigQuery table is [partitioned at ingestion time](https://cloud.google.com/bigquery/docs/partitioned-tables#ingestion_time), you can use any of the following pseudo-columns as your timestamp field. When used with Cloud DLP, these pseudo-column names are case sensitive. - `_PARTITIONTIME` - `_PARTITIONDATE` - `_PARTITION_LOAD_TIME` **For Datastore** If this value is specified, then entities are filtered based on the given start and end times. If an entity does not contain the provided timestamp property or contains empty or invalid values, then it is included. Valid data types of the provided timestamp property are: `TIMESTAMP`. See the [known issue](https://cloud.google.com/sensitive-data-protection/docs/known-issues#bq-timespan) related to this operation.",
           ).optional(),
         }).describe(
-          "Configuration of the timespan of the items to include in scanning. Currently only supported when inspecting Cloud Storage and BigQuery.",
+          "Configuration of the timespan of the items to include in scanning.",
         ).optional(),
-      }).describe("Shared message indicating Cloud storage type.").optional(),
-    }).describe("Controls what and how to inspect for findings.").optional(),
+      }).describe("The data to scan.").optional(),
+    }).describe("For inspect jobs, a snapshot of the configuration.")
+      .optional(),
     lastRunTime: z.string().describe(
       "Output only. The timestamp of the last time this trigger executed.",
     ).optional(),
@@ -1024,22 +990,22 @@ const InputsSchema = z.object({
       .describe("Required. A status for this trigger.").optional(),
     triggers: z.array(z.object({
       manual: z.object({}).describe(
-        "Job trigger option for hybrid jobs. Jobs must be manually created and finished.",
+        "For use with hybrid jobs. Jobs must be manually created and finished.",
       ).optional(),
       schedule: z.object({
         recurrencePeriodDuration: z.string().describe(
           "With this option a job is started on a regular periodic basis. For example: every day (86400 seconds). A scheduled start time will be skipped if the previous execution has not ended when its scheduled time occurs. This value must be set to a time duration greater than or equal to 1 day and can be no longer than 60 days.",
         ).optional(),
-      }).describe("Schedule for inspect job triggers.").optional(),
+      }).describe(
+        "Create a job on a repeating basis based on the elapse of time.",
+      ).optional(),
     })).describe(
       "A list of triggers which will be OR'ed together. Only one in the list needs to trigger for a job to be started. The list may contain only a single Schedule trigger and must have at least one object.",
     ).optional(),
     updateTime: z.string().describe(
       "Output only. The last update timestamp of a triggeredJob.",
     ).optional(),
-  }).describe(
-    "Contains a configuration to make API calls on a repeating basis. See https://cloud.google.com/sensitive-data-protection/docs/concepts-job-triggers to learn more.",
-  ).optional(),
+  }).describe("New JobTrigger value.").optional(),
   locationId: z.string().describe("Deprecated. This field has no effect.")
     .optional(),
   triggerId: z.string().describe(
@@ -1075,7 +1041,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) JobTriggers. Registered at `@swamp/gcp/dlp/jobtriggers`. */
 export const model = {
   type: "@swamp/gcp/dlp/jobtriggers",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1187,6 +1153,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1226,14 +1197,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

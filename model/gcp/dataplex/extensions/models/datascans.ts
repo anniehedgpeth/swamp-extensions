@@ -180,42 +180,7 @@ const GlobalArgsSchema = z.object({
     resource: z.string().describe(
       'Immutable. The service-qualified full resource name of the cloud resource for a DataScan job to scan against. The field could either be: Cloud Storage bucket for DataDiscoveryScan Format: //storage.googleapis.com/projects/PROJECT_ID/buckets/BUCKET_ID or BigQuery table of type "TABLE" for DataProfileScan/DataQualityScan/DataDocumentationScan Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or BigQuery dataset for DataDocumentationScan only Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID',
     ).optional(),
-  }).describe("The data source for DataScan.").optional(),
-  dataDiscoveryResult: z.object({
-    bigqueryPublishing: z.object({
-      dataset: z.string().describe(
-        "Output only. The BigQuery dataset the discovered tables are published to.",
-      ).optional(),
-      location: z.string().describe(
-        "Output only. The location of the BigQuery publishing dataset.",
-      ).optional(),
-    }).describe("Describes BigQuery publishing configurations.").optional(),
-    scanStatistics: z.object({
-      dataProcessedBytes: z.string().describe("The data processed in bytes.")
-        .optional(),
-      filesExcluded: z.number().int().describe("The number of files excluded.")
-        .optional(),
-      filesetsCreated: z.number().int().describe(
-        "The number of filesets created.",
-      ).optional(),
-      filesetsDeleted: z.number().int().describe(
-        "The number of filesets deleted.",
-      ).optional(),
-      filesetsUpdated: z.number().int().describe(
-        "The number of filesets updated.",
-      ).optional(),
-      scannedFileCount: z.number().int().describe(
-        "The number of files scanned.",
-      ).optional(),
-      tablesCreated: z.number().int().describe("The number of tables created.")
-        .optional(),
-      tablesDeleted: z.number().int().describe("The number of tables deleted.")
-        .optional(),
-      tablesUpdated: z.number().int().describe("The number of tables updated.")
-        .optional(),
-    }).describe("Describes result statistics of a data scan discovery job.")
-      .optional(),
-  }).describe("The output of a data discovery scan.").optional(),
+  }).describe("Required. The data source for DataScan.").optional(),
   dataDiscoverySpec: z.object({
     bigqueryPublishingConfig: z.object({
       connection: z.string().describe(
@@ -231,7 +196,7 @@ const GlobalArgsSchema = z.object({
         .describe(
           "Optional. Determines whether to publish discovered tables as BigLake external tables or non-BigLake external tables.",
         ).optional(),
-    }).describe("Describes BigQuery publishing configurations.").optional(),
+    }).describe("Optional. Configuration for metadata publishing.").optional(),
     storageConfig: z.object({
       csvOptions: z.object({
         delimiter: z.string().describe(
@@ -249,8 +214,7 @@ const GlobalArgsSchema = z.object({
         typeInferenceDisabled: z.boolean().describe(
           "Optional. Whether to disable the inference of data types for CSV data. If true, all columns are registered as strings.",
         ).optional(),
-      }).describe("Describes CSV and similar semi-structured data formats.")
-        .optional(),
+      }).describe("Optional. Configuration for CSV data.").optional(),
       excludePatterns: z.array(z.string()).describe(
         "Optional. Defines the data to exclude during discovery. Provide a list of patterns that identify the data to exclude. For Cloud Storage bucket assets, these patterns are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these patterns are interpreted as patterns to match table names.",
       ).optional(),
@@ -264,7 +228,7 @@ const GlobalArgsSchema = z.object({
         typeInferenceDisabled: z.boolean().describe(
           "Optional. Whether to disable the inference of data types for JSON data. If true, all columns are registered as their primitive types (strings, number, or boolean).",
         ).optional(),
-      }).describe("Describes JSON data format.").optional(),
+      }).describe("Optional. Configuration for JSON data.").optional(),
       unstructuredDataOptions: z.object({
         globalEndpointEnabled: z.boolean().describe(
           "Optional. Whether to use the global model endpoint.",
@@ -272,85 +236,11 @@ const GlobalArgsSchema = z.object({
         semanticInferenceEnabled: z.boolean().describe(
           "Optional. Specifies whether deeper semantic inference over the objects' contents using GenAI is enabled.",
         ).optional(),
-      }).describe("Describes options for unstructured data discovery.")
-        .optional(),
-    }).describe("Configurations related to Cloud Storage as the data source.")
-      .optional(),
-  }).describe("Spec for a data discovery scan.").optional(),
-  dataDocumentationResult: z.object({
-    datasetResult: z.object({
-      overview: z.string().describe(
-        "Output only. Generated Dataset description.",
+      }).describe(
+        "Optional. Specifies configuration for unstructured data discovery.",
       ).optional(),
-      queries: z.array(z.object({
-        description: z.string().describe(
-          "Output only. The description for the query.",
-        ).optional(),
-        sql: z.string().describe(
-          "Output only. The SQL query string which can be executed.",
-        ).optional(),
-      })).describe("Output only. Sample SQL queries for the dataset.")
-        .optional(),
-      schemaRelationships: z.array(z.object({
-        leftSchemaPaths: z.object({
-          paths: z.unknown().describe(
-            "Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use '.' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field",
-          ).optional(),
-          tableFqn: z.unknown().describe(
-            "Output only. The service-qualified full resource name of the table Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
-          ).optional(),
-        }).describe(
-          "Represents an ordered set of paths within a table's schema.",
-        ).optional(),
-        rightSchemaPaths: z.object({
-          paths: z.unknown().describe(
-            "Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use '.' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field",
-          ).optional(),
-          tableFqn: z.unknown().describe(
-            "Output only. The service-qualified full resource name of the table Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
-          ).optional(),
-        }).describe(
-          "Represents an ordered set of paths within a table's schema.",
-        ).optional(),
-        sources: z.array(z.unknown()).describe(
-          "Output only. Sources which generated the schema relation edge.",
-        ).optional(),
-        type: z.enum(["TYPE_UNSPECIFIED", "SCHEMA_JOIN"]).describe(
-          "Output only. The type of relationship between the schema paths.",
-        ).optional(),
-      })).describe(
-        "Output only. Relationships suggesting how tables in the dataset are related to each other, based on their schema.",
-      ).optional(),
-    }).describe("Insights for a dataset resource.").optional(),
-    tableResult: z.object({
-      name: z.string().describe(
-        "Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
-      ).optional(),
-      overview: z.string().describe(
-        "Output only. Generated description of the table.",
-      ).optional(),
-      queries: z.array(z.object({
-        description: z.string().describe(
-          "Output only. The description for the query.",
-        ).optional(),
-        sql: z.string().describe(
-          "Output only. The SQL query string which can be executed.",
-        ).optional(),
-      })).describe("Output only. Sample SQL queries for the table.").optional(),
-      schema: z.object({
-        fields: z.array(z.object({
-          description: z.unknown().describe(
-            "Output only. Generated description for columns and fields.",
-          ).optional(),
-          fields: z.unknown().describe("Output only. Nested fields.")
-            .optional(),
-          name: z.unknown().describe("Output only. The name of the column.")
-            .optional(),
-        })).describe("Output only. The list of columns.").optional(),
-      }).describe("Schema of the table with generated metadata of columns.")
-        .optional(),
-    }).describe("Insights for a table resource.").optional(),
-  }).describe("The output of a DataDocumentation scan.").optional(),
+    }).describe("Cloud Storage related configurations.").optional(),
+  }).describe("Settings for a data discovery scan.").optional(),
   dataDocumentationSpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. Whether to publish result to Dataplex Catalog.",
@@ -366,83 +256,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "Optional. Specifies which components of the data documentation to generate. Any component that is required to generate the specified components will also be generated. If no generation scope is specified, all available documentation components will be generated.",
     ).optional(),
-  }).describe("DataDocumentation scan related spec.").optional(),
-  dataProfileResult: z.object({
-    catalogPublishingStatus: z.object({
-      state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-        .describe("Output only. Execution state for publishing.").optional(),
-    }).describe(
-      "The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.",
-    ).optional(),
-    postScanActionsResult: z.object({
-      bigqueryExportResult: z.object({
-        message: z.string().describe(
-          "Output only. Additional information about the BigQuery exporting.",
-        ).optional(),
-        state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-          .describe("Output only. Execution state for the BigQuery exporting.")
-          .optional(),
-      }).describe("The result of BigQuery export post scan action.").optional(),
-    }).describe("The result of post scan actions of DataProfileScan job.")
-      .optional(),
-    profile: z.object({
-      fields: z.array(z.object({
-        mode: z.string().describe(
-          "Output only. The mode of the field. Possible values include: REQUIRED, if it is a required field. NULLABLE, if it is an optional field. REPEATED, if it is a repeated field.",
-        ).optional(),
-        name: z.string().describe("Output only. The name of the field.")
-          .optional(),
-        profile: z.object({
-          distinctRatio: z.unknown().describe(
-            "Output only. Ratio of rows with distinct values against total scanned rows. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.",
-          ).optional(),
-          doubleProfile: z.unknown().describe(
-            "The profile information for a double type field.",
-          ).optional(),
-          integerProfile: z.unknown().describe(
-            "The profile information for an integer type field.",
-          ).optional(),
-          nullRatio: z.unknown().describe(
-            "Output only. Ratio of rows with null value against total scanned rows.",
-          ).optional(),
-          stringProfile: z.unknown().describe(
-            "The profile information for a string type field.",
-          ).optional(),
-          topNValues: z.unknown().describe(
-            "Output only. The list of top N non-null values, frequency and ratio with which they occur in the scanned data. N is 10 or equal to the number of distinct values in the field, whichever is smaller. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.",
-          ).optional(),
-        }).describe("The profile information for each field type.").optional(),
-        type: z.string().describe(
-          "Output only. The data type retrieved from the schema of the data source. For instance, for a BigQuery native table, it is the BigQuery Table Schema (https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#tablefieldschema). For a Dataplex Universal Catalog Entity, it is the Entity Schema (https://cloud.google.com/dataplex/docs/reference/rpc/google.cloud.dataplex.v1#type_3).",
-        ).optional(),
-      })).describe(
-        "Output only. List of fields with structural and profile information for each field.",
-      ).optional(),
-    }).describe(
-      "Contains name, type, mode and field type specific profile information.",
-    ).optional(),
-    rowCount: z.string().describe("Output only. The count of rows scanned.")
-      .optional(),
-    scannedData: z.object({
-      incrementalField: z.object({
-        end: z.string().describe(
-          "Output only. Value that marks the end of the range.",
-        ).optional(),
-        field: z.string().describe(
-          "Output only. The field that contains values which monotonically increases over time (e.g. a timestamp column).",
-        ).optional(),
-        start: z.string().describe(
-          "Output only. Value that marks the start of the range.",
-        ).optional(),
-      }).describe(
-        "A data range denoted by a pair of start/end values of a field.",
-      ).optional(),
-    }).describe(
-      "The data scanned during processing (e.g. in incremental DataScan)",
-    ).optional(),
-  }).describe(
-    "DataProfileResult defines the output of DataProfileScan. Each field of the table will have field type specific profile result.",
-  ).optional(),
+  }).describe("Settings for a data documentation scan.").optional(),
   dataProfileSpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.",
@@ -452,14 +266,14 @@ const GlobalArgsSchema = z.object({
         "Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if 'x' is of nested field type, listing 'x' is supported but 'x.y.z' is not supported. Here 'y' and 'y.z' are nested fields of 'x'.",
       ).optional(),
     }).describe(
-      "The specification for fields to include or exclude in data profile scan.",
+      "Optional. The fields to exclude from data profile.If specified, the fields will be excluded from data profile, regardless of include_fields value.",
     ).optional(),
     includeFields: z.object({
       fieldNames: z.array(z.string()).describe(
         "Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if 'x' is of nested field type, listing 'x' is supported but 'x.y.z' is not supported. Here 'y' and 'y.z' are nested fields of 'x'.",
       ).optional(),
     }).describe(
-      "The specification for fields to include or exclude in data profile scan.",
+      "Optional. The fields to include in data profile.If not specified, all fields at the time of profile scan job execution are included, except for ones listed in exclude_fields.",
     ).optional(),
     mode: z.enum(["MODE_UNSPECIFIED", "STANDARD", "LIGHTWEIGHT"]).describe(
       "Optional. The execution mode for the profile scan.",
@@ -469,276 +283,17 @@ const GlobalArgsSchema = z.object({
         resultsTable: z.string().describe(
           "Optional. The BigQuery table to export DataProfileScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
         ).optional(),
-      }).describe("The configuration of BigQuery export post scan action.")
-        .optional(),
-    }).describe(
-      "The configuration of post scan actions of DataProfileScan job.",
-    ).optional(),
+      }).describe(
+        "Optional. If set, results will be exported to the provided BigQuery table.",
+      ).optional(),
+    }).describe("Optional. Actions to take upon job completion..").optional(),
     rowFilter: z.string().describe(
       "Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in BigQuery standard SQL syntax. Example: col1 >= 0 AND col2 < 10",
     ).optional(),
     samplingPercent: z.number().describe(
       "Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.",
     ).optional(),
-  }).describe("DataProfileScan related setting.").optional(),
-  dataQualityResult: z.object({
-    anomalyDetectionGeneratedAssets: z.object({
-      dataIntermediateTable: z.string().describe(
-        "Output only. The intermediate table for data anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID",
-      ).optional(),
-      freshnessIntermediateTable: z.string().describe(
-        "Output only. The intermediate table for freshness anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID",
-      ).optional(),
-      resultTable: z.string().describe(
-        "Output only. The result table for anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID If the result table is set at AnomalyDetectionAssets, the result table here would be the same as the one set in the AnomalyDetectionAssets.result_table.",
-      ).optional(),
-      volumeIntermediateTable: z.string().describe(
-        "Output only. The intermediate table for volume anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID",
-      ).optional(),
-    }).describe("The assets generated by Anomaly Detection Data Scan.")
-      .optional(),
-    catalogPublishingStatus: z.object({
-      state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-        .describe("Output only. Execution state for publishing.").optional(),
-    }).describe(
-      "The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.",
-    ).optional(),
-    columns: z.array(z.object({
-      column: z.string().describe(
-        "Output only. The column specified in the DataQualityRule.",
-      ).optional(),
-      dimensions: z.array(z.object({
-        dimension: z.unknown().describe(
-          "A dimension captures data quality intent about a defined subset of the rules specified.",
-        ).optional(),
-        passed: z.unknown().describe(
-          "Output only. Whether the dimension passed or failed.",
-        ).optional(),
-        score: z.unknown().describe(
-          "Output only. The dimension-level data quality score for this data scan job if and only if the 'dimension' field is set.The score ranges between 0, 100 (up to two decimal points).",
-        ).optional(),
-      })).describe("Output only. The dimension-level results for this column.")
-        .optional(),
-      passed: z.boolean().describe(
-        "Output only. Whether the column passed or failed.",
-      ).optional(),
-      score: z.number().describe(
-        "Output only. The column-level data quality score for this data scan job if and only if the 'column' field is set.The score ranges between between 0, 100 (up to two decimal points).",
-      ).optional(),
-    })).describe(
-      "Output only. A list of results at the column level.A column will have a corresponding DataQualityColumnResult if and only if there is at least one rule with the 'column' field set to it.",
-    ).optional(),
-    dimensions: z.array(z.object({
-      dimension: z.object({
-        name: z.string().describe(
-          "Output only. The dimension name a rule belongs to. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.",
-        ).optional(),
-      }).describe(
-        "A dimension captures data quality intent about a defined subset of the rules specified.",
-      ).optional(),
-      passed: z.boolean().describe(
-        "Output only. Whether the dimension passed or failed.",
-      ).optional(),
-      score: z.number().describe(
-        "Output only. The dimension-level data quality score for this data scan job if and only if the 'dimension' field is set.The score ranges between 0, 100 (up to two decimal points).",
-      ).optional(),
-    })).describe(
-      "Output only. A list of results at the dimension level.A dimension will have a corresponding DataQualityDimensionResult if and only if there is at least one rule with the 'dimension' field set to it.",
-    ).optional(),
-    passed: z.boolean().describe(
-      "Output only. Overall data quality result -- true if all rules passed.",
-    ).optional(),
-    postScanActionsResult: z.object({
-      bigqueryExportResult: z.object({
-        message: z.string().describe(
-          "Output only. Additional information about the BigQuery exporting.",
-        ).optional(),
-        state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-          .describe("Output only. Execution state for the BigQuery exporting.")
-          .optional(),
-      }).describe("The result of BigQuery export post scan action.").optional(),
-    }).describe("The result of post scan actions of DataQualityScan job.")
-      .optional(),
-    rowCount: z.string().describe("Output only. The count of rows processed.")
-      .optional(),
-    rules: z.array(z.object({
-      assertionRowCount: z.string().describe(
-        "Output only. The number of rows returned by the SQL statement in a SQL assertion rule.This field is only valid for SQL assertion rules.",
-      ).optional(),
-      debugQueriesResultSets: z.array(z.object({
-        results: z.unknown().describe(
-          "Output only. Contains all results. Up to 10 results can be returned.",
-        ).optional(),
-      })).describe(
-        "Output only. Contains the results of all debug queries for this rule. The number of result sets will correspond to the number of debug_queries.",
-      ).optional(),
-      evaluatedCount: z.string().describe(
-        "Output only. The number of rows a rule was evaluated against.This field is only valid for row-level type rules.Evaluated count can be configured to either include all rows (default) - with null rows automatically failing rule evaluation, or exclude null rows from the evaluated_count, by setting ignore_nulls = true.This field is not set for rule SqlAssertion.",
-      ).optional(),
-      failingRowsQuery: z.string().describe(
-        "Output only. The query to find rows that did not pass this rule.This field is only valid for row-level type rules.",
-      ).optional(),
-      nullCount: z.string().describe(
-        "Output only. The number of rows with null values in the specified column.",
-      ).optional(),
-      passRatio: z.number().describe(
-        "Output only. The ratio of passed_count / evaluated_count.This field is only valid for row-level type rules.",
-      ).optional(),
-      passed: z.boolean().describe(
-        "Output only. Whether the rule passed or failed.",
-      ).optional(),
-      passedCount: z.string().describe(
-        "Output only. The number of rows which passed a rule evaluation.This field is only valid for row-level type rules.This field is not set for rule SqlAssertion.",
-      ).optional(),
-      rule: z.object({
-        attributes: z.record(z.string(), z.unknown()).describe(
-          "Optional. Map of attribute name and value linked to the rule. The rules to evaluate can be filtered based on attributes provided here and a filter expression provided in the DataQualitySpec.filter field.",
-        ).optional(),
-        column: z.string().describe(
-          "Optional. The unnested column which this rule is evaluated against.",
-        ).optional(),
-        debugQueries: z.array(z.unknown()).describe(
-          "Optional. Specifies the debug queries for this rule. Currently, only one query is supported, but this may be expanded in the future.",
-        ).optional(),
-        description: z.string().describe(
-          "Optional. Description of the rule. The maximum length is 1,024 characters.",
-        ).optional(),
-        dimension: z.string().describe(
-          "Optional. The dimension a rule belongs to. Results are also aggregated at the dimension level. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.",
-        ).optional(),
-        ignoreNull: z.boolean().describe(
-          "Optional. Rows with null values will automatically fail a rule, unless ignore_null is true. In that case, such null rows are trivially considered passing.This field is only valid for the following type of rules: RangeExpectation RegexExpectation SetExpectation UniquenessExpectation",
-        ).optional(),
-        name: z.string().describe(
-          "Optional. A mutable name for the rule. The name must contain only letters (a-z, A-Z), numbers (0-9), or hyphens (-). The maximum length is 63 characters. Must start with a letter. Must end with a number or a letter.",
-        ).optional(),
-        nonNullExpectation: z.object({}).describe(
-          "Evaluates whether each column value is null.",
-        ).optional(),
-        rangeExpectation: z.object({
-          maxValue: z.unknown().describe(
-            "Optional. The maximum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          minValue: z.unknown().describe(
-            "Optional. The minimum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          strictMaxEnabled: z.unknown().describe(
-            "Optional. Whether each value needs to be strictly lesser than ('<') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.",
-          ).optional(),
-          strictMinEnabled: z.unknown().describe(
-            "Optional. Whether each value needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether each column value lies between a specified range.",
-        ).optional(),
-        regexExpectation: z.object({
-          regex: z.unknown().describe(
-            "Optional. A regular expression the column value is expected to match.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether each column value matches a specified regex.",
-        ).optional(),
-        rowConditionExpectation: z.object({
-          sqlExpression: z.unknown().describe("Optional. The SQL expression.")
-            .optional(),
-        }).describe(
-          "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
-        ).optional(),
-        ruleSource: z.object({
-          rulePathElements: z.unknown().describe(
-            "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
-          ).optional(),
-        }).describe("Represents the rule source information from Catalog.")
-          .optional(),
-        setExpectation: z.object({
-          values: z.unknown().describe(
-            "Optional. Expected values for the column value.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether each column value is contained by a specified set.",
-        ).optional(),
-        sqlAssertion: z.object({
-          sqlStatement: z.unknown().describe("Optional. The SQL statement.")
-            .optional(),
-        }).describe(
-          "A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price < 0",
-        ).optional(),
-        statisticRangeExpectation: z.object({
-          maxValue: z.unknown().describe(
-            "Optional. The maximum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          minValue: z.unknown().describe(
-            "Optional. The minimum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          statistic: z.unknown().describe(
-            "Optional. The aggregate metric to evaluate.",
-          ).optional(),
-          strictMaxEnabled: z.unknown().describe(
-            "Optional. Whether column statistic needs to be strictly lesser than ('<') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.",
-          ).optional(),
-          strictMinEnabled: z.unknown().describe(
-            "Optional. Whether column statistic needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether the column aggregate statistic lies between a specified range.",
-        ).optional(),
-        suspended: z.boolean().describe(
-          "Optional. Whether the Rule is active or suspended. Default is false.",
-        ).optional(),
-        tableConditionExpectation: z.object({
-          sqlExpression: z.unknown().describe("Optional. The SQL expression.")
-            .optional(),
-        }).describe(
-          "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
-        ).optional(),
-        templateReference: z.object({
-          name: z.unknown().describe(
-            "Required. The template entry name. Entry must be of EntryType projects/dataplex-types/locations/global/entryTypes/data-quality-rule-template and contains top-level aspect of AspectType projects/dataplex-types/locations/global/aspectTypes/data-quality-rule-template. The format is: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-          ).optional(),
-          resolvedSql: z.unknown().describe(
-            "Output only. The resolved SQL statement generated from the template with parameters substituted. It is only populated in the result.",
-          ).optional(),
-          ruleTemplate: z.unknown().describe(
-            "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
-          ).optional(),
-          values: z.unknown().describe(
-            "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
-          ).optional(),
-        }).describe(
-          "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
-        ).optional(),
-        threshold: z.number().describe(
-          "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
-        ).optional(),
-        uniquenessExpectation: z.object({}).describe(
-          "Evaluates whether the column has duplicates.",
-        ).optional(),
-      }).describe("A rule captures data quality intent about a data source.")
-        .optional(),
-    })).describe(
-      "Output only. A list of all the rules in a job, and their results.",
-    ).optional(),
-    scannedData: z.object({
-      incrementalField: z.object({
-        end: z.string().describe(
-          "Output only. Value that marks the end of the range.",
-        ).optional(),
-        field: z.string().describe(
-          "Output only. The field that contains values which monotonically increases over time (e.g. a timestamp column).",
-        ).optional(),
-        start: z.string().describe(
-          "Output only. Value that marks the start of the range.",
-        ).optional(),
-      }).describe(
-        "A data range denoted by a pair of start/end values of a field.",
-      ).optional(),
-    }).describe(
-      "The data scanned during processing (e.g. in incremental DataScan)",
-    ).optional(),
-    score: z.number().describe(
-      "Output only. The overall data quality score.The score ranges between 0, 100 (up to two decimal points).",
-    ).optional(),
-  }).describe("The output of a DataQualityScan.").optional(),
+  }).describe("Settings for a data profile scan.").optional(),
   dataQualitySpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.",
@@ -754,33 +309,34 @@ const GlobalArgsSchema = z.object({
         resultsTable: z.string().describe(
           "Optional. The BigQuery table to export DataQualityScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
         ).optional(),
-      }).describe("The configuration of BigQuery export post scan action.")
-        .optional(),
+      }).describe(
+        "Optional. If set, results will be exported to the provided BigQuery table.",
+      ).optional(),
       notificationReport: z.object({
         jobEndTrigger: z.object({}).describe(
-          "This trigger is triggered whenever a scan job run ends, regardless of the result.",
+          "Optional. If set, report will be sent when a scan job ends.",
         ).optional(),
         jobFailureTrigger: z.object({}).describe(
-          "This trigger is triggered when the scan job itself fails, regardless of the result.",
+          "Optional. If set, report will be sent when a scan job fails.",
         ).optional(),
         recipients: z.object({
           emails: z.array(z.unknown()).describe(
             "Optional. The email recipients who will receive the DataQualityScan results report.",
           ).optional(),
         }).describe(
-          "The individuals or groups who are designated to receive notifications upon triggers.",
+          "Required. The recipients who will receive the notification report.",
         ).optional(),
         scoreThresholdTrigger: z.object({
           scoreThreshold: z.number().describe(
             "Optional. The score range is in 0,100.",
           ).optional(),
         }).describe(
-          "This trigger is triggered when the DQ score in the job result is less than a specified input score.",
+          "Optional. If set, report will be sent when score threshold is met.",
         ).optional(),
-      }).describe("The configuration of notification report post scan action.")
-        .optional(),
-    }).describe("The configuration of post scan actions of DataQualityScan.")
-      .optional(),
+      }).describe(
+        "Optional. If set, results will be sent to the provided notification receipts upon triggers.",
+      ).optional(),
+    }).describe("Optional. Actions to take upon job completion.").optional(),
     rowFilter: z.string().describe(
       "Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#where_clause).Example: col1 >= 0 AND col2 < 10",
     ).optional(),
@@ -814,7 +370,7 @@ const GlobalArgsSchema = z.object({
         "Optional. A mutable name for the rule. The name must contain only letters (a-z, A-Z), numbers (0-9), or hyphens (-). The maximum length is 63 characters. Must start with a letter. Must end with a number or a letter.",
       ).optional(),
       nonNullExpectation: z.object({}).describe(
-        "Evaluates whether each column value is null.",
+        "Row-level rule which evaluates whether each column value is null.",
       ).optional(),
       rangeExpectation: z.object({
         maxValue: z.string().describe(
@@ -830,39 +386,40 @@ const GlobalArgsSchema = z.object({
           "Optional. Whether each value needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
         ).optional(),
       }).describe(
-        "Evaluates whether each column value lies between a specified range.",
+        "Row-level rule which evaluates whether each column value lies between a specified range.",
       ).optional(),
       regexExpectation: z.object({
         regex: z.string().describe(
           "Optional. A regular expression the column value is expected to match.",
         ).optional(),
       }).describe(
-        "Evaluates whether each column value matches a specified regex.",
+        "Row-level rule which evaluates whether each column value matches a specified regex.",
       ).optional(),
       rowConditionExpectation: z.object({
         sqlExpression: z.string().describe("Optional. The SQL expression.")
           .optional(),
       }).describe(
-        "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
+        "Row-level rule which evaluates whether each row in a table passes the specified condition.",
       ).optional(),
       ruleSource: z.object({
         rulePathElements: z.array(z.unknown()).describe(
           "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
         ).optional(),
-      }).describe("Represents the rule source information from Catalog.")
-        .optional(),
+      }).describe(
+        "Output only. Contains information about the source of the rule and its relationship with the BigQuery table, where applicable.",
+      ).optional(),
       setExpectation: z.object({
         values: z.array(z.unknown()).describe(
           "Optional. Expected values for the column value.",
         ).optional(),
       }).describe(
-        "Evaluates whether each column value is contained by a specified set.",
+        "Row-level rule which evaluates whether each column value is contained by a specified set.",
       ).optional(),
       sqlAssertion: z.object({
         sqlStatement: z.string().describe("Optional. The SQL statement.")
           .optional(),
       }).describe(
-        "A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price < 0",
+        "Aggregate rule which evaluates the number of rows returned for the provided statement. If any rows are returned, this rule fails.",
       ).optional(),
       statisticRangeExpectation: z.object({
         maxValue: z.string().describe(
@@ -880,7 +437,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Whether column statistic needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
         ).optional(),
       }).describe(
-        "Evaluates whether the column aggregate statistic lies between a specified range.",
+        "Aggregate rule which evaluates whether the column aggregate statistic lies between a specified range.",
       ).optional(),
       suspended: z.boolean().describe(
         "Optional. Whether the Rule is active or suspended. Default is false.",
@@ -889,7 +446,7 @@ const GlobalArgsSchema = z.object({
         sqlExpression: z.string().describe("Optional. The SQL expression.")
           .optional(),
       }).describe(
-        "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
+        "Aggregate rule which evaluates whether the provided expression is true for a table.",
       ).optional(),
       templateReference: z.object({
         name: z.string().describe(
@@ -915,19 +472,19 @@ const GlobalArgsSchema = z.object({
             "Output only. Collection of SQLs for data quality rules. Currently only one SQL is supported.",
           ).optional(),
         }).describe(
-          "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
+          "Output only. The rule template used to resolve the rule. It is only populated in the result.",
         ).optional(),
         values: z.record(z.string(), z.unknown()).describe(
           "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
         ).optional(),
       }).describe(
-        "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
+        "Aggregate rule which references a rule template and provides the parameters to be substituted in the template. If any rows are returned, this rule fails.",
       ).optional(),
       threshold: z.number().describe(
         "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
       ).optional(),
       uniquenessExpectation: z.object({}).describe(
-        "Evaluates whether the column has duplicates.",
+        "Row-level rule which evaluates whether each column value is unique.",
       ).optional(),
     })).describe(
       "Required. The list of rules to evaluate against a data source. At least one rule is required.",
@@ -935,7 +492,7 @@ const GlobalArgsSchema = z.object({
     samplingPercent: z.number().describe(
       "Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.",
     ).optional(),
-  }).describe("DataQualityScan related setting.").optional(),
+  }).describe("Settings for a data quality scan.").optional(),
   description: z.string().describe(
     "Optional. Description of the scan. Must be between 1-1024 characters.",
   ).optional(),
@@ -944,16 +501,19 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   executionIdentity: z.object({
     dataplexServiceAgent: z.object({}).describe(
-      "The Dataplex service agent associated with the user's project.",
+      "Optional. The Dataplex service agent associated with the user's project.",
     ).optional(),
     serviceAccount: z.object({
       email: z.string().describe(
         "Required. Service account email. The datascan will execute with this service account's credentials. The user calling this API must have permissions to act as this service account. Dataplex service agent must be granted iam.serviceAccounts.getAccessToken permission on this service account, for example, through the iam.serviceAccountTokenCreator role.",
       ).optional(),
-    }).describe("The service account").optional(),
-    userCredential: z.object({}).describe("The credential of the calling user.")
-      .optional(),
-  }).describe("The identity to run the datascan.").optional(),
+    }).describe("Optional. The provided service account.").optional(),
+    userCredential: z.object({}).describe(
+      "Optional. The credential of the calling user. Supports only ONE_TIME trigger type.",
+    ).optional(),
+  }).describe(
+    "Optional. Immutable. The identity to run the datascan. If not specified, defaults to the Dataplex Service Agent.",
+  ).optional(),
   executionSpec: z.object({
     field: z.string().describe(
       "Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.",
@@ -965,80 +525,23 @@ const GlobalArgsSchema = z.object({
         ttlAfterScanCompletion: z.string().describe(
           "Optional. Time to live for OneTime scans. default value is 24 hours, minimum value is 0 seconds, and maximum value is 365 days. The time is calculated from the data scan job completion time. If value is set as 0 seconds, the scan will be immediately deleted upon job completion, regardless of whether the job succeeded or failed.",
         ).optional(),
-      }).describe("The scan runs once using create API.").optional(),
+      }).describe(
+        "The scan runs once, and does not create an associated ScanJob child resource.",
+      ).optional(),
       schedule: z.object({
         cron: z.string().describe(
           'Required. Cron (https://en.wikipedia.org/wiki/Cron) schedule for running scans periodically.To explicitly set a timezone in the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database (wikipedia (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)). For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.This field is required for Schedule scans.',
         ).optional(),
       }).describe("The scan is scheduled to run periodically.").optional(),
-    }).describe("DataScan scheduling and trigger settings.").optional(),
-  }).describe("DataScan execution settings.").optional(),
-  executionStatus: z.object({
-    latestJobCreateTime: z.string().describe(
-      "Optional. The time when the DataScanJob execution was created.",
+    }).describe(
+      "Optional. Spec related to how often and when a scan should be triggered.If not specified, the default is OnDemand, which means the scan will not run until the user calls RunDataScan API.",
     ).optional(),
-    latestJobEndTime: z.string().describe(
-      "Optional. The time when the latest DataScanJob ended.",
-    ).optional(),
-    latestJobStartTime: z.string().describe(
-      "Optional. The time when the latest DataScanJob started.",
-    ).optional(),
-  }).describe("Status of the data scan execution.").optional(),
+  }).describe(
+    "Optional. DataScan execution settings.If not specified, the fields in it will use their default values.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the scan.",
   ).optional(),
-  unstructuredDataProfileResult: z.object({
-    description: z.string().describe("Output only. The inferred description.")
-      .optional(),
-    graphProfile: z.object({
-      edgeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the edge type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected connectivity topology and bounds of this relationship. Format: "Topology - Description" Example: "1:N - One company can have multiple financial reports."',
-          ).optional(),
-        }).describe("Extraction hints (edge-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the edge type.",
-        ).optional(),
-        foreignKeys: z.array(z.unknown()).describe(
-          "Output only. Defines the Foreign Key constraints for the edge.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the edge type.")
-          .optional(),
-        sourceNodeType: z.string().describe("Output only. Source node type.")
-          .optional(),
-        targetNodeType: z.string().describe("Output only. Target node type.")
-          .optional(),
-      })).describe("Output only. Edge types.").optional(),
-      nodeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the node type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected occurrence frequency of this node type within a document. Format: "Bounds - Description" Example: "0:N - A document may contain multiple people names."',
-          ).optional(),
-        }).describe("Extraction hints (node-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the node type.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the node type.")
-          .optional(),
-        primaryKeys: z.array(z.unknown()).describe(
-          "Output only. Field names forming the primary keys. The order in this array defines the key's ordinal positions for composite keys.",
-        ).optional(),
-      })).describe("Output only. Node types.").optional(),
-    }).describe(
-      "Contains the strict structure for graph-profile for semantic inference scan result.",
-    ).optional(),
-    partialFailureMessage: z.string().describe(
-      "Output only. Optional message for partial failures (e.g. node type extraction failed).",
-    ).optional(),
-  }).describe("Contains the result of an unstructured data profile scan.")
-    .optional(),
   unstructuredDataProfileSpec: z.object({
     customizedPrompt: z.string().describe(
       "Optional. Customized prompt for unstructured data profile. The field will be used as part of the prompt, could be some instruction, specifying skill, or specific area to focus.",
@@ -1049,9 +552,8 @@ const GlobalArgsSchema = z.object({
     graphProfilePublishingEnabled: z.boolean().describe(
       "Optional. Whether to publish graph-profile as aspect on the catalog entry.",
     ).optional(),
-  }).describe(
-    "Contains the specification for an unstructured data profile scan.",
-  ).optional(),
+  }).describe("Optional. Settings for an unstructured data profile scan.")
+    .optional(),
   dataScanId: z.string().describe(
     'Optional. DataScan identifier. If not provided, a unique ID will be generated with the prefix "data-scan-". Must contain only lowercase letters, numbers and hyphens. Must start with a letter. Must end with a number or a letter. Must be between 1-63 characters. Must be unique within the customer project / location.',
   ).optional(),
@@ -1468,42 +970,7 @@ const InputsSchema = z.object({
     resource: z.string().describe(
       'Immutable. The service-qualified full resource name of the cloud resource for a DataScan job to scan against. The field could either be: Cloud Storage bucket for DataDiscoveryScan Format: //storage.googleapis.com/projects/PROJECT_ID/buckets/BUCKET_ID or BigQuery table of type "TABLE" for DataProfileScan/DataQualityScan/DataDocumentationScan Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or BigQuery dataset for DataDocumentationScan only Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID',
     ).optional(),
-  }).describe("The data source for DataScan.").optional(),
-  dataDiscoveryResult: z.object({
-    bigqueryPublishing: z.object({
-      dataset: z.string().describe(
-        "Output only. The BigQuery dataset the discovered tables are published to.",
-      ).optional(),
-      location: z.string().describe(
-        "Output only. The location of the BigQuery publishing dataset.",
-      ).optional(),
-    }).describe("Describes BigQuery publishing configurations.").optional(),
-    scanStatistics: z.object({
-      dataProcessedBytes: z.string().describe("The data processed in bytes.")
-        .optional(),
-      filesExcluded: z.number().int().describe("The number of files excluded.")
-        .optional(),
-      filesetsCreated: z.number().int().describe(
-        "The number of filesets created.",
-      ).optional(),
-      filesetsDeleted: z.number().int().describe(
-        "The number of filesets deleted.",
-      ).optional(),
-      filesetsUpdated: z.number().int().describe(
-        "The number of filesets updated.",
-      ).optional(),
-      scannedFileCount: z.number().int().describe(
-        "The number of files scanned.",
-      ).optional(),
-      tablesCreated: z.number().int().describe("The number of tables created.")
-        .optional(),
-      tablesDeleted: z.number().int().describe("The number of tables deleted.")
-        .optional(),
-      tablesUpdated: z.number().int().describe("The number of tables updated.")
-        .optional(),
-    }).describe("Describes result statistics of a data scan discovery job.")
-      .optional(),
-  }).describe("The output of a data discovery scan.").optional(),
+  }).describe("Required. The data source for DataScan.").optional(),
   dataDiscoverySpec: z.object({
     bigqueryPublishingConfig: z.object({
       connection: z.string().describe(
@@ -1519,7 +986,7 @@ const InputsSchema = z.object({
         .describe(
           "Optional. Determines whether to publish discovered tables as BigLake external tables or non-BigLake external tables.",
         ).optional(),
-    }).describe("Describes BigQuery publishing configurations.").optional(),
+    }).describe("Optional. Configuration for metadata publishing.").optional(),
     storageConfig: z.object({
       csvOptions: z.object({
         delimiter: z.string().describe(
@@ -1537,8 +1004,7 @@ const InputsSchema = z.object({
         typeInferenceDisabled: z.boolean().describe(
           "Optional. Whether to disable the inference of data types for CSV data. If true, all columns are registered as strings.",
         ).optional(),
-      }).describe("Describes CSV and similar semi-structured data formats.")
-        .optional(),
+      }).describe("Optional. Configuration for CSV data.").optional(),
       excludePatterns: z.array(z.string()).describe(
         "Optional. Defines the data to exclude during discovery. Provide a list of patterns that identify the data to exclude. For Cloud Storage bucket assets, these patterns are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these patterns are interpreted as patterns to match table names.",
       ).optional(),
@@ -1552,7 +1018,7 @@ const InputsSchema = z.object({
         typeInferenceDisabled: z.boolean().describe(
           "Optional. Whether to disable the inference of data types for JSON data. If true, all columns are registered as their primitive types (strings, number, or boolean).",
         ).optional(),
-      }).describe("Describes JSON data format.").optional(),
+      }).describe("Optional. Configuration for JSON data.").optional(),
       unstructuredDataOptions: z.object({
         globalEndpointEnabled: z.boolean().describe(
           "Optional. Whether to use the global model endpoint.",
@@ -1560,85 +1026,11 @@ const InputsSchema = z.object({
         semanticInferenceEnabled: z.boolean().describe(
           "Optional. Specifies whether deeper semantic inference over the objects' contents using GenAI is enabled.",
         ).optional(),
-      }).describe("Describes options for unstructured data discovery.")
-        .optional(),
-    }).describe("Configurations related to Cloud Storage as the data source.")
-      .optional(),
-  }).describe("Spec for a data discovery scan.").optional(),
-  dataDocumentationResult: z.object({
-    datasetResult: z.object({
-      overview: z.string().describe(
-        "Output only. Generated Dataset description.",
+      }).describe(
+        "Optional. Specifies configuration for unstructured data discovery.",
       ).optional(),
-      queries: z.array(z.object({
-        description: z.string().describe(
-          "Output only. The description for the query.",
-        ).optional(),
-        sql: z.string().describe(
-          "Output only. The SQL query string which can be executed.",
-        ).optional(),
-      })).describe("Output only. Sample SQL queries for the dataset.")
-        .optional(),
-      schemaRelationships: z.array(z.object({
-        leftSchemaPaths: z.object({
-          paths: z.unknown().describe(
-            "Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use '.' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field",
-          ).optional(),
-          tableFqn: z.unknown().describe(
-            "Output only. The service-qualified full resource name of the table Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
-          ).optional(),
-        }).describe(
-          "Represents an ordered set of paths within a table's schema.",
-        ).optional(),
-        rightSchemaPaths: z.object({
-          paths: z.unknown().describe(
-            "Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use '.' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field",
-          ).optional(),
-          tableFqn: z.unknown().describe(
-            "Output only. The service-qualified full resource name of the table Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
-          ).optional(),
-        }).describe(
-          "Represents an ordered set of paths within a table's schema.",
-        ).optional(),
-        sources: z.array(z.unknown()).describe(
-          "Output only. Sources which generated the schema relation edge.",
-        ).optional(),
-        type: z.enum(["TYPE_UNSPECIFIED", "SCHEMA_JOIN"]).describe(
-          "Output only. The type of relationship between the schema paths.",
-        ).optional(),
-      })).describe(
-        "Output only. Relationships suggesting how tables in the dataset are related to each other, based on their schema.",
-      ).optional(),
-    }).describe("Insights for a dataset resource.").optional(),
-    tableResult: z.object({
-      name: z.string().describe(
-        "Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
-      ).optional(),
-      overview: z.string().describe(
-        "Output only. Generated description of the table.",
-      ).optional(),
-      queries: z.array(z.object({
-        description: z.string().describe(
-          "Output only. The description for the query.",
-        ).optional(),
-        sql: z.string().describe(
-          "Output only. The SQL query string which can be executed.",
-        ).optional(),
-      })).describe("Output only. Sample SQL queries for the table.").optional(),
-      schema: z.object({
-        fields: z.array(z.object({
-          description: z.unknown().describe(
-            "Output only. Generated description for columns and fields.",
-          ).optional(),
-          fields: z.unknown().describe("Output only. Nested fields.")
-            .optional(),
-          name: z.unknown().describe("Output only. The name of the column.")
-            .optional(),
-        })).describe("Output only. The list of columns.").optional(),
-      }).describe("Schema of the table with generated metadata of columns.")
-        .optional(),
-    }).describe("Insights for a table resource.").optional(),
-  }).describe("The output of a DataDocumentation scan.").optional(),
+    }).describe("Cloud Storage related configurations.").optional(),
+  }).describe("Settings for a data discovery scan.").optional(),
   dataDocumentationSpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. Whether to publish result to Dataplex Catalog.",
@@ -1654,83 +1046,7 @@ const InputsSchema = z.object({
     ).describe(
       "Optional. Specifies which components of the data documentation to generate. Any component that is required to generate the specified components will also be generated. If no generation scope is specified, all available documentation components will be generated.",
     ).optional(),
-  }).describe("DataDocumentation scan related spec.").optional(),
-  dataProfileResult: z.object({
-    catalogPublishingStatus: z.object({
-      state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-        .describe("Output only. Execution state for publishing.").optional(),
-    }).describe(
-      "The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.",
-    ).optional(),
-    postScanActionsResult: z.object({
-      bigqueryExportResult: z.object({
-        message: z.string().describe(
-          "Output only. Additional information about the BigQuery exporting.",
-        ).optional(),
-        state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-          .describe("Output only. Execution state for the BigQuery exporting.")
-          .optional(),
-      }).describe("The result of BigQuery export post scan action.").optional(),
-    }).describe("The result of post scan actions of DataProfileScan job.")
-      .optional(),
-    profile: z.object({
-      fields: z.array(z.object({
-        mode: z.string().describe(
-          "Output only. The mode of the field. Possible values include: REQUIRED, if it is a required field. NULLABLE, if it is an optional field. REPEATED, if it is a repeated field.",
-        ).optional(),
-        name: z.string().describe("Output only. The name of the field.")
-          .optional(),
-        profile: z.object({
-          distinctRatio: z.unknown().describe(
-            "Output only. Ratio of rows with distinct values against total scanned rows. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.",
-          ).optional(),
-          doubleProfile: z.unknown().describe(
-            "The profile information for a double type field.",
-          ).optional(),
-          integerProfile: z.unknown().describe(
-            "The profile information for an integer type field.",
-          ).optional(),
-          nullRatio: z.unknown().describe(
-            "Output only. Ratio of rows with null value against total scanned rows.",
-          ).optional(),
-          stringProfile: z.unknown().describe(
-            "The profile information for a string type field.",
-          ).optional(),
-          topNValues: z.unknown().describe(
-            "Output only. The list of top N non-null values, frequency and ratio with which they occur in the scanned data. N is 10 or equal to the number of distinct values in the field, whichever is smaller. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.",
-          ).optional(),
-        }).describe("The profile information for each field type.").optional(),
-        type: z.string().describe(
-          "Output only. The data type retrieved from the schema of the data source. For instance, for a BigQuery native table, it is the BigQuery Table Schema (https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#tablefieldschema). For a Dataplex Universal Catalog Entity, it is the Entity Schema (https://cloud.google.com/dataplex/docs/reference/rpc/google.cloud.dataplex.v1#type_3).",
-        ).optional(),
-      })).describe(
-        "Output only. List of fields with structural and profile information for each field.",
-      ).optional(),
-    }).describe(
-      "Contains name, type, mode and field type specific profile information.",
-    ).optional(),
-    rowCount: z.string().describe("Output only. The count of rows scanned.")
-      .optional(),
-    scannedData: z.object({
-      incrementalField: z.object({
-        end: z.string().describe(
-          "Output only. Value that marks the end of the range.",
-        ).optional(),
-        field: z.string().describe(
-          "Output only. The field that contains values which monotonically increases over time (e.g. a timestamp column).",
-        ).optional(),
-        start: z.string().describe(
-          "Output only. Value that marks the start of the range.",
-        ).optional(),
-      }).describe(
-        "A data range denoted by a pair of start/end values of a field.",
-      ).optional(),
-    }).describe(
-      "The data scanned during processing (e.g. in incremental DataScan)",
-    ).optional(),
-  }).describe(
-    "DataProfileResult defines the output of DataProfileScan. Each field of the table will have field type specific profile result.",
-  ).optional(),
+  }).describe("Settings for a data documentation scan.").optional(),
   dataProfileSpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.",
@@ -1740,14 +1056,14 @@ const InputsSchema = z.object({
         "Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if 'x' is of nested field type, listing 'x' is supported but 'x.y.z' is not supported. Here 'y' and 'y.z' are nested fields of 'x'.",
       ).optional(),
     }).describe(
-      "The specification for fields to include or exclude in data profile scan.",
+      "Optional. The fields to exclude from data profile.If specified, the fields will be excluded from data profile, regardless of include_fields value.",
     ).optional(),
     includeFields: z.object({
       fieldNames: z.array(z.string()).describe(
         "Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if 'x' is of nested field type, listing 'x' is supported but 'x.y.z' is not supported. Here 'y' and 'y.z' are nested fields of 'x'.",
       ).optional(),
     }).describe(
-      "The specification for fields to include or exclude in data profile scan.",
+      "Optional. The fields to include in data profile.If not specified, all fields at the time of profile scan job execution are included, except for ones listed in exclude_fields.",
     ).optional(),
     mode: z.enum(["MODE_UNSPECIFIED", "STANDARD", "LIGHTWEIGHT"]).describe(
       "Optional. The execution mode for the profile scan.",
@@ -1757,276 +1073,17 @@ const InputsSchema = z.object({
         resultsTable: z.string().describe(
           "Optional. The BigQuery table to export DataProfileScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
         ).optional(),
-      }).describe("The configuration of BigQuery export post scan action.")
-        .optional(),
-    }).describe(
-      "The configuration of post scan actions of DataProfileScan job.",
-    ).optional(),
+      }).describe(
+        "Optional. If set, results will be exported to the provided BigQuery table.",
+      ).optional(),
+    }).describe("Optional. Actions to take upon job completion..").optional(),
     rowFilter: z.string().describe(
       "Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in BigQuery standard SQL syntax. Example: col1 >= 0 AND col2 < 10",
     ).optional(),
     samplingPercent: z.number().describe(
       "Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.",
     ).optional(),
-  }).describe("DataProfileScan related setting.").optional(),
-  dataQualityResult: z.object({
-    anomalyDetectionGeneratedAssets: z.object({
-      dataIntermediateTable: z.string().describe(
-        "Output only. The intermediate table for data anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID",
-      ).optional(),
-      freshnessIntermediateTable: z.string().describe(
-        "Output only. The intermediate table for freshness anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID",
-      ).optional(),
-      resultTable: z.string().describe(
-        "Output only. The result table for anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID If the result table is set at AnomalyDetectionAssets, the result table here would be the same as the one set in the AnomalyDetectionAssets.result_table.",
-      ).optional(),
-      volumeIntermediateTable: z.string().describe(
-        "Output only. The intermediate table for volume anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID",
-      ).optional(),
-    }).describe("The assets generated by Anomaly Detection Data Scan.")
-      .optional(),
-    catalogPublishingStatus: z.object({
-      state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-        .describe("Output only. Execution state for publishing.").optional(),
-    }).describe(
-      "The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.",
-    ).optional(),
-    columns: z.array(z.object({
-      column: z.string().describe(
-        "Output only. The column specified in the DataQualityRule.",
-      ).optional(),
-      dimensions: z.array(z.object({
-        dimension: z.unknown().describe(
-          "A dimension captures data quality intent about a defined subset of the rules specified.",
-        ).optional(),
-        passed: z.unknown().describe(
-          "Output only. Whether the dimension passed or failed.",
-        ).optional(),
-        score: z.unknown().describe(
-          "Output only. The dimension-level data quality score for this data scan job if and only if the 'dimension' field is set.The score ranges between 0, 100 (up to two decimal points).",
-        ).optional(),
-      })).describe("Output only. The dimension-level results for this column.")
-        .optional(),
-      passed: z.boolean().describe(
-        "Output only. Whether the column passed or failed.",
-      ).optional(),
-      score: z.number().describe(
-        "Output only. The column-level data quality score for this data scan job if and only if the 'column' field is set.The score ranges between between 0, 100 (up to two decimal points).",
-      ).optional(),
-    })).describe(
-      "Output only. A list of results at the column level.A column will have a corresponding DataQualityColumnResult if and only if there is at least one rule with the 'column' field set to it.",
-    ).optional(),
-    dimensions: z.array(z.object({
-      dimension: z.object({
-        name: z.string().describe(
-          "Output only. The dimension name a rule belongs to. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.",
-        ).optional(),
-      }).describe(
-        "A dimension captures data quality intent about a defined subset of the rules specified.",
-      ).optional(),
-      passed: z.boolean().describe(
-        "Output only. Whether the dimension passed or failed.",
-      ).optional(),
-      score: z.number().describe(
-        "Output only. The dimension-level data quality score for this data scan job if and only if the 'dimension' field is set.The score ranges between 0, 100 (up to two decimal points).",
-      ).optional(),
-    })).describe(
-      "Output only. A list of results at the dimension level.A dimension will have a corresponding DataQualityDimensionResult if and only if there is at least one rule with the 'dimension' field set to it.",
-    ).optional(),
-    passed: z.boolean().describe(
-      "Output only. Overall data quality result -- true if all rules passed.",
-    ).optional(),
-    postScanActionsResult: z.object({
-      bigqueryExportResult: z.object({
-        message: z.string().describe(
-          "Output only. Additional information about the BigQuery exporting.",
-        ).optional(),
-        state: z.enum(["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"])
-          .describe("Output only. Execution state for the BigQuery exporting.")
-          .optional(),
-      }).describe("The result of BigQuery export post scan action.").optional(),
-    }).describe("The result of post scan actions of DataQualityScan job.")
-      .optional(),
-    rowCount: z.string().describe("Output only. The count of rows processed.")
-      .optional(),
-    rules: z.array(z.object({
-      assertionRowCount: z.string().describe(
-        "Output only. The number of rows returned by the SQL statement in a SQL assertion rule.This field is only valid for SQL assertion rules.",
-      ).optional(),
-      debugQueriesResultSets: z.array(z.object({
-        results: z.unknown().describe(
-          "Output only. Contains all results. Up to 10 results can be returned.",
-        ).optional(),
-      })).describe(
-        "Output only. Contains the results of all debug queries for this rule. The number of result sets will correspond to the number of debug_queries.",
-      ).optional(),
-      evaluatedCount: z.string().describe(
-        "Output only. The number of rows a rule was evaluated against.This field is only valid for row-level type rules.Evaluated count can be configured to either include all rows (default) - with null rows automatically failing rule evaluation, or exclude null rows from the evaluated_count, by setting ignore_nulls = true.This field is not set for rule SqlAssertion.",
-      ).optional(),
-      failingRowsQuery: z.string().describe(
-        "Output only. The query to find rows that did not pass this rule.This field is only valid for row-level type rules.",
-      ).optional(),
-      nullCount: z.string().describe(
-        "Output only. The number of rows with null values in the specified column.",
-      ).optional(),
-      passRatio: z.number().describe(
-        "Output only. The ratio of passed_count / evaluated_count.This field is only valid for row-level type rules.",
-      ).optional(),
-      passed: z.boolean().describe(
-        "Output only. Whether the rule passed or failed.",
-      ).optional(),
-      passedCount: z.string().describe(
-        "Output only. The number of rows which passed a rule evaluation.This field is only valid for row-level type rules.This field is not set for rule SqlAssertion.",
-      ).optional(),
-      rule: z.object({
-        attributes: z.record(z.string(), z.unknown()).describe(
-          "Optional. Map of attribute name and value linked to the rule. The rules to evaluate can be filtered based on attributes provided here and a filter expression provided in the DataQualitySpec.filter field.",
-        ).optional(),
-        column: z.string().describe(
-          "Optional. The unnested column which this rule is evaluated against.",
-        ).optional(),
-        debugQueries: z.array(z.unknown()).describe(
-          "Optional. Specifies the debug queries for this rule. Currently, only one query is supported, but this may be expanded in the future.",
-        ).optional(),
-        description: z.string().describe(
-          "Optional. Description of the rule. The maximum length is 1,024 characters.",
-        ).optional(),
-        dimension: z.string().describe(
-          "Optional. The dimension a rule belongs to. Results are also aggregated at the dimension level. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.",
-        ).optional(),
-        ignoreNull: z.boolean().describe(
-          "Optional. Rows with null values will automatically fail a rule, unless ignore_null is true. In that case, such null rows are trivially considered passing.This field is only valid for the following type of rules: RangeExpectation RegexExpectation SetExpectation UniquenessExpectation",
-        ).optional(),
-        name: z.string().describe(
-          "Optional. A mutable name for the rule. The name must contain only letters (a-z, A-Z), numbers (0-9), or hyphens (-). The maximum length is 63 characters. Must start with a letter. Must end with a number or a letter.",
-        ).optional(),
-        nonNullExpectation: z.object({}).describe(
-          "Evaluates whether each column value is null.",
-        ).optional(),
-        rangeExpectation: z.object({
-          maxValue: z.unknown().describe(
-            "Optional. The maximum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          minValue: z.unknown().describe(
-            "Optional. The minimum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          strictMaxEnabled: z.unknown().describe(
-            "Optional. Whether each value needs to be strictly lesser than ('<') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.",
-          ).optional(),
-          strictMinEnabled: z.unknown().describe(
-            "Optional. Whether each value needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether each column value lies between a specified range.",
-        ).optional(),
-        regexExpectation: z.object({
-          regex: z.unknown().describe(
-            "Optional. A regular expression the column value is expected to match.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether each column value matches a specified regex.",
-        ).optional(),
-        rowConditionExpectation: z.object({
-          sqlExpression: z.unknown().describe("Optional. The SQL expression.")
-            .optional(),
-        }).describe(
-          "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
-        ).optional(),
-        ruleSource: z.object({
-          rulePathElements: z.unknown().describe(
-            "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
-          ).optional(),
-        }).describe("Represents the rule source information from Catalog.")
-          .optional(),
-        setExpectation: z.object({
-          values: z.unknown().describe(
-            "Optional. Expected values for the column value.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether each column value is contained by a specified set.",
-        ).optional(),
-        sqlAssertion: z.object({
-          sqlStatement: z.unknown().describe("Optional. The SQL statement.")
-            .optional(),
-        }).describe(
-          "A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price < 0",
-        ).optional(),
-        statisticRangeExpectation: z.object({
-          maxValue: z.unknown().describe(
-            "Optional. The maximum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          minValue: z.unknown().describe(
-            "Optional. The minimum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.",
-          ).optional(),
-          statistic: z.unknown().describe(
-            "Optional. The aggregate metric to evaluate.",
-          ).optional(),
-          strictMaxEnabled: z.unknown().describe(
-            "Optional. Whether column statistic needs to be strictly lesser than ('<') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.",
-          ).optional(),
-          strictMinEnabled: z.unknown().describe(
-            "Optional. Whether column statistic needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
-          ).optional(),
-        }).describe(
-          "Evaluates whether the column aggregate statistic lies between a specified range.",
-        ).optional(),
-        suspended: z.boolean().describe(
-          "Optional. Whether the Rule is active or suspended. Default is false.",
-        ).optional(),
-        tableConditionExpectation: z.object({
-          sqlExpression: z.unknown().describe("Optional. The SQL expression.")
-            .optional(),
-        }).describe(
-          "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
-        ).optional(),
-        templateReference: z.object({
-          name: z.unknown().describe(
-            "Required. The template entry name. Entry must be of EntryType projects/dataplex-types/locations/global/entryTypes/data-quality-rule-template and contains top-level aspect of AspectType projects/dataplex-types/locations/global/aspectTypes/data-quality-rule-template. The format is: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}",
-          ).optional(),
-          resolvedSql: z.unknown().describe(
-            "Output only. The resolved SQL statement generated from the template with parameters substituted. It is only populated in the result.",
-          ).optional(),
-          ruleTemplate: z.unknown().describe(
-            "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
-          ).optional(),
-          values: z.unknown().describe(
-            "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
-          ).optional(),
-        }).describe(
-          "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
-        ).optional(),
-        threshold: z.number().describe(
-          "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
-        ).optional(),
-        uniquenessExpectation: z.object({}).describe(
-          "Evaluates whether the column has duplicates.",
-        ).optional(),
-      }).describe("A rule captures data quality intent about a data source.")
-        .optional(),
-    })).describe(
-      "Output only. A list of all the rules in a job, and their results.",
-    ).optional(),
-    scannedData: z.object({
-      incrementalField: z.object({
-        end: z.string().describe(
-          "Output only. Value that marks the end of the range.",
-        ).optional(),
-        field: z.string().describe(
-          "Output only. The field that contains values which monotonically increases over time (e.g. a timestamp column).",
-        ).optional(),
-        start: z.string().describe(
-          "Output only. Value that marks the start of the range.",
-        ).optional(),
-      }).describe(
-        "A data range denoted by a pair of start/end values of a field.",
-      ).optional(),
-    }).describe(
-      "The data scanned during processing (e.g. in incremental DataScan)",
-    ).optional(),
-    score: z.number().describe(
-      "Output only. The overall data quality score.The score ranges between 0, 100 (up to two decimal points).",
-    ).optional(),
-  }).describe("The output of a DataQualityScan.").optional(),
+  }).describe("Settings for a data profile scan.").optional(),
   dataQualitySpec: z.object({
     catalogPublishingEnabled: z.boolean().describe(
       "Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.",
@@ -2042,33 +1099,34 @@ const InputsSchema = z.object({
         resultsTable: z.string().describe(
           "Optional. The BigQuery table to export DataQualityScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID",
         ).optional(),
-      }).describe("The configuration of BigQuery export post scan action.")
-        .optional(),
+      }).describe(
+        "Optional. If set, results will be exported to the provided BigQuery table.",
+      ).optional(),
       notificationReport: z.object({
         jobEndTrigger: z.object({}).describe(
-          "This trigger is triggered whenever a scan job run ends, regardless of the result.",
+          "Optional. If set, report will be sent when a scan job ends.",
         ).optional(),
         jobFailureTrigger: z.object({}).describe(
-          "This trigger is triggered when the scan job itself fails, regardless of the result.",
+          "Optional. If set, report will be sent when a scan job fails.",
         ).optional(),
         recipients: z.object({
           emails: z.array(z.unknown()).describe(
             "Optional. The email recipients who will receive the DataQualityScan results report.",
           ).optional(),
         }).describe(
-          "The individuals or groups who are designated to receive notifications upon triggers.",
+          "Required. The recipients who will receive the notification report.",
         ).optional(),
         scoreThresholdTrigger: z.object({
           scoreThreshold: z.number().describe(
             "Optional. The score range is in 0,100.",
           ).optional(),
         }).describe(
-          "This trigger is triggered when the DQ score in the job result is less than a specified input score.",
+          "Optional. If set, report will be sent when score threshold is met.",
         ).optional(),
-      }).describe("The configuration of notification report post scan action.")
-        .optional(),
-    }).describe("The configuration of post scan actions of DataQualityScan.")
-      .optional(),
+      }).describe(
+        "Optional. If set, results will be sent to the provided notification receipts upon triggers.",
+      ).optional(),
+    }).describe("Optional. Actions to take upon job completion.").optional(),
     rowFilter: z.string().describe(
       "Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#where_clause).Example: col1 >= 0 AND col2 < 10",
     ).optional(),
@@ -2102,7 +1160,7 @@ const InputsSchema = z.object({
         "Optional. A mutable name for the rule. The name must contain only letters (a-z, A-Z), numbers (0-9), or hyphens (-). The maximum length is 63 characters. Must start with a letter. Must end with a number or a letter.",
       ).optional(),
       nonNullExpectation: z.object({}).describe(
-        "Evaluates whether each column value is null.",
+        "Row-level rule which evaluates whether each column value is null.",
       ).optional(),
       rangeExpectation: z.object({
         maxValue: z.string().describe(
@@ -2118,39 +1176,40 @@ const InputsSchema = z.object({
           "Optional. Whether each value needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
         ).optional(),
       }).describe(
-        "Evaluates whether each column value lies between a specified range.",
+        "Row-level rule which evaluates whether each column value lies between a specified range.",
       ).optional(),
       regexExpectation: z.object({
         regex: z.string().describe(
           "Optional. A regular expression the column value is expected to match.",
         ).optional(),
       }).describe(
-        "Evaluates whether each column value matches a specified regex.",
+        "Row-level rule which evaluates whether each column value matches a specified regex.",
       ).optional(),
       rowConditionExpectation: z.object({
         sqlExpression: z.string().describe("Optional. The SQL expression.")
           .optional(),
       }).describe(
-        "Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 >= 0 AND col2 < 10",
+        "Row-level rule which evaluates whether each row in a table passes the specified condition.",
       ).optional(),
       ruleSource: z.object({
         rulePathElements: z.array(z.unknown()).describe(
           "Output only. Rule path elements represent information about the individual items in the relationship path between the scan resource and rule origin in that order.",
         ).optional(),
-      }).describe("Represents the rule source information from Catalog.")
-        .optional(),
+      }).describe(
+        "Output only. Contains information about the source of the rule and its relationship with the BigQuery table, where applicable.",
+      ).optional(),
       setExpectation: z.object({
         values: z.array(z.unknown()).describe(
           "Optional. Expected values for the column value.",
         ).optional(),
       }).describe(
-        "Evaluates whether each column value is contained by a specified set.",
+        "Row-level rule which evaluates whether each column value is contained by a specified set.",
       ).optional(),
       sqlAssertion: z.object({
         sqlStatement: z.string().describe("Optional. The SQL statement.")
           .optional(),
       }).describe(
-        "A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price < 0",
+        "Aggregate rule which evaluates the number of rows returned for the provided statement. If any rows are returned, this rule fails.",
       ).optional(),
       statisticRangeExpectation: z.object({
         maxValue: z.string().describe(
@@ -2168,7 +1227,7 @@ const InputsSchema = z.object({
           "Optional. Whether column statistic needs to be strictly greater than ('>') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.",
         ).optional(),
       }).describe(
-        "Evaluates whether the column aggregate statistic lies between a specified range.",
+        "Aggregate rule which evaluates whether the column aggregate statistic lies between a specified range.",
       ).optional(),
       suspended: z.boolean().describe(
         "Optional. Whether the Rule is active or suspended. Default is false.",
@@ -2177,7 +1236,7 @@ const InputsSchema = z.object({
         sqlExpression: z.string().describe("Optional. The SQL expression.")
           .optional(),
       }).describe(
-        "Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) >= 0",
+        "Aggregate rule which evaluates whether the provided expression is true for a table.",
       ).optional(),
       templateReference: z.object({
         name: z.string().describe(
@@ -2203,19 +1262,19 @@ const InputsSchema = z.object({
             "Output only. Collection of SQLs for data quality rules. Currently only one SQL is supported.",
           ).optional(),
         }).describe(
-          "DataQualityRuleTemplate represents a template which can be reused across multiple data quality rules.",
+          "Output only. The rule template used to resolve the rule. It is only populated in the result.",
         ).optional(),
         values: z.record(z.string(), z.unknown()).describe(
           "Optional. Provides the map of parameter name and value. The maximum size of the field is 120KB (encoded as UTF-8).",
         ).optional(),
       }).describe(
-        "A rule that constructs a SQL statement to evaluate using a rule template and parameter values. If the constructed statement returns any rows, this rule fails",
+        "Aggregate rule which references a rule template and provides the parameters to be substituted in the template. If any rows are returned, this rule fails.",
       ).optional(),
       threshold: z.number().describe(
         "Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.",
       ).optional(),
       uniquenessExpectation: z.object({}).describe(
-        "Evaluates whether the column has duplicates.",
+        "Row-level rule which evaluates whether each column value is unique.",
       ).optional(),
     })).describe(
       "Required. The list of rules to evaluate against a data source. At least one rule is required.",
@@ -2223,7 +1282,7 @@ const InputsSchema = z.object({
     samplingPercent: z.number().describe(
       "Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.",
     ).optional(),
-  }).describe("DataQualityScan related setting.").optional(),
+  }).describe("Settings for a data quality scan.").optional(),
   description: z.string().describe(
     "Optional. Description of the scan. Must be between 1-1024 characters.",
   ).optional(),
@@ -2232,16 +1291,19 @@ const InputsSchema = z.object({
   ).optional(),
   executionIdentity: z.object({
     dataplexServiceAgent: z.object({}).describe(
-      "The Dataplex service agent associated with the user's project.",
+      "Optional. The Dataplex service agent associated with the user's project.",
     ).optional(),
     serviceAccount: z.object({
       email: z.string().describe(
         "Required. Service account email. The datascan will execute with this service account's credentials. The user calling this API must have permissions to act as this service account. Dataplex service agent must be granted iam.serviceAccounts.getAccessToken permission on this service account, for example, through the iam.serviceAccountTokenCreator role.",
       ).optional(),
-    }).describe("The service account").optional(),
-    userCredential: z.object({}).describe("The credential of the calling user.")
-      .optional(),
-  }).describe("The identity to run the datascan.").optional(),
+    }).describe("Optional. The provided service account.").optional(),
+    userCredential: z.object({}).describe(
+      "Optional. The credential of the calling user. Supports only ONE_TIME trigger type.",
+    ).optional(),
+  }).describe(
+    "Optional. Immutable. The identity to run the datascan. If not specified, defaults to the Dataplex Service Agent.",
+  ).optional(),
   executionSpec: z.object({
     field: z.string().describe(
       "Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.",
@@ -2253,80 +1315,23 @@ const InputsSchema = z.object({
         ttlAfterScanCompletion: z.string().describe(
           "Optional. Time to live for OneTime scans. default value is 24 hours, minimum value is 0 seconds, and maximum value is 365 days. The time is calculated from the data scan job completion time. If value is set as 0 seconds, the scan will be immediately deleted upon job completion, regardless of whether the job succeeded or failed.",
         ).optional(),
-      }).describe("The scan runs once using create API.").optional(),
+      }).describe(
+        "The scan runs once, and does not create an associated ScanJob child resource.",
+      ).optional(),
       schedule: z.object({
         cron: z.string().describe(
           'Required. Cron (https://en.wikipedia.org/wiki/Cron) schedule for running scans periodically.To explicitly set a timezone in the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database (wikipedia (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)). For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.This field is required for Schedule scans.',
         ).optional(),
       }).describe("The scan is scheduled to run periodically.").optional(),
-    }).describe("DataScan scheduling and trigger settings.").optional(),
-  }).describe("DataScan execution settings.").optional(),
-  executionStatus: z.object({
-    latestJobCreateTime: z.string().describe(
-      "Optional. The time when the DataScanJob execution was created.",
+    }).describe(
+      "Optional. Spec related to how often and when a scan should be triggered.If not specified, the default is OnDemand, which means the scan will not run until the user calls RunDataScan API.",
     ).optional(),
-    latestJobEndTime: z.string().describe(
-      "Optional. The time when the latest DataScanJob ended.",
-    ).optional(),
-    latestJobStartTime: z.string().describe(
-      "Optional. The time when the latest DataScanJob started.",
-    ).optional(),
-  }).describe("Status of the data scan execution.").optional(),
+  }).describe(
+    "Optional. DataScan execution settings.If not specified, the fields in it will use their default values.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the scan.",
   ).optional(),
-  unstructuredDataProfileResult: z.object({
-    description: z.string().describe("Output only. The inferred description.")
-      .optional(),
-    graphProfile: z.object({
-      edgeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the edge type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected connectivity topology and bounds of this relationship. Format: "Topology - Description" Example: "1:N - One company can have multiple financial reports."',
-          ).optional(),
-        }).describe("Extraction hints (edge-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the edge type.",
-        ).optional(),
-        foreignKeys: z.array(z.unknown()).describe(
-          "Output only. Defines the Foreign Key constraints for the edge.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the edge type.")
-          .optional(),
-        sourceNodeType: z.string().describe("Output only. Source node type.")
-          .optional(),
-        targetNodeType: z.string().describe("Output only. Target node type.")
-          .optional(),
-      })).describe("Output only. Edge types.").optional(),
-      nodeTypes: z.array(z.object({
-        description: z.string().describe(
-          "Output only. Description of the node type.",
-        ).optional(),
-        extractionHints: z.object({
-          cardinality: z.unknown().describe(
-            'Output only. Expected occurrence frequency of this node type within a document. Format: "Bounds - Description" Example: "0:N - A document may contain multiple people names."',
-          ).optional(),
-        }).describe("Extraction hints (node-level).").optional(),
-        fields: z.array(z.unknown()).describe(
-          "Output only. Fields of the node type.",
-        ).optional(),
-        name: z.string().describe("Output only. Name of the node type.")
-          .optional(),
-        primaryKeys: z.array(z.unknown()).describe(
-          "Output only. Field names forming the primary keys. The order in this array defines the key's ordinal positions for composite keys.",
-        ).optional(),
-      })).describe("Output only. Node types.").optional(),
-    }).describe(
-      "Contains the strict structure for graph-profile for semantic inference scan result.",
-    ).optional(),
-    partialFailureMessage: z.string().describe(
-      "Output only. Optional message for partial failures (e.g. node type extraction failed).",
-    ).optional(),
-  }).describe("Contains the result of an unstructured data profile scan.")
-    .optional(),
   unstructuredDataProfileSpec: z.object({
     customizedPrompt: z.string().describe(
       "Optional. Customized prompt for unstructured data profile. The field will be used as part of the prompt, could be some instruction, specifying skill, or specific area to focus.",
@@ -2337,9 +1342,8 @@ const InputsSchema = z.object({
     graphProfilePublishingEnabled: z.boolean().describe(
       "Optional. Whether to publish graph-profile as aspect on the catalog entry.",
     ).optional(),
-  }).describe(
-    "Contains the specification for an unstructured data profile scan.",
-  ).optional(),
+  }).describe("Optional. Settings for an unstructured data profile scan.")
+    .optional(),
   dataScanId: z.string().describe(
     'Optional. DataScan identifier. If not provided, a unique ID will be generated with the prefix "data-scan-". Must contain only lowercase letters, numbers and hyphens. Must start with a letter. Must end with a number or a letter. Must be between 1-63 characters. Must be unique within the customer project / location.',
   ).optional(),
@@ -2371,7 +1375,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataScans. Registered at `@swamp/gcp/dataplex/datascans`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datascans",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2558,6 +1562,23 @@ export const model = {
         "Added: executionIdentity, unstructuredDataProfileResult, unstructuredDataProfileSpec",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: dataDiscoveryResult, dataDocumentationResult, dataProfileResult, dataQualityResult, executionStatus, unstructuredDataProfileResult",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          dataDiscoveryResult: _dataDiscoveryResult,
+          dataDocumentationResult: _dataDocumentationResult,
+          dataProfileResult: _dataProfileResult,
+          dataQualityResult: _dataQualityResult,
+          executionStatus: _executionStatus,
+          unstructuredDataProfileResult: _unstructuredDataProfileResult,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2588,26 +1609,14 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["data"] !== undefined) body["data"] = g["data"];
-        if (g["dataDiscoveryResult"] !== undefined) {
-          body["dataDiscoveryResult"] = g["dataDiscoveryResult"];
-        }
         if (g["dataDiscoverySpec"] !== undefined) {
           body["dataDiscoverySpec"] = g["dataDiscoverySpec"];
-        }
-        if (g["dataDocumentationResult"] !== undefined) {
-          body["dataDocumentationResult"] = g["dataDocumentationResult"];
         }
         if (g["dataDocumentationSpec"] !== undefined) {
           body["dataDocumentationSpec"] = g["dataDocumentationSpec"];
         }
-        if (g["dataProfileResult"] !== undefined) {
-          body["dataProfileResult"] = g["dataProfileResult"];
-        }
         if (g["dataProfileSpec"] !== undefined) {
           body["dataProfileSpec"] = g["dataProfileSpec"];
-        }
-        if (g["dataQualityResult"] !== undefined) {
-          body["dataQualityResult"] = g["dataQualityResult"];
         }
         if (g["dataQualitySpec"] !== undefined) {
           body["dataQualitySpec"] = g["dataQualitySpec"];
@@ -2624,14 +1633,7 @@ export const model = {
         if (g["executionSpec"] !== undefined) {
           body["executionSpec"] = g["executionSpec"];
         }
-        if (g["executionStatus"] !== undefined) {
-          body["executionStatus"] = g["executionStatus"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["unstructuredDataProfileResult"] !== undefined) {
-          body["unstructuredDataProfileResult"] =
-            g["unstructuredDataProfileResult"];
-        }
         if (g["unstructuredDataProfileSpec"] !== undefined) {
           body["unstructuredDataProfileSpec"] =
             g["unstructuredDataProfileSpec"];
@@ -2759,26 +1761,14 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["data"] !== undefined) body["data"] = g["data"];
-        if (g["dataDiscoveryResult"] !== undefined) {
-          body["dataDiscoveryResult"] = g["dataDiscoveryResult"];
-        }
         if (g["dataDiscoverySpec"] !== undefined) {
           body["dataDiscoverySpec"] = g["dataDiscoverySpec"];
-        }
-        if (g["dataDocumentationResult"] !== undefined) {
-          body["dataDocumentationResult"] = g["dataDocumentationResult"];
         }
         if (g["dataDocumentationSpec"] !== undefined) {
           body["dataDocumentationSpec"] = g["dataDocumentationSpec"];
         }
-        if (g["dataProfileResult"] !== undefined) {
-          body["dataProfileResult"] = g["dataProfileResult"];
-        }
         if (g["dataProfileSpec"] !== undefined) {
           body["dataProfileSpec"] = g["dataProfileSpec"];
-        }
-        if (g["dataQualityResult"] !== undefined) {
-          body["dataQualityResult"] = g["dataQualityResult"];
         }
         if (g["dataQualitySpec"] !== undefined) {
           body["dataQualitySpec"] = g["dataQualitySpec"];
@@ -2789,20 +1779,10 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["executionIdentity"] !== undefined) {
-          body["executionIdentity"] = g["executionIdentity"];
-        }
         if (g["executionSpec"] !== undefined) {
           body["executionSpec"] = g["executionSpec"];
         }
-        if (g["executionStatus"] !== undefined) {
-          body["executionStatus"] = g["executionStatus"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["unstructuredDataProfileResult"] !== undefined) {
-          body["unstructuredDataProfileResult"] =
-            g["unstructuredDataProfileResult"];
-        }
         if (g["unstructuredDataProfileSpec"] !== undefined) {
           body["unstructuredDataProfileSpec"] =
             g["unstructuredDataProfileSpec"];

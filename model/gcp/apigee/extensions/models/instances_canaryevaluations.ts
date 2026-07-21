@@ -110,7 +110,9 @@ const GlobalArgsSchema = z.object({
     location: z.string().describe(
       "Required. The location associated with the metrics.",
     ).optional(),
-  }).describe("Labels that can be used to filter Apigee metrics.").optional(),
+  }).describe(
+    "Required. Labels used to filter the metrics used for a canary evaluation.",
+  ).optional(),
   startTime: z.string().describe(
     "Required. Start time for the canary evaluation's analysis.",
   ).optional(),
@@ -161,7 +163,9 @@ const InputsSchema = z.object({
     location: z.string().describe(
       "Required. The location associated with the metrics.",
     ).optional(),
-  }).describe("Labels that can be used to filter Apigee metrics.").optional(),
+  }).describe(
+    "Required. Labels used to filter the metrics used for a canary evaluation.",
+  ).optional(),
   startTime: z.string().describe(
     "Required. Start time for the canary evaluation's analysis.",
   ).optional(),
@@ -196,7 +200,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Instances.Canaryevaluations. Registered at `@swamp/gcp/apigee/instances-canaryevaluations`. */
 export const model = {
   type: "@swamp/gcp/apigee/instances-canaryevaluations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -290,6 +294,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

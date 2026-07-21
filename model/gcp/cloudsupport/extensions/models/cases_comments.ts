@@ -120,22 +120,6 @@ const GlobalArgsSchema = z.object({
   body: z.string().describe(
     "The full comment body. Maximum of 12800 characters.",
   ).optional(),
-  creator: z.object({
-    displayName: z.string().describe(
-      "The name to display for the actor. If not provided, it is inferred from credentials supplied during case creation. When an email is provided, a display name must also be provided. This will be obfuscated if the user is a Google Support agent.",
-    ).optional(),
-    email: z.string().describe(
-      "The email address of the actor. If not provided, it is inferred from the credentials supplied during case creation. When a name is provided, an email must also be provided. If the user is a Google Support agent, this is obfuscated. This field is deprecated. Use `username` instead.",
-    ).optional(),
-    googleSupport: z.boolean().describe(
-      "Output only. Whether the actor is a Google support actor.",
-    ).optional(),
-    username: z.string().describe(
-      "Output only. The username of the actor. It may look like an email or other format provided by the identity provider. If not provided, it is inferred from the credentials supplied. When a name is provided, a username must also be provided. If the user is a Google Support agent, this will not be set.",
-    ).optional(),
-  }).describe(
-    "An Actor represents an entity that performed an action. For example, an actor could be a user who posted a comment on a support case, a user who uploaded an attachment, or a service account that created a support case.",
-  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -165,22 +149,6 @@ const InputsSchema = z.object({
   body: z.string().describe(
     "The full comment body. Maximum of 12800 characters.",
   ).optional(),
-  creator: z.object({
-    displayName: z.string().describe(
-      "The name to display for the actor. If not provided, it is inferred from credentials supplied during case creation. When an email is provided, a display name must also be provided. This will be obfuscated if the user is a Google Support agent.",
-    ).optional(),
-    email: z.string().describe(
-      "The email address of the actor. If not provided, it is inferred from the credentials supplied during case creation. When a name is provided, an email must also be provided. If the user is a Google Support agent, this is obfuscated. This field is deprecated. Use `username` instead.",
-    ).optional(),
-    googleSupport: z.boolean().describe(
-      "Output only. Whether the actor is a Google support actor.",
-    ).optional(),
-    username: z.string().describe(
-      "Output only. The username of the actor. It may look like an email or other format provided by the identity provider. If not provided, it is inferred from the credentials supplied. When a name is provided, a username must also be provided. If the user is a Google Support agent, this will not be set.",
-    ).optional(),
-  }).describe(
-    "An Actor represents an entity that performed an action. For example, an actor could be a user who posted a comment on a support case, a user who uploaded an attachment, or a service account that created a support case.",
-  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -209,7 +177,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Support Cases.Comments. Registered at `@swamp/gcp/cloudsupport/cases-comments`. */
 export const model = {
   type: "@swamp/gcp/cloudsupport/cases-comments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -316,6 +284,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: creator",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { creator: _creator, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -340,7 +316,6 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["body"] !== undefined) body["body"] = g["body"];
-        if (g["creator"] !== undefined) body["creator"] = g["creator"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -354,14 +329,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

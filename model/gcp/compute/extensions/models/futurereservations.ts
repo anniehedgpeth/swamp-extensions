@@ -214,7 +214,8 @@ const GlobalArgsSchema = z.object({
         acceleratorType: z.string().describe(
           'Full or partial URL to accelerator type. e.g. "projects/{PROJECT}/zones/{ZONE}/acceleratorTypes/ct4l"',
         ).optional(),
-      }).optional(),
+      }).describe("Properties of accelerator resources in this reservation.")
+        .optional(),
     })).describe(
       "Output only. [Output only] List of resources currently in use.",
     ).optional(),
@@ -226,7 +227,8 @@ const GlobalArgsSchema = z.object({
         acceleratorType: z.string().describe(
           'Full or partial URL to accelerator type. e.g. "projects/{PROJECT}/zones/{ZONE}/acceleratorTypes/ct4l"',
         ).optional(),
-      }).optional(),
+      }).describe("Properties of accelerator resources in this reservation.")
+        .optional(),
     })).describe("List of reserved resources (CPUs, memory, accelerators).")
       .optional(),
     vmFamily: z.enum([
@@ -244,9 +246,8 @@ const GlobalArgsSchema = z.object({
     workloadType: z.enum(["BATCH", "SERVING", "UNSPECIFIED"]).describe(
       "The workload type of the instances that will target this reservation.",
     ).optional(),
-  }).describe(
-    "This reservation type is specified by total resource amounts (e.g. total count of CPUs) and can account for multiple instance SKUs. In other words, one can create instances of varying shapes against this reservation.",
-  ).optional(),
+  }).describe("Aggregate reservation details for the future reservation.")
+    .optional(),
   autoCreatedReservationsDeleteTime: z.string().describe(
     'Future timestamp when the FR auto-created reservations will be deleted by Compute Engine. Format of this field must be a valid href="https://www.ietf.org/rfc/rfc3339.txt">RFC3339 value.',
   ).optional(),
@@ -258,7 +259,7 @@ const GlobalArgsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "Specifies the duration of auto-created reservations. It represents relative time to future reservation start_time when auto-created reservations will be automatically deleted by Compute Engine. Duration time unit is represented as a count of seconds and fractions of seconds at nanosecond resolution.",
   ).optional(),
   autoDeleteAutoCreatedReservations: z.boolean().describe(
     "Setting for enabling or disabling automatic deletion for auto-created reservation. If set to true, auto-created reservations will be deleted at Future Reservation's end time (default) or at user's defined timestamp if any of the [auto_created_reservations_delete_time, auto_created_reservations_duration] values is specified. For keeping auto-created reservation indefinitely, this value should be set to false.",
@@ -277,7 +278,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Only applicable if FR is delivering to the same reservation. If set, all parent commitments will be extended to match the end date of the plan for this commitment.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "If not present, then FR will not deliver a new commitment or update an existing commitment.",
+  ).optional(),
   confidentialComputeType: z.enum([
     "CONFIDENTIAL_COMPUTE_TYPE_TDX",
     "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
@@ -302,7 +305,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the future reservation. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional future reservation params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   planningStatus: z.enum(["DRAFT", "PLANNING_STATUS_UNSPECIFIED", "SUBMITTED"])
     .describe("Planning state before being submitted for evaluation")
     .optional(),
@@ -338,9 +343,7 @@ const GlobalArgsSchema = z.object({
       "SHARE_TYPE_UNSPECIFIED",
       "SPECIFIC_PROJECTS",
     ]).describe("Type of sharing for this shared-reservation").optional(),
-  }).describe(
-    "The share setting for reservations and sole tenancy node groups.",
-  ).optional(),
+  }).describe("List of Projects/Folders to share with.").optional(),
   specificReservationRequired: z.boolean().describe(
     'Indicates whether the auto-created reservation can be consumed by VMs with affinity for "any" reservation. If the field is set, then only VMs that target the reservation by name can consume from the delivered reservation.',
   ).optional(),
@@ -373,15 +376,16 @@ const GlobalArgsSchema = z.object({
       minCpuPlatform: z.string().describe(
         "Minimum cpu platform the reservation.",
       ).optional(),
-    }).describe("Properties of the SKU instances being reserved. Next ID: 10")
-      .optional(),
+    }).describe("Properties of the SKU instances being reserved.").optional(),
     sourceInstanceTemplate: z.string().describe(
       "The instance template that will be used to populate the ReservedInstanceProperties of the future reservation",
     ).optional(),
     totalCount: z.string().describe(
       "Total number of instances for which capacity assurance is requested at a future time period.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Future Reservation configuration to indicate instance properties and total count.",
+  ).optional(),
   timeWindow: z.object({
     duration: z.object({
       nanos: z.number().int().describe(
@@ -397,7 +401,7 @@ const GlobalArgsSchema = z.object({
     startTime: z.string().describe(
       "Start time of the Future Reservation. The start_time is an RFC3339 string.",
     ).optional(),
-  }).optional(),
+  }).describe("Time window for this Future Reservation.").optional(),
   zone: z.string().describe(
     "Output only. [Output Only] URL of the Zone where this future reservation resides.",
   ).optional(),
@@ -550,7 +554,8 @@ const InputsSchema = z.object({
         acceleratorType: z.string().describe(
           'Full or partial URL to accelerator type. e.g. "projects/{PROJECT}/zones/{ZONE}/acceleratorTypes/ct4l"',
         ).optional(),
-      }).optional(),
+      }).describe("Properties of accelerator resources in this reservation.")
+        .optional(),
     })).describe(
       "Output only. [Output only] List of resources currently in use.",
     ).optional(),
@@ -562,7 +567,8 @@ const InputsSchema = z.object({
         acceleratorType: z.string().describe(
           'Full or partial URL to accelerator type. e.g. "projects/{PROJECT}/zones/{ZONE}/acceleratorTypes/ct4l"',
         ).optional(),
-      }).optional(),
+      }).describe("Properties of accelerator resources in this reservation.")
+        .optional(),
     })).describe("List of reserved resources (CPUs, memory, accelerators).")
       .optional(),
     vmFamily: z.enum([
@@ -580,9 +586,8 @@ const InputsSchema = z.object({
     workloadType: z.enum(["BATCH", "SERVING", "UNSPECIFIED"]).describe(
       "The workload type of the instances that will target this reservation.",
     ).optional(),
-  }).describe(
-    "This reservation type is specified by total resource amounts (e.g. total count of CPUs) and can account for multiple instance SKUs. In other words, one can create instances of varying shapes against this reservation.",
-  ).optional(),
+  }).describe("Aggregate reservation details for the future reservation.")
+    .optional(),
   autoCreatedReservationsDeleteTime: z.string().describe(
     'Future timestamp when the FR auto-created reservations will be deleted by Compute Engine. Format of this field must be a valid href="https://www.ietf.org/rfc/rfc3339.txt">RFC3339 value.',
   ).optional(),
@@ -594,7 +599,7 @@ const InputsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "Specifies the duration of auto-created reservations. It represents relative time to future reservation start_time when auto-created reservations will be automatically deleted by Compute Engine. Duration time unit is represented as a count of seconds and fractions of seconds at nanosecond resolution.",
   ).optional(),
   autoDeleteAutoCreatedReservations: z.boolean().describe(
     "Setting for enabling or disabling automatic deletion for auto-created reservation. If set to true, auto-created reservations will be deleted at Future Reservation's end time (default) or at user's defined timestamp if any of the [auto_created_reservations_delete_time, auto_created_reservations_duration] values is specified. For keeping auto-created reservation indefinitely, this value should be set to false.",
@@ -613,7 +618,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Only applicable if FR is delivering to the same reservation. If set, all parent commitments will be extended to match the end date of the plan for this commitment.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "If not present, then FR will not deliver a new commitment or update an existing commitment.",
+  ).optional(),
   confidentialComputeType: z.enum([
     "CONFIDENTIAL_COMPUTE_TYPE_TDX",
     "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
@@ -638,7 +645,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the future reservation. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional future reservation params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   planningStatus: z.enum(["DRAFT", "PLANNING_STATUS_UNSPECIFIED", "SUBMITTED"])
     .describe("Planning state before being submitted for evaluation")
     .optional(),
@@ -674,9 +683,7 @@ const InputsSchema = z.object({
       "SHARE_TYPE_UNSPECIFIED",
       "SPECIFIC_PROJECTS",
     ]).describe("Type of sharing for this shared-reservation").optional(),
-  }).describe(
-    "The share setting for reservations and sole tenancy node groups.",
-  ).optional(),
+  }).describe("List of Projects/Folders to share with.").optional(),
   specificReservationRequired: z.boolean().describe(
     'Indicates whether the auto-created reservation can be consumed by VMs with affinity for "any" reservation. If the field is set, then only VMs that target the reservation by name can consume from the delivered reservation.',
   ).optional(),
@@ -709,15 +716,16 @@ const InputsSchema = z.object({
       minCpuPlatform: z.string().describe(
         "Minimum cpu platform the reservation.",
       ).optional(),
-    }).describe("Properties of the SKU instances being reserved. Next ID: 10")
-      .optional(),
+    }).describe("Properties of the SKU instances being reserved.").optional(),
     sourceInstanceTemplate: z.string().describe(
       "The instance template that will be used to populate the ReservedInstanceProperties of the future reservation",
     ).optional(),
     totalCount: z.string().describe(
       "Total number of instances for which capacity assurance is requested at a future time period.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Future Reservation configuration to indicate instance properties and total count.",
+  ).optional(),
   timeWindow: z.object({
     duration: z.object({
       nanos: z.number().int().describe(
@@ -733,7 +741,7 @@ const InputsSchema = z.object({
     startTime: z.string().describe(
       "Start time of the Future Reservation. The start_time is an RFC3339 string.",
     ).optional(),
-  }).optional(),
+  }).describe("Time window for this Future Reservation.").optional(),
   zone: z.string().describe(
     "Output only. [Output Only] URL of the Zone where this future reservation resides.",
   ).optional(),
@@ -765,7 +773,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine FutureReservations. Registered at `@swamp/gcp/compute/futurereservations`. */
 export const model = {
   type: "@swamp/gcp/compute/futurereservations",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -957,6 +965,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: confidentialComputeType, params",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

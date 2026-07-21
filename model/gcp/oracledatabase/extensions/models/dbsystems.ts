@@ -176,7 +176,8 @@ const GlobalArgsSchema = z.object({
       isIncidentLogsEnabled: z.boolean().describe(
         "Optional. Indicates whether to enable incident logs and trace collection.",
       ).optional(),
-    }).describe("Data collection options for DbSystem.").optional(),
+    }).describe("Optional. Data collection options for diagnostics.")
+      .optional(),
     dataStorageSizeGb: z.number().int().describe(
       "Optional. The data storage size in GB that is currently available to DbSystems.",
     ).optional(),
@@ -249,7 +250,7 @@ const GlobalArgsSchema = z.object({
             managementType: z.unknown().describe(
               "Output only. The Database Management type.",
             ).optional(),
-          }).describe("The configuration of the Database Management service.")
+          }).describe("Output only. The Database Management config.")
             .optional(),
           dbBackupConfig: z.object({
             autoBackupEnabled: z.unknown().describe(
@@ -273,7 +274,7 @@ const GlobalArgsSchema = z.object({
             retentionPeriodDays: z.unknown().describe(
               "Optional. The number of days an automatic backup is retained before being automatically deleted. This value determines the earliest point in time to which a database can be restored. Min: 1, Max: 60.",
             ).optional(),
-          }).describe("Backup Options for the Database.").optional(),
+          }).describe("Optional. Backup options for the Database.").optional(),
           dbVersion: z.string().describe(
             "Required. The Oracle Database version.",
           ).optional(),
@@ -290,16 +291,14 @@ const GlobalArgsSchema = z.object({
             "RESTORE_FAILED",
             "FAILED",
           ]).describe("Output only. State of the Database.").optional(),
-        }).describe("The properties of a Database.").optional(),
+        }).describe("Optional. The properties of the Database.").optional(),
         tdeWalletPassword: z.string().describe(
           "Optional. The TDE wallet password for the database. Note: Only one of `tde_wallet_password_secret_version` or `tde_wallet_password` can be populated.",
         ).optional(),
         tdeWalletPasswordSecretVersion: z.string().describe(
           "Optional. The resource name of a secret version in Secret Manager which contains the TDE wallet password for the database. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of `tde_wallet_password_secret_version` or `tde_wallet_password` can be populated.",
         ).optional(),
-      }).describe(
-        "Details of the Database resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/Database/",
-      ).optional(),
+      }).describe("Required. The Database resource.").optional(),
       dbVersion: z.string().describe(
         "Required. A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation.",
       ).optional(),
@@ -309,14 +308,14 @@ const GlobalArgsSchema = z.object({
       isUnifiedAuditingEnabled: z.boolean().describe(
         "Optional. Whether unified auditing is enabled for the Database Home.",
       ).optional(),
-    }).describe("Details of the Database Home resource.").optional(),
+    }).describe("Optional. Details for creating a Database Home.").optional(),
     dbSystemOptions: z.object({
       storageManagement: z.enum([
         "STORAGE_MANAGEMENT_UNSPECIFIED",
         "ASM",
         "LVM",
       ]).describe("Optional. The storage option used in DB system.").optional(),
-    }).describe("Details of the DbSystem Options.").optional(),
+    }).describe("Optional. The options for the DbSystem.").optional(),
     domain: z.string().describe(
       "Optional. The host domain name of the DbSystem.",
     ).optional(),
@@ -369,10 +368,8 @@ const GlobalArgsSchema = z.object({
       version: z.string().describe(
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
-    }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
-    ).optional(),
-  }).describe("The properties of a DbSystem.").optional(),
+    }).describe("Optional. Time zone of the DbSystem.").optional(),
+  }).describe("Optional. The properties of the DbSystem.").optional(),
   dbSystemId: z.string().describe(
     "Required. The ID of the DbSystem to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -505,7 +502,8 @@ const InputsSchema = z.object({
       isIncidentLogsEnabled: z.boolean().describe(
         "Optional. Indicates whether to enable incident logs and trace collection.",
       ).optional(),
-    }).describe("Data collection options for DbSystem.").optional(),
+    }).describe("Optional. Data collection options for diagnostics.")
+      .optional(),
     dataStorageSizeGb: z.number().int().describe(
       "Optional. The data storage size in GB that is currently available to DbSystems.",
     ).optional(),
@@ -578,7 +576,7 @@ const InputsSchema = z.object({
             managementType: z.unknown().describe(
               "Output only. The Database Management type.",
             ).optional(),
-          }).describe("The configuration of the Database Management service.")
+          }).describe("Output only. The Database Management config.")
             .optional(),
           dbBackupConfig: z.object({
             autoBackupEnabled: z.unknown().describe(
@@ -602,7 +600,7 @@ const InputsSchema = z.object({
             retentionPeriodDays: z.unknown().describe(
               "Optional. The number of days an automatic backup is retained before being automatically deleted. This value determines the earliest point in time to which a database can be restored. Min: 1, Max: 60.",
             ).optional(),
-          }).describe("Backup Options for the Database.").optional(),
+          }).describe("Optional. Backup options for the Database.").optional(),
           dbVersion: z.string().describe(
             "Required. The Oracle Database version.",
           ).optional(),
@@ -619,16 +617,14 @@ const InputsSchema = z.object({
             "RESTORE_FAILED",
             "FAILED",
           ]).describe("Output only. State of the Database.").optional(),
-        }).describe("The properties of a Database.").optional(),
+        }).describe("Optional. The properties of the Database.").optional(),
         tdeWalletPassword: z.string().describe(
           "Optional. The TDE wallet password for the database. Note: Only one of `tde_wallet_password_secret_version` or `tde_wallet_password` can be populated.",
         ).optional(),
         tdeWalletPasswordSecretVersion: z.string().describe(
           "Optional. The resource name of a secret version in Secret Manager which contains the TDE wallet password for the database. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of `tde_wallet_password_secret_version` or `tde_wallet_password` can be populated.",
         ).optional(),
-      }).describe(
-        "Details of the Database resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/Database/",
-      ).optional(),
+      }).describe("Required. The Database resource.").optional(),
       dbVersion: z.string().describe(
         "Required. A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation.",
       ).optional(),
@@ -638,14 +634,14 @@ const InputsSchema = z.object({
       isUnifiedAuditingEnabled: z.boolean().describe(
         "Optional. Whether unified auditing is enabled for the Database Home.",
       ).optional(),
-    }).describe("Details of the Database Home resource.").optional(),
+    }).describe("Optional. Details for creating a Database Home.").optional(),
     dbSystemOptions: z.object({
       storageManagement: z.enum([
         "STORAGE_MANAGEMENT_UNSPECIFIED",
         "ASM",
         "LVM",
       ]).describe("Optional. The storage option used in DB system.").optional(),
-    }).describe("Details of the DbSystem Options.").optional(),
+    }).describe("Optional. The options for the DbSystem.").optional(),
     domain: z.string().describe(
       "Optional. The host domain name of the DbSystem.",
     ).optional(),
@@ -698,10 +694,8 @@ const InputsSchema = z.object({
       version: z.string().describe(
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
-    }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
-    ).optional(),
-  }).describe("The properties of a DbSystem.").optional(),
+    }).describe("Optional. Time zone of the DbSystem.").optional(),
+  }).describe("Optional. The properties of the DbSystem.").optional(),
   dbSystemId: z.string().describe(
     "Required. The ID of the DbSystem to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -736,7 +730,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud DbSystems. Registered at `@swamp/gcp/oracledatabase/dbsystems`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/dbsystems",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -865,6 +859,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

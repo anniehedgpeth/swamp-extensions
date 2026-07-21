@@ -188,7 +188,7 @@ const GlobalArgsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to amount of consumed memory.",
         ).optional(),
         cpuThresholds: z.object({
           scaleIn: z.number().int().describe(
@@ -198,7 +198,7 @@ const GlobalArgsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to CPU utilization.",
         ).optional(),
         grantedMemoryThresholds: z.object({
           scaleIn: z.number().int().describe(
@@ -208,7 +208,7 @@ const GlobalArgsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to amount of granted memory.",
         ).optional(),
         nodeTypeId: z.string().describe(
           "Required. The canonical identifier of the node type to add or remove. Corresponds to the `NodeType`.",
@@ -224,7 +224,7 @@ const GlobalArgsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to amount of consumed storage.",
         ).optional(),
       }),
     ).describe(
@@ -240,7 +240,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Minimum number of nodes of any type in a cluster. If not specified the default limits apply.",
     ).optional(),
   }).describe(
-    "Autoscaling settings define the rules used by VMware Engine to automatically scale-out and scale-in the clusters in a private cloud.",
+    "Optional. Configuration of the autoscaling applied to this cluster.",
   ).optional(),
   nodeTypeConfigs: z.record(
     z.string(),
@@ -262,7 +262,9 @@ const GlobalArgsSchema = z.object({
     secondaryLocation: z.string().describe(
       "Required. Additional zone for a higher level of availability and load balancing. Specify the resource name of a zone that belongs to the region of the private cloud. For example: `projects/{project}/locations/europe-west3-b` where `{project}` can either be a project number or a project ID.",
     ).optional(),
-  }).describe("Configuration of a stretched cluster.").optional(),
+  }).describe(
+    "Optional. Configuration of a stretched cluster. Required for clusters that belong to a STRETCHED private cloud.",
+  ).optional(),
   clusterId: z.string().describe(
     "Required. The user-provided identifier of the new `Cluster`. This identifier must be unique among clusters within the parent and becomes the final token in the name URI. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
   ).optional(),
@@ -330,7 +332,7 @@ const InputsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to amount of consumed memory.",
         ).optional(),
         cpuThresholds: z.object({
           scaleIn: z.number().int().describe(
@@ -340,7 +342,7 @@ const InputsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to CPU utilization.",
         ).optional(),
         grantedMemoryThresholds: z.object({
           scaleIn: z.number().int().describe(
@@ -350,7 +352,7 @@ const InputsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to amount of granted memory.",
         ).optional(),
         nodeTypeId: z.string().describe(
           "Required. The canonical identifier of the node type to add or remove. Corresponds to the `NodeType`.",
@@ -366,7 +368,7 @@ const InputsSchema = z.object({
             "Required. The utilization triggering the scale-out operation in percent.",
           ).optional(),
         }).describe(
-          "Thresholds define the utilization of resources triggering scale-out and scale-in operations.",
+          "Optional. Utilization thresholds pertaining to amount of consumed storage.",
         ).optional(),
       }),
     ).describe(
@@ -382,7 +384,7 @@ const InputsSchema = z.object({
       "Optional. Minimum number of nodes of any type in a cluster. If not specified the default limits apply.",
     ).optional(),
   }).describe(
-    "Autoscaling settings define the rules used by VMware Engine to automatically scale-out and scale-in the clusters in a private cloud.",
+    "Optional. Configuration of the autoscaling applied to this cluster.",
   ).optional(),
   nodeTypeConfigs: z.record(
     z.string(),
@@ -404,7 +406,9 @@ const InputsSchema = z.object({
     secondaryLocation: z.string().describe(
       "Required. Additional zone for a higher level of availability and load balancing. Specify the resource name of a zone that belongs to the region of the private cloud. For example: `projects/{project}/locations/europe-west3-b` where `{project}` can either be a project number or a project ID.",
     ).optional(),
-  }).describe("Configuration of a stretched cluster.").optional(),
+  }).describe(
+    "Optional. Configuration of a stretched cluster. Required for clusters that belong to a STRETCHED private cloud.",
+  ).optional(),
   clusterId: z.string().describe(
     "Required. The user-provided identifier of the new `Cluster`. This identifier must be unique among clusters within the parent and becomes the final token in the name URI. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
   ).optional(),
@@ -442,7 +446,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VMware Engine PrivateClouds.Clusters. Registered at `@swamp/gcp/vmwareengine/privateclouds-clusters`. */
 export const model = {
   type: "@swamp/gcp/vmwareengine/privateclouds-clusters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -559,6 +563,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -619,14 +628,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

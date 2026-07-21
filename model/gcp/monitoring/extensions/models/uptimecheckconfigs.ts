@@ -174,7 +174,7 @@ const GlobalArgsSchema = z.object({
         "JSONPath within the response output pointing to the expected ContentMatcher::content to match against.",
       ).optional(),
     }).describe(
-      "Information needed to perform a JSONPath content match. Used for ContentMatcherOption::MATCHES_JSON_PATH and ContentMatcherOption::NOT_MATCHES_JSON_PATH.",
+      "Matcher information for MATCHES_JSON_PATH and NOT_MATCHES_JSON_PATH",
     ).optional(),
     matcher: z.enum([
       "CONTENT_MATCHER_OPTION_UNSPECIFIED",
@@ -219,7 +219,7 @@ const GlobalArgsSchema = z.object({
         "The username to use when authenticating with the HTTP server.",
       ).optional(),
     }).describe(
-      "The authentication parameters to provide to the specified resource or URL that requires a username and password. Currently, only Basic HTTP authentication (https://tools.ietf.org/html/rfc7617) is supported in Uptime checks.",
+      "The authentication information. Optional when creating an HTTP check; defaults to empty. Do not set both auth_method and auth_info.",
     ).optional(),
     body: z.string().describe(
       "The request body associated with the HTTP POST request. If content_type is URL_ENCODED, the body passed in must be URL-encoded. Users can provide a Content-Length header via the headers field or the API will do so. If the request_method is GET and body is not empty, the API will return an error. The maximum byte size is 1 megabyte.Note: If client libraries aren't used (which performs the conversion automatically) base64 encode your body data since the field is of bytes type.",
@@ -244,9 +244,8 @@ const GlobalArgsSchema = z.object({
       pingsCount: z.number().int().describe(
         "Number of ICMP pings. A maximum of 3 ICMP pings is currently supported.",
       ).optional(),
-    }).describe(
-      "Information involved in sending ICMP pings alongside public HTTP/TCP checks. For HTTP, the pings are performed for each part of the redirect chain.",
-    ).optional(),
+    }).describe("Contains information needed to add pings to an HTTP check.")
+      .optional(),
     port: z.number().int().describe(
       "Optional (defaults to 80 when use_ssl is false, and 443 when use_ssl is true). The TCP port on the HTTP server against which to run the check. Will be combined with host (specified within the monitored_resource) and path to construct the full URL.",
     ).optional(),
@@ -259,7 +258,7 @@ const GlobalArgsSchema = z.object({
         "OIDC_TOKEN",
       ]).describe("Type of authentication.").optional(),
     }).describe(
-      "Contains information needed for generating either an OpenID Connect token (https://developers.google.com/identity/protocols/OpenIDConnect) or OAuth token (https://developers.google.com/identity/protocols/oauth2). The token will be generated for the Monitoring service agent service account.",
+      "If specified, Uptime will generate and attach an OIDC JWT token for the Monitoring service agent service account as an Authorization header in the HTTP request when probing.",
     ).optional(),
     useSsl: z.boolean().describe(
       "If true, use HTTPS instead of HTTP to run the check.",
@@ -267,7 +266,7 @@ const GlobalArgsSchema = z.object({
     validateSsl: z.boolean().describe(
       "Boolean specifying whether to include SSL certificate validation as a part of the Uptime check. Only applies to checks where monitored_resource is set to uptime_url. If use_ssl is false, setting validate_ssl to true has no effect.",
     ).optional(),
-  }).describe("Information involved in an HTTP/HTTPS Uptime check request.")
+  }).describe("Contains information needed to make an HTTP or HTTPS check.")
     .optional(),
   logCheckFailures: z.boolean().describe(
     "To specify whether to log the results of failed probes to Cloud Logging.",
@@ -280,7 +279,7 @@ const GlobalArgsSchema = z.object({
       "Required. The monitored resource type. This field must match the type field of a MonitoredResourceDescriptor object. For example, the type of a Compute Engine VM instance is gce_instance. For a list of types, see Monitoring resource types (https://cloud.google.com/monitoring/api/resources) and Logging resource types (https://cloud.google.com/logging/docs/api/v2/resource-list).",
     ).optional(),
   }).describe(
-    'An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource\'s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}',
+    "The monitored resource (https://cloud.google.com/monitoring/api/resources) associated with the configuration. The following monitored resource types are valid for this field: uptime_url, gce_instance, gae_app, aws_ec2_instance, aws_elb_load_balancer k8s_service servicedirectory_service cloud_run_revision",
   ).optional(),
   name: z.string().describe(
     "Identifier. A unique resource name for this Uptime check configuration. The format is: projects/[PROJECT_ID_OR_NUMBER]/uptimeCheckConfigs/[UPTIME_CHECK_ID] [PROJECT_ID_OR_NUMBER] is the Workspace host project associated with the Uptime check.This field should be omitted when creating the Uptime check configuration; on create, the resource name is assigned by the server and included in the response.",
@@ -297,9 +296,8 @@ const GlobalArgsSchema = z.object({
       "INSTANCE",
       "AWS_ELB_LOAD_BALANCER",
     ]).describe("The resource type of the group members.").optional(),
-  }).describe(
-    "The resource submessage for group checks. It can be used instead of a monitored resource, when multiple resources are being monitored.",
-  ).optional(),
+  }).describe("The group resource associated with the configuration.")
+    .optional(),
   selectedRegions: z.array(
     z.enum([
       "REGION_UNSPECIFIED",
@@ -324,29 +322,24 @@ const GlobalArgsSchema = z.object({
           "Required. The monitored resource type. This field must match the type field of a MonitoredResourceDescriptor object. For example, the type of a Compute Engine VM instance is gce_instance. For a list of types, see Monitoring resource types (https://cloud.google.com/monitoring/api/resources) and Logging resource types (https://cloud.google.com/logging/docs/api/v2/resource-list).",
         ).optional(),
       }).describe(
-        'An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource\'s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}',
+        "Output only. The cloud_run_revision Monitored Resource associated with the GCFv2. The Synthetic Monitor execution results (metrics, logs, and spans) are reported against this Monitored Resource. This field is output only.",
       ).optional(),
       name: z.string().describe(
         "Required. Fully qualified GCFv2 resource name i.e. projects/{project}/locations/{location}/functions/{function} Required.",
       ).optional(),
-    }).describe(
-      "A Synthetic Monitor deployed to a Cloud Functions V2 instance.",
-    ).optional(),
-  }).describe("Describes a Synthetic Monitor to be invoked by Uptime.")
-    .optional(),
+    }).describe("Target a Synthetic Monitor GCFv2 instance.").optional(),
+  }).describe("Specifies a Synthetic Monitor to invoke.").optional(),
   tcpCheck: z.object({
     pingConfig: z.object({
       pingsCount: z.number().int().describe(
         "Number of ICMP pings. A maximum of 3 ICMP pings is currently supported.",
       ).optional(),
-    }).describe(
-      "Information involved in sending ICMP pings alongside public HTTP/TCP checks. For HTTP, the pings are performed for each part of the redirect chain.",
-    ).optional(),
+    }).describe("Contains information needed to add pings to a TCP check.")
+      .optional(),
     port: z.number().int().describe(
       "The TCP port on the server against which to run the check. Will be combined with host (specified within the monitored_resource) to construct the full URL. Required.",
     ).optional(),
-  }).describe("Information required for a TCP Uptime check request.")
-    .optional(),
+  }).describe("Contains information needed to make a TCP check.").optional(),
   timeout: z.string().describe(
     "The maximum amount of time to wait for the request to complete (must be between 1 and 60 seconds). Required.",
   ).optional(),
@@ -465,7 +458,7 @@ const InputsSchema = z.object({
         "JSONPath within the response output pointing to the expected ContentMatcher::content to match against.",
       ).optional(),
     }).describe(
-      "Information needed to perform a JSONPath content match. Used for ContentMatcherOption::MATCHES_JSON_PATH and ContentMatcherOption::NOT_MATCHES_JSON_PATH.",
+      "Matcher information for MATCHES_JSON_PATH and NOT_MATCHES_JSON_PATH",
     ).optional(),
     matcher: z.enum([
       "CONTENT_MATCHER_OPTION_UNSPECIFIED",
@@ -510,7 +503,7 @@ const InputsSchema = z.object({
         "The username to use when authenticating with the HTTP server.",
       ).optional(),
     }).describe(
-      "The authentication parameters to provide to the specified resource or URL that requires a username and password. Currently, only Basic HTTP authentication (https://tools.ietf.org/html/rfc7617) is supported in Uptime checks.",
+      "The authentication information. Optional when creating an HTTP check; defaults to empty. Do not set both auth_method and auth_info.",
     ).optional(),
     body: z.string().describe(
       "The request body associated with the HTTP POST request. If content_type is URL_ENCODED, the body passed in must be URL-encoded. Users can provide a Content-Length header via the headers field or the API will do so. If the request_method is GET and body is not empty, the API will return an error. The maximum byte size is 1 megabyte.Note: If client libraries aren't used (which performs the conversion automatically) base64 encode your body data since the field is of bytes type.",
@@ -535,9 +528,8 @@ const InputsSchema = z.object({
       pingsCount: z.number().int().describe(
         "Number of ICMP pings. A maximum of 3 ICMP pings is currently supported.",
       ).optional(),
-    }).describe(
-      "Information involved in sending ICMP pings alongside public HTTP/TCP checks. For HTTP, the pings are performed for each part of the redirect chain.",
-    ).optional(),
+    }).describe("Contains information needed to add pings to an HTTP check.")
+      .optional(),
     port: z.number().int().describe(
       "Optional (defaults to 80 when use_ssl is false, and 443 when use_ssl is true). The TCP port on the HTTP server against which to run the check. Will be combined with host (specified within the monitored_resource) and path to construct the full URL.",
     ).optional(),
@@ -550,7 +542,7 @@ const InputsSchema = z.object({
         "OIDC_TOKEN",
       ]).describe("Type of authentication.").optional(),
     }).describe(
-      "Contains information needed for generating either an OpenID Connect token (https://developers.google.com/identity/protocols/OpenIDConnect) or OAuth token (https://developers.google.com/identity/protocols/oauth2). The token will be generated for the Monitoring service agent service account.",
+      "If specified, Uptime will generate and attach an OIDC JWT token for the Monitoring service agent service account as an Authorization header in the HTTP request when probing.",
     ).optional(),
     useSsl: z.boolean().describe(
       "If true, use HTTPS instead of HTTP to run the check.",
@@ -558,7 +550,7 @@ const InputsSchema = z.object({
     validateSsl: z.boolean().describe(
       "Boolean specifying whether to include SSL certificate validation as a part of the Uptime check. Only applies to checks where monitored_resource is set to uptime_url. If use_ssl is false, setting validate_ssl to true has no effect.",
     ).optional(),
-  }).describe("Information involved in an HTTP/HTTPS Uptime check request.")
+  }).describe("Contains information needed to make an HTTP or HTTPS check.")
     .optional(),
   logCheckFailures: z.boolean().describe(
     "To specify whether to log the results of failed probes to Cloud Logging.",
@@ -571,7 +563,7 @@ const InputsSchema = z.object({
       "Required. The monitored resource type. This field must match the type field of a MonitoredResourceDescriptor object. For example, the type of a Compute Engine VM instance is gce_instance. For a list of types, see Monitoring resource types (https://cloud.google.com/monitoring/api/resources) and Logging resource types (https://cloud.google.com/logging/docs/api/v2/resource-list).",
     ).optional(),
   }).describe(
-    'An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource\'s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}',
+    "The monitored resource (https://cloud.google.com/monitoring/api/resources) associated with the configuration. The following monitored resource types are valid for this field: uptime_url, gce_instance, gae_app, aws_ec2_instance, aws_elb_load_balancer k8s_service servicedirectory_service cloud_run_revision",
   ).optional(),
   name: z.string().describe(
     "Identifier. A unique resource name for this Uptime check configuration. The format is: projects/[PROJECT_ID_OR_NUMBER]/uptimeCheckConfigs/[UPTIME_CHECK_ID] [PROJECT_ID_OR_NUMBER] is the Workspace host project associated with the Uptime check.This field should be omitted when creating the Uptime check configuration; on create, the resource name is assigned by the server and included in the response.",
@@ -588,9 +580,8 @@ const InputsSchema = z.object({
       "INSTANCE",
       "AWS_ELB_LOAD_BALANCER",
     ]).describe("The resource type of the group members.").optional(),
-  }).describe(
-    "The resource submessage for group checks. It can be used instead of a monitored resource, when multiple resources are being monitored.",
-  ).optional(),
+  }).describe("The group resource associated with the configuration.")
+    .optional(),
   selectedRegions: z.array(
     z.enum([
       "REGION_UNSPECIFIED",
@@ -615,29 +606,24 @@ const InputsSchema = z.object({
           "Required. The monitored resource type. This field must match the type field of a MonitoredResourceDescriptor object. For example, the type of a Compute Engine VM instance is gce_instance. For a list of types, see Monitoring resource types (https://cloud.google.com/monitoring/api/resources) and Logging resource types (https://cloud.google.com/logging/docs/api/v2/resource-list).",
         ).optional(),
       }).describe(
-        'An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource\'s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}',
+        "Output only. The cloud_run_revision Monitored Resource associated with the GCFv2. The Synthetic Monitor execution results (metrics, logs, and spans) are reported against this Monitored Resource. This field is output only.",
       ).optional(),
       name: z.string().describe(
         "Required. Fully qualified GCFv2 resource name i.e. projects/{project}/locations/{location}/functions/{function} Required.",
       ).optional(),
-    }).describe(
-      "A Synthetic Monitor deployed to a Cloud Functions V2 instance.",
-    ).optional(),
-  }).describe("Describes a Synthetic Monitor to be invoked by Uptime.")
-    .optional(),
+    }).describe("Target a Synthetic Monitor GCFv2 instance.").optional(),
+  }).describe("Specifies a Synthetic Monitor to invoke.").optional(),
   tcpCheck: z.object({
     pingConfig: z.object({
       pingsCount: z.number().int().describe(
         "Number of ICMP pings. A maximum of 3 ICMP pings is currently supported.",
       ).optional(),
-    }).describe(
-      "Information involved in sending ICMP pings alongside public HTTP/TCP checks. For HTTP, the pings are performed for each part of the redirect chain.",
-    ).optional(),
+    }).describe("Contains information needed to add pings to a TCP check.")
+      .optional(),
     port: z.number().int().describe(
       "The TCP port on the server against which to run the check. Will be combined with host (specified within the monitored_resource) to construct the full URL. Required.",
     ).optional(),
-  }).describe("Information required for a TCP Uptime check request.")
-    .optional(),
+  }).describe("Contains information needed to make a TCP check.").optional(),
   timeout: z.string().describe(
     "The maximum amount of time to wait for the request to complete (must be between 1 and 60 seconds). Required.",
   ).optional(),
@@ -672,7 +658,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring UptimeCheckConfigs. Registered at `@swamp/gcp/monitoring/uptimecheckconfigs`. */
 export const model = {
   type: "@swamp/gcp/monitoring/uptimecheckconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -776,6 +762,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

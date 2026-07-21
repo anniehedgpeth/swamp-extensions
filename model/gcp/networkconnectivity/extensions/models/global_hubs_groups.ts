@@ -131,9 +131,7 @@ const GlobalArgsSchema = z.object({
     autoAcceptProjects: z.array(z.string()).describe(
       "Optional. A list of project ids or project numbers for which you want to enable auto-accept. The auto-accept setting is applied to spokes being created or updated in these projects.",
     ).optional(),
-  }).describe(
-    "The auto-accept setting for a group controls whether proposed spokes are automatically attached to the hub. If auto-accept is enabled, the spoke immediately is attached to the hub and becomes part of the group. In this case, the new spoke is in the ACTIVE state. If auto-accept is disabled, the spoke goes to the INACTIVE state, and it must be reviewed and accepted by a hub administrator.",
-  ).optional(),
+  }).describe("Optional. The auto-accept setting for this group.").optional(),
   createTime: z.string().describe(
     "Output only. The time the group was created.",
   ).optional(),
@@ -200,9 +198,7 @@ const InputsSchema = z.object({
     autoAcceptProjects: z.array(z.string()).describe(
       "Optional. A list of project ids or project numbers for which you want to enable auto-accept. The auto-accept setting is applied to spokes being created or updated in these projects.",
     ).optional(),
-  }).describe(
-    "The auto-accept setting for a group controls whether proposed spokes are automatically attached to the hub. If auto-accept is enabled, the spoke immediately is attached to the hub and becomes part of the group. In this case, the new spoke is in the ACTIVE state. If auto-accept is disabled, the spoke goes to the INACTIVE state, and it must be reviewed and accepted by a hub administrator.",
-  ).optional(),
+  }).describe("Optional. The auto-accept setting for this group.").optional(),
   createTime: z.string().describe(
     "Output only. The time the group was created.",
   ).optional(),
@@ -267,7 +263,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity Global.Hubs.Groups. Registered at `@swamp/gcp/networkconnectivity/global-hubs-groups`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/global-hubs-groups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -371,6 +367,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

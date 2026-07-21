@@ -112,7 +112,9 @@ const GlobalArgsSchema = z.object({
       preProvisioningTokens: z.array(z.string()).describe(
         "Output only. The pre-provisioning tokens previously used to claim devices.",
       ).optional(),
-    }).describe("A Google Workspace customer.").optional(),
+    }).describe(
+      "Output only. The Google Workspace account associated with this customer. Only used for customer Companies.",
+    ).optional(),
     languageCode: z.string().describe(
       "Input only. The preferred locale of the customer represented as a BCP47 language code. This field is validated on input and requests containing unsupported language codes will be rejected. Supported language codes: Arabic (ar) Chinese (Hong Kong) (zh-HK) Chinese (Simplified) (zh-CN) Chinese (Traditional) (zh-TW) Czech (cs) Danish (da) Dutch (nl) English (UK) (en-GB) English (US) (en-US) Filipino (fil) Finnish (fi) French (fr) German (de) Hebrew (iw) Hindi (hi) Hungarian (hu) Indonesian (id) Italian (it) Japanese (ja) Korean (ko) Norwegian (Bokmal) (no) Polish (pl) Portuguese (Brazil) (pt-BR) Portuguese (Portugal) (pt-PT) Russian (ru) Spanish (es) Spanish (Latin America) (es-419) Swedish (sv) Thai (th) Turkish (tr) Ukrainian (uk) Vietnamese (vi)",
     ).optional(),
@@ -134,7 +136,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Whether any user from the company has accepted the latest Terms of Service (ToS). See TermsStatus.",
     ).optional(),
   }).describe(
-    "A reseller, vendor, or customer in the zero-touch reseller and customer APIs.",
+    "Required. The company data to populate the new customer. Must contain a value for `companyName` and at least one `owner_email` that's associated with a Google Account. The values for `companyId` and `name` must be empty.",
   ).optional(),
   partnerId: z.string().describe("Required. The ID of the reseller partner."),
   parent: z.string().describe(
@@ -180,7 +182,9 @@ const InputsSchema = z.object({
       preProvisioningTokens: z.array(z.string()).describe(
         "Output only. The pre-provisioning tokens previously used to claim devices.",
       ).optional(),
-    }).describe("A Google Workspace customer.").optional(),
+    }).describe(
+      "Output only. The Google Workspace account associated with this customer. Only used for customer Companies.",
+    ).optional(),
     languageCode: z.string().describe(
       "Input only. The preferred locale of the customer represented as a BCP47 language code. This field is validated on input and requests containing unsupported language codes will be rejected. Supported language codes: Arabic (ar) Chinese (Hong Kong) (zh-HK) Chinese (Simplified) (zh-CN) Chinese (Traditional) (zh-TW) Czech (cs) Danish (da) Dutch (nl) English (UK) (en-GB) English (US) (en-US) Filipino (fil) Finnish (fi) French (fr) German (de) Hebrew (iw) Hindi (hi) Hungarian (hu) Indonesian (id) Italian (it) Japanese (ja) Korean (ko) Norwegian (Bokmal) (no) Polish (pl) Portuguese (Brazil) (pt-BR) Portuguese (Portugal) (pt-PT) Russian (ru) Spanish (es) Spanish (Latin America) (es-419) Swedish (sv) Thai (th) Turkish (tr) Ukrainian (uk) Vietnamese (vi)",
     ).optional(),
@@ -202,7 +206,7 @@ const InputsSchema = z.object({
       "Output only. Whether any user from the company has accepted the latest Terms of Service (ToS). See TermsStatus.",
     ).optional(),
   }).describe(
-    "A reseller, vendor, or customer in the zero-touch reseller and customer APIs.",
+    "Required. The company data to populate the new customer. Must contain a value for `companyName` and at least one `owner_email` that's associated with a Google Account. The values for `companyId` and `name` must be empty.",
   ).optional(),
   partnerId: z.string().describe("Required. The ID of the reseller partner.")
     .optional(),
@@ -234,7 +238,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Device Provisioning Partner Partners.Customers. Registered at `@swamp/gcp/androiddeviceprovisioning/partners-customers`. */
 export const model = {
   type: "@swamp/gcp/androiddeviceprovisioning/partners-customers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -331,6 +335,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -362,12 +371,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "partnerId": String(g["partnerId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

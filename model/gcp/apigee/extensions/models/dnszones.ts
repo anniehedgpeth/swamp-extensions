@@ -149,7 +149,7 @@ const GlobalArgsSchema = z.object({
     targetProjectId: z.string().describe(
       "Required. The ID of the project that contains the producer VPC network.",
     ).optional(),
-  }).describe("Fields for DNS PEERING zone.").optional(),
+  }).describe("DNS PEERING zone configuration.").optional(),
   dnsZoneId: z.string().describe(
     "Required. User assigned ID for this resource. Must be unique within the organization. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.",
   ).optional(),
@@ -194,7 +194,7 @@ const InputsSchema = z.object({
     targetProjectId: z.string().describe(
       "Required. The ID of the project that contains the producer VPC network.",
     ).optional(),
-  }).describe("Fields for DNS PEERING zone.").optional(),
+  }).describe("DNS PEERING zone configuration.").optional(),
   dnsZoneId: z.string().describe(
     "Required. User assigned ID for this resource. Must be unique within the organization. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.",
   ).optional(),
@@ -226,7 +226,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee DnsZones. Registered at `@swamp/gcp/apigee/dnszones`. */
 export const model = {
   type: "@swamp/gcp/apigee/dnszones",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -325,6 +325,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

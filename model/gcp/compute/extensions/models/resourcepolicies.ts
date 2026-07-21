@@ -226,9 +226,8 @@ const GlobalArgsSchema = z.object({
     vmCount: z.number().int().describe(
       "Number of VMs in this placement group. Google does not recommend that you use this field unless you use a compact policy and you want your policy to work only if it contains this exact number of VMs.",
     ).optional(),
-  }).describe(
-    "A GroupPlacementPolicy specifies resource placement configuration. It specifies the failure bucket separation",
-  ).optional(),
+  }).describe("Resource policy for instances for placement configuration.")
+    .optional(),
   instanceSchedulePolicy: z.object({
     expirationTime: z.string().describe(
       "The expiration time of the schedule. The timestamp is an RFC3339 string.",
@@ -243,15 +242,13 @@ const GlobalArgsSchema = z.object({
       schedule: z.string().describe(
         "Specifies the frequency for the operation, using the unix-cron format.",
       ).optional(),
-    }).describe("Schedule for an instance operation.").optional(),
+    }).describe("Specifies the schedule for starting instances.").optional(),
     vmStopSchedule: z.object({
       schedule: z.string().describe(
         "Specifies the frequency for the operation, using the unix-cron format.",
       ).optional(),
-    }).describe("Schedule for an instance operation.").optional(),
-  }).describe(
-    "An InstanceSchedulePolicy specifies when and how frequent certain operations are performed on the instance.",
-  ).optional(),
+    }).describe("Specifies the schedule for stopping instances.").optional(),
+  }).describe("Resource policy for scheduling instance operations.").optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "The name of the resource, provided by the client when initially creating the resource. The resource name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -269,7 +266,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Specifies the behavior to apply to scheduled snapshots when the source disk is deleted.",
       ).optional(),
-    }).describe("Policy for retention of scheduled snapshots.").optional(),
+    }).describe(
+      "Retention policy applied to snapshots created by this resource policy.",
+    ).optional(),
     schedule: z.object({
       dailySchedule: z.object({
         daysInCycle: z.number().int().describe(
@@ -308,7 +307,7 @@ const GlobalArgsSchema = z.object({
           .optional(),
       }).describe("Time window specified for weekly operations.").optional(),
     }).describe(
-      "A schedule for disks where the schedueled operations are performed.",
+      "A Vm Maintenance Policy specifies what kind of infrastructure maintenance we are allowed to perform on this VM and when. Schedule that is applied to disks covered by this policy.",
     ).optional(),
     snapshotProperties: z.object({
       chainName: z.string().describe(
@@ -324,11 +323,10 @@ const GlobalArgsSchema = z.object({
         "Cloud Storage bucket storage location of the auto snapshot (regional or multi-regional).",
       ).optional(),
     }).describe(
-      "Specified snapshot properties for scheduled snapshots created by this policy.",
+      "Properties with which snapshots are created such as labels, encryption keys.",
     ).optional(),
-  }).describe(
-    "A snapshot schedule policy specifies when and how frequently snapshots are to be created for the target disk. Also specifies how many and how long these scheduled snapshots should be retained.",
-  ).optional(),
+  }).describe("Resource policy for persistent disks for creating snapshots.")
+    .optional(),
   workloadPolicy: z.object({
     acceleratorTopology: z.string().describe(
       "Specifies the topology required to create a partition for VMs that have interconnected GPUs.",
@@ -343,7 +341,8 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["HIGH_AVAILABILITY", "HIGH_THROUGHPUT"]).describe(
       "Specifies the intent of the instance placement in the MIG.",
     ).optional(),
-  }).describe("Represents the workload policy.").optional(),
+  }).describe("Resource policy for defining instance placement for MIGs.")
+    .optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -450,9 +449,8 @@ const InputsSchema = z.object({
     vmCount: z.number().int().describe(
       "Number of VMs in this placement group. Google does not recommend that you use this field unless you use a compact policy and you want your policy to work only if it contains this exact number of VMs.",
     ).optional(),
-  }).describe(
-    "A GroupPlacementPolicy specifies resource placement configuration. It specifies the failure bucket separation",
-  ).optional(),
+  }).describe("Resource policy for instances for placement configuration.")
+    .optional(),
   instanceSchedulePolicy: z.object({
     expirationTime: z.string().describe(
       "The expiration time of the schedule. The timestamp is an RFC3339 string.",
@@ -467,15 +465,13 @@ const InputsSchema = z.object({
       schedule: z.string().describe(
         "Specifies the frequency for the operation, using the unix-cron format.",
       ).optional(),
-    }).describe("Schedule for an instance operation.").optional(),
+    }).describe("Specifies the schedule for starting instances.").optional(),
     vmStopSchedule: z.object({
       schedule: z.string().describe(
         "Specifies the frequency for the operation, using the unix-cron format.",
       ).optional(),
-    }).describe("Schedule for an instance operation.").optional(),
-  }).describe(
-    "An InstanceSchedulePolicy specifies when and how frequent certain operations are performed on the instance.",
-  ).optional(),
+    }).describe("Specifies the schedule for stopping instances.").optional(),
+  }).describe("Resource policy for scheduling instance operations.").optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "The name of the resource, provided by the client when initially creating the resource. The resource name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -493,7 +489,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Specifies the behavior to apply to scheduled snapshots when the source disk is deleted.",
       ).optional(),
-    }).describe("Policy for retention of scheduled snapshots.").optional(),
+    }).describe(
+      "Retention policy applied to snapshots created by this resource policy.",
+    ).optional(),
     schedule: z.object({
       dailySchedule: z.object({
         daysInCycle: z.number().int().describe(
@@ -532,7 +530,7 @@ const InputsSchema = z.object({
           .optional(),
       }).describe("Time window specified for weekly operations.").optional(),
     }).describe(
-      "A schedule for disks where the schedueled operations are performed.",
+      "A Vm Maintenance Policy specifies what kind of infrastructure maintenance we are allowed to perform on this VM and when. Schedule that is applied to disks covered by this policy.",
     ).optional(),
     snapshotProperties: z.object({
       chainName: z.string().describe(
@@ -548,11 +546,10 @@ const InputsSchema = z.object({
         "Cloud Storage bucket storage location of the auto snapshot (regional or multi-regional).",
       ).optional(),
     }).describe(
-      "Specified snapshot properties for scheduled snapshots created by this policy.",
+      "Properties with which snapshots are created such as labels, encryption keys.",
     ).optional(),
-  }).describe(
-    "A snapshot schedule policy specifies when and how frequently snapshots are to be created for the target disk. Also specifies how many and how long these scheduled snapshots should be retained.",
-  ).optional(),
+  }).describe("Resource policy for persistent disks for creating snapshots.")
+    .optional(),
   workloadPolicy: z.object({
     acceleratorTopology: z.string().describe(
       "Specifies the topology required to create a partition for VMs that have interconnected GPUs.",
@@ -567,7 +564,8 @@ const InputsSchema = z.object({
     type: z.enum(["HIGH_AVAILABILITY", "HIGH_THROUGHPUT"]).describe(
       "Specifies the intent of the instance placement in the MIG.",
     ).optional(),
-  }).describe("Represents the workload policy.").optional(),
+  }).describe("Resource policy for defining instance placement for MIGs.")
+    .optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -596,7 +594,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ResourcePolicies. Registered at `@swamp/gcp/compute/resourcepolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/resourcepolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -700,6 +698,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

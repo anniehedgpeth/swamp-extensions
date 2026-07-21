@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
       regions: z.array(z.string()).describe(
         "Required. List of the regions where the application sends traffic.",
       ).optional(),
-    }).describe("Routing policy information.").optional(),
+    }).describe("Optional. Routing policy information.").optional(),
     external: z.object({
       endpoints: z.array(z.object({
         hostname: z.unknown().describe("Required. Hostname of the endpoint.")
@@ -199,7 +199,8 @@ const GlobalArgsSchema = z.object({
           .optional(),
       })).describe("Required. List of the endpoints to forward traffic to.")
         .optional(),
-    }).describe("Endpoints to forward traffic to.").optional(),
+    }).describe("List of the external endpoints to forward traffic to.")
+      .optional(),
     network: z.object({
       name: z.string().describe(
         "Required. Network name is of the format: `projects/{project}/global/networks/{network}",
@@ -217,13 +218,13 @@ const GlobalArgsSchema = z.object({
           outputType: z.unknown().describe(
             "Optional. The output type details for the delegated device.",
           ).optional(),
-        }).describe("The delegated device information configuration.")
+        }).describe("Optional. The device information configuration.")
           .optional(),
         groupInfo: z.object({
           outputType: z.unknown().describe(
             "Optional. The output type of the delegated group information.",
           ).optional(),
-        }).describe("The delegated group configuration details.").optional(),
+        }).describe("Optional. Group details.").optional(),
         outputType: z.enum([
           "OUTPUT_TYPE_UNSPECIFIED",
           "PROTOBUF",
@@ -235,16 +236,18 @@ const GlobalArgsSchema = z.object({
           outputType: z.unknown().describe(
             "Optional. The delegated user's information.",
           ).optional(),
-        }).describe("The configuration information for the delegated user.")
-          .optional(),
-      }).describe("Contextual headers configuration.").optional(),
+        }).describe("Optional. User details.").optional(),
+      }).describe("Optional. Configuration for the contextual headers.")
+        .optional(),
       gatewayIdentity: z.enum(["GATEWAY_IDENTITY_UNSPECIFIED", "RESOURCE_NAME"])
         .describe("Optional. The security gateway identity configuration.")
         .optional(),
       metadataHeaders: z.record(z.string(), z.string()).describe(
         "Optional. Custom resource specific headers along with the values. The names should conform to RFC 9110: >Field names can contain alphanumeric characters, hyphens, and periods, can contain only ASCII-printable characters and tabs, and must start with a letter.",
       ).optional(),
-    }).describe("The configuration for the proxy.").optional(),
+    }).describe(
+      "Optional. Enables proxy protocol configuration for the upstream.",
+    ).optional(),
   })).describe("Optional. Which upstream resources to forward traffic to.")
     .optional(),
   applicationId: z.string().describe(
@@ -332,7 +335,7 @@ const InputsSchema = z.object({
       regions: z.array(z.string()).describe(
         "Required. List of the regions where the application sends traffic.",
       ).optional(),
-    }).describe("Routing policy information.").optional(),
+    }).describe("Optional. Routing policy information.").optional(),
     external: z.object({
       endpoints: z.array(z.object({
         hostname: z.unknown().describe("Required. Hostname of the endpoint.")
@@ -341,7 +344,8 @@ const InputsSchema = z.object({
           .optional(),
       })).describe("Required. List of the endpoints to forward traffic to.")
         .optional(),
-    }).describe("Endpoints to forward traffic to.").optional(),
+    }).describe("List of the external endpoints to forward traffic to.")
+      .optional(),
     network: z.object({
       name: z.string().describe(
         "Required. Network name is of the format: `projects/{project}/global/networks/{network}",
@@ -359,13 +363,13 @@ const InputsSchema = z.object({
           outputType: z.unknown().describe(
             "Optional. The output type details for the delegated device.",
           ).optional(),
-        }).describe("The delegated device information configuration.")
+        }).describe("Optional. The device information configuration.")
           .optional(),
         groupInfo: z.object({
           outputType: z.unknown().describe(
             "Optional. The output type of the delegated group information.",
           ).optional(),
-        }).describe("The delegated group configuration details.").optional(),
+        }).describe("Optional. Group details.").optional(),
         outputType: z.enum([
           "OUTPUT_TYPE_UNSPECIFIED",
           "PROTOBUF",
@@ -377,16 +381,18 @@ const InputsSchema = z.object({
           outputType: z.unknown().describe(
             "Optional. The delegated user's information.",
           ).optional(),
-        }).describe("The configuration information for the delegated user.")
-          .optional(),
-      }).describe("Contextual headers configuration.").optional(),
+        }).describe("Optional. User details.").optional(),
+      }).describe("Optional. Configuration for the contextual headers.")
+        .optional(),
       gatewayIdentity: z.enum(["GATEWAY_IDENTITY_UNSPECIFIED", "RESOURCE_NAME"])
         .describe("Optional. The security gateway identity configuration.")
         .optional(),
       metadataHeaders: z.record(z.string(), z.string()).describe(
         "Optional. Custom resource specific headers along with the values. The names should conform to RFC 9110: >Field names can contain alphanumeric characters, hyphens, and periods, can contain only ASCII-printable characters and tabs, and must start with a letter.",
       ).optional(),
-    }).describe("The configuration for the proxy.").optional(),
+    }).describe(
+      "Optional. Enables proxy protocol configuration for the upstream.",
+    ).optional(),
   })).describe("Optional. Which upstream resources to forward traffic to.")
     .optional(),
   applicationId: z.string().describe(
@@ -426,7 +432,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BeyondCorp SecurityGateways.Applications. Registered at `@swamp/gcp/beyondcorp/securitygateways-applications`. */
 export const model = {
   type: "@swamp/gcp/beyondcorp/securitygateways-applications",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -560,6 +566,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

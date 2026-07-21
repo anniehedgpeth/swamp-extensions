@@ -158,15 +158,17 @@ const GlobalArgsSchema = z.object({
         'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
       ).optional(),
     }).describe(
-      "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+      "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
     ).optional(),
     grpcEndpoint: z.object({
       targetUri: z.string().describe(
         'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
       ).optional(),
-    }).describe("Specification of the GRPC Endpoint.").optional(),
+    }).describe(
+      "gRPC specific configuration to access the gRPC server to obtain the cert and private key.",
+    ).optional(),
   }).describe(
-    "Specification of certificate provider. Defines the mechanism to obtain the certificate and private key for peer to peer authentication.",
+    "Optional. Defines a mechanism to provision client identity (public and private keys) for peer to peer authentication. The presence of this dictates mTLS.",
   ).optional(),
   description: z.string().describe(
     "Optional. Free-text description of the resource.",
@@ -183,13 +185,15 @@ const GlobalArgsSchema = z.object({
         'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
       ).optional(),
     }).describe(
-      "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+      "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
     ).optional(),
     grpcEndpoint: z.object({
       targetUri: z.string().describe(
         'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
       ).optional(),
-    }).describe("Specification of the GRPC Endpoint.").optional(),
+    }).describe(
+      "gRPC specific configuration to access the gRPC server to obtain the CA certificate.",
+    ).optional(),
   })).describe(
     "Optional. Defines the mechanism to obtain the Certificate Authority certificate to validate the server certificate. If empty, client does not validate the server certificate.",
   ).optional(),
@@ -242,15 +246,17 @@ const InputsSchema = z.object({
         'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
       ).optional(),
     }).describe(
-      "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+      "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
     ).optional(),
     grpcEndpoint: z.object({
       targetUri: z.string().describe(
         'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
       ).optional(),
-    }).describe("Specification of the GRPC Endpoint.").optional(),
+    }).describe(
+      "gRPC specific configuration to access the gRPC server to obtain the cert and private key.",
+    ).optional(),
   }).describe(
-    "Specification of certificate provider. Defines the mechanism to obtain the certificate and private key for peer to peer authentication.",
+    "Optional. Defines a mechanism to provision client identity (public and private keys) for peer to peer authentication. The presence of this dictates mTLS.",
   ).optional(),
   description: z.string().describe(
     "Optional. Free-text description of the resource.",
@@ -267,13 +273,15 @@ const InputsSchema = z.object({
         'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
       ).optional(),
     }).describe(
-      "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+      "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
     ).optional(),
     grpcEndpoint: z.object({
       targetUri: z.string().describe(
         'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
       ).optional(),
-    }).describe("Specification of the GRPC Endpoint.").optional(),
+    }).describe(
+      "gRPC specific configuration to access the gRPC server to obtain the CA certificate.",
+    ).optional(),
   })).describe(
     "Optional. Defines the mechanism to obtain the Certificate Authority certificate to validate the server certificate. If empty, client does not validate the server certificate.",
   ).optional(),
@@ -311,7 +319,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security ClientTlsPolicies. Registered at `@swamp/gcp/networksecurity/clienttlspolicies`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/clienttlspolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -415,6 +423,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

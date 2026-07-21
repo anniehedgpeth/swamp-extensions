@@ -188,88 +188,6 @@ const GlobalArgsSchema = z.object({
   annotations: z.record(z.string(), z.string()).describe(
     "Optional. Annotations as key value pairs.",
   ).optional(),
-  customDomainStatus: z.object({
-    certState: z.enum([
-      "CERT_STATE_UNSPECIFIED",
-      "CERT_PREPARING",
-      "CERT_VALIDATING",
-      "CERT_PROPAGATING",
-      "CERT_ACTIVE",
-      "CERT_EXPIRING_SOON",
-      "CERT_EXPIRED",
-    ]).describe("Output only. Tracks SSL certificate status for the domain.")
-      .optional(),
-    hostState: z.enum([
-      "HOST_STATE_UNSPECIFIED",
-      "HOST_UNHOSTED",
-      "HOST_UNREACHABLE",
-      "HOST_NON_FAH",
-      "HOST_CONFLICT",
-      "HOST_WRONG_SHARD",
-      "HOST_ACTIVE",
-    ]).describe(
-      "Output only. Tracks whether a custom domain is detected as appropriately directing traffic to App Hosting.",
-    ).optional(),
-    issues: z.array(z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.unknown())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    })).describe(
-      "Output only. A list of issues with domain configuration. Allows users to self-correct problems with DNS records.",
-    ).optional(),
-    ownershipState: z.enum([
-      "OWNERSHIP_STATE_UNSPECIFIED",
-      "OWNERSHIP_MISSING",
-      "OWNERSHIP_UNREACHABLE",
-      "OWNERSHIP_MISMATCH",
-      "OWNERSHIP_CONFLICT",
-      "OWNERSHIP_PENDING",
-      "OWNERSHIP_ACTIVE",
-    ]).describe(
-      "Output only. Tracks whether the backend is permitted to serve content on the domain, based off the domain's DNS records.",
-    ).optional(),
-    requiredDnsUpdates: z.array(z.object({
-      checkTime: z.string().describe(
-        "Output only. The last time App Hosting checked your custom domain's DNS records.",
-      ).optional(),
-      desired: z.array(z.object({
-        checkError: z.unknown().describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        domainName: z.unknown().describe(
-          "Output only. The domain name the record set pertains to.",
-        ).optional(),
-        records: z.unknown().describe("Output only. Records on the domain.")
-          .optional(),
-      })).describe(
-        "Output only. The set of DNS records App Hosting needs in order to be able to serve secure content on the domain.",
-      ).optional(),
-      discovered: z.array(z.object({
-        checkError: z.unknown().describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        domainName: z.unknown().describe(
-          "Output only. The domain name the record set pertains to.",
-        ).optional(),
-        records: z.unknown().describe("Output only. Records on the domain.")
-          .optional(),
-      })).describe(
-        "Output only. The set of DNS records App Hosting discovered when inspecting a domain.",
-      ).optional(),
-      domainName: z.string().describe(
-        "Output only. The domain name the DNS updates pertain to.",
-      ).optional(),
-    })).describe(
-      "Output only. Lists the records that must added or removed to a custom domain's DNS in order to finish setup and start serving content. Field is present during onboarding. Also present after onboarding if one or more of the above states is not *_ACTIVE, indicating the domain's DNS records are in a bad state.",
-    ).optional(),
-  }).describe("The status of a custom domain's linkage to a backend.")
-    .optional(),
   disabled: z.boolean().describe(
     "Optional. Whether the domain is disabled. Defaults to false.",
   ).optional(),
@@ -290,9 +208,11 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "Required. The URI of the redirect's intended destination. This URI will be prepended to the original request path. URI without a scheme are assumed to be HTTPS.",
       ).optional(),
-    }).describe("Specifies redirect behavior for a domain.").optional(),
-  }).describe("Indicates whether App Hosting will serve content on the domain.")
-    .optional(),
+    }).describe("Optional. Redirect behavior for a domain, if provided.")
+      .optional(),
+  }).describe(
+    "Optional. The serving behavior of the domain. If specified, the domain will serve content other than its backend's live content.",
+  ).optional(),
   domainId: z.string().describe(
     "Required. Id of the domain to create. Must be a valid domain name.",
   ).optional(),
@@ -362,88 +282,6 @@ const InputsSchema = z.object({
   annotations: z.record(z.string(), z.string()).describe(
     "Optional. Annotations as key value pairs.",
   ).optional(),
-  customDomainStatus: z.object({
-    certState: z.enum([
-      "CERT_STATE_UNSPECIFIED",
-      "CERT_PREPARING",
-      "CERT_VALIDATING",
-      "CERT_PROPAGATING",
-      "CERT_ACTIVE",
-      "CERT_EXPIRING_SOON",
-      "CERT_EXPIRED",
-    ]).describe("Output only. Tracks SSL certificate status for the domain.")
-      .optional(),
-    hostState: z.enum([
-      "HOST_STATE_UNSPECIFIED",
-      "HOST_UNHOSTED",
-      "HOST_UNREACHABLE",
-      "HOST_NON_FAH",
-      "HOST_CONFLICT",
-      "HOST_WRONG_SHARD",
-      "HOST_ACTIVE",
-    ]).describe(
-      "Output only. Tracks whether a custom domain is detected as appropriately directing traffic to App Hosting.",
-    ).optional(),
-    issues: z.array(z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.unknown())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    })).describe(
-      "Output only. A list of issues with domain configuration. Allows users to self-correct problems with DNS records.",
-    ).optional(),
-    ownershipState: z.enum([
-      "OWNERSHIP_STATE_UNSPECIFIED",
-      "OWNERSHIP_MISSING",
-      "OWNERSHIP_UNREACHABLE",
-      "OWNERSHIP_MISMATCH",
-      "OWNERSHIP_CONFLICT",
-      "OWNERSHIP_PENDING",
-      "OWNERSHIP_ACTIVE",
-    ]).describe(
-      "Output only. Tracks whether the backend is permitted to serve content on the domain, based off the domain's DNS records.",
-    ).optional(),
-    requiredDnsUpdates: z.array(z.object({
-      checkTime: z.string().describe(
-        "Output only. The last time App Hosting checked your custom domain's DNS records.",
-      ).optional(),
-      desired: z.array(z.object({
-        checkError: z.unknown().describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        domainName: z.unknown().describe(
-          "Output only. The domain name the record set pertains to.",
-        ).optional(),
-        records: z.unknown().describe("Output only. Records on the domain.")
-          .optional(),
-      })).describe(
-        "Output only. The set of DNS records App Hosting needs in order to be able to serve secure content on the domain.",
-      ).optional(),
-      discovered: z.array(z.object({
-        checkError: z.unknown().describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        domainName: z.unknown().describe(
-          "Output only. The domain name the record set pertains to.",
-        ).optional(),
-        records: z.unknown().describe("Output only. Records on the domain.")
-          .optional(),
-      })).describe(
-        "Output only. The set of DNS records App Hosting discovered when inspecting a domain.",
-      ).optional(),
-      domainName: z.string().describe(
-        "Output only. The domain name the DNS updates pertain to.",
-      ).optional(),
-    })).describe(
-      "Output only. Lists the records that must added or removed to a custom domain's DNS in order to finish setup and start serving content. Field is present during onboarding. Also present after onboarding if one or more of the above states is not *_ACTIVE, indicating the domain's DNS records are in a bad state.",
-    ).optional(),
-  }).describe("The status of a custom domain's linkage to a backend.")
-    .optional(),
   disabled: z.boolean().describe(
     "Optional. Whether the domain is disabled. Defaults to false.",
   ).optional(),
@@ -464,9 +302,11 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "Required. The URI of the redirect's intended destination. This URI will be prepended to the original request path. URI without a scheme are assumed to be HTTPS.",
       ).optional(),
-    }).describe("Specifies redirect behavior for a domain.").optional(),
-  }).describe("Indicates whether App Hosting will serve content on the domain.")
-    .optional(),
+    }).describe("Optional. Redirect behavior for a domain, if provided.")
+      .optional(),
+  }).describe(
+    "Optional. The serving behavior of the domain. If specified, the domain will serve content other than its backend's live content.",
+  ).optional(),
   domainId: z.string().describe(
     "Required. Id of the domain to create. Must be a valid domain name.",
   ).optional(),
@@ -504,7 +344,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Hosting Backends.Domains. Registered at `@swamp/gcp/firebaseapphosting/backends-domains`. */
 export const model = {
   type: "@swamp/gcp/firebaseapphosting/backends-domains",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -616,6 +456,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: customDomainStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { customDomainStatus: _customDomainStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -640,9 +488,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["annotations"] !== undefined) {
           body["annotations"] = g["annotations"];
-        }
-        if (g["customDomainStatus"] !== undefined) {
-          body["customDomainStatus"] = g["customDomainStatus"];
         }
         if (g["disabled"] !== undefined) body["disabled"] = g["disabled"];
         if (g["displayName"] !== undefined) {
@@ -763,9 +608,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["annotations"] !== undefined) {
           body["annotations"] = g["annotations"];
-        }
-        if (g["customDomainStatus"] !== undefined) {
-          body["customDomainStatus"] = g["customDomainStatus"];
         }
         if (g["disabled"] !== undefined) body["disabled"] = g["disabled"];
         if (g["displayName"] !== undefined) {

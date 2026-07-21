@@ -194,7 +194,8 @@ const GlobalArgsSchema = z.object({
       thumbnailUrl: z.string().describe(
         "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
+    }).describe("Optional. Configuration specific to Instagram deployments.")
+      .optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -202,7 +203,8 @@ const GlobalArgsSchema = z.object({
       persona: z.enum(["UNKNOWN", "CONCISE", "CHATTY"]).describe(
         "Optional. The persona of the channel.",
       ).optional(),
-    }).describe("Represents the persona property of a channel.").optional(),
+    }).describe("Optional. The persona property of the channel profile.")
+      .optional(),
     profileId: z.string().describe(
       "Optional. The unique identifier of the channel profile.",
     ).optional(),
@@ -227,14 +229,15 @@ const GlobalArgsSchema = z.object({
         enableRecaptcha: z.boolean().describe(
           "Optional. Indicates whether reCAPTCHA verification for the web widget is enabled.",
         ).optional(),
-      }).describe("Security settings for the web widget.").optional(),
+      }).describe("Optional. The security settings of the web widget.")
+        .optional(),
       theme: z.enum(["THEME_UNSPECIFIED", "LIGHT", "DARK"]).describe(
         "Optional. The theme of the web widget.",
       ).optional(),
       webWidgetTitle: z.string().describe(
         "Optional. The title of the web widget.",
       ).optional(),
-    }).describe("Message for configuration for the web widget.").optional(),
+    }).describe("Optional. The configuration for the web widget.").optional(),
     whatsappConfig: z.object({
       description: z.string().describe(
         "Output only. The description of the Meta business page or profile.",
@@ -252,10 +255,10 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
-  }).describe(
-    "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
-  ).optional(),
+    }).describe("Optional. Configuration specific to WhatsApp deployments.")
+      .optional(),
+  }).describe("Required. The channel profile used in the deployment.")
+    .optional(),
   displayName: z.string().describe("Required. Display name of the deployment.")
     .optional(),
   experimentConfig: z.object({
@@ -279,8 +282,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("Optional. Traffic allocations for the version release.")
         .optional(),
-    }).describe("Version release for the experiment.").optional(),
-  }).describe("Experiment for the deployment.").optional(),
+    }).describe("Optional. Version release for the experiment.").optional(),
+  }).describe("Optional. Experiment configuration for the deployment.")
+    .optional(),
   instagramCredentials: z.object({
     authCode: z.string().describe(
       "Required. The Meta auth code provided by the embedded signup flow.",
@@ -288,8 +292,9 @@ const GlobalArgsSchema = z.object({
     conversationProfileId: z.string().describe(
       "Optional. The Conversation Profile ID to use for the deployment.",
     ).optional(),
-  }).describe("Ephemeral Meta credentials for Instagram native integration.")
-    .optional(),
+  }).describe(
+    "Optional. Input only. Ephemeral Instagram credentials required when configuring a Instagram channel profile.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the deployment. Format: `projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}`",
   ).optional(),
@@ -311,8 +316,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
       .optional(),
-  }).describe("Ephemeral Meta credentials for WhatsApp native integration.")
-    .optional(),
+  }).describe(
+    "Optional. Input only. Ephemeral WhatsApp credentials required when configuring a WhatsApp channel profile.",
+  ).optional(),
   deploymentId: z.string().describe(
     "Optional. The ID to use for the deployment, which will become the final component of the deployment's resource name. If not provided, a unique ID will be automatically assigned for the deployment.",
   ).optional(),
@@ -433,7 +439,8 @@ const InputsSchema = z.object({
       thumbnailUrl: z.string().describe(
         "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
+    }).describe("Optional. Configuration specific to Instagram deployments.")
+      .optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -441,7 +448,8 @@ const InputsSchema = z.object({
       persona: z.enum(["UNKNOWN", "CONCISE", "CHATTY"]).describe(
         "Optional. The persona of the channel.",
       ).optional(),
-    }).describe("Represents the persona property of a channel.").optional(),
+    }).describe("Optional. The persona property of the channel profile.")
+      .optional(),
     profileId: z.string().describe(
       "Optional. The unique identifier of the channel profile.",
     ).optional(),
@@ -466,14 +474,15 @@ const InputsSchema = z.object({
         enableRecaptcha: z.boolean().describe(
           "Optional. Indicates whether reCAPTCHA verification for the web widget is enabled.",
         ).optional(),
-      }).describe("Security settings for the web widget.").optional(),
+      }).describe("Optional. The security settings of the web widget.")
+        .optional(),
       theme: z.enum(["THEME_UNSPECIFIED", "LIGHT", "DARK"]).describe(
         "Optional. The theme of the web widget.",
       ).optional(),
       webWidgetTitle: z.string().describe(
         "Optional. The title of the web widget.",
       ).optional(),
-    }).describe("Message for configuration for the web widget.").optional(),
+    }).describe("Optional. The configuration for the web widget.").optional(),
     whatsappConfig: z.object({
       description: z.string().describe(
         "Output only. The description of the Meta business page or profile.",
@@ -491,10 +500,10 @@ const InputsSchema = z.object({
       ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
-  }).describe(
-    "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
-  ).optional(),
+    }).describe("Optional. Configuration specific to WhatsApp deployments.")
+      .optional(),
+  }).describe("Required. The channel profile used in the deployment.")
+    .optional(),
   displayName: z.string().describe("Required. Display name of the deployment.")
     .optional(),
   experimentConfig: z.object({
@@ -518,8 +527,9 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("Optional. Traffic allocations for the version release.")
         .optional(),
-    }).describe("Version release for the experiment.").optional(),
-  }).describe("Experiment for the deployment.").optional(),
+    }).describe("Optional. Version release for the experiment.").optional(),
+  }).describe("Optional. Experiment configuration for the deployment.")
+    .optional(),
   instagramCredentials: z.object({
     authCode: z.string().describe(
       "Required. The Meta auth code provided by the embedded signup flow.",
@@ -527,8 +537,9 @@ const InputsSchema = z.object({
     conversationProfileId: z.string().describe(
       "Optional. The Conversation Profile ID to use for the deployment.",
     ).optional(),
-  }).describe("Ephemeral Meta credentials for Instagram native integration.")
-    .optional(),
+  }).describe(
+    "Optional. Input only. Ephemeral Instagram credentials required when configuring a Instagram channel profile.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the deployment. Format: `projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}`",
   ).optional(),
@@ -550,8 +561,9 @@ const InputsSchema = z.object({
     ).optional(),
     wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
       .optional(),
-  }).describe("Ephemeral Meta credentials for WhatsApp native integration.")
-    .optional(),
+  }).describe(
+    "Optional. Input only. Ephemeral WhatsApp credentials required when configuring a WhatsApp channel profile.",
+  ).optional(),
   deploymentId: z.string().describe(
     "Optional. The ID to use for the deployment, which will become the final component of the deployment's resource name. If not provided, a unique ID will be automatically assigned for the deployment.",
   ).optional(),
@@ -586,7 +598,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Deployments. Registered at `@swamp/gcp/ces/apps-deployments`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-deployments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -745,6 +757,11 @@ export const model = {
       toVersion: "2026.07.20.2",
       description:
         "Added: experimentConfig, instagramCredentials, whatsappCredentials",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

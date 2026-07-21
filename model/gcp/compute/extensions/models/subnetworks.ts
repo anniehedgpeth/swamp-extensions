@@ -265,7 +265,9 @@ const GlobalArgsSchema = z.object({
     metadataFields: z.array(z.string()).describe(
       'Can only be specified if VPC flow logs for this subnetwork is enabled and "metadata" was set to CUSTOM_METADATA.',
     ).optional(),
-  }).describe("The available logging options for this subnetwork.").optional(),
+  }).describe(
+    "This field denotes the VPC flow logging options for this subnetwork. If logging is enabled, logs are exported to Cloud Logging.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "The name of the resource, provided by the client when initially creating the resource. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -277,7 +279,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional subnetwork parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   privateIpGoogleAccess: z.boolean().describe(
     "Whether the VMs in this subnet can access Google services without assigned external IP addresses. This field can be both set at resource creation time and updated using setPrivateIpGoogleAccess.",
   ).optional(),
@@ -329,49 +333,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   stackType: z.enum(["IPV4_IPV6", "IPV4_ONLY", "IPV6_ONLY"]).describe(
     "The stack type for the subnet. If set to IPV4_ONLY, new VMs in the subnet are assigned IPv4 addresses only. If set toIPV4_IPV6, new VMs in the subnet can be assigned both IPv4 and IPv6 addresses. If not specified, IPV4_ONLY is used. This field can be both set at resource creation time and updated usingpatch.",
-  ).optional(),
-  utilizationDetails: z.object({
-    externalIpv6InstanceUtilization: z.object({
-      totalAllocatedIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-      totalFreeIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-    }).describe("The IPV6 utilization of a single IP range.").optional(),
-    externalIpv6LbUtilization: z.object({
-      totalAllocatedIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-      totalFreeIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-    }).describe("The IPV6 utilization of a single IP range.").optional(),
-    internalIpv6Utilization: z.object({
-      totalAllocatedIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-      totalFreeIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-    }).describe("The IPV6 utilization of a single IP range.").optional(),
-    ipv4Utilizations: z.array(z.object({
-      rangeName: z.string().describe(
-        "Will be set for secondary range. Empty for primary IPv4 range.",
-      ).optional(),
-      totalAllocatedIp: z.string().optional(),
-      totalFreeIp: z.string().optional(),
-    })).describe(
-      "Utilizations of all IPV4 IP ranges. For primary ranges, the range name will be empty.",
-    ).optional(),
-  }).describe(
-    "The current IP utilization of all subnetwork ranges. Contains the total number of allocated and free IPs in each range.",
   ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -529,7 +490,9 @@ const InputsSchema = z.object({
     metadataFields: z.array(z.string()).describe(
       'Can only be specified if VPC flow logs for this subnetwork is enabled and "metadata" was set to CUSTOM_METADATA.',
     ).optional(),
-  }).describe("The available logging options for this subnetwork.").optional(),
+  }).describe(
+    "This field denotes the VPC flow logging options for this subnetwork. If logging is enabled, logs are exported to Cloud Logging.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "The name of the resource, provided by the client when initially creating the resource. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.",
@@ -541,7 +504,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional subnetwork parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   privateIpGoogleAccess: z.boolean().describe(
     "Whether the VMs in this subnet can access Google services without assigned external IP addresses. This field can be both set at resource creation time and updated using setPrivateIpGoogleAccess.",
   ).optional(),
@@ -594,49 +559,6 @@ const InputsSchema = z.object({
   stackType: z.enum(["IPV4_IPV6", "IPV4_ONLY", "IPV6_ONLY"]).describe(
     "The stack type for the subnet. If set to IPV4_ONLY, new VMs in the subnet are assigned IPv4 addresses only. If set toIPV4_IPV6, new VMs in the subnet can be assigned both IPv4 and IPv6 addresses. If not specified, IPV4_ONLY is used. This field can be both set at resource creation time and updated usingpatch.",
   ).optional(),
-  utilizationDetails: z.object({
-    externalIpv6InstanceUtilization: z.object({
-      totalAllocatedIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-      totalFreeIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-    }).describe("The IPV6 utilization of a single IP range.").optional(),
-    externalIpv6LbUtilization: z.object({
-      totalAllocatedIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-      totalFreeIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-    }).describe("The IPV6 utilization of a single IP range.").optional(),
-    internalIpv6Utilization: z.object({
-      totalAllocatedIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-      totalFreeIp: z.object({
-        high: z.string().optional(),
-        low: z.string().optional(),
-      }).optional(),
-    }).describe("The IPV6 utilization of a single IP range.").optional(),
-    ipv4Utilizations: z.array(z.object({
-      rangeName: z.string().describe(
-        "Will be set for secondary range. Empty for primary IPv4 range.",
-      ).optional(),
-      totalAllocatedIp: z.string().optional(),
-      totalFreeIp: z.string().optional(),
-    })).describe(
-      "Utilizations of all IPV4 IP ranges. For primary ranges, the range name will be empty.",
-    ).optional(),
-  }).describe(
-    "The current IP utilization of all subnetwork ranges. Contains the total number of allocated and free IPs in each range.",
-  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -665,7 +587,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Subnetworks. Registered at `@swamp/gcp/compute/subnetworks`. */
 export const model = {
   type: "@swamp/gcp/compute/subnetworks",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -777,6 +699,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: utilizationDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { utilizationDetails: _utilizationDetails, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -854,9 +784,6 @@ export const model = {
           body["secondaryIpRanges"] = g["secondaryIpRanges"];
         }
         if (g["stackType"] !== undefined) body["stackType"] = g["stackType"];
-        if (g["utilizationDetails"] !== undefined) {
-          body["utilizationDetails"] = g["utilizationDetails"];
-        }
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);
         }
@@ -1006,9 +933,6 @@ export const model = {
           body["secondaryIpRanges"] = g["secondaryIpRanges"];
         }
         if (g["stackType"] !== undefined) body["stackType"] = g["stackType"];
-        if (g["utilizationDetails"] !== undefined) {
-          body["utilizationDetails"] = g["utilizationDetails"];
-        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

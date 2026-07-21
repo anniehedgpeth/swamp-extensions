@@ -155,7 +155,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   releaseNotes: z.object({
     text: z.string().describe("The text of the release notes.").optional(),
-  }).describe("Notes that belong to a release.").optional(),
+  }).describe("Notes about the release.").optional(),
   testingUri: z.string().describe(
     "Output only. A link to the release in the tester web clip or Android app that lets testers (which were granted access to the app) view release notes and install the app onto their devices.",
   ).optional(),
@@ -224,7 +224,7 @@ const InputsSchema = z.object({
   ).optional(),
   releaseNotes: z.object({
     text: z.string().describe("The text of the release notes.").optional(),
-  }).describe("Notes that belong to a release.").optional(),
+  }).describe("Notes about the release.").optional(),
   testingUri: z.string().describe(
     "Output only. A link to the release in the tester web clip or Android app that lets testers (which were granted access to the app) view release notes and install the app onto their devices.",
   ).optional(),
@@ -262,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Distribution Apps.Releases. Registered at `@swamp/gcp/firebaseappdistribution/apps-releases`. */
 export const model = {
   type: "@swamp/gcp/firebaseappdistribution/apps-releases",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -383,6 +383,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: androidPackageRegistrationState",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -184,26 +184,6 @@ const GlobalArgsSchema = z.object({
   anchor: z.string().describe(
     "A region of the document represented as a JSON string. For details on defining anchor properties, refer to [Manage comments and replies](https://developers.google.com/workspace/drive/api/v3/manage-comments).",
   ).optional(),
-  author: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   content: z.string().describe(
     "The plain text content of the comment. This field is used for setting the content, while `htmlContent` should be displayed.",
   ),
@@ -282,26 +262,6 @@ const InputsSchema = z.object({
   anchor: z.string().describe(
     "A region of the document represented as a JSON string. For details on defining anchor properties, refer to [Manage comments and replies](https://developers.google.com/workspace/drive/api/v3/manage-comments).",
   ).optional(),
-  author: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   content: z.string().describe(
     "The plain text content of the comment. This field is used for setting the content, while `htmlContent` should be displayed.",
   ).optional(),
@@ -346,7 +306,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Comments. Registered at `@swamp/gcp/drive/comments`. */
 export const model = {
   type: "@swamp/gcp/drive/comments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -443,6 +403,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: author",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { author: _author, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -467,7 +435,6 @@ export const model = {
         if (g["fileId"] !== undefined) params["fileId"] = String(g["fileId"]);
         const body: Record<string, unknown> = {};
         if (g["anchor"] !== undefined) body["anchor"] = g["anchor"];
-        if (g["author"] !== undefined) body["author"] = g["author"];
         if (g["content"] !== undefined) body["content"] = g["content"];
         if (g["createdTime"] !== undefined) {
           body["createdTime"] = g["createdTime"];
@@ -486,12 +453,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "fileId": String(g["fileId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -571,7 +533,6 @@ export const model = {
         params["commentId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["anchor"] !== undefined) body["anchor"] = g["anchor"];
-        if (g["author"] !== undefined) body["author"] = g["author"];
         if (g["content"] !== undefined) body["content"] = g["content"];
         if (g["createdTime"] !== undefined) {
           body["createdTime"] = g["createdTime"];

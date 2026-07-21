@@ -192,7 +192,7 @@ const GlobalArgsSchema = z.object({
     versionName: z.string().describe(
       'Use this field if you want to specify a version of the model to use. The string is formatted the same way as `model_version`, with the addition of the version information: `"projects/YOUR_PROJECT/models/YOUR_MODEL/versions/YOUR_VERSION"`',
     ).optional(),
-  }).describe("Represents input parameters for a prediction job.").optional(),
+  }).describe("Input parameters to create a prediction job.").optional(),
   predictionOutput: z.object({
     errorCount: z.string().describe(
       "The number of data instances which resulted in errors.",
@@ -205,7 +205,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     predictionCount: z.string().describe("The number of generated predictions.")
       .optional(),
-  }).describe("Represents results of a prediction job.").optional(),
+  }).describe("The current prediction job result.").optional(),
   trainingInput: z.object({
     args: z.array(z.string()).describe(
       "Optional. Command-line arguments passed to the training application when it starts. If your job uses a custom container, then the arguments are passed to the container's `ENTRYPOINT` command.",
@@ -218,7 +218,7 @@ const GlobalArgsSchema = z.object({
         "The Cloud KMS resource identifier of the customer-managed encryption key used to protect a resource, such as a training job. It has the following format: `projects/{PROJECT_ID}/locations/{REGION}/keyRings/{KEY_RING_NAME}/cryptoKeys/{KEY_NAME}`",
       ).optional(),
     }).describe(
-      "Represents a custom encryption key configuration that can be applied to a resource.",
+      "Optional. Options for using customer-managed encryption keys (CMEK) to protect resources created by a training job, instead of using Google's default encryption. If this is set, then all resources created by the training job will be encrypted with the customer-managed encryption key that you specify. [Learn how and when to use CMEK with AI Platform Training](/ai-platform/training/docs/cmek).",
     ).optional(),
     evaluatorConfig: z.object({
       acceleratorConfig: z.object({
@@ -240,7 +240,7 @@ const GlobalArgsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -255,15 +255,16 @@ const GlobalArgsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for evaluators. You should only set `evaluatorConfig.acceleratorConfig` if `evaluatorType` is set to a Compute Engine machine type. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `evaluatorConfig.imageUri` only if you build a custom image for your evaluator. If `evaluatorConfig.imageUri` has not been set, AI Platform uses the value of `masterConfig.imageUri`. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     evaluatorCount: z.string().describe(
       "Optional. The number of evaluator replicas to use for the training job. Each replica in the cluster will be of the type specified in `evaluator_type`. This value can only be used when `scale_tier` is set to `CUSTOM`. If you set this value, you must also set `evaluator_type`. The default value is zero.",
     ).optional(),
@@ -331,7 +332,7 @@ const GlobalArgsSchema = z.object({
       resumePreviousJobId: z.string().describe(
         "Optional. The prior hyperparameter tuning job id that users hope to continue with. The job id will be used to find the corresponding vizier study guid and resume the study.",
       ).optional(),
-    }).describe("Represents a set of hyperparameters to optimize.").optional(),
+    }).describe("Optional. The set of Hyperparameters to tune.").optional(),
     jobDir: z.string().describe(
       "Optional. A Google Cloud Storage path in which to store training outputs and other data needed for training. This path is passed to your TensorFlow program as the '--job-dir' command-line argument. The benefit of specifying this field is that Cloud ML validates the path for use in training.",
     ).optional(),
@@ -355,7 +356,7 @@ const GlobalArgsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -370,15 +371,16 @@ const GlobalArgsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for your master worker. You should only set `masterConfig.acceleratorConfig` if `masterType` is set to a Compute Engine machine type. Learn about [restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `masterConfig.imageUri` only if you build a custom image. Only one of `masterConfig.imageUri` and `runtimeVersion` should be set. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     masterType: z.string().describe(
       "Optional. Specifies the type of virtual machine to use for your training job's master worker. You must specify this field when `scaleTier` is set to `CUSTOM`. You can use certain Compute Engine machine types directly in this field. See the [list of compatible Compute Engine machine types](/ai-platform/training/docs/machine-types#compute-engine-machine-types). Alternatively, you can use the certain legacy machine types in this field. See the [list of legacy machine types](/ai-platform/training/docs/machine-types#legacy-machine-types). Finally, if you want to use a TPU for training, specify `cloud_tpu` in this field. Learn more about the [special configuration options for training with TPUs](/ai-platform/training/docs/using-tpus#configuring_a_custom_tpu_machine).",
     ).optional(),
@@ -408,7 +410,7 @@ const GlobalArgsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -423,15 +425,16 @@ const GlobalArgsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for parameter servers. You should only set `parameterServerConfig.acceleratorConfig` if `parameterServerType` is set to a Compute Engine machine type. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `parameterServerConfig.imageUri` only if you build a custom image for your parameter server. If `parameterServerConfig.imageUri` has not been set, AI Platform uses the value of `masterConfig.imageUri`. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     parameterServerCount: z.string().describe(
       "Optional. The number of parameter server replicas to use for the training job. Each replica in the cluster will be of the type specified in `parameter_server_type`. This value can only be used when `scale_tier` is set to `CUSTOM`. If you set this value, you must also set `parameter_server_type`. The default value is zero.",
     ).optional(),
@@ -470,8 +473,7 @@ const GlobalArgsSchema = z.object({
       priority: z.number().int().describe(
         "Optional. Job scheduling will be based on this priority, which in the range [0, 1000]. The bigger the number, the higher the priority. Default to 0 if not set. If there are multiple jobs requesting same type of accelerators, the high priority job will be scheduled prior to ones with low priority.",
       ).optional(),
-    }).describe("All parameters related to scheduling of training jobs.")
-      .optional(),
+    }).describe("Optional. Scheduling options for a training job.").optional(),
     serviceAccount: z.string().describe(
       "Optional. The email address of a service account to use when running the training appplication. You must have the `iam.serviceAccounts.actAs` permission for the specified service account. In addition, the AI Platform Training Google-managed service account must have the `roles/iam.serviceAccountAdmin` role for the specified service account. [Learn more about configuring a service account.](/ai-platform/training/docs/custom-service-account) If not specified, the AI Platform Training Google-managed service account is used by default.",
     ).optional(),
@@ -498,7 +500,7 @@ const GlobalArgsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -513,24 +515,122 @@ const GlobalArgsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for workers. You should only set `workerConfig.acceleratorConfig` if `workerType` is set to a Compute Engine machine type. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `workerConfig.imageUri` only if you build a custom image for your worker. If `workerConfig.imageUri` has not been set, AI Platform uses the value of `masterConfig.imageUri`. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     workerCount: z.string().describe(
       "Optional. The number of worker replicas to use for the training job. Each replica in the cluster will be of the type specified in `worker_type`. This value can only be used when `scale_tier` is set to `CUSTOM`. If you set this value, you must also set `worker_type`. The default value is zero.",
     ).optional(),
     workerType: z.string().describe(
       "Optional. Specifies the type of virtual machine to use for your training job's worker nodes. The supported values are the same as those described in the entry for `masterType`. This value must be consistent with the category of machine type that `masterType` uses. In other words, both must be Compute Engine machine types or both must be legacy machine types. If you use `cloud_tpu` for this value, see special instructions for [configuring a custom TPU machine](/ml-engine/docs/tensorflow/using-tpus#configuring_a_custom_tpu_machine). This value must be present when `scaleTier` is set to `CUSTOM` and `workerCount` is greater than zero.",
     ).optional(),
-  }).describe(
-    "Represents input parameters for a training job. When using the gcloud command to submit your training job, you can specify the input parameters as command-line arguments and/or in a YAML configuration file referenced from the --config command-line argument. For details, see the guide to [submitting a training job](/ai-platform/training/docs/training-jobs).",
-  ).optional(),
+  }).describe("Input parameters to create a training job.").optional(),
+  trainingOutput: z.object({
+    builtInAlgorithmOutput: z.object({
+      framework: z.string().describe(
+        "Framework on which the built-in algorithm was trained.",
+      ).optional(),
+      modelPath: z.string().describe(
+        "The Cloud Storage path to the `model/` directory where the training job saves the trained model. Only set for successful jobs that don't use hyperparameter tuning.",
+      ).optional(),
+      pythonVersion: z.string().describe(
+        "Python version on which the built-in algorithm was trained.",
+      ).optional(),
+      runtimeVersion: z.string().describe(
+        "AI Platform runtime version on which the built-in algorithm was trained.",
+      ).optional(),
+    }).describe(
+      "Details related to built-in algorithms jobs. Only set for built-in algorithms jobs.",
+    ).optional(),
+    completedTrialCount: z.string().describe(
+      "The number of hyperparameter tuning trials that completed successfully. Only set for hyperparameter tuning jobs.",
+    ).optional(),
+    consumedMLUnits: z.number().describe(
+      "The amount of ML units consumed by the job.",
+    ).optional(),
+    hyperparameterMetricTag: z.string().describe(
+      "The TensorFlow summary tag name used for optimizing hyperparameter tuning trials. See [`HyperparameterSpec.hyperparameterMetricTag`](#HyperparameterSpec.FIELDS.hyperparameter_metric_tag) for more information. Only set for hyperparameter tuning jobs.",
+    ).optional(),
+    isBuiltInAlgorithmJob: z.boolean().describe(
+      "Whether this job is a built-in Algorithm job.",
+    ).optional(),
+    isHyperparameterTuningJob: z.boolean().describe(
+      "Whether this job is a hyperparameter tuning job.",
+    ).optional(),
+    trials: z.array(z.object({
+      allMetrics: z.array(z.object({
+        objectiveValue: z.unknown().describe(
+          "The objective value at this training step.",
+        ).optional(),
+        trainingStep: z.unknown().describe(
+          "The global training step for this metric.",
+        ).optional(),
+      })).describe(
+        "All recorded object metrics for this trial. This field is not currently populated.",
+      ).optional(),
+      builtInAlgorithmOutput: z.object({
+        framework: z.string().describe(
+          "Framework on which the built-in algorithm was trained.",
+        ).optional(),
+        modelPath: z.string().describe(
+          "The Cloud Storage path to the `model/` directory where the training job saves the trained model. Only set for successful jobs that don't use hyperparameter tuning.",
+        ).optional(),
+        pythonVersion: z.string().describe(
+          "Python version on which the built-in algorithm was trained.",
+        ).optional(),
+        runtimeVersion: z.string().describe(
+          "AI Platform runtime version on which the built-in algorithm was trained.",
+        ).optional(),
+      }).describe(
+        "Details related to built-in algorithms jobs. Only set for trials of built-in algorithms jobs that have succeeded.",
+      ).optional(),
+      endTime: z.string().describe("Output only. End time for the trial.")
+        .optional(),
+      finalMetric: z.object({
+        objectiveValue: z.number().describe(
+          "The objective value at this training step.",
+        ).optional(),
+        trainingStep: z.string().describe(
+          "The global training step for this metric.",
+        ).optional(),
+      }).describe("The final objective metric seen for this trial.").optional(),
+      hyperparameters: z.record(z.string(), z.string()).describe(
+        "The hyperparameters given to this trial.",
+      ).optional(),
+      isTrialStoppedEarly: z.boolean().describe(
+        "True if the trial is stopped early.",
+      ).optional(),
+      startTime: z.string().describe("Output only. Start time for the trial.")
+        .optional(),
+      state: z.enum([
+        "STATE_UNSPECIFIED",
+        "QUEUED",
+        "PREPARING",
+        "RUNNING",
+        "SUCCEEDED",
+        "FAILED",
+        "CANCELLING",
+        "CANCELLED",
+      ]).describe("Output only. The detailed state of the trial.").optional(),
+      trialId: z.string().describe("The trial id for these results.")
+        .optional(),
+      webAccessUris: z.record(z.string(), z.string()).describe(
+        "URIs for accessing [interactive shells](https://cloud.google.com/ai-platform/training/docs/monitor-debug-interactive-shell) (one URI for each training node). Only available if this trial is part of a hyperparameter tuning job and the job's training_input.enable_web_access is `true`. The keys are names of each node in the training job; for example, `master-replica-0` for the master node, `worker-replica-0` for the first worker, and `ps-replica-0` for the first parameter server. The values are the URIs for each node's interactive shell.",
+      ).optional(),
+    })).describe(
+      "Results for individual Hyperparameter trials. Only set for hyperparameter tuning jobs.",
+    ).optional(),
+    webAccessUris: z.record(z.string(), z.string()).describe(
+      "Output only. URIs for accessing [interactive shells](https://cloud.google.com/ai-platform/training/docs/monitor-debug-interactive-shell) (one URI for each training node). Only available if training_input.enable_web_access is `true`. The keys are names of each node in the training job; for example, `master-replica-0` for the master node, `worker-replica-0` for the first worker, and `ps-replica-0` for the first parameter server. The values are the URIs for each node's interactive shell.",
+    ).optional(),
+  }).describe("The current training job result.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -770,7 +870,7 @@ const InputsSchema = z.object({
     versionName: z.string().describe(
       'Use this field if you want to specify a version of the model to use. The string is formatted the same way as `model_version`, with the addition of the version information: `"projects/YOUR_PROJECT/models/YOUR_MODEL/versions/YOUR_VERSION"`',
     ).optional(),
-  }).describe("Represents input parameters for a prediction job.").optional(),
+  }).describe("Input parameters to create a prediction job.").optional(),
   predictionOutput: z.object({
     errorCount: z.string().describe(
       "The number of data instances which resulted in errors.",
@@ -783,7 +883,7 @@ const InputsSchema = z.object({
     ).optional(),
     predictionCount: z.string().describe("The number of generated predictions.")
       .optional(),
-  }).describe("Represents results of a prediction job.").optional(),
+  }).describe("The current prediction job result.").optional(),
   trainingInput: z.object({
     args: z.array(z.string()).describe(
       "Optional. Command-line arguments passed to the training application when it starts. If your job uses a custom container, then the arguments are passed to the container's `ENTRYPOINT` command.",
@@ -796,7 +896,7 @@ const InputsSchema = z.object({
         "The Cloud KMS resource identifier of the customer-managed encryption key used to protect a resource, such as a training job. It has the following format: `projects/{PROJECT_ID}/locations/{REGION}/keyRings/{KEY_RING_NAME}/cryptoKeys/{KEY_NAME}`",
       ).optional(),
     }).describe(
-      "Represents a custom encryption key configuration that can be applied to a resource.",
+      "Optional. Options for using customer-managed encryption keys (CMEK) to protect resources created by a training job, instead of using Google's default encryption. If this is set, then all resources created by the training job will be encrypted with the customer-managed encryption key that you specify. [Learn how and when to use CMEK with AI Platform Training](/ai-platform/training/docs/cmek).",
     ).optional(),
     evaluatorConfig: z.object({
       acceleratorConfig: z.object({
@@ -818,7 +918,7 @@ const InputsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -833,15 +933,16 @@ const InputsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for evaluators. You should only set `evaluatorConfig.acceleratorConfig` if `evaluatorType` is set to a Compute Engine machine type. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `evaluatorConfig.imageUri` only if you build a custom image for your evaluator. If `evaluatorConfig.imageUri` has not been set, AI Platform uses the value of `masterConfig.imageUri`. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     evaluatorCount: z.string().describe(
       "Optional. The number of evaluator replicas to use for the training job. Each replica in the cluster will be of the type specified in `evaluator_type`. This value can only be used when `scale_tier` is set to `CUSTOM`. If you set this value, you must also set `evaluator_type`. The default value is zero.",
     ).optional(),
@@ -909,7 +1010,7 @@ const InputsSchema = z.object({
       resumePreviousJobId: z.string().describe(
         "Optional. The prior hyperparameter tuning job id that users hope to continue with. The job id will be used to find the corresponding vizier study guid and resume the study.",
       ).optional(),
-    }).describe("Represents a set of hyperparameters to optimize.").optional(),
+    }).describe("Optional. The set of Hyperparameters to tune.").optional(),
     jobDir: z.string().describe(
       "Optional. A Google Cloud Storage path in which to store training outputs and other data needed for training. This path is passed to your TensorFlow program as the '--job-dir' command-line argument. The benefit of specifying this field is that Cloud ML validates the path for use in training.",
     ).optional(),
@@ -933,7 +1034,7 @@ const InputsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -948,15 +1049,16 @@ const InputsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for your master worker. You should only set `masterConfig.acceleratorConfig` if `masterType` is set to a Compute Engine machine type. Learn about [restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `masterConfig.imageUri` only if you build a custom image. Only one of `masterConfig.imageUri` and `runtimeVersion` should be set. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     masterType: z.string().describe(
       "Optional. Specifies the type of virtual machine to use for your training job's master worker. You must specify this field when `scaleTier` is set to `CUSTOM`. You can use certain Compute Engine machine types directly in this field. See the [list of compatible Compute Engine machine types](/ai-platform/training/docs/machine-types#compute-engine-machine-types). Alternatively, you can use the certain legacy machine types in this field. See the [list of legacy machine types](/ai-platform/training/docs/machine-types#legacy-machine-types). Finally, if you want to use a TPU for training, specify `cloud_tpu` in this field. Learn more about the [special configuration options for training with TPUs](/ai-platform/training/docs/using-tpus#configuring_a_custom_tpu_machine).",
     ).optional(),
@@ -986,7 +1088,7 @@ const InputsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -1001,15 +1103,16 @@ const InputsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for parameter servers. You should only set `parameterServerConfig.acceleratorConfig` if `parameterServerType` is set to a Compute Engine machine type. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `parameterServerConfig.imageUri` only if you build a custom image for your parameter server. If `parameterServerConfig.imageUri` has not been set, AI Platform uses the value of `masterConfig.imageUri`. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     parameterServerCount: z.string().describe(
       "Optional. The number of parameter server replicas to use for the training job. Each replica in the cluster will be of the type specified in `parameter_server_type`. This value can only be used when `scale_tier` is set to `CUSTOM`. If you set this value, you must also set `parameter_server_type`. The default value is zero.",
     ).optional(),
@@ -1048,8 +1151,7 @@ const InputsSchema = z.object({
       priority: z.number().int().describe(
         "Optional. Job scheduling will be based on this priority, which in the range [0, 1000]. The bigger the number, the higher the priority. Default to 0 if not set. If there are multiple jobs requesting same type of accelerators, the high priority job will be scheduled prior to ones with low priority.",
       ).optional(),
-    }).describe("All parameters related to scheduling of training jobs.")
-      .optional(),
+    }).describe("Optional. Scheduling options for a training job.").optional(),
     serviceAccount: z.string().describe(
       "Optional. The email address of a service account to use when running the training appplication. You must have the `iam.serviceAccounts.actAs` permission for the specified service account. In addition, the AI Platform Training Google-managed service account must have the `roles/iam.serviceAccountAdmin` role for the specified service account. [Learn more about configuring a service account.](/ai-platform/training/docs/custom-service-account) If not specified, the AI Platform Training Google-managed service account is used by default.",
     ).optional(),
@@ -1076,7 +1178,7 @@ const InputsSchema = z.object({
           "TPU_V4_POD",
         ]).describe("The type of accelerator to use.").optional(),
       }).describe(
-        "Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).",
+        "Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)",
       ).optional(),
       containerArgs: z.array(z.string()).describe(
         "Arguments to the entrypoint command. The following rules apply for container_command and container_args: - If you do not supply command or args: The defaults defined in the Docker image are used. - If you supply a command but no args: The default EntryPoint and the default Cmd defined in the Docker image are ignored. Your command is run without any arguments. - If you supply only args: The default Entrypoint defined in the Docker image is run with the args that you supplied. - If you supply a command and args: The default Entrypoint and the default Cmd defined in the Docker image are ignored. Your command is run with your args. It cannot be set if custom container image is not provided. Note that this field and [TrainingInput.args] are mutually exclusive, i.e., both cannot be set at the same time.",
@@ -1091,24 +1193,122 @@ const InputsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk (default is "pd-ssd"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) or "pd-standard" (Persistent Disk Hard Disk Drive).',
         ).optional(),
-      }).describe("Represents the config of disk options.").optional(),
+      }).describe("Represents the configuration of disk options.").optional(),
       imageUri: z.string().describe(
         "The Docker image to run on the replica. This image must be in Container Registry. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
       ).optional(),
       tpuTfVersion: z.string().describe(
         "The AI Platform runtime version that includes a TensorFlow version matching the one used in the custom container. This field is required if the replica is a TPU worker that uses a custom container. Otherwise, do not specify this field. This must be a [runtime version that currently supports training with TPUs](/ml-engine/docs/tensorflow/runtime-version-list#tpu-support). Note that the version of TensorFlow included in a runtime version may differ from the numbering of the runtime version itself, because it may have a different [patch version](https://www.tensorflow.org/guide/version_compat#semantic_versioning_20). In this field, you must specify the runtime version (TensorFlow minor version). For example, if your custom container runs TensorFlow `1.x.y`, specify `1.x`.",
       ).optional(),
-    }).describe("Represents the configuration for a replica in a cluster.")
-      .optional(),
+    }).describe(
+      "Optional. The configuration for workers. You should only set `workerConfig.acceleratorConfig` if `workerType` is set to a Compute Engine machine type. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu) Set `workerConfig.imageUri` only if you build a custom image for your worker. If `workerConfig.imageUri` has not been set, AI Platform uses the value of `masterConfig.imageUri`. Learn more about [configuring custom containers](/ai-platform/training/docs/distributed-training-containers).",
+    ).optional(),
     workerCount: z.string().describe(
       "Optional. The number of worker replicas to use for the training job. Each replica in the cluster will be of the type specified in `worker_type`. This value can only be used when `scale_tier` is set to `CUSTOM`. If you set this value, you must also set `worker_type`. The default value is zero.",
     ).optional(),
     workerType: z.string().describe(
       "Optional. Specifies the type of virtual machine to use for your training job's worker nodes. The supported values are the same as those described in the entry for `masterType`. This value must be consistent with the category of machine type that `masterType` uses. In other words, both must be Compute Engine machine types or both must be legacy machine types. If you use `cloud_tpu` for this value, see special instructions for [configuring a custom TPU machine](/ml-engine/docs/tensorflow/using-tpus#configuring_a_custom_tpu_machine). This value must be present when `scaleTier` is set to `CUSTOM` and `workerCount` is greater than zero.",
     ).optional(),
-  }).describe(
-    "Represents input parameters for a training job. When using the gcloud command to submit your training job, you can specify the input parameters as command-line arguments and/or in a YAML configuration file referenced from the --config command-line argument. For details, see the guide to [submitting a training job](/ai-platform/training/docs/training-jobs).",
-  ).optional(),
+  }).describe("Input parameters to create a training job.").optional(),
+  trainingOutput: z.object({
+    builtInAlgorithmOutput: z.object({
+      framework: z.string().describe(
+        "Framework on which the built-in algorithm was trained.",
+      ).optional(),
+      modelPath: z.string().describe(
+        "The Cloud Storage path to the `model/` directory where the training job saves the trained model. Only set for successful jobs that don't use hyperparameter tuning.",
+      ).optional(),
+      pythonVersion: z.string().describe(
+        "Python version on which the built-in algorithm was trained.",
+      ).optional(),
+      runtimeVersion: z.string().describe(
+        "AI Platform runtime version on which the built-in algorithm was trained.",
+      ).optional(),
+    }).describe(
+      "Details related to built-in algorithms jobs. Only set for built-in algorithms jobs.",
+    ).optional(),
+    completedTrialCount: z.string().describe(
+      "The number of hyperparameter tuning trials that completed successfully. Only set for hyperparameter tuning jobs.",
+    ).optional(),
+    consumedMLUnits: z.number().describe(
+      "The amount of ML units consumed by the job.",
+    ).optional(),
+    hyperparameterMetricTag: z.string().describe(
+      "The TensorFlow summary tag name used for optimizing hyperparameter tuning trials. See [`HyperparameterSpec.hyperparameterMetricTag`](#HyperparameterSpec.FIELDS.hyperparameter_metric_tag) for more information. Only set for hyperparameter tuning jobs.",
+    ).optional(),
+    isBuiltInAlgorithmJob: z.boolean().describe(
+      "Whether this job is a built-in Algorithm job.",
+    ).optional(),
+    isHyperparameterTuningJob: z.boolean().describe(
+      "Whether this job is a hyperparameter tuning job.",
+    ).optional(),
+    trials: z.array(z.object({
+      allMetrics: z.array(z.object({
+        objectiveValue: z.unknown().describe(
+          "The objective value at this training step.",
+        ).optional(),
+        trainingStep: z.unknown().describe(
+          "The global training step for this metric.",
+        ).optional(),
+      })).describe(
+        "All recorded object metrics for this trial. This field is not currently populated.",
+      ).optional(),
+      builtInAlgorithmOutput: z.object({
+        framework: z.string().describe(
+          "Framework on which the built-in algorithm was trained.",
+        ).optional(),
+        modelPath: z.string().describe(
+          "The Cloud Storage path to the `model/` directory where the training job saves the trained model. Only set for successful jobs that don't use hyperparameter tuning.",
+        ).optional(),
+        pythonVersion: z.string().describe(
+          "Python version on which the built-in algorithm was trained.",
+        ).optional(),
+        runtimeVersion: z.string().describe(
+          "AI Platform runtime version on which the built-in algorithm was trained.",
+        ).optional(),
+      }).describe(
+        "Details related to built-in algorithms jobs. Only set for trials of built-in algorithms jobs that have succeeded.",
+      ).optional(),
+      endTime: z.string().describe("Output only. End time for the trial.")
+        .optional(),
+      finalMetric: z.object({
+        objectiveValue: z.number().describe(
+          "The objective value at this training step.",
+        ).optional(),
+        trainingStep: z.string().describe(
+          "The global training step for this metric.",
+        ).optional(),
+      }).describe("The final objective metric seen for this trial.").optional(),
+      hyperparameters: z.record(z.string(), z.string()).describe(
+        "The hyperparameters given to this trial.",
+      ).optional(),
+      isTrialStoppedEarly: z.boolean().describe(
+        "True if the trial is stopped early.",
+      ).optional(),
+      startTime: z.string().describe("Output only. Start time for the trial.")
+        .optional(),
+      state: z.enum([
+        "STATE_UNSPECIFIED",
+        "QUEUED",
+        "PREPARING",
+        "RUNNING",
+        "SUCCEEDED",
+        "FAILED",
+        "CANCELLING",
+        "CANCELLED",
+      ]).describe("Output only. The detailed state of the trial.").optional(),
+      trialId: z.string().describe("The trial id for these results.")
+        .optional(),
+      webAccessUris: z.record(z.string(), z.string()).describe(
+        "URIs for accessing [interactive shells](https://cloud.google.com/ai-platform/training/docs/monitor-debug-interactive-shell) (one URI for each training node). Only available if this trial is part of a hyperparameter tuning job and the job's training_input.enable_web_access is `true`. The keys are names of each node in the training job; for example, `master-replica-0` for the master node, `worker-replica-0` for the first worker, and `ps-replica-0` for the first parameter server. The values are the URIs for each node's interactive shell.",
+      ).optional(),
+    })).describe(
+      "Results for individual Hyperparameter trials. Only set for hyperparameter tuning jobs.",
+    ).optional(),
+    webAccessUris: z.record(z.string(), z.string()).describe(
+      "Output only. URIs for accessing [interactive shells](https://cloud.google.com/ai-platform/training/docs/monitor-debug-interactive-shell) (one URI for each training node). Only available if training_input.enable_web_access is `true`. The keys are names of each node in the training job; for example, `master-replica-0` for the master node, `worker-replica-0` for the first worker, and `ps-replica-0` for the first parameter server. The values are the URIs for each node's interactive shell.",
+    ).optional(),
+  }).describe("The current training job result.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -1137,7 +1337,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AI Platform Training & Prediction Jobs. Registered at `@swamp/gcp/ml/jobs`. */
 export const model = {
   type: "@swamp/gcp/ml/jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1254,6 +1454,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Added: trainingOutput",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1293,6 +1498,9 @@ export const model = {
         if (g["trainingInput"] !== undefined) {
           body["trainingInput"] = g["trainingInput"];
         }
+        if (g["trainingOutput"] !== undefined) {
+          body["trainingOutput"] = g["trainingOutput"];
+        }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
             `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
@@ -1312,22 +1520,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? "") ||
-              buildResourceName(
-                `projects/${projectId}/locations/${
-                  String(g["location"] ?? "")
-                }`,
-                String(g["jobId"] ?? ""),
-              ),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1428,6 +1621,9 @@ export const model = {
         }
         if (g["trainingInput"] !== undefined) {
           body["trainingInput"] = g["trainingInput"];
+        }
+        if (g["trainingOutput"] !== undefined) {
+          body["trainingOutput"] = g["trainingOutput"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

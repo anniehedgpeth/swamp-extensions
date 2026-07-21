@@ -189,15 +189,12 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the instant snapshot. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional instant snapshot params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   region: z.string().describe(
     "Output only. [Output Only] URL of the region where the instant snapshot resides. You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
-  resourceStatus: z.object({
-    storageSizeBytes: z.string().describe(
-      "[Output Only] The storage size of this instant snapshot.",
-    ).optional(),
-  }).optional(),
   sourceDisk: z.string().describe(
     "URL of the source disk used to create this instant snapshot. Note that the source disk must be in the same zone/region as the instant snapshot to be created. This can be a full or valid partial URL. For example, the following are valid values: - https://www.googleapis.com/compute/v1/projects/project/zones/zone/disks/disk - https://www.googleapis.com/compute/v1/projects/project/regions/region/disks/disk - projects/project/zones/zone/disks/disk - projects/project/regions/region/disks/disk - zones/zone/disks/disk - regions/region/disks/disk",
   ).optional(),
@@ -259,15 +256,12 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the instant snapshot. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional instant snapshot params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   region: z.string().describe(
     "Output only. [Output Only] URL of the region where the instant snapshot resides. You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
-  resourceStatus: z.object({
-    storageSizeBytes: z.string().describe(
-      "[Output Only] The storage size of this instant snapshot.",
-    ).optional(),
-  }).optional(),
   sourceDisk: z.string().describe(
     "URL of the source disk used to create this instant snapshot. Note that the source disk must be in the same zone/region as the instant snapshot to be created. This can be a full or valid partial URL. For example, the following are valid values: - https://www.googleapis.com/compute/v1/projects/project/zones/zone/disks/disk - https://www.googleapis.com/compute/v1/projects/project/regions/region/disks/disk - projects/project/zones/zone/disks/disk - projects/project/regions/region/disks/disk - zones/zone/disks/disk - regions/region/disks/disk",
   ).optional(),
@@ -299,7 +293,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionInstantSnapshots. Registered at `@swamp/gcp/compute/regioninstantsnapshots`. */
 export const model = {
   type: "@swamp/gcp/compute/regioninstantsnapshots",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -441,6 +435,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: resourceStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { resourceStatus: _resourceStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -477,9 +479,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["params"] !== undefined) body["params"] = g["params"];
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
-        }
         if (g["sourceDisk"] !== undefined) body["sourceDisk"] = g["sourceDisk"];
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);

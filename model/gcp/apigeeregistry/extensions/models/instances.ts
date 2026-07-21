@@ -111,18 +111,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  build: z.object({
-    commitId: z.string().describe(
-      "Output only. Commit ID of the latest commit in the build.",
-    ).optional(),
-    commitTime: z.string().describe(
-      "Output only. Commit time of the latest commit in the build.",
-    ).optional(),
-    repo: z.string().describe(
-      "Output only. Path of the open source repository: github.com/apigee/registry.",
-    ).optional(),
-  }).describe("Build information of the Instance if it's in `ACTIVE` state.")
-    .optional(),
   config: z.object({
     cmekKeyName: z.string().describe(
       "Required. The Customer Managed Encryption Key (CMEK) used for data encryption. The CMEK name should follow the format of `projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+)`, where the `location` must match InstanceConfig.location.",
@@ -130,7 +118,7 @@ const GlobalArgsSchema = z.object({
     location: z.string().describe(
       "Output only. The GCP location where the Instance resides.",
     ).optional(),
-  }).describe("Available configurations to provision an Instance.").optional(),
+  }).describe("Required. Config of the Instance.").optional(),
   name: z.string().describe(
     "Format: `projects/*/locations/*/instance`. Currently only `locations/global` is supported.",
   ).optional(),
@@ -166,18 +154,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  build: z.object({
-    commitId: z.string().describe(
-      "Output only. Commit ID of the latest commit in the build.",
-    ).optional(),
-    commitTime: z.string().describe(
-      "Output only. Commit time of the latest commit in the build.",
-    ).optional(),
-    repo: z.string().describe(
-      "Output only. Path of the open source repository: github.com/apigee/registry.",
-    ).optional(),
-  }).describe("Build information of the Instance if it's in `ACTIVE` state.")
-    .optional(),
   config: z.object({
     cmekKeyName: z.string().describe(
       "Required. The Customer Managed Encryption Key (CMEK) used for data encryption. The CMEK name should follow the format of `projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+)`, where the `location` must match InstanceConfig.location.",
@@ -185,7 +161,7 @@ const InputsSchema = z.object({
     location: z.string().describe(
       "Output only. The GCP location where the Instance resides.",
     ).optional(),
-  }).describe("Available configurations to provision an Instance.").optional(),
+  }).describe("Required. Config of the Instance.").optional(),
   name: z.string().describe(
     "Format: `projects/*/locations/*/instance`. Currently only `locations/global` is supported.",
   ).optional(),
@@ -220,7 +196,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Registry Instances. Registered at `@swamp/gcp/apigeeregistry/instances`. */
 export const model = {
   type: "@swamp/gcp/apigeeregistry/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -327,6 +303,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: build",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { build: _build, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -356,7 +340,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["build"] !== undefined) body["build"] = g["build"];
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["instanceId"] !== undefined) {

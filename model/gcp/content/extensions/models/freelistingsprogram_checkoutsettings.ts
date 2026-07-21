@@ -118,7 +118,7 @@ const GlobalArgsSchema = z.object({
       "URL template when the placeholders are expanded will redirect the buyer to the merchant checkout page with the item in the cart.",
     ).optional(),
   }).describe(
-    "Specifications related to the `Checkout` URL. The `UriTemplate` is of the form `https://www.mystore.com/checkout?item_id={id}` where `{id}` will be automatically replaced with data from the merchant account with this attribute [offer_id](https://developers.google.com/shopping-content/reference/rest/v2.1/products#Product.FIELDS.offer_id)",
+    "Required. The `UrlSettings` for the request. The presence of URL settings indicates `Checkout` enrollment.",
   ).optional(),
   merchantId: z.string().describe("Required. The ID of the account."),
 });
@@ -155,7 +155,7 @@ const InputsSchema = z.object({
       "URL template when the placeholders are expanded will redirect the buyer to the merchant checkout page with the item in the cart.",
     ).optional(),
   }).describe(
-    "Specifications related to the `Checkout` URL. The `UriTemplate` is of the form `https://www.mystore.com/checkout?item_id={id}` where `{id}` will be automatically replaced with data from the merchant account with this attribute [offer_id](https://developers.google.com/shopping-content/reference/rest/v2.1/products#Product.FIELDS.offer_id)",
+    "Required. The `UrlSettings` for the request. The presence of URL settings indicates `Checkout` enrollment.",
   ).optional(),
   merchantId: z.string().describe("Required. The ID of the account.")
     .optional(),
@@ -184,7 +184,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Freelistingsprogram.Checkoutsettings. Registered at `@swamp/gcp/content/freelistingsprogram-checkoutsettings`. */
 export const model = {
   type: "@swamp/gcp/content/freelistingsprogram-checkoutsettings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -268,6 +268,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

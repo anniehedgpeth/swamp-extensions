@@ -170,13 +170,15 @@ const GlobalArgsSchema = z.object({
           'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
         ).optional(),
       }).describe(
-        "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+        "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
       ).optional(),
       grpcEndpoint: z.object({
         targetUri: z.string().describe(
           'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
         ).optional(),
-      }).describe("Specification of the GRPC Endpoint.").optional(),
+      }).describe(
+        "gRPC specific configuration to access the gRPC server to obtain the CA certificate.",
+      ).optional(),
     })).describe(
       "Required if the policy is to be used with Traffic Director. For Application Load Balancers it must be empty. Defines the mechanism to obtain the Certificate Authority certificate to validate the client certificate.",
     ).optional(),
@@ -190,7 +192,9 @@ const GlobalArgsSchema = z.object({
     clientValidationTrustConfig: z.string().describe(
       "Reference to the TrustConfig from certificatemanager.googleapis.com namespace. If specified, the chain validation will be performed against certificates configured in the given TrustConfig. Allowed only if the policy is to be used with Application Load Balancers.",
     ).optional(),
-  }).describe("Specification of the MTLSPolicy.").optional(),
+  }).describe(
+    "This field is required if the policy is used with Application Load Balancers. This field can be empty for Traffic Director. Defines a mechanism to provision peer validation certificates for peer to peer authentication (Mutual TLS - mTLS). If not specified, client certificate will not be requested. The connection is treated as TLS and not mTLS. If `allow_open` and `mtls_policy` are set, server allows both plain text and mTLS connections.",
+  ).optional(),
   name: z.string().describe(
     "Required. Name of the ServerTlsPolicy resource. It matches the pattern `projects/*/locations/{location}/serverTlsPolicies/{server_tls_policy}`",
   ).optional(),
@@ -200,15 +204,17 @@ const GlobalArgsSchema = z.object({
         'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
       ).optional(),
     }).describe(
-      "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+      "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
     ).optional(),
     grpcEndpoint: z.object({
       targetUri: z.string().describe(
         'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
       ).optional(),
-    }).describe("Specification of the GRPC Endpoint.").optional(),
+    }).describe(
+      "gRPC specific configuration to access the gRPC server to obtain the cert and private key.",
+    ).optional(),
   }).describe(
-    "Specification of certificate provider. Defines the mechanism to obtain the certificate and private key for peer to peer authentication.",
+    "Optional if policy is to be used with Traffic Director. For Application Load Balancers must be empty. Defines a mechanism to provision server identity (public and private keys). Cannot be combined with `allow_open` as a permissive mode that allows both plain text and TLS is not supported.",
   ).optional(),
   serverTlsPolicyId: z.string().describe(
     'Required. Short name of the ServerTlsPolicy resource to be created. This value should be 1-63 characters long, containing only letters, numbers, hyphens, and underscores, and should not start with a number. E.g. "server_mtls_policy".',
@@ -269,13 +275,15 @@ const InputsSchema = z.object({
           'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
         ).optional(),
       }).describe(
-        "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+        "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
       ).optional(),
       grpcEndpoint: z.object({
         targetUri: z.string().describe(
           'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
         ).optional(),
-      }).describe("Specification of the GRPC Endpoint.").optional(),
+      }).describe(
+        "gRPC specific configuration to access the gRPC server to obtain the CA certificate.",
+      ).optional(),
     })).describe(
       "Required if the policy is to be used with Traffic Director. For Application Load Balancers it must be empty. Defines the mechanism to obtain the Certificate Authority certificate to validate the client certificate.",
     ).optional(),
@@ -289,7 +297,9 @@ const InputsSchema = z.object({
     clientValidationTrustConfig: z.string().describe(
       "Reference to the TrustConfig from certificatemanager.googleapis.com namespace. If specified, the chain validation will be performed against certificates configured in the given TrustConfig. Allowed only if the policy is to be used with Application Load Balancers.",
     ).optional(),
-  }).describe("Specification of the MTLSPolicy.").optional(),
+  }).describe(
+    "This field is required if the policy is used with Application Load Balancers. This field can be empty for Traffic Director. Defines a mechanism to provision peer validation certificates for peer to peer authentication (Mutual TLS - mTLS). If not specified, client certificate will not be requested. The connection is treated as TLS and not mTLS. If `allow_open` and `mtls_policy` are set, server allows both plain text and mTLS connections.",
+  ).optional(),
   name: z.string().describe(
     "Required. Name of the ServerTlsPolicy resource. It matches the pattern `projects/*/locations/{location}/serverTlsPolicies/{server_tls_policy}`",
   ).optional(),
@@ -299,15 +309,17 @@ const InputsSchema = z.object({
         'Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.',
       ).optional(),
     }).describe(
-      "Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.",
+      "The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.",
     ).optional(),
     grpcEndpoint: z.object({
       targetUri: z.string().describe(
         'Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".',
       ).optional(),
-    }).describe("Specification of the GRPC Endpoint.").optional(),
+    }).describe(
+      "gRPC specific configuration to access the gRPC server to obtain the cert and private key.",
+    ).optional(),
   }).describe(
-    "Specification of certificate provider. Defines the mechanism to obtain the certificate and private key for peer to peer authentication.",
+    "Optional if policy is to be used with Traffic Director. For Application Load Balancers must be empty. Defines a mechanism to provision server identity (public and private keys). Cannot be combined with `allow_open` as a permissive mode that allows both plain text and TLS is not supported.",
   ).optional(),
   serverTlsPolicyId: z.string().describe(
     'Required. Short name of the ServerTlsPolicy resource to be created. This value should be 1-63 characters long, containing only letters, numbers, hyphens, and underscores, and should not start with a number. E.g. "server_mtls_policy".',
@@ -340,7 +352,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security ServerTlsPolicies. Registered at `@swamp/gcp/networksecurity/servertlspolicies`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/servertlspolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -444,6 +456,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

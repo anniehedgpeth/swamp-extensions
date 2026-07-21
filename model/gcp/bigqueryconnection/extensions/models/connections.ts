@@ -164,10 +164,9 @@ const GlobalArgsSchema = z.object({
         "A unique Google-owned and Google-generated identity for the Connection. This identity will be used to access the user's AWS IAM Role.",
       ).optional(),
     }).describe(
-      "Authentication method for Amazon Web Services (AWS) that uses Google owned Google service account to assume into customer's AWS IAM Role.",
+      "Authentication using Google owned service account to assume into customer's AWS IAM Role.",
     ).optional(),
-  }).describe("Connection properties specific to Amazon Web Services (AWS).")
-    .optional(),
+  }).describe("Amazon Web Services (AWS) properties.").optional(),
   azure: z.object({
     application: z.string().describe(
       "Output only. The name of the Azure Active Directory Application.",
@@ -190,15 +189,12 @@ const GlobalArgsSchema = z.object({
     redirectUri: z.string().describe(
       "The URL user will be redirected to after granting consent during connection setup.",
     ).optional(),
-  }).describe("Container for connection properties specific to Azure.")
-    .optional(),
+  }).describe("Azure properties.").optional(),
   cloudResource: z.object({
     serviceAccountId: z.string().describe(
       "Output only. The account ID of the service created for the purpose of this connection. The service account does not have any permissions associated with it when it is created. After creation, customers delegate permissions to the service account. When the connection is used in the context of an operation in BigQuery, the service account will be used to connect to the desired resources in GCP. The account ID is in the form of: @gcp-sa-bigquery-cloudresource.iam.gserviceaccount.com",
     ).optional(),
-  }).describe(
-    "Container for connection properties for delegation of access to GCP resources.",
-  ).optional(),
+  }).describe("Cloud Resource properties.").optional(),
   cloudSpanner: z.object({
     database: z.string().describe(
       "Cloud Spanner database in the form `project/instance/database'",
@@ -218,14 +214,14 @@ const GlobalArgsSchema = z.object({
     useServerlessAnalytics: z.boolean().describe(
       "Deprecated: prefer use_data_boost instead. If the serverless analytics service should be used to read data from Cloud Spanner. Note: `use_parallelism` must be set when using serverless analytics.",
     ).optional(),
-  }).describe("Connection properties specific to Cloud Spanner.").optional(),
+  }).describe("Cloud Spanner properties.").optional(),
   cloudSql: z.object({
     credential: z.object({
       password: z.string().describe("The password for the credential.")
         .optional(),
       username: z.string().describe("The username for the credential.")
         .optional(),
-    }).describe("Credential info for the Cloud SQL.").optional(),
+    }).describe("Input only. Cloud SQL credential.").optional(),
     database: z.string().describe("Database name.").optional(),
     instanceId: z.string().describe(
       "Cloud SQL instance ID in the form `project:location:instance`.",
@@ -236,16 +232,14 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["DATABASE_TYPE_UNSPECIFIED", "POSTGRES", "MYSQL"]).describe(
       "Type of the Cloud SQL database.",
     ).optional(),
-  }).describe("Connection properties specific to the Cloud SQL.").optional(),
+  }).describe("Cloud SQL properties.").optional(),
   configuration: z.object({
     asset: z.object({
       database: z.string().describe("Name of the database.").optional(),
       googleCloudResource: z.string().describe(
         "Full Google Cloud resource name - https://cloud.google.com/apis/design/resource_names#full_resource_name. Example: `//library.googleapis.com/shelves/shelf1/books/book2`",
       ).optional(),
-    }).describe(
-      "Data Asset - a resource within instance of the system, reachable under specified endpoint. For example a database name in a SQL DB.",
-    ).optional(),
+    }).describe("Data asset.").optional(),
     authentication: z.object({
       parameters: z.record(
         z.string(),
@@ -262,7 +256,9 @@ const GlobalArgsSchema = z.object({
             secretType: z.unknown().describe(
               "Output only. Indicates type of secret. Can be used to check type of stored secret value even if it's `INPUT_ONLY`.",
             ).optional(),
-          }).describe("Secret value parameter.").optional(),
+          }).describe(
+            "A secret parameter value. Allowed only for Authentication parameters.",
+          ).optional(),
           stringValue: z.string().describe("A string parameter value.")
             .optional(),
         }),
@@ -279,9 +275,9 @@ const GlobalArgsSchema = z.object({
           secretType: z.enum(["SECRET_TYPE_UNSPECIFIED", "PLAINTEXT"]).describe(
             "Output only. Indicates type of secret. Can be used to check type of stored secret value even if it's `INPUT_ONLY`.",
           ).optional(),
-        }).describe("Secret value parameter.").optional(),
+        }).describe("Required. Password.").optional(),
         username: z.string().describe("Required. Username.").optional(),
-      }).describe("Username and Password authentication.").optional(),
+      }).describe("Username/password authentication.").optional(),
     }).describe("Client authentication.").optional(),
     connectorId: z.string().describe(
       "Required. Immutable. The ID of the Connector these parameters are configured for.",
@@ -290,14 +286,17 @@ const GlobalArgsSchema = z.object({
       hostPort: z.string().describe(
         "Host and port in a format of `hostname:port` as defined in https://www.ietf.org/rfc/rfc3986.html#section-3.2.2 and https://www.ietf.org/rfc/rfc3986.html#section-3.2.3.",
       ).optional(),
-    }).describe("Remote endpoint specification.").optional(),
+    }).describe(
+      "Specifies how to reach the remote system this connection is pointing to.",
+    ).optional(),
     network: z.object({
       privateServiceConnect: z.object({
         networkAttachment: z.string().describe(
           "Required. Network Attachment name in the format of `projects/{project}/regions/{region}/networkAttachments/{networkattachment}`.",
         ).optional(),
-      }).describe("Private Service Connect configuration.").optional(),
-    }).describe("Network related configuration.").optional(),
+      }).describe("Private Service Connect networking configuration.")
+        .optional(),
+    }).describe("Networking configuration.").optional(),
     parameters: z.record(
       z.string(),
       z.object({
@@ -313,16 +312,16 @@ const GlobalArgsSchema = z.object({
           secretType: z.enum(["SECRET_TYPE_UNSPECIFIED", "PLAINTEXT"]).describe(
             "Output only. Indicates type of secret. Can be used to check type of stored secret value even if it's `INPUT_ONLY`.",
           ).optional(),
-        }).describe("Secret value parameter.").optional(),
+        }).describe(
+          "A secret parameter value. Allowed only for Authentication parameters.",
+        ).optional(),
         stringValue: z.string().describe("A string parameter value.")
           .optional(),
       }),
     ).describe(
       "Optional. A map of name-value pairs for connector-specific parameters. Extra configuration parameters, that are not standardized in configuration sections. To update a single parameter value call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter id does not fit `[a-zA-Z0-9_]+` pattern, it should be escaped with backticks - for example ``configuration.parameters.`parameter id` ``.",
     ).optional(),
-  }).describe(
-    "Represents concrete parameter values for Connector Configuration.",
-  ).optional(),
+  }).describe("Optional. Connector configuration.").optional(),
   description: z.string().describe("User provided description.").optional(),
   friendlyName: z.string().describe(
     "User provided display name for the connection.",
@@ -340,14 +339,16 @@ const GlobalArgsSchema = z.object({
     tenantId: z.string().describe("The ID of the user's Salesforce tenant.")
       .optional(),
   }).describe(
-    "Connection properties specific to Salesforce DataCloud. This is intended for use only by Salesforce partner projects.",
+    "Optional. Salesforce DataCloud properties. This field is intended for use only by Salesforce partner projects. This field contains properties for your Salesforce DataCloud connection.",
   ).optional(),
   spark: z.object({
     metastoreServiceConfig: z.object({
       metastoreService: z.string().describe(
         "Optional. Resource name of an existing Dataproc Metastore service. Example: * `projects/[project_id]/locations/[region]/services/[service_id]`",
       ).optional(),
-    }).describe("Configuration of the Dataproc Metastore Service.").optional(),
+    }).describe(
+      "Optional. Dataproc Metastore Service configuration for the connection.",
+    ).optional(),
     serviceAccountId: z.string().describe(
       "Output only. The account ID of the service created for the purpose of this connection. The service account does not have any permissions associated with it when it is created. After creation, customers delegate permissions to the service account. When the connection is used in the context of a stored procedure for Apache Spark in BigQuery, the service account is used to connect to the desired resources in Google Cloud. The account ID is in the form of: bqcx--@gcp-sa-bigquery-consp.iam.gserviceaccount.com",
     ).optional(),
@@ -355,10 +356,10 @@ const GlobalArgsSchema = z.object({
       dataprocCluster: z.string().describe(
         "Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the connection. Example: * `projects/[project_id]/regions/[region]/clusters/[cluster_name]`",
       ).optional(),
-    }).describe("Configuration of the Spark History Server.").optional(),
-  }).describe(
-    "Container for connection properties to execute stored procedures for Apache Spark.",
-  ).optional(),
+    }).describe(
+      "Optional. Spark History Server configuration for the connection.",
+    ).optional(),
+  }).describe("Spark properties.").optional(),
   connectionId: z.string().describe(
     "Optional. Connection id that should be assigned to the created connection.",
   ).optional(),
@@ -471,10 +472,9 @@ const InputsSchema = z.object({
         "A unique Google-owned and Google-generated identity for the Connection. This identity will be used to access the user's AWS IAM Role.",
       ).optional(),
     }).describe(
-      "Authentication method for Amazon Web Services (AWS) that uses Google owned Google service account to assume into customer's AWS IAM Role.",
+      "Authentication using Google owned service account to assume into customer's AWS IAM Role.",
     ).optional(),
-  }).describe("Connection properties specific to Amazon Web Services (AWS).")
-    .optional(),
+  }).describe("Amazon Web Services (AWS) properties.").optional(),
   azure: z.object({
     application: z.string().describe(
       "Output only. The name of the Azure Active Directory Application.",
@@ -497,15 +497,12 @@ const InputsSchema = z.object({
     redirectUri: z.string().describe(
       "The URL user will be redirected to after granting consent during connection setup.",
     ).optional(),
-  }).describe("Container for connection properties specific to Azure.")
-    .optional(),
+  }).describe("Azure properties.").optional(),
   cloudResource: z.object({
     serviceAccountId: z.string().describe(
       "Output only. The account ID of the service created for the purpose of this connection. The service account does not have any permissions associated with it when it is created. After creation, customers delegate permissions to the service account. When the connection is used in the context of an operation in BigQuery, the service account will be used to connect to the desired resources in GCP. The account ID is in the form of: @gcp-sa-bigquery-cloudresource.iam.gserviceaccount.com",
     ).optional(),
-  }).describe(
-    "Container for connection properties for delegation of access to GCP resources.",
-  ).optional(),
+  }).describe("Cloud Resource properties.").optional(),
   cloudSpanner: z.object({
     database: z.string().describe(
       "Cloud Spanner database in the form `project/instance/database'",
@@ -525,14 +522,14 @@ const InputsSchema = z.object({
     useServerlessAnalytics: z.boolean().describe(
       "Deprecated: prefer use_data_boost instead. If the serverless analytics service should be used to read data from Cloud Spanner. Note: `use_parallelism` must be set when using serverless analytics.",
     ).optional(),
-  }).describe("Connection properties specific to Cloud Spanner.").optional(),
+  }).describe("Cloud Spanner properties.").optional(),
   cloudSql: z.object({
     credential: z.object({
       password: z.string().describe("The password for the credential.")
         .optional(),
       username: z.string().describe("The username for the credential.")
         .optional(),
-    }).describe("Credential info for the Cloud SQL.").optional(),
+    }).describe("Input only. Cloud SQL credential.").optional(),
     database: z.string().describe("Database name.").optional(),
     instanceId: z.string().describe(
       "Cloud SQL instance ID in the form `project:location:instance`.",
@@ -543,16 +540,14 @@ const InputsSchema = z.object({
     type: z.enum(["DATABASE_TYPE_UNSPECIFIED", "POSTGRES", "MYSQL"]).describe(
       "Type of the Cloud SQL database.",
     ).optional(),
-  }).describe("Connection properties specific to the Cloud SQL.").optional(),
+  }).describe("Cloud SQL properties.").optional(),
   configuration: z.object({
     asset: z.object({
       database: z.string().describe("Name of the database.").optional(),
       googleCloudResource: z.string().describe(
         "Full Google Cloud resource name - https://cloud.google.com/apis/design/resource_names#full_resource_name. Example: `//library.googleapis.com/shelves/shelf1/books/book2`",
       ).optional(),
-    }).describe(
-      "Data Asset - a resource within instance of the system, reachable under specified endpoint. For example a database name in a SQL DB.",
-    ).optional(),
+    }).describe("Data asset.").optional(),
     authentication: z.object({
       parameters: z.record(
         z.string(),
@@ -569,7 +564,9 @@ const InputsSchema = z.object({
             secretType: z.unknown().describe(
               "Output only. Indicates type of secret. Can be used to check type of stored secret value even if it's `INPUT_ONLY`.",
             ).optional(),
-          }).describe("Secret value parameter.").optional(),
+          }).describe(
+            "A secret parameter value. Allowed only for Authentication parameters.",
+          ).optional(),
           stringValue: z.string().describe("A string parameter value.")
             .optional(),
         }),
@@ -586,9 +583,9 @@ const InputsSchema = z.object({
           secretType: z.enum(["SECRET_TYPE_UNSPECIFIED", "PLAINTEXT"]).describe(
             "Output only. Indicates type of secret. Can be used to check type of stored secret value even if it's `INPUT_ONLY`.",
           ).optional(),
-        }).describe("Secret value parameter.").optional(),
+        }).describe("Required. Password.").optional(),
         username: z.string().describe("Required. Username.").optional(),
-      }).describe("Username and Password authentication.").optional(),
+      }).describe("Username/password authentication.").optional(),
     }).describe("Client authentication.").optional(),
     connectorId: z.string().describe(
       "Required. Immutable. The ID of the Connector these parameters are configured for.",
@@ -597,14 +594,17 @@ const InputsSchema = z.object({
       hostPort: z.string().describe(
         "Host and port in a format of `hostname:port` as defined in https://www.ietf.org/rfc/rfc3986.html#section-3.2.2 and https://www.ietf.org/rfc/rfc3986.html#section-3.2.3.",
       ).optional(),
-    }).describe("Remote endpoint specification.").optional(),
+    }).describe(
+      "Specifies how to reach the remote system this connection is pointing to.",
+    ).optional(),
     network: z.object({
       privateServiceConnect: z.object({
         networkAttachment: z.string().describe(
           "Required. Network Attachment name in the format of `projects/{project}/regions/{region}/networkAttachments/{networkattachment}`.",
         ).optional(),
-      }).describe("Private Service Connect configuration.").optional(),
-    }).describe("Network related configuration.").optional(),
+      }).describe("Private Service Connect networking configuration.")
+        .optional(),
+    }).describe("Networking configuration.").optional(),
     parameters: z.record(
       z.string(),
       z.object({
@@ -620,16 +620,16 @@ const InputsSchema = z.object({
           secretType: z.enum(["SECRET_TYPE_UNSPECIFIED", "PLAINTEXT"]).describe(
             "Output only. Indicates type of secret. Can be used to check type of stored secret value even if it's `INPUT_ONLY`.",
           ).optional(),
-        }).describe("Secret value parameter.").optional(),
+        }).describe(
+          "A secret parameter value. Allowed only for Authentication parameters.",
+        ).optional(),
         stringValue: z.string().describe("A string parameter value.")
           .optional(),
       }),
     ).describe(
       "Optional. A map of name-value pairs for connector-specific parameters. Extra configuration parameters, that are not standardized in configuration sections. To update a single parameter value call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter id does not fit `[a-zA-Z0-9_]+` pattern, it should be escaped with backticks - for example ``configuration.parameters.`parameter id` ``.",
     ).optional(),
-  }).describe(
-    "Represents concrete parameter values for Connector Configuration.",
-  ).optional(),
+  }).describe("Optional. Connector configuration.").optional(),
   description: z.string().describe("User provided description.").optional(),
   friendlyName: z.string().describe(
     "User provided display name for the connection.",
@@ -647,14 +647,16 @@ const InputsSchema = z.object({
     tenantId: z.string().describe("The ID of the user's Salesforce tenant.")
       .optional(),
   }).describe(
-    "Connection properties specific to Salesforce DataCloud. This is intended for use only by Salesforce partner projects.",
+    "Optional. Salesforce DataCloud properties. This field is intended for use only by Salesforce partner projects. This field contains properties for your Salesforce DataCloud connection.",
   ).optional(),
   spark: z.object({
     metastoreServiceConfig: z.object({
       metastoreService: z.string().describe(
         "Optional. Resource name of an existing Dataproc Metastore service. Example: * `projects/[project_id]/locations/[region]/services/[service_id]`",
       ).optional(),
-    }).describe("Configuration of the Dataproc Metastore Service.").optional(),
+    }).describe(
+      "Optional. Dataproc Metastore Service configuration for the connection.",
+    ).optional(),
     serviceAccountId: z.string().describe(
       "Output only. The account ID of the service created for the purpose of this connection. The service account does not have any permissions associated with it when it is created. After creation, customers delegate permissions to the service account. When the connection is used in the context of a stored procedure for Apache Spark in BigQuery, the service account is used to connect to the desired resources in Google Cloud. The account ID is in the form of: bqcx--@gcp-sa-bigquery-consp.iam.gserviceaccount.com",
     ).optional(),
@@ -662,10 +664,10 @@ const InputsSchema = z.object({
       dataprocCluster: z.string().describe(
         "Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the connection. Example: * `projects/[project_id]/regions/[region]/clusters/[cluster_name]`",
       ).optional(),
-    }).describe("Configuration of the Spark History Server.").optional(),
-  }).describe(
-    "Container for connection properties to execute stored procedures for Apache Spark.",
-  ).optional(),
+    }).describe(
+      "Optional. Spark History Server configuration for the connection.",
+    ).optional(),
+  }).describe("Spark properties.").optional(),
   connectionId: z.string().describe(
     "Optional. Connection id that should be assigned to the created connection.",
   ).optional(),
@@ -697,7 +699,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Connection Connections. Registered at `@swamp/gcp/bigqueryconnection/connections`. */
 export const model = {
   type: "@swamp/gcp/bigqueryconnection/connections",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -814,6 +816,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -878,16 +885,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

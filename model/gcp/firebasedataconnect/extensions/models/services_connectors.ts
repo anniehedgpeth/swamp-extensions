@@ -198,7 +198,8 @@ const GlobalArgsSchema = z.object({
     strictValidationEnabled: z.boolean().describe(
       "Optional. A field that, if true, enables stricter validation on the connector source code to make sure the operation response shapes are suitable for client-side caching. This can include additional errors and warnings. For example, using the same alias for different fields is disallowed, as it may cause conflicts or confusion with normalized caching. (This field is off by default for compatibility, but enabling it is highly recommended to catch common caching pitfalls.)",
     ).optional(),
-  }).describe("Client caching settings of a connector.").optional(),
+  }).describe("Optional. The client cache settings of the connector.")
+    .optional(),
   displayName: z.string().describe(
     "Optional. Mutable human-readable name. 63 character limit.",
   ).optional(),
@@ -217,7 +218,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Required. The files that comprise the source set.")
       .optional(),
-  }).describe("Used to represent a set of source files.").optional(),
+  }).describe("Required. The source files that comprise the connector.")
+    .optional(),
   connectorId: z.string().describe(
     "Required. The ID to use for the connector, which will become the final component of the connector's resource name.",
   ).optional(),
@@ -271,7 +273,8 @@ const InputsSchema = z.object({
     strictValidationEnabled: z.boolean().describe(
       "Optional. A field that, if true, enables stricter validation on the connector source code to make sure the operation response shapes are suitable for client-side caching. This can include additional errors and warnings. For example, using the same alias for different fields is disallowed, as it may cause conflicts or confusion with normalized caching. (This field is off by default for compatibility, but enabling it is highly recommended to catch common caching pitfalls.)",
     ).optional(),
-  }).describe("Client caching settings of a connector.").optional(),
+  }).describe("Optional. The client cache settings of the connector.")
+    .optional(),
   displayName: z.string().describe(
     "Optional. Mutable human-readable name. 63 character limit.",
   ).optional(),
@@ -290,7 +293,8 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Required. The files that comprise the source set.")
       .optional(),
-  }).describe("Used to represent a set of source files.").optional(),
+  }).describe("Required. The source files that comprise the connector.")
+    .optional(),
   connectorId: z.string().describe(
     "Required. The ID to use for the connector, which will become the final component of the connector's resource name.",
   ).optional(),
@@ -328,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase SQL Connect Services.Connectors. Registered at `@swamp/gcp/firebasedataconnect/services-connectors`. */
 export const model = {
   type: "@swamp/gcp/firebasedataconnect/services-connectors",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -442,6 +446,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

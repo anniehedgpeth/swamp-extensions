@@ -204,13 +204,13 @@ const GlobalArgsSchema = z.object({
           "The signature algorithm used to verify a message against a signature using this key. These signature algorithm must match the structure and any object identifiers encoded in `public_key_pem` (i.e. this algorithm must match that of the public key).",
         ).optional(),
       }).describe(
-        "A public key in the PkixPublicKey [format](https://tools.ietf.org/html/rfc5280#section-4.1.2.7). Public keys of this type are typically textually encoded using the PEM format.",
+        "A raw PKIX SubjectPublicKeyInfo format public key. NOTE: `id` may be explicitly provided by the caller when using this type of public key, but it MUST be a valid RFC3986 URI. If `id` is left blank, a default one will be computed based on the digest of the DER encoding of the public key.",
       ).optional(),
     })).describe(
       "Optional. Public keys that verify attestations signed by this attestor. This field may be updated. If this field is non-empty, one of the specified public keys must verify that an attestation was signed by this attestor for the image specified in the admission request. If this field is empty, this attestor always returns that no valid attestations exist.",
     ).optional(),
   }).describe(
-    "An user owned Grafeas note references a Grafeas Attestation.Authority Note created by the user.",
+    "This specifies how an attestation will be read, and how it will be used during policy enforcement.",
   ).optional(),
   attestorId: z.string().describe("Required. The attestors ID.").optional(),
   location: z.string().describe(
@@ -301,13 +301,13 @@ const InputsSchema = z.object({
           "The signature algorithm used to verify a message against a signature using this key. These signature algorithm must match the structure and any object identifiers encoded in `public_key_pem` (i.e. this algorithm must match that of the public key).",
         ).optional(),
       }).describe(
-        "A public key in the PkixPublicKey [format](https://tools.ietf.org/html/rfc5280#section-4.1.2.7). Public keys of this type are typically textually encoded using the PEM format.",
+        "A raw PKIX SubjectPublicKeyInfo format public key. NOTE: `id` may be explicitly provided by the caller when using this type of public key, but it MUST be a valid RFC3986 URI. If `id` is left blank, a default one will be computed based on the digest of the DER encoding of the public key.",
       ).optional(),
     })).describe(
       "Optional. Public keys that verify attestations signed by this attestor. This field may be updated. If this field is non-empty, one of the specified public keys must verify that an attestation was signed by this attestor for the image specified in the admission request. If this field is empty, this attestor always returns that no valid attestations exist.",
     ).optional(),
   }).describe(
-    "An user owned Grafeas note references a Grafeas Attestation.Authority Note created by the user.",
+    "This specifies how an attestation will be read, and how it will be used during policy enforcement.",
   ).optional(),
   attestorId: z.string().describe("Required. The attestors ID.").optional(),
   location: z.string().describe(
@@ -338,7 +338,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Binary Authorization Attestors. Registered at `@swamp/gcp/binaryauthorization/attestors`. */
 export const model = {
   type: "@swamp/gcp/binaryauthorization/attestors",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -452,6 +452,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

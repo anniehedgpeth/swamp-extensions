@@ -134,25 +134,24 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   assessmentNote: z.object({}).describe(
-    "A note about the entire parent assessment.",
+    "The note is associated to the entire parent assessment.",
   ).optional(),
   content: z.string().describe("The note content.").optional(),
   conversationTurnNote: z.object({
     turnIndex: z.number().int().describe(
       "The conversation turn index that the note is associated with.",
     ).optional(),
-  }).describe("A note about a conversation turn.").optional(),
+  }).describe("The note is associated with a conversation turn.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the note. Format: projects/{project}/locations/{location}/conversations/{conversation}/assessments/{assessment}/notes/{note}",
   ).optional(),
-  noteCreator: z.object({
-    username: z.string().describe("The user's username.").optional(),
-  }).describe("Information about a user.").optional(),
   qaQuestionNote: z.object({
     qaQuestion: z.string().describe(
       "The question resource that the note is associated with.",
     ).optional(),
-  }).describe("A note about a QA question.").optional(),
+  }).describe(
+    "The note is associated with a QA question in one of the conversation's scorecard results.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -186,25 +185,24 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   assessmentNote: z.object({}).describe(
-    "A note about the entire parent assessment.",
+    "The note is associated to the entire parent assessment.",
   ).optional(),
   content: z.string().describe("The note content.").optional(),
   conversationTurnNote: z.object({
     turnIndex: z.number().int().describe(
       "The conversation turn index that the note is associated with.",
     ).optional(),
-  }).describe("A note about a conversation turn.").optional(),
+  }).describe("The note is associated with a conversation turn.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the note. Format: projects/{project}/locations/{location}/conversations/{conversation}/assessments/{assessment}/notes/{note}",
   ).optional(),
-  noteCreator: z.object({
-    username: z.string().describe("The user's username.").optional(),
-  }).describe("Information about a user.").optional(),
   qaQuestionNote: z.object({
     qaQuestion: z.string().describe(
       "The question resource that the note is associated with.",
     ).optional(),
-  }).describe("A note about a QA question.").optional(),
+  }).describe(
+    "The note is associated with a QA question in one of the conversation's scorecard results.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -236,7 +234,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Conversations.Assessments.Notes. Registered at `@swamp/gcp/contactcenterinsights/conversations-assessments-notes`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/conversations-assessments-notes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -343,6 +341,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: noteCreator",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { noteCreator: _noteCreator, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -373,9 +379,6 @@ export const model = {
           body["conversationTurnNote"] = g["conversationTurnNote"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["noteCreator"] !== undefined) {
-          body["noteCreator"] = g["noteCreator"];
-        }
         if (g["qaQuestionNote"] !== undefined) {
           body["qaQuestionNote"] = g["qaQuestionNote"];
         }
@@ -474,9 +477,6 @@ export const model = {
         if (g["content"] !== undefined) body["content"] = g["content"];
         if (g["conversationTurnNote"] !== undefined) {
           body["conversationTurnNote"] = g["conversationTurnNote"];
-        }
-        if (g["noteCreator"] !== undefined) {
-          body["noteCreator"] = g["noteCreator"];
         }
         if (g["qaQuestionNote"] !== undefined) {
           body["qaQuestionNote"] = g["qaQuestionNote"];

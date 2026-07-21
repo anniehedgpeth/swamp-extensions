@@ -182,7 +182,7 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Name of the zone in which VM instances should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that VM instances should be created using [Flex Start](https://cloud.google.com/compute/docs/instances/provisioning-models).",
+          "Optional. Immutable. If set, indicates that this resource should use flex-start VMs.",
         ).optional(),
         newOnDemandInstances: z.object({
           machineType: z.string().describe(
@@ -192,14 +192,14 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Name of the zone in which VM instances should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that on-demand (i.e., using the standard provisioning model) VM instances should be created.",
+          "Optional. Immutable. If set, indicates that this resource should use on-demand VMs.",
         ).optional(),
         newReservedInstances: z.object({
           reservation: z.string().describe(
             "Optional. Immutable. Name of the reservation from which VM instances should be created, in the format `projects/{project}/zones/{zone}/reservations/{reservation}`.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that VM instances should be created from a [reservation](https://cloud.google.com/compute/docs/instances/reservations-overview).",
+          "Optional. Immutable. If set, indicates that this resource should use reserved VMs.",
         ).optional(),
         newSpotInstances: z.object({
           machineType: z.string().describe(
@@ -216,10 +216,10 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Name of the zone in which VM instances should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that [spot VM](https://cloud.google.com/compute/docs/instances/spot) instances should be created.",
+          "Optional. Immutable. If set, indicates that this resource should use spot VMs.",
         ).optional(),
       }).describe(
-        "Describes how a compute resource should be created at runtime.",
+        "Required. Immutable. Configuration for this compute resource, which describes how it should be created at runtime.",
       ).optional(),
     }),
   ).describe(
@@ -246,7 +246,7 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Particular subnetwork to use, in the format `projects/{project}/regions/{region}/subnetworks/{subnetwork}`.",
           ).optional(),
         }).describe(
-          "When set in a NetworkResourceConfig, indicates that an existing network should be imported.",
+          "Optional. Immutable. If set, indicates that an existing network should be imported.",
         ).optional(),
         newNetwork: z.object({
           description: z.string().describe(
@@ -256,10 +256,10 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Name of the network to create, in the format `projects/{project}/global/networks/{network}`.",
           ).optional(),
         }).describe(
-          "When set in a NetworkResourceConfig, indicates that a new network should be created.",
+          "Optional. Immutable. If set, indicates that a new network should be created.",
         ).optional(),
       }).describe(
-        "Describes how a network resource should be initialized. Each network resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.",
+        "Immutable. Configuration for this network resource, which describes how it should be created or imported. This field only controls how the network resource is initially created or imported. Subsequent changes to the network resource should be made via the resource's API and will not be reflected in the configuration.",
       ).optional(),
       network: z.object({
         network: z.string().describe(
@@ -269,7 +269,7 @@ const GlobalArgsSchema = z.object({
           "Output only. Name of the particular subnetwork being used by the cluster, in the format `projects/{project}/regions/{region}/subnetworks/{subnetwork}`.",
         ).optional(),
       }).describe(
-        "A reference to a [VPC network](https://cloud.google.com/vpc/docs/vpc) in Google Compute Engine.",
+        "Output only. A reference to a network in Google Compute Engine.",
       ).optional(),
     }),
   ).describe(
@@ -291,9 +291,7 @@ const GlobalArgsSchema = z.object({
           type: z.string().describe(
             "Optional. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format `projects/{project}/zones/{zone}/diskTypes/{disk_type}`.",
           ).optional(),
-        }).describe(
-          "A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.",
-        ).optional(),
+        }).describe("Optional. Boot disk for the login node.").optional(),
         count: z.string().describe(
           "Required. Number of login node instances to create.",
         ).optional(),
@@ -333,7 +331,7 @@ const GlobalArgsSchema = z.object({
           "Required. Name of the zone in which login nodes should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
         ).optional(),
       }).describe(
-        "Configuration for Slurm [login nodes](https://slurm.schedmd.com/quickstart_admin.html#login) in the cluster. Login nodes are Compute Engine VM instances that allow users to access the cluster over SSH.",
+        "Required. Configuration for login nodes, which allow users to access the cluster over SSH.",
       ).optional(),
       nodeSets: z.array(z.object({
         computeId: z.string().describe(
@@ -341,7 +339,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         computeInstance: z.object({
           bootDisk: z.unknown().describe(
-            "A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.",
+            "Optional. Boot disk for the compute instance",
           ).optional(),
           labels: z.unknown().describe(
             "Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) that should be applied to each VM instance in the nodeset.",
@@ -350,7 +348,7 @@ const GlobalArgsSchema = z.object({
             "Optional. [Startup script](https://cloud.google.com/compute/docs/instances/startup-scripts/linux) to be run on each VM instance in the nodeset. Max 256KB.",
           ).optional(),
         }).describe(
-          "When set in a SlurmNodeSet, indicates that the nodeset should be backed by Compute Engine VM instances.",
+          "Optional. If set, indicates that the nodeset should be backed by Compute Engine instances.",
         ).optional(),
         id: z.string().describe(
           "Required. The ID for the nodeset, which allows it to be referenced by cluster partitions. The nodeset ID must start with a lowercase letter (`a`-`z`), use only lowercase letters or numbers, and contain up to 15 characters. For example, specify `nodeset001`.",
@@ -381,10 +379,10 @@ const GlobalArgsSchema = z.object({
         "Optional. Slurm [prolog scripts](https://slurm.schedmd.com/prolog_epilog.html), which will be executed by compute nodes before a node begins running a new job. Values must not be empty.",
       ).optional(),
     }).describe(
-      "When set in Orchestrator, indicates that the cluster should use [Slurm](https://slurm.schedmd.com/) as the orchestrator.",
+      "Optional. If set, indicates that the cluster should use Slurm as the orchestrator.",
     ).optional(),
   }).describe(
-    "The component responsible for scheduling and running workloads on the cluster as well as providing the user interface for interacting with the cluster at runtime.",
+    "Optional. Orchestrator that is responsible for scheduling and running jobs on the cluster.",
   ).optional(),
   storageResources: z.record(
     z.string(),
@@ -393,7 +391,7 @@ const GlobalArgsSchema = z.object({
         bucket: z.string().describe("Output only. Name of the bucket.")
           .optional(),
       }).describe(
-        "A reference to a [Google Cloud Storage](https://cloud.google.com/storage) bucket.",
+        "Output only. A reference to a Google Cloud Storage bucket. Populated if and only if the storage resource was configured to use Google Cloud Storage.",
       ).optional(),
       config: z.object({
         existingBucket: z.object({
@@ -401,21 +399,21 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Name of the Cloud Storage bucket to import.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that an existing [Google Cloud Storage](https://cloud.google.com/storage) bucket should be imported.",
+          "Optional. Immutable. If set, indicates that an existing Cloud Storage bucket should be imported.",
         ).optional(),
         existingFilestore: z.object({
           filestore: z.string().describe(
             "Required. Immutable. Name of the Filestore instance to import, in the format `projects/{project}/locations/{location}/instances/{instance}`",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that an existing [Filestore](https://cloud.google.com/filestore) instance should be imported.",
+          "Optional. Immutable. If set, indicates that an existing Filestore instance should be imported.",
         ).optional(),
         existingLustre: z.object({
           lustre: z.string().describe(
             "Required. Immutable. Name of the Managed Lustre instance to import, in the format `projects/{project}/locations/{location}/instances/{instance}`",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that an existing [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be imported.",
+          "Optional. Immutable. If set, indicates that an existing Managed Lustre instance should be imported.",
         ).optional(),
         newBucket: z.object({
           autoclass: z.object({
@@ -426,7 +424,7 @@ const GlobalArgsSchema = z.object({
               "Optional. Terminal storage class of the autoclass bucket",
             ).optional(),
           }).describe(
-            "Message describing Google Cloud Storage autoclass configuration",
+            "Optional. Immutable. If set, indicates that the bucket should use [Autoclass](https://cloud.google.com/storage/docs/autoclass).",
           ).optional(),
           bucket: z.string().describe(
             "Required. Immutable. Name of the Cloud Storage bucket to create.",
@@ -436,7 +434,7 @@ const GlobalArgsSchema = z.object({
               "Required. Enables hierarchical namespace setup for the bucket.",
             ).optional(),
           }).describe(
-            "Message describing Google Cloud Storage hierarchical namespace configuration",
+            "Optional. Immutable. If set, indicates that the bucket should use [hierarchical namespaces](https://cloud.google.com/storage/docs/hns-overview).",
           ).optional(),
           storageClass: z.enum([
             "STORAGE_CLASS_UNSPECIFIED",
@@ -448,7 +446,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Immutable. If set, uses the provided storage class as the bucket's default storage class.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that a new [Google Cloud Storage](https://cloud.google.com/storage) bucket should be created.",
+          "Optional. Immutable. If set, indicates that a new Cloud Storage bucket should be created.",
         ).optional(),
         newFilestore: z.object({
           description: z.string().describe(
@@ -468,7 +466,7 @@ const GlobalArgsSchema = z.object({
             "Required. Immutable. Service tier to use for the instance.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that a new [Filestore](https://cloud.google.com/filestore) instance should be created.",
+          "Optional. Immutable. If set, indicates that a new Filestore instance should be created.",
         ).optional(),
         newLustre: z.object({
           capacityGb: z.string().describe(
@@ -487,24 +485,24 @@ const GlobalArgsSchema = z.object({
             "Optional. Immutable. Throughput of the instance in MB/s/TiB. Valid values are 125, 250, 500, 1000. See [Performance tiers and maximum storage capacities](https://cloud.google.com/managed-lustre/docs/create-instance#performance-tiers) for more information.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that a new [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be created.",
+          "Optional. Immutable. If set, indicates that a new Managed Lustre instance should be created.",
         ).optional(),
       }).describe(
-        "Describes how a storage resource should be initialized. Each storage resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.",
+        "Required. Immutable. Configuration for this storage resource, which describes how it should be created or imported. This field only controls how the storage resource is initially created or imported. Subsequent changes to the storage resource should be made via the resource's API and will not be reflected in the configuration.",
       ).optional(),
       filestore: z.object({
         filestore: z.string().describe(
           "Output only. Name of the Filestore instance, in the format `projects/{project}/locations/{location}/instances/{instance}`",
         ).optional(),
       }).describe(
-        "A reference to a [Filestore](https://cloud.google.com/filestore) instance.",
+        "Output only. A reference to a Filestore instance. Populated if and only if the storage resource was configured to use Filestore.",
       ).optional(),
       lustre: z.object({
         lustre: z.string().describe(
           "Output only. Name of the Managed Lustre instance, in the format `projects/{project}/locations/{location}/instances/{instance}`",
         ).optional(),
       }).describe(
-        "A reference to a [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance.",
+        "Output only. A reference to a Managed Lustre instance. Populated if and only if the storage resource was configured to use Managed Lustre.",
       ).optional(),
     }),
   ).describe(
@@ -598,7 +596,7 @@ const InputsSchema = z.object({
             "Required. Immutable. Name of the zone in which VM instances should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that VM instances should be created using [Flex Start](https://cloud.google.com/compute/docs/instances/provisioning-models).",
+          "Optional. Immutable. If set, indicates that this resource should use flex-start VMs.",
         ).optional(),
         newOnDemandInstances: z.object({
           machineType: z.string().describe(
@@ -608,14 +606,14 @@ const InputsSchema = z.object({
             "Required. Immutable. Name of the zone in which VM instances should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that on-demand (i.e., using the standard provisioning model) VM instances should be created.",
+          "Optional. Immutable. If set, indicates that this resource should use on-demand VMs.",
         ).optional(),
         newReservedInstances: z.object({
           reservation: z.string().describe(
             "Optional. Immutable. Name of the reservation from which VM instances should be created, in the format `projects/{project}/zones/{zone}/reservations/{reservation}`.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that VM instances should be created from a [reservation](https://cloud.google.com/compute/docs/instances/reservations-overview).",
+          "Optional. Immutable. If set, indicates that this resource should use reserved VMs.",
         ).optional(),
         newSpotInstances: z.object({
           machineType: z.string().describe(
@@ -632,10 +630,10 @@ const InputsSchema = z.object({
             "Required. Immutable. Name of the zone in which VM instances should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
           ).optional(),
         }).describe(
-          "When set in a ComputeResourceConfig, indicates that [spot VM](https://cloud.google.com/compute/docs/instances/spot) instances should be created.",
+          "Optional. Immutable. If set, indicates that this resource should use spot VMs.",
         ).optional(),
       }).describe(
-        "Describes how a compute resource should be created at runtime.",
+        "Required. Immutable. Configuration for this compute resource, which describes how it should be created at runtime.",
       ).optional(),
     }),
   ).describe(
@@ -662,7 +660,7 @@ const InputsSchema = z.object({
             "Required. Immutable. Particular subnetwork to use, in the format `projects/{project}/regions/{region}/subnetworks/{subnetwork}`.",
           ).optional(),
         }).describe(
-          "When set in a NetworkResourceConfig, indicates that an existing network should be imported.",
+          "Optional. Immutable. If set, indicates that an existing network should be imported.",
         ).optional(),
         newNetwork: z.object({
           description: z.string().describe(
@@ -672,10 +670,10 @@ const InputsSchema = z.object({
             "Required. Immutable. Name of the network to create, in the format `projects/{project}/global/networks/{network}`.",
           ).optional(),
         }).describe(
-          "When set in a NetworkResourceConfig, indicates that a new network should be created.",
+          "Optional. Immutable. If set, indicates that a new network should be created.",
         ).optional(),
       }).describe(
-        "Describes how a network resource should be initialized. Each network resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.",
+        "Immutable. Configuration for this network resource, which describes how it should be created or imported. This field only controls how the network resource is initially created or imported. Subsequent changes to the network resource should be made via the resource's API and will not be reflected in the configuration.",
       ).optional(),
       network: z.object({
         network: z.string().describe(
@@ -685,7 +683,7 @@ const InputsSchema = z.object({
           "Output only. Name of the particular subnetwork being used by the cluster, in the format `projects/{project}/regions/{region}/subnetworks/{subnetwork}`.",
         ).optional(),
       }).describe(
-        "A reference to a [VPC network](https://cloud.google.com/vpc/docs/vpc) in Google Compute Engine.",
+        "Output only. A reference to a network in Google Compute Engine.",
       ).optional(),
     }),
   ).describe(
@@ -707,9 +705,7 @@ const InputsSchema = z.object({
           type: z.string().describe(
             "Optional. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format `projects/{project}/zones/{zone}/diskTypes/{disk_type}`.",
           ).optional(),
-        }).describe(
-          "A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.",
-        ).optional(),
+        }).describe("Optional. Boot disk for the login node.").optional(),
         count: z.string().describe(
           "Required. Number of login node instances to create.",
         ).optional(),
@@ -749,7 +745,7 @@ const InputsSchema = z.object({
           "Required. Name of the zone in which login nodes should run, e.g., `us-central1-a`. Must be in the same region as the cluster, and must match the zone of any other resources specified in the cluster.",
         ).optional(),
       }).describe(
-        "Configuration for Slurm [login nodes](https://slurm.schedmd.com/quickstart_admin.html#login) in the cluster. Login nodes are Compute Engine VM instances that allow users to access the cluster over SSH.",
+        "Required. Configuration for login nodes, which allow users to access the cluster over SSH.",
       ).optional(),
       nodeSets: z.array(z.object({
         computeId: z.string().describe(
@@ -757,7 +753,7 @@ const InputsSchema = z.object({
         ).optional(),
         computeInstance: z.object({
           bootDisk: z.unknown().describe(
-            "A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.",
+            "Optional. Boot disk for the compute instance",
           ).optional(),
           labels: z.unknown().describe(
             "Optional. [Labels](https://cloud.google.com/compute/docs/labeling-resources) that should be applied to each VM instance in the nodeset.",
@@ -766,7 +762,7 @@ const InputsSchema = z.object({
             "Optional. [Startup script](https://cloud.google.com/compute/docs/instances/startup-scripts/linux) to be run on each VM instance in the nodeset. Max 256KB.",
           ).optional(),
         }).describe(
-          "When set in a SlurmNodeSet, indicates that the nodeset should be backed by Compute Engine VM instances.",
+          "Optional. If set, indicates that the nodeset should be backed by Compute Engine instances.",
         ).optional(),
         id: z.string().describe(
           "Required. The ID for the nodeset, which allows it to be referenced by cluster partitions. The nodeset ID must start with a lowercase letter (`a`-`z`), use only lowercase letters or numbers, and contain up to 15 characters. For example, specify `nodeset001`.",
@@ -797,10 +793,10 @@ const InputsSchema = z.object({
         "Optional. Slurm [prolog scripts](https://slurm.schedmd.com/prolog_epilog.html), which will be executed by compute nodes before a node begins running a new job. Values must not be empty.",
       ).optional(),
     }).describe(
-      "When set in Orchestrator, indicates that the cluster should use [Slurm](https://slurm.schedmd.com/) as the orchestrator.",
+      "Optional. If set, indicates that the cluster should use Slurm as the orchestrator.",
     ).optional(),
   }).describe(
-    "The component responsible for scheduling and running workloads on the cluster as well as providing the user interface for interacting with the cluster at runtime.",
+    "Optional. Orchestrator that is responsible for scheduling and running jobs on the cluster.",
   ).optional(),
   storageResources: z.record(
     z.string(),
@@ -809,7 +805,7 @@ const InputsSchema = z.object({
         bucket: z.string().describe("Output only. Name of the bucket.")
           .optional(),
       }).describe(
-        "A reference to a [Google Cloud Storage](https://cloud.google.com/storage) bucket.",
+        "Output only. A reference to a Google Cloud Storage bucket. Populated if and only if the storage resource was configured to use Google Cloud Storage.",
       ).optional(),
       config: z.object({
         existingBucket: z.object({
@@ -817,21 +813,21 @@ const InputsSchema = z.object({
             "Required. Immutable. Name of the Cloud Storage bucket to import.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that an existing [Google Cloud Storage](https://cloud.google.com/storage) bucket should be imported.",
+          "Optional. Immutable. If set, indicates that an existing Cloud Storage bucket should be imported.",
         ).optional(),
         existingFilestore: z.object({
           filestore: z.string().describe(
             "Required. Immutable. Name of the Filestore instance to import, in the format `projects/{project}/locations/{location}/instances/{instance}`",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that an existing [Filestore](https://cloud.google.com/filestore) instance should be imported.",
+          "Optional. Immutable. If set, indicates that an existing Filestore instance should be imported.",
         ).optional(),
         existingLustre: z.object({
           lustre: z.string().describe(
             "Required. Immutable. Name of the Managed Lustre instance to import, in the format `projects/{project}/locations/{location}/instances/{instance}`",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that an existing [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be imported.",
+          "Optional. Immutable. If set, indicates that an existing Managed Lustre instance should be imported.",
         ).optional(),
         newBucket: z.object({
           autoclass: z.object({
@@ -842,7 +838,7 @@ const InputsSchema = z.object({
               "Optional. Terminal storage class of the autoclass bucket",
             ).optional(),
           }).describe(
-            "Message describing Google Cloud Storage autoclass configuration",
+            "Optional. Immutable. If set, indicates that the bucket should use [Autoclass](https://cloud.google.com/storage/docs/autoclass).",
           ).optional(),
           bucket: z.string().describe(
             "Required. Immutable. Name of the Cloud Storage bucket to create.",
@@ -852,7 +848,7 @@ const InputsSchema = z.object({
               "Required. Enables hierarchical namespace setup for the bucket.",
             ).optional(),
           }).describe(
-            "Message describing Google Cloud Storage hierarchical namespace configuration",
+            "Optional. Immutable. If set, indicates that the bucket should use [hierarchical namespaces](https://cloud.google.com/storage/docs/hns-overview).",
           ).optional(),
           storageClass: z.enum([
             "STORAGE_CLASS_UNSPECIFIED",
@@ -864,7 +860,7 @@ const InputsSchema = z.object({
             "Optional. Immutable. If set, uses the provided storage class as the bucket's default storage class.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that a new [Google Cloud Storage](https://cloud.google.com/storage) bucket should be created.",
+          "Optional. Immutable. If set, indicates that a new Cloud Storage bucket should be created.",
         ).optional(),
         newFilestore: z.object({
           description: z.string().describe(
@@ -884,7 +880,7 @@ const InputsSchema = z.object({
             "Required. Immutable. Service tier to use for the instance.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that a new [Filestore](https://cloud.google.com/filestore) instance should be created.",
+          "Optional. Immutable. If set, indicates that a new Filestore instance should be created.",
         ).optional(),
         newLustre: z.object({
           capacityGb: z.string().describe(
@@ -903,24 +899,24 @@ const InputsSchema = z.object({
             "Optional. Immutable. Throughput of the instance in MB/s/TiB. Valid values are 125, 250, 500, 1000. See [Performance tiers and maximum storage capacities](https://cloud.google.com/managed-lustre/docs/create-instance#performance-tiers) for more information.",
           ).optional(),
         }).describe(
-          "When set in a StorageResourceConfig, indicates that a new [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be created.",
+          "Optional. Immutable. If set, indicates that a new Managed Lustre instance should be created.",
         ).optional(),
       }).describe(
-        "Describes how a storage resource should be initialized. Each storage resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.",
+        "Required. Immutable. Configuration for this storage resource, which describes how it should be created or imported. This field only controls how the storage resource is initially created or imported. Subsequent changes to the storage resource should be made via the resource's API and will not be reflected in the configuration.",
       ).optional(),
       filestore: z.object({
         filestore: z.string().describe(
           "Output only. Name of the Filestore instance, in the format `projects/{project}/locations/{location}/instances/{instance}`",
         ).optional(),
       }).describe(
-        "A reference to a [Filestore](https://cloud.google.com/filestore) instance.",
+        "Output only. A reference to a Filestore instance. Populated if and only if the storage resource was configured to use Filestore.",
       ).optional(),
       lustre: z.object({
         lustre: z.string().describe(
           "Output only. Name of the Managed Lustre instance, in the format `projects/{project}/locations/{location}/instances/{instance}`",
         ).optional(),
       }).describe(
-        "A reference to a [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance.",
+        "Output only. A reference to a Managed Lustre instance. Populated if and only if the storage resource was configured to use Managed Lustre.",
       ).optional(),
     }),
   ).describe(
@@ -960,7 +956,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Cluster Director Clusters. Registered at `@swamp/gcp/hypercomputecluster/clusters`. */
 export const model = {
   type: "@swamp/gcp/hypercomputecluster/clusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1119,6 +1115,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

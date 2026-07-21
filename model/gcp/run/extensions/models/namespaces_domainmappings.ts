@@ -221,9 +221,7 @@ const GlobalArgsSchema = z.object({
     uid: z.string().describe(
       "Unique, system-generated identifier for this resource.",
     ).optional(),
-  }).describe(
-    "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
-  ).optional(),
+  }).describe("Metadata associated with this BuildTemplate.").optional(),
   spec: z.object({
     certificateMode: z.enum([
       "CERTIFICATE_MODE_UNSPECIFIED",
@@ -236,7 +234,7 @@ const GlobalArgsSchema = z.object({
     routeName: z.string().describe(
       "The name of the Knative Route that this DomainMapping applies to. The route must exist.",
     ).optional(),
-  }).describe("The desired state of the Domain Mapping.").optional(),
+  }).describe("The spec for this DomainMapping.").optional(),
   status: z.object({
     conditions: z.array(z.object({
       lastTransitionTime: z.string().describe(
@@ -281,7 +279,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     url: z.string().describe("Optional. Not supported by Cloud Run.")
       .optional(),
-  }).describe("The current state of the Domain Mapping.").optional(),
+  }).describe("The current status of the DomainMapping.").optional(),
   dryRun: z.string().describe(
     "Indicates that the server should validate the request and populate default values without persisting the request. Supported values: `all`",
   ).optional(),
@@ -408,9 +406,7 @@ const InputsSchema = z.object({
     uid: z.string().describe(
       "Unique, system-generated identifier for this resource.",
     ).optional(),
-  }).describe(
-    "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
-  ).optional(),
+  }).describe("Metadata associated with this BuildTemplate.").optional(),
   spec: z.object({
     certificateMode: z.enum([
       "CERTIFICATE_MODE_UNSPECIFIED",
@@ -423,7 +419,7 @@ const InputsSchema = z.object({
     routeName: z.string().describe(
       "The name of the Knative Route that this DomainMapping applies to. The route must exist.",
     ).optional(),
-  }).describe("The desired state of the Domain Mapping.").optional(),
+  }).describe("The spec for this DomainMapping.").optional(),
   status: z.object({
     conditions: z.array(z.object({
       lastTransitionTime: z.string().describe(
@@ -468,7 +464,7 @@ const InputsSchema = z.object({
     ).optional(),
     url: z.string().describe("Optional. Not supported by Cloud Run.")
       .optional(),
-  }).describe("The current state of the Domain Mapping.").optional(),
+  }).describe("The current status of the DomainMapping.").optional(),
   dryRun: z.string().describe(
     "Indicates that the server should validate the request and populate default values without persisting the request. Supported values: `all`",
   ).optional(),
@@ -500,7 +496,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Namespaces.Domainmappings. Registered at `@swamp/gcp/run/namespaces-domainmappings`. */
 export const model = {
   type: "@swamp/gcp/run/namespaces-domainmappings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -541,14 +544,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

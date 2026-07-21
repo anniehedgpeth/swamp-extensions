@@ -147,7 +147,9 @@ const GlobalArgsSchema = z.object({
       enumValue: z.object({
         displayName: z.string().describe("The display name of the enum value.")
           .optional(),
-      }).describe("An enum value.").optional(),
+      }).describe(
+        "The value of a tag field with an enum type. This value must be one of the allowed values listed in this enum.",
+      ).optional(),
       order: z.number().int().describe(
         "Output only. The order of this field with respect to other fields in this tag. Can be set by Tag. For example, a higher value can indicate a more important field. The value can be negative. Multiple fields can have the same order, and field orders within a tag don't have to be sequential.",
       ).optional(),
@@ -212,7 +214,9 @@ const InputsSchema = z.object({
       enumValue: z.object({
         displayName: z.string().describe("The display name of the enum value.")
           .optional(),
-      }).describe("An enum value.").optional(),
+      }).describe(
+        "The value of a tag field with an enum type. This value must be one of the allowed values listed in this enum.",
+      ).optional(),
       order: z.number().int().describe(
         "Output only. The order of this field with respect to other fields in this tag. Can be set by Tag. For example, a higher value can indicate a more important field. The value can be negative. Multiple fields can have the same order, and field orders within a tag don't have to be sequential.",
       ).optional(),
@@ -266,7 +270,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Data Catalog EntryGroups.Entries.Tags. Registered at `@swamp/gcp/datacatalog/entrygroups-entries-tags`. */
 export const model = {
   type: "@swamp/gcp/datacatalog/entrygroups-entries-tags",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -370,6 +374,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

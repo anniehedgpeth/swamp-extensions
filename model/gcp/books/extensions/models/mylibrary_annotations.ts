@@ -177,7 +177,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in CFI format for this annotation sent by client.")
+      .optional(),
     contentVersion: z.string().describe("Content version the client sent in.")
       .optional(),
     gbImageRange: z.object({
@@ -189,7 +190,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in GB image format for this annotation sent by client.")
+      .optional(),
     gbTextRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -199,7 +201,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in GB text format for this annotation sent by client.")
+      .optional(),
     imageCfiRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -209,7 +212,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in image CFI format for this annotation sent by client.")
+      .optional(),
   }).describe("Selection ranges sent from the client.").optional(),
   created: z.string().describe(
     "Timestamp for the created time of this annotation.",
@@ -224,7 +228,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in CFI format for this annotation for version above.")
+      .optional(),
     contentVersion: z.string().describe(
       "Content version applicable to ranges below.",
     ).optional(),
@@ -237,7 +242,9 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Range in GB image format for this annotation for version above.",
+    ).optional(),
     gbTextRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -247,7 +254,9 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Range in GB text format for this annotation for version above.",
+    ).optional(),
     imageCfiRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -257,7 +266,9 @@ const GlobalArgsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Range in image CFI format for this annotation for version above.",
+    ).optional(),
   }).describe("Selection ranges for the most recent content version.")
     .optional(),
   data: z.string().describe("User-created data for this annotation.")
@@ -402,7 +413,8 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in CFI format for this annotation sent by client.")
+      .optional(),
     contentVersion: z.string().describe("Content version the client sent in.")
       .optional(),
     gbImageRange: z.object({
@@ -414,7 +426,8 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in GB image format for this annotation sent by client.")
+      .optional(),
     gbTextRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -424,7 +437,8 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in GB text format for this annotation sent by client.")
+      .optional(),
     imageCfiRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -434,7 +448,8 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in image CFI format for this annotation sent by client.")
+      .optional(),
   }).describe("Selection ranges sent from the client.").optional(),
   created: z.string().describe(
     "Timestamp for the created time of this annotation.",
@@ -449,7 +464,8 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe("Range in CFI format for this annotation for version above.")
+      .optional(),
     contentVersion: z.string().describe(
       "Content version applicable to ranges below.",
     ).optional(),
@@ -462,7 +478,9 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Range in GB image format for this annotation for version above.",
+    ).optional(),
     gbTextRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -472,7 +490,9 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Range in GB text format for this annotation for version above.",
+    ).optional(),
     imageCfiRange: z.object({
       endOffset: z.string().describe("The offset from the ending position.")
         .optional(),
@@ -482,7 +502,9 @@ const InputsSchema = z.object({
         .optional(),
       startPosition: z.string().describe("The starting position for the range.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Range in image CFI format for this annotation for version above.",
+    ).optional(),
   }).describe("Selection ranges for the most recent content version.")
     .optional(),
   data: z.string().describe("User-created data for this annotation.")
@@ -550,7 +572,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Books Mylibrary.Annotations. Registered at `@swamp/gcp/books/mylibrary-annotations`. */
 export const model = {
   type: "@swamp/gcp/books/mylibrary-annotations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -647,6 +669,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -716,12 +743,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

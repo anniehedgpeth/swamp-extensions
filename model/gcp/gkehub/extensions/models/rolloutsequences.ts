@@ -169,68 +169,36 @@ const GlobalArgsSchema = z.object({
           "NODE_PATCH",
         ]),
       ).describe("Optional. The list of enabled upgrade types.").optional(),
-    }).describe("The scope for automatic rollout creation.").optional(),
-  }).describe("Configuration for automatic upgrades.").optional(),
+    }).describe(
+      "Optional. Specifies the scope of automation for the creation of rollouts. Represents the types of rollouts (version upgrades) the sequence should initiate automatically. If this field is `unset`, it defaults to all types. If this field is `set` but the internal `upgrade_types` list is `empty`, most automatic rollouts are disabled for this sequence. Exceptions are rollouts enforcing our security policies (e.g. such as end-of-support and outdated control plane patch enforcements). These policy enforcements cannot be disabled.",
+    ).optional(),
+  }).describe(
+    "Optional. Configuration for automatic upgrades. If this message is `unset`, the system applies default behavior.",
+  ).optional(),
   displayName: z.string().describe(
     "Optional. Human readable display name of the Rollout Sequence.",
   ).optional(),
-  effectiveAutoUpgradeConfig: z.object({
-    enforcedRollouts: z.record(z.string(), z.string()).describe(
-      'Output only. Mandatory Safety Policies (Always active) which cannot be disabled. The key is the policy ID (e.g., "ENFORCED_CONTROL_PLANE_PATCH") and the value is a human-readable description.',
-    ).optional(),
-    rolloutCreationScope: z.object({
-      upgradeTypes: z.array(
-        z.enum([
-          "UPGRADE_TYPE_UNSPECIFIED",
-          "CONTROL_PLANE_MINOR",
-          "CONTROL_PLANE_PATCH",
-          "NODE_MINOR",
-          "NODE_PATCH",
-        ]),
-      ).describe("Optional. The list of enabled upgrade types.").optional(),
-    }).describe("The scope for automatic rollout creation.").optional(),
-  }).describe("Configuration for automatic upgrades.").optional(),
   ignoredClustersSelector: z.object({
     labelSelector: z.string().describe(
       "Required. A valid CEL (Common Expression Language) expression which evaluates `resource.labels`.",
     ).optional(),
-  }).describe("Selector for clusters.").optional(),
+  }).describe(
+    "Optional. Selector for clusters to exclude from the Rollout Sequence.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels for this Rollout Sequence.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Name of the rollout sequence in the format of: projects/{PROJECT_ID}/locations/global/rolloutSequences/{NAME}",
   ).optional(),
-  operationalState: z.object({
-    reasons: z.array(
-      z.enum([
-        "REASON_UNSPECIFIED",
-        "FLEET_FEATURE_DELETED_ERROR",
-        "FLEET_DELETED_ERROR",
-        "EMPTY_STAGE_WARNING",
-        "MIXED_RELEASE_CHANNELS_WARNING",
-        "INTERNAL_ERROR",
-        "NO_CLUSTERS_IN_SEQUENCE",
-      ]),
-    ).describe("Output only. Reasons for the Rollout Sequence state.")
-      .optional(),
-    state: z.enum([
-      "STATE_CODE_UNSPECIFIED",
-      "ACTIVE",
-      "WARNING",
-      "ERROR",
-      "INITIALIZING",
-    ]).describe("Output only. State of the Rollout Sequence.").optional(),
-    stateChangeTime: z.string().describe(
-      "Output only. The timestamp at which the operational state was last changed. Used to track how long it has been in the current state.",
-    ).optional(),
-  }).describe("Operational state of the Rollout Sequence.").optional(),
   stages: z.array(z.object({
     clusterSelector: z.object({
       labelSelector: z.string().describe(
         "Required. A valid CEL (Common Expression Language) expression which evaluates `resource.labels`.",
       ).optional(),
-    }).describe("Selector for clusters.").optional(),
+    }).describe(
+      "Optional. Filter members of fleets (above) to a subset of clusters. If not specified, all clusters in the fleets are selected.",
+    ).optional(),
     fleetProjects: z.array(z.string()).describe(
       "Required. List of Fleet projects to select the clusters from. Expected format: projects/{project}",
     ).optional(),
@@ -312,68 +280,36 @@ const InputsSchema = z.object({
           "NODE_PATCH",
         ]),
       ).describe("Optional. The list of enabled upgrade types.").optional(),
-    }).describe("The scope for automatic rollout creation.").optional(),
-  }).describe("Configuration for automatic upgrades.").optional(),
+    }).describe(
+      "Optional. Specifies the scope of automation for the creation of rollouts. Represents the types of rollouts (version upgrades) the sequence should initiate automatically. If this field is `unset`, it defaults to all types. If this field is `set` but the internal `upgrade_types` list is `empty`, most automatic rollouts are disabled for this sequence. Exceptions are rollouts enforcing our security policies (e.g. such as end-of-support and outdated control plane patch enforcements). These policy enforcements cannot be disabled.",
+    ).optional(),
+  }).describe(
+    "Optional. Configuration for automatic upgrades. If this message is `unset`, the system applies default behavior.",
+  ).optional(),
   displayName: z.string().describe(
     "Optional. Human readable display name of the Rollout Sequence.",
   ).optional(),
-  effectiveAutoUpgradeConfig: z.object({
-    enforcedRollouts: z.record(z.string(), z.string()).describe(
-      'Output only. Mandatory Safety Policies (Always active) which cannot be disabled. The key is the policy ID (e.g., "ENFORCED_CONTROL_PLANE_PATCH") and the value is a human-readable description.',
-    ).optional(),
-    rolloutCreationScope: z.object({
-      upgradeTypes: z.array(
-        z.enum([
-          "UPGRADE_TYPE_UNSPECIFIED",
-          "CONTROL_PLANE_MINOR",
-          "CONTROL_PLANE_PATCH",
-          "NODE_MINOR",
-          "NODE_PATCH",
-        ]),
-      ).describe("Optional. The list of enabled upgrade types.").optional(),
-    }).describe("The scope for automatic rollout creation.").optional(),
-  }).describe("Configuration for automatic upgrades.").optional(),
   ignoredClustersSelector: z.object({
     labelSelector: z.string().describe(
       "Required. A valid CEL (Common Expression Language) expression which evaluates `resource.labels`.",
     ).optional(),
-  }).describe("Selector for clusters.").optional(),
+  }).describe(
+    "Optional. Selector for clusters to exclude from the Rollout Sequence.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels for this Rollout Sequence.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Name of the rollout sequence in the format of: projects/{PROJECT_ID}/locations/global/rolloutSequences/{NAME}",
   ).optional(),
-  operationalState: z.object({
-    reasons: z.array(
-      z.enum([
-        "REASON_UNSPECIFIED",
-        "FLEET_FEATURE_DELETED_ERROR",
-        "FLEET_DELETED_ERROR",
-        "EMPTY_STAGE_WARNING",
-        "MIXED_RELEASE_CHANNELS_WARNING",
-        "INTERNAL_ERROR",
-        "NO_CLUSTERS_IN_SEQUENCE",
-      ]),
-    ).describe("Output only. Reasons for the Rollout Sequence state.")
-      .optional(),
-    state: z.enum([
-      "STATE_CODE_UNSPECIFIED",
-      "ACTIVE",
-      "WARNING",
-      "ERROR",
-      "INITIALIZING",
-    ]).describe("Output only. State of the Rollout Sequence.").optional(),
-    stateChangeTime: z.string().describe(
-      "Output only. The timestamp at which the operational state was last changed. Used to track how long it has been in the current state.",
-    ).optional(),
-  }).describe("Operational state of the Rollout Sequence.").optional(),
   stages: z.array(z.object({
     clusterSelector: z.object({
       labelSelector: z.string().describe(
         "Required. A valid CEL (Common Expression Language) expression which evaluates `resource.labels`.",
       ).optional(),
-    }).describe("Selector for clusters.").optional(),
+    }).describe(
+      "Optional. Filter members of fleets (above) to a subset of clusters. If not specified, all clusters in the fleets are selected.",
+    ).optional(),
     fleetProjects: z.array(z.string()).describe(
       "Required. List of Fleet projects to select the clusters from. Expected format: projects/{project}",
     ).optional(),
@@ -414,7 +350,21 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub RolloutSequences. Registered at `@swamp/gcp/gkehub/rolloutsequences`. */
 export const model = {
   type: "@swamp/gcp/gkehub/rolloutsequences",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: effectiveAutoUpgradeConfig, operationalState",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          effectiveAutoUpgradeConfig: _effectiveAutoUpgradeConfig,
+          operationalState: _operationalState,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -445,17 +395,11 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["effectiveAutoUpgradeConfig"] !== undefined) {
-          body["effectiveAutoUpgradeConfig"] = g["effectiveAutoUpgradeConfig"];
-        }
         if (g["ignoredClustersSelector"] !== undefined) {
           body["ignoredClustersSelector"] = g["ignoredClustersSelector"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["operationalState"] !== undefined) {
-          body["operationalState"] = g["operationalState"];
-        }
         if (g["stages"] !== undefined) body["stages"] = g["stages"];
         if (g["rolloutSequenceId"] !== undefined) {
           params["rolloutSequenceId"] = String(g["rolloutSequenceId"]);
@@ -572,16 +516,10 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["effectiveAutoUpgradeConfig"] !== undefined) {
-          body["effectiveAutoUpgradeConfig"] = g["effectiveAutoUpgradeConfig"];
-        }
         if (g["ignoredClustersSelector"] !== undefined) {
           body["ignoredClustersSelector"] = g["ignoredClustersSelector"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["operationalState"] !== undefined) {
-          body["operationalState"] = g["operationalState"];
-        }
         if (g["stages"] !== undefined) body["stages"] = g["stages"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

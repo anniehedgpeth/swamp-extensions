@@ -146,7 +146,7 @@ const GlobalArgsSchema = z.object({
         "EXACT_COPY",
         "OTHER",
       ]).describe("Required. Type of dependency.").optional(),
-    }).describe("Dependency info describes how one entity depends on another.")
+    }).describe("Optional. Describes how the target depends on the source.")
       .optional(),
     source: z.object({
       field: z.array(z.string()).describe(
@@ -155,9 +155,7 @@ const GlobalArgsSchema = z.object({
       fullyQualifiedName: z.string().describe(
         "Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.",
       ).optional(),
-    }).describe(
-      "The soft reference to everything you can attach a lineage event to.",
-    ).optional(),
+    }).describe("Required. Reference to the source entity").optional(),
     target: z.object({
       field: z.array(z.string()).describe(
         'Optional. Field path within the entity. Each nesting level should be a separate value in the repeated field. The order matters. Must be empty for asset level lineage For example to address "salary.net" subfield where "salary" is a column and "net" is a proto field two values in the `field` should be reported, the first is "salary" and the second is "net". Each field length is limited to 500 characters. Maximum supported nesting level is 20.',
@@ -165,9 +163,7 @@ const GlobalArgsSchema = z.object({
       fullyQualifiedName: z.string().describe(
         "Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.",
       ).optional(),
-    }).describe(
-      "The soft reference to everything you can attach a lineage event to.",
-    ).optional(),
+    }).describe("Required. Reference to the target entity").optional(),
   })).describe(
     "Optional. List of source-target pairs. Can't contain more than 100 tuples.",
   ).optional(),
@@ -224,7 +220,7 @@ const InputsSchema = z.object({
         "EXACT_COPY",
         "OTHER",
       ]).describe("Required. Type of dependency.").optional(),
-    }).describe("Dependency info describes how one entity depends on another.")
+    }).describe("Optional. Describes how the target depends on the source.")
       .optional(),
     source: z.object({
       field: z.array(z.string()).describe(
@@ -233,9 +229,7 @@ const InputsSchema = z.object({
       fullyQualifiedName: z.string().describe(
         "Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.",
       ).optional(),
-    }).describe(
-      "The soft reference to everything you can attach a lineage event to.",
-    ).optional(),
+    }).describe("Required. Reference to the source entity").optional(),
     target: z.object({
       field: z.array(z.string()).describe(
         'Optional. Field path within the entity. Each nesting level should be a separate value in the repeated field. The order matters. Must be empty for asset level lineage For example to address "salary.net" subfield where "salary" is a column and "net" is a proto field two values in the `field` should be reported, the first is "salary" and the second is "net". Each field length is limited to 500 characters. Maximum supported nesting level is 20.',
@@ -243,9 +237,7 @@ const InputsSchema = z.object({
       fullyQualifiedName: z.string().describe(
         "Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.",
       ).optional(),
-    }).describe(
-      "The soft reference to everything you can attach a lineage event to.",
-    ).optional(),
+    }).describe("Required. Reference to the target entity").optional(),
   })).describe(
     "Optional. List of source-target pairs. Can't contain more than 100 tuples.",
   ).optional(),
@@ -289,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Lineage Processes.Runs.LineageEvents. Registered at `@swamp/gcp/datalineage/processes-runs-lineageevents`. */
 export const model = {
   type: "@swamp/gcp/datalineage/processes-runs-lineageevents",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -418,6 +410,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

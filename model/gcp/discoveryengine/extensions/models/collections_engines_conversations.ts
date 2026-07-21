@@ -173,24 +173,23 @@ const GlobalArgsSchema = z.object({
             "The confidence scores of the each category, higher value means higher confidence. Order matches the Categories.",
           ).optional(),
         }).describe(
-          "Safety Attribute categories and their associated confidence scores.",
+          "A collection of Safety Attribute categories and their associated confidence scores.",
         ).optional(),
         summarySkippedReasons: z.array(z.unknown()).describe(
           "Additional summary-skipped reasons. This provides the reason for ignored cases. If nothing is skipped, this field is not set.",
         ).optional(),
         summaryText: z.string().describe("The summary content.").optional(),
         summaryWithMetadata: z.object({
-          citationMetadata: z.unknown().describe("Citation metadata.")
-            .optional(),
+          citationMetadata: z.unknown().describe(
+            "Citation metadata for given summary.",
+          ).optional(),
           references: z.unknown().describe("Document References.").optional(),
           summary: z.unknown().describe(
             "Summary text with no citation information.",
           ).optional(),
         }).describe("Summary with metadata information.").optional(),
-      }).describe(
-        "Summary of the top N search results specified by the summary spec.",
-      ).optional(),
-    }).describe("Defines a reply message to user.").optional(),
+      }).describe("Summary based on search results.").optional(),
+    }).describe("Search reply.").optional(),
     userInput: z.object({
       context: z.object({
         activeDocument: z.string().describe(
@@ -199,9 +198,9 @@ const GlobalArgsSchema = z.object({
         contextDocuments: z.array(z.unknown()).describe(
           "The current list of documents the user is seeing. It contains the document resource references.",
         ).optional(),
-      }).describe("Defines context of the conversation").optional(),
+      }).describe("Conversation context of the input.").optional(),
       input: z.string().describe("Text input.").optional(),
-    }).describe("Defines text input.").optional(),
+    }).describe("User text input.").optional(),
   })).describe("Conversation messages.").optional(),
   name: z.string().describe(
     "Immutable. Fully qualified name `projects/{project}/locations/global/collections/{collection}/dataStore/*/conversations/*` or `projects/{project}/locations/global/collections/{collection}/engines/*/conversations/*`.",
@@ -272,24 +271,23 @@ const InputsSchema = z.object({
             "The confidence scores of the each category, higher value means higher confidence. Order matches the Categories.",
           ).optional(),
         }).describe(
-          "Safety Attribute categories and their associated confidence scores.",
+          "A collection of Safety Attribute categories and their associated confidence scores.",
         ).optional(),
         summarySkippedReasons: z.array(z.unknown()).describe(
           "Additional summary-skipped reasons. This provides the reason for ignored cases. If nothing is skipped, this field is not set.",
         ).optional(),
         summaryText: z.string().describe("The summary content.").optional(),
         summaryWithMetadata: z.object({
-          citationMetadata: z.unknown().describe("Citation metadata.")
-            .optional(),
+          citationMetadata: z.unknown().describe(
+            "Citation metadata for given summary.",
+          ).optional(),
           references: z.unknown().describe("Document References.").optional(),
           summary: z.unknown().describe(
             "Summary text with no citation information.",
           ).optional(),
         }).describe("Summary with metadata information.").optional(),
-      }).describe(
-        "Summary of the top N search results specified by the summary spec.",
-      ).optional(),
-    }).describe("Defines a reply message to user.").optional(),
+      }).describe("Summary based on search results.").optional(),
+    }).describe("Search reply.").optional(),
     userInput: z.object({
       context: z.object({
         activeDocument: z.string().describe(
@@ -298,9 +296,9 @@ const InputsSchema = z.object({
         contextDocuments: z.array(z.unknown()).describe(
           "The current list of documents the user is seeing. It contains the document resource references.",
         ).optional(),
-      }).describe("Defines context of the conversation").optional(),
+      }).describe("Conversation context of the input.").optional(),
       input: z.string().describe("Text input.").optional(),
-    }).describe("Defines text input.").optional(),
+    }).describe("User text input.").optional(),
   })).describe("Conversation messages.").optional(),
   name: z.string().describe(
     "Immutable. Fully qualified name `projects/{project}/locations/global/collections/{collection}/dataStore/*/conversations/*` or `projects/{project}/locations/global/collections/{collection}/engines/*/conversations/*`.",
@@ -341,7 +339,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.Conversations. Registered at `@swamp/gcp/discoveryengine/collections-engines-conversations`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-conversations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -450,6 +448,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

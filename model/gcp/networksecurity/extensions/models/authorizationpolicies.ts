@@ -176,7 +176,9 @@ const GlobalArgsSchema = z.object({
         regexMatch: z.unknown().describe(
           "Required. The value of the header must match the regular expression specified in regexMatch. For regular expression grammar, please see: en.cppreference.com/w/cpp/regex/ecmascript For matching against a port specified in the HTTP request, use a headerMatch with headerName set to Host and a regular expression that satisfies the RFC2616 Host header's port specifier.",
         ).optional(),
-      }).describe("Specification of HTTP header match attributes.").optional(),
+      }).describe(
+        "Optional. Match against key:value pair in http header. Provides a flexible match based on HTTP headers, for potentially advanced use cases. At least one header should match. Avoid using header matches to make authorization decisions unless there is a strong guarantee that requests arrive through a trusted client or proxy.",
+      ).optional(),
       methods: z.array(z.unknown()).describe(
         "Optional. A list of HTTP methods to match. At least one method should match. Should not be set for gRPC services.",
       ).optional(),
@@ -262,7 +264,9 @@ const InputsSchema = z.object({
         regexMatch: z.unknown().describe(
           "Required. The value of the header must match the regular expression specified in regexMatch. For regular expression grammar, please see: en.cppreference.com/w/cpp/regex/ecmascript For matching against a port specified in the HTTP request, use a headerMatch with headerName set to Host and a regular expression that satisfies the RFC2616 Host header's port specifier.",
         ).optional(),
-      }).describe("Specification of HTTP header match attributes.").optional(),
+      }).describe(
+        "Optional. Match against key:value pair in http header. Provides a flexible match based on HTTP headers, for potentially advanced use cases. At least one header should match. Avoid using header matches to make authorization decisions unless there is a strong guarantee that requests arrive through a trusted client or proxy.",
+      ).optional(),
       methods: z.array(z.unknown()).describe(
         "Optional. A list of HTTP methods to match. At least one method should match. Should not be set for gRPC services.",
       ).optional(),
@@ -316,7 +320,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security AuthorizationPolicies. Registered at `@swamp/gcp/networksecurity/authorizationpolicies`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/authorizationpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -425,6 +429,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

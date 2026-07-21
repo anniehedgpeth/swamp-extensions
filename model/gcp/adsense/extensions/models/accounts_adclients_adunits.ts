@@ -153,7 +153,7 @@ const GlobalArgsSchema = z.object({
       "MATCHED_CONTENT",
       "LINK",
     ]).describe("Required. Type of the ad unit.").optional(),
-  }).describe("Settings specific to content ads (AFC).").optional(),
+  }).describe("Required. Settings specific to content ads (AFC).").optional(),
   displayName: z.string().describe(
     "Required. Display name of the ad unit, as provided when the ad unit was created.",
   ).optional(),
@@ -196,7 +196,7 @@ const InputsSchema = z.object({
       "MATCHED_CONTENT",
       "LINK",
     ]).describe("Required. Type of the ad unit.").optional(),
-  }).describe("Settings specific to content ads (AFC).").optional(),
+  }).describe("Required. Settings specific to content ads (AFC).").optional(),
   displayName: z.string().describe(
     "Required. Display name of the ad unit, as provided when the ad unit was created.",
   ).optional(),
@@ -231,7 +231,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AdSense Management Accounts.Adclients.Adunits. Registered at `@swamp/gcp/adsense/accounts-adclients-adunits`. */
 export const model = {
   type: "@swamp/gcp/adsense/accounts-adclients-adunits",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -325,6 +325,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -253,7 +253,7 @@ const GlobalArgsSchema = z.object({
       "Required. A keychain placeholder describing a set of named key objects along with their start times. A MACsec CKN/CAK is generated for each key in the key chain. Google router automatically picks the key with the most recent startTime when establishing or re-establishing a MACsec secure link.",
     ).optional(),
   }).describe(
-    "Configuration information for enabling Media Access Control security (MACsec) on this Cloud Interconnect connection between Google and your on-premises router.",
+    "Configuration that enables Media Access Control security (MACsec) on the Cloud Interconnect connection between Google and your on-premises router.",
   ).optional(),
   macsecEnabled: z.boolean().describe(
     "Enable or disable MACsec on this Interconnect connection. MACsec enablement fails if the MACsec object is not specified.",
@@ -269,7 +269,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid. * Inconsistent format is not supported. For instance: {"tagKeys/333": "tagValues/444", "123/env": "prod"} is invalid.',
     ).optional(),
-  }).describe("Additional interconnect parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   remoteLocation: z.string().describe(
     "Indicates that this is a Cross-Cloud Interconnect. This field specifies the location outside of Google's network that the interconnect is connected to.",
   ).optional(),
@@ -448,7 +450,7 @@ const InputsSchema = z.object({
       "Required. A keychain placeholder describing a set of named key objects along with their start times. A MACsec CKN/CAK is generated for each key in the key chain. Google router automatically picks the key with the most recent startTime when establishing or re-establishing a MACsec secure link.",
     ).optional(),
   }).describe(
-    "Configuration information for enabling Media Access Control security (MACsec) on this Cloud Interconnect connection between Google and your on-premises router.",
+    "Configuration that enables Media Access Control security (MACsec) on the Cloud Interconnect connection between Google and your on-premises router.",
   ).optional(),
   macsecEnabled: z.boolean().describe(
     "Enable or disable MACsec on this Interconnect connection. MACsec enablement fails if the MACsec object is not specified.",
@@ -464,7 +466,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid. * Inconsistent format is not supported. For instance: {"tagKeys/333": "tagValues/444", "123/env": "prod"} is invalid.',
     ).optional(),
-  }).describe("Additional interconnect parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   remoteLocation: z.string().describe(
     "Indicates that this is a Cross-Cloud Interconnect. This field specifies the location outside of Google's network that the interconnect is connected to.",
   ).optional(),
@@ -506,7 +510,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Interconnects. Registered at `@swamp/gcp/compute/interconnects`. */
 export const model = {
   type: "@swamp/gcp/compute/interconnects",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -620,6 +624,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

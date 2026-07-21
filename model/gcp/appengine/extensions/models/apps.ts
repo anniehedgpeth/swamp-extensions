@@ -136,9 +136,8 @@ const GlobalArgsSchema = z.object({
     useContainerOptimizedOs: z.boolean().describe(
       "If true, use Container-Optimized OS (https://cloud.google.com/container-optimized-os/) base image for VMs, rather than a base Debian image.",
     ).optional(),
-  }).describe(
-    "The feature specific settings to be used in the application. These define behaviors that are user configurable.",
-  ).optional(),
+  }).describe("The feature specific settings to be used in the application.")
+    .optional(),
   generatedCustomerMetadata: z.record(z.string(), z.string()).describe(
     "Additional Google Generated Customer Metadata, this field won't be provided by default and can be requested by setting the IncludeExtraData field in GetApplicationRequest",
   ).optional(),
@@ -250,9 +249,8 @@ const InputsSchema = z.object({
     useContainerOptimizedOs: z.boolean().describe(
       "If true, use Container-Optimized OS (https://cloud.google.com/container-optimized-os/) base image for VMs, rather than a base Debian image.",
     ).optional(),
-  }).describe(
-    "The feature specific settings to be used in the application. These define behaviors that are user configurable.",
-  ).optional(),
+  }).describe("The feature specific settings to be used in the application.")
+    .optional(),
   generatedCustomerMetadata: z.record(z.string(), z.string()).describe(
     "Additional Google Generated Customer Metadata, this field won't be provided by default and can be requested by setting the IncludeExtraData field in GetApplicationRequest",
   ).optional(),
@@ -314,7 +312,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps. Registered at `@swamp/gcp/appengine/apps`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -408,6 +406,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

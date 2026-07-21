@@ -174,7 +174,9 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "The individual values that this enum values type can include.",
         ).optional(),
-      }).describe("Defines the a list of enum values.").optional(),
+      }).describe(
+        "If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is >10 or could change frequently, use the `EntityType.value_ontology` field and specify a list of all possible values in a value ontology file.",
+      ).optional(),
       name: z.string().describe(
         'Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use `snake_casing`. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters `[a-z0-9_-]`. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The `/` is sometimes used to denote a property of a type. For example, `line_item/amount`. This convention is deprecated, but will still be honored for backward compatibility.',
       ).optional(),
@@ -210,10 +212,8 @@ const GlobalArgsSchema = z.object({
       skipNamingValidation: z.boolean().describe(
         "If set, this will skip the naming format validation in the schema. So the string values in `DocumentSchema.EntityType.name` and `DocumentSchema.EntityType.Property.name` will not be checked.",
       ).optional(),
-    }).describe("Metadata for global schema behavior.").optional(),
-  }).describe(
-    "The schema defines the output of the processed document by a processor.",
-  ).optional(),
+    }).describe("Metadata of the schema.").optional(),
+  }).describe("Required. The schema of the SchemaVersion.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -287,7 +287,9 @@ const InputsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "The individual values that this enum values type can include.",
         ).optional(),
-      }).describe("Defines the a list of enum values.").optional(),
+      }).describe(
+        "If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is >10 or could change frequently, use the `EntityType.value_ontology` field and specify a list of all possible values in a value ontology file.",
+      ).optional(),
       name: z.string().describe(
         'Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use `snake_casing`. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters `[a-z0-9_-]`. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The `/` is sometimes used to denote a property of a type. For example, `line_item/amount`. This convention is deprecated, but will still be honored for backward compatibility.',
       ).optional(),
@@ -323,10 +325,8 @@ const InputsSchema = z.object({
       skipNamingValidation: z.boolean().describe(
         "If set, this will skip the naming format validation in the schema. So the string values in `DocumentSchema.EntityType.name` and `DocumentSchema.EntityType.Property.name` will not be checked.",
       ).optional(),
-    }).describe("Metadata for global schema behavior.").optional(),
-  }).describe(
-    "The schema defines the output of the processed document by a processor.",
-  ).optional(),
+    }).describe("Metadata of the schema.").optional(),
+  }).describe("Required. The schema of the SchemaVersion.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -358,7 +358,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Document AI Schemas.SchemaVersions. Registered at `@swamp/gcp/documentai/schemas-schemaversions`. */
 export const model = {
   type: "@swamp/gcp/documentai/schemas-schemaversions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -477,6 +477,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

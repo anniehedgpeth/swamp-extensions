@@ -208,7 +208,9 @@ const GlobalArgsSchema = z.object({
       utilizationTarget: z.number().describe(
         "The target CPU utilization that the autoscaler maintains. Must be a float value in the range (0, 1]. If not specified, the default is0.6. If the CPU level is below the target utilization, the autoscaler scales in the number of instances until it reaches the minimum number of instances you specified or until the average CPU of your instances reaches the target utilization. If the average CPU is above the target utilization, the autoscaler scales out until it reaches the maximum number of instances you specified or until the average utilization reaches the target utilization.",
       ).optional(),
-    }).describe("CPU utilization policy.").optional(),
+    }).describe(
+      "Defines the CPU utilization policy that allows the autoscaler to scale based on the average CPU utilization of a managed instance group.",
+    ).optional(),
     customMetricUtilizations: z.array(z.object({
       filter: z.string().describe(
         "A filter string, compatible with a Stackdriver Monitoringfilter string forTimeSeries.list API call. This filter is used to select a specific TimeSeries for the purpose of autoscaling and to determine whether the metric is exporting per-instance or per-group data. For the filter to be valid for autoscaling purposes, the following rules apply: - You can only use the AND operator for joining selectors. - You can only use direct equality comparison operator (=) without any functions for each selector. - You can specify the metric in both the filter string and in the metric field. However, if specified in both places, the metric must be identical. - The monitored resource type determines what kind of values are expected for the metric. If it is a gce_instance, the autoscaler expects the metric to include a separate TimeSeries for each instance in a group. In such a case, you cannot filter on resource labels. If the resource type is any other value, the autoscaler expects this metric to contain values that apply to the entire autoscaled instance group and resource label filtering can be performed to point autoscaler at the correct TimeSeries to scale upon. This is called a *per-group metric* for the purpose of autoscaling. If not specified, the type defaults to gce_instance. Try to provide a filter that is selective enough to pick just one TimeSeries for the autoscaled group or for each of the instances (if you are using gce_instance resource type). If multiple TimeSeries are returned upon the query execution, the autoscaler will sum their respective values to obtain its scaling value.",
@@ -237,7 +239,7 @@ const GlobalArgsSchema = z.object({
         "Fraction of backend capacity utilization (set in HTTP(S) load balancing configuration) that the autoscaler maintains. Must be a positive float value. If not defined, the default is 0.8.",
       ).optional(),
     }).describe(
-      "Configuration parameters of autoscaling based on load balancing.",
+      "Configuration parameters of autoscaling based on load balancer.",
     ).optional(),
     maxNumReplicas: z.number().int().describe(
       "The maximum number of instances that the autoscaler can scale out to. This is required when creating or updating an autoscaler. The maximum number of replicas must not be lower than minimal number of replicas.",
@@ -260,7 +262,7 @@ const GlobalArgsSchema = z.object({
           "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
         ).optional(),
       }).describe(
-        "Encapsulates numeric value that can be either absolute or relative.",
+        "Maximum allowed number (or %) of VMs that can be deducted from the peak recommendation during the window autoscaler looks at when computing recommendations. Possibly all these VMs can be deleted at once so user service needs to be prepared to lose that many VMs in one step.",
       ).optional(),
       timeWindowSec: z.number().int().describe(
         "How far back autoscaling looks when computing recommendations to include directives regarding slower scale in, as described above.",
@@ -295,7 +297,9 @@ const GlobalArgsSchema = z.object({
     stabilizationPeriodSec: z.number().int().describe(
       "The number of seconds that autoscaler waits for load stabilization before making scale-in decisions. This is referred to as the [stabilization period](/compute/docs/autoscaler#stabilization_period). This might appear as a delay in scaling in but it is an important mechanism for your application to not have fluctuating size due to short term load fluctuations. The default stabilization period is 600 seconds.",
     ).optional(),
-  }).describe("Cloud Autoscaler policy.").optional(),
+  }).describe(
+    "The configuration parameters for the autoscaling algorithm. You can define one or more signals for an autoscaler: cpuUtilization,customMetricUtilizations, andloadBalancingUtilization. If none of these are specified, the default will be to autoscale based oncpuUtilization to 0.6 or 60%.",
+  ).optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -381,7 +385,9 @@ const InputsSchema = z.object({
       utilizationTarget: z.number().describe(
         "The target CPU utilization that the autoscaler maintains. Must be a float value in the range (0, 1]. If not specified, the default is0.6. If the CPU level is below the target utilization, the autoscaler scales in the number of instances until it reaches the minimum number of instances you specified or until the average CPU of your instances reaches the target utilization. If the average CPU is above the target utilization, the autoscaler scales out until it reaches the maximum number of instances you specified or until the average utilization reaches the target utilization.",
       ).optional(),
-    }).describe("CPU utilization policy.").optional(),
+    }).describe(
+      "Defines the CPU utilization policy that allows the autoscaler to scale based on the average CPU utilization of a managed instance group.",
+    ).optional(),
     customMetricUtilizations: z.array(z.object({
       filter: z.string().describe(
         "A filter string, compatible with a Stackdriver Monitoringfilter string forTimeSeries.list API call. This filter is used to select a specific TimeSeries for the purpose of autoscaling and to determine whether the metric is exporting per-instance or per-group data. For the filter to be valid for autoscaling purposes, the following rules apply: - You can only use the AND operator for joining selectors. - You can only use direct equality comparison operator (=) without any functions for each selector. - You can specify the metric in both the filter string and in the metric field. However, if specified in both places, the metric must be identical. - The monitored resource type determines what kind of values are expected for the metric. If it is a gce_instance, the autoscaler expects the metric to include a separate TimeSeries for each instance in a group. In such a case, you cannot filter on resource labels. If the resource type is any other value, the autoscaler expects this metric to contain values that apply to the entire autoscaled instance group and resource label filtering can be performed to point autoscaler at the correct TimeSeries to scale upon. This is called a *per-group metric* for the purpose of autoscaling. If not specified, the type defaults to gce_instance. Try to provide a filter that is selective enough to pick just one TimeSeries for the autoscaled group or for each of the instances (if you are using gce_instance resource type). If multiple TimeSeries are returned upon the query execution, the autoscaler will sum their respective values to obtain its scaling value.",
@@ -410,7 +416,7 @@ const InputsSchema = z.object({
         "Fraction of backend capacity utilization (set in HTTP(S) load balancing configuration) that the autoscaler maintains. Must be a positive float value. If not defined, the default is 0.8.",
       ).optional(),
     }).describe(
-      "Configuration parameters of autoscaling based on load balancing.",
+      "Configuration parameters of autoscaling based on load balancer.",
     ).optional(),
     maxNumReplicas: z.number().int().describe(
       "The maximum number of instances that the autoscaler can scale out to. This is required when creating or updating an autoscaler. The maximum number of replicas must not be lower than minimal number of replicas.",
@@ -433,7 +439,7 @@ const InputsSchema = z.object({
           "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
         ).optional(),
       }).describe(
-        "Encapsulates numeric value that can be either absolute or relative.",
+        "Maximum allowed number (or %) of VMs that can be deducted from the peak recommendation during the window autoscaler looks at when computing recommendations. Possibly all these VMs can be deleted at once so user service needs to be prepared to lose that many VMs in one step.",
       ).optional(),
       timeWindowSec: z.number().int().describe(
         "How far back autoscaling looks when computing recommendations to include directives regarding slower scale in, as described above.",
@@ -468,7 +474,9 @@ const InputsSchema = z.object({
     stabilizationPeriodSec: z.number().int().describe(
       "The number of seconds that autoscaler waits for load stabilization before making scale-in decisions. This is referred to as the [stabilization period](/compute/docs/autoscaler#stabilization_period). This might appear as a delay in scaling in but it is an important mechanism for your application to not have fluctuating size due to short term load fluctuations. The default stabilization period is 600 seconds.",
     ).optional(),
-  }).describe("Cloud Autoscaler policy.").optional(),
+  }).describe(
+    "The configuration parameters for the autoscaling algorithm. You can define one or more signals for an autoscaler: cpuUtilization,customMetricUtilizations, andloadBalancingUtilization. If none of these are specified, the default will be to autoscale based oncpuUtilization to 0.6 or 60%.",
+  ).optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -510,7 +518,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionAutoscalers. Registered at `@swamp/gcp/compute/regionautoscalers`. */
 export const model = {
   type: "@swamp/gcp/compute/regionautoscalers",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -649,6 +657,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

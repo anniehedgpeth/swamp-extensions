@@ -193,10 +193,9 @@ const GlobalArgsSchema = z.object({
         thumbprint: z.string().describe(
           "Output only. A thumbprint to represent the current client secret value.",
         ).optional(),
-      }).describe("Representation of the value of the client secret.")
-        .optional(),
+      }).describe("The value of the client secret.").optional(),
     }).describe(
-      "Representation of a client secret configured for the OIDC provider.",
+      "Required. The OAuth 2.0 client secret for retrieving extra attributes from the identity provider. Required to get the Access Token using client credentials grant flow.",
     ).optional(),
     issuerUri: z.string().describe(
       "Required. The OIDC identity provider's issuer URI. Must be a valid URI using the `https` scheme. Required to get the OIDC discovery document.",
@@ -206,10 +205,10 @@ const GlobalArgsSchema = z.object({
         "Optional. The filter used to request specific records from the IdP. By default, all of the groups that are associated with a user are fetched. For Microsoft Entra ID, you can add `$search` query parameters using [Keyword Query Language] (https://learn.microsoft.com/en-us/sharepoint/dev/general-development/keyword-query-language-kql-syntax-reference). To learn more about `$search` querying in Microsoft Entra ID, see [Use the `$search` query parameter] (https://learn.microsoft.com/en-us/graph/search-query-parameter). Additionally, Workforce Identity Federation automatically adds the following [`$filter` query parameters] (https://learn.microsoft.com/en-us/graph/filter-query-parameter), based on the value of `attributes_type`. Values passed to `filter` are converted to `$search` query parameters. Additional `$filter` query parameters cannot be added using this field. * `AZURE_AD_GROUPS_MAIL`: `mailEnabled` and `securityEnabled` filters are applied. * `AZURE_AD_GROUPS_ID`: `securityEnabled` filter is applied.",
       ).optional(),
     }).describe(
-      "Represents the parameters to control which claims are fetched from an IdP.",
+      "Optional. Represents the parameters to control which claims are fetched from an IdP.",
     ).optional(),
   }).describe(
-    "Represents the OAuth 2.0 client credential configuration for retrieving additional user attributes that are not present in the initial authentication credentials from the identity provider, for example, groups. See https://datatracker.ietf.org/doc/html/rfc6749#section-4.4 for more details on client credentials grant flow.",
+    "Optional. The configuration for OAuth 2.0 client used to get the extended group memberships for user identities. Only the `AZURE_AD_GROUPS_ID` attribute type is supported. Extended groups supports a subset of Google Cloud services. When the user accesses these services, extended group memberships override the mapped `google.groups` attribute. Extended group memberships cannot be used in attribute mapping or attribute condition expressions. To keep extended group memberships up to date, extended groups are retrieved when the user signs in and at regular intervals during the user's active session. Each user identity in the workforce identity pool must map to a unique Microsoft Entra ID user.",
   ).optional(),
   extraAttributesOauth2Client: z.object({
     attributesType: z.enum([
@@ -231,10 +230,9 @@ const GlobalArgsSchema = z.object({
         thumbprint: z.string().describe(
           "Output only. A thumbprint to represent the current client secret value.",
         ).optional(),
-      }).describe("Representation of the value of the client secret.")
-        .optional(),
+      }).describe("The value of the client secret.").optional(),
     }).describe(
-      "Representation of a client secret configured for the OIDC provider.",
+      "Required. The OAuth 2.0 client secret for retrieving extra attributes from the identity provider. Required to get the Access Token using client credentials grant flow.",
     ).optional(),
     issuerUri: z.string().describe(
       "Required. The OIDC identity provider's issuer URI. Must be a valid URI using the `https` scheme. Required to get the OIDC discovery document.",
@@ -244,10 +242,10 @@ const GlobalArgsSchema = z.object({
         "Optional. The filter used to request specific records from the IdP. By default, all of the groups that are associated with a user are fetched. For Microsoft Entra ID, you can add `$search` query parameters using [Keyword Query Language] (https://learn.microsoft.com/en-us/sharepoint/dev/general-development/keyword-query-language-kql-syntax-reference). To learn more about `$search` querying in Microsoft Entra ID, see [Use the `$search` query parameter] (https://learn.microsoft.com/en-us/graph/search-query-parameter). Additionally, Workforce Identity Federation automatically adds the following [`$filter` query parameters] (https://learn.microsoft.com/en-us/graph/filter-query-parameter), based on the value of `attributes_type`. Values passed to `filter` are converted to `$search` query parameters. Additional `$filter` query parameters cannot be added using this field. * `AZURE_AD_GROUPS_MAIL`: `mailEnabled` and `securityEnabled` filters are applied. * `AZURE_AD_GROUPS_ID`: `securityEnabled` filter is applied.",
       ).optional(),
     }).describe(
-      "Represents the parameters to control which claims are fetched from an IdP.",
+      "Optional. Represents the parameters to control which claims are fetched from an IdP.",
     ).optional(),
   }).describe(
-    "Represents the OAuth 2.0 client credential configuration for retrieving additional user attributes that are not present in the initial authentication credentials from the identity provider, for example, groups. See https://datatracker.ietf.org/doc/html/rfc6749#section-4.4 for more details on client credentials grant flow.",
+    "Optional. Defines the configuration for the OAuth 2.0 client that is used to get the additional user attributes in a separate backchannel call to the identity provider. This should be used when users can't get the required claims in authentication credentials. Currently, the OAuth 2.0 protocol is the only supported authorization method for this backchannel call.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the provider. Format: `locations/{location}/workforcePools/{workforce_pool_id}/providers/{provider_id}`",
@@ -264,10 +262,9 @@ const GlobalArgsSchema = z.object({
         thumbprint: z.string().describe(
           "Output only. A thumbprint to represent the current client secret value.",
         ).optional(),
-      }).describe("Representation of the value of the client secret.")
-        .optional(),
+      }).describe("The value of the client secret.").optional(),
     }).describe(
-      "Representation of a client secret configured for the OIDC provider.",
+      "Optional. The optional client secret. Required to enable Authorization Code flow for web sign-in.",
     ).optional(),
     issuerUri: z.string().describe(
       "Required. The OIDC issuer URI. Must be a valid URI using the `https` scheme.",
@@ -290,14 +287,16 @@ const GlobalArgsSchema = z.object({
         .describe(
           "Required. The Response Type to request for in the OIDC Authorization Request for web sign-in. The `CODE` Response Type is recommended to avoid the Implicit Flow, for security reasons.",
         ).optional(),
-    }).describe("Configuration for web single sign-on for the OIDC provider.")
-      .optional(),
-  }).describe("Represents an OpenID Connect 1.0 identity provider.").optional(),
+    }).describe(
+      "Required. Configuration for web single sign-on for the OIDC provider. Here, web sign-in refers to console sign-in and gcloud sign-in through the browser.",
+    ).optional(),
+  }).describe("An OpenID Connect 1.0 identity provider configuration.")
+    .optional(),
   saml: z.object({
     idpMetadataXml: z.string().describe(
       "Required. SAML Identity provider configuration metadata xml doc. The xml document should comply with [SAML 2.0 specification](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf). The max size of the acceptable xml document will be bounded to 128k characters. The metadata xml document should satisfy the following constraints: 1) Must contain an Identity Provider Entity ID. 2) Must contain at least one non-expired signing key certificate. 3) For each signing key: a) Valid from should be no more than 7 days from now. b) Valid to should be no more than 25 years in the future. 4) Up to 3 IdP signing keys are allowed in the metadata xml. When updating the provider's metadata xml, at least one non-expired signing key must overlap with the existing metadata. This requirement is skipped if there are no non-expired signing keys present in the existing metadata.",
     ).optional(),
-  }).describe("Represents a SAML identity provider.").optional(),
+  }).describe("A SAML identity provider configuration.").optional(),
   scimUsage: z.enum(["SCIM_USAGE_UNSPECIFIED", "ENABLED_FOR_GROUPS"]).describe(
     "Optional. Gemini Enterprise only. Specifies whether the workforce identity pool provider uses SCIM-managed groups instead of the `google.groups` attribute mapping for authorization checks. The `scim_usage` and `extended_attributes_oauth2_client` fields are mutually exclusive. A request that enables both fields on the same workforce identity pool provider will produce an error.",
   ).optional(),
@@ -414,10 +413,9 @@ const InputsSchema = z.object({
         thumbprint: z.string().describe(
           "Output only. A thumbprint to represent the current client secret value.",
         ).optional(),
-      }).describe("Representation of the value of the client secret.")
-        .optional(),
+      }).describe("The value of the client secret.").optional(),
     }).describe(
-      "Representation of a client secret configured for the OIDC provider.",
+      "Required. The OAuth 2.0 client secret for retrieving extra attributes from the identity provider. Required to get the Access Token using client credentials grant flow.",
     ).optional(),
     issuerUri: z.string().describe(
       "Required. The OIDC identity provider's issuer URI. Must be a valid URI using the `https` scheme. Required to get the OIDC discovery document.",
@@ -427,10 +425,10 @@ const InputsSchema = z.object({
         "Optional. The filter used to request specific records from the IdP. By default, all of the groups that are associated with a user are fetched. For Microsoft Entra ID, you can add `$search` query parameters using [Keyword Query Language] (https://learn.microsoft.com/en-us/sharepoint/dev/general-development/keyword-query-language-kql-syntax-reference). To learn more about `$search` querying in Microsoft Entra ID, see [Use the `$search` query parameter] (https://learn.microsoft.com/en-us/graph/search-query-parameter). Additionally, Workforce Identity Federation automatically adds the following [`$filter` query parameters] (https://learn.microsoft.com/en-us/graph/filter-query-parameter), based on the value of `attributes_type`. Values passed to `filter` are converted to `$search` query parameters. Additional `$filter` query parameters cannot be added using this field. * `AZURE_AD_GROUPS_MAIL`: `mailEnabled` and `securityEnabled` filters are applied. * `AZURE_AD_GROUPS_ID`: `securityEnabled` filter is applied.",
       ).optional(),
     }).describe(
-      "Represents the parameters to control which claims are fetched from an IdP.",
+      "Optional. Represents the parameters to control which claims are fetched from an IdP.",
     ).optional(),
   }).describe(
-    "Represents the OAuth 2.0 client credential configuration for retrieving additional user attributes that are not present in the initial authentication credentials from the identity provider, for example, groups. See https://datatracker.ietf.org/doc/html/rfc6749#section-4.4 for more details on client credentials grant flow.",
+    "Optional. The configuration for OAuth 2.0 client used to get the extended group memberships for user identities. Only the `AZURE_AD_GROUPS_ID` attribute type is supported. Extended groups supports a subset of Google Cloud services. When the user accesses these services, extended group memberships override the mapped `google.groups` attribute. Extended group memberships cannot be used in attribute mapping or attribute condition expressions. To keep extended group memberships up to date, extended groups are retrieved when the user signs in and at regular intervals during the user's active session. Each user identity in the workforce identity pool must map to a unique Microsoft Entra ID user.",
   ).optional(),
   extraAttributesOauth2Client: z.object({
     attributesType: z.enum([
@@ -452,10 +450,9 @@ const InputsSchema = z.object({
         thumbprint: z.string().describe(
           "Output only. A thumbprint to represent the current client secret value.",
         ).optional(),
-      }).describe("Representation of the value of the client secret.")
-        .optional(),
+      }).describe("The value of the client secret.").optional(),
     }).describe(
-      "Representation of a client secret configured for the OIDC provider.",
+      "Required. The OAuth 2.0 client secret for retrieving extra attributes from the identity provider. Required to get the Access Token using client credentials grant flow.",
     ).optional(),
     issuerUri: z.string().describe(
       "Required. The OIDC identity provider's issuer URI. Must be a valid URI using the `https` scheme. Required to get the OIDC discovery document.",
@@ -465,10 +462,10 @@ const InputsSchema = z.object({
         "Optional. The filter used to request specific records from the IdP. By default, all of the groups that are associated with a user are fetched. For Microsoft Entra ID, you can add `$search` query parameters using [Keyword Query Language] (https://learn.microsoft.com/en-us/sharepoint/dev/general-development/keyword-query-language-kql-syntax-reference). To learn more about `$search` querying in Microsoft Entra ID, see [Use the `$search` query parameter] (https://learn.microsoft.com/en-us/graph/search-query-parameter). Additionally, Workforce Identity Federation automatically adds the following [`$filter` query parameters] (https://learn.microsoft.com/en-us/graph/filter-query-parameter), based on the value of `attributes_type`. Values passed to `filter` are converted to `$search` query parameters. Additional `$filter` query parameters cannot be added using this field. * `AZURE_AD_GROUPS_MAIL`: `mailEnabled` and `securityEnabled` filters are applied. * `AZURE_AD_GROUPS_ID`: `securityEnabled` filter is applied.",
       ).optional(),
     }).describe(
-      "Represents the parameters to control which claims are fetched from an IdP.",
+      "Optional. Represents the parameters to control which claims are fetched from an IdP.",
     ).optional(),
   }).describe(
-    "Represents the OAuth 2.0 client credential configuration for retrieving additional user attributes that are not present in the initial authentication credentials from the identity provider, for example, groups. See https://datatracker.ietf.org/doc/html/rfc6749#section-4.4 for more details on client credentials grant flow.",
+    "Optional. Defines the configuration for the OAuth 2.0 client that is used to get the additional user attributes in a separate backchannel call to the identity provider. This should be used when users can't get the required claims in authentication credentials. Currently, the OAuth 2.0 protocol is the only supported authorization method for this backchannel call.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the provider. Format: `locations/{location}/workforcePools/{workforce_pool_id}/providers/{provider_id}`",
@@ -485,10 +482,9 @@ const InputsSchema = z.object({
         thumbprint: z.string().describe(
           "Output only. A thumbprint to represent the current client secret value.",
         ).optional(),
-      }).describe("Representation of the value of the client secret.")
-        .optional(),
+      }).describe("The value of the client secret.").optional(),
     }).describe(
-      "Representation of a client secret configured for the OIDC provider.",
+      "Optional. The optional client secret. Required to enable Authorization Code flow for web sign-in.",
     ).optional(),
     issuerUri: z.string().describe(
       "Required. The OIDC issuer URI. Must be a valid URI using the `https` scheme.",
@@ -511,14 +507,16 @@ const InputsSchema = z.object({
         .describe(
           "Required. The Response Type to request for in the OIDC Authorization Request for web sign-in. The `CODE` Response Type is recommended to avoid the Implicit Flow, for security reasons.",
         ).optional(),
-    }).describe("Configuration for web single sign-on for the OIDC provider.")
-      .optional(),
-  }).describe("Represents an OpenID Connect 1.0 identity provider.").optional(),
+    }).describe(
+      "Required. Configuration for web single sign-on for the OIDC provider. Here, web sign-in refers to console sign-in and gcloud sign-in through the browser.",
+    ).optional(),
+  }).describe("An OpenID Connect 1.0 identity provider configuration.")
+    .optional(),
   saml: z.object({
     idpMetadataXml: z.string().describe(
       "Required. SAML Identity provider configuration metadata xml doc. The xml document should comply with [SAML 2.0 specification](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf). The max size of the acceptable xml document will be bounded to 128k characters. The metadata xml document should satisfy the following constraints: 1) Must contain an Identity Provider Entity ID. 2) Must contain at least one non-expired signing key certificate. 3) For each signing key: a) Valid from should be no more than 7 days from now. b) Valid to should be no more than 25 years in the future. 4) Up to 3 IdP signing keys are allowed in the metadata xml. When updating the provider's metadata xml, at least one non-expired signing key must overlap with the existing metadata. This requirement is skipped if there are no non-expired signing keys present in the existing metadata.",
     ).optional(),
-  }).describe("Represents a SAML identity provider.").optional(),
+  }).describe("A SAML identity provider configuration.").optional(),
   scimUsage: z.enum(["SCIM_USAGE_UNSPECIFIED", "ENABLED_FOR_GROUPS"]).describe(
     "Optional. Gemini Enterprise only. Specifies whether the workforce identity pool provider uses SCIM-managed groups instead of the `google.groups` attribute mapping for authorization checks. The `scim_usage` and `extended_attributes_oauth2_client` fields are mutually exclusive. A request that enables both fields on the same workforce identity pool provider will produce an error.",
   ).optional(),
@@ -553,7 +551,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkforcePools.Providers. Registered at `@swamp/gcp/iam/workforcepools-providers`. */
 export const model = {
   type: "@swamp/gcp/iam/workforcepools-providers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

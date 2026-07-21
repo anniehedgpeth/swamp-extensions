@@ -161,17 +161,6 @@ const GlobalArgsSchema = z.object({
   namespaceLabels: z.record(z.string(), z.string()).describe(
     "Optional. Scope-level cluster namespace labels. For the member clusters bound to the Scope, these labels are applied to each namespace under the Scope. Scope-level labels take precedence over Namespace-level labels (`namespace_labels` in the Fleet Namespace resource) if they share a key. Keys and values must be Kubernetes-conformant.",
   ).optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe("Output only. The current state of the scope resource.")
-      .optional(),
-  }).describe("ScopeLifecycleState describes the state of a Scope resource.")
-    .optional(),
   scopeId: z.string().describe(
     "Required. Client chosen ID for the Scope. `scope_id` must be a????",
   ).optional(),
@@ -209,17 +198,6 @@ const InputsSchema = z.object({
   namespaceLabels: z.record(z.string(), z.string()).describe(
     "Optional. Scope-level cluster namespace labels. For the member clusters bound to the Scope, these labels are applied to each namespace under the Scope. Scope-level labels take precedence over Namespace-level labels (`namespace_labels` in the Fleet Namespace resource) if they share a key. Keys and values must be Kubernetes-conformant.",
   ).optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe("Output only. The current state of the scope resource.")
-      .optional(),
-  }).describe("ScopeLifecycleState describes the state of a Scope resource.")
-    .optional(),
   scopeId: z.string().describe(
     "Required. Client chosen ID for the Scope. `scope_id` must be a????",
   ).optional(),
@@ -251,7 +229,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Scopes. Registered at `@swamp/gcp/gkehub/scopes`. */
 export const model = {
   type: "@swamp/gcp/gkehub/scopes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -280,7 +268,6 @@ export const model = {
         if (g["namespaceLabels"] !== undefined) {
           body["namespaceLabels"] = g["namespaceLabels"];
         }
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["scopeId"] !== undefined) {
           params["scopeId"] = String(g["scopeId"]);
         }
@@ -394,7 +381,6 @@ export const model = {
         if (g["namespaceLabels"] !== undefined) {
           body["namespaceLabels"] = g["namespaceLabels"];
         }
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

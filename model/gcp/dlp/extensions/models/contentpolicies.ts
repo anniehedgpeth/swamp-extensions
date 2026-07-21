@@ -160,8 +160,9 @@ const GlobalArgsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Action to take if the content is scanned and no rules match. Defaults to returning an ALLOW verdict if not set.",
+    ).optional(),
     displayName: z.string().describe("Optional. Display name (max 63 chars)")
       .optional(),
     errors: z.array(z.object({
@@ -175,9 +176,7 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -196,8 +195,9 @@ const GlobalArgsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Optional. Action to take if the content is a supported file type and size but fails to be scanned, for example because the file is encrypted or corrupted.",
+    ).optional(),
     inputTooLarge: z.object({
       returnVerdict: z.enum([
         "CONTENT_POLICY_VERDICT_UNSPECIFIED",
@@ -205,8 +205,9 @@ const GlobalArgsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Optional. Action to take if the content is a supported file type but is too large to be scanned.",
+    ).optional(),
     inspectConfig: z.object({
       contentOptions: z.array(
         z.enum(["CONTENT_UNSPECIFIED", "CONTENT_TEXT", "CONTENT_IMAGE"]),
@@ -217,14 +218,13 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         dictionary: z.object({
           cloudStoragePath: z.unknown().describe(
-            "Message representing a single file or path in Cloud Storage.",
+            "Newline-delimited file of words in Cloud Storage. Only a single file is accepted.",
           ).optional(),
           wordList: z.unknown().describe(
-            "Message defining a list of words or phrases to search for in the data.",
+            "List of words or phrases to search for.",
           ).optional(),
-        }).describe(
-          'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
-        ).optional(),
+        }).describe("A list of phrases to detect as a CustomInfoType.")
+          .optional(),
         exclusionType: z.enum([
           "EXCLUSION_TYPE_UNSPECIFIED",
           "EXCLUSION_TYPE_EXCLUDE",
@@ -238,20 +238,20 @@ const GlobalArgsSchema = z.object({
           sensitivityLabel: z.unknown().describe(
             "Sensitivity labels published by Microsoft.",
           ).optional(),
-        }).describe(
-          "Configuration for a custom infoType that detects file labels.",
-        ).optional(),
+        }).describe("File label to detect.").optional(),
         infoType: z.object({
           name: z.unknown().describe(
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
           ).optional(),
-        }).describe("Type of information detected by the API.").optional(),
+        }).describe(
+          "CustomInfoType can either be a new infoType, or an extension of built-in infoType, when the name matches one of existing infoTypes and that infoType is specified in `InspectContent.info_types` field. Specifying the latter adds findings to the one detected by the system. If built-in info type is not specified in `InspectContent.info_types` list then the name is treated as a custom info type.",
+        ).optional(),
         likelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
           "VERY_UNLIKELY",
@@ -269,9 +269,7 @@ const GlobalArgsSchema = z.object({
           valueRegex: z.unknown().describe(
             "The regular expression for the value. Value should be non-empty.",
           ).optional(),
-        }).describe(
-          "Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.",
-        ).optional(),
+        }).describe("Key-value pair to detect in the metadata.").optional(),
         regex: z.object({
           groupIndexes: z.unknown().describe(
             "The index of the submatch to extract as findings. When not specified, the entire match is returned. No more than 3 may be included.",
@@ -279,13 +277,13 @@ const GlobalArgsSchema = z.object({
           pattern: z.unknown().describe(
             "Pattern defining the regular expression. Its syntax (https://github.com/google/re2/wiki/Syntax) can be found under the google/re2 repository on GitHub.",
           ).optional(),
-        }).describe("Message defining a custom regular expression.").optional(),
+        }).describe("Regular expression based CustomInfoType.").optional(),
         sensitivityScore: z.object({
           score: z.unknown().describe(
             "The sensitivity score applied to the resource.",
           ).optional(),
         }).describe(
-          "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+          "Sensitivity for this CustomInfoType. If this CustomInfoType extends an existing InfoType, the sensitivity here will take precedence over that of the original InfoType. If unset for a CustomInfoType, it will default to HIGH. This only applies to data profiling.",
         ).optional(),
         storedType: z.object({
           createTime: z.unknown().describe(
@@ -294,10 +292,9 @@ const GlobalArgsSchema = z.object({
           name: z.unknown().describe(
             "Resource name of the requested `StoredInfoType`, for example `organizations/433245324/storedInfoTypes/432452342` or `projects/project-id/storedInfoTypes/432452342`.",
           ).optional(),
-        }).describe("A reference to a StoredInfoType to use with scanning.")
-          .optional(),
+        }).describe("Loads an existing `StoredInfoType` resource.").optional(),
         surrogateType: z.object({}).describe(
-          'Message for detecting output from deidentification transformations such as [`CryptoReplaceFfxFpeConfig`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as `surrogate_info_type`. This CustomInfoType does not support the use of `detection_rules`.',
+          "Message for detecting output from deidentification transformations that support reversing.",
         ).optional(),
       })).describe(
         "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
@@ -317,7 +314,7 @@ const GlobalArgsSchema = z.object({
             "The sensitivity score applied to the resource.",
           ).optional(),
         }).describe(
-          "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+          "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
         ).optional(),
         version: z.string().describe("Optional version name for this InfoType.")
           .optional(),
@@ -327,7 +324,7 @@ const GlobalArgsSchema = z.object({
       limits: z.object({
         maxFindingsPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "Type of information the findings limit applies to. Only one limit per info_type should be provided. If InfoTypeLimit does not have an info_type, the DLP API applies the limit against all info_types that are found but not specified in another InfoTypeLimit.",
           ).optional(),
           maxFindings: z.unknown().describe(
             "Max findings limit for the given infoType.",
@@ -342,7 +339,7 @@ const GlobalArgsSchema = z.object({
           "Max number of findings that are returned per request or job. If you set this field in an InspectContentRequest, the resulting maximum value is the value that you set or 3,000, whichever is lower. This value isn't a hard limit. If an inspection reaches this limit, the inspection ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than this value.",
         ).optional(),
       }).describe(
-        "Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.",
+        "Configuration to control the number of findings returned. This is not used for data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error. When set within an InspectJobConfig, the specified maximum values aren't hard limits. If an inspection job reaches these limits, the job ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than these maximum values.",
       ).optional(),
       minLikelihood: z.enum([
         "LIKELIHOOD_UNSPECIFIED",
@@ -360,12 +357,14 @@ const GlobalArgsSchema = z.object({
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
           ).optional(),
-        }).describe("Type of information detected by the API.").optional(),
+        }).describe(
+          "Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.",
+        ).optional(),
         minLikelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
           "VERY_UNLIKELY",
@@ -389,9 +388,8 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Set of rules to apply to the findings for this InspectConfig. Exclusion rules, contained in the set are executed in the end, other rules are executed in the order they are specified for each info type. Not supported for the `metadata_key_value_expression` CustomInfoType.",
       ).optional(),
-    }).describe(
-      "Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.",
-    ).optional(),
+    }).describe("Optional. InspectConfig to use to produce findings.")
+      .optional(),
     inspectTemplate: z.object({
       allowLimitedAvailabilityInfoTypes: z.boolean().describe(
         "Optional. Enables the use of [limited-availability built-in infoTypes](https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference#limited-availability-infotypes) in inspect_config. These infoTypes are supported only in specific regions and can cause scanning errors if used elsewhere.",
@@ -412,34 +410,33 @@ const GlobalArgsSchema = z.object({
             "Set of detection rules to apply to all findings of this CustomInfoType. Rules are applied in the order that they are specified. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
           dictionary: z.unknown().describe(
-            'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
+            "A list of phrases to detect as a CustomInfoType.",
           ).optional(),
           exclusionType: z.unknown().describe(
             "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
-          fileLabelInfoType: z.unknown().describe(
-            "Configuration for a custom infoType that detects file labels.",
-          ).optional(),
+          fileLabelInfoType: z.unknown().describe("File label to detect.")
+            .optional(),
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "CustomInfoType can either be a new infoType, or an extension of built-in infoType, when the name matches one of existing infoTypes and that infoType is specified in `InspectContent.info_types` field. Specifying the latter adds findings to the one detected by the system. If built-in info type is not specified in `InspectContent.info_types` list then the name is treated as a custom info type.",
           ).optional(),
           likelihood: z.unknown().describe(
             "Likelihood to return for this CustomInfoType. This base value can be altered by a detection rule if the finding meets the criteria specified by the rule. Defaults to `VERY_LIKELY` if not specified.",
           ).optional(),
           metadataKeyValueExpression: z.unknown().describe(
-            "Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.",
+            "Key-value pair to detect in the metadata.",
           ).optional(),
           regex: z.unknown().describe(
-            "Message defining a custom regular expression.",
+            "Regular expression based CustomInfoType.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Sensitivity for this CustomInfoType. If this CustomInfoType extends an existing InfoType, the sensitivity here will take precedence over that of the original InfoType. If unset for a CustomInfoType, it will default to HIGH. This only applies to data profiling.",
           ).optional(),
           storedType: z.unknown().describe(
-            "A reference to a StoredInfoType to use with scanning.",
+            "Loads an existing `StoredInfoType` resource.",
           ).optional(),
           surrogateType: z.unknown().describe(
-            'Message for detecting output from deidentification transformations such as [`CryptoReplaceFfxFpeConfig`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as `surrogate_info_type`. This CustomInfoType does not support the use of `detection_rules`.',
+            "Message for detecting output from deidentification transformations that support reversing.",
           ).optional(),
         })).describe(
           "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
@@ -455,7 +452,7 @@ const GlobalArgsSchema = z.object({
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
@@ -474,7 +471,7 @@ const GlobalArgsSchema = z.object({
             "Max number of findings that are returned per request or job. If you set this field in an InspectContentRequest, the resulting maximum value is the value that you set or 3,000, whichever is lower. This value isn't a hard limit. If an inspection reaches this limit, the inspection ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than this value.",
           ).optional(),
         }).describe(
-          "Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.",
+          "Configuration to control the number of findings returned. This is not used for data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error. When set within an InspectJobConfig, the specified maximum values aren't hard limits. If an inspection job reaches these limits, the job ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than these maximum values.",
         ).optional(),
         minLikelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
@@ -488,7 +485,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         minLikelihoodPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.",
           ).optional(),
           minLikelihood: z.unknown().describe(
             "Only returns findings equal to or above this threshold. This field is required or else the configuration fails.",
@@ -507,7 +504,7 @@ const GlobalArgsSchema = z.object({
           "Set of rules to apply to the findings for this InspectConfig. Exclusion rules, contained in the set are executed in the end, other rules are executed in the order they are specified for each info type. Not supported for the `metadata_key_value_expression` CustomInfoType.",
         ).optional(),
       }).describe(
-        "Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.",
+        "The core content of the template. Configuration of the scanning process.",
       ).optional(),
       name: z.string().describe(
         "Output only. The template name. The template will have one of the following formats: `projects/PROJECT_ID/inspectTemplates/TEMPLATE_ID` OR `organizations/ORGANIZATION_ID/inspectTemplates/TEMPLATE_ID`;",
@@ -516,7 +513,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The last update timestamp of an inspectTemplate.",
       ).optional(),
     }).describe(
-      "The inspectTemplate contains a configuration (set of types of sensitive data to be detected) to be used anywhere you otherwise would normally specify InspectConfig. See https://cloud.google.com/sensitive-data-protection/docs/concepts-templates to learn more.",
+      "Optional. InspectTemplate to use to produce findings. Deprecated: use inspect_config instead.",
     ).optional(),
     loggingConfigs: z.array(z.object({
       logToBigQuery: z.object({
@@ -529,9 +526,8 @@ const GlobalArgsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the BigQuery table to write to.",
         ).optional(),
-      }).describe(
-        "Configuration for logging content policy actions to BigQuery.",
-      ).optional(),
+      }).describe("Optional. Log the actions taken to a BigQuery table.")
+        .optional(),
     })).describe(
       "Optional. Log the actions taken by the content policy to external systems.",
     ).optional(),
@@ -546,11 +542,11 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. If set, the verdict will be returned to the user.",
         ).optional(),
-      }).describe("A possible action to take when applying a content policy.")
-        .optional(),
+      }).describe("Required. Action to take if this rule applies.").optional(),
       conditions: z.array(z.object({
-        infoTypeCondition: z.unknown().describe("A info type based condition.")
-          .optional(),
+        infoTypeCondition: z.unknown().describe(
+          "A condition based on info types.",
+        ).optional(),
       })).describe(
         "Optional. Conditions that must match for this rule to apply. All conditions must match (`AND`). For `OR` conditions, use multiple rules.",
       ).optional(),
@@ -571,13 +567,15 @@ const GlobalArgsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Optional. Action to take if the content is an unsupported file type.",
+    ).optional(),
     updateTime: z.string().describe(
       "Output only. The last update timestamp of a contentPolicy; output-only field.",
     ).optional(),
-  }).describe("A policy to apply to content based on its inspection findings.")
-    .optional(),
+  }).describe(
+    "Required. The content_policy with new values for the relevant fields.",
+  ).optional(),
   contentPolicyId: z.string().describe(
     "Optional. The content policy ID can contain uppercase and lowercase letters, numbers, and hyphens; that is, it must match the regular expression: `[a-zA-Z\\d-_]+`. The maximum length is 100 characters. If empty, the system will generate a random id.",
   ).optional(),
@@ -825,8 +823,9 @@ const InputsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Action to take if the content is scanned and no rules match. Defaults to returning an ALLOW verdict if not set.",
+    ).optional(),
     displayName: z.string().describe("Optional. Display name (max 63 chars)")
       .optional(),
     errors: z.array(z.object({
@@ -840,9 +839,7 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -861,8 +858,9 @@ const InputsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Optional. Action to take if the content is a supported file type and size but fails to be scanned, for example because the file is encrypted or corrupted.",
+    ).optional(),
     inputTooLarge: z.object({
       returnVerdict: z.enum([
         "CONTENT_POLICY_VERDICT_UNSPECIFIED",
@@ -870,8 +868,9 @@ const InputsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Optional. Action to take if the content is a supported file type but is too large to be scanned.",
+    ).optional(),
     inspectConfig: z.object({
       contentOptions: z.array(
         z.enum(["CONTENT_UNSPECIFIED", "CONTENT_TEXT", "CONTENT_IMAGE"]),
@@ -882,14 +881,13 @@ const InputsSchema = z.object({
         ).optional(),
         dictionary: z.object({
           cloudStoragePath: z.unknown().describe(
-            "Message representing a single file or path in Cloud Storage.",
+            "Newline-delimited file of words in Cloud Storage. Only a single file is accepted.",
           ).optional(),
           wordList: z.unknown().describe(
-            "Message defining a list of words or phrases to search for in the data.",
+            "List of words or phrases to search for.",
           ).optional(),
-        }).describe(
-          'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
-        ).optional(),
+        }).describe("A list of phrases to detect as a CustomInfoType.")
+          .optional(),
         exclusionType: z.enum([
           "EXCLUSION_TYPE_UNSPECIFIED",
           "EXCLUSION_TYPE_EXCLUDE",
@@ -903,20 +901,20 @@ const InputsSchema = z.object({
           sensitivityLabel: z.unknown().describe(
             "Sensitivity labels published by Microsoft.",
           ).optional(),
-        }).describe(
-          "Configuration for a custom infoType that detects file labels.",
-        ).optional(),
+        }).describe("File label to detect.").optional(),
         infoType: z.object({
           name: z.unknown().describe(
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
           ).optional(),
-        }).describe("Type of information detected by the API.").optional(),
+        }).describe(
+          "CustomInfoType can either be a new infoType, or an extension of built-in infoType, when the name matches one of existing infoTypes and that infoType is specified in `InspectContent.info_types` field. Specifying the latter adds findings to the one detected by the system. If built-in info type is not specified in `InspectContent.info_types` list then the name is treated as a custom info type.",
+        ).optional(),
         likelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
           "VERY_UNLIKELY",
@@ -934,9 +932,7 @@ const InputsSchema = z.object({
           valueRegex: z.unknown().describe(
             "The regular expression for the value. Value should be non-empty.",
           ).optional(),
-        }).describe(
-          "Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.",
-        ).optional(),
+        }).describe("Key-value pair to detect in the metadata.").optional(),
         regex: z.object({
           groupIndexes: z.unknown().describe(
             "The index of the submatch to extract as findings. When not specified, the entire match is returned. No more than 3 may be included.",
@@ -944,13 +940,13 @@ const InputsSchema = z.object({
           pattern: z.unknown().describe(
             "Pattern defining the regular expression. Its syntax (https://github.com/google/re2/wiki/Syntax) can be found under the google/re2 repository on GitHub.",
           ).optional(),
-        }).describe("Message defining a custom regular expression.").optional(),
+        }).describe("Regular expression based CustomInfoType.").optional(),
         sensitivityScore: z.object({
           score: z.unknown().describe(
             "The sensitivity score applied to the resource.",
           ).optional(),
         }).describe(
-          "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+          "Sensitivity for this CustomInfoType. If this CustomInfoType extends an existing InfoType, the sensitivity here will take precedence over that of the original InfoType. If unset for a CustomInfoType, it will default to HIGH. This only applies to data profiling.",
         ).optional(),
         storedType: z.object({
           createTime: z.unknown().describe(
@@ -959,10 +955,9 @@ const InputsSchema = z.object({
           name: z.unknown().describe(
             "Resource name of the requested `StoredInfoType`, for example `organizations/433245324/storedInfoTypes/432452342` or `projects/project-id/storedInfoTypes/432452342`.",
           ).optional(),
-        }).describe("A reference to a StoredInfoType to use with scanning.")
-          .optional(),
+        }).describe("Loads an existing `StoredInfoType` resource.").optional(),
         surrogateType: z.object({}).describe(
-          'Message for detecting output from deidentification transformations such as [`CryptoReplaceFfxFpeConfig`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as `surrogate_info_type`. This CustomInfoType does not support the use of `detection_rules`.',
+          "Message for detecting output from deidentification transformations that support reversing.",
         ).optional(),
       })).describe(
         "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
@@ -982,7 +977,7 @@ const InputsSchema = z.object({
             "The sensitivity score applied to the resource.",
           ).optional(),
         }).describe(
-          "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+          "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
         ).optional(),
         version: z.string().describe("Optional version name for this InfoType.")
           .optional(),
@@ -992,7 +987,7 @@ const InputsSchema = z.object({
       limits: z.object({
         maxFindingsPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "Type of information the findings limit applies to. Only one limit per info_type should be provided. If InfoTypeLimit does not have an info_type, the DLP API applies the limit against all info_types that are found but not specified in another InfoTypeLimit.",
           ).optional(),
           maxFindings: z.unknown().describe(
             "Max findings limit for the given infoType.",
@@ -1007,7 +1002,7 @@ const InputsSchema = z.object({
           "Max number of findings that are returned per request or job. If you set this field in an InspectContentRequest, the resulting maximum value is the value that you set or 3,000, whichever is lower. This value isn't a hard limit. If an inspection reaches this limit, the inspection ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than this value.",
         ).optional(),
       }).describe(
-        "Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.",
+        "Configuration to control the number of findings returned. This is not used for data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error. When set within an InspectJobConfig, the specified maximum values aren't hard limits. If an inspection job reaches these limits, the job ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than these maximum values.",
       ).optional(),
       minLikelihood: z.enum([
         "LIKELIHOOD_UNSPECIFIED",
@@ -1025,12 +1020,14 @@ const InputsSchema = z.object({
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
           ).optional(),
-        }).describe("Type of information detected by the API.").optional(),
+        }).describe(
+          "Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.",
+        ).optional(),
         minLikelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
           "VERY_UNLIKELY",
@@ -1054,9 +1051,8 @@ const InputsSchema = z.object({
       })).describe(
         "Set of rules to apply to the findings for this InspectConfig. Exclusion rules, contained in the set are executed in the end, other rules are executed in the order they are specified for each info type. Not supported for the `metadata_key_value_expression` CustomInfoType.",
       ).optional(),
-    }).describe(
-      "Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.",
-    ).optional(),
+    }).describe("Optional. InspectConfig to use to produce findings.")
+      .optional(),
     inspectTemplate: z.object({
       allowLimitedAvailabilityInfoTypes: z.boolean().describe(
         "Optional. Enables the use of [limited-availability built-in infoTypes](https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference#limited-availability-infotypes) in inspect_config. These infoTypes are supported only in specific regions and can cause scanning errors if used elsewhere.",
@@ -1077,34 +1073,33 @@ const InputsSchema = z.object({
             "Set of detection rules to apply to all findings of this CustomInfoType. Rules are applied in the order that they are specified. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
           dictionary: z.unknown().describe(
-            'Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using `LargeCustomDictionaryConfig` in the `StoredInfoType` API.',
+            "A list of phrases to detect as a CustomInfoType.",
           ).optional(),
           exclusionType: z.unknown().describe(
             "If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to be returned. It still can be used for rules matching. Only supported for the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.",
           ).optional(),
-          fileLabelInfoType: z.unknown().describe(
-            "Configuration for a custom infoType that detects file labels.",
-          ).optional(),
+          fileLabelInfoType: z.unknown().describe("File label to detect.")
+            .optional(),
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "CustomInfoType can either be a new infoType, or an extension of built-in infoType, when the name matches one of existing infoTypes and that infoType is specified in `InspectContent.info_types` field. Specifying the latter adds findings to the one detected by the system. If built-in info type is not specified in `InspectContent.info_types` list then the name is treated as a custom info type.",
           ).optional(),
           likelihood: z.unknown().describe(
             "Likelihood to return for this CustomInfoType. This base value can be altered by a detection rule if the finding meets the criteria specified by the rule. Defaults to `VERY_LIKELY` if not specified.",
           ).optional(),
           metadataKeyValueExpression: z.unknown().describe(
-            "Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.",
+            "Key-value pair to detect in the metadata.",
           ).optional(),
           regex: z.unknown().describe(
-            "Message defining a custom regular expression.",
+            "Regular expression based CustomInfoType.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Sensitivity for this CustomInfoType. If this CustomInfoType extends an existing InfoType, the sensitivity here will take precedence over that of the original InfoType. If unset for a CustomInfoType, it will default to HIGH. This only applies to data profiling.",
           ).optional(),
           storedType: z.unknown().describe(
-            "A reference to a StoredInfoType to use with scanning.",
+            "Loads an existing `StoredInfoType` resource.",
           ).optional(),
           surrogateType: z.unknown().describe(
-            'Message for detecting output from deidentification transformations such as [`CryptoReplaceFfxFpeConfig`](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as `surrogate_info_type`. This CustomInfoType does not support the use of `detection_rules`.',
+            "Message for detecting output from deidentification transformations that support reversing.",
           ).optional(),
         })).describe(
           "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
@@ -1120,7 +1115,7 @@ const InputsSchema = z.object({
             "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
-            "Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.",
+            "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
           ).optional(),
           version: z.unknown().describe(
             "Optional version name for this InfoType.",
@@ -1139,7 +1134,7 @@ const InputsSchema = z.object({
             "Max number of findings that are returned per request or job. If you set this field in an InspectContentRequest, the resulting maximum value is the value that you set or 3,000, whichever is lower. This value isn't a hard limit. If an inspection reaches this limit, the inspection ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than this value.",
           ).optional(),
         }).describe(
-          "Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.",
+          "Configuration to control the number of findings returned. This is not used for data profiling. When redacting sensitive data from images, finding limits don't apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don't include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error. When set within an InspectJobConfig, the specified maximum values aren't hard limits. If an inspection job reaches these limits, the job ends gradually, not abruptly. Therefore, the actual number of findings that Cloud DLP returns can be multiple times higher than these maximum values.",
         ).optional(),
         minLikelihood: z.enum([
           "LIKELIHOOD_UNSPECIFIED",
@@ -1153,7 +1148,7 @@ const InputsSchema = z.object({
         ).optional(),
         minLikelihoodPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
-            "Type of information detected by the API.",
+            "Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.",
           ).optional(),
           minLikelihood: z.unknown().describe(
             "Only returns findings equal to or above this threshold. This field is required or else the configuration fails.",
@@ -1172,7 +1167,7 @@ const InputsSchema = z.object({
           "Set of rules to apply to the findings for this InspectConfig. Exclusion rules, contained in the set are executed in the end, other rules are executed in the order they are specified for each info type. Not supported for the `metadata_key_value_expression` CustomInfoType.",
         ).optional(),
       }).describe(
-        "Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.",
+        "The core content of the template. Configuration of the scanning process.",
       ).optional(),
       name: z.string().describe(
         "Output only. The template name. The template will have one of the following formats: `projects/PROJECT_ID/inspectTemplates/TEMPLATE_ID` OR `organizations/ORGANIZATION_ID/inspectTemplates/TEMPLATE_ID`;",
@@ -1181,7 +1176,7 @@ const InputsSchema = z.object({
         "Output only. The last update timestamp of an inspectTemplate.",
       ).optional(),
     }).describe(
-      "The inspectTemplate contains a configuration (set of types of sensitive data to be detected) to be used anywhere you otherwise would normally specify InspectConfig. See https://cloud.google.com/sensitive-data-protection/docs/concepts-templates to learn more.",
+      "Optional. InspectTemplate to use to produce findings. Deprecated: use inspect_config instead.",
     ).optional(),
     loggingConfigs: z.array(z.object({
       logToBigQuery: z.object({
@@ -1194,9 +1189,8 @@ const InputsSchema = z.object({
         tableId: z.string().describe(
           "Required. The ID of the BigQuery table to write to.",
         ).optional(),
-      }).describe(
-        "Configuration for logging content policy actions to BigQuery.",
-      ).optional(),
+      }).describe("Optional. Log the actions taken to a BigQuery table.")
+        .optional(),
     })).describe(
       "Optional. Log the actions taken by the content policy to external systems.",
     ).optional(),
@@ -1211,11 +1205,11 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. If set, the verdict will be returned to the user.",
         ).optional(),
-      }).describe("A possible action to take when applying a content policy.")
-        .optional(),
+      }).describe("Required. Action to take if this rule applies.").optional(),
       conditions: z.array(z.object({
-        infoTypeCondition: z.unknown().describe("A info type based condition.")
-          .optional(),
+        infoTypeCondition: z.unknown().describe(
+          "A condition based on info types.",
+        ).optional(),
       })).describe(
         "Optional. Conditions that must match for this rule to apply. All conditions must match (`AND`). For `OR` conditions, use multiple rules.",
       ).optional(),
@@ -1236,13 +1230,15 @@ const InputsSchema = z.object({
         "BLOCK",
       ]).describe("Optional. If set, the verdict will be returned to the user.")
         .optional(),
-    }).describe("A possible action to take when applying a content policy.")
-      .optional(),
+    }).describe(
+      "Optional. Action to take if the content is an unsupported file type.",
+    ).optional(),
     updateTime: z.string().describe(
       "Output only. The last update timestamp of a contentPolicy; output-only field.",
     ).optional(),
-  }).describe("A policy to apply to content based on its inspection findings.")
-    .optional(),
+  }).describe(
+    "Required. The content_policy with new values for the relevant fields.",
+  ).optional(),
   contentPolicyId: z.string().describe(
     "Optional. The content policy ID can contain uppercase and lowercase letters, numbers, and hyphens; that is, it must match the regular expression: `[a-zA-Z\\d-_]+`. The maximum length is 100 characters. If empty, the system will generate a random id.",
   ).optional(),
@@ -1277,7 +1273,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) ContentPolicies. Registered at `@swamp/gcp/dlp/contentpolicies`. */
 export const model = {
   type: "@swamp/gcp/dlp/contentpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1321,22 +1324,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? "") ||
-              buildResourceName(
-                `projects/${projectId}/locations/${
-                  String(g["location"] ?? "")
-                }`,
-                String(g["contentPolicyId"] ?? ""),
-              ),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

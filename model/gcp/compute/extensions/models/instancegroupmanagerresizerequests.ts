@@ -226,7 +226,8 @@ const GlobalArgsSchema = z.object({
           autoDelete: z.unknown().describe(
             "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
           ).optional(),
-          ipAddress: z.unknown().optional(),
+          ipAddress: z.unknown().describe("Ip address representation")
+            .optional(),
         }),
       ).describe(
         "Preserved external IPs defined for this instance. This map is keyed with the name of the network interface.",
@@ -237,7 +238,8 @@ const GlobalArgsSchema = z.object({
           autoDelete: z.unknown().describe(
             "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
           ).optional(),
-          ipAddress: z.unknown().optional(),
+          ipAddress: z.unknown().describe("Ip address representation")
+            .optional(),
         }),
       ).describe(
         "Preserved internal IPs defined for this instance. This map is keyed with the name of the network interface.",
@@ -245,7 +247,9 @@ const GlobalArgsSchema = z.object({
       metadata: z.record(z.string(), z.string()).describe(
         "Preserved metadata defined for this instance.",
       ).optional(),
-    }).describe("Preserved state for a given instance.").optional(),
+    }).describe(
+      "The intended preserved state for the given instance. Does not contain preserved state generated from a stateful policy.",
+    ).optional(),
     status: z.enum([
       "APPLYING",
       "DELETING",
@@ -271,55 +275,11 @@ const GlobalArgsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "Requested run duration for instances that will be created by this request. At the end of the run duration instance will be deleted.",
   ).optional(),
   resizeBy: z.number().int().describe(
     "The number of instances to be created by this resize request. The group's target size will be increased by this number. This field cannot be used together with 'instances'.",
   ).optional(),
-  status: z.object({
-    error: z.object({
-      errors: z.array(z.object({
-        code: z.string().describe(
-          "[Output Only] The error type identifier for this error.",
-        ).optional(),
-        errorDetails: z.array(z.unknown()).describe(
-          "[Output Only] An optional list of messages that contain the error details. There is a set of defined message types to use for providing details.The syntax depends on the error code. For example, QuotaExceededInfo will have details when the error code is QUOTA_EXCEEDED.",
-        ).optional(),
-        location: z.string().describe(
-          "[Output Only] Indicates the field in the request that caused the error. This property is optional.",
-        ).optional(),
-        message: z.string().describe(
-          "[Output Only] An optional, human-readable error message.",
-        ).optional(),
-      })).describe(
-        "[Output Only] The array of errors encountered while processing this operation.",
-      ).optional(),
-    }).describe(
-      "Output only. Fatal errors encountered during the queueing or provisioning phases of the ResizeRequest that caused the transition to the FAILED state. Contrary to the last_attempt errors, this field is final and errors are never removed from here, as the ResizeRequest is not going to retry.",
-    ).optional(),
-    lastAttempt: z.object({
-      error: z.object({
-        errors: z.array(z.object({
-          code: z.unknown().describe(
-            "[Output Only] The error type identifier for this error.",
-          ).optional(),
-          errorDetails: z.unknown().describe(
-            "[Output Only] An optional list of messages that contain the error details. There is a set of defined message types to use for providing details.The syntax depends on the error code. For example, QuotaExceededInfo will have details when the error code is QUOTA_EXCEEDED.",
-          ).optional(),
-          location: z.unknown().describe(
-            "[Output Only] Indicates the field in the request that caused the error. This property is optional.",
-          ).optional(),
-          message: z.unknown().describe(
-            "[Output Only] An optional, human-readable error message.",
-          ).optional(),
-        })).describe(
-          "[Output Only] The array of errors encountered while processing this operation.",
-        ).optional(),
-      }).describe(
-        "Output only. Errors that prevented the ResizeRequest to be fulfilled.",
-      ).optional(),
-    }).optional(),
-  }).optional(),
   zone: z.string().describe(
     "Output only. The URL of a zone where the resize request is located. Populated only for zonal resize requests.",
   ).optional(),
@@ -419,7 +379,8 @@ const InputsSchema = z.object({
           autoDelete: z.unknown().describe(
             "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
           ).optional(),
-          ipAddress: z.unknown().optional(),
+          ipAddress: z.unknown().describe("Ip address representation")
+            .optional(),
         }),
       ).describe(
         "Preserved external IPs defined for this instance. This map is keyed with the name of the network interface.",
@@ -430,7 +391,8 @@ const InputsSchema = z.object({
           autoDelete: z.unknown().describe(
             "These stateful IPs will never be released during autohealing, update or VM instance recreate operations. This flag is used to configure if the IP reservation should be deleted after it is no longer used by the group, e.g. when the given instance or the whole group is deleted.",
           ).optional(),
-          ipAddress: z.unknown().optional(),
+          ipAddress: z.unknown().describe("Ip address representation")
+            .optional(),
         }),
       ).describe(
         "Preserved internal IPs defined for this instance. This map is keyed with the name of the network interface.",
@@ -438,7 +400,9 @@ const InputsSchema = z.object({
       metadata: z.record(z.string(), z.string()).describe(
         "Preserved metadata defined for this instance.",
       ).optional(),
-    }).describe("Preserved state for a given instance.").optional(),
+    }).describe(
+      "The intended preserved state for the given instance. Does not contain preserved state generated from a stateful policy.",
+    ).optional(),
     status: z.enum([
       "APPLYING",
       "DELETING",
@@ -464,55 +428,11 @@ const InputsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "Requested run duration for instances that will be created by this request. At the end of the run duration instance will be deleted.",
   ).optional(),
   resizeBy: z.number().int().describe(
     "The number of instances to be created by this resize request. The group's target size will be increased by this number. This field cannot be used together with 'instances'.",
   ).optional(),
-  status: z.object({
-    error: z.object({
-      errors: z.array(z.object({
-        code: z.string().describe(
-          "[Output Only] The error type identifier for this error.",
-        ).optional(),
-        errorDetails: z.array(z.unknown()).describe(
-          "[Output Only] An optional list of messages that contain the error details. There is a set of defined message types to use for providing details.The syntax depends on the error code. For example, QuotaExceededInfo will have details when the error code is QUOTA_EXCEEDED.",
-        ).optional(),
-        location: z.string().describe(
-          "[Output Only] Indicates the field in the request that caused the error. This property is optional.",
-        ).optional(),
-        message: z.string().describe(
-          "[Output Only] An optional, human-readable error message.",
-        ).optional(),
-      })).describe(
-        "[Output Only] The array of errors encountered while processing this operation.",
-      ).optional(),
-    }).describe(
-      "Output only. Fatal errors encountered during the queueing or provisioning phases of the ResizeRequest that caused the transition to the FAILED state. Contrary to the last_attempt errors, this field is final and errors are never removed from here, as the ResizeRequest is not going to retry.",
-    ).optional(),
-    lastAttempt: z.object({
-      error: z.object({
-        errors: z.array(z.object({
-          code: z.unknown().describe(
-            "[Output Only] The error type identifier for this error.",
-          ).optional(),
-          errorDetails: z.unknown().describe(
-            "[Output Only] An optional list of messages that contain the error details. There is a set of defined message types to use for providing details.The syntax depends on the error code. For example, QuotaExceededInfo will have details when the error code is QUOTA_EXCEEDED.",
-          ).optional(),
-          location: z.unknown().describe(
-            "[Output Only] Indicates the field in the request that caused the error. This property is optional.",
-          ).optional(),
-          message: z.unknown().describe(
-            "[Output Only] An optional, human-readable error message.",
-          ).optional(),
-        })).describe(
-          "[Output Only] The array of errors encountered while processing this operation.",
-        ).optional(),
-      }).describe(
-        "Output only. Errors that prevented the ResizeRequest to be fulfilled.",
-      ).optional(),
-    }).optional(),
-  }).optional(),
   zone: z.string().describe(
     "Output only. The URL of a zone where the resize request is located. Populated only for zonal resize requests.",
   ).optional(),
@@ -547,7 +467,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstanceGroupManagerResizeRequests. Registered at `@swamp/gcp/compute/instancegroupmanagerresizerequests`. */
 export const model = {
   type: "@swamp/gcp/compute/instancegroupmanagerresizerequests",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -707,6 +627,14 @@ export const model = {
       description: "Added: instances",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -746,7 +674,6 @@ export const model = {
           body["requestedRunDuration"] = g["requestedRunDuration"];
         }
         if (g["resizeBy"] !== undefined) body["resizeBy"] = g["resizeBy"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);
         }

@@ -195,19 +195,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The name of the deployment group. Format: 'projects/{project_id}/locations/{location}/deploymentGroups/{deployment_group}'.",
   ).optional(),
-  provisioningError: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   deploymentGroupId: z.string().describe("Required. The deployment group ID.")
     .optional(),
   requestId: z.string().describe(
@@ -269,19 +256,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The name of the deployment group. Format: 'projects/{project_id}/locations/{location}/deploymentGroups/{deployment_group}'.",
   ).optional(),
-  provisioningError: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   deploymentGroupId: z.string().describe("Required. The deployment group ID.")
     .optional(),
   requestId: z.string().describe(
@@ -315,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Infrastructure Manager DeploymentGroups. Registered at `@swamp/gcp/config/deploymentgroups`. */
 export const model = {
   type: "@swamp/gcp/config/deploymentgroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -422,6 +396,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: provisioningError",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { provisioningError: _provisioningError, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -459,9 +441,6 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["provisioningError"] !== undefined) {
-          body["provisioningError"] = g["provisioningError"];
-        }
         if (g["deploymentGroupId"] !== undefined) {
           params["deploymentGroupId"] = String(g["deploymentGroupId"]);
         }
@@ -593,9 +572,6 @@ export const model = {
           body["deploymentUnits"] = g["deploymentUnits"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["provisioningError"] !== undefined) {
-          body["provisioningError"] = g["provisioningError"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

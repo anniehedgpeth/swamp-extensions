@@ -274,9 +274,8 @@ const GlobalArgsSchema = z.object({
   instruction: z.string().describe(
     "Optional. Instructions for the LLM model to guide the agent's behavior.",
   ).optional(),
-  llmAgent: z.object({}).describe(
-    "Default agent type. The agent uses instructions and callbacks specified in the agent to perform the task using a large language model.",
-  ).optional(),
+  llmAgent: z.object({}).describe("Optional. The default agent type.")
+    .optional(),
   modelSettings: z.object({
     model: z.string().describe(
       "Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.",
@@ -284,9 +283,7 @@ const GlobalArgsSchema = z.object({
     temperature: z.number().describe(
       "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
     ).optional(),
-  }).describe(
-    "Model settings contains various configurations for the LLM model.",
-  ).optional(),
+  }).describe("Optional. Configurations for the LLM model.").optional(),
   name: z.string().describe(
     "Identifier. The unique identifier of the agent. Format: `projects/{project}/locations/{location}/apps/{app}/agents/{agent}`",
   ).optional(),
@@ -313,7 +310,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Indicates whether to respect the message-level interruption settings configured in the Dialogflow agent. * If false: all response messages from the Dialogflow agent follow the app-level barge-in settings. * If true: only response messages with [`allow_playback_interruption`](https://docs.cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#text) set to true will be interruptable, all other messages follow the app-level barge-in settings.",
     ).optional(),
   }).describe(
-    "The agent which will transfer execution to a remote [Dialogflow CX](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent. The Dialogflow agent will process subsequent user queries until the session ends or flow ends, and the control is transferred back to the parent CES agent.",
+    "Optional. The remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent to be used for the agent execution. If this field is set, all other agent level properties will be ignored. Note: If the Dialogflow agent is in a different project from the app, you should grant `roles/dialogflow.client` to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
   ).optional(),
   tools: z.array(z.string()).describe(
     "Optional. List of available tools for the agent. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
@@ -335,13 +332,17 @@ const GlobalArgsSchema = z.object({
         expression: z.string().describe(
           "Required. The string representation of cloud.api.Expression condition.",
         ).optional(),
-      }).describe("Expression condition based on session state.").optional(),
+      }).describe(
+        "Optional. A rule that evaluates a session state condition. If the condition evaluates to true, the transfer occurs.",
+      ).optional(),
       pythonCodeCondition: z.object({
         pythonCode: z.string().describe("Required. The python code to execute.")
           .optional(),
-      }).describe("Python code block to evaluate the condition.").optional(),
+      }).describe(
+        "Optional. A rule that uses Python code block to evaluate the conditions. If the condition evaluates to true, the transfer occurs.",
+      ).optional(),
     }).describe(
-      "Deterministic transfer rule. When the condition evaluates to true, the transfer occurs.",
+      "Optional. A rule that immediately transfers to the target agent when the condition is met.",
     ).optional(),
     direction: z.enum([
       "DIRECTION_UNSPECIFIED",
@@ -353,9 +354,11 @@ const GlobalArgsSchema = z.object({
         expression: z.string().describe(
           "Required. The string representation of cloud.api.Expression condition.",
         ).optional(),
-      }).describe("Expression condition based on session state.").optional(),
+      }).describe(
+        "Required. If the condition evaluates to true, planner will not be allowed to transfer to the target agent.",
+      ).optional(),
     }).describe(
-      "A rule that prevents the planner from transferring to the target agent.",
+      "Optional. Rule that prevents the planner from transferring to the target agent.",
     ).optional(),
   })).describe(
     "Optional. Agent transfer rules. If multiple rules match, the first one in the list will be used.",
@@ -574,9 +577,8 @@ const InputsSchema = z.object({
   instruction: z.string().describe(
     "Optional. Instructions for the LLM model to guide the agent's behavior.",
   ).optional(),
-  llmAgent: z.object({}).describe(
-    "Default agent type. The agent uses instructions and callbacks specified in the agent to perform the task using a large language model.",
-  ).optional(),
+  llmAgent: z.object({}).describe("Optional. The default agent type.")
+    .optional(),
   modelSettings: z.object({
     model: z.string().describe(
       "Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.",
@@ -584,9 +586,7 @@ const InputsSchema = z.object({
     temperature: z.number().describe(
       "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
     ).optional(),
-  }).describe(
-    "Model settings contains various configurations for the LLM model.",
-  ).optional(),
+  }).describe("Optional. Configurations for the LLM model.").optional(),
   name: z.string().describe(
     "Identifier. The unique identifier of the agent. Format: `projects/{project}/locations/{location}/apps/{app}/agents/{agent}`",
   ).optional(),
@@ -613,7 +613,7 @@ const InputsSchema = z.object({
       "Optional. Indicates whether to respect the message-level interruption settings configured in the Dialogflow agent. * If false: all response messages from the Dialogflow agent follow the app-level barge-in settings. * If true: only response messages with [`allow_playback_interruption`](https://docs.cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#text) set to true will be interruptable, all other messages follow the app-level barge-in settings.",
     ).optional(),
   }).describe(
-    "The agent which will transfer execution to a remote [Dialogflow CX](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent. The Dialogflow agent will process subsequent user queries until the session ends or flow ends, and the control is transferred back to the parent CES agent.",
+    "Optional. The remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent to be used for the agent execution. If this field is set, all other agent level properties will be ignored. Note: If the Dialogflow agent is in a different project from the app, you should grant `roles/dialogflow.client` to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
   ).optional(),
   tools: z.array(z.string()).describe(
     "Optional. List of available tools for the agent. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
@@ -635,13 +635,17 @@ const InputsSchema = z.object({
         expression: z.string().describe(
           "Required. The string representation of cloud.api.Expression condition.",
         ).optional(),
-      }).describe("Expression condition based on session state.").optional(),
+      }).describe(
+        "Optional. A rule that evaluates a session state condition. If the condition evaluates to true, the transfer occurs.",
+      ).optional(),
       pythonCodeCondition: z.object({
         pythonCode: z.string().describe("Required. The python code to execute.")
           .optional(),
-      }).describe("Python code block to evaluate the condition.").optional(),
+      }).describe(
+        "Optional. A rule that uses Python code block to evaluate the conditions. If the condition evaluates to true, the transfer occurs.",
+      ).optional(),
     }).describe(
-      "Deterministic transfer rule. When the condition evaluates to true, the transfer occurs.",
+      "Optional. A rule that immediately transfers to the target agent when the condition is met.",
     ).optional(),
     direction: z.enum([
       "DIRECTION_UNSPECIFIED",
@@ -653,9 +657,11 @@ const InputsSchema = z.object({
         expression: z.string().describe(
           "Required. The string representation of cloud.api.Expression condition.",
         ).optional(),
-      }).describe("Expression condition based on session state.").optional(),
+      }).describe(
+        "Required. If the condition evaluates to true, planner will not be allowed to transfer to the target agent.",
+      ).optional(),
     }).describe(
-      "A rule that prevents the planner from transferring to the target agent.",
+      "Optional. Rule that prevents the planner from transferring to the target agent.",
     ).optional(),
   })).describe(
     "Optional. Agent transfer rules. If multiple rules match, the first one in the list will be used.",
@@ -694,7 +700,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Agents. Registered at `@swamp/gcp/ces/apps-agents`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-agents",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -853,6 +859,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -162,7 +162,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The type of the database dump. If unspecified, defaults to MYSQL.",
     ).optional(),
   }).describe(
-    "A specification of the location of and metadata about a database dump from a relational database management system.",
+    "Immutable. A database dump from a pre-existing metastore's database.",
   ).optional(),
   description: z.string().describe(
     "Optional. The description of the metadata import.",
@@ -220,7 +220,7 @@ const InputsSchema = z.object({
       "Optional. The type of the database dump. If unspecified, defaults to MYSQL.",
     ).optional(),
   }).describe(
-    "A specification of the location of and metadata about a database dump from a relational database management system.",
+    "Immutable. A database dump from a pre-existing metastore's database.",
   ).optional(),
   description: z.string().describe(
     "Optional. The description of the metadata import.",
@@ -265,7 +265,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Metastore Services.MetadataImports. Registered at `@swamp/gcp/metastore/services-metadataimports`. */
 export const model = {
   type: "@swamp/gcp/metastore/services-metadataimports",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -369,6 +369,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -527,9 +532,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["databaseDump"] !== undefined) {
-          body["databaseDump"] = g["databaseDump"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

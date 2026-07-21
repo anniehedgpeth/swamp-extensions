@@ -165,7 +165,7 @@ const GlobalArgsSchema = z.object({
       startTime: z.string().describe(
         "Required. The start time of the time window.",
       ).optional(),
-    }).describe("A time window for querying conversations.").optional(),
+    }).describe("An absolute date range.").optional(),
     relativeDateRange: z.object({
       quantity: z.string().describe(
         "Required. The quantity of units in the past.",
@@ -178,8 +178,9 @@ const GlobalArgsSchema = z.object({
         "QUARTER",
         "YEAR",
       ]).describe("Required. The unit of time.").optional(),
-    }).describe("Relative date range configuration.").optional(),
-  }).describe("Date range configuration for dashboard charts.").optional(),
+    }).describe("A relative date range.").optional(),
+  }).describe("Date range config applied to all charts in the dashboard.")
+    .optional(),
   description: z.string().describe("Dashboard description").optional(),
   displayName: z.string().describe(
     "User provided display name of the dashboard.",
@@ -202,7 +203,7 @@ const GlobalArgsSchema = z.object({
         startTime: z.string().describe(
           "Required. The start time of the time window.",
         ).optional(),
-      }).describe("A time window for querying conversations.").optional(),
+      }).describe("An absolute date range.").optional(),
       relativeDateRange: z.object({
         quantity: z.string().describe(
           "Required. The quantity of units in the past.",
@@ -215,8 +216,9 @@ const GlobalArgsSchema = z.object({
           "QUARTER",
           "YEAR",
         ]).describe("Required. The unit of time.").optional(),
-      }).describe("Relative date range configuration.").optional(),
-    }).describe("Date range configuration for dashboard charts.").optional(),
+      }).describe("A relative date range.").optional(),
+    }).describe("Date range config applied to all charts in the container.")
+      .optional(),
     description: z.string().describe("Container description").optional(),
     displayName: z.string().describe(
       "User provided display name of the Container.",
@@ -233,10 +235,8 @@ const GlobalArgsSchema = z.object({
           conversationFilter: z.unknown().describe(
             "The conversation filter string.",
           ).optional(),
-          redirectAction: z.unknown().describe(
-            "The redirect action to be taken when the chart is clicked.",
-          ).optional(),
-        }).describe("The action to be taken when the chart is clicked.")
+          redirectAction: z.unknown().describe("Redirect action.").optional(),
+        }).describe("Optional action to be taken when the chart is clicked.")
           .optional(),
         chartType: z.enum([
           "CHART_TYPE_UNSPECIFIED",
@@ -260,23 +260,20 @@ const GlobalArgsSchema = z.object({
           .optional(),
         dataSource: z.object({
           generativeInsights: z.unknown().describe(
-            "Request that use natural language query to generate the chart.",
+            "Use natural language query to generate the chart.",
           ).optional(),
           queryMetrics: z.unknown().describe(
-            "Request data that use the existing QueryMetrics.",
+            "Use the existing QueryMetrics to generate the chart.",
           ).optional(),
         }).describe(
           "The request data for visualizing the dataset in the chart.",
         ).optional(),
         dateRangeConfig: z.object({
-          absoluteDateRange: z.unknown().describe(
-            "A time window for querying conversations.",
-          ).optional(),
-          relativeDateRange: z.unknown().describe(
-            "Relative date range configuration.",
-          ).optional(),
-        }).describe("Date range configuration for dashboard charts.")
-          .optional(),
+          absoluteDateRange: z.unknown().describe("An absolute date range.")
+            .optional(),
+          relativeDateRange: z.unknown().describe("A relative date range.")
+            .optional(),
+        }).describe("Date range config applied to the chart.").optional(),
         description: z.string().describe("Chart description").optional(),
         displayName: z.string().describe(
           "User provided display name of the chart.",
@@ -295,9 +292,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "The width of the chart in grid units.",
         ).optional(),
-      }).describe(
-        "Configurable dashboard's widget that displays data as a chart.",
-      ).optional(),
+      }).describe("A chart widget.").optional(),
       chartReference: z.string().describe(
         "A reference to a chart widget. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}",
       ).optional(),
@@ -312,7 +307,7 @@ const GlobalArgsSchema = z.object({
       "The width of the container in grid units.",
     ).optional(),
   }).describe(
-    "Configurable dashboard's container. Container can contain multiple widgets.",
+    "The dashboard's root widget container. We want to display the dashboard layout in a tree-like structure, where the root container contains other widgets (containers or charts) as children.",
   ).optional(),
   dashboardId: z.string().describe(
     "Optional. A unique ID for the new Dashboard. This ID will become the final component of the Dashboard's resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
@@ -403,7 +398,7 @@ const InputsSchema = z.object({
       startTime: z.string().describe(
         "Required. The start time of the time window.",
       ).optional(),
-    }).describe("A time window for querying conversations.").optional(),
+    }).describe("An absolute date range.").optional(),
     relativeDateRange: z.object({
       quantity: z.string().describe(
         "Required. The quantity of units in the past.",
@@ -416,8 +411,9 @@ const InputsSchema = z.object({
         "QUARTER",
         "YEAR",
       ]).describe("Required. The unit of time.").optional(),
-    }).describe("Relative date range configuration.").optional(),
-  }).describe("Date range configuration for dashboard charts.").optional(),
+    }).describe("A relative date range.").optional(),
+  }).describe("Date range config applied to all charts in the dashboard.")
+    .optional(),
   description: z.string().describe("Dashboard description").optional(),
   displayName: z.string().describe(
     "User provided display name of the dashboard.",
@@ -440,7 +436,7 @@ const InputsSchema = z.object({
         startTime: z.string().describe(
           "Required. The start time of the time window.",
         ).optional(),
-      }).describe("A time window for querying conversations.").optional(),
+      }).describe("An absolute date range.").optional(),
       relativeDateRange: z.object({
         quantity: z.string().describe(
           "Required. The quantity of units in the past.",
@@ -453,8 +449,9 @@ const InputsSchema = z.object({
           "QUARTER",
           "YEAR",
         ]).describe("Required. The unit of time.").optional(),
-      }).describe("Relative date range configuration.").optional(),
-    }).describe("Date range configuration for dashboard charts.").optional(),
+      }).describe("A relative date range.").optional(),
+    }).describe("Date range config applied to all charts in the container.")
+      .optional(),
     description: z.string().describe("Container description").optional(),
     displayName: z.string().describe(
       "User provided display name of the Container.",
@@ -471,10 +468,8 @@ const InputsSchema = z.object({
           conversationFilter: z.unknown().describe(
             "The conversation filter string.",
           ).optional(),
-          redirectAction: z.unknown().describe(
-            "The redirect action to be taken when the chart is clicked.",
-          ).optional(),
-        }).describe("The action to be taken when the chart is clicked.")
+          redirectAction: z.unknown().describe("Redirect action.").optional(),
+        }).describe("Optional action to be taken when the chart is clicked.")
           .optional(),
         chartType: z.enum([
           "CHART_TYPE_UNSPECIFIED",
@@ -498,23 +493,20 @@ const InputsSchema = z.object({
           .optional(),
         dataSource: z.object({
           generativeInsights: z.unknown().describe(
-            "Request that use natural language query to generate the chart.",
+            "Use natural language query to generate the chart.",
           ).optional(),
           queryMetrics: z.unknown().describe(
-            "Request data that use the existing QueryMetrics.",
+            "Use the existing QueryMetrics to generate the chart.",
           ).optional(),
         }).describe(
           "The request data for visualizing the dataset in the chart.",
         ).optional(),
         dateRangeConfig: z.object({
-          absoluteDateRange: z.unknown().describe(
-            "A time window for querying conversations.",
-          ).optional(),
-          relativeDateRange: z.unknown().describe(
-            "Relative date range configuration.",
-          ).optional(),
-        }).describe("Date range configuration for dashboard charts.")
-          .optional(),
+          absoluteDateRange: z.unknown().describe("An absolute date range.")
+            .optional(),
+          relativeDateRange: z.unknown().describe("A relative date range.")
+            .optional(),
+        }).describe("Date range config applied to the chart.").optional(),
         description: z.string().describe("Chart description").optional(),
         displayName: z.string().describe(
           "User provided display name of the chart.",
@@ -533,9 +525,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "The width of the chart in grid units.",
         ).optional(),
-      }).describe(
-        "Configurable dashboard's widget that displays data as a chart.",
-      ).optional(),
+      }).describe("A chart widget.").optional(),
       chartReference: z.string().describe(
         "A reference to a chart widget. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}",
       ).optional(),
@@ -550,7 +540,7 @@ const InputsSchema = z.object({
       "The width of the container in grid units.",
     ).optional(),
   }).describe(
-    "Configurable dashboard's container. Container can contain multiple widgets.",
+    "The dashboard's root widget container. We want to display the dashboard layout in a tree-like structure, where the root container contains other widgets (containers or charts) as children.",
   ).optional(),
   dashboardId: z.string().describe(
     "Optional. A unique ID for the new Dashboard. This ID will become the final component of the Dashboard's resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
@@ -583,7 +573,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Dashboards. Registered at `@swamp/gcp/contactcenterinsights/dashboards`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/dashboards",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -727,6 +717,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

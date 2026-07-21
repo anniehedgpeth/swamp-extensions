@@ -183,7 +183,9 @@ const GlobalArgsSchema = z.object({
       bandwidthGbps: z.number().describe(
         "The bandwidth permitted by the QOS policy, in gbps.",
       ).optional(),
-    }).describe("QOS policy parameters.").optional(),
+    }).describe(
+      "The QOS policy applied to this VRF. The value is only meaningful when all the vlan attachments have the same QoS. This field should not be used for new integrations, use vlan attachment level qos instead. The field is left for backward-compatibility.",
+    ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "PROVISIONING", "PROVISIONED"])
       .describe("The possible state of VRF.").optional(),
     vlanAttachments: z.array(z.object({
@@ -201,11 +203,15 @@ const GlobalArgsSchema = z.object({
         bandwidthGbps: z.number().describe(
           "The bandwidth permitted by the QOS policy, in gbps.",
         ).optional(),
-      }).describe("QOS policy parameters.").optional(),
+      }).describe(
+        "The QOS policy applied to this VLAN attachment. This value should be preferred to using qos at vrf level.",
+      ).optional(),
       routerIp: z.string().describe("The router IP of the attachment.")
         .optional(),
     })).describe("The list of VLAN attachments for the VRF.").optional(),
-  }).describe("A network VRF.").optional(),
+  }).describe(
+    "The Vrf for the Network. Use this only if a new Vrf needs to be created.",
+  ).optional(),
   vrfAttachment: z.string().describe(
     "Optional. The name of a pre-existing Vrf that the network should be attached to. Format is `vrfs/{vrf}`.",
   ).optional(),
@@ -329,7 +335,9 @@ const InputsSchema = z.object({
       bandwidthGbps: z.number().describe(
         "The bandwidth permitted by the QOS policy, in gbps.",
       ).optional(),
-    }).describe("QOS policy parameters.").optional(),
+    }).describe(
+      "The QOS policy applied to this VRF. The value is only meaningful when all the vlan attachments have the same QoS. This field should not be used for new integrations, use vlan attachment level qos instead. The field is left for backward-compatibility.",
+    ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "PROVISIONING", "PROVISIONED"])
       .describe("The possible state of VRF.").optional(),
     vlanAttachments: z.array(z.object({
@@ -347,11 +355,15 @@ const InputsSchema = z.object({
         bandwidthGbps: z.number().describe(
           "The bandwidth permitted by the QOS policy, in gbps.",
         ).optional(),
-      }).describe("QOS policy parameters.").optional(),
+      }).describe(
+        "The QOS policy applied to this VLAN attachment. This value should be preferred to using qos at vrf level.",
+      ).optional(),
       routerIp: z.string().describe("The router IP of the attachment.")
         .optional(),
     })).describe("The list of VLAN attachments for the VRF.").optional(),
-  }).describe("A network VRF.").optional(),
+  }).describe(
+    "The Vrf for the Network. Use this only if a new Vrf needs to be created.",
+  ).optional(),
   vrfAttachment: z.string().describe(
     "Optional. The name of a pre-existing Vrf that the network should be attached to. Format is `vrfs/{vrf}`.",
   ).optional(),
@@ -383,7 +395,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bare Metal Solution Networks. Registered at `@swamp/gcp/baremetalsolution/networks`. */
 export const model = {
   type: "@swamp/gcp/baremetalsolution/networks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -487,6 +499,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

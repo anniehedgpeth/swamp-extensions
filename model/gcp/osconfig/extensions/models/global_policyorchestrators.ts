@@ -223,9 +223,7 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "List of inventories to select VMs. A VM is selected if its inventory data matches at least one of the following inventories.",
         ).optional(),
-      }).describe(
-        "Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.",
-      ).optional(),
+      }).describe("Required. Filter to select VMs.").optional(),
       name: z.string().describe(
         "Resource name. Format: `projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id}` This field is ignored when you create an OS policy assignment.",
       ).optional(),
@@ -263,13 +261,13 @@ const GlobalArgsSchema = z.object({
             "Specifies the relative value defined as a percentage, which will be multiplied by a reference value.",
           ).optional(),
         }).describe(
-          'Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.',
+          "Required. The maximum number (or percentage) of VMs per zone to disrupt at any given moment.",
         ).optional(),
         minWaitDuration: z.string().describe(
           "Required. This determines the minimum duration of time to wait after the configuration changes are applied through the current rollout. A VM continues to count towards the `disruption_budget` at least until this duration of time has passed after configuration changes are applied.",
         ).optional(),
       }).describe(
-        "Message to configure the rollout at the zonal level for the OS policy assignment.",
+        "Required. Rollout to deploy the OS policy assignment. A rollout is triggered in the following situations: 1) OSPolicyAssignment is created. 2) OSPolicyAssignment is updated and the update contains changes to one of the following fields: - instance_filter - os_policies 3) OSPolicyAssignment is deleted.",
       ).optional(),
       rolloutState: z.enum([
         "ROLLOUT_STATE_UNSPECIFIED",
@@ -282,10 +280,10 @@ const GlobalArgsSchema = z.object({
         "Output only. Server generated unique id for the OS policy assignment resource.",
       ).optional(),
     }).describe(
-      "OS policy assignment is an API resource that is used to apply a set of OS policies to a dynamically targeted group of Compute Engine VM instances. An OS policy is used to define the desired state configuration for a Compute Engine VM instance through a set of configuration resources that provide capabilities such as installing or removing software packages, or executing a script. For more information about the OS policy resource definitions and examples, see [OS policy and OS policy assignment](https://cloud.google.com/compute/docs/os-configuration-management/working-with-os-policies).",
+      "Optional. OSPolicyAssignment resource to be created, updated or deleted. Name field is ignored and replace with a generated value. With this field set, orchestrator will perform actions on `project/{project}/locations/{zone}/osPolicyAssignments/{resource_id}` resources, where `project` and `zone` pairs come from the expanded scope, and `resource_id` comes from the `resource_id` field of orchestrator resource.",
     ).optional(),
   }).describe(
-    "Represents a resource that is being orchestrated by the policy orchestrator.",
+    "Required. Resource to be orchestrated by the policy orchestrator.",
   ).optional(),
   orchestrationScope: z.object({
     selectors: z.array(z.object({
@@ -293,7 +291,7 @@ const GlobalArgsSchema = z.object({
         includedLocations: z.array(z.unknown()).describe(
           "Optional. Names of the locations in scope. Format: `us-central1-a`",
         ).optional(),
-      }).describe("Selector containing locations in scope.").optional(),
+      }).describe("Selector for selecting locations.").optional(),
       resourceHierarchySelector: z.object({
         includedFolders: z.array(z.unknown()).describe(
           "Optional. Names of the folders in scope. Format: `folders/{folder_id}`",
@@ -301,103 +299,13 @@ const GlobalArgsSchema = z.object({
         includedProjects: z.array(z.unknown()).describe(
           "Optional. Names of the projects in scope. Format: `projects/{project_number}`",
         ).optional(),
-      }).describe(
-        "Selector containing Cloud Resource Manager resource hierarchy nodes.",
-      ).optional(),
+      }).describe("Selector for selecting resource hierarchy.").optional(),
     })).describe(
       "Optional. Selectors of the orchestration scope. There is a logical AND between each selector defined. When there is no explicit `ResourceHierarchySelector` selector specified, the scope is by default bounded to the parent of the policy orchestrator resource.",
     ).optional(),
   }).describe(
-    "Defines a set of selectors which drive which resources are in scope of policy orchestration.",
+    "Optional. Defines scope for the orchestration, in context of the enclosing PolicyOrchestrator resource. Scope is expanded into a list of pairs, in which the rollout action will take place. Expansion starts with a Folder resource parenting the PolicyOrchestrator resource: - All the descendant projects are listed. - List of project is cross joined with a list of all available zones. - Resulting list of pairs is filtered according to the selectors.",
   ).optional(),
-  orchestrationState: z.object({
-    currentIterationState: z.object({
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.record(z.string(), z.unknown())).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
-      failedActions: z.string().describe(
-        "Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.",
-      ).optional(),
-      finishTime: z.string().describe(
-        "Output only. Finish time of the wave iteration.",
-      ).optional(),
-      iterationId: z.string().describe(
-        "Output only. Unique identifier of the iteration.",
-      ).optional(),
-      performedActions: z.string().describe(
-        "Output only. Overall number of actions done by the orchestrator so far.",
-      ).optional(),
-      progress: z.number().describe(
-        "Output only. An estimated percentage of the progress. Number between 0 and 100.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. Start time of the wave iteration.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "PROCESSING",
-        "COMPLETED",
-        "FAILED",
-        "CANCELLED",
-        "UNKNOWN",
-      ]).describe("Output only. State of the iteration.").optional(),
-    }).describe(
-      "Describes the state of a single iteration of the orchestrator.",
-    ).optional(),
-    previousIterationState: z.object({
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.record(z.string(), z.unknown())).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
-      failedActions: z.string().describe(
-        "Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.",
-      ).optional(),
-      finishTime: z.string().describe(
-        "Output only. Finish time of the wave iteration.",
-      ).optional(),
-      iterationId: z.string().describe(
-        "Output only. Unique identifier of the iteration.",
-      ).optional(),
-      performedActions: z.string().describe(
-        "Output only. Overall number of actions done by the orchestrator so far.",
-      ).optional(),
-      progress: z.number().describe(
-        "Output only. An estimated percentage of the progress. Number between 0 and 100.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. Start time of the wave iteration.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "PROCESSING",
-        "COMPLETED",
-        "FAILED",
-        "CANCELLED",
-        "UNKNOWN",
-      ]).describe("Output only. State of the iteration.").optional(),
-    }).describe(
-      "Describes the state of a single iteration of the orchestrator.",
-    ).optional(),
-  }).describe("Describes the state of the orchestration process.").optional(),
   state: z.string().describe(
     "Optional. State of the orchestrator. Can be updated to change orchestrator behaviour. Allowed values: - `ACTIVE` - orchestrator is actively looking for actions to be taken. - `STOPPED` - orchestrator won't make any changes. Note: There might be more states added in the future. We use string here instead of an enum, to avoid the need of propagating new states to all the client code.",
   ).optional(),
@@ -570,9 +478,7 @@ const InputsSchema = z.object({
         })).describe(
           "List of inventories to select VMs. A VM is selected if its inventory data matches at least one of the following inventories.",
         ).optional(),
-      }).describe(
-        "Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.",
-      ).optional(),
+      }).describe("Required. Filter to select VMs.").optional(),
       name: z.string().describe(
         "Resource name. Format: `projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id}` This field is ignored when you create an OS policy assignment.",
       ).optional(),
@@ -610,13 +516,13 @@ const InputsSchema = z.object({
             "Specifies the relative value defined as a percentage, which will be multiplied by a reference value.",
           ).optional(),
         }).describe(
-          'Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.',
+          "Required. The maximum number (or percentage) of VMs per zone to disrupt at any given moment.",
         ).optional(),
         minWaitDuration: z.string().describe(
           "Required. This determines the minimum duration of time to wait after the configuration changes are applied through the current rollout. A VM continues to count towards the `disruption_budget` at least until this duration of time has passed after configuration changes are applied.",
         ).optional(),
       }).describe(
-        "Message to configure the rollout at the zonal level for the OS policy assignment.",
+        "Required. Rollout to deploy the OS policy assignment. A rollout is triggered in the following situations: 1) OSPolicyAssignment is created. 2) OSPolicyAssignment is updated and the update contains changes to one of the following fields: - instance_filter - os_policies 3) OSPolicyAssignment is deleted.",
       ).optional(),
       rolloutState: z.enum([
         "ROLLOUT_STATE_UNSPECIFIED",
@@ -629,10 +535,10 @@ const InputsSchema = z.object({
         "Output only. Server generated unique id for the OS policy assignment resource.",
       ).optional(),
     }).describe(
-      "OS policy assignment is an API resource that is used to apply a set of OS policies to a dynamically targeted group of Compute Engine VM instances. An OS policy is used to define the desired state configuration for a Compute Engine VM instance through a set of configuration resources that provide capabilities such as installing or removing software packages, or executing a script. For more information about the OS policy resource definitions and examples, see [OS policy and OS policy assignment](https://cloud.google.com/compute/docs/os-configuration-management/working-with-os-policies).",
+      "Optional. OSPolicyAssignment resource to be created, updated or deleted. Name field is ignored and replace with a generated value. With this field set, orchestrator will perform actions on `project/{project}/locations/{zone}/osPolicyAssignments/{resource_id}` resources, where `project` and `zone` pairs come from the expanded scope, and `resource_id` comes from the `resource_id` field of orchestrator resource.",
     ).optional(),
   }).describe(
-    "Represents a resource that is being orchestrated by the policy orchestrator.",
+    "Required. Resource to be orchestrated by the policy orchestrator.",
   ).optional(),
   orchestrationScope: z.object({
     selectors: z.array(z.object({
@@ -640,7 +546,7 @@ const InputsSchema = z.object({
         includedLocations: z.array(z.unknown()).describe(
           "Optional. Names of the locations in scope. Format: `us-central1-a`",
         ).optional(),
-      }).describe("Selector containing locations in scope.").optional(),
+      }).describe("Selector for selecting locations.").optional(),
       resourceHierarchySelector: z.object({
         includedFolders: z.array(z.unknown()).describe(
           "Optional. Names of the folders in scope. Format: `folders/{folder_id}`",
@@ -648,103 +554,13 @@ const InputsSchema = z.object({
         includedProjects: z.array(z.unknown()).describe(
           "Optional. Names of the projects in scope. Format: `projects/{project_number}`",
         ).optional(),
-      }).describe(
-        "Selector containing Cloud Resource Manager resource hierarchy nodes.",
-      ).optional(),
+      }).describe("Selector for selecting resource hierarchy.").optional(),
     })).describe(
       "Optional. Selectors of the orchestration scope. There is a logical AND between each selector defined. When there is no explicit `ResourceHierarchySelector` selector specified, the scope is by default bounded to the parent of the policy orchestrator resource.",
     ).optional(),
   }).describe(
-    "Defines a set of selectors which drive which resources are in scope of policy orchestration.",
+    "Optional. Defines scope for the orchestration, in context of the enclosing PolicyOrchestrator resource. Scope is expanded into a list of pairs, in which the rollout action will take place. Expansion starts with a Folder resource parenting the PolicyOrchestrator resource: - All the descendant projects are listed. - List of project is cross joined with a list of all available zones. - Resulting list of pairs is filtered according to the selectors.",
   ).optional(),
-  orchestrationState: z.object({
-    currentIterationState: z.object({
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.record(z.string(), z.unknown())).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
-      failedActions: z.string().describe(
-        "Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.",
-      ).optional(),
-      finishTime: z.string().describe(
-        "Output only. Finish time of the wave iteration.",
-      ).optional(),
-      iterationId: z.string().describe(
-        "Output only. Unique identifier of the iteration.",
-      ).optional(),
-      performedActions: z.string().describe(
-        "Output only. Overall number of actions done by the orchestrator so far.",
-      ).optional(),
-      progress: z.number().describe(
-        "Output only. An estimated percentage of the progress. Number between 0 and 100.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. Start time of the wave iteration.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "PROCESSING",
-        "COMPLETED",
-        "FAILED",
-        "CANCELLED",
-        "UNKNOWN",
-      ]).describe("Output only. State of the iteration.").optional(),
-    }).describe(
-      "Describes the state of a single iteration of the orchestrator.",
-    ).optional(),
-    previousIterationState: z.object({
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.record(z.string(), z.unknown())).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
-      failedActions: z.string().describe(
-        "Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.",
-      ).optional(),
-      finishTime: z.string().describe(
-        "Output only. Finish time of the wave iteration.",
-      ).optional(),
-      iterationId: z.string().describe(
-        "Output only. Unique identifier of the iteration.",
-      ).optional(),
-      performedActions: z.string().describe(
-        "Output only. Overall number of actions done by the orchestrator so far.",
-      ).optional(),
-      progress: z.number().describe(
-        "Output only. An estimated percentage of the progress. Number between 0 and 100.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. Start time of the wave iteration.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "PROCESSING",
-        "COMPLETED",
-        "FAILED",
-        "CANCELLED",
-        "UNKNOWN",
-      ]).describe("Output only. State of the iteration.").optional(),
-    }).describe(
-      "Describes the state of a single iteration of the orchestrator.",
-    ).optional(),
-  }).describe("Describes the state of the orchestration process.").optional(),
   state: z.string().describe(
     "Optional. State of the orchestrator. Can be updated to change orchestrator behaviour. Allowed values: - `ACTIVE` - orchestrator is actively looking for actions to be taken. - `STOPPED` - orchestrator won't make any changes. Note: There might be more states added in the future. We use string here instead of an enum, to avoid the need of propagating new states to all the client code.",
   ).optional(),
@@ -782,7 +598,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud OS Config Global.PolicyOrchestrators. Registered at `@swamp/gcp/osconfig/global-policyorchestrators`. */
 export const model = {
   type: "@swamp/gcp/osconfig/global-policyorchestrators",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -919,6 +735,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: orchestrationState",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { orchestrationState: _orchestrationState, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -953,9 +777,6 @@ export const model = {
         }
         if (g["orchestrationScope"] !== undefined) {
           body["orchestrationScope"] = g["orchestrationScope"];
-        }
-        if (g["orchestrationState"] !== undefined) {
-          body["orchestrationState"] = g["orchestrationState"];
         }
         if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["policyOrchestratorId"] !== undefined) {
@@ -1078,9 +899,6 @@ export const model = {
         }
         if (g["orchestrationScope"] !== undefined) {
           body["orchestrationScope"] = g["orchestrationScope"];
-        }
-        if (g["orchestrationState"] !== undefined) {
-          body["orchestrationState"] = g["orchestrationState"];
         }
         if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);

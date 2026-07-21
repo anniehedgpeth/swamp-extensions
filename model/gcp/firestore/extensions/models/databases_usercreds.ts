@@ -134,7 +134,7 @@ const GlobalArgsSchema = z.object({
     principal: z.string().describe(
       "Output only. Principal identifier string. See: https://cloud.google.com/iam/docs/principal-identifiers",
     ).optional(),
-  }).describe("Describes a Resource Identity principal.").optional(),
+  }).describe("Resource Identity descriptor.").optional(),
   userCredsId: z.string().describe(
     "Required. The ID to use for the user creds, which will become the final component of the user creds's resource name. This value should be 4-63 characters. Valid characters are /a-z-/ with first character a letter and the last a letter or a number. Must not be UUID-like /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/.",
   ).optional(),
@@ -171,7 +171,7 @@ const InputsSchema = z.object({
     principal: z.string().describe(
       "Output only. Principal identifier string. See: https://cloud.google.com/iam/docs/principal-identifiers",
     ).optional(),
-  }).describe("Describes a Resource Identity principal.").optional(),
+  }).describe("Resource Identity descriptor.").optional(),
   userCredsId: z.string().describe(
     "Required. The ID to use for the user creds, which will become the final component of the user creds's resource name. This value should be 4-63 characters. Valid characters are /a-z-/ with first character a letter and the last a letter or a number. Must not be UUID-like /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/.",
   ).optional(),
@@ -206,7 +206,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.UserCreds. Registered at `@swamp/gcp/firestore/databases-usercreds`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-usercreds",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -315,6 +315,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

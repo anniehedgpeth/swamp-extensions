@@ -142,8 +142,9 @@ const GlobalArgsSchema = z.object({
         .optional(),
       profileImageUrl: z.string().describe("The channels's avatar URL.")
         .optional(),
-    }).optional(),
-  }).optional(),
+    }).describe("Details about the moderator.").optional(),
+  }).describe("The snippet object contains basic details about the moderator.")
+    .optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response returns. Set the parameter value to snippet.",
   ),
@@ -189,8 +190,9 @@ const InputsSchema = z.object({
         .optional(),
       profileImageUrl: z.string().describe("The channels's avatar URL.")
         .optional(),
-    }).optional(),
-  }).optional(),
+    }).describe("Details about the moderator.").optional(),
+  }).describe("The snippet object contains basic details about the moderator.")
+    .optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response returns. Set the parameter value to snippet.",
   ).optional(),
@@ -222,7 +224,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveChatModerators. Registered at `@swamp/gcp/youtube/livechatmoderators`. */
 export const model = {
   type: "@swamp/gcp/youtube/livechatmoderators",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -314,6 +316,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -346,15 +353,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "liveChatId": String(g["liveChatId"] ?? ""),
-              "part": String(g["part"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

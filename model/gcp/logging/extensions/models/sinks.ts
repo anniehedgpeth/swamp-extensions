@@ -166,9 +166,8 @@ const GlobalArgsSchema = z.object({
     usesTimestampColumnPartitioning: z.boolean().describe(
       "Output only. True if new timestamp column based partitioning is in use, false if legacy ingress-time partitioning is in use.All new sinks will have this field set true and will use timestamp column based partitioning. If use_partitioned_tables is false, this value has no meaning and will be false. Legacy sinks using partitioned tables will have this field set to false.",
     ).optional(),
-  }).describe(
-    "Options that change functionality of a sink exporting data to BigQuery.",
-  ).optional(),
+  }).describe("Optional. Options that affect sinks exporting data to BigQuery.")
+    .optional(),
   description: z.string().describe(
     "Optional. A description of this sink.The maximum length of the description is 8000 characters.",
   ).optional(),
@@ -264,9 +263,8 @@ const InputsSchema = z.object({
     usesTimestampColumnPartitioning: z.boolean().describe(
       "Output only. True if new timestamp column based partitioning is in use, false if legacy ingress-time partitioning is in use.All new sinks will have this field set true and will use timestamp column based partitioning. If use_partitioned_tables is false, this value has no meaning and will be false. Legacy sinks using partitioned tables will have this field set to false.",
     ).optional(),
-  }).describe(
-    "Options that change functionality of a sink exporting data to BigQuery.",
-  ).optional(),
+  }).describe("Optional. Options that affect sinks exporting data to BigQuery.")
+    .optional(),
   description: z.string().describe(
     "Optional. A description of this sink.The maximum length of the description is 8000 characters.",
   ).optional(),
@@ -344,7 +342,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Logging Sinks. Registered at `@swamp/gcp/logging/sinks`. */
 export const model = {
   type: "@swamp/gcp/logging/sinks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -443,6 +441,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

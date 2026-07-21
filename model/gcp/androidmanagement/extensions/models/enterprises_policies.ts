@@ -205,7 +205,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     packageName: z.string().describe("The package name of the VPN app.")
       .optional(),
-  }).describe("Configuration for an always-on VPN connection.").optional(),
+  }).describe(
+    "Configuration for an always-on VPN connection. Use with vpn_config_disabled to prevent modification of this setting.",
+  ).optional(),
   appAutoUpdatePolicy: z.enum([
     "APP_AUTO_UPDATE_POLICY_UNSPECIFIED",
     "CHOICE_TO_THE_USER",
@@ -259,7 +261,9 @@ const GlobalArgsSchema = z.object({
         "ALLOW_UNINSTALL_BY_USER",
       ]).describe("Optional. User uninstall settings of the custom app.")
         .optional(),
-    }).describe("Configuration for a custom app.").optional(),
+    }).describe(
+      "Optional. Configuration for this custom app.install_type must be set to CUSTOM for this to be set.",
+    ).optional(),
     defaultPermissionPolicy: z.enum([
       "PERMISSION_POLICY_UNSPECIFIED",
       "PROMPT",
@@ -295,7 +299,7 @@ const GlobalArgsSchema = z.object({
         "Hex-encoded SHA-256 hashes of the signing key certificates of the extension app. Only hexadecimal string representations of 64 characters are valid.The signing key certificate fingerprints are always obtained from the Play Store and this field is used to provide additional signing key certificate fingerprints. However, if the application is not available on the Play Store, this field needs to be set. A NonComplianceDetail with INVALID_VALUE is reported if this field is not set when the application is not available on the Play Store.The signing key certificate fingerprint of the extension app on the device must match one of the signing key certificate fingerprints obtained from the Play Store or the ones provided in this field for the app to be able to communicate with Android Device Policy.In production use cases, it is recommended to leave this empty.",
       ).optional(),
     }).describe(
-      "Configuration to enable an app as an extension app, with the capability of interacting with Android Device Policy offline. For Android versions 11 and above, extension apps are exempt from battery restrictions so will not be placed into the restricted App Standby Bucket (https://developer.android.com/topic/performance/appstandby#restricted-bucket). Extensions apps are also protected against users clearing their data or force-closing the application, although admins can continue to use the clear app data command on extension apps if needed for Android 11 and above.",
+      "Configuration to enable this app as an extension app, with the capability of interacting with Android Device Policy offline.This field can be set for at most one app. If there is any app with COMPANION_APP role, this field cannot be set.The signing key certificate fingerprint of the app on the device must match one of the entries in ApplicationPolicy.signingKeyCerts or ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) or the signing key certificate fingerprints obtained from Play Store for the app to be able to communicate with Android Device Policy. If the app is not on Play Store and if ApplicationPolicy.signingKeyCerts and ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) are not set, a NonComplianceDetail with INVALID_VALUE is reported.",
     ).optional(),
     installConstraint: z.array(z.object({
       chargingConstraint: z.enum([
@@ -343,7 +347,7 @@ const GlobalArgsSchema = z.object({
         'The ID of the managed configurations template. This value must be a numeric string containing exactly one or more digits (for example, "123456").',
       ).optional(),
     }).describe(
-      "The managed configurations template for the app, saved from the managed configurations iframe.",
+      "The managed configurations template for the app, saved from the managed configurations iframe. This field is ignored if managed_configuration is set.",
     ).optional(),
     minimumVersionCode: z.number().int().describe(
       "The minimum version of the app that runs on the device. If set, the device attempts to update the app to at least this version code. If the app is not up-to-date, the device will contain a NonComplianceDetail with non_compliance_reason set to APP_NOT_UPDATED. The app must already be published to Google Play with a version code greater than or equal to this value. At most 20 apps may specify a minimum version code per policy.",
@@ -500,7 +504,9 @@ const GlobalArgsSchema = z.object({
     exemptionsToShowWorkContactsInPersonalProfile: z.object({
       packageNames: z.array(z.string()).describe("A list of package names.")
         .optional(),
-    }).describe("A list of package names.").optional(),
+    }).describe(
+      "List of apps which are excluded from the ShowWorkContactsInPersonalProfile setting. For this to be set, ShowWorkContactsInPersonalProfile must be set to one of the following values: SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED. In this case, these exemptions act as a blocklist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED. In this case, these exemptions act as an allowlist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM. In this case, these exemptions act as an allowlist, in addition to the already allowlisted system apps.Supported on Android 14 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 14.",
+    ).optional(),
     showWorkContactsInPersonalProfile: z.enum([
       "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_UNSPECIFIED",
       "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED",
@@ -516,9 +522,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Specifies the default behaviour for work profile widgets. If the policy does not specify work_profile_widgets for a specific application, it will behave according to the value specified here.",
     ).optional(),
-  }).describe(
-    "Controls the data from the work profile that can be accessed from the personal profile and vice versa. A NonComplianceDetail with MANAGEMENT_MODE is reported if the device does not have a work profile.",
-  ).optional(),
+  }).describe("Cross-profile policies applied on the device.").optional(),
   dataRoamingDisabled: z.boolean().describe(
     "Whether roaming data services are disabled.",
   ).optional(),
@@ -661,7 +665,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Whether override APNs are disabled or enabled. See DevicePolicyManager.setOverrideApnsEnabled (https://developer.android.com/reference/android/app/admin/DevicePolicyManager#setOverrideApnsEnabled) for more details.",
       ).optional(),
     }).describe(
-      "Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.",
+      "Optional. Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.",
     ).optional(),
     bluetoothSharing: z.enum([
       "BLUETOOTH_SHARING_UNSPECIFIED",
@@ -718,7 +722,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. Preferential network service configurations which enables having multiple enterprise slices. There must not be multiple configurations with the same preferentialNetworkId. If a configuration is not referenced by any application by setting ApplicationPolicy.preferentialNetworkId or by setting defaultPreferentialNetworkId, it will be ignored. For devices on 4G networks, enterprise APN needs to be configured additionally to set up data call for preferential network service. These APNs can be added using apnPolicy.",
       ).optional(),
-    }).describe("Preferential network service settings.").optional(),
+    }).describe(
+      "Optional. Preferential network service configuration. Setting this field will override preferentialNetworkService. This can be set on both work profiles and fully managed devices on Android 13 and above. See 5G network slicing (https://developers.google.com/android/management/5g-network-slicing) guide for more details.",
+    ).optional(),
     privateDnsSettings: z.object({
       privateDnsHost: z.string().describe(
         "Optional. The hostname of the DNS server. This must be set if and only if private_dns_mode is set to PRIVATE_DNS_SPECIFIED_HOST. Supported on Android 10 and above on fully managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported on other management modes. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with PENDING is reported if the device is not connected to a network. A NonComplianceDetail with nonComplianceReason INVALID_VALUE and specificNonComplianceReason PRIVATE_DNS_HOST_NOT_SERVING is reported if the specified host is not a DNS server or not supported on Android. A NonComplianceDetail with INVALID_VALUE is reported if applying this setting fails for any other reason.",
@@ -731,7 +737,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. The configuration mode for device's global private DNS settings. If this is set to PRIVATE_DNS_SPECIFIED_HOST, then private_dns_host must be set.",
       ).optional(),
-    }).describe("Controls the device's private DNS settings.").optional(),
+    }).describe("Optional. The global private DNS settings.").optional(),
     tetheringSettings: z.enum([
       "TETHERING_SETTINGS_UNSPECIFIED",
       "ALLOW_ALL_TETHERING",
@@ -769,7 +775,7 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Wi-Fi roaming settings. SSIDs provided in this list must be unique, the policy will be rejected otherwise.",
       ).optional(),
-    }).describe("Wi-Fi roaming policy.").optional(),
+    }).describe("Optional. Wi-Fi roaming policy.").optional(),
     wifiSsidPolicy: z.object({
       wifiSsidPolicyType: z.enum([
         "WIFI_SSID_POLICY_TYPE_UNSPECIFIED",
@@ -796,9 +802,8 @@ const GlobalArgsSchema = z.object({
     localizedMessages: z.record(z.string(), z.string()).describe(
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
-  }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
-  ).optional(),
+  }).describe("The device owner information to be shown on the lock screen.")
+    .optional(),
   deviceRadioState: z.object({
     airplaneModeState: z.enum([
       "AIRPLANE_MODE_STATE_UNSPECIFIED",
@@ -845,7 +850,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Controls current state of Wi-Fi and if user can change its state.",
     ).optional(),
-  }).describe("Controls for device radio settings.").optional(),
+  }).describe(
+    "Covers controls for radio state such as Wi-Fi, bluetooth, and more.",
+  ).optional(),
   displaySettings: z.object({
     screenBrightnessSettings: z.object({
       screenBrightness: z.number().int().describe(
@@ -857,7 +864,8 @@ const GlobalArgsSchema = z.object({
         "BRIGHTNESS_AUTOMATIC",
         "BRIGHTNESS_FIXED",
       ]).describe("Optional. Controls the screen brightness mode.").optional(),
-    }).describe("Controls for the screen brightness settings.").optional(),
+    }).describe("Optional. Controls the screen brightness settings.")
+      .optional(),
     screenTimeoutSettings: z.object({
       screenTimeout: z.string().describe(
         "Optional. Controls the screen timeout duration. The screen timeout duration must be greater than 0, otherwise it is rejected. Additionally, it should not be greater than maximumTimeToLock, otherwise the screen timeout is set to maximumTimeToLock and a NonComplianceDetail with INVALID_VALUE reason and SCREEN_TIMEOUT_GREATER_THAN_MAXIMUM_TIME_TO_LOCK specific reason is reported. If the screen timeout is less than a certain lower bound, it is set to the lower bound. The lower bound may vary across devices. If this is set, screenTimeoutMode must be SCREEN_TIMEOUT_ENFORCED. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.",
@@ -869,8 +877,8 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Controls whether the user is allowed to configure the screen timeout.",
       ).optional(),
-    }).describe("Controls the screen timeout settings.").optional(),
-  }).describe("Controls for the display settings.").optional(),
+    }).describe("Optional. Controls the screen timeout settings.").optional(),
+  }).describe("Optional. Controls for the display settings.").optional(),
   encryptionPolicy: z.enum([
     "ENCRYPTION_POLICY_UNSPECIFIED",
     "ENABLED_WITHOUT_PASSWORD",
@@ -975,7 +983,7 @@ const GlobalArgsSchema = z.object({
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
   }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
+    "A message displayed to the user in the device administators settings screen.",
   ).optional(),
   maximumTimeToLock: z.string().describe(
     "Maximum time in milliseconds for user activity until the device locks. A value of 0 means there is no restriction.",
@@ -1164,8 +1172,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Controls whether a unified lock is allowed for the device and the work profile, on devices running Android 9 and above with a work profile. This can be set only if password_scope is set to SCOPE_PROFILE, the policy will be rejected otherwise. If user has not set a separate work lock and this field is set to REQUIRE_SEPARATE_WORK_LOCK, a NonComplianceDetail is reported with nonComplianceReason set to USER_ACTION.",
     ).optional(),
-  }).describe("Requirements for the password used to unlock a device.")
-    .optional(),
+  }).describe(
+    "Password requirements. The field password_requirements.require_password_unlock must not be set. DEPRECATED - Use passwordPolicies.Note:Complexity-based values of PasswordQuality, that is, COMPLEXITY_LOW, COMPLEXITY_MEDIUM, and COMPLEXITY_HIGH, cannot be used here. unified_lock_settings cannot be used here.",
+  ).optional(),
   permissionGrants: z.array(z.object({
     permission: z.string().describe(
       "The Android permission or group, e.g. android.permission.READ_CALENDAR or android.permission_group.CALENDAR.",
@@ -1178,11 +1187,15 @@ const GlobalArgsSchema = z.object({
   permittedAccessibilityServices: z.object({
     packageNames: z.array(z.string()).describe("A list of package names.")
       .optional(),
-  }).describe("A list of package names.").optional(),
+  }).describe(
+    "Specifies permitted accessibility services. If the field is not set, any accessibility service can be used. If the field is set, only the accessibility services in this list and the system's built-in accessibility service can be used. In particular, if the field is set to empty, only the system's built-in accessibility servicess can be used. This can be set on fully managed devices and on work profiles. When applied to a work profile, this affects both the personal profile and the work profile.",
+  ).optional(),
   permittedInputMethods: z.object({
     packageNames: z.array(z.string()).describe("A list of package names.")
       .optional(),
-  }).describe("A list of package names.").optional(),
+  }).describe(
+    "If present, only the input methods provided by packages in this list are permitted. If this field is present, but the list is empty, then only system input methods are permitted.",
+  ).optional(),
   persistentPreferredActivities: z.array(z.object({
     actions: z.array(z.string()).describe(
       "The intent actions to match in the filter. If any actions are included in the filter, then an intent's action must be one of those values for it to match. If no actions are included, the intent action is ignored.",
@@ -1236,9 +1249,8 @@ const GlobalArgsSchema = z.object({
     screenCaptureDisabled: z.boolean().describe(
       "If true, screen capture is disabled for all users. This also blocks Circle to Search (https://support.google.com/android/answer/14508957).",
     ).optional(),
-  }).describe(
-    "Policies controlling personal usage on a company-owned device with a work profile.",
-  ).optional(),
+  }).describe("Policies managing personal usage on a company-owned device.")
+    .optional(),
   playStoreMode: z.enum([
     "PLAY_STORE_MODE_UNSPECIFIED",
     "WHITELIST",
@@ -1259,7 +1271,7 @@ const GlobalArgsSchema = z.object({
         "Specifies the scope of this BlockAction. Only applicable to devices that are company-owned.",
       ).optional(),
     }).describe(
-      "An action to block access to apps and data on a fully managed device or in a work profile. This action also triggers a device or work profile to displays a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.",
+      "An action to block access to apps and data on a company owned device or in a work profile. This action also triggers a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.",
     ).optional(),
     settingName: z.string().describe(
       "The top-level policy to enforce. For example, applications or passwordPolicies.",
@@ -1304,7 +1316,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     port: z.number().int().describe("The port of the direct proxy.").optional(),
   }).describe(
-    "Configuration info for an HTTP proxy. For a direct proxy, set the host, port, and excluded_hosts fields. For a PAC script proxy, set the pac_uri field.",
+    "The network-independent global HTTP proxy. Typically proxies should be configured per-network in open_network_configuration. However for unusual configurations like general internal filtering a global HTTP proxy may be useful. If the proxy is not accessible, network access may break. The global proxy is only a recommendation and some apps may ignore it.",
   ).optional(),
   removeUserDisabled: z.boolean().describe(
     "Whether removing other users is disabled.",
@@ -1326,13 +1338,13 @@ const GlobalArgsSchema = z.object({
       localizedMessages: z.record(z.string(), z.string()).describe(
         "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
       ).optional(),
-    }).describe(
-      "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
-    ).optional(),
+    }).describe("Description of this action.").optional(),
     launchApp: z.object({
       packageName: z.string().describe("Package name of app to be launched")
         .optional(),
-    }).describe("An action to launch an app.").optional(),
+    }).describe(
+      "An action to launch an app. The app will be launched with an intent containing an extra with key com.google.android.apps.work.clouddpc.EXTRA_LAUNCHED_AS_SETUP_ACTION set to the boolean value true to indicate that this is a setup action flow. If SetupAction references an app, the corresponding installType in the application policy must be set as REQUIRED_FOR_SETUP or said setup will fail.",
+    ).optional(),
     title: z.object({
       defaultMessage: z.string().describe(
         "The default message displayed if no localized message is specified or the user's locale doesn't match with any of the localized messages. A default message must be provided if any localized messages are provided.",
@@ -1340,9 +1352,7 @@ const GlobalArgsSchema = z.object({
       localizedMessages: z.record(z.string(), z.string()).describe(
         "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
       ).optional(),
-    }).describe(
-      "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
-    ).optional(),
+    }).describe("Title of this action.").optional(),
   })).describe(
     "Action to take during the setup process. At most one action may be specified.",
   ).optional(),
@@ -1357,7 +1367,7 @@ const GlobalArgsSchema = z.object({
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
   }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
+    "A message displayed to the user in the settings screen wherever functionality has been disabled by the admin. If the message is longer than 200 characters it may be truncated.",
   ).optional(),
   skipFirstUseHintsEnabled: z.boolean().describe(
     "Flag to skip hints on the first use. Enterprise admin can enable the system recommendation for apps to skip their user tutorial and other introductory hints on first start-up.",
@@ -1370,8 +1380,9 @@ const GlobalArgsSchema = z.object({
       includeRemovedApps: z.boolean().describe(
         "Whether removed apps are included in application reports.",
       ).optional(),
-    }).describe("Settings controlling the behavior of application reports.")
-      .optional(),
+    }).describe(
+      "Application reporting settings. Only applicable if application_reports_enabled is true.",
+    ).optional(),
     applicationReportsEnabled: z.boolean().describe(
       "Whether app reports are enabled.",
     ).optional(),
@@ -1405,8 +1416,7 @@ const GlobalArgsSchema = z.object({
     systemPropertiesEnabled: z.boolean().describe(
       "Whether system properties reporting is enabled.",
     ).optional(),
-  }).describe("Settings controlling the behavior of status reports.")
-    .optional(),
+  }).describe("Status reporting settings").optional(),
   stayOnPluggedModes: z.array(
     z.enum(["BATTERY_PLUGGED_MODE_UNSPECIFIED", "AC", "USB", "WIRELESS"]),
   ).describe(
@@ -1428,7 +1438,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp",
+        'The end date (inclusive) of the freeze period. Must be no later than 90 days from the start date. If the end date is earlier than the start date, the freeze period is considered wrapping year-end. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.',
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -1441,7 +1451,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp",
+        'The start date (inclusive) of the freeze period. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.',
       ).optional(),
     })).describe(
       "An annually repeating time period in which over-the-air (OTA) system updates are postponed to freeze the OS version running on a device. To prevent freezing the device indefinitely, each freeze period must be separated by at least 60 days.",
@@ -1456,7 +1466,7 @@ const GlobalArgsSchema = z.object({
       "POSTPONE",
     ]).describe("The type of system update to configure.").optional(),
   }).describe(
-    "Configuration for managing system updatesNote: Google Play system updates (https://source.android.com/docs/core/ota/modular-system) (also called Mainline updates) are automatically downloaded but require a device reboot to be installed. Refer to the mainline section in Manage system updates (https://developer.android.com/work/dpc/system-updates#mainline) for further details.",
+    "The system update policy, which controls how OS updates are applied. If the update type is WINDOWED, the update window will automatically apply to Play app updates as well.Note: Google Play system updates (https://source.android.com/docs/core/ota/modular-system) (also called Mainline updates) are automatically downloaded and require a device reboot to be installed. Refer to the mainline section in Manage system updates (https://developer.android.com/work/dpc/system-updates#mainline) for further details.",
   ).optional(),
   uninstallAppsDisabled: z.boolean().describe(
     "Whether user uninstallation of applications is disabled. This prevents apps from being uninstalled, even those removed using applications",
@@ -1480,9 +1490,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "Specifies which of the enabled log types can be uploaded over mobile data. By default logs are queued for upload when the device connects to WiFi.",
     ).optional(),
-  }).describe(
-    "Controls types of device activity logs collected from the device and reported via Pub/Sub notification (https://developers.google.com/android/management/notifications).",
-  ).optional(),
+  }).describe("Configuration of device activity logging.").optional(),
   version: z.string().describe(
     "The version of the policy. This is a read-only field. The version is incremented each time the policy is updated.",
   ).optional(),
@@ -1504,7 +1512,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The specific google work account email address to be added. This field is only relevant if authenticationType is GOOGLE_AUTHENTICATED. This must be an enterprise account and not a consumer account. Once set and a Google authenticated account is added to the device, changing this field will have no effect, and thus recommended to be set only once.",
     ).optional(),
   }).describe(
-    "Controls the work account setup configuration, such as details of whether a Google authenticated account is required.",
+    "Optional. Controls the work account setup configuration, such as details of whether a Google authenticated account is required.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1983,7 +1991,9 @@ const InputsSchema = z.object({
     ).optional(),
     packageName: z.string().describe("The package name of the VPN app.")
       .optional(),
-  }).describe("Configuration for an always-on VPN connection.").optional(),
+  }).describe(
+    "Configuration for an always-on VPN connection. Use with vpn_config_disabled to prevent modification of this setting.",
+  ).optional(),
   appAutoUpdatePolicy: z.enum([
     "APP_AUTO_UPDATE_POLICY_UNSPECIFIED",
     "CHOICE_TO_THE_USER",
@@ -2037,7 +2047,9 @@ const InputsSchema = z.object({
         "ALLOW_UNINSTALL_BY_USER",
       ]).describe("Optional. User uninstall settings of the custom app.")
         .optional(),
-    }).describe("Configuration for a custom app.").optional(),
+    }).describe(
+      "Optional. Configuration for this custom app.install_type must be set to CUSTOM for this to be set.",
+    ).optional(),
     defaultPermissionPolicy: z.enum([
       "PERMISSION_POLICY_UNSPECIFIED",
       "PROMPT",
@@ -2073,7 +2085,7 @@ const InputsSchema = z.object({
         "Hex-encoded SHA-256 hashes of the signing key certificates of the extension app. Only hexadecimal string representations of 64 characters are valid.The signing key certificate fingerprints are always obtained from the Play Store and this field is used to provide additional signing key certificate fingerprints. However, if the application is not available on the Play Store, this field needs to be set. A NonComplianceDetail with INVALID_VALUE is reported if this field is not set when the application is not available on the Play Store.The signing key certificate fingerprint of the extension app on the device must match one of the signing key certificate fingerprints obtained from the Play Store or the ones provided in this field for the app to be able to communicate with Android Device Policy.In production use cases, it is recommended to leave this empty.",
       ).optional(),
     }).describe(
-      "Configuration to enable an app as an extension app, with the capability of interacting with Android Device Policy offline. For Android versions 11 and above, extension apps are exempt from battery restrictions so will not be placed into the restricted App Standby Bucket (https://developer.android.com/topic/performance/appstandby#restricted-bucket). Extensions apps are also protected against users clearing their data or force-closing the application, although admins can continue to use the clear app data command on extension apps if needed for Android 11 and above.",
+      "Configuration to enable this app as an extension app, with the capability of interacting with Android Device Policy offline.This field can be set for at most one app. If there is any app with COMPANION_APP role, this field cannot be set.The signing key certificate fingerprint of the app on the device must match one of the entries in ApplicationPolicy.signingKeyCerts or ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) or the signing key certificate fingerprints obtained from Play Store for the app to be able to communicate with Android Device Policy. If the app is not on Play Store and if ApplicationPolicy.signingKeyCerts and ExtensionConfig.signingKeyFingerprintsSha256 (deprecated) are not set, a NonComplianceDetail with INVALID_VALUE is reported.",
     ).optional(),
     installConstraint: z.array(z.object({
       chargingConstraint: z.enum([
@@ -2121,7 +2133,7 @@ const InputsSchema = z.object({
         'The ID of the managed configurations template. This value must be a numeric string containing exactly one or more digits (for example, "123456").',
       ).optional(),
     }).describe(
-      "The managed configurations template for the app, saved from the managed configurations iframe.",
+      "The managed configurations template for the app, saved from the managed configurations iframe. This field is ignored if managed_configuration is set.",
     ).optional(),
     minimumVersionCode: z.number().int().describe(
       "The minimum version of the app that runs on the device. If set, the device attempts to update the app to at least this version code. If the app is not up-to-date, the device will contain a NonComplianceDetail with non_compliance_reason set to APP_NOT_UPDATED. The app must already be published to Google Play with a version code greater than or equal to this value. At most 20 apps may specify a minimum version code per policy.",
@@ -2278,7 +2290,9 @@ const InputsSchema = z.object({
     exemptionsToShowWorkContactsInPersonalProfile: z.object({
       packageNames: z.array(z.string()).describe("A list of package names.")
         .optional(),
-    }).describe("A list of package names.").optional(),
+    }).describe(
+      "List of apps which are excluded from the ShowWorkContactsInPersonalProfile setting. For this to be set, ShowWorkContactsInPersonalProfile must be set to one of the following values: SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_ALLOWED. In this case, these exemptions act as a blocklist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED. In this case, these exemptions act as an allowlist. SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED_EXCEPT_SYSTEM. In this case, these exemptions act as an allowlist, in addition to the already allowlisted system apps.Supported on Android 14 and above. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 14.",
+    ).optional(),
     showWorkContactsInPersonalProfile: z.enum([
       "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_UNSPECIFIED",
       "SHOW_WORK_CONTACTS_IN_PERSONAL_PROFILE_DISALLOWED",
@@ -2294,9 +2308,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Specifies the default behaviour for work profile widgets. If the policy does not specify work_profile_widgets for a specific application, it will behave according to the value specified here.",
     ).optional(),
-  }).describe(
-    "Controls the data from the work profile that can be accessed from the personal profile and vice versa. A NonComplianceDetail with MANAGEMENT_MODE is reported if the device does not have a work profile.",
-  ).optional(),
+  }).describe("Cross-profile policies applied on the device.").optional(),
   dataRoamingDisabled: z.boolean().describe(
     "Whether roaming data services are disabled.",
   ).optional(),
@@ -2439,7 +2451,7 @@ const InputsSchema = z.object({
         "Optional. Whether override APNs are disabled or enabled. See DevicePolicyManager.setOverrideApnsEnabled (https://developer.android.com/reference/android/app/admin/DevicePolicyManager#setOverrideApnsEnabled) for more details.",
       ).optional(),
     }).describe(
-      "Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.",
+      "Optional. Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.",
     ).optional(),
     bluetoothSharing: z.enum([
       "BLUETOOTH_SHARING_UNSPECIFIED",
@@ -2496,7 +2508,9 @@ const InputsSchema = z.object({
       })).describe(
         "Required. Preferential network service configurations which enables having multiple enterprise slices. There must not be multiple configurations with the same preferentialNetworkId. If a configuration is not referenced by any application by setting ApplicationPolicy.preferentialNetworkId or by setting defaultPreferentialNetworkId, it will be ignored. For devices on 4G networks, enterprise APN needs to be configured additionally to set up data call for preferential network service. These APNs can be added using apnPolicy.",
       ).optional(),
-    }).describe("Preferential network service settings.").optional(),
+    }).describe(
+      "Optional. Preferential network service configuration. Setting this field will override preferentialNetworkService. This can be set on both work profiles and fully managed devices on Android 13 and above. See 5G network slicing (https://developers.google.com/android/management/5g-network-slicing) guide for more details.",
+    ).optional(),
     privateDnsSettings: z.object({
       privateDnsHost: z.string().describe(
         "Optional. The hostname of the DNS server. This must be set if and only if private_dns_mode is set to PRIVATE_DNS_SPECIFIED_HOST. Supported on Android 10 and above on fully managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported on other management modes. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with PENDING is reported if the device is not connected to a network. A NonComplianceDetail with nonComplianceReason INVALID_VALUE and specificNonComplianceReason PRIVATE_DNS_HOST_NOT_SERVING is reported if the specified host is not a DNS server or not supported on Android. A NonComplianceDetail with INVALID_VALUE is reported if applying this setting fails for any other reason.",
@@ -2509,7 +2523,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. The configuration mode for device's global private DNS settings. If this is set to PRIVATE_DNS_SPECIFIED_HOST, then private_dns_host must be set.",
       ).optional(),
-    }).describe("Controls the device's private DNS settings.").optional(),
+    }).describe("Optional. The global private DNS settings.").optional(),
     tetheringSettings: z.enum([
       "TETHERING_SETTINGS_UNSPECIFIED",
       "ALLOW_ALL_TETHERING",
@@ -2547,7 +2561,7 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Wi-Fi roaming settings. SSIDs provided in this list must be unique, the policy will be rejected otherwise.",
       ).optional(),
-    }).describe("Wi-Fi roaming policy.").optional(),
+    }).describe("Optional. Wi-Fi roaming policy.").optional(),
     wifiSsidPolicy: z.object({
       wifiSsidPolicyType: z.enum([
         "WIFI_SSID_POLICY_TYPE_UNSPECIFIED",
@@ -2574,9 +2588,8 @@ const InputsSchema = z.object({
     localizedMessages: z.record(z.string(), z.string()).describe(
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
-  }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
-  ).optional(),
+  }).describe("The device owner information to be shown on the lock screen.")
+    .optional(),
   deviceRadioState: z.object({
     airplaneModeState: z.enum([
       "AIRPLANE_MODE_STATE_UNSPECIFIED",
@@ -2623,7 +2636,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Controls current state of Wi-Fi and if user can change its state.",
     ).optional(),
-  }).describe("Controls for device radio settings.").optional(),
+  }).describe(
+    "Covers controls for radio state such as Wi-Fi, bluetooth, and more.",
+  ).optional(),
   displaySettings: z.object({
     screenBrightnessSettings: z.object({
       screenBrightness: z.number().int().describe(
@@ -2635,7 +2650,8 @@ const InputsSchema = z.object({
         "BRIGHTNESS_AUTOMATIC",
         "BRIGHTNESS_FIXED",
       ]).describe("Optional. Controls the screen brightness mode.").optional(),
-    }).describe("Controls for the screen brightness settings.").optional(),
+    }).describe("Optional. Controls the screen brightness settings.")
+      .optional(),
     screenTimeoutSettings: z.object({
       screenTimeout: z.string().describe(
         "Optional. Controls the screen timeout duration. The screen timeout duration must be greater than 0, otherwise it is rejected. Additionally, it should not be greater than maximumTimeToLock, otherwise the screen timeout is set to maximumTimeToLock and a NonComplianceDetail with INVALID_VALUE reason and SCREEN_TIMEOUT_GREATER_THAN_MAXIMUM_TIME_TO_LOCK specific reason is reported. If the screen timeout is less than a certain lower bound, it is set to the lower bound. The lower bound may vary across devices. If this is set, screenTimeoutMode must be SCREEN_TIMEOUT_ENFORCED. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.",
@@ -2647,8 +2663,8 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Controls whether the user is allowed to configure the screen timeout.",
       ).optional(),
-    }).describe("Controls the screen timeout settings.").optional(),
-  }).describe("Controls for the display settings.").optional(),
+    }).describe("Optional. Controls the screen timeout settings.").optional(),
+  }).describe("Optional. Controls for the display settings.").optional(),
   encryptionPolicy: z.enum([
     "ENCRYPTION_POLICY_UNSPECIFIED",
     "ENABLED_WITHOUT_PASSWORD",
@@ -2753,7 +2769,7 @@ const InputsSchema = z.object({
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
   }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
+    "A message displayed to the user in the device administators settings screen.",
   ).optional(),
   maximumTimeToLock: z.string().describe(
     "Maximum time in milliseconds for user activity until the device locks. A value of 0 means there is no restriction.",
@@ -2942,8 +2958,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Controls whether a unified lock is allowed for the device and the work profile, on devices running Android 9 and above with a work profile. This can be set only if password_scope is set to SCOPE_PROFILE, the policy will be rejected otherwise. If user has not set a separate work lock and this field is set to REQUIRE_SEPARATE_WORK_LOCK, a NonComplianceDetail is reported with nonComplianceReason set to USER_ACTION.",
     ).optional(),
-  }).describe("Requirements for the password used to unlock a device.")
-    .optional(),
+  }).describe(
+    "Password requirements. The field password_requirements.require_password_unlock must not be set. DEPRECATED - Use passwordPolicies.Note:Complexity-based values of PasswordQuality, that is, COMPLEXITY_LOW, COMPLEXITY_MEDIUM, and COMPLEXITY_HIGH, cannot be used here. unified_lock_settings cannot be used here.",
+  ).optional(),
   permissionGrants: z.array(z.object({
     permission: z.string().describe(
       "The Android permission or group, e.g. android.permission.READ_CALENDAR or android.permission_group.CALENDAR.",
@@ -2956,11 +2973,15 @@ const InputsSchema = z.object({
   permittedAccessibilityServices: z.object({
     packageNames: z.array(z.string()).describe("A list of package names.")
       .optional(),
-  }).describe("A list of package names.").optional(),
+  }).describe(
+    "Specifies permitted accessibility services. If the field is not set, any accessibility service can be used. If the field is set, only the accessibility services in this list and the system's built-in accessibility service can be used. In particular, if the field is set to empty, only the system's built-in accessibility servicess can be used. This can be set on fully managed devices and on work profiles. When applied to a work profile, this affects both the personal profile and the work profile.",
+  ).optional(),
   permittedInputMethods: z.object({
     packageNames: z.array(z.string()).describe("A list of package names.")
       .optional(),
-  }).describe("A list of package names.").optional(),
+  }).describe(
+    "If present, only the input methods provided by packages in this list are permitted. If this field is present, but the list is empty, then only system input methods are permitted.",
+  ).optional(),
   persistentPreferredActivities: z.array(z.object({
     actions: z.array(z.string()).describe(
       "The intent actions to match in the filter. If any actions are included in the filter, then an intent's action must be one of those values for it to match. If no actions are included, the intent action is ignored.",
@@ -3014,9 +3035,8 @@ const InputsSchema = z.object({
     screenCaptureDisabled: z.boolean().describe(
       "If true, screen capture is disabled for all users. This also blocks Circle to Search (https://support.google.com/android/answer/14508957).",
     ).optional(),
-  }).describe(
-    "Policies controlling personal usage on a company-owned device with a work profile.",
-  ).optional(),
+  }).describe("Policies managing personal usage on a company-owned device.")
+    .optional(),
   playStoreMode: z.enum([
     "PLAY_STORE_MODE_UNSPECIFIED",
     "WHITELIST",
@@ -3037,7 +3057,7 @@ const InputsSchema = z.object({
         "Specifies the scope of this BlockAction. Only applicable to devices that are company-owned.",
       ).optional(),
     }).describe(
-      "An action to block access to apps and data on a fully managed device or in a work profile. This action also triggers a device or work profile to displays a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.",
+      "An action to block access to apps and data on a company owned device or in a work profile. This action also triggers a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.",
     ).optional(),
     settingName: z.string().describe(
       "The top-level policy to enforce. For example, applications or passwordPolicies.",
@@ -3082,7 +3102,7 @@ const InputsSchema = z.object({
     ).optional(),
     port: z.number().int().describe("The port of the direct proxy.").optional(),
   }).describe(
-    "Configuration info for an HTTP proxy. For a direct proxy, set the host, port, and excluded_hosts fields. For a PAC script proxy, set the pac_uri field.",
+    "The network-independent global HTTP proxy. Typically proxies should be configured per-network in open_network_configuration. However for unusual configurations like general internal filtering a global HTTP proxy may be useful. If the proxy is not accessible, network access may break. The global proxy is only a recommendation and some apps may ignore it.",
   ).optional(),
   removeUserDisabled: z.boolean().describe(
     "Whether removing other users is disabled.",
@@ -3104,13 +3124,13 @@ const InputsSchema = z.object({
       localizedMessages: z.record(z.string(), z.string()).describe(
         "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
       ).optional(),
-    }).describe(
-      "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
-    ).optional(),
+    }).describe("Description of this action.").optional(),
     launchApp: z.object({
       packageName: z.string().describe("Package name of app to be launched")
         .optional(),
-    }).describe("An action to launch an app.").optional(),
+    }).describe(
+      "An action to launch an app. The app will be launched with an intent containing an extra with key com.google.android.apps.work.clouddpc.EXTRA_LAUNCHED_AS_SETUP_ACTION set to the boolean value true to indicate that this is a setup action flow. If SetupAction references an app, the corresponding installType in the application policy must be set as REQUIRED_FOR_SETUP or said setup will fail.",
+    ).optional(),
     title: z.object({
       defaultMessage: z.string().describe(
         "The default message displayed if no localized message is specified or the user's locale doesn't match with any of the localized messages. A default message must be provided if any localized messages are provided.",
@@ -3118,9 +3138,7 @@ const InputsSchema = z.object({
       localizedMessages: z.record(z.string(), z.string()).describe(
         "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
       ).optional(),
-    }).describe(
-      "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
-    ).optional(),
+    }).describe("Title of this action.").optional(),
   })).describe(
     "Action to take during the setup process. At most one action may be specified.",
   ).optional(),
@@ -3135,7 +3153,7 @@ const InputsSchema = z.object({
       "A map containing pairs, where locale is a well-formed BCP 47 language (https://www.w3.org/International/articles/language-tags/) code, such as en-US, es-ES, or fr.",
     ).optional(),
   }).describe(
-    "Provides a user-facing message with locale info. The maximum message length is 4096 characters.",
+    "A message displayed to the user in the settings screen wherever functionality has been disabled by the admin. If the message is longer than 200 characters it may be truncated.",
   ).optional(),
   skipFirstUseHintsEnabled: z.boolean().describe(
     "Flag to skip hints on the first use. Enterprise admin can enable the system recommendation for apps to skip their user tutorial and other introductory hints on first start-up.",
@@ -3148,8 +3166,9 @@ const InputsSchema = z.object({
       includeRemovedApps: z.boolean().describe(
         "Whether removed apps are included in application reports.",
       ).optional(),
-    }).describe("Settings controlling the behavior of application reports.")
-      .optional(),
+    }).describe(
+      "Application reporting settings. Only applicable if application_reports_enabled is true.",
+    ).optional(),
     applicationReportsEnabled: z.boolean().describe(
       "Whether app reports are enabled.",
     ).optional(),
@@ -3183,8 +3202,7 @@ const InputsSchema = z.object({
     systemPropertiesEnabled: z.boolean().describe(
       "Whether system properties reporting is enabled.",
     ).optional(),
-  }).describe("Settings controlling the behavior of status reports.")
-    .optional(),
+  }).describe("Status reporting settings").optional(),
   stayOnPluggedModes: z.array(
     z.enum(["BATTERY_PLUGGED_MODE_UNSPECIFIED", "AC", "USB", "WIRELESS"]),
   ).describe(
@@ -3206,7 +3224,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp",
+        'The end date (inclusive) of the freeze period. Must be no later than 90 days from the start date. If the end date is earlier than the start date, the freeze period is considered wrapping year-end. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.',
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -3219,7 +3237,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp",
+        'The start date (inclusive) of the freeze period. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.',
       ).optional(),
     })).describe(
       "An annually repeating time period in which over-the-air (OTA) system updates are postponed to freeze the OS version running on a device. To prevent freezing the device indefinitely, each freeze period must be separated by at least 60 days.",
@@ -3234,7 +3252,7 @@ const InputsSchema = z.object({
       "POSTPONE",
     ]).describe("The type of system update to configure.").optional(),
   }).describe(
-    "Configuration for managing system updatesNote: Google Play system updates (https://source.android.com/docs/core/ota/modular-system) (also called Mainline updates) are automatically downloaded but require a device reboot to be installed. Refer to the mainline section in Manage system updates (https://developer.android.com/work/dpc/system-updates#mainline) for further details.",
+    "The system update policy, which controls how OS updates are applied. If the update type is WINDOWED, the update window will automatically apply to Play app updates as well.Note: Google Play system updates (https://source.android.com/docs/core/ota/modular-system) (also called Mainline updates) are automatically downloaded and require a device reboot to be installed. Refer to the mainline section in Manage system updates (https://developer.android.com/work/dpc/system-updates#mainline) for further details.",
   ).optional(),
   uninstallAppsDisabled: z.boolean().describe(
     "Whether user uninstallation of applications is disabled. This prevents apps from being uninstalled, even those removed using applications",
@@ -3258,9 +3276,7 @@ const InputsSchema = z.object({
     ).describe(
       "Specifies which of the enabled log types can be uploaded over mobile data. By default logs are queued for upload when the device connects to WiFi.",
     ).optional(),
-  }).describe(
-    "Controls types of device activity logs collected from the device and reported via Pub/Sub notification (https://developers.google.com/android/management/notifications).",
-  ).optional(),
+  }).describe("Configuration of device activity logging.").optional(),
   version: z.string().describe(
     "The version of the policy. This is a read-only field. The version is incremented each time the policy is updated.",
   ).optional(),
@@ -3282,7 +3298,7 @@ const InputsSchema = z.object({
       "Optional. The specific google work account email address to be added. This field is only relevant if authenticationType is GOOGLE_AUTHENTICATED. This must be an enterprise account and not a consumer account. Once set and a Google authenticated account is added to the device, changing this field will have no effect, and thus recommended to be set only once.",
     ).optional(),
   }).describe(
-    "Controls the work account setup configuration, such as details of whether a Google authenticated account is required.",
+    "Optional. Controls the work account setup configuration, such as details of whether a Google authenticated account is required.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -3312,7 +3328,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3464,6 +3480,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: autofillPolicy",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -158,30 +158,12 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   displayName: z.string().describe("Required. Display name.").optional(),
-  error: z.object({
-    details: z.record(z.string(), z.string()).describe(
-      "Additional information about the error.",
-    ).optional(),
-    errorTime: z.string().describe("The time when the error occurred.")
-      .optional(),
-    errorUuid: z.string().describe(
-      "A unique identifier for this specific error, allowing it to be traced throughout the system in logs and API responses.",
-    ).optional(),
-    message: z.string().describe(
-      "A message containing more information about the error that occurred.",
-    ).optional(),
-    reason: z.string().describe(
-      "A title that explains the reason for the error.",
-    ).optional(),
-  }).describe("Represent a user-facing Error.").optional(),
   labels: z.record(z.string(), z.string()).describe("Labels.").optional(),
   pscInterfaceConfig: z.object({
     networkAttachment: z.string().describe(
       "Required. Fully qualified name of the Network Attachment that Datastream will connect to. Format: `projects/{project}/regions/{region}/networkAttachments/{name}`",
     ).optional(),
-  }).describe(
-    "The PSC Interface configuration is used to create PSC Interface between Datastream and the consumer's PSC.",
-  ).optional(),
+  }).describe("PSC Interface Config.").optional(),
   vpcPeeringConfig: z.object({
     subnet: z.string().describe(
       "Required. A free subnet for peering. (CIDR of /29)",
@@ -189,9 +171,7 @@ const GlobalArgsSchema = z.object({
     vpc: z.string().describe(
       "Required. Fully qualified name of the VPC that Datastream will peer to. Format: `projects/{project}/global/{networks}/{name}`",
     ).optional(),
-  }).describe(
-    "The VPC Peering configuration is used to create VPC peering between Datastream and the consumer's VPC.",
-  ).optional(),
+  }).describe("VPC Peering Config.").optional(),
   force: z.string().describe("Optional. If set to true, will skip validations.")
     .optional(),
   privateConnectionId: z.string().describe(
@@ -239,30 +219,12 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   displayName: z.string().describe("Required. Display name.").optional(),
-  error: z.object({
-    details: z.record(z.string(), z.string()).describe(
-      "Additional information about the error.",
-    ).optional(),
-    errorTime: z.string().describe("The time when the error occurred.")
-      .optional(),
-    errorUuid: z.string().describe(
-      "A unique identifier for this specific error, allowing it to be traced throughout the system in logs and API responses.",
-    ).optional(),
-    message: z.string().describe(
-      "A message containing more information about the error that occurred.",
-    ).optional(),
-    reason: z.string().describe(
-      "A title that explains the reason for the error.",
-    ).optional(),
-  }).describe("Represent a user-facing Error.").optional(),
   labels: z.record(z.string(), z.string()).describe("Labels.").optional(),
   pscInterfaceConfig: z.object({
     networkAttachment: z.string().describe(
       "Required. Fully qualified name of the Network Attachment that Datastream will connect to. Format: `projects/{project}/regions/{region}/networkAttachments/{name}`",
     ).optional(),
-  }).describe(
-    "The PSC Interface configuration is used to create PSC Interface between Datastream and the consumer's PSC.",
-  ).optional(),
+  }).describe("PSC Interface Config.").optional(),
   vpcPeeringConfig: z.object({
     subnet: z.string().describe(
       "Required. A free subnet for peering. (CIDR of /29)",
@@ -270,9 +232,7 @@ const InputsSchema = z.object({
     vpc: z.string().describe(
       "Required. Fully qualified name of the VPC that Datastream will peer to. Format: `projects/{project}/global/{networks}/{name}`",
     ).optional(),
-  }).describe(
-    "The VPC Peering configuration is used to create VPC peering between Datastream and the consumer's VPC.",
-  ).optional(),
+  }).describe("VPC Peering Config.").optional(),
   force: z.string().describe("Optional. If set to true, will skip validations.")
     .optional(),
   privateConnectionId: z.string().describe(
@@ -309,7 +269,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream PrivateConnections. Registered at `@swamp/gcp/datastream/privateconnections`. */
 export const model = {
   type: "@swamp/gcp/datastream/privateconnections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -411,6 +371,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -439,7 +407,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["pscInterfaceConfig"] !== undefined) {
           body["pscInterfaceConfig"] = g["pscInterfaceConfig"];

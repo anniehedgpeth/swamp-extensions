@@ -337,7 +337,7 @@ const GlobalArgsSchema = z.object({
         "Names of Network Threat Intelligence lists. The IPs in these lists will be matched against traffic source.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming traffic is evaluated against. Exactly one field must be specified.",
+      "A match condition that incoming traffic is evaluated against. If it evaluates to true, the corresponding 'action' is enforced.",
     ).optional(),
     priority: z.number().int().describe(
       "An integer indicating the priority of a rule in the list. The priority must be a positive value between 0 and 2147483647. Rules are evaluated from highest to lowest priority where 0 is the highest priority and 2147483647 is the lowest priority.",
@@ -494,7 +494,7 @@ const GlobalArgsSchema = z.object({
         "Names of Network Threat Intelligence lists. The IPs in these lists will be matched against traffic source.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming traffic is evaluated against. Exactly one field must be specified.",
+      "A match condition that incoming traffic is evaluated against. If it evaluates to true, the corresponding 'action' is enforced.",
     ).optional(),
     priority: z.number().int().describe(
       "An integer indicating the priority of a rule in the list. The priority must be a positive value between 0 and 2147483647. Rules are evaluated from highest to lowest priority where 0 is the highest priority and 2147483647 is the lowest priority.",
@@ -801,7 +801,7 @@ const InputsSchema = z.object({
         "Names of Network Threat Intelligence lists. The IPs in these lists will be matched against traffic source.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming traffic is evaluated against. Exactly one field must be specified.",
+      "A match condition that incoming traffic is evaluated against. If it evaluates to true, the corresponding 'action' is enforced.",
     ).optional(),
     priority: z.number().int().describe(
       "An integer indicating the priority of a rule in the list. The priority must be a positive value between 0 and 2147483647. Rules are evaluated from highest to lowest priority where 0 is the highest priority and 2147483647 is the lowest priority.",
@@ -958,7 +958,7 @@ const InputsSchema = z.object({
         "Names of Network Threat Intelligence lists. The IPs in these lists will be matched against traffic source.",
       ).optional(),
     }).describe(
-      "Represents a match condition that incoming traffic is evaluated against. Exactly one field must be specified.",
+      "A match condition that incoming traffic is evaluated against. If it evaluates to true, the corresponding 'action' is enforced.",
     ).optional(),
     priority: z.number().int().describe(
       "An integer indicating the priority of a rule in the list. The priority must be a positive value between 0 and 2147483647. Rules are evaluated from highest to lowest priority where 0 is the highest priority and 2147483647 is the lowest priority.",
@@ -1032,7 +1032,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionNetworkFirewallPolicies. Registered at `@swamp/gcp/compute/regionnetworkfirewallpolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/regionnetworkfirewallpolicies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1186,6 +1186,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

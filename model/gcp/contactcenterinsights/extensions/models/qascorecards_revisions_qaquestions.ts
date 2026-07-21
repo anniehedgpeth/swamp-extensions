@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Accuracy of the model. Measures the percentage of correct answers the model gave on the test set.",
     ).optional(),
   }).describe(
-    "A wrapper representing metrics calculated against a test-set on a LLM that was fine tuned for this question.",
+    "Metrics of the underlying tuned LLM over a holdout/test set while fine tuning the underlying LLM for the given question. This field will only be populated if and only if the question is part of a scorecard revision that has been tuned.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the question. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard}/revisions/{revision}/qaQuestions/{qa_question}",
@@ -198,7 +198,7 @@ const GlobalArgsSchema = z.object({
       "CONVERSATION_OUTCOME_ESCALATION_INITIATOR_ROLE",
     ]).describe("The type of the predefined question.").optional(),
   }).describe(
-    "Configuration for a predefined question. This field will only be set if the Question Type is predefined.",
+    "The configuration of the predefined question. This field will only be set if the Question Type is predefined.",
   ).optional(),
   qaQuestionDataOptions: z.object({
     conversationDataOptions: z.object({
@@ -206,7 +206,7 @@ const GlobalArgsSchema = z.object({
         "Whether to include the per turn Dialogflow interaction data in conversation transcript.",
       ).optional(),
     }).describe(
-      "Options for configuring what metadata is included in the conversation data used in QAI and Discovery Engine.",
+      "Options for configuring the conversation data used to generate the QA question.",
     ).optional(),
   }).describe(
     "Options for configuring the data used to generate the QA question.",
@@ -241,7 +241,7 @@ const GlobalArgsSchema = z.object({
       "Error status of the tuning operation for the question. Will only be set if the tuning operation failed.",
     ).optional(),
   }).describe(
-    "Metadata about the tuning operation for the question. Will only be set if a scorecard containing this question has been tuned.",
+    "Metadata about the tuning operation for the question.This field will only be populated if and only if the question is part of a scorecard revision that has been tuned.",
   ).optional(),
   qaQuestionId: z.string().describe(
     "Optional. A unique ID for the new question. This ID will become the final component of the question's resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression `^[a-z0-9-]{4,64}$`. Valid characters are `a-z-`.",
@@ -323,7 +323,7 @@ const InputsSchema = z.object({
       "Output only. Accuracy of the model. Measures the percentage of correct answers the model gave on the test set.",
     ).optional(),
   }).describe(
-    "A wrapper representing metrics calculated against a test-set on a LLM that was fine tuned for this question.",
+    "Metrics of the underlying tuned LLM over a holdout/test set while fine tuning the underlying LLM for the given question. This field will only be populated if and only if the question is part of a scorecard revision that has been tuned.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the question. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard}/revisions/{revision}/qaQuestions/{qa_question}",
@@ -338,7 +338,7 @@ const InputsSchema = z.object({
       "CONVERSATION_OUTCOME_ESCALATION_INITIATOR_ROLE",
     ]).describe("The type of the predefined question.").optional(),
   }).describe(
-    "Configuration for a predefined question. This field will only be set if the Question Type is predefined.",
+    "The configuration of the predefined question. This field will only be set if the Question Type is predefined.",
   ).optional(),
   qaQuestionDataOptions: z.object({
     conversationDataOptions: z.object({
@@ -346,7 +346,7 @@ const InputsSchema = z.object({
         "Whether to include the per turn Dialogflow interaction data in conversation transcript.",
       ).optional(),
     }).describe(
-      "Options for configuring what metadata is included in the conversation data used in QAI and Discovery Engine.",
+      "Options for configuring the conversation data used to generate the QA question.",
     ).optional(),
   }).describe(
     "Options for configuring the data used to generate the QA question.",
@@ -381,7 +381,7 @@ const InputsSchema = z.object({
       "Error status of the tuning operation for the question. Will only be set if the tuning operation failed.",
     ).optional(),
   }).describe(
-    "Metadata about the tuning operation for the question. Will only be set if a scorecard containing this question has been tuned.",
+    "Metadata about the tuning operation for the question.This field will only be populated if and only if the question is part of a scorecard revision that has been tuned.",
   ).optional(),
   qaQuestionId: z.string().describe(
     "Optional. A unique ID for the new question. This ID will become the final component of the question's resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression `^[a-z0-9-]{4,64}$`. Valid characters are `a-z-`.",
@@ -417,7 +417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights QaScorecards.Revisions.QaQuestions. Registered at `@swamp/gcp/contactcenterinsights/qascorecards-revisions-qaquestions`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/qascorecards-revisions-qaquestions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -521,6 +521,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

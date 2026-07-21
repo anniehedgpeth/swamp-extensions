@@ -174,7 +174,9 @@ const GlobalArgsSchema = z.object({
     cloudKmsKey: z.string().describe(
       "The resource name for a Cloud KMS key in the format `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
-  }).describe("The configuration used for encrypting data at rest.").optional(),
+  }).describe(
+    "Optional. When EncryptionSpec is provided, the Subject, SubjectAltNames, and the PEM-encoded certificate fields will be encrypted at rest.",
+  ).optional(),
   issuancePolicy: z.object({
     allowRequesterSpecifiedNotBeforeTime: z.boolean().describe(
       "Optional. If set to true, allows requesters to specify the requested_not_before_time field when creating a Certificate. Certificates requested with this option enabled will have a 'not_before_time' equal to the value specified in the request. The 'not_after_time' will be adjusted to preserve the requested lifetime. The maximum time that a certificate can be backdated with these options is 48 hours in the past. This option cannot be set if backdate_duration is set.",
@@ -187,7 +189,7 @@ const GlobalArgsSchema = z.object({
         "Optional. When true, allows callers to create Certificates by specifying a CSR.",
       ).optional(),
     }).describe(
-      "IssuanceModes specifies the allowed ways in which Certificates may be requested from this CaPool.",
+      "Optional. If specified, then only methods allowed in the IssuanceModes may be used to issue Certificates.",
     ).optional(),
     allowedKeyTypes: z.array(z.object({
       ellipticCurve: z.object({
@@ -199,9 +201,7 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. A signature algorithm that must be used. If this is omitted, any EC-based signature algorithm will be allowed.",
         ).optional(),
-      }).describe(
-        "Describes an Elliptic Curve key that may be used in a Certificate issued from a CaPool.",
-      ).optional(),
+      }).describe("Represents an allowed Elliptic Curve key type.").optional(),
       rsa: z.object({
         maxModulusSize: z.string().describe(
           "Optional. The maximum allowed RSA modulus size (inclusive), in bits. If this is not set, or if set to zero, the service will not enforce an explicit upper bound on RSA modulus sizes.",
@@ -209,9 +209,7 @@ const GlobalArgsSchema = z.object({
         minModulusSize: z.string().describe(
           "Optional. The minimum allowed RSA modulus size (inclusive), in bits. If this is not set, or if set to zero, the service-level min RSA modulus size will continue to apply.",
         ).optional(),
-      }).describe(
-        "Describes an RSA key that may be used in a Certificate issued from a CaPool.",
-      ).optional(),
+      }).describe("Represents an allowed RSA key type.").optional(),
     })).describe(
       "Optional. If any AllowedKeyType is specified, then the certificate request's public key must match one of the key types listed here. Otherwise, any key may be used.",
     ).optional(),
@@ -227,9 +225,7 @@ const GlobalArgsSchema = z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
           ).optional(),
-        }).describe(
-          "An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.",
-        ).optional(),
+        }).describe("Required. The OID for this X.509 extension.").optional(),
         value: z.string().describe(
           "Required. The value of this X.509 extension.",
         ).optional(),
@@ -245,7 +241,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Refers to the path length constraint field in the X.509 extension. For a CA certificate, this value describes the depth of subordinate CA certificates that are allowed. If this value is less than 0, the request will fail. If this value is missing, the max path length will be omitted from the certificate.",
         ).optional(),
       }).describe(
-        "Describes the X.509 basic constraints extension, per [RFC 5280 section 4.2.1.9](https://tools.ietf.org/html/rfc5280#section-4.2.1.9)",
+        "Optional. Describes options in this X509Parameters that are relevant in a CA certificate. If not specified, a default basic constraints extension with `is_ca=false` will be added for leaf certificates.",
       ).optional(),
       keyUsage: z.object({
         baseKeyUsage: z.object({
@@ -276,9 +272,8 @@ const GlobalArgsSchema = z.object({
           keyEncipherment: z.boolean().describe(
             "The key may be used to encipher other keys.",
           ).optional(),
-        }).describe(
-          "KeyUsage.KeyUsageOptions corresponds to the key usage values described in https://tools.ietf.org/html/rfc5280#section-4.2.1.3.",
-        ).optional(),
+        }).describe("Describes high-level ways in which a key may be used.")
+          .optional(),
         extendedKeyUsage: z.object({
           clientAuth: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.2. Officially described as "TLS WWW client authentication", though regularly used for non-WWW TLS.',
@@ -298,9 +293,8 @@ const GlobalArgsSchema = z.object({
           timeStamping: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.8. Officially described as "Binding the hash of an object to a time".',
           ).optional(),
-        }).describe(
-          "KeyUsage.ExtendedKeyUsageOptions has fields that correspond to certain common OIDs that could be specified as an extended key usage value.",
-        ).optional(),
+        }).describe("Detailed scenarios in which a key may be used.")
+          .optional(),
         unknownExtendedKeyUsages: z.array(z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -309,7 +303,7 @@ const GlobalArgsSchema = z.object({
           "Used to describe extended key usages that are not listed in the KeyUsage.ExtendedKeyUsageOptions message.",
         ).optional(),
       }).describe(
-        "A KeyUsage describes key usage values that may appear in an X.509 certificate.",
+        "Optional. Indicates the intended use for keys that correspond to a certificate.",
       ).optional(),
       nameConstraints: z.object({
         critical: z.boolean().describe(
@@ -339,9 +333,8 @@ const GlobalArgsSchema = z.object({
         permittedUris: z.array(z.string()).describe(
           "Contains the permitted URIs that apply to the host part of the name. The value can be a hostname or a domain with a leading period (like `.example.com`)",
         ).optional(),
-      }).describe(
-        "Describes the X.509 name constraints extension, per https://tools.ietf.org/html/rfc5280#section-4.2.1.10",
-      ).optional(),
+      }).describe("Optional. Describes the X.509 name constraints extension.")
+        .optional(),
       policyIds: z.array(z.object({
         objectIdPath: z.array(z.unknown()).describe(
           "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -350,7 +343,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Describes the X.509 certificate policy object identifiers, per https://tools.ietf.org/html/rfc5280#section-4.2.1.4.",
       ).optional(),
     }).describe(
-      "An X509Parameters is used to describe certain fields of an X.509 certificate, such as the key usage fields, fields specific to CA certificates, certificate policy extensions and custom extensions.",
+      "Optional. A set of X.509 values that will be applied to all certificates issued through this CaPool. If a certificate request includes conflicting values for the same properties, they will be overwritten by the values defined here. If a certificate request uses a CertificateTemplate that defines conflicting predefined_values for the same properties, the certificate issuance request will fail.",
     ).optional(),
     identityConstraints: z.object({
       allowSubjectAltNamesPassthrough: z.boolean().describe(
@@ -373,10 +366,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
         ).optional(),
       }).describe(
-        'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+        "Optional. A CEL expression that may be used to validate the resolved X.509 Subject and/or Subject Alternative Name before a certificate is signed. To see the full allowed syntax and some examples, see https://cloud.google.com/certificate-authority-service/docs/using-cel",
       ).optional(),
     }).describe(
-      "Describes constraints on a Certificate's Subject and SubjectAltNames.",
+      "Optional. Describes constraints on identities that may appear in Certificates issued through this CaPool. If this is omitted, then this CaPool will not add restrictions on a certificate's identity.",
     ).optional(),
     maximumLifetime: z.string().describe(
       "Optional. The maximum lifetime allowed for issued Certificates. Note that if the issuing CertificateAuthority expires before a Certificate resource's requested maximum_lifetime, the effective lifetime will be explicitly truncated to match it.",
@@ -403,10 +396,11 @@ const GlobalArgsSchema = z.object({
         "Optional. A set of named X.509 extensions. Will be combined with additional_extensions to determine the full set of X.509 extensions.",
       ).optional(),
     }).describe(
-      "Describes a set of X.509 extensions that may be part of some certificate issuance controls.",
+      "Optional. Describes the set of X.509 extensions that may appear in a Certificate issued through this CaPool. If a certificate request sets extensions that don't appear in the passthrough_extensions, those extensions will be dropped. If a certificate request uses a CertificateTemplate with predefined_values that don't appear here, the certificate issuance request will fail. If this is omitted, then this CaPool will not add restrictions on a certificate's X.509 extensions. These constraints do not apply to X.509 extensions set in this CaPool's baseline_values.",
     ).optional(),
-  }).describe("Defines controls over all certificate issuance within a CaPool.")
-    .optional(),
+  }).describe(
+    "Optional. The IssuancePolicy to control how Certificates will be issued from this CaPool.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels with user-defined metadata.",
   ).optional(),
@@ -425,7 +419,7 @@ const GlobalArgsSchema = z.object({
       'Optional. When true, publishes each CertificateAuthority\'s CRL and includes its URL in the "CRL Distribution Points" X.509 extension in all issued Certificates. If this is false, CRLs will not be published and the corresponding X.509 extension will not be written in issued certificates. CRLs will expire 7 days from their creation. However, we will rebuild daily. CRLs are also rebuilt shortly after a certificate is revoked.',
     ).optional(),
   }).describe(
-    "Options relating to the publication of each CertificateAuthority's CA certificate and CRLs and their inclusion as extensions in issued Certificates. The options set here apply to certificates issued by any CertificateAuthority in the CaPool.",
+    "Optional. The PublishingOptions to follow when issuing Certificates from any CertificateAuthority in this CaPool.",
   ).optional(),
   tier: z.enum(["TIER_UNSPECIFIED", "ENTERPRISE", "DEVOPS"]).describe(
     "Required. Immutable. The Tier of this CaPool.",
@@ -552,7 +546,9 @@ const InputsSchema = z.object({
     cloudKmsKey: z.string().describe(
       "The resource name for a Cloud KMS key in the format `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
-  }).describe("The configuration used for encrypting data at rest.").optional(),
+  }).describe(
+    "Optional. When EncryptionSpec is provided, the Subject, SubjectAltNames, and the PEM-encoded certificate fields will be encrypted at rest.",
+  ).optional(),
   issuancePolicy: z.object({
     allowRequesterSpecifiedNotBeforeTime: z.boolean().describe(
       "Optional. If set to true, allows requesters to specify the requested_not_before_time field when creating a Certificate. Certificates requested with this option enabled will have a 'not_before_time' equal to the value specified in the request. The 'not_after_time' will be adjusted to preserve the requested lifetime. The maximum time that a certificate can be backdated with these options is 48 hours in the past. This option cannot be set if backdate_duration is set.",
@@ -565,7 +561,7 @@ const InputsSchema = z.object({
         "Optional. When true, allows callers to create Certificates by specifying a CSR.",
       ).optional(),
     }).describe(
-      "IssuanceModes specifies the allowed ways in which Certificates may be requested from this CaPool.",
+      "Optional. If specified, then only methods allowed in the IssuanceModes may be used to issue Certificates.",
     ).optional(),
     allowedKeyTypes: z.array(z.object({
       ellipticCurve: z.object({
@@ -577,9 +573,7 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. A signature algorithm that must be used. If this is omitted, any EC-based signature algorithm will be allowed.",
         ).optional(),
-      }).describe(
-        "Describes an Elliptic Curve key that may be used in a Certificate issued from a CaPool.",
-      ).optional(),
+      }).describe("Represents an allowed Elliptic Curve key type.").optional(),
       rsa: z.object({
         maxModulusSize: z.string().describe(
           "Optional. The maximum allowed RSA modulus size (inclusive), in bits. If this is not set, or if set to zero, the service will not enforce an explicit upper bound on RSA modulus sizes.",
@@ -587,9 +581,7 @@ const InputsSchema = z.object({
         minModulusSize: z.string().describe(
           "Optional. The minimum allowed RSA modulus size (inclusive), in bits. If this is not set, or if set to zero, the service-level min RSA modulus size will continue to apply.",
         ).optional(),
-      }).describe(
-        "Describes an RSA key that may be used in a Certificate issued from a CaPool.",
-      ).optional(),
+      }).describe("Represents an allowed RSA key type.").optional(),
     })).describe(
       "Optional. If any AllowedKeyType is specified, then the certificate request's public key must match one of the key types listed here. Otherwise, any key may be used.",
     ).optional(),
@@ -605,9 +597,7 @@ const InputsSchema = z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
           ).optional(),
-        }).describe(
-          "An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.",
-        ).optional(),
+        }).describe("Required. The OID for this X.509 extension.").optional(),
         value: z.string().describe(
           "Required. The value of this X.509 extension.",
         ).optional(),
@@ -623,7 +613,7 @@ const InputsSchema = z.object({
           "Optional. Refers to the path length constraint field in the X.509 extension. For a CA certificate, this value describes the depth of subordinate CA certificates that are allowed. If this value is less than 0, the request will fail. If this value is missing, the max path length will be omitted from the certificate.",
         ).optional(),
       }).describe(
-        "Describes the X.509 basic constraints extension, per [RFC 5280 section 4.2.1.9](https://tools.ietf.org/html/rfc5280#section-4.2.1.9)",
+        "Optional. Describes options in this X509Parameters that are relevant in a CA certificate. If not specified, a default basic constraints extension with `is_ca=false` will be added for leaf certificates.",
       ).optional(),
       keyUsage: z.object({
         baseKeyUsage: z.object({
@@ -654,9 +644,8 @@ const InputsSchema = z.object({
           keyEncipherment: z.boolean().describe(
             "The key may be used to encipher other keys.",
           ).optional(),
-        }).describe(
-          "KeyUsage.KeyUsageOptions corresponds to the key usage values described in https://tools.ietf.org/html/rfc5280#section-4.2.1.3.",
-        ).optional(),
+        }).describe("Describes high-level ways in which a key may be used.")
+          .optional(),
         extendedKeyUsage: z.object({
           clientAuth: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.2. Officially described as "TLS WWW client authentication", though regularly used for non-WWW TLS.',
@@ -676,9 +665,8 @@ const InputsSchema = z.object({
           timeStamping: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.8. Officially described as "Binding the hash of an object to a time".',
           ).optional(),
-        }).describe(
-          "KeyUsage.ExtendedKeyUsageOptions has fields that correspond to certain common OIDs that could be specified as an extended key usage value.",
-        ).optional(),
+        }).describe("Detailed scenarios in which a key may be used.")
+          .optional(),
         unknownExtendedKeyUsages: z.array(z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -687,7 +675,7 @@ const InputsSchema = z.object({
           "Used to describe extended key usages that are not listed in the KeyUsage.ExtendedKeyUsageOptions message.",
         ).optional(),
       }).describe(
-        "A KeyUsage describes key usage values that may appear in an X.509 certificate.",
+        "Optional. Indicates the intended use for keys that correspond to a certificate.",
       ).optional(),
       nameConstraints: z.object({
         critical: z.boolean().describe(
@@ -717,9 +705,8 @@ const InputsSchema = z.object({
         permittedUris: z.array(z.string()).describe(
           "Contains the permitted URIs that apply to the host part of the name. The value can be a hostname or a domain with a leading period (like `.example.com`)",
         ).optional(),
-      }).describe(
-        "Describes the X.509 name constraints extension, per https://tools.ietf.org/html/rfc5280#section-4.2.1.10",
-      ).optional(),
+      }).describe("Optional. Describes the X.509 name constraints extension.")
+        .optional(),
       policyIds: z.array(z.object({
         objectIdPath: z.array(z.unknown()).describe(
           "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -728,7 +715,7 @@ const InputsSchema = z.object({
         "Optional. Describes the X.509 certificate policy object identifiers, per https://tools.ietf.org/html/rfc5280#section-4.2.1.4.",
       ).optional(),
     }).describe(
-      "An X509Parameters is used to describe certain fields of an X.509 certificate, such as the key usage fields, fields specific to CA certificates, certificate policy extensions and custom extensions.",
+      "Optional. A set of X.509 values that will be applied to all certificates issued through this CaPool. If a certificate request includes conflicting values for the same properties, they will be overwritten by the values defined here. If a certificate request uses a CertificateTemplate that defines conflicting predefined_values for the same properties, the certificate issuance request will fail.",
     ).optional(),
     identityConstraints: z.object({
       allowSubjectAltNamesPassthrough: z.boolean().describe(
@@ -751,10 +738,10 @@ const InputsSchema = z.object({
           "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
         ).optional(),
       }).describe(
-        'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+        "Optional. A CEL expression that may be used to validate the resolved X.509 Subject and/or Subject Alternative Name before a certificate is signed. To see the full allowed syntax and some examples, see https://cloud.google.com/certificate-authority-service/docs/using-cel",
       ).optional(),
     }).describe(
-      "Describes constraints on a Certificate's Subject and SubjectAltNames.",
+      "Optional. Describes constraints on identities that may appear in Certificates issued through this CaPool. If this is omitted, then this CaPool will not add restrictions on a certificate's identity.",
     ).optional(),
     maximumLifetime: z.string().describe(
       "Optional. The maximum lifetime allowed for issued Certificates. Note that if the issuing CertificateAuthority expires before a Certificate resource's requested maximum_lifetime, the effective lifetime will be explicitly truncated to match it.",
@@ -781,10 +768,11 @@ const InputsSchema = z.object({
         "Optional. A set of named X.509 extensions. Will be combined with additional_extensions to determine the full set of X.509 extensions.",
       ).optional(),
     }).describe(
-      "Describes a set of X.509 extensions that may be part of some certificate issuance controls.",
+      "Optional. Describes the set of X.509 extensions that may appear in a Certificate issued through this CaPool. If a certificate request sets extensions that don't appear in the passthrough_extensions, those extensions will be dropped. If a certificate request uses a CertificateTemplate with predefined_values that don't appear here, the certificate issuance request will fail. If this is omitted, then this CaPool will not add restrictions on a certificate's X.509 extensions. These constraints do not apply to X.509 extensions set in this CaPool's baseline_values.",
     ).optional(),
-  }).describe("Defines controls over all certificate issuance within a CaPool.")
-    .optional(),
+  }).describe(
+    "Optional. The IssuancePolicy to control how Certificates will be issued from this CaPool.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels with user-defined metadata.",
   ).optional(),
@@ -803,7 +791,7 @@ const InputsSchema = z.object({
       'Optional. When true, publishes each CertificateAuthority\'s CRL and includes its URL in the "CRL Distribution Points" X.509 extension in all issued Certificates. If this is false, CRLs will not be published and the corresponding X.509 extension will not be written in issued certificates. CRLs will expire 7 days from their creation. However, we will rebuild daily. CRLs are also rebuilt shortly after a certificate is revoked.',
     ).optional(),
   }).describe(
-    "Options relating to the publication of each CertificateAuthority's CA certificate and CRLs and their inclusion as extensions in issued Certificates. The options set here apply to certificates issued by any CertificateAuthority in the CaPool.",
+    "Optional. The PublishingOptions to follow when issuing Certificates from any CertificateAuthority in this CaPool.",
   ).optional(),
   tier: z.enum(["TIER_UNSPECIFIED", "ENTERPRISE", "DEVOPS"]).describe(
     "Required. Immutable. The Tier of this CaPool.",
@@ -842,7 +830,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Authority CaPools. Registered at `@swamp/gcp/privateca/capools`. */
 export const model = {
   type: "@swamp/gcp/privateca/capools",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -976,6 +964,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

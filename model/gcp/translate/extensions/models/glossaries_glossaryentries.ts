@@ -155,14 +155,14 @@ const GlobalArgsSchema = z.object({
       languageCode: z.string().describe("The language for this glossary term.")
         .optional(),
       text: z.string().describe("The text for the glossary term.").optional(),
-    }).describe("Represents a single glossary term").optional(),
+    }).describe("The source term is the term that will get match in the text,")
+      .optional(),
     targetTerm: z.object({
       languageCode: z.string().describe("The language for this glossary term.")
         .optional(),
       text: z.string().describe("The text for the glossary term.").optional(),
-    }).describe("Represents a single glossary term").optional(),
-  }).describe("Represents a single entry for an unidirectional glossary.")
-    .optional(),
+    }).describe("The term that will replace the match source term.").optional(),
+  }).describe("Used for an unidirectional glossary.").optional(),
   termsSet: z.object({
     terms: z.array(z.object({
       languageCode: z.string().describe("The language for this glossary term.")
@@ -171,9 +171,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Each term in the set represents a term that can be replaced by the other terms.",
     ).optional(),
-  }).describe(
-    "Represents a single entry for an equivalent term set glossary. This is used for equivalent term sets where each term can be replaced by the other terms in the set.",
-  ).optional(),
+  }).describe("Used for an equivalent term sets glossary.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -219,14 +217,14 @@ const InputsSchema = z.object({
       languageCode: z.string().describe("The language for this glossary term.")
         .optional(),
       text: z.string().describe("The text for the glossary term.").optional(),
-    }).describe("Represents a single glossary term").optional(),
+    }).describe("The source term is the term that will get match in the text,")
+      .optional(),
     targetTerm: z.object({
       languageCode: z.string().describe("The language for this glossary term.")
         .optional(),
       text: z.string().describe("The text for the glossary term.").optional(),
-    }).describe("Represents a single glossary term").optional(),
-  }).describe("Represents a single entry for an unidirectional glossary.")
-    .optional(),
+    }).describe("The term that will replace the match source term.").optional(),
+  }).describe("Used for an unidirectional glossary.").optional(),
   termsSet: z.object({
     terms: z.array(z.object({
       languageCode: z.string().describe("The language for this glossary term.")
@@ -235,9 +233,7 @@ const InputsSchema = z.object({
     })).describe(
       "Each term in the set represents a term that can be replaced by the other terms.",
     ).optional(),
-  }).describe(
-    "Represents a single entry for an equivalent term set glossary. This is used for equivalent term sets where each term can be replaced by the other terms in the set.",
-  ).optional(),
+  }).describe("Used for an equivalent term sets glossary.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -269,7 +265,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Translation Glossaries.GlossaryEntries. Registered at `@swamp/gcp/translate/glossaries-glossaryentries`. */
 export const model = {
   type: "@swamp/gcp/translate/glossaries-glossaryentries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -373,6 +369,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

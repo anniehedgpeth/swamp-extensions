@@ -151,14 +151,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. Resource name, in the form `projects/{project}/locations/global/sacRealms/{sacRealm}`.",
   ).optional(),
-  pairingKey: z.object({
-    expireTime: z.string().describe(
-      "Output only. Timestamp in UTC of when this resource is considered expired. It expires 7 days after creation.",
-    ).optional(),
-    key: z.string().describe("Output only. Key value.").optional(),
-  }).describe(
-    "Key to be shared with SSE service provider to establish global handshake.",
-  ).optional(),
   securityService: z.enum([
     "SECURITY_SERVICE_UNSPECIFIED",
     "PALO_ALTO_PRISMA_ACCESS",
@@ -201,14 +193,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. Resource name, in the form `projects/{project}/locations/global/sacRealms/{sacRealm}`.",
   ).optional(),
-  pairingKey: z.object({
-    expireTime: z.string().describe(
-      "Output only. Timestamp in UTC of when this resource is considered expired. It expires 7 days after creation.",
-    ).optional(),
-    key: z.string().describe("Output only. Key value.").optional(),
-  }).describe(
-    "Key to be shared with SSE service provider to establish global handshake.",
-  ).optional(),
   securityService: z.enum([
     "SECURITY_SERVICE_UNSPECIFIED",
     "PALO_ALTO_PRISMA_ACCESS",
@@ -248,7 +232,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security SacRealms. Registered at `@swamp/gcp/networksecurity/sacrealms`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/sacrealms",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: pairingKey",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { pairingKey: _pairingKey, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -275,7 +269,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["pairingKey"] !== undefined) body["pairingKey"] = g["pairingKey"];
         if (g["securityService"] !== undefined) {
           body["securityService"] = g["securityService"];
         }

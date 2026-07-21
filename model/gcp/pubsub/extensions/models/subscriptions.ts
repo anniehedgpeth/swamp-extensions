@@ -144,16 +144,6 @@ const GlobalArgsSchema = z.object({
   ackDeadlineSeconds: z.number().int().describe(
     "Optional. The approximate amount of time (on a best-effort basis) Pub/Sub waits for the subscriber to acknowledge receipt before resending the message. In the interval after the message is delivered and before it is acknowledged, it is considered to be _outstanding_. During that time period, the message will not be redelivered (on a best-effort basis). For pull subscriptions, this value is used as the initial value for the ack deadline. To override this value for a given message, call `ModifyAckDeadline` with the corresponding `ack_id` if using non-streaming pull or send the `ack_id` in a `StreamingModifyAckDeadlineRequest` if using streaming pull. The minimum custom deadline you can specify is 10 seconds. The maximum custom deadline you can specify is 600 seconds (10 minutes). If this parameter is 0, a default value of 10 seconds is used. For push delivery, this value is also used to set the request timeout for the call to the push endpoint. If the subscriber never acknowledges the message, the Pub/Sub system will eventually redeliver the message.",
   ).optional(),
-  analyticsHubSubscriptionInfo: z.object({
-    listing: z.string().describe(
-      'Optional. The name of the associated Analytics Hub listing resource. Pattern: "projects/{project}/locations/{location}/dataExchanges/{data_exchange}/listings/{listing}"',
-    ).optional(),
-    subscription: z.string().describe(
-      'Optional. The name of the associated Analytics Hub subscription resource. Pattern: "projects/{project}/locations/{location}/subscriptions/{subscription}"',
-    ).optional(),
-  }).describe(
-    "Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).",
-  ).optional(),
   bigqueryConfig: z.object({
     dropUnknownFields: z.boolean().describe(
       "Optional. When true and use_topic_schema is true, any fields that are a part of the topic schema that are not part of the BigQuery table schema are dropped when writing to BigQuery. Otherwise, the schemas must be kept in sync and any messages with extra fields are not written and remain in the subscription's backlog.",
@@ -184,7 +174,9 @@ const GlobalArgsSchema = z.object({
     writeMetadata: z.boolean().describe(
       "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
     ).optional(),
-  }).describe("Configuration for a BigQuery subscription.").optional(),
+  }).describe(
+    "Optional. If delivery to BigQuery is used with this subscription, this field is used to configure it.",
+  ).optional(),
   bigtableConfig: z.object({
     appProfileId: z.string().describe(
       'Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.',
@@ -211,7 +203,7 @@ const GlobalArgsSchema = z.object({
       "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
     ).optional(),
   }).describe(
-    "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
+    "Optional. If delivery to Bigtable is used with this subscription, this field is used to configure it.",
   ).optional(),
   cloudStorageConfig: z.object({
     avroConfig: z.object({
@@ -222,7 +214,7 @@ const GlobalArgsSchema = z.object({
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key as additional fields in the output. The subscription name, message_id, and publish_time fields are put in their own fields while all other message properties other than data (for example, an ordering_key, if present) are added as entries in the attributes map.",
       ).optional(),
     }).describe(
-      "Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.",
+      "Optional. If set, message data will be written to Cloud Storage in Avro format.",
     ).optional(),
     bucket: z.string().describe(
       'Required. User-provided name for the Cloud Storage bucket. The bucket must be created by the user. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -260,9 +252,11 @@ const GlobalArgsSchema = z.object({
       "Output only. An output-only field that indicates whether or not the subscription can receive messages.",
     ).optional(),
     textConfig: z.object({}).describe(
-      "Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.",
+      "Optional. If set, message data will be written to Cloud Storage in text format.",
     ).optional(),
-  }).describe("Configuration for a Cloud Storage subscription.").optional(),
+  }).describe(
+    "Optional. If delivery to Google Cloud Storage is used with this subscription, this field is used to configure it.",
+  ).optional(),
   deadLetterPolicy: z.object({
     deadLetterTopic: z.string().describe(
       "Optional. The name of the topic to which dead letter messages should be published. Format is `projects/{project}/topics/{topic}`.The Pub/Sub service account associated with the enclosing subscription's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.",
@@ -271,7 +265,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The maximum number of delivery attempts for any message. The value must be between 5 and 100. The number of delivery attempts is defined as 1 + (the sum of number of NACKs and number of times the acknowledgment deadline has been exceeded for the message). A NACK is any call to ModifyAckDeadline with a 0 deadline. Note that client libraries may automatically extend ack_deadlines. This field will be honored on a best effort basis. If this parameter is 0, a default value of 5 is used.",
     ).optional(),
   }).describe(
-    "Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.",
+    "Optional. A policy that specifies the conditions for dead lettering messages in this subscription. If dead_letter_policy is not set, dead lettering is disabled. The Pub/Sub service account associated with this subscriptions's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Acknowledge() messages on this subscription.",
   ).optional(),
   detached: z.boolean().describe(
     "Optional. Indicates whether the subscription is detached from its topic. Detached subscriptions don't receive messages from their topic and don't retain any backlog. `Pull` and `StreamingPull` requests will return FAILED_PRECONDITION. If the subscription is a push subscription, pushes to the endpoint will not be made.",
@@ -287,7 +281,7 @@ const GlobalArgsSchema = z.object({
       'Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of `ttl`. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for `ttl` depend on the type of the associated resource, as well. If `ttl` is not set, the associated resource never expires.',
     ).optional(),
   }).describe(
-    "A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).",
+    "Optional. A policy that specifies the conditions for this subscription's expiration. A subscription is considered active as long as any connected subscriber is successfully consuming messages from the subscription or is issuing operations on the subscription. If `expiration_policy` is not set, a *default policy* with `ttl` of 31 days will be used. The minimum allowed value for `expiration_policy.ttl` is 1 day. If `expiration_policy` is set, but `expiration_policy.ttl` is not set, the subscription never expires.",
   ).optional(),
   filter: z.string().describe(
     "Optional. An expression written in the Pub/Sub [filter language](https://cloud.google.com/pubsub/docs/filtering). If non-empty, then only `PubsubMessage`s whose `attributes` field matches the filter are delivered on this subscription. If empty, then no messages are filtered out.",
@@ -311,10 +305,10 @@ const GlobalArgsSchema = z.object({
           "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
         ).optional(),
       }).describe(
-        "Configuration for making inferences using arbitrary JSON payloads.",
+        "Optional. Requests and responses can be any arbitrary JSON object.",
       ).optional(),
     }).describe(
-      "Configuration for making inference requests against Vertex AI models.",
+      "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
     ).optional(),
     compression: z.object({
       compressionAlgorithm: z.enum([
@@ -329,9 +323,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Required. Specifies whether to compress or decompress the message.",
       ).optional(),
-    }).describe(
-      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-    ).optional(),
+    }).describe("Optional. Compression/Decompression.").optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -346,7 +338,7 @@ const GlobalArgsSchema = z.object({
         "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
       ).optional(),
     }).describe(
-      "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+      "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
     ).optional(),
   })).describe(
     "Optional. Transforms to be applied to messages before they are delivered to subscribers. Transforms are applied in the order specified.",
@@ -362,8 +354,9 @@ const GlobalArgsSchema = z.object({
       writeMetadata: z.boolean().describe(
         "Optional. When true, writes the Pub/Sub message metadata to `x-goog-pubsub-:` headers of the HTTP request. Writes the Pub/Sub message attributes to `:` headers of the HTTP request.",
       ).optional(),
-    }).describe("Sets the `data` field as the HTTP body for delivery.")
-      .optional(),
+    }).describe(
+      "Optional. When set, the payload to the push endpoint is not wrapped.",
+    ).optional(),
     oidcToken: z.object({
       audience: z.string().describe(
         "Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.",
@@ -372,15 +365,17 @@ const GlobalArgsSchema = z.object({
         "Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).",
       ).optional(),
     }).describe(
-      "Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).",
+      "Optional. If specified, Pub/Sub will generate and attach an OIDC JWT token as an `Authorization` header in the HTTP request for every pushed message.",
     ).optional(),
     pubsubWrapper: z.object({}).describe(
-      "The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
+      "Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
     ).optional(),
     pushEndpoint: z.string().describe(
       "Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use `https://example.com/push`.",
     ).optional(),
-  }).describe("Configuration for a push delivery endpoint.").optional(),
+  }).describe(
+    "Optional. If push delivery is used with this subscription, this field is used to configure it.",
+  ).optional(),
   retainAckedMessages: z.boolean().describe(
     "Optional. Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the `message_retention_duration` window. This must be true if you would like to [`Seek` to a timestamp] (https://cloud.google.com/pubsub/docs/replay-overview#seek_to_a_time) in the past to replay previously-acknowledged messages.",
   ).optional(),
@@ -392,7 +387,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The minimum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 10 seconds.",
     ).optional(),
   }).describe(
-    "A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.",
+    "Optional. A policy that specifies how Pub/Sub retries message delivery for this subscription. If not set, the default retry policy is applied. This generally implies that messages will be retried as soon as possible for healthy subscribers. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message.",
   ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
@@ -412,7 +407,7 @@ const GlobalArgsSchema = z.object({
         'Optional. The name of the associated Analytics Hub subscription resource. Pattern: "projects/{project}/locations/{location}/subscriptions/{subscription}"',
       ).optional(),
     }).describe(
-      "Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).",
+      "Output only. Information about the associated Analytics Hub subscription. Only set if the subscription is created by Analytics Hub.",
     ).optional(),
     bigqueryConfig: z.object({
       dropUnknownFields: z.boolean().describe(
@@ -444,7 +439,9 @@ const GlobalArgsSchema = z.object({
       writeMetadata: z.boolean().describe(
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
       ).optional(),
-    }).describe("Configuration for a BigQuery subscription.").optional(),
+    }).describe(
+      "Optional. If delivery to BigQuery is used with this subscription, this field is used to configure it.",
+    ).optional(),
     bigtableConfig: z.object({
       appProfileId: z.string().describe(
         'Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.',
@@ -471,7 +468,7 @@ const GlobalArgsSchema = z.object({
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
       ).optional(),
     }).describe(
-      "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
+      "Optional. If delivery to Bigtable is used with this subscription, this field is used to configure it.",
     ).optional(),
     cloudStorageConfig: z.object({
       avroConfig: z.object({
@@ -482,7 +479,7 @@ const GlobalArgsSchema = z.object({
           "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key as additional fields in the output. The subscription name, message_id, and publish_time fields are put in their own fields while all other message properties other than data (for example, an ordering_key, if present) are added as entries in the attributes map.",
         ).optional(),
       }).describe(
-        "Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.",
+        "Optional. If set, message data will be written to Cloud Storage in Avro format.",
       ).optional(),
       bucket: z.string().describe(
         'Required. User-provided name for the Cloud Storage bucket. The bucket must be created by the user. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -520,9 +517,11 @@ const GlobalArgsSchema = z.object({
         "Output only. An output-only field that indicates whether or not the subscription can receive messages.",
       ).optional(),
       textConfig: z.object({}).describe(
-        "Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.",
+        "Optional. If set, message data will be written to Cloud Storage in text format.",
       ).optional(),
-    }).describe("Configuration for a Cloud Storage subscription.").optional(),
+    }).describe(
+      "Optional. If delivery to Google Cloud Storage is used with this subscription, this field is used to configure it.",
+    ).optional(),
     deadLetterPolicy: z.object({
       deadLetterTopic: z.string().describe(
         "Optional. The name of the topic to which dead letter messages should be published. Format is `projects/{project}/topics/{topic}`.The Pub/Sub service account associated with the enclosing subscription's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.",
@@ -531,7 +530,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The maximum number of delivery attempts for any message. The value must be between 5 and 100. The number of delivery attempts is defined as 1 + (the sum of number of NACKs and number of times the acknowledgment deadline has been exceeded for the message). A NACK is any call to ModifyAckDeadline with a 0 deadline. Note that client libraries may automatically extend ack_deadlines. This field will be honored on a best effort basis. If this parameter is 0, a default value of 5 is used.",
       ).optional(),
     }).describe(
-      "Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.",
+      "Optional. A policy that specifies the conditions for dead lettering messages in this subscription. If dead_letter_policy is not set, dead lettering is disabled. The Pub/Sub service account associated with this subscriptions's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Acknowledge() messages on this subscription.",
     ).optional(),
     detached: z.boolean().describe(
       "Optional. Indicates whether the subscription is detached from its topic. Detached subscriptions don't receive messages from their topic and don't retain any backlog. `Pull` and `StreamingPull` requests will return FAILED_PRECONDITION. If the subscription is a push subscription, pushes to the endpoint will not be made.",
@@ -547,7 +546,7 @@ const GlobalArgsSchema = z.object({
         'Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of `ttl`. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for `ttl` depend on the type of the associated resource, as well. If `ttl` is not set, the associated resource never expires.',
       ).optional(),
     }).describe(
-      "A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).",
+      "Optional. A policy that specifies the conditions for this subscription's expiration. A subscription is considered active as long as any connected subscriber is successfully consuming messages from the subscription or is issuing operations on the subscription. If `expiration_policy` is not set, a *default policy* with `ttl` of 31 days will be used. The minimum allowed value for `expiration_policy.ttl` is 1 day. If `expiration_policy` is set, but `expiration_policy.ttl` is not set, the subscription never expires.",
     ).optional(),
     filter: z.string().describe(
       "Optional. An expression written in the Pub/Sub [filter language](https://cloud.google.com/pubsub/docs/filtering). If non-empty, then only `PubsubMessage`s whose `attributes` field matches the filter are delivered on this subscription. If empty, then no messages are filtered out.",
@@ -571,10 +570,10 @@ const GlobalArgsSchema = z.object({
             "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
           ).optional(),
         }).describe(
-          "Configuration for making inferences using arbitrary JSON payloads.",
+          "Optional. Requests and responses can be any arbitrary JSON object.",
         ).optional(),
       }).describe(
-        "Configuration for making inference requests against Vertex AI models.",
+        "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
       ).optional(),
       compression: z.object({
         compressionAlgorithm: z.enum([
@@ -589,9 +588,7 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Required. Specifies whether to compress or decompress the message.",
         ).optional(),
-      }).describe(
-        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-      ).optional(),
+      }).describe("Optional. Compression/Decompression.").optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -606,7 +603,7 @@ const GlobalArgsSchema = z.object({
           "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
         ).optional(),
       }).describe(
-        "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+        "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
       ).optional(),
     })).describe(
       "Optional. Transforms to be applied to messages before they are delivered to subscribers. Transforms are applied in the order specified.",
@@ -622,8 +619,9 @@ const GlobalArgsSchema = z.object({
         writeMetadata: z.boolean().describe(
           "Optional. When true, writes the Pub/Sub message metadata to `x-goog-pubsub-:` headers of the HTTP request. Writes the Pub/Sub message attributes to `:` headers of the HTTP request.",
         ).optional(),
-      }).describe("Sets the `data` field as the HTTP body for delivery.")
-        .optional(),
+      }).describe(
+        "Optional. When set, the payload to the push endpoint is not wrapped.",
+      ).optional(),
       oidcToken: z.object({
         audience: z.string().describe(
           "Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.",
@@ -632,15 +630,17 @@ const GlobalArgsSchema = z.object({
           "Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).",
         ).optional(),
       }).describe(
-        "Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).",
+        "Optional. If specified, Pub/Sub will generate and attach an OIDC JWT token as an `Authorization` header in the HTTP request for every pushed message.",
       ).optional(),
       pubsubWrapper: z.object({}).describe(
-        "The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
+        "Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
       ).optional(),
       pushEndpoint: z.string().describe(
         "Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use `https://example.com/push`.",
       ).optional(),
-    }).describe("Configuration for a push delivery endpoint.").optional(),
+    }).describe(
+      "Optional. If push delivery is used with this subscription, this field is used to configure it.",
+    ).optional(),
     retainAckedMessages: z.boolean().describe(
       "Optional. Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the `message_retention_duration` window. This must be true if you would like to [`Seek` to a timestamp] (https://cloud.google.com/pubsub/docs/replay-overview#seek_to_a_time) in the past to replay previously-acknowledged messages.",
     ).optional(),
@@ -652,7 +652,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The minimum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 10 seconds.",
       ).optional(),
     }).describe(
-      "A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.",
+      "Optional. A policy that specifies how Pub/Sub retries message delivery for this subscription. If not set, the default retry policy is applied. This generally implies that messages will be retried as soon as possible for healthy subscribers. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message.",
     ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "RESOURCE_ERROR"]).describe(
       "Output only. An output-only field indicating whether or not the subscription can receive messages.",
@@ -666,9 +666,7 @@ const GlobalArgsSchema = z.object({
     topicMessageRetentionDuration: z.string().describe(
       "Output only. Indicates the minimum duration for which a message is retained after it is published to the subscription's topic. If this field is set, messages published to the subscription's topic in the last `topic_message_retention_duration` are always available to subscribers. See the `message_retention_duration` field in `Topic`. This field is set only in responses from the server; it is ignored if it is set in any requests.",
     ).optional(),
-  }).describe(
-    "A subscription resource. If none of `push_config`, `bigquery_config`, `cloud_storage_config`, or `bigtable_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.",
-  ).optional(),
+  }).describe("Required. The updated subscription object.").optional(),
   updateMask: z.string().describe(
     "Required. Indicates which fields in the provided subscription to update. Must be specified and non-empty.",
   ).optional(),
@@ -778,16 +776,6 @@ const InputsSchema = z.object({
   ackDeadlineSeconds: z.number().int().describe(
     "Optional. The approximate amount of time (on a best-effort basis) Pub/Sub waits for the subscriber to acknowledge receipt before resending the message. In the interval after the message is delivered and before it is acknowledged, it is considered to be _outstanding_. During that time period, the message will not be redelivered (on a best-effort basis). For pull subscriptions, this value is used as the initial value for the ack deadline. To override this value for a given message, call `ModifyAckDeadline` with the corresponding `ack_id` if using non-streaming pull or send the `ack_id` in a `StreamingModifyAckDeadlineRequest` if using streaming pull. The minimum custom deadline you can specify is 10 seconds. The maximum custom deadline you can specify is 600 seconds (10 minutes). If this parameter is 0, a default value of 10 seconds is used. For push delivery, this value is also used to set the request timeout for the call to the push endpoint. If the subscriber never acknowledges the message, the Pub/Sub system will eventually redeliver the message.",
   ).optional(),
-  analyticsHubSubscriptionInfo: z.object({
-    listing: z.string().describe(
-      'Optional. The name of the associated Analytics Hub listing resource. Pattern: "projects/{project}/locations/{location}/dataExchanges/{data_exchange}/listings/{listing}"',
-    ).optional(),
-    subscription: z.string().describe(
-      'Optional. The name of the associated Analytics Hub subscription resource. Pattern: "projects/{project}/locations/{location}/subscriptions/{subscription}"',
-    ).optional(),
-  }).describe(
-    "Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).",
-  ).optional(),
   bigqueryConfig: z.object({
     dropUnknownFields: z.boolean().describe(
       "Optional. When true and use_topic_schema is true, any fields that are a part of the topic schema that are not part of the BigQuery table schema are dropped when writing to BigQuery. Otherwise, the schemas must be kept in sync and any messages with extra fields are not written and remain in the subscription's backlog.",
@@ -818,7 +806,9 @@ const InputsSchema = z.object({
     writeMetadata: z.boolean().describe(
       "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
     ).optional(),
-  }).describe("Configuration for a BigQuery subscription.").optional(),
+  }).describe(
+    "Optional. If delivery to BigQuery is used with this subscription, this field is used to configure it.",
+  ).optional(),
   bigtableConfig: z.object({
     appProfileId: z.string().describe(
       'Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.',
@@ -845,7 +835,7 @@ const InputsSchema = z.object({
       "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
     ).optional(),
   }).describe(
-    "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
+    "Optional. If delivery to Bigtable is used with this subscription, this field is used to configure it.",
   ).optional(),
   cloudStorageConfig: z.object({
     avroConfig: z.object({
@@ -856,7 +846,7 @@ const InputsSchema = z.object({
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key as additional fields in the output. The subscription name, message_id, and publish_time fields are put in their own fields while all other message properties other than data (for example, an ordering_key, if present) are added as entries in the attributes map.",
       ).optional(),
     }).describe(
-      "Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.",
+      "Optional. If set, message data will be written to Cloud Storage in Avro format.",
     ).optional(),
     bucket: z.string().describe(
       'Required. User-provided name for the Cloud Storage bucket. The bucket must be created by the user. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -894,9 +884,11 @@ const InputsSchema = z.object({
       "Output only. An output-only field that indicates whether or not the subscription can receive messages.",
     ).optional(),
     textConfig: z.object({}).describe(
-      "Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.",
+      "Optional. If set, message data will be written to Cloud Storage in text format.",
     ).optional(),
-  }).describe("Configuration for a Cloud Storage subscription.").optional(),
+  }).describe(
+    "Optional. If delivery to Google Cloud Storage is used with this subscription, this field is used to configure it.",
+  ).optional(),
   deadLetterPolicy: z.object({
     deadLetterTopic: z.string().describe(
       "Optional. The name of the topic to which dead letter messages should be published. Format is `projects/{project}/topics/{topic}`.The Pub/Sub service account associated with the enclosing subscription's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.",
@@ -905,7 +897,7 @@ const InputsSchema = z.object({
       "Optional. The maximum number of delivery attempts for any message. The value must be between 5 and 100. The number of delivery attempts is defined as 1 + (the sum of number of NACKs and number of times the acknowledgment deadline has been exceeded for the message). A NACK is any call to ModifyAckDeadline with a 0 deadline. Note that client libraries may automatically extend ack_deadlines. This field will be honored on a best effort basis. If this parameter is 0, a default value of 5 is used.",
     ).optional(),
   }).describe(
-    "Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.",
+    "Optional. A policy that specifies the conditions for dead lettering messages in this subscription. If dead_letter_policy is not set, dead lettering is disabled. The Pub/Sub service account associated with this subscriptions's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Acknowledge() messages on this subscription.",
   ).optional(),
   detached: z.boolean().describe(
     "Optional. Indicates whether the subscription is detached from its topic. Detached subscriptions don't receive messages from their topic and don't retain any backlog. `Pull` and `StreamingPull` requests will return FAILED_PRECONDITION. If the subscription is a push subscription, pushes to the endpoint will not be made.",
@@ -921,7 +913,7 @@ const InputsSchema = z.object({
       'Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of `ttl`. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for `ttl` depend on the type of the associated resource, as well. If `ttl` is not set, the associated resource never expires.',
     ).optional(),
   }).describe(
-    "A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).",
+    "Optional. A policy that specifies the conditions for this subscription's expiration. A subscription is considered active as long as any connected subscriber is successfully consuming messages from the subscription or is issuing operations on the subscription. If `expiration_policy` is not set, a *default policy* with `ttl` of 31 days will be used. The minimum allowed value for `expiration_policy.ttl` is 1 day. If `expiration_policy` is set, but `expiration_policy.ttl` is not set, the subscription never expires.",
   ).optional(),
   filter: z.string().describe(
     "Optional. An expression written in the Pub/Sub [filter language](https://cloud.google.com/pubsub/docs/filtering). If non-empty, then only `PubsubMessage`s whose `attributes` field matches the filter are delivered on this subscription. If empty, then no messages are filtered out.",
@@ -945,10 +937,10 @@ const InputsSchema = z.object({
           "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
         ).optional(),
       }).describe(
-        "Configuration for making inferences using arbitrary JSON payloads.",
+        "Optional. Requests and responses can be any arbitrary JSON object.",
       ).optional(),
     }).describe(
-      "Configuration for making inference requests against Vertex AI models.",
+      "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
     ).optional(),
     compression: z.object({
       compressionAlgorithm: z.enum([
@@ -963,9 +955,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Required. Specifies whether to compress or decompress the message.",
       ).optional(),
-    }).describe(
-      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-    ).optional(),
+    }).describe("Optional. Compression/Decompression.").optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -980,7 +970,7 @@ const InputsSchema = z.object({
         "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
       ).optional(),
     }).describe(
-      "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+      "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
     ).optional(),
   })).describe(
     "Optional. Transforms to be applied to messages before they are delivered to subscribers. Transforms are applied in the order specified.",
@@ -996,8 +986,9 @@ const InputsSchema = z.object({
       writeMetadata: z.boolean().describe(
         "Optional. When true, writes the Pub/Sub message metadata to `x-goog-pubsub-:` headers of the HTTP request. Writes the Pub/Sub message attributes to `:` headers of the HTTP request.",
       ).optional(),
-    }).describe("Sets the `data` field as the HTTP body for delivery.")
-      .optional(),
+    }).describe(
+      "Optional. When set, the payload to the push endpoint is not wrapped.",
+    ).optional(),
     oidcToken: z.object({
       audience: z.string().describe(
         "Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.",
@@ -1006,15 +997,17 @@ const InputsSchema = z.object({
         "Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).",
       ).optional(),
     }).describe(
-      "Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).",
+      "Optional. If specified, Pub/Sub will generate and attach an OIDC JWT token as an `Authorization` header in the HTTP request for every pushed message.",
     ).optional(),
     pubsubWrapper: z.object({}).describe(
-      "The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
+      "Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
     ).optional(),
     pushEndpoint: z.string().describe(
       "Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use `https://example.com/push`.",
     ).optional(),
-  }).describe("Configuration for a push delivery endpoint.").optional(),
+  }).describe(
+    "Optional. If push delivery is used with this subscription, this field is used to configure it.",
+  ).optional(),
   retainAckedMessages: z.boolean().describe(
     "Optional. Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the `message_retention_duration` window. This must be true if you would like to [`Seek` to a timestamp] (https://cloud.google.com/pubsub/docs/replay-overview#seek_to_a_time) in the past to replay previously-acknowledged messages.",
   ).optional(),
@@ -1026,7 +1019,7 @@ const InputsSchema = z.object({
       "Optional. The minimum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 10 seconds.",
     ).optional(),
   }).describe(
-    "A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.",
+    "Optional. A policy that specifies how Pub/Sub retries message delivery for this subscription. If not set, the default retry policy is applied. This generally implies that messages will be retried as soon as possible for healthy subscribers. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message.",
   ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
@@ -1046,7 +1039,7 @@ const InputsSchema = z.object({
         'Optional. The name of the associated Analytics Hub subscription resource. Pattern: "projects/{project}/locations/{location}/subscriptions/{subscription}"',
       ).optional(),
     }).describe(
-      "Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).",
+      "Output only. Information about the associated Analytics Hub subscription. Only set if the subscription is created by Analytics Hub.",
     ).optional(),
     bigqueryConfig: z.object({
       dropUnknownFields: z.boolean().describe(
@@ -1078,7 +1071,9 @@ const InputsSchema = z.object({
       writeMetadata: z.boolean().describe(
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
       ).optional(),
-    }).describe("Configuration for a BigQuery subscription.").optional(),
+    }).describe(
+      "Optional. If delivery to BigQuery is used with this subscription, this field is used to configure it.",
+    ).optional(),
     bigtableConfig: z.object({
       appProfileId: z.string().describe(
         'Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.',
@@ -1105,7 +1100,7 @@ const InputsSchema = z.object({
         "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key to additional columns in the table under the pubsub_metadata column family. The subscription name, message_id, and publish_time fields are put in their own columns while all other message properties (other than data) are written to a JSON object in the attributes column.",
       ).optional(),
     }).describe(
-      "Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name, message ID hash, and message ID delimited by `#`. - columns: message bytes written to a single column family `data` with an empty-string column qualifier. - cell timestamp: the message publish timestamp.",
+      "Optional. If delivery to Bigtable is used with this subscription, this field is used to configure it.",
     ).optional(),
     cloudStorageConfig: z.object({
       avroConfig: z.object({
@@ -1116,7 +1111,7 @@ const InputsSchema = z.object({
           "Optional. When true, write the subscription name, message_id, publish_time, attributes, and ordering_key as additional fields in the output. The subscription name, message_id, and publish_time fields are put in their own fields while all other message properties other than data (for example, an ordering_key, if present) are added as entries in the attributes map.",
         ).optional(),
       }).describe(
-        "Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.",
+        "Optional. If set, message data will be written to Cloud Storage in Avro format.",
       ).optional(),
       bucket: z.string().describe(
         'Required. User-provided name for the Cloud Storage bucket. The bucket must be created by the user. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -1154,9 +1149,11 @@ const InputsSchema = z.object({
         "Output only. An output-only field that indicates whether or not the subscription can receive messages.",
       ).optional(),
       textConfig: z.object({}).describe(
-        "Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.",
+        "Optional. If set, message data will be written to Cloud Storage in text format.",
       ).optional(),
-    }).describe("Configuration for a Cloud Storage subscription.").optional(),
+    }).describe(
+      "Optional. If delivery to Google Cloud Storage is used with this subscription, this field is used to configure it.",
+    ).optional(),
     deadLetterPolicy: z.object({
       deadLetterTopic: z.string().describe(
         "Optional. The name of the topic to which dead letter messages should be published. Format is `projects/{project}/topics/{topic}`.The Pub/Sub service account associated with the enclosing subscription's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.",
@@ -1165,7 +1162,7 @@ const InputsSchema = z.object({
         "Optional. The maximum number of delivery attempts for any message. The value must be between 5 and 100. The number of delivery attempts is defined as 1 + (the sum of number of NACKs and number of times the acknowledgment deadline has been exceeded for the message). A NACK is any call to ModifyAckDeadline with a 0 deadline. Note that client libraries may automatically extend ack_deadlines. This field will be honored on a best effort basis. If this parameter is 0, a default value of 5 is used.",
       ).optional(),
     }).describe(
-      "Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.",
+      "Optional. A policy that specifies the conditions for dead lettering messages in this subscription. If dead_letter_policy is not set, dead lettering is disabled. The Pub/Sub service account associated with this subscriptions's parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Acknowledge() messages on this subscription.",
     ).optional(),
     detached: z.boolean().describe(
       "Optional. Indicates whether the subscription is detached from its topic. Detached subscriptions don't receive messages from their topic and don't retain any backlog. `Pull` and `StreamingPull` requests will return FAILED_PRECONDITION. If the subscription is a push subscription, pushes to the endpoint will not be made.",
@@ -1181,7 +1178,7 @@ const InputsSchema = z.object({
         'Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of `ttl`. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for `ttl` depend on the type of the associated resource, as well. If `ttl` is not set, the associated resource never expires.',
       ).optional(),
     }).describe(
-      "A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).",
+      "Optional. A policy that specifies the conditions for this subscription's expiration. A subscription is considered active as long as any connected subscriber is successfully consuming messages from the subscription or is issuing operations on the subscription. If `expiration_policy` is not set, a *default policy* with `ttl` of 31 days will be used. The minimum allowed value for `expiration_policy.ttl` is 1 day. If `expiration_policy` is set, but `expiration_policy.ttl` is not set, the subscription never expires.",
     ).optional(),
     filter: z.string().describe(
       "Optional. An expression written in the Pub/Sub [filter language](https://cloud.google.com/pubsub/docs/filtering). If non-empty, then only `PubsubMessage`s whose `attributes` field matches the filter are delivered on this subscription. If empty, then no messages are filtered out.",
@@ -1205,10 +1202,10 @@ const InputsSchema = z.object({
             "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
           ).optional(),
         }).describe(
-          "Configuration for making inferences using arbitrary JSON payloads.",
+          "Optional. Requests and responses can be any arbitrary JSON object.",
         ).optional(),
       }).describe(
-        "Configuration for making inference requests against Vertex AI models.",
+        "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
       ).optional(),
       compression: z.object({
         compressionAlgorithm: z.enum([
@@ -1223,9 +1220,7 @@ const InputsSchema = z.object({
         ]).describe(
           "Required. Specifies whether to compress or decompress the message.",
         ).optional(),
-      }).describe(
-        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-      ).optional(),
+      }).describe("Optional. Compression/Decompression.").optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -1240,7 +1235,7 @@ const InputsSchema = z.object({
           "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
         ).optional(),
       }).describe(
-        "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+        "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
       ).optional(),
     })).describe(
       "Optional. Transforms to be applied to messages before they are delivered to subscribers. Transforms are applied in the order specified.",
@@ -1256,8 +1251,9 @@ const InputsSchema = z.object({
         writeMetadata: z.boolean().describe(
           "Optional. When true, writes the Pub/Sub message metadata to `x-goog-pubsub-:` headers of the HTTP request. Writes the Pub/Sub message attributes to `:` headers of the HTTP request.",
         ).optional(),
-      }).describe("Sets the `data` field as the HTTP body for delivery.")
-        .optional(),
+      }).describe(
+        "Optional. When set, the payload to the push endpoint is not wrapped.",
+      ).optional(),
       oidcToken: z.object({
         audience: z.string().describe(
           "Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.",
@@ -1266,15 +1262,17 @@ const InputsSchema = z.object({
           "Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).",
         ).optional(),
       }).describe(
-        "Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).",
+        "Optional. If specified, Pub/Sub will generate and attach an OIDC JWT token as an `Authorization` header in the HTTP request for every pushed message.",
       ).optional(),
       pubsubWrapper: z.object({}).describe(
-        "The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
+        "Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).",
       ).optional(),
       pushEndpoint: z.string().describe(
         "Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use `https://example.com/push`.",
       ).optional(),
-    }).describe("Configuration for a push delivery endpoint.").optional(),
+    }).describe(
+      "Optional. If push delivery is used with this subscription, this field is used to configure it.",
+    ).optional(),
     retainAckedMessages: z.boolean().describe(
       "Optional. Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the `message_retention_duration` window. This must be true if you would like to [`Seek` to a timestamp] (https://cloud.google.com/pubsub/docs/replay-overview#seek_to_a_time) in the past to replay previously-acknowledged messages.",
     ).optional(),
@@ -1286,7 +1284,7 @@ const InputsSchema = z.object({
         "Optional. The minimum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 10 seconds.",
       ).optional(),
     }).describe(
-      "A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.",
+      "Optional. A policy that specifies how Pub/Sub retries message delivery for this subscription. If not set, the default retry policy is applied. This generally implies that messages will be retried as soon as possible for healthy subscribers. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message.",
     ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "RESOURCE_ERROR"]).describe(
       "Output only. An output-only field indicating whether or not the subscription can receive messages.",
@@ -1300,9 +1298,7 @@ const InputsSchema = z.object({
     topicMessageRetentionDuration: z.string().describe(
       "Output only. Indicates the minimum duration for which a message is retained after it is published to the subscription's topic. If this field is set, messages published to the subscription's topic in the last `topic_message_retention_duration` are always available to subscribers. See the `message_retention_duration` field in `Topic`. This field is set only in responses from the server; it is ignored if it is set in any requests.",
     ).optional(),
-  }).describe(
-    "A subscription resource. If none of `push_config`, `bigquery_config`, `cloud_storage_config`, or `bigtable_config` is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.",
-  ).optional(),
+  }).describe("Required. The updated subscription object.").optional(),
   updateMask: z.string().describe(
     "Required. Indicates which fields in the provided subscription to update. Must be specified and non-empty.",
   ).optional(),
@@ -1331,7 +1327,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Subscriptions. Registered at `@swamp/gcp/pubsub/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/pubsub/subscriptions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1488,6 +1484,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: analyticsHubSubscriptionInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          analyticsHubSubscriptionInfo: _analyticsHubSubscriptionInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1517,10 +1524,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["ackDeadlineSeconds"] !== undefined) {
           body["ackDeadlineSeconds"] = g["ackDeadlineSeconds"];
-        }
-        if (g["analyticsHubSubscriptionInfo"] !== undefined) {
-          body["analyticsHubSubscriptionInfo"] =
-            g["analyticsHubSubscriptionInfo"];
         }
         if (g["bigqueryConfig"] !== undefined) {
           body["bigqueryConfig"] = g["bigqueryConfig"];

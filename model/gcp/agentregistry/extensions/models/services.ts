@@ -171,7 +171,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]).describe(
       "Required. The type of the agent spec content.",
     ).optional(),
-  }).describe("The spec of the agent.").optional(),
+  }).describe(
+    "Optional. The spec of the Agent. When `agent_spec` is set, the type of the service is Agent.",
+  ).optional(),
   description: z.string().describe(
     "Optional. User-defined description of an Service. Can have a maximum length of `2048` characters.",
   ).optional(),
@@ -185,7 +187,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "NO_SPEC"]).describe(
       "Required. The type of the endpoint spec content.",
     ).optional(),
-  }).describe("The spec of the endpoint.").optional(),
+  }).describe(
+    "Optional. The spec of the Endpoint. When `endpoint_spec` is set, the type of the service is Endpoint.",
+  ).optional(),
   interfaces: z.array(z.object({
     protocolBinding: z.enum([
       "PROTOCOL_BINDING_UNSPECIFIED",
@@ -202,7 +206,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]).describe(
       "Required. The type of the MCP Server spec content.",
     ).optional(),
-  }).describe("The spec of the MCP Server.").optional(),
+  }).describe(
+    "Optional. The spec of the MCP Server. When `mcp_server_spec` is set, the type of the service is MCP Server.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the Service. Format: `projects/{project}/locations/{location}/services/{service}`.",
   ).optional(),
@@ -256,7 +262,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]).describe(
       "Required. The type of the agent spec content.",
     ).optional(),
-  }).describe("The spec of the agent.").optional(),
+  }).describe(
+    "Optional. The spec of the Agent. When `agent_spec` is set, the type of the service is Agent.",
+  ).optional(),
   description: z.string().describe(
     "Optional. User-defined description of an Service. Can have a maximum length of `2048` characters.",
   ).optional(),
@@ -270,7 +278,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "NO_SPEC"]).describe(
       "Required. The type of the endpoint spec content.",
     ).optional(),
-  }).describe("The spec of the endpoint.").optional(),
+  }).describe(
+    "Optional. The spec of the Endpoint. When `endpoint_spec` is set, the type of the service is Endpoint.",
+  ).optional(),
   interfaces: z.array(z.object({
     protocolBinding: z.enum([
       "PROTOCOL_BINDING_UNSPECIFIED",
@@ -287,7 +297,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]).describe(
       "Required. The type of the MCP Server spec content.",
     ).optional(),
-  }).describe("The spec of the MCP Server.").optional(),
+  }).describe(
+    "Optional. The spec of the MCP Server. When `mcp_server_spec` is set, the type of the service is MCP Server.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the Service. Format: `projects/{project}/locations/{location}/services/{service}`.",
   ).optional(),
@@ -325,7 +337,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Registry Services. Registered at `@swamp/gcp/agentregistry/services`. */
 export const model = {
   type: "@swamp/gcp/agentregistry/services",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -439,6 +451,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

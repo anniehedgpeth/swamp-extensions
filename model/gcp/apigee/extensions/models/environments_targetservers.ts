@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
       wildcardMatch: z.boolean().describe(
         "Indicates whether the cert should be matched against as a wildcard cert.",
       ).optional(),
-    }).optional(),
+    }).describe("The TLS Common Name of the certificate.").optional(),
     enabled: z.boolean().describe(
       "Required. Enables TLS. If false, neither one-way nor two-way TLS will be enabled.",
     ).optional(),
@@ -182,7 +182,7 @@ const GlobalArgsSchema = z.object({
     trustStore: z.string().describe("The resource ID of the truststore.")
       .optional(),
   }).describe(
-    "TLS configuration information for virtual hosts and TargetServers.",
+    "Optional. Specifies TLS configuration info for this TargetServer. The JSON name is `sSLInfo` for legacy/backwards compatibility reasons -- Edge originally supported SSL, and the name is still used for TLS configuration.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -256,7 +256,7 @@ const InputsSchema = z.object({
       wildcardMatch: z.boolean().describe(
         "Indicates whether the cert should be matched against as a wildcard cert.",
       ).optional(),
-    }).optional(),
+    }).describe("The TLS Common Name of the certificate.").optional(),
     enabled: z.boolean().describe(
       "Required. Enables TLS. If false, neither one-way nor two-way TLS will be enabled.",
     ).optional(),
@@ -275,7 +275,7 @@ const InputsSchema = z.object({
     trustStore: z.string().describe("The resource ID of the truststore.")
       .optional(),
   }).describe(
-    "TLS configuration information for virtual hosts and TargetServers.",
+    "Optional. Specifies TLS configuration info for this TargetServer. The JSON name is `sSLInfo` for legacy/backwards compatibility reasons -- Edge originally supported SSL, and the name is still used for TLS configuration.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -305,7 +305,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.Targetservers. Registered at `@swamp/gcp/apigee/environments-targetservers`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-targetservers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -404,6 +404,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -198,9 +198,8 @@ const GlobalArgsSchema = z.object({
       inclusionLabels: z.record(z.string(), z.string()).describe(
         "Optional. Labels as key value pairs. A VM should contain all the pairs specified in this map to be selected; Labels within the LabelSelector are OR'ed.",
       ).optional(),
-    }).describe(
-      "A LabelSelector is applicable for a VM only if it matches all labels in the LabelSelector.",
-    ).optional(),
+    }).describe("Optional. Labels within the LabelSelector are OR'd.")
+      .optional(),
   })).describe(
     'Optional. Selector to target VMs for a policy. There is a logical "AND" between instance_selectors.',
   ).optional(),
@@ -229,7 +228,8 @@ const GlobalArgsSchema = z.object({
       retryUuid: z.string().describe(
         "Optional. The UUID that identifies a policy rollout retry attempt for update and delete operations. Set this field only when retrying a rollout for an existing extension policy. * `update` method: Lets you retry policy rollout without changes. An error occurs if you set retry_uuid but the policy is modified. * `delete` method: Lets you retry policy deletion rollout if the previous deletion rollout is not finished and the policy is in the DELETING state. If you set this field when the policy is not in the DELETING state, an error occurs.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. The rollout input which defines the rollout plan.")
+      .optional(),
     rolloutStatus: z.object({
       currentRollouts: z.array(z.object({
         locationRolloutStatus: z.record(z.string(), z.unknown()).describe(
@@ -283,9 +283,12 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Output only. [Output Only] The overall state of the rollout.",
         ).optional(),
-      }).optional(),
-    }).optional(),
-  }).describe("Represents the rollout operation").optional(),
+      }).describe(
+        "Output only. [Output Only] The last completed rollout resource. This field will not be populated until the first rollout is completed.",
+      ).optional(),
+    }).describe("Output only. [Output Only] The rollout status of the policy.")
+      .optional(),
+  }).describe("Required. The rollout strategy and status.").optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -360,9 +363,8 @@ const InputsSchema = z.object({
       inclusionLabels: z.record(z.string(), z.string()).describe(
         "Optional. Labels as key value pairs. A VM should contain all the pairs specified in this map to be selected; Labels within the LabelSelector are OR'ed.",
       ).optional(),
-    }).describe(
-      "A LabelSelector is applicable for a VM only if it matches all labels in the LabelSelector.",
-    ).optional(),
+    }).describe("Optional. Labels within the LabelSelector are OR'd.")
+      .optional(),
   })).describe(
     'Optional. Selector to target VMs for a policy. There is a logical "AND" between instance_selectors.',
   ).optional(),
@@ -391,7 +393,8 @@ const InputsSchema = z.object({
       retryUuid: z.string().describe(
         "Optional. The UUID that identifies a policy rollout retry attempt for update and delete operations. Set this field only when retrying a rollout for an existing extension policy. * `update` method: Lets you retry policy rollout without changes. An error occurs if you set retry_uuid but the policy is modified. * `delete` method: Lets you retry policy deletion rollout if the previous deletion rollout is not finished and the policy is in the DELETING state. If you set this field when the policy is not in the DELETING state, an error occurs.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. The rollout input which defines the rollout plan.")
+      .optional(),
     rolloutStatus: z.object({
       currentRollouts: z.array(z.object({
         locationRolloutStatus: z.record(z.string(), z.unknown()).describe(
@@ -445,9 +448,12 @@ const InputsSchema = z.object({
         ]).describe(
           "Output only. [Output Only] The overall state of the rollout.",
         ).optional(),
-      }).optional(),
-    }).optional(),
-  }).describe("Represents the rollout operation").optional(),
+      }).describe(
+        "Output only. [Output Only] The last completed rollout resource. This field will not be populated until the first rollout is completed.",
+      ).optional(),
+    }).describe("Output only. [Output Only] The rollout status of the policy.")
+      .optional(),
+  }).describe("Required. The rollout strategy and status.").optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -476,7 +482,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine GlobalVmExtensionPolicies. Registered at `@swamp/gcp/compute/globalvmextensionpolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/globalvmextensionpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -193,7 +193,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Version metadata if present on the blueprint.",
     ).optional(),
   }).describe(
-    "Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).",
+    "Optional. Blueprints are OCI Images that contain all of the artifacts needed to provision a unit.",
   ).optional(),
   inputVariableDefaults: z.array(z.object({
     type: z.enum([
@@ -226,7 +226,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A list of releases from which a unit can be upgraded to this one (optional). If left empty no constraints will be applied. When provided, unit upgrade requests to this release will check and enforce this constraint.",
     ).optional(),
   }).describe(
-    "Set of requirements to be fulfilled on the Unit when using this Release.",
+    "Optional. Set of requirements to be fulfilled on the Unit when using this Release.",
   ).optional(),
   unitKind: z.string().describe(
     "Required. Immutable. Reference to the UnitKind this Release corresponds to (required and immutable once created).",
@@ -296,7 +296,7 @@ const InputsSchema = z.object({
       "Output only. Version metadata if present on the blueprint.",
     ).optional(),
   }).describe(
-    "Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).",
+    "Optional. Blueprints are OCI Images that contain all of the artifacts needed to provision a unit.",
   ).optional(),
   inputVariableDefaults: z.array(z.object({
     type: z.enum([
@@ -329,7 +329,7 @@ const InputsSchema = z.object({
       "Optional. A list of releases from which a unit can be upgraded to this one (optional). If left empty no constraints will be applied. When provided, unit upgrade requests to this release will check and enforce this constraint.",
     ).optional(),
   }).describe(
-    "Set of requirements to be fulfilled on the Unit when using this Release.",
+    "Optional. Set of requirements to be fulfilled on the Unit when using this Release.",
   ).optional(),
   unitKind: z.string().describe(
     "Required. Immutable. Reference to the UnitKind this Release corresponds to (required and immutable once created).",
@@ -367,7 +367,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Lifecycle Manager Releases. Registered at `@swamp/gcp/saasservicemgmt/releases`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/releases",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -496,6 +496,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

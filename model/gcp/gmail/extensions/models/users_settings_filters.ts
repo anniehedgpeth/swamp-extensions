@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     removeLabelIds: z.array(z.string()).describe(
       "List of labels to remove from the message.",
     ).optional(),
-  }).describe("A set of actions to perform on a message.").optional(),
+  }).describe("Action that the filter performs.").optional(),
   criteria: z.object({
     excludeChats: z.boolean().describe(
       "Whether the response should exclude chats.",
@@ -184,7 +184,7 @@ const GlobalArgsSchema = z.object({
     to: z.string().describe(
       'The recipient\'s display name or email address. Includes recipients in the "to", "cc", and "bcc" header fields. You can use simply the local part of the email address. For example, "example" and "example@" both match "example@gmail.com". This field is case-insensitive.',
     ).optional(),
-  }).describe("Message matching criteria.").optional(),
+  }).describe("Matching criteria for the filter.").optional(),
   id: z.string().describe("The server assigned ID of the filter.").optional(),
   userId: z.string().describe(
     'User\'s email address. The special value "me" can be used to indicate the authenticated user.',
@@ -228,7 +228,7 @@ const InputsSchema = z.object({
     removeLabelIds: z.array(z.string()).describe(
       "List of labels to remove from the message.",
     ).optional(),
-  }).describe("A set of actions to perform on a message.").optional(),
+  }).describe("Action that the filter performs.").optional(),
   criteria: z.object({
     excludeChats: z.boolean().describe(
       "Whether the response should exclude chats.",
@@ -256,7 +256,7 @@ const InputsSchema = z.object({
     to: z.string().describe(
       'The recipient\'s display name or email address. Includes recipients in the "to", "cc", and "bcc" header fields. You can use simply the local part of the email address. For example, "example" and "example@" both match "example@gmail.com". This field is case-insensitive.',
     ).optional(),
-  }).describe("Message matching criteria.").optional(),
+  }).describe("Matching criteria for the filter.").optional(),
   id: z.string().describe("The server assigned ID of the filter.").optional(),
   userId: z.string().describe(
     'User\'s email address. The special value "me" can be used to indicate the authenticated user.',
@@ -286,7 +286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Settings.Filters. Registered at `@swamp/gcp/gmail/users-settings-filters`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-settings-filters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -410,6 +410,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

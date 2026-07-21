@@ -173,7 +173,7 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       "Version of the application. You should update this field whenever the application changes in a way that affects the computation of the data.",
     ).optional(),
-  }).optional(),
+  }).describe("The application that created the session.").optional(),
   description: z.string().describe("A description for this session.")
     .optional(),
   endTimeMillis: z.string().describe(
@@ -237,7 +237,7 @@ const InputsSchema = z.object({
     version: z.string().describe(
       "Version of the application. You should update this field whenever the application changes in a way that affects the computation of the data.",
     ).optional(),
-  }).optional(),
+  }).describe("The application that created the session.").optional(),
   description: z.string().describe("A description for this session.")
     .optional(),
   endTimeMillis: z.string().describe(
@@ -281,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Fitness Users.Sessions. Registered at `@swamp/gcp/fitness/users-sessions`. */
 export const model = {
   type: "@swamp/gcp/fitness/users-sessions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -375,6 +375,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

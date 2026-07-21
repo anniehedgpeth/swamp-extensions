@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     supportZones: z.boolean().describe("Whether this Container supports zones.")
       .optional(),
-  }).optional(),
+  }).describe("Read-only Container feature set.").optional(),
   fingerprint: z.string().describe(
     "The fingerprint of the GTM Container as computed at storage time. This value is recomputed whenever the account is modified.",
   ).optional(),
@@ -321,7 +321,7 @@ const InputsSchema = z.object({
     ).optional(),
     supportZones: z.boolean().describe("Whether this Container supports zones.")
       .optional(),
-  }).optional(),
+  }).describe("Read-only Container feature set.").optional(),
   fingerprint: z.string().describe(
     "The fingerprint of the GTM Container as computed at storage time. This value is recomputed whenever the account is modified.",
   ).optional(),
@@ -380,7 +380,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers. Registered at `@swamp/gcp/tagmanager/accounts-containers`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -474,6 +474,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

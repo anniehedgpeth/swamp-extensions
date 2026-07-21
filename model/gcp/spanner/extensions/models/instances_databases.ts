@@ -149,8 +149,9 @@ const GlobalArgsSchema = z.object({
     kmsKeyNames: z.array(z.string()).describe(
       "Specifies the KMS configuration for one or more keys used to encrypt the database. Values are of the form `projects//locations//keyRings//cryptoKeys/`. The keys referenced by `kms_key_names` must fully cover all regions of the database's instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type `GOOGLE_MANAGED`, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type `USER_MANAGED`, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren't supported for `USER_MANAGED` type instance configurations.",
     ).optional(),
-  }).describe("Encryption configuration for a Cloud Spanner database.")
-    .optional(),
+  }).describe(
+    "Output only. For databases that are using customer managed encryption, this field contains the encryption configuration for the database. For databases that are using Google default or other types of encryption, this field is empty.",
+  ).optional(),
   extraStatements: z.array(z.string()).describe(
     "Optional. A list of DDL statements to run inside the newly created database. Statements can create tables, indexes, etc. These statements execute atomically with the creation of the database: if there is an error in any statement, the database is not created.",
   ).optional(),
@@ -181,7 +182,7 @@ const GlobalArgsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. If present, the status of a recent encrypt/decrypt call on underlying data for this database or backup. Regardless of status, data is always encrypted at rest.",
     ).optional(),
     encryptionType: z.enum([
       "TYPE_UNSPECIFIED",
@@ -205,21 +206,21 @@ const GlobalArgsSchema = z.object({
       "Output only. Whether this `ChangeQuorum` is Google or User initiated.",
     ).optional(),
     quorumType: z.object({
-      dualRegion: z.object({}).describe(
-        "Message type for a dual-region quorum. Currently this type has no options.",
-      ).optional(),
+      dualRegion: z.object({}).describe("Dual-region quorum type.").optional(),
       singleRegion: z.object({
         servingLocation: z.string().describe(
           'Required. The location of the serving region, for example, "us-central1". The location must be one of the regions within the dual-region instance configuration of your database. The list of valid locations is available using the GetInstanceConfig API. This should only be used if you plan to change quorum to the single-region quorum type.',
         ).optional(),
-      }).describe("Message type for a single-region quorum.").optional(),
+      }).describe("Single-region quorum type.").optional(),
     }).describe(
-      "Information about the database quorum type. This only applies to dual-region instance configs.",
+      "Output only. The type of this quorum. See QuorumType for more information about quorum type specifications.",
     ).optional(),
     startTime: z.string().describe(
       "Output only. The timestamp when the request was triggered.",
     ).optional(),
-  }).describe("Information about the dual-region quorum.").optional(),
+  }).describe(
+    "Output only. Applicable only for databases that use dual-region instance configurations. Contains information about the quorum.",
+  ).optional(),
   reconciling: z.boolean().describe(
     "Output only. If true, the database is being updated. If false, there are no ongoing update operations for the database.",
   ).optional(),
@@ -235,11 +236,15 @@ const GlobalArgsSchema = z.object({
       versionTime: z.string().describe(
         "The backup contains an externally consistent copy of `source_database` at the timestamp specified by `version_time`. If the CreateBackup request did not specify `version_time`, the `version_time` of the backup is equivalent to the `create_time`.",
       ).optional(),
-    }).describe("Information about a backup.").optional(),
+    }).describe(
+      "Information about the backup used to restore the database. The backup may no longer exist.",
+    ).optional(),
     sourceType: z.enum(["TYPE_UNSPECIFIED", "BACKUP"]).describe(
       "The type of the restore source.",
     ).optional(),
-  }).describe("Information about the database restore.").optional(),
+  }).describe(
+    "Output only. Applicable only for restored databases. Contains information about the restore source.",
+  ).optional(),
   state: z.enum(["STATE_UNSPECIFIED", "CREATING", "READY", "READY_OPTIMIZING"])
     .describe("Output only. The current database state.").optional(),
   versionRetentionPeriod: z.string().describe(
@@ -321,8 +326,9 @@ const InputsSchema = z.object({
     kmsKeyNames: z.array(z.string()).describe(
       "Specifies the KMS configuration for one or more keys used to encrypt the database. Values are of the form `projects//locations//keyRings//cryptoKeys/`. The keys referenced by `kms_key_names` must fully cover all regions of the database's instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type `GOOGLE_MANAGED`, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type `USER_MANAGED`, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren't supported for `USER_MANAGED` type instance configurations.",
     ).optional(),
-  }).describe("Encryption configuration for a Cloud Spanner database.")
-    .optional(),
+  }).describe(
+    "Output only. For databases that are using customer managed encryption, this field contains the encryption configuration for the database. For databases that are using Google default or other types of encryption, this field is empty.",
+  ).optional(),
   extraStatements: z.array(z.string()).describe(
     "Optional. A list of DDL statements to run inside the newly created database. Statements can create tables, indexes, etc. These statements execute atomically with the creation of the database: if there is an error in any statement, the database is not created.",
   ).optional(),
@@ -353,7 +359,7 @@ const InputsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. If present, the status of a recent encrypt/decrypt call on underlying data for this database or backup. Regardless of status, data is always encrypted at rest.",
     ).optional(),
     encryptionType: z.enum([
       "TYPE_UNSPECIFIED",
@@ -377,21 +383,21 @@ const InputsSchema = z.object({
       "Output only. Whether this `ChangeQuorum` is Google or User initiated.",
     ).optional(),
     quorumType: z.object({
-      dualRegion: z.object({}).describe(
-        "Message type for a dual-region quorum. Currently this type has no options.",
-      ).optional(),
+      dualRegion: z.object({}).describe("Dual-region quorum type.").optional(),
       singleRegion: z.object({
         servingLocation: z.string().describe(
           'Required. The location of the serving region, for example, "us-central1". The location must be one of the regions within the dual-region instance configuration of your database. The list of valid locations is available using the GetInstanceConfig API. This should only be used if you plan to change quorum to the single-region quorum type.',
         ).optional(),
-      }).describe("Message type for a single-region quorum.").optional(),
+      }).describe("Single-region quorum type.").optional(),
     }).describe(
-      "Information about the database quorum type. This only applies to dual-region instance configs.",
+      "Output only. The type of this quorum. See QuorumType for more information about quorum type specifications.",
     ).optional(),
     startTime: z.string().describe(
       "Output only. The timestamp when the request was triggered.",
     ).optional(),
-  }).describe("Information about the dual-region quorum.").optional(),
+  }).describe(
+    "Output only. Applicable only for databases that use dual-region instance configurations. Contains information about the quorum.",
+  ).optional(),
   reconciling: z.boolean().describe(
     "Output only. If true, the database is being updated. If false, there are no ongoing update operations for the database.",
   ).optional(),
@@ -407,11 +413,15 @@ const InputsSchema = z.object({
       versionTime: z.string().describe(
         "The backup contains an externally consistent copy of `source_database` at the timestamp specified by `version_time`. If the CreateBackup request did not specify `version_time`, the `version_time` of the backup is equivalent to the `create_time`.",
       ).optional(),
-    }).describe("Information about a backup.").optional(),
+    }).describe(
+      "Information about the backup used to restore the database. The backup may no longer exist.",
+    ).optional(),
     sourceType: z.enum(["TYPE_UNSPECIFIED", "BACKUP"]).describe(
       "The type of the restore source.",
     ).optional(),
-  }).describe("Information about the database restore.").optional(),
+  }).describe(
+    "Output only. Applicable only for restored databases. Contains information about the restore source.",
+  ).optional(),
   state: z.enum(["STATE_UNSPECIFIED", "CREATING", "READY", "READY_OPTIMIZING"])
     .describe("Output only. The current database state.").optional(),
   versionRetentionPeriod: z.string().describe(
@@ -448,7 +458,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner Instances.Databases. Registered at `@swamp/gcp/spanner/instances-databases`. */
 export const model = {
   type: "@swamp/gcp/spanner/instances-databases",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -557,6 +567,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -188,9 +188,7 @@ const GlobalArgsSchema = z.object({
     uid: z.string().describe(
       "Output only. System-assigned unique identifier for the CustomClass. This field is not used.",
     ).optional(),
-  }).describe(
-    "A set of words or phrases that represents a common concept likely to appear in your audio, for example a list of passenger ship names. CustomClass items can be substituted into placeholders that you set in PhraseSet phrases.",
-  ).optional(),
+  }).describe("Required. The custom class to create.").optional(),
   customClassId: z.string().describe(
     "If this custom class is a resource, the custom_class_id is the resource id of the CustomClass. Case sensitive.",
   ).optional(),
@@ -298,9 +296,7 @@ const InputsSchema = z.object({
     uid: z.string().describe(
       "Output only. System-assigned unique identifier for the CustomClass. This field is not used.",
     ).optional(),
-  }).describe(
-    "A set of words or phrases that represents a common concept likely to appear in your audio, for example a list of passenger ship names. CustomClass items can be substituted into placeholders that you set in PhraseSet phrases.",
-  ).optional(),
+  }).describe("Required. The custom class to create.").optional(),
   customClassId: z.string().describe(
     "If this custom class is a resource, the custom_class_id is the resource id of the CustomClass. Case sensitive.",
   ).optional(),
@@ -367,7 +363,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Speech-to-Text CustomClasses. Registered at `@swamp/gcp/speech/customclasses`. */
 export const model = {
   type: "@swamp/gcp/speech/customclasses",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -476,6 +472,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

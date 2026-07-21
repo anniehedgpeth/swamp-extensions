@@ -168,7 +168,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this directory site. This is a read-only, auto-generated field.",
+  ).optional(),
   inpageTagFormats: z.array(
     z.enum([
       "STANDARD",
@@ -209,14 +211,14 @@ const GlobalArgsSchema = z.object({
       publisherPortalOnly: z.boolean().describe(
         "Whether this directory site is available only via Publisher Portal.",
       ).optional(),
-    }).describe("Google Ad Manager Settings").optional(),
+    }).describe("Directory site Ad Manager settings.").optional(),
     instreamVideoPlacementAccepted: z.boolean().describe(
       "Whether this site accepts in-stream video ads.",
     ).optional(),
     interstitialPlacementAccepted: z.boolean().describe(
       "Whether this site accepts interstitial ads.",
     ).optional(),
-  }).describe("Directory Site Settings").optional(),
+  }).describe("Directory site settings.").optional(),
   url: z.string().describe("URL of this directory site.").optional(),
   profileId: z.string().describe(
     "User profile ID associated with this request.",
@@ -281,7 +283,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this directory site. This is a read-only, auto-generated field.",
+  ).optional(),
   inpageTagFormats: z.array(
     z.enum([
       "STANDARD",
@@ -322,14 +326,14 @@ const InputsSchema = z.object({
       publisherPortalOnly: z.boolean().describe(
         "Whether this directory site is available only via Publisher Portal.",
       ).optional(),
-    }).describe("Google Ad Manager Settings").optional(),
+    }).describe("Directory site Ad Manager settings.").optional(),
     instreamVideoPlacementAccepted: z.boolean().describe(
       "Whether this site accepts in-stream video ads.",
     ).optional(),
     interstitialPlacementAccepted: z.boolean().describe(
       "Whether this site accepts interstitial ads.",
     ).optional(),
-  }).describe("Directory Site Settings").optional(),
+  }).describe("Directory site settings.").optional(),
   url: z.string().describe("URL of this directory site.").optional(),
   profileId: z.string().describe(
     "User profile ID associated with this request.",
@@ -359,7 +363,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 DirectorySites. Registered at `@swamp/gcp/dfareporting/directorysites`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/directorysites",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -448,6 +452,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

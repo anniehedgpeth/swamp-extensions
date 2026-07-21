@@ -175,7 +175,7 @@ const GlobalArgsSchema = z.object({
             "APIGEE_OPDK",
           ]),
         ).describe("Required. The array of API Hub Gateway Types.").optional(),
-      }).describe("Message for the array of API Hub Gateway Types.").optional(),
+      }).describe("Include only these Gateway Types.").optional(),
       weight: z.enum(["WEIGHT_UNSPECIFIED", "MINOR", "MODERATE", "MAJOR"])
         .describe("The weight of the assessment.").optional(),
     }),
@@ -232,7 +232,7 @@ const InputsSchema = z.object({
             "APIGEE_OPDK",
           ]),
         ).describe("Required. The array of API Hub Gateway Types.").optional(),
-      }).describe("Message for the array of API Hub Gateway Types.").optional(),
+      }).describe("Include only these Gateway Types.").optional(),
       weight: z.enum(["WEIGHT_UNSPECIFIED", "MINOR", "MODERATE", "MAJOR"])
         .describe("The weight of the assessment.").optional(),
     }),
@@ -276,7 +276,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee SecurityProfilesV2. Registered at `@swamp/gcp/apigee/securityprofilesv2`. */
 export const model = {
   type: "@swamp/gcp/apigee/securityprofilesv2",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -375,6 +375,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -207,7 +207,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("The IP addresses of callers that are allowed to use the key.")
       .optional(),
-  }).describe("Describes the restrictions on the key.").optional(),
+  }).describe("Key restrictions.").optional(),
   serviceAccountEmail: z.string().describe(
     "Optional. The email address of [the service account](https://cloud.google.com/iam/docs/service-accounts) the key is bound to.",
   ).optional(),
@@ -309,7 +309,7 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("The IP addresses of callers that are allowed to use the key.")
       .optional(),
-  }).describe("Describes the restrictions on the key.").optional(),
+  }).describe("Key restrictions.").optional(),
   serviceAccountEmail: z.string().describe(
     "Optional. The email address of [the service account](https://cloud.google.com/iam/docs/service-accounts) the key is bound to.",
   ).optional(),
@@ -344,7 +344,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API Keys Keys. Registered at `@swamp/gcp/apikeys/keys`. */
 export const model = {
   type: "@swamp/gcp/apikeys/keys",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -448,6 +448,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

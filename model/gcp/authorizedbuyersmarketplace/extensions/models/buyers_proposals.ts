@@ -140,9 +140,7 @@ const GlobalArgsSchema = z.object({
     referenceId: z.string().describe(
       "A buyer specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).",
     ).optional(),
-  }).describe(
-    "Buyers are allowed to store certain types of private data in a proposal.",
-  ).optional(),
+  }).describe("Buyer private data (hidden from seller).").optional(),
   client: z.string().describe(
     "Output only. Refers to a Client. Format: `buyers/{buyerAccountId}/clients/{clientAccountid}`",
   ).optional(),
@@ -272,9 +270,7 @@ const InputsSchema = z.object({
     referenceId: z.string().describe(
       "A buyer specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).",
     ).optional(),
-  }).describe(
-    "Buyers are allowed to store certain types of private data in a proposal.",
-  ).optional(),
+  }).describe("Buyer private data (hidden from seller).").optional(),
   client: z.string().describe(
     "Output only. Refers to a Client. Format: `buyers/{buyerAccountId}/clients/{clientAccountid}`",
   ).optional(),
@@ -371,7 +367,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Authorized Buyers Marketplace Buyers.Proposals. Registered at `@swamp/gcp/authorizedbuyersmarketplace/buyers-proposals`. */
 export const model = {
   type: "@swamp/gcp/authorizedbuyersmarketplace/buyers-proposals",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -465,6 +461,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

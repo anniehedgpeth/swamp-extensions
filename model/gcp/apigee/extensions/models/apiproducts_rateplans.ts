@@ -177,8 +177,9 @@ const GlobalArgsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe(
+      "Fee to charge when total number of API calls falls within this range.",
+    ).optional(),
     start: z.string().describe(
       "Starting value of the range. Set to 0 or `null` for the initial range of values.",
     ).optional(),
@@ -213,8 +214,9 @@ const GlobalArgsSchema = z.object({
     units: z.string().describe(
       'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
     ).optional(),
-  }).describe("Represents an amount of money with its currency type.")
-    .optional(),
+  }).describe(
+    "Fixed amount that is charged at a defined interval and billed in advance of use of the API product. The fee will be prorated for the first billing period.",
+  ).optional(),
   revenueShareRates: z.array(z.object({
     end: z.string().describe(
       "Ending value of the range. Set to 0 or `null` for the last range of values.",
@@ -243,7 +245,7 @@ const GlobalArgsSchema = z.object({
     units: z.string().describe(
       'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
     ).optional(),
-  }).describe("Represents an amount of money with its currency type.")
+  }).describe("Initial, one-time fee paid when purchasing the API product.")
     .optional(),
   startTime: z.string().describe(
     "Time when the rate plan becomes active in milliseconds since epoch.",
@@ -325,8 +327,9 @@ const InputsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe(
+      "Fee to charge when total number of API calls falls within this range.",
+    ).optional(),
     start: z.string().describe(
       "Starting value of the range. Set to 0 or `null` for the initial range of values.",
     ).optional(),
@@ -361,8 +364,9 @@ const InputsSchema = z.object({
     units: z.string().describe(
       'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
     ).optional(),
-  }).describe("Represents an amount of money with its currency type.")
-    .optional(),
+  }).describe(
+    "Fixed amount that is charged at a defined interval and billed in advance of use of the API product. The fee will be prorated for the first billing period.",
+  ).optional(),
   revenueShareRates: z.array(z.object({
     end: z.string().describe(
       "Ending value of the range. Set to 0 or `null` for the last range of values.",
@@ -391,7 +395,7 @@ const InputsSchema = z.object({
     units: z.string().describe(
       'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
     ).optional(),
-  }).describe("Represents an amount of money with its currency type.")
+  }).describe("Initial, one-time fee paid when purchasing the API product.")
     .optional(),
   startTime: z.string().describe(
     "Time when the rate plan becomes active in milliseconds since epoch.",
@@ -427,7 +431,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Apiproducts.Rateplans. Registered at `@swamp/gcp/apigee/apiproducts-rateplans`. */
 export const model = {
   type: "@swamp/gcp/apigee/apiproducts-rateplans",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -537,6 +541,12 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description:
+        "Added: consumptionPricingType, currencyCode, description, displayName, endTime, fixedFeeFrequency, fixedRecurringFee, revenueShareRates, revenueShareType, setupFee, startTime, state, parent",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description:
         "Added: consumptionPricingType, currencyCode, description, displayName, endTime, fixedFeeFrequency, fixedRecurringFee, revenueShareRates, revenueShareType, setupFee, startTime, state, parent",
       upgradeAttributes: (old: Record<string, unknown>) => old,

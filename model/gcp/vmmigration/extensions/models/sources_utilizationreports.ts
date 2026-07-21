@@ -157,19 +157,6 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "The report display name, as assigned by the user.",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   timeFrame: z.enum(["TIME_FRAME_UNSPECIFIED", "WEEK", "MONTH", "YEAR"])
     .describe("Time frame of the report.").optional(),
   vms: z.array(z.object({
@@ -196,7 +183,7 @@ const GlobalArgsSchema = z.object({
       networkThroughputMaxKbps: z.string().describe(
         "Max network throughput (combined transmit-rates and receive-rates), in kilobytes per second.",
       ).optional(),
-    }).describe("Utilization metrics values for a single VM.").optional(),
+    }).describe("Utilization metrics for this VM.").optional(),
     vmId: z.string().describe("The VM's ID in the source.").optional(),
     vmwareVmDetails: z.object({
       architecture: z.enum([
@@ -237,7 +224,8 @@ const GlobalArgsSchema = z.object({
       vmId: z.string().describe(
         "The VM's id in the source (note that this is not the MigratingVm's id). This is the moref id of the VM.",
       ).optional(),
-    }).describe("VmwareVmDetails describes a VM in vCenter.").optional(),
+    }).describe("The description of the VM in a Source of type Vmware.")
+      .optional(),
   })).describe(
     'List of utilization information per VM. When sent as part of the request, the "vm_id" field is used in order to specify which VMs to include in the report. In that case all other fields are ignored.',
   ).optional(),
@@ -310,19 +298,6 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "The report display name, as assigned by the user.",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   timeFrame: z.enum(["TIME_FRAME_UNSPECIFIED", "WEEK", "MONTH", "YEAR"])
     .describe("Time frame of the report.").optional(),
   vms: z.array(z.object({
@@ -349,7 +324,7 @@ const InputsSchema = z.object({
       networkThroughputMaxKbps: z.string().describe(
         "Max network throughput (combined transmit-rates and receive-rates), in kilobytes per second.",
       ).optional(),
-    }).describe("Utilization metrics values for a single VM.").optional(),
+    }).describe("Utilization metrics for this VM.").optional(),
     vmId: z.string().describe("The VM's ID in the source.").optional(),
     vmwareVmDetails: z.object({
       architecture: z.enum([
@@ -390,7 +365,8 @@ const InputsSchema = z.object({
       vmId: z.string().describe(
         "The VM's id in the source (note that this is not the MigratingVm's id). This is the moref id of the VM.",
       ).optional(),
-    }).describe("VmwareVmDetails describes a VM in vCenter.").optional(),
+    }).describe("The description of the VM in a Source of type Vmware.")
+      .optional(),
   })).describe(
     'List of utilization information per VM. When sent as part of the request, the "vm_id" field is used in order to specify which VMs to include in the report. In that case all other fields are ignored.',
   ).optional(),
@@ -431,7 +407,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources.UtilizationReports. Registered at `@swamp/gcp/vmmigration/sources-utilizationreports`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources-utilizationreports",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -533,6 +509,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -563,7 +547,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["timeFrame"] !== undefined) body["timeFrame"] = g["timeFrame"];
         if (g["vms"] !== undefined) body["vms"] = g["vms"];
         if (g["requestId"] !== undefined) {

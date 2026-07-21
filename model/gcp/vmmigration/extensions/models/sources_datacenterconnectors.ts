@@ -148,73 +148,11 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  availableVersions: z.object({
-    inPlaceUpdate: z.object({
-      critical: z.boolean().describe(
-        "Determine whether it's critical to upgrade the appliance to this version.",
-      ).optional(),
-      releaseNotesUri: z.string().describe(
-        "Link to a page that contains the version release notes.",
-      ).optional(),
-      uri: z.string().describe("A link for downloading the version.")
-        .optional(),
-      version: z.string().describe("The appliance version.").optional(),
-    }).describe("Describes an appliance version.").optional(),
-    newDeployableAppliance: z.object({
-      critical: z.boolean().describe(
-        "Determine whether it's critical to upgrade the appliance to this version.",
-      ).optional(),
-      releaseNotesUri: z.string().describe(
-        "Link to a page that contains the version release notes.",
-      ).optional(),
-      uri: z.string().describe("A link for downloading the version.")
-        .optional(),
-      version: z.string().describe("The appliance version.").optional(),
-    }).describe("Describes an appliance version.").optional(),
-  }).describe("Holds information about the available versions for upgrade.")
-    .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   registrationId: z.string().describe(
     "Immutable. A unique key for this connector. This key is internal to the OVA connector and is supplied with its creation during the registration process and can not be modified.",
   ).optional(),
   serviceAccount: z.string().describe(
     "The service account to use in the connector when communicating with the cloud.",
-  ).optional(),
-  upgradeStatus: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    previousVersion: z.string().describe("The version from which we upgraded.")
-      .optional(),
-    startTime: z.string().describe("The time the operation was started.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "RUNNING", "FAILED", "SUCCEEDED"])
-      .describe("The state of the upgradeAppliance operation.").optional(),
-    version: z.string().describe("The version to upgrade to.").optional(),
-  }).describe(
-    "UpgradeStatus contains information about upgradeAppliance operation.",
   ).optional(),
   version: z.string().describe(
     "The version running in the DatacenterConnector. This is supplied by the OVA connector during the registration process and can not be modified.",
@@ -285,73 +223,11 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  availableVersions: z.object({
-    inPlaceUpdate: z.object({
-      critical: z.boolean().describe(
-        "Determine whether it's critical to upgrade the appliance to this version.",
-      ).optional(),
-      releaseNotesUri: z.string().describe(
-        "Link to a page that contains the version release notes.",
-      ).optional(),
-      uri: z.string().describe("A link for downloading the version.")
-        .optional(),
-      version: z.string().describe("The appliance version.").optional(),
-    }).describe("Describes an appliance version.").optional(),
-    newDeployableAppliance: z.object({
-      critical: z.boolean().describe(
-        "Determine whether it's critical to upgrade the appliance to this version.",
-      ).optional(),
-      releaseNotesUri: z.string().describe(
-        "Link to a page that contains the version release notes.",
-      ).optional(),
-      uri: z.string().describe("A link for downloading the version.")
-        .optional(),
-      version: z.string().describe("The appliance version.").optional(),
-    }).describe("Describes an appliance version.").optional(),
-  }).describe("Holds information about the available versions for upgrade.")
-    .optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   registrationId: z.string().describe(
     "Immutable. A unique key for this connector. This key is internal to the OVA connector and is supplied with its creation during the registration process and can not be modified.",
   ).optional(),
   serviceAccount: z.string().describe(
     "The service account to use in the connector when communicating with the cloud.",
-  ).optional(),
-  upgradeStatus: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    previousVersion: z.string().describe("The version from which we upgraded.")
-      .optional(),
-    startTime: z.string().describe("The time the operation was started.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "RUNNING", "FAILED", "SUCCEEDED"])
-      .describe("The state of the upgradeAppliance operation.").optional(),
-    version: z.string().describe("The version to upgrade to.").optional(),
-  }).describe(
-    "UpgradeStatus contains information about upgradeAppliance operation.",
   ).optional(),
   version: z.string().describe(
     "The version running in the DatacenterConnector. This is supplied by the OVA connector during the registration process and can not be modified.",
@@ -393,7 +269,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources.DatacenterConnectors. Registered at `@swamp/gcp/vmmigration/sources-datacenterconnectors`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources-datacenterconnectors",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -495,6 +371,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: availableVersions, error, upgradeStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          availableVersions: _availableVersions,
+          error: _error,
+          upgradeStatus: _upgradeStatus,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -522,18 +411,11 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["availableVersions"] !== undefined) {
-          body["availableVersions"] = g["availableVersions"];
-        }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["registrationId"] !== undefined) {
           body["registrationId"] = g["registrationId"];
         }
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
-        }
-        if (g["upgradeStatus"] !== undefined) {
-          body["upgradeStatus"] = g["upgradeStatus"];
         }
         if (g["version"] !== undefined) body["version"] = g["version"];
         if (g["datacenterConnectorId"] !== undefined) {
@@ -561,14 +443,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

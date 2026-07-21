@@ -223,8 +223,9 @@ const GlobalArgsSchema = z.object({
       celExpression: z.string().describe(
         "Required. A Common Expression Language (CEL) expression that is used to match requests for which the extension chain is executed. For more information, see [CEL matcher language reference](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference).",
       ).optional(),
-    }).describe("Conditions under which this chain is invoked for a request.")
-      .optional(),
+    }).describe(
+      "Required. Conditions under which this chain is invoked for a request.",
+    ).optional(),
     name: z.string().describe(
       "Required. The name for this extension chain. The name is logged as part of the HTTP request logs. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.",
     ).optional(),
@@ -351,8 +352,9 @@ const InputsSchema = z.object({
       celExpression: z.string().describe(
         "Required. A Common Expression Language (CEL) expression that is used to match requests for which the extension chain is executed. For more information, see [CEL matcher language reference](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference).",
       ).optional(),
-    }).describe("Conditions under which this chain is invoked for a request.")
-      .optional(),
+    }).describe(
+      "Required. Conditions under which this chain is invoked for a request.",
+    ).optional(),
     name: z.string().describe(
       "Required. The name for this extension chain. The name is logged as part of the HTTP request logs. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.",
     ).optional(),
@@ -409,7 +411,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services LbEdgeExtensions. Registered at `@swamp/gcp/networkservices/lbedgeextensions`. */
 export const model = {
   type: "@swamp/gcp/networkservices/lbedgeextensions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -518,6 +520,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

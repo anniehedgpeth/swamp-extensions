@@ -225,16 +225,16 @@ const GlobalArgsSchema = z.object({
           'The alternative text that\'s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".',
         ).optional(),
         color: z.unknown().describe(
-          "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
+          'Optional. The color of the button. If set, the button `type` is set to `FILLED` and the color of `text` and `icon` fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the `red`, `green`, and `blue` fields. The value must be a float number between 0 and 1 based on the RGB color value, where `0` (0/255) represents the absence of color and `1` (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity: ` "color": { "red": 1, "green": 0, "blue": 0, } ` The `alpha` field is unavailable for button color. If specified, this field is ignored.',
         ).optional(),
         disabled: z.unknown().describe(
           "If `true`, the button is displayed in an inactive state and doesn't respond to user actions.",
         ).optional(),
         icon: z.unknown().describe(
-          "An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "An icon displayed inside the button. If both `icon` and `text` are set, then the icon appears before the text.",
         ).optional(),
         onClick: z.unknown().describe(
-          "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.",
         ).optional(),
         text: z.unknown().describe("The text displayed inside the button.")
           .optional(),
@@ -242,9 +242,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The type of a button. If unset, button type defaults to `OUTLINED`. If the `color` field is set, the button type is forced to `FILLED` and any value set for this field is ignored.",
         ).optional(),
       })).describe("An array of buttons.").optional(),
-    }).describe(
-      "A list of buttons layed out horizontally. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
-    ).optional(),
+    }).describe("A list of buttons.").optional(),
   })).describe(
     "Optional. One or more interactive widgets that appear at the bottom of a message. You can add accessory widgets to messages that contain text, cards, or both text and cards. Not supported for messages that contain dialogs. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets). Creating a message with accessory widgets requires [app authentication] (https://developers.google.com/workspace/chat/authenticate-authorize-chat-app).",
   ).optional(),
@@ -274,7 +272,7 @@ const GlobalArgsSchema = z.object({
           "The message to send users about the status of their request. If unset, a generic message based on the `status_code` is sent.",
         ).optional(),
       }).describe(
-        "Represents the status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs).",
+        "Input only. Status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs). Displays a status and message to users, if necessary. For example, in case of an error or success.",
       ).optional(),
       dialog: z.object({
         body: z.object({
@@ -290,13 +288,13 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           fixedFooter: z.object({
             primaryButton: z.unknown().describe(
-              "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+              "The primary button of the fixed footer. The button must be a text button with text and color set.",
             ).optional(),
             secondaryButton: z.unknown().describe(
-              "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+              "The secondary button of the fixed footer. The button must be a text button with text and color set. If `secondaryButton` is set, you must also set `primaryButton`.",
             ).optional(),
           }).describe(
-            "A persistent (sticky) footer that that appears at the bottom of the card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). For an example in Google Chat apps, see [Add a persistent footer](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_persistent_footer). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "The fixed footer shown at the bottom of this card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
           ).optional(),
           header: z.object({
             imageAltText: z.unknown().describe(
@@ -315,7 +313,7 @@ const GlobalArgsSchema = z.object({
               "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
             ).optional(),
           }).describe(
-            "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "The header of the card. A header usually contains a leading image and a title. Headers always appear at the top of a card.",
           ).optional(),
           name: z.string().describe(
             "Name of the card. Used as a card identifier in card navigation. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
@@ -337,7 +335,7 @@ const GlobalArgsSchema = z.object({
               "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
             ).optional(),
           }).describe(
-            "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "When displaying contextual content, the peek card header acts as a placeholder so that the user can navigate forward between the homepage cards and the contextual cards. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
           ).optional(),
           sectionDividerStyle: z.enum([
             "DIVIDER_STYLE_UNSPECIFIED",
@@ -350,11 +348,13 @@ const GlobalArgsSchema = z.object({
             "Contains a collection of widgets. Each section has its own, optional header. Sections are visually separated by a line divider. For an example in Google Chat apps, see [Define a section of a card](https://developers.google.com/workspace/chat/design-components-card-dialog#define_a_section_of_a_card).",
           ).optional(),
         }).describe(
-          'A card interface displayed in a Google Chat message or Google Workspace add-on. Cards support a defined layout, interactive UI elements like buttons, and rich media like images. Use cards to present detailed information, gather information from users, and guide users to take a next step. [Card builder](https://addons.gsuite.google.com/uikit/builder) To learn how to build cards, see the following documentation: * For Google Chat apps, see [Design the components of a card or dialog](https://developers.google.com/workspace/chat/design-components-card-dialog). * For Google Workspace add-ons, see [Card-based interfaces](https://developers.google.com/apps-script/add-ons/concepts/cards). Note: You can add up to 100 widgets per card. If a section\'s widgets push the total count above 100, that entire section and all following sections are ignored. This limit applies to both card messages and dialogs in Google Chat apps, and to cards in Google Workspace add-ons. **Example: Card message for a Google Chat app**![Example contact card](https://developers.google.com/workspace/chat/images/card_api_reference.png) To create the sample card message in Google Chat, use the following JSON: ` { "cardsV2": [ { "cardId": "unique-card-id", "card": { "header": { "title": "Sasha", "subtitle": "Software Engineer", "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "imageType": "CIRCLE", "imageAltText": "Avatar for Sasha" }, "sections": [ { "header": "Contact Info", "collapsible": true, "uncollapsibleWidgetsCount": 1, "widgets": [ { "decoratedText": { "startIcon": { "knownIcon": "EMAIL" }, "text": "sasha@example.com" } }, { "decoratedText": { "startIcon": { "knownIcon": "PERSON" }, "text": "Online" } }, { "decoratedText": { "startIcon": { "knownIcon": "PHONE" }, "text": "+1 (555) 555-1234" } }, { "buttonList": { "buttons": [ { "text": "Share", "onClick": { "openLink": { "url": "https://example.com/share" } } }, { "text": "Edit", "onClick": { "action": { "function": "goToView", "parameters": [ { "key": "viewType", "value": "EDIT" } ] } } } ] } } ] } ] } } ] } `',
+          "Input only. Body of the dialog, which is rendered in a modal. Google Chat apps don't support the following card entities: `DateTimePicker`, `OnChangeAction`.",
         ).optional(),
-      }).describe("Wrapper around the card body of the dialog.").optional(),
+      }).describe(
+        "Input only. [Dialog](https://developers.google.com/workspace/chat/dialogs) for the request.",
+      ).optional(),
     }).describe(
-      "Contains a [dialog](https://developers.google.com/workspace/chat/dialogs) and request status code.",
+      "Input only. A response to an interaction event related to a [dialog](https://developers.google.com/workspace/chat/dialogs). Must be accompanied by `ResponseType.Dialog`.",
     ).optional(),
     type: z.enum([
       "TYPE_UNSPECIFIED",
@@ -382,18 +382,16 @@ const GlobalArgsSchema = z.object({
             "The value associated with this item. The client should use this as a form input value. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data).",
           ).optional(),
         })).describe("An array of the SelectionItem objects.").optional(),
-      }).describe("List of widget autocomplete results.").optional(),
+      }).describe("List of widget autocomplete results").optional(),
       widget: z.string().describe(
         "The ID of the updated widget. The ID must match the one for the widget that triggered the update request.",
       ).optional(),
-    }).describe(
-      "For `selectionInput` widgets, returns autocomplete suggestions for a multiselect menu.",
-    ).optional(),
+    }).describe("Input only. The response of the updated widget.").optional(),
     url: z.string().describe(
       "Input only. URL for users to authenticate or configure. (Only for `REQUEST_CONFIG` response types.)",
     ).optional(),
   }).describe(
-    "Parameters that a Chat app can use to configure how its response is posted.",
+    "Input only. Parameters that a Chat app can use to configure how its response is posted.",
   ).optional(),
   attachment: z.array(z.object({
     attachmentDataRef: z.object({
@@ -403,7 +401,9 @@ const GlobalArgsSchema = z.object({
       resourceName: z.string().describe(
         "Optional. The resource name of the attachment data. This field is used with the media API to download the attachment data.",
       ).optional(),
-    }).describe("A reference to the attachment data.").optional(),
+    }).describe(
+      "Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.",
+    ).optional(),
     contentName: z.string().describe(
       "Output only. The original file name for the content, not the full path.",
     ).optional(),
@@ -417,7 +417,9 @@ const GlobalArgsSchema = z.object({
       driveFileId: z.string().describe(
         "The ID for the drive file. Use with the Drive API.",
       ).optional(),
-    }).describe("A reference to the data of a drive attachment.").optional(),
+    }).describe(
+      "Output only. A reference to the Google Drive attachment. This field is used with the Google Drive API.",
+    ).optional(),
     name: z.string().describe(
       "Identifier. Resource name of the attachment. Format: `spaces/{space}/messages/{message}/attachments/{attachment}`.",
     ).optional(),
@@ -434,7 +436,7 @@ const GlobalArgsSchema = z.object({
           "The label that displays as the action menu item.",
         ).optional(),
         onClick: z.unknown().describe(
-          "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "The `onClick` action for this action item.",
         ).optional(),
       })).describe(
         'The card\'s actions. Actions are added to the card\'s toolbar menu. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons): For example, the following JSON constructs a card action menu with `Settings` and `Send Feedback` options: ` "card_actions": [ { "actionLabel": "Settings", "onClick": { "action": { "functionName": "goToView", "parameters": [ { "key": "viewType", "value": "SETTING" } ], "loadIndicator": "LoadIndicator.SPINNER" } } }, { "actionLabel": "Send Feedback", "onClick": { "openLink": { "url": "https://example.com/feedback" } } } ] `',
@@ -463,16 +465,16 @@ const GlobalArgsSchema = z.object({
             'The alternative text that\'s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".',
           ).optional(),
           color: z.unknown().describe(
-            "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
+            'Optional. The color of the button. If set, the button `type` is set to `FILLED` and the color of `text` and `icon` fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the `red`, `green`, and `blue` fields. The value must be a float number between 0 and 1 based on the RGB color value, where `0` (0/255) represents the absence of color and `1` (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity: ` "color": { "red": 1, "green": 0, "blue": 0, } ` The `alpha` field is unavailable for button color. If specified, this field is ignored.',
           ).optional(),
           disabled: z.unknown().describe(
             "If `true`, the button is displayed in an inactive state and doesn't respond to user actions.",
           ).optional(),
           icon: z.unknown().describe(
-            "An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "An icon displayed inside the button. If both `icon` and `text` are set, then the icon appears before the text.",
           ).optional(),
           onClick: z.unknown().describe(
-            "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.",
           ).optional(),
           text: z.unknown().describe("The text displayed inside the button.")
             .optional(),
@@ -480,23 +482,23 @@ const GlobalArgsSchema = z.object({
             "Optional. The type of a button. If unset, button type defaults to `OUTLINED`. If the `color` field is set, the button type is forced to `FILLED` and any value set for this field is ignored.",
           ).optional(),
         }).describe(
-          "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "The primary button of the fixed footer. The button must be a text button with text and color set.",
         ).optional(),
         secondaryButton: z.object({
           altText: z.unknown().describe(
             'The alternative text that\'s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".',
           ).optional(),
           color: z.unknown().describe(
-            "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
+            'Optional. The color of the button. If set, the button `type` is set to `FILLED` and the color of `text` and `icon` fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the `red`, `green`, and `blue` fields. The value must be a float number between 0 and 1 based on the RGB color value, where `0` (0/255) represents the absence of color and `1` (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity: ` "color": { "red": 1, "green": 0, "blue": 0, } ` The `alpha` field is unavailable for button color. If specified, this field is ignored.',
           ).optional(),
           disabled: z.unknown().describe(
             "If `true`, the button is displayed in an inactive state and doesn't respond to user actions.",
           ).optional(),
           icon: z.unknown().describe(
-            "An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "An icon displayed inside the button. If both `icon` and `text` are set, then the icon appears before the text.",
           ).optional(),
           onClick: z.unknown().describe(
-            "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.",
           ).optional(),
           text: z.unknown().describe("The text displayed inside the button.")
             .optional(),
@@ -504,10 +506,10 @@ const GlobalArgsSchema = z.object({
             "Optional. The type of a button. If unset, button type defaults to `OUTLINED`. If the `color` field is set, the button type is forced to `FILLED` and any value set for this field is ignored.",
           ).optional(),
         }).describe(
-          "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "The secondary button of the fixed footer. The button must be a text button with text and color set. If `secondaryButton` is set, you must also set `primaryButton`.",
         ).optional(),
       }).describe(
-        "A persistent (sticky) footer that that appears at the bottom of the card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). For an example in Google Chat apps, see [Add a persistent footer](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_persistent_footer). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+        "The fixed footer shown at the bottom of this card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
       ).optional(),
       header: z.object({
         imageAltText: z.string().describe(
@@ -526,7 +528,7 @@ const GlobalArgsSchema = z.object({
           "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
         ).optional(),
       }).describe(
-        "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+        "The header of the card. A header usually contains a leading image and a title. Headers always appear at the top of a card.",
       ).optional(),
       name: z.string().describe(
         "Name of the card. Used as a card identifier in card navigation. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
@@ -548,7 +550,7 @@ const GlobalArgsSchema = z.object({
           "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
         ).optional(),
       }).describe(
-        "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+        "When displaying contextual content, the peek card header acts as a placeholder so that the user can navigate forward between the homepage cards and the contextual cards. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
       ).optional(),
       sectionDividerStyle: z.enum([
         "DIVIDER_STYLE_UNSPECIFIED",
@@ -558,7 +560,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
       sections: z.array(z.object({
         collapseControl: z.unknown().describe(
-          "Represent an expand and collapse control. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "Optional. Define the expand and collapse button of the section. This button will be shown only if the section is collapsible. If this field isn't set, the default button is used.",
         ).optional(),
         collapsible: z.unknown().describe(
           "Indicates whether this section is collapsible. Collapsible sections hide some or all widgets, but users can expand the section to reveal the hidden widgets by clicking **Show more**. Users can hide the widgets again by clicking **Show less**. To determine which widgets are hidden, specify `uncollapsibleWidgetsCount`.",
@@ -578,9 +580,7 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Contains a collection of widgets. Each section has its own, optional header. Sections are visually separated by a line divider. For an example in Google Chat apps, see [Define a section of a card](https://developers.google.com/workspace/chat/design-components-card-dialog#define_a_section_of_a_card).",
       ).optional(),
-    }).describe(
-      'A card interface displayed in a Google Chat message or Google Workspace add-on. Cards support a defined layout, interactive UI elements like buttons, and rich media like images. Use cards to present detailed information, gather information from users, and guide users to take a next step. [Card builder](https://addons.gsuite.google.com/uikit/builder) To learn how to build cards, see the following documentation: * For Google Chat apps, see [Design the components of a card or dialog](https://developers.google.com/workspace/chat/design-components-card-dialog). * For Google Workspace add-ons, see [Card-based interfaces](https://developers.google.com/apps-script/add-ons/concepts/cards). Note: You can add up to 100 widgets per card. If a section\'s widgets push the total count above 100, that entire section and all following sections are ignored. This limit applies to both card messages and dialogs in Google Chat apps, and to cards in Google Workspace add-ons. **Example: Card message for a Google Chat app**![Example contact card](https://developers.google.com/workspace/chat/images/card_api_reference.png) To create the sample card message in Google Chat, use the following JSON: ` { "cardsV2": [ { "cardId": "unique-card-id", "card": { "header": { "title": "Sasha", "subtitle": "Software Engineer", "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "imageType": "CIRCLE", "imageAltText": "Avatar for Sasha" }, "sections": [ { "header": "Contact Info", "collapsible": true, "uncollapsibleWidgetsCount": 1, "widgets": [ { "decoratedText": { "startIcon": { "knownIcon": "EMAIL" }, "text": "sasha@example.com" } }, { "decoratedText": { "startIcon": { "knownIcon": "PERSON" }, "text": "Online" } }, { "decoratedText": { "startIcon": { "knownIcon": "PHONE" }, "text": "+1 (555) 555-1234" } }, { "buttonList": { "buttons": [ { "text": "Share", "onClick": { "openLink": { "url": "https://example.com/share" } } }, { "text": "Edit", "onClick": { "action": { "function": "goToView", "parameters": [ { "key": "viewType", "value": "EDIT" } ] } } } ] } } ] } ] } } ] } `',
-    ).optional(),
+    }).describe("A card. Maximum size is 32 KB.").optional(),
     cardId: z.string().describe(
       "Required if the message contains multiple cards. A unique identifier for a card in a message.",
     ).optional(),
@@ -590,48 +590,11 @@ const GlobalArgsSchema = z.object({
   clientAssignedMessageId: z.string().describe(
     "Optional. A custom ID for the message. You can use field to identify a message, or to get, delete, or update a message. To set a custom ID, specify the [`messageId`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#body.QUERY_PARAMETERS.message_id) field when you create the message. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
   ).optional(),
-  deletionMetadata: z.object({
-    deletionType: z.enum([
-      "DELETION_TYPE_UNSPECIFIED",
-      "CREATOR",
-      "SPACE_OWNER",
-      "ADMIN",
-      "APP_MESSAGE_EXPIRY",
-      "CREATOR_VIA_APP",
-      "SPACE_OWNER_VIA_APP",
-      "SPACE_MEMBER",
-    ]).describe("Indicates who deleted the message.").optional(),
-  }).describe(
-    "Information about a deleted message. A message is deleted when `delete_time` is set.",
-  ).optional(),
   fallbackText: z.string().describe(
     "Optional. A plain-text description of the message's cards, used when the actual cards can't be displayed—for example, mobile notifications.",
   ).optional(),
-  matchedUrl: z.object({
-    url: z.string().describe("Output only. The URL that was matched.")
-      .optional(),
-  }).describe(
-    "A matched URL in a Chat message. Chat apps can preview matched URLs. For more information, see [Preview links](https://developers.google.com/chat/how-tos/preview-links).",
-  ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the message. Format: `spaces/{space}/messages/{message}` Where `{space}` is the ID of the space where the message is posted and `{message}` is a system-assigned ID for the message. For example, `spaces/AAAAAAAAAAA/messages/BBBBBBBBBBB.BBBBBBBBBBB`. If you set a custom ID when you create a message, you can use this ID to specify the message in a request by replacing `{message}` with the value from the `clientAssignedMessageId` field. For example, `spaces/AAAAAAAAAAA/messages/client-custom-name`. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
-  ).optional(),
-  privateMessageViewer: z.object({
-    displayName: z.string().describe("Output only. The user's display name.")
-      .optional(),
-    domainId: z.string().describe(
-      "Unique identifier of the user's Google Workspace domain.",
-    ).optional(),
-    isAnonymous: z.boolean().describe(
-      "Output only. When `true`, the user is deleted or their profile is not visible.",
-    ).optional(),
-    name: z.string().describe(
-      "Resource name for a Google Chat user. Format: `users/{user}`. `users/app` can be used as an alias for the calling app bot user. For human users, `{user}` is the same user identifier as: - the `id` for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, `users/123456789` in Chat API represents the same person as the `123456789` Person profile ID in People API. - the `id` for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user's email address can be used as an alias for `{user}` in API requests. For example, if the People API Person profile ID for `user@example.com` is `123456789`, you can use `users/user@example.com` as an alias to reference `users/123456789`. Only the canonical resource name (for example `users/123456789`) will be returned from the API.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
-      .optional(),
-  }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
   ).optional(),
   quotedMessageMetadata: z.object({
     forwardedMetadata: z.object({
@@ -642,7 +605,7 @@ const GlobalArgsSchema = z.object({
         'Output only. The display name of the source space or DM at the time of forwarding. For `SPACE`, this is the space name. For `DIRECT_MESSAGE`, this is the other participant\'s name (e.g., "User A"). For `GROUP_CHAT`, this is a generated name based on members\' first names, limited to 5 including the creator (e.g., "User A, User B").',
       ).optional(),
     }).describe(
-      "Metadata about the source space from which a message was forwarded.",
+      "Output only. Metadata about the source space of the quoted message. Populated only for FORWARD quote type.",
     ).optional(),
     lastUpdateTime: z.string().describe(
       "Required. The timestamp when the quoted message was created or when the quoted message was last updated. If the message was edited, use this field, `last_update_time`. If the message was never edited, use `create_time`. If `last_update_time` doesn't match the latest version of the quoted message, the request fails.",
@@ -656,32 +619,27 @@ const GlobalArgsSchema = z.object({
     quotedMessageSnapshot: z.object({
       annotations: z.array(z.object({
         customEmojiMetadata: z.object({
-          customEmoji: z.unknown().describe(
-            "Represents a [custom emoji](https://support.google.com/chat/answer/12800149).",
-          ).optional(),
-        }).describe("Annotation metadata for custom emoji.").optional(),
+          customEmoji: z.unknown().describe("The custom emoji.").optional(),
+        }).describe("The metadata for a custom emoji.").optional(),
         length: z.number().int().describe(
           "Length of the substring in the plain-text message body this annotation corresponds to. If not present, indicates a length of 0.",
         ).optional(),
         richLinkMetadata: z.object({
           calendarEventLinkData: z.unknown().describe(
-            "Data for Calendar event links.",
+            "Data for a Calendar event link.",
           ).optional(),
-          chatSpaceLinkData: z.unknown().describe("Data for Chat space links.")
+          chatSpaceLinkData: z.unknown().describe("Data for a chat space link.")
             .optional(),
-          driveLinkData: z.unknown().describe("Data for Google Drive links.")
+          driveLinkData: z.unknown().describe("Data for a drive link.")
             .optional(),
-          meetSpaceLinkData: z.unknown().describe("Data for Meet space links.")
+          meetSpaceLinkData: z.unknown().describe("Data for a Meet space link.")
             .optional(),
           richLinkType: z.unknown().describe("The rich link type.").optional(),
           uri: z.unknown().describe("The URI of this link.").optional(),
-        }).describe(
-          "A rich link to a resource. Rich links can be associated with the plain-text body of the message or represent chips that link to Google Workspace resources like Google Docs or Sheets with `start_index` and `length` of 0.",
-        ).optional(),
+        }).describe("The metadata for a rich link.").optional(),
         slashCommand: z.object({
-          bot: z.unknown().describe(
-            "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
-          ).optional(),
+          bot: z.unknown().describe("The Chat app whose command was invoked.")
+            .optional(),
           commandId: z.unknown().describe(
             "The command ID of the invoked slash command.",
           ).optional(),
@@ -692,7 +650,7 @@ const GlobalArgsSchema = z.object({
             "Indicates whether the slash command is for a dialog.",
           ).optional(),
           type: z.unknown().describe("The type of slash command.").optional(),
-        }).describe("Annotation metadata for slash commands (/).").optional(),
+        }).describe("The metadata for a slash command.").optional(),
         startIndex: z.number().int().describe(
           "Start index (0-based, inclusive) in the plain-text message body this annotation corresponds to.",
         ).optional(),
@@ -705,10 +663,8 @@ const GlobalArgsSchema = z.object({
         ]).describe("The type of this annotation.").optional(),
         userMention: z.object({
           type: z.unknown().describe("The type of user mention.").optional(),
-          user: z.unknown().describe(
-            "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
-          ).optional(),
-        }).describe("Annotation metadata for user mentions (@).").optional(),
+          user: z.unknown().describe("The user mentioned.").optional(),
+        }).describe("The metadata of user mention.").optional(),
       })).describe(
         "Output only. Annotations parsed from the text body of the quoted message. Populated only for FORWARD quote type.",
       ).optional(),
@@ -720,7 +676,9 @@ const GlobalArgsSchema = z.object({
           resourceName: z.unknown().describe(
             "Optional. The resource name of the attachment data. This field is used with the media API to download the attachment data.",
           ).optional(),
-        }).describe("A reference to the attachment data.").optional(),
+        }).describe(
+          "Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.",
+        ).optional(),
         contentName: z.string().describe(
           "Output only. The original file name for the content, not the full path.",
         ).optional(),
@@ -734,8 +692,9 @@ const GlobalArgsSchema = z.object({
           driveFileId: z.unknown().describe(
             "The ID for the drive file. Use with the Drive API.",
           ).optional(),
-        }).describe("A reference to the data of a drive attachment.")
-          .optional(),
+        }).describe(
+          "Output only. A reference to the Google Drive attachment. This field is used with the Google Drive API.",
+        ).optional(),
         name: z.string().describe(
           "Identifier. Resource name of the attachment. Format: `spaces/{space}/messages/{message}/attachments/{attachment}`.",
         ).optional(),
@@ -756,241 +715,10 @@ const GlobalArgsSchema = z.object({
       text: z.string().describe(
         "Output only. Snapshot of the quoted message's text content.",
       ).optional(),
-    }).describe(
-      "Provides a snapshot of the content of the quoted message at the time of quoting or forwarding",
-    ).optional(),
-  }).describe(
-    "Information about a message that another message quotes. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
-  ).optional(),
-  sender: z.object({
-    displayName: z.string().describe("Output only. The user's display name.")
-      .optional(),
-    domainId: z.string().describe(
-      "Unique identifier of the user's Google Workspace domain.",
-    ).optional(),
-    isAnonymous: z.boolean().describe(
-      "Output only. When `true`, the user is deleted or their profile is not visible.",
-    ).optional(),
-    name: z.string().describe(
-      "Resource name for a Google Chat user. Format: `users/{user}`. `users/app` can be used as an alias for the calling app bot user. For human users, `{user}` is the same user identifier as: - the `id` for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, `users/123456789` in Chat API represents the same person as the `123456789` Person profile ID in People API. - the `id` for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user's email address can be used as an alias for `{user}` in API requests. For example, if the People API Person profile ID for `user@example.com` is `123456789`, you can use `users/user@example.com` as an alias to reference `users/123456789`. Only the canonical resource name (for example `users/123456789`) will be returned from the API.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
+    }).describe("Output only. A snapshot of the quoted message's content.")
       .optional(),
   }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
-  ).optional(),
-  slashCommand: z.object({
-    commandId: z.string().describe("The ID of the slash command.").optional(),
-  }).describe(
-    "Metadata about a [slash command](https://developers.google.com/workspace/chat/commands) in Google Chat.",
-  ).optional(),
-  space: z.object({
-    accessSettings: z.object({
-      accessPermissionSettings: z.object({
-        discoverSpaceSetting: z.object({
-          principals: z.array(z.unknown()).describe(
-            "Optional. Unordered list. Allowed principals for this permission.",
-          ).optional(),
-        }).describe("An access permission setting.").optional(),
-        joinSpaceSetting: z.object({
-          principals: z.array(z.unknown()).describe(
-            "Optional. Unordered list. Allowed principals for this permission.",
-          ).optional(),
-        }).describe("An access permission setting.").optional(),
-      }).describe("Access permission settings for a space.").optional(),
-      accessState: z.enum([
-        "ACCESS_STATE_UNSPECIFIED",
-        "PRIVATE",
-        "DISCOVERABLE",
-      ]).describe("Output only. Indicates the access state of the space.")
-        .optional(),
-      audience: z.string().describe(
-        "Optional. The resource name of the [target audience](https://support.google.com/a/answer/9934697) who can discover the space, join the space, and preview the messages in the space. If unset, only users or Google Groups who have been individually invited or added to the space can access it. For details, see [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience). Format: `audiences/{audience}` To use the default target audience for the Google Workspace organization, set to `audiences/default`. Reading the target audience supports: - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` scope. This field is not populated when using the `chat.bot` scope with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). Setting the target audience requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
-      ).optional(),
-    }).describe(
-      "Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.",
-    ).optional(),
-    adminInstalled: z.boolean().describe(
-      "Output only. For direct message (DM) spaces with a Chat app, whether the space was created by a Google Workspace administrator. Administrators can install and set up a direct message with a Chat app on behalf of users in their organization. To support admin install, your Chat app must feature direct messaging.",
-    ).optional(),
-    createTime: z.string().describe(
-      "Optional. Immutable. For spaces created in Chat, the time the space was created. This field is output only, except when used in import mode spaces. For import mode spaces, set this field to the historical timestamp at which the space was created in the source in order to preserve the original creation time. Only populated in the output when `spaceType` is `GROUP_CHAT` or `SPACE`.",
-    ).optional(),
-    customer: z.string().describe(
-      "Optional. Immutable. The customer id of the domain of the space. Required only when creating a space with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and `SpaceType` is `SPACE`, otherwise should not be set. In the format `customers/{customer}`, where `customer` is the `id` from the [Admin SDK customer resource](https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers). Private apps can also use the `customers/my_customer` alias to create the space in the same Google Workspace organization as the app. This field isn't populated for direct messages (DMs) or when the space is created by non-Google Workspace users.",
-    ).optional(),
-    displayName: z.string().describe(
-      "Optional. The space's display name. Required when [creating a space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/create) with a `spaceType` of `SPACE`. If you receive the error message `ALREADY_EXISTS` when creating a space or updating the `displayName`, try a different `displayName`. An existing space within the Google Workspace organization might already use this display name. For direct messages, this field might be empty. Supports up to 128 characters.",
-    ).optional(),
-    externalUserAllowed: z.boolean().describe(
-      "Optional. Immutable. Whether this space permits any Google Chat user as a member. Input when creating a space in a Google Workspace organization. Omit this field when creating spaces in the following conditions: * The authenticated user uses a consumer account (unmanaged user account). By default, a space created by a consumer account permits any Google Chat user. For existing spaces, this field is output only.",
-    ).optional(),
-    importMode: z.boolean().describe(
-      "Optional. Whether this space is created in `Import Mode` as part of a data migration into Google Workspace. While spaces are being imported, they aren't visible to users until the import is complete. Creating a space in `Import Mode`requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
-    ).optional(),
-    importModeExpireTime: z.string().describe(
-      "Output only. The time when the space will be automatically deleted by the system if it remains in import mode. Each space created in import mode must exit this mode before this expire time using `spaces.completeImport`. This field is only populated for spaces that were created with import mode.",
-    ).optional(),
-    lastActiveTime: z.string().describe(
-      "Output only. Timestamp of the last message in the space.",
-    ).optional(),
-    membershipCount: z.object({
-      joinedDirectHumanUserCount: z.number().int().describe(
-        "Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.",
-      ).optional(),
-      joinedGroupCount: z.number().int().describe(
-        "Output only. Count of all groups that have directly joined the space.",
-      ).optional(),
-    }).describe(
-      "Represents the count of memberships of a space, grouped into categories.",
-    ).optional(),
-    name: z.string().describe(
-      "Identifier. Resource name of the space. Format: `spaces/{space}` Where `{space}` represents the system-assigned ID for the space. You can obtain the space ID by calling the [`spaces.list()`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/list) method or from the space URL. For example, if the space URL is `https://mail.google.com/mail/u/0/#chat/space/AAAAAAAAA`, the space ID is `AAAAAAAAA`.",
-    ).optional(),
-    permissionSettings: z.object({
-      manageApps: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      manageMembersAndGroups: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      manageWebhooks: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      modifySpaceDetails: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      postMessages: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      replyMessages: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      toggleHistory: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      useAtMentionAll: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-    }).describe(
-      "[Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the `PredefinedPermissionSettings` field in your request.",
-    ).optional(),
-    predefinedPermissionSettings: z.enum([
-      "PREDEFINED_PERMISSION_SETTINGS_UNSPECIFIED",
-      "COLLABORATION_SPACE",
-      "ANNOUNCEMENT_SPACE",
-    ]).describe(
-      "Optional. Input only. Predefined space permission settings, input only when creating a space. If the field is not set, a collaboration space is created. After you create the space, settings are populated in the `PermissionSettings` field. Setting predefined permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` or `chat.app.spaces.create` scopes. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)",
-    ).optional(),
-    singleUserBotDm: z.boolean().describe(
-      "Optional. Whether the space is a DM between a Chat app and a single human.",
-    ).optional(),
-    spaceDetails: z.object({
-      description: z.string().describe(
-        "Optional. A description of the space. For example, describe the space's discussion topic, functional purpose, or participants. Supports up to 150 characters.",
-      ).optional(),
-      guidelines: z.string().describe(
-        "Optional. The space's rules, expectations, and etiquette. Supports up to 5,000 characters.",
-      ).optional(),
-    }).describe("Details about the space including description and rules.")
-      .optional(),
-    spaceHistoryState: z.enum([
-      "HISTORY_STATE_UNSPECIFIED",
-      "HISTORY_OFF",
-      "HISTORY_ON",
-    ]).describe(
-      "Optional. The message history state for messages and threads in this space.",
-    ).optional(),
-    spaceThreadingState: z.enum([
-      "SPACE_THREADING_STATE_UNSPECIFIED",
-      "THREADED_MESSAGES",
-      "GROUPED_MESSAGES",
-      "UNTHREADED_MESSAGES",
-    ]).describe("Output only. The threading state in the Chat space.")
-      .optional(),
-    spaceType: z.enum([
-      "SPACE_TYPE_UNSPECIFIED",
-      "SPACE",
-      "GROUP_CHAT",
-      "DIRECT_MESSAGE",
-    ]).describe(
-      "Optional. The type of space. Required when creating a space or updating the space type of a space. Output only for other usage.",
-    ).optional(),
-    spaceUri: z.string().describe(
-      "Output only. The URI for a user to access the space.",
-    ).optional(),
-    threaded: z.boolean().describe(
-      "Output only. Deprecated: Use `spaceThreadingState` instead. Whether messages are threaded in this space.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "ROOM", "DM"]).describe(
-      "Output only. Deprecated: Use `space_type` instead. The type of a space.",
-    ).optional(),
-  }).describe(
-    "A space in Google Chat. Spaces are conversations between two or more users or 1:1 messages between a user and a Chat app.",
+    "Optional. Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can't quote a message reply from a different thread. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
   ).optional(),
   text: z.string().describe(
     "Optional. Plain-text body of the message. The first link to an image, video, or web page generates a [preview chip](https://developers.google.com/workspace/chat/preview-links). You can also [@mention a Google Chat user](https://developers.google.com/workspace/chat/format-messages#messages-@mention), or everyone in the space. To learn about creating text messages, see [Send a message](https://developers.google.com/workspace/chat/create-messages).",
@@ -1003,7 +731,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Input for creating or updating a thread. Otherwise, output only. ID for the thread. Supports up to 4000 characters. This ID is unique to the Chat app that sets it. For example, if multiple Chat apps create a message using the same thread key, the messages are posted in different threads. To reply in a thread created by a person or another Chat app, specify the thread `name` field instead.",
     ).optional(),
   }).describe(
-    "A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [`messageReplyOption`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.",
+    "The thread the message belongs to. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread).",
   ).optional(),
   createMessageNotificationOptions_notificationType: z.string().describe(
     "The notification type for the message.",
@@ -1455,16 +1183,16 @@ const InputsSchema = z.object({
           'The alternative text that\'s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".',
         ).optional(),
         color: z.unknown().describe(
-          "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
+          'Optional. The color of the button. If set, the button `type` is set to `FILLED` and the color of `text` and `icon` fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the `red`, `green`, and `blue` fields. The value must be a float number between 0 and 1 based on the RGB color value, where `0` (0/255) represents the absence of color and `1` (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity: ` "color": { "red": 1, "green": 0, "blue": 0, } ` The `alpha` field is unavailable for button color. If specified, this field is ignored.',
         ).optional(),
         disabled: z.unknown().describe(
           "If `true`, the button is displayed in an inactive state and doesn't respond to user actions.",
         ).optional(),
         icon: z.unknown().describe(
-          "An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "An icon displayed inside the button. If both `icon` and `text` are set, then the icon appears before the text.",
         ).optional(),
         onClick: z.unknown().describe(
-          "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.",
         ).optional(),
         text: z.unknown().describe("The text displayed inside the button.")
           .optional(),
@@ -1472,9 +1200,7 @@ const InputsSchema = z.object({
           "Optional. The type of a button. If unset, button type defaults to `OUTLINED`. If the `color` field is set, the button type is forced to `FILLED` and any value set for this field is ignored.",
         ).optional(),
       })).describe("An array of buttons.").optional(),
-    }).describe(
-      "A list of buttons layed out horizontally. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
-    ).optional(),
+    }).describe("A list of buttons.").optional(),
   })).describe(
     "Optional. One or more interactive widgets that appear at the bottom of a message. You can add accessory widgets to messages that contain text, cards, or both text and cards. Not supported for messages that contain dialogs. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets). Creating a message with accessory widgets requires [app authentication] (https://developers.google.com/workspace/chat/authenticate-authorize-chat-app).",
   ).optional(),
@@ -1504,7 +1230,7 @@ const InputsSchema = z.object({
           "The message to send users about the status of their request. If unset, a generic message based on the `status_code` is sent.",
         ).optional(),
       }).describe(
-        "Represents the status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs).",
+        "Input only. Status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs). Displays a status and message to users, if necessary. For example, in case of an error or success.",
       ).optional(),
       dialog: z.object({
         body: z.object({
@@ -1520,13 +1246,13 @@ const InputsSchema = z.object({
           ).optional(),
           fixedFooter: z.object({
             primaryButton: z.unknown().describe(
-              "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+              "The primary button of the fixed footer. The button must be a text button with text and color set.",
             ).optional(),
             secondaryButton: z.unknown().describe(
-              "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+              "The secondary button of the fixed footer. The button must be a text button with text and color set. If `secondaryButton` is set, you must also set `primaryButton`.",
             ).optional(),
           }).describe(
-            "A persistent (sticky) footer that that appears at the bottom of the card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). For an example in Google Chat apps, see [Add a persistent footer](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_persistent_footer). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "The fixed footer shown at the bottom of this card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
           ).optional(),
           header: z.object({
             imageAltText: z.unknown().describe(
@@ -1545,7 +1271,7 @@ const InputsSchema = z.object({
               "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
             ).optional(),
           }).describe(
-            "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "The header of the card. A header usually contains a leading image and a title. Headers always appear at the top of a card.",
           ).optional(),
           name: z.string().describe(
             "Name of the card. Used as a card identifier in card navigation. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
@@ -1567,7 +1293,7 @@ const InputsSchema = z.object({
               "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
             ).optional(),
           }).describe(
-            "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "When displaying contextual content, the peek card header acts as a placeholder so that the user can navigate forward between the homepage cards and the contextual cards. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
           ).optional(),
           sectionDividerStyle: z.enum([
             "DIVIDER_STYLE_UNSPECIFIED",
@@ -1580,11 +1306,13 @@ const InputsSchema = z.object({
             "Contains a collection of widgets. Each section has its own, optional header. Sections are visually separated by a line divider. For an example in Google Chat apps, see [Define a section of a card](https://developers.google.com/workspace/chat/design-components-card-dialog#define_a_section_of_a_card).",
           ).optional(),
         }).describe(
-          'A card interface displayed in a Google Chat message or Google Workspace add-on. Cards support a defined layout, interactive UI elements like buttons, and rich media like images. Use cards to present detailed information, gather information from users, and guide users to take a next step. [Card builder](https://addons.gsuite.google.com/uikit/builder) To learn how to build cards, see the following documentation: * For Google Chat apps, see [Design the components of a card or dialog](https://developers.google.com/workspace/chat/design-components-card-dialog). * For Google Workspace add-ons, see [Card-based interfaces](https://developers.google.com/apps-script/add-ons/concepts/cards). Note: You can add up to 100 widgets per card. If a section\'s widgets push the total count above 100, that entire section and all following sections are ignored. This limit applies to both card messages and dialogs in Google Chat apps, and to cards in Google Workspace add-ons. **Example: Card message for a Google Chat app**![Example contact card](https://developers.google.com/workspace/chat/images/card_api_reference.png) To create the sample card message in Google Chat, use the following JSON: ` { "cardsV2": [ { "cardId": "unique-card-id", "card": { "header": { "title": "Sasha", "subtitle": "Software Engineer", "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "imageType": "CIRCLE", "imageAltText": "Avatar for Sasha" }, "sections": [ { "header": "Contact Info", "collapsible": true, "uncollapsibleWidgetsCount": 1, "widgets": [ { "decoratedText": { "startIcon": { "knownIcon": "EMAIL" }, "text": "sasha@example.com" } }, { "decoratedText": { "startIcon": { "knownIcon": "PERSON" }, "text": "Online" } }, { "decoratedText": { "startIcon": { "knownIcon": "PHONE" }, "text": "+1 (555) 555-1234" } }, { "buttonList": { "buttons": [ { "text": "Share", "onClick": { "openLink": { "url": "https://example.com/share" } } }, { "text": "Edit", "onClick": { "action": { "function": "goToView", "parameters": [ { "key": "viewType", "value": "EDIT" } ] } } } ] } } ] } ] } } ] } `',
+          "Input only. Body of the dialog, which is rendered in a modal. Google Chat apps don't support the following card entities: `DateTimePicker`, `OnChangeAction`.",
         ).optional(),
-      }).describe("Wrapper around the card body of the dialog.").optional(),
+      }).describe(
+        "Input only. [Dialog](https://developers.google.com/workspace/chat/dialogs) for the request.",
+      ).optional(),
     }).describe(
-      "Contains a [dialog](https://developers.google.com/workspace/chat/dialogs) and request status code.",
+      "Input only. A response to an interaction event related to a [dialog](https://developers.google.com/workspace/chat/dialogs). Must be accompanied by `ResponseType.Dialog`.",
     ).optional(),
     type: z.enum([
       "TYPE_UNSPECIFIED",
@@ -1612,18 +1340,16 @@ const InputsSchema = z.object({
             "The value associated with this item. The client should use this as a form input value. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data).",
           ).optional(),
         })).describe("An array of the SelectionItem objects.").optional(),
-      }).describe("List of widget autocomplete results.").optional(),
+      }).describe("List of widget autocomplete results").optional(),
       widget: z.string().describe(
         "The ID of the updated widget. The ID must match the one for the widget that triggered the update request.",
       ).optional(),
-    }).describe(
-      "For `selectionInput` widgets, returns autocomplete suggestions for a multiselect menu.",
-    ).optional(),
+    }).describe("Input only. The response of the updated widget.").optional(),
     url: z.string().describe(
       "Input only. URL for users to authenticate or configure. (Only for `REQUEST_CONFIG` response types.)",
     ).optional(),
   }).describe(
-    "Parameters that a Chat app can use to configure how its response is posted.",
+    "Input only. Parameters that a Chat app can use to configure how its response is posted.",
   ).optional(),
   attachment: z.array(z.object({
     attachmentDataRef: z.object({
@@ -1633,7 +1359,9 @@ const InputsSchema = z.object({
       resourceName: z.string().describe(
         "Optional. The resource name of the attachment data. This field is used with the media API to download the attachment data.",
       ).optional(),
-    }).describe("A reference to the attachment data.").optional(),
+    }).describe(
+      "Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.",
+    ).optional(),
     contentName: z.string().describe(
       "Output only. The original file name for the content, not the full path.",
     ).optional(),
@@ -1647,7 +1375,9 @@ const InputsSchema = z.object({
       driveFileId: z.string().describe(
         "The ID for the drive file. Use with the Drive API.",
       ).optional(),
-    }).describe("A reference to the data of a drive attachment.").optional(),
+    }).describe(
+      "Output only. A reference to the Google Drive attachment. This field is used with the Google Drive API.",
+    ).optional(),
     name: z.string().describe(
       "Identifier. Resource name of the attachment. Format: `spaces/{space}/messages/{message}/attachments/{attachment}`.",
     ).optional(),
@@ -1664,7 +1394,7 @@ const InputsSchema = z.object({
           "The label that displays as the action menu item.",
         ).optional(),
         onClick: z.unknown().describe(
-          "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "The `onClick` action for this action item.",
         ).optional(),
       })).describe(
         'The card\'s actions. Actions are added to the card\'s toolbar menu. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons): For example, the following JSON constructs a card action menu with `Settings` and `Send Feedback` options: ` "card_actions": [ { "actionLabel": "Settings", "onClick": { "action": { "functionName": "goToView", "parameters": [ { "key": "viewType", "value": "SETTING" } ], "loadIndicator": "LoadIndicator.SPINNER" } } }, { "actionLabel": "Send Feedback", "onClick": { "openLink": { "url": "https://example.com/feedback" } } } ] `',
@@ -1693,16 +1423,16 @@ const InputsSchema = z.object({
             'The alternative text that\'s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".',
           ).optional(),
           color: z.unknown().describe(
-            "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
+            'Optional. The color of the button. If set, the button `type` is set to `FILLED` and the color of `text` and `icon` fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the `red`, `green`, and `blue` fields. The value must be a float number between 0 and 1 based on the RGB color value, where `0` (0/255) represents the absence of color and `1` (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity: ` "color": { "red": 1, "green": 0, "blue": 0, } ` The `alpha` field is unavailable for button color. If specified, this field is ignored.',
           ).optional(),
           disabled: z.unknown().describe(
             "If `true`, the button is displayed in an inactive state and doesn't respond to user actions.",
           ).optional(),
           icon: z.unknown().describe(
-            "An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "An icon displayed inside the button. If both `icon` and `text` are set, then the icon appears before the text.",
           ).optional(),
           onClick: z.unknown().describe(
-            "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.",
           ).optional(),
           text: z.unknown().describe("The text displayed inside the button.")
             .optional(),
@@ -1710,23 +1440,23 @@ const InputsSchema = z.object({
             "Optional. The type of a button. If unset, button type defaults to `OUTLINED`. If the `color` field is set, the button type is forced to `FILLED` and any value set for this field is ignored.",
           ).optional(),
         }).describe(
-          "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "The primary button of the fixed footer. The button must be a text button with text and color set.",
         ).optional(),
         secondaryButton: z.object({
           altText: z.unknown().describe(
             'The alternative text that\'s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".',
           ).optional(),
           color: z.unknown().describe(
-            "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
+            'Optional. The color of the button. If set, the button `type` is set to `FILLED` and the color of `text` and `icon` fields are set to a contrasting color for readability. For example, if the button color is set to blue, any text or icons in the button are set to white. To set the button color, specify a value for the `red`, `green`, and `blue` fields. The value must be a float number between 0 and 1 based on the RGB color value, where `0` (0/255) represents the absence of color and `1` (255/255) represents the maximum intensity of the color. For example, the following sets the color to red at its maximum intensity: ` "color": { "red": 1, "green": 0, "blue": 0, } ` The `alpha` field is unavailable for button color. If specified, this field is ignored.',
           ).optional(),
           disabled: z.unknown().describe(
             "If `true`, the button is displayed in an inactive state and doesn't respond to user actions.",
           ).optional(),
           icon: z.unknown().describe(
-            "An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "An icon displayed inside the button. If both `icon` and `text` are set, then the icon appears before the text.",
           ).optional(),
           onClick: z.unknown().describe(
-            "Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+            "Required. The action to perform when a user clicks the button, such as opening a hyperlink or running a custom function.",
           ).optional(),
           text: z.unknown().describe("The text displayed inside the button.")
             .optional(),
@@ -1734,10 +1464,10 @@ const InputsSchema = z.object({
             "Optional. The type of a button. If unset, button type defaults to `OUTLINED`. If the `color` field is set, the button type is forced to `FILLED` and any value set for this field is ignored.",
           ).optional(),
         }).describe(
-          "A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an `Image` (not an `ImageComponent`) and set an `onClick` action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "The secondary button of the fixed footer. The button must be a text button with text and color set. If `secondaryButton` is set, you must also set `primaryButton`.",
         ).optional(),
       }).describe(
-        "A persistent (sticky) footer that that appears at the bottom of the card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). For an example in Google Chat apps, see [Add a persistent footer](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_persistent_footer). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+        "The fixed footer shown at the bottom of this card. Setting `fixedFooter` without specifying a `primaryButton` or a `secondaryButton` causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
       ).optional(),
       header: z.object({
         imageAltText: z.string().describe(
@@ -1756,7 +1486,7 @@ const InputsSchema = z.object({
           "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
         ).optional(),
       }).describe(
-        "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+        "The header of the card. A header usually contains a leading image and a title. Headers always appear at the top of a card.",
       ).optional(),
       name: z.string().describe(
         "Name of the card. Used as a card identifier in card navigation. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
@@ -1778,7 +1508,7 @@ const InputsSchema = z.object({
           "Required. The title of the card header. The header has a fixed height: if both a title and subtitle are specified, each takes up one line. If only the title is specified, it takes up both lines.",
         ).optional(),
       }).describe(
-        "Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+        "When displaying contextual content, the peek card header acts as a placeholder so that the user can navigate forward between the homepage cards and the contextual cards. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):",
       ).optional(),
       sectionDividerStyle: z.enum([
         "DIVIDER_STYLE_UNSPECIFIED",
@@ -1788,7 +1518,7 @@ const InputsSchema = z.object({
         .optional(),
       sections: z.array(z.object({
         collapseControl: z.unknown().describe(
-          "Represent an expand and collapse control. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):",
+          "Optional. Define the expand and collapse button of the section. This button will be shown only if the section is collapsible. If this field isn't set, the default button is used.",
         ).optional(),
         collapsible: z.unknown().describe(
           "Indicates whether this section is collapsible. Collapsible sections hide some or all widgets, but users can expand the section to reveal the hidden widgets by clicking **Show more**. Users can hide the widgets again by clicking **Show less**. To determine which widgets are hidden, specify `uncollapsibleWidgetsCount`.",
@@ -1808,9 +1538,7 @@ const InputsSchema = z.object({
       })).describe(
         "Contains a collection of widgets. Each section has its own, optional header. Sections are visually separated by a line divider. For an example in Google Chat apps, see [Define a section of a card](https://developers.google.com/workspace/chat/design-components-card-dialog#define_a_section_of_a_card).",
       ).optional(),
-    }).describe(
-      'A card interface displayed in a Google Chat message or Google Workspace add-on. Cards support a defined layout, interactive UI elements like buttons, and rich media like images. Use cards to present detailed information, gather information from users, and guide users to take a next step. [Card builder](https://addons.gsuite.google.com/uikit/builder) To learn how to build cards, see the following documentation: * For Google Chat apps, see [Design the components of a card or dialog](https://developers.google.com/workspace/chat/design-components-card-dialog). * For Google Workspace add-ons, see [Card-based interfaces](https://developers.google.com/apps-script/add-ons/concepts/cards). Note: You can add up to 100 widgets per card. If a section\'s widgets push the total count above 100, that entire section and all following sections are ignored. This limit applies to both card messages and dialogs in Google Chat apps, and to cards in Google Workspace add-ons. **Example: Card message for a Google Chat app**![Example contact card](https://developers.google.com/workspace/chat/images/card_api_reference.png) To create the sample card message in Google Chat, use the following JSON: ` { "cardsV2": [ { "cardId": "unique-card-id", "card": { "header": { "title": "Sasha", "subtitle": "Software Engineer", "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "imageType": "CIRCLE", "imageAltText": "Avatar for Sasha" }, "sections": [ { "header": "Contact Info", "collapsible": true, "uncollapsibleWidgetsCount": 1, "widgets": [ { "decoratedText": { "startIcon": { "knownIcon": "EMAIL" }, "text": "sasha@example.com" } }, { "decoratedText": { "startIcon": { "knownIcon": "PERSON" }, "text": "Online" } }, { "decoratedText": { "startIcon": { "knownIcon": "PHONE" }, "text": "+1 (555) 555-1234" } }, { "buttonList": { "buttons": [ { "text": "Share", "onClick": { "openLink": { "url": "https://example.com/share" } } }, { "text": "Edit", "onClick": { "action": { "function": "goToView", "parameters": [ { "key": "viewType", "value": "EDIT" } ] } } } ] } } ] } ] } } ] } `',
-    ).optional(),
+    }).describe("A card. Maximum size is 32 KB.").optional(),
     cardId: z.string().describe(
       "Required if the message contains multiple cards. A unique identifier for a card in a message.",
     ).optional(),
@@ -1820,48 +1548,11 @@ const InputsSchema = z.object({
   clientAssignedMessageId: z.string().describe(
     "Optional. A custom ID for the message. You can use field to identify a message, or to get, delete, or update a message. To set a custom ID, specify the [`messageId`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#body.QUERY_PARAMETERS.message_id) field when you create the message. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
   ).optional(),
-  deletionMetadata: z.object({
-    deletionType: z.enum([
-      "DELETION_TYPE_UNSPECIFIED",
-      "CREATOR",
-      "SPACE_OWNER",
-      "ADMIN",
-      "APP_MESSAGE_EXPIRY",
-      "CREATOR_VIA_APP",
-      "SPACE_OWNER_VIA_APP",
-      "SPACE_MEMBER",
-    ]).describe("Indicates who deleted the message.").optional(),
-  }).describe(
-    "Information about a deleted message. A message is deleted when `delete_time` is set.",
-  ).optional(),
   fallbackText: z.string().describe(
     "Optional. A plain-text description of the message's cards, used when the actual cards can't be displayed—for example, mobile notifications.",
   ).optional(),
-  matchedUrl: z.object({
-    url: z.string().describe("Output only. The URL that was matched.")
-      .optional(),
-  }).describe(
-    "A matched URL in a Chat message. Chat apps can preview matched URLs. For more information, see [Preview links](https://developers.google.com/chat/how-tos/preview-links).",
-  ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the message. Format: `spaces/{space}/messages/{message}` Where `{space}` is the ID of the space where the message is posted and `{message}` is a system-assigned ID for the message. For example, `spaces/AAAAAAAAAAA/messages/BBBBBBBBBBB.BBBBBBBBBBB`. If you set a custom ID when you create a message, you can use this ID to specify the message in a request by replacing `{message}` with the value from the `clientAssignedMessageId` field. For example, `spaces/AAAAAAAAAAA/messages/client-custom-name`. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
-  ).optional(),
-  privateMessageViewer: z.object({
-    displayName: z.string().describe("Output only. The user's display name.")
-      .optional(),
-    domainId: z.string().describe(
-      "Unique identifier of the user's Google Workspace domain.",
-    ).optional(),
-    isAnonymous: z.boolean().describe(
-      "Output only. When `true`, the user is deleted or their profile is not visible.",
-    ).optional(),
-    name: z.string().describe(
-      "Resource name for a Google Chat user. Format: `users/{user}`. `users/app` can be used as an alias for the calling app bot user. For human users, `{user}` is the same user identifier as: - the `id` for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, `users/123456789` in Chat API represents the same person as the `123456789` Person profile ID in People API. - the `id` for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user's email address can be used as an alias for `{user}` in API requests. For example, if the People API Person profile ID for `user@example.com` is `123456789`, you can use `users/user@example.com` as an alias to reference `users/123456789`. Only the canonical resource name (for example `users/123456789`) will be returned from the API.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
-      .optional(),
-  }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
   ).optional(),
   quotedMessageMetadata: z.object({
     forwardedMetadata: z.object({
@@ -1872,7 +1563,7 @@ const InputsSchema = z.object({
         'Output only. The display name of the source space or DM at the time of forwarding. For `SPACE`, this is the space name. For `DIRECT_MESSAGE`, this is the other participant\'s name (e.g., "User A"). For `GROUP_CHAT`, this is a generated name based on members\' first names, limited to 5 including the creator (e.g., "User A, User B").',
       ).optional(),
     }).describe(
-      "Metadata about the source space from which a message was forwarded.",
+      "Output only. Metadata about the source space of the quoted message. Populated only for FORWARD quote type.",
     ).optional(),
     lastUpdateTime: z.string().describe(
       "Required. The timestamp when the quoted message was created or when the quoted message was last updated. If the message was edited, use this field, `last_update_time`. If the message was never edited, use `create_time`. If `last_update_time` doesn't match the latest version of the quoted message, the request fails.",
@@ -1886,32 +1577,27 @@ const InputsSchema = z.object({
     quotedMessageSnapshot: z.object({
       annotations: z.array(z.object({
         customEmojiMetadata: z.object({
-          customEmoji: z.unknown().describe(
-            "Represents a [custom emoji](https://support.google.com/chat/answer/12800149).",
-          ).optional(),
-        }).describe("Annotation metadata for custom emoji.").optional(),
+          customEmoji: z.unknown().describe("The custom emoji.").optional(),
+        }).describe("The metadata for a custom emoji.").optional(),
         length: z.number().int().describe(
           "Length of the substring in the plain-text message body this annotation corresponds to. If not present, indicates a length of 0.",
         ).optional(),
         richLinkMetadata: z.object({
           calendarEventLinkData: z.unknown().describe(
-            "Data for Calendar event links.",
+            "Data for a Calendar event link.",
           ).optional(),
-          chatSpaceLinkData: z.unknown().describe("Data for Chat space links.")
+          chatSpaceLinkData: z.unknown().describe("Data for a chat space link.")
             .optional(),
-          driveLinkData: z.unknown().describe("Data for Google Drive links.")
+          driveLinkData: z.unknown().describe("Data for a drive link.")
             .optional(),
-          meetSpaceLinkData: z.unknown().describe("Data for Meet space links.")
+          meetSpaceLinkData: z.unknown().describe("Data for a Meet space link.")
             .optional(),
           richLinkType: z.unknown().describe("The rich link type.").optional(),
           uri: z.unknown().describe("The URI of this link.").optional(),
-        }).describe(
-          "A rich link to a resource. Rich links can be associated with the plain-text body of the message or represent chips that link to Google Workspace resources like Google Docs or Sheets with `start_index` and `length` of 0.",
-        ).optional(),
+        }).describe("The metadata for a rich link.").optional(),
         slashCommand: z.object({
-          bot: z.unknown().describe(
-            "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
-          ).optional(),
+          bot: z.unknown().describe("The Chat app whose command was invoked.")
+            .optional(),
           commandId: z.unknown().describe(
             "The command ID of the invoked slash command.",
           ).optional(),
@@ -1922,7 +1608,7 @@ const InputsSchema = z.object({
             "Indicates whether the slash command is for a dialog.",
           ).optional(),
           type: z.unknown().describe("The type of slash command.").optional(),
-        }).describe("Annotation metadata for slash commands (/).").optional(),
+        }).describe("The metadata for a slash command.").optional(),
         startIndex: z.number().int().describe(
           "Start index (0-based, inclusive) in the plain-text message body this annotation corresponds to.",
         ).optional(),
@@ -1935,10 +1621,8 @@ const InputsSchema = z.object({
         ]).describe("The type of this annotation.").optional(),
         userMention: z.object({
           type: z.unknown().describe("The type of user mention.").optional(),
-          user: z.unknown().describe(
-            "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
-          ).optional(),
-        }).describe("Annotation metadata for user mentions (@).").optional(),
+          user: z.unknown().describe("The user mentioned.").optional(),
+        }).describe("The metadata of user mention.").optional(),
       })).describe(
         "Output only. Annotations parsed from the text body of the quoted message. Populated only for FORWARD quote type.",
       ).optional(),
@@ -1950,7 +1634,9 @@ const InputsSchema = z.object({
           resourceName: z.unknown().describe(
             "Optional. The resource name of the attachment data. This field is used with the media API to download the attachment data.",
           ).optional(),
-        }).describe("A reference to the attachment data.").optional(),
+        }).describe(
+          "Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.",
+        ).optional(),
         contentName: z.string().describe(
           "Output only. The original file name for the content, not the full path.",
         ).optional(),
@@ -1964,8 +1650,9 @@ const InputsSchema = z.object({
           driveFileId: z.unknown().describe(
             "The ID for the drive file. Use with the Drive API.",
           ).optional(),
-        }).describe("A reference to the data of a drive attachment.")
-          .optional(),
+        }).describe(
+          "Output only. A reference to the Google Drive attachment. This field is used with the Google Drive API.",
+        ).optional(),
         name: z.string().describe(
           "Identifier. Resource name of the attachment. Format: `spaces/{space}/messages/{message}/attachments/{attachment}`.",
         ).optional(),
@@ -1986,241 +1673,10 @@ const InputsSchema = z.object({
       text: z.string().describe(
         "Output only. Snapshot of the quoted message's text content.",
       ).optional(),
-    }).describe(
-      "Provides a snapshot of the content of the quoted message at the time of quoting or forwarding",
-    ).optional(),
-  }).describe(
-    "Information about a message that another message quotes. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
-  ).optional(),
-  sender: z.object({
-    displayName: z.string().describe("Output only. The user's display name.")
-      .optional(),
-    domainId: z.string().describe(
-      "Unique identifier of the user's Google Workspace domain.",
-    ).optional(),
-    isAnonymous: z.boolean().describe(
-      "Output only. When `true`, the user is deleted or their profile is not visible.",
-    ).optional(),
-    name: z.string().describe(
-      "Resource name for a Google Chat user. Format: `users/{user}`. `users/app` can be used as an alias for the calling app bot user. For human users, `{user}` is the same user identifier as: - the `id` for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, `users/123456789` in Chat API represents the same person as the `123456789` Person profile ID in People API. - the `id` for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user's email address can be used as an alias for `{user}` in API requests. For example, if the People API Person profile ID for `user@example.com` is `123456789`, you can use `users/user@example.com` as an alias to reference `users/123456789`. Only the canonical resource name (for example `users/123456789`) will be returned from the API.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
+    }).describe("Output only. A snapshot of the quoted message's content.")
       .optional(),
   }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
-  ).optional(),
-  slashCommand: z.object({
-    commandId: z.string().describe("The ID of the slash command.").optional(),
-  }).describe(
-    "Metadata about a [slash command](https://developers.google.com/workspace/chat/commands) in Google Chat.",
-  ).optional(),
-  space: z.object({
-    accessSettings: z.object({
-      accessPermissionSettings: z.object({
-        discoverSpaceSetting: z.object({
-          principals: z.array(z.unknown()).describe(
-            "Optional. Unordered list. Allowed principals for this permission.",
-          ).optional(),
-        }).describe("An access permission setting.").optional(),
-        joinSpaceSetting: z.object({
-          principals: z.array(z.unknown()).describe(
-            "Optional. Unordered list. Allowed principals for this permission.",
-          ).optional(),
-        }).describe("An access permission setting.").optional(),
-      }).describe("Access permission settings for a space.").optional(),
-      accessState: z.enum([
-        "ACCESS_STATE_UNSPECIFIED",
-        "PRIVATE",
-        "DISCOVERABLE",
-      ]).describe("Output only. Indicates the access state of the space.")
-        .optional(),
-      audience: z.string().describe(
-        "Optional. The resource name of the [target audience](https://support.google.com/a/answer/9934697) who can discover the space, join the space, and preview the messages in the space. If unset, only users or Google Groups who have been individually invited or added to the space can access it. For details, see [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience). Format: `audiences/{audience}` To use the default target audience for the Google Workspace organization, set to `audiences/default`. Reading the target audience supports: - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` scope. This field is not populated when using the `chat.bot` scope with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). Setting the target audience requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
-      ).optional(),
-    }).describe(
-      "Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.",
-    ).optional(),
-    adminInstalled: z.boolean().describe(
-      "Output only. For direct message (DM) spaces with a Chat app, whether the space was created by a Google Workspace administrator. Administrators can install and set up a direct message with a Chat app on behalf of users in their organization. To support admin install, your Chat app must feature direct messaging.",
-    ).optional(),
-    createTime: z.string().describe(
-      "Optional. Immutable. For spaces created in Chat, the time the space was created. This field is output only, except when used in import mode spaces. For import mode spaces, set this field to the historical timestamp at which the space was created in the source in order to preserve the original creation time. Only populated in the output when `spaceType` is `GROUP_CHAT` or `SPACE`.",
-    ).optional(),
-    customer: z.string().describe(
-      "Optional. Immutable. The customer id of the domain of the space. Required only when creating a space with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and `SpaceType` is `SPACE`, otherwise should not be set. In the format `customers/{customer}`, where `customer` is the `id` from the [Admin SDK customer resource](https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers). Private apps can also use the `customers/my_customer` alias to create the space in the same Google Workspace organization as the app. This field isn't populated for direct messages (DMs) or when the space is created by non-Google Workspace users.",
-    ).optional(),
-    displayName: z.string().describe(
-      "Optional. The space's display name. Required when [creating a space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/create) with a `spaceType` of `SPACE`. If you receive the error message `ALREADY_EXISTS` when creating a space or updating the `displayName`, try a different `displayName`. An existing space within the Google Workspace organization might already use this display name. For direct messages, this field might be empty. Supports up to 128 characters.",
-    ).optional(),
-    externalUserAllowed: z.boolean().describe(
-      "Optional. Immutable. Whether this space permits any Google Chat user as a member. Input when creating a space in a Google Workspace organization. Omit this field when creating spaces in the following conditions: * The authenticated user uses a consumer account (unmanaged user account). By default, a space created by a consumer account permits any Google Chat user. For existing spaces, this field is output only.",
-    ).optional(),
-    importMode: z.boolean().describe(
-      "Optional. Whether this space is created in `Import Mode` as part of a data migration into Google Workspace. While spaces are being imported, they aren't visible to users until the import is complete. Creating a space in `Import Mode`requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
-    ).optional(),
-    importModeExpireTime: z.string().describe(
-      "Output only. The time when the space will be automatically deleted by the system if it remains in import mode. Each space created in import mode must exit this mode before this expire time using `spaces.completeImport`. This field is only populated for spaces that were created with import mode.",
-    ).optional(),
-    lastActiveTime: z.string().describe(
-      "Output only. Timestamp of the last message in the space.",
-    ).optional(),
-    membershipCount: z.object({
-      joinedDirectHumanUserCount: z.number().int().describe(
-        "Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.",
-      ).optional(),
-      joinedGroupCount: z.number().int().describe(
-        "Output only. Count of all groups that have directly joined the space.",
-      ).optional(),
-    }).describe(
-      "Represents the count of memberships of a space, grouped into categories.",
-    ).optional(),
-    name: z.string().describe(
-      "Identifier. Resource name of the space. Format: `spaces/{space}` Where `{space}` represents the system-assigned ID for the space. You can obtain the space ID by calling the [`spaces.list()`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/list) method or from the space URL. For example, if the space URL is `https://mail.google.com/mail/u/0/#chat/space/AAAAAAAAA`, the space ID is `AAAAAAAAA`.",
-    ).optional(),
-    permissionSettings: z.object({
-      manageApps: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      manageMembersAndGroups: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      manageWebhooks: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      modifySpaceDetails: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      postMessages: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      replyMessages: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      toggleHistory: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-      useAtMentionAll: z.object({
-        assistantManagersAllowed: z.boolean().describe(
-          "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
-        ).optional(),
-        managersAllowed: z.boolean().describe(
-          "Optional. Whether space owners (`ROLE_MANAGER`) have this permission.",
-        ).optional(),
-        membersAllowed: z.boolean().describe(
-          "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
-        ).optional(),
-      }).describe("Represents a space permission setting.").optional(),
-    }).describe(
-      "[Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the `PredefinedPermissionSettings` field in your request.",
-    ).optional(),
-    predefinedPermissionSettings: z.enum([
-      "PREDEFINED_PERMISSION_SETTINGS_UNSPECIFIED",
-      "COLLABORATION_SPACE",
-      "ANNOUNCEMENT_SPACE",
-    ]).describe(
-      "Optional. Input only. Predefined space permission settings, input only when creating a space. If the field is not set, a collaboration space is created. After you create the space, settings are populated in the `PermissionSettings` field. Setting predefined permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` or `chat.app.spaces.create` scopes. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)",
-    ).optional(),
-    singleUserBotDm: z.boolean().describe(
-      "Optional. Whether the space is a DM between a Chat app and a single human.",
-    ).optional(),
-    spaceDetails: z.object({
-      description: z.string().describe(
-        "Optional. A description of the space. For example, describe the space's discussion topic, functional purpose, or participants. Supports up to 150 characters.",
-      ).optional(),
-      guidelines: z.string().describe(
-        "Optional. The space's rules, expectations, and etiquette. Supports up to 5,000 characters.",
-      ).optional(),
-    }).describe("Details about the space including description and rules.")
-      .optional(),
-    spaceHistoryState: z.enum([
-      "HISTORY_STATE_UNSPECIFIED",
-      "HISTORY_OFF",
-      "HISTORY_ON",
-    ]).describe(
-      "Optional. The message history state for messages and threads in this space.",
-    ).optional(),
-    spaceThreadingState: z.enum([
-      "SPACE_THREADING_STATE_UNSPECIFIED",
-      "THREADED_MESSAGES",
-      "GROUPED_MESSAGES",
-      "UNTHREADED_MESSAGES",
-    ]).describe("Output only. The threading state in the Chat space.")
-      .optional(),
-    spaceType: z.enum([
-      "SPACE_TYPE_UNSPECIFIED",
-      "SPACE",
-      "GROUP_CHAT",
-      "DIRECT_MESSAGE",
-    ]).describe(
-      "Optional. The type of space. Required when creating a space or updating the space type of a space. Output only for other usage.",
-    ).optional(),
-    spaceUri: z.string().describe(
-      "Output only. The URI for a user to access the space.",
-    ).optional(),
-    threaded: z.boolean().describe(
-      "Output only. Deprecated: Use `spaceThreadingState` instead. Whether messages are threaded in this space.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "ROOM", "DM"]).describe(
-      "Output only. Deprecated: Use `space_type` instead. The type of a space.",
-    ).optional(),
-  }).describe(
-    "A space in Google Chat. Spaces are conversations between two or more users or 1:1 messages between a user and a Chat app.",
+    "Optional. Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can't quote a message reply from a different thread. When you update a message, you can't add or replace the `quotedMessageMetadata` field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).",
   ).optional(),
   text: z.string().describe(
     "Optional. Plain-text body of the message. The first link to an image, video, or web page generates a [preview chip](https://developers.google.com/workspace/chat/preview-links). You can also [@mention a Google Chat user](https://developers.google.com/workspace/chat/format-messages#messages-@mention), or everyone in the space. To learn about creating text messages, see [Send a message](https://developers.google.com/workspace/chat/create-messages).",
@@ -2233,7 +1689,7 @@ const InputsSchema = z.object({
       "Optional. Input for creating or updating a thread. Otherwise, output only. ID for the thread. Supports up to 4000 characters. This ID is unique to the Chat app that sets it. For example, if multiple Chat apps create a message using the same thread key, the messages are posted in different threads. To reply in a thread created by a person or another Chat app, specify the thread `name` field instead.",
     ).optional(),
   }).describe(
-    "A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [`messageReplyOption`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.",
+    "The thread the message belongs to. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread).",
   ).optional(),
   createMessageNotificationOptions_notificationType: z.string().describe(
     "The notification type for the message.",
@@ -2275,7 +1731,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages. Registered at `@swamp/gcp/chat/spaces-messages`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2455,6 +1911,23 @@ export const model = {
       description: "Added: createMessageNotificationOptions_notificationType",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: deletionMetadata, matchedUrl, privateMessageViewer, sender, slashCommand, space",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          deletionMetadata: _deletionMetadata,
+          matchedUrl: _matchedUrl,
+          privateMessageViewer: _privateMessageViewer,
+          sender: _sender,
+          slashCommand: _slashCommand,
+          space: _space,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2488,25 +1961,13 @@ export const model = {
         if (g["clientAssignedMessageId"] !== undefined) {
           body["clientAssignedMessageId"] = g["clientAssignedMessageId"];
         }
-        if (g["deletionMetadata"] !== undefined) {
-          body["deletionMetadata"] = g["deletionMetadata"];
-        }
         if (g["fallbackText"] !== undefined) {
           body["fallbackText"] = g["fallbackText"];
         }
-        if (g["matchedUrl"] !== undefined) body["matchedUrl"] = g["matchedUrl"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["privateMessageViewer"] !== undefined) {
-          body["privateMessageViewer"] = g["privateMessageViewer"];
-        }
         if (g["quotedMessageMetadata"] !== undefined) {
           body["quotedMessageMetadata"] = g["quotedMessageMetadata"];
         }
-        if (g["sender"] !== undefined) body["sender"] = g["sender"];
-        if (g["slashCommand"] !== undefined) {
-          body["slashCommand"] = g["slashCommand"];
-        }
-        if (g["space"] !== undefined) body["space"] = g["space"];
         if (g["text"] !== undefined) body["text"] = g["text"];
         if (g["thread"] !== undefined) body["thread"] = g["thread"];
         if (
@@ -2639,24 +2100,12 @@ export const model = {
         if (g["clientAssignedMessageId"] !== undefined) {
           body["clientAssignedMessageId"] = g["clientAssignedMessageId"];
         }
-        if (g["deletionMetadata"] !== undefined) {
-          body["deletionMetadata"] = g["deletionMetadata"];
-        }
         if (g["fallbackText"] !== undefined) {
           body["fallbackText"] = g["fallbackText"];
-        }
-        if (g["matchedUrl"] !== undefined) body["matchedUrl"] = g["matchedUrl"];
-        if (g["privateMessageViewer"] !== undefined) {
-          body["privateMessageViewer"] = g["privateMessageViewer"];
         }
         if (g["quotedMessageMetadata"] !== undefined) {
           body["quotedMessageMetadata"] = g["quotedMessageMetadata"];
         }
-        if (g["sender"] !== undefined) body["sender"] = g["sender"];
-        if (g["slashCommand"] !== undefined) {
-          body["slashCommand"] = g["slashCommand"];
-        }
-        if (g["space"] !== undefined) body["space"] = g["space"];
         if (g["text"] !== undefined) body["text"] = g["text"];
         if (g["thread"] !== undefined) body["thread"] = g["thread"];
         const updateMaskKeys = Object.keys(body);

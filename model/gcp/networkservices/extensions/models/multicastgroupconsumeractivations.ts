@@ -181,7 +181,9 @@ const GlobalArgsSchema = z.object({
   logConfig: z.object({
     enabled: z.boolean().describe("Optional. Whether to enable logging or not.")
       .optional(),
-  }).describe("The logging configuration.").optional(),
+  }).describe(
+    "Optional. Specifies the logging options for the activities performed related to the multicast group consumer activation. Defaults to false. If logging is enabled, logs are exported to Cloud Logging.",
+  ).optional(),
   multicastConsumerAssociation: z.string().describe(
     "Required. The resource name of the multicast consumer association that is in the same zone as this multicast group consumer activation. Use the following format: `projects/*/locations/*/multicastConsumerAssociations/*`.",
   ).optional(),
@@ -191,19 +193,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the multicast group consumer activation. Use the following format: `projects/*/locations/*/multicastGroupConsumerActivations/*`.",
   ).optional(),
-  state: z.object({
-    state: z.enum([
-      "STATE_ENUM_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UPDATING",
-      "UPDATE_FAILED",
-      "INACTIVE",
-      "OBSOLETE",
-    ]).describe("Optional. The state of the multicast resource.").optional(),
-  }).describe("The multicast resource's state.").optional(),
   multicastGroupConsumerActivationId: z.string().describe(
     "Required. A unique name for the multicast group consumer activation. The name is restricted to lower-case letters, numbers, and hyphen, with the first character a lower-case letter, and the last a letter or a number. The name must not exceed 48 characters.",
   ).optional(),
@@ -250,7 +239,9 @@ const InputsSchema = z.object({
   logConfig: z.object({
     enabled: z.boolean().describe("Optional. Whether to enable logging or not.")
       .optional(),
-  }).describe("The logging configuration.").optional(),
+  }).describe(
+    "Optional. Specifies the logging options for the activities performed related to the multicast group consumer activation. Defaults to false. If logging is enabled, logs are exported to Cloud Logging.",
+  ).optional(),
   multicastConsumerAssociation: z.string().describe(
     "Required. The resource name of the multicast consumer association that is in the same zone as this multicast group consumer activation. Use the following format: `projects/*/locations/*/multicastConsumerAssociations/*`.",
   ).optional(),
@@ -260,19 +251,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the multicast group consumer activation. Use the following format: `projects/*/locations/*/multicastGroupConsumerActivations/*`.",
   ).optional(),
-  state: z.object({
-    state: z.enum([
-      "STATE_ENUM_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UPDATING",
-      "UPDATE_FAILED",
-      "INACTIVE",
-      "OBSOLETE",
-    ]).describe("Optional. The state of the multicast resource.").optional(),
-  }).describe("The multicast resource's state.").optional(),
   multicastGroupConsumerActivationId: z.string().describe(
     "Required. A unique name for the multicast group consumer activation. The name is restricted to lower-case letters, numbers, and hyphen, with the first character a lower-case letter, and the last a letter or a number. The name must not exceed 48 characters.",
   ).optional(),
@@ -307,7 +285,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services MulticastGroupConsumerActivations. Registered at `@swamp/gcp/networkservices/multicastgroupconsumeractivations`. */
 export const model = {
   type: "@swamp/gcp/networkservices/multicastgroupconsumeractivations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -345,7 +333,6 @@ export const model = {
             g["multicastGroupRangeActivation"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["multicastGroupConsumerActivationId"] !== undefined) {
           params["multicastGroupConsumerActivationId"] = String(
             g["multicastGroupConsumerActivationId"],
@@ -475,7 +462,6 @@ export const model = {
           body["multicastGroupRangeActivation"] =
             g["multicastGroupRangeActivation"];
         }
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

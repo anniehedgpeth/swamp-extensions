@@ -175,8 +175,7 @@ const GlobalArgsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
-    }).describe("Configures various aspects of Dataform notebook runtime.")
-      .optional(),
+    }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
     ).optional(),
@@ -189,8 +188,9 @@ const GlobalArgsSchema = z.object({
     vars: z.record(z.string(), z.string()).describe(
       "Optional. User-defined variables that are made available to project code during compilation.",
     ).optional(),
-  }).describe("Configures various aspects of Dataform code compilation.")
-    .optional(),
+  }).describe(
+    "Optional. If set, fields of `code_compilation_config` override the default compilation settings that are specified in dataform.json.",
+  ).optional(),
   cronSchedule: z.string().describe(
     "Optional. Optional schedule (in cron format) for automatic creation of compilation results.",
   ).optional(),
@@ -283,8 +283,7 @@ const InputsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
-    }).describe("Configures various aspects of Dataform notebook runtime.")
-      .optional(),
+    }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
     ).optional(),
@@ -297,8 +296,9 @@ const InputsSchema = z.object({
     vars: z.record(z.string(), z.string()).describe(
       "Optional. User-defined variables that are made available to project code during compilation.",
     ).optional(),
-  }).describe("Configures various aspects of Dataform code compilation.")
-    .optional(),
+  }).describe(
+    "Optional. If set, fields of `code_compilation_config` override the default compilation settings that are specified in dataform.json.",
+  ).optional(),
   cronSchedule: z.string().describe(
     "Optional. Optional schedule (in cron format) for automatic creation of compilation results.",
   ).optional(),
@@ -350,7 +350,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.ReleaseConfigs. Registered at `@swamp/gcp/dataform/repositories-releaseconfigs`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-releaseconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -489,6 +489,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

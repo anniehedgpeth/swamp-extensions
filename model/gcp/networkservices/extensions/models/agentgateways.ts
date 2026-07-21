@@ -158,19 +158,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  agentGatewayCard: z.object({
-    mtlsEndpoint: z.string().describe(
-      "Output only. mTLS Endpoint associated with this AgentGateway",
-    ).optional(),
-    rootCertificates: z.array(z.string()).describe(
-      "Output only. Root Certificates for Agents to validate this AgentGateway",
-    ).optional(),
-    serviceExtensionsServiceAccount: z.string().describe(
-      "Output only. Service Account used by Service Extensions to operate.",
-    ).optional(),
-  }).describe(
-    "AgentGatewayOutputCard contains informational output-only fields",
-  ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
   ).optional(),
@@ -181,7 +168,7 @@ const GlobalArgsSchema = z.object({
       "CLIENT_TO_AGENT",
     ]).describe("Optional. Operating Mode of Agent Gateway.").optional(),
   }).describe(
-    "Configuration for Google Managed deployment mode. Proxy is orchestrated and managed by GoogleCloud in a tenant project.",
+    "Optional. Proxy is orchestrated and managed by GoogleCloud in a tenant project.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Set of label tags associated with the AgentGateway resource.",
@@ -200,15 +187,18 @@ const GlobalArgsSchema = z.object({
       targetProject: z.string().describe(
         "Required. Target project ID to which DNS queries should be forwarded to. This can be the same project that contains the AgentGateway or a different project.",
       ).optional(),
-    }).describe("DNS peering config for the user VPC network.").optional(),
+    }).describe(
+      "Optional. Optional DNS peering configuration for connectivity to your private VPC network.",
+    ).optional(),
     egress: z.object({
       networkAttachment: z.string().describe(
         "Optional. The URI of the Network Attachment resource.",
       ).optional(),
-    }).describe("Configuration for Egress").optional(),
-  }).describe(
-    "NetworkConfig contains network configurations for the AgentGateway.",
-  ).optional(),
+    }).describe(
+      "Optional. Optional PSC-Interface network attachment for connectivity to your private VPCs network.",
+    ).optional(),
+  }).describe("Optional. Network configuration for the AgentGateway.")
+    .optional(),
   registries: z.array(z.string()).describe(
     "Optional. A list of Agent registries containing the agents, MCP servers and tools governed by the Agent Gateway. Note: Currently limited to project-scoped registries Must be of format `//agentregistry.googleapis.com/projects/{project}/locations/{location}/`",
   ).optional(),
@@ -220,7 +210,7 @@ const GlobalArgsSchema = z.object({
       "Optional. List of supported Google Cloud networking proxies in the Project and Location. resource_uris is mutually exclusive with resource_uri.",
     ).optional(),
   }).describe(
-    "Configuration for Self Managed deployment mode. Attach to existing Application Load Balancers or Secure Web Proxies.",
+    "Optional. Attach to existing Application Load Balancers or Secure Web Proxies.",
   ).optional(),
   agentGatewayId: z.string().describe(
     "Required. Short name of the AgentGateway resource to be created.",
@@ -270,19 +260,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  agentGatewayCard: z.object({
-    mtlsEndpoint: z.string().describe(
-      "Output only. mTLS Endpoint associated with this AgentGateway",
-    ).optional(),
-    rootCertificates: z.array(z.string()).describe(
-      "Output only. Root Certificates for Agents to validate this AgentGateway",
-    ).optional(),
-    serviceExtensionsServiceAccount: z.string().describe(
-      "Output only. Service Account used by Service Extensions to operate.",
-    ).optional(),
-  }).describe(
-    "AgentGatewayOutputCard contains informational output-only fields",
-  ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
   ).optional(),
@@ -293,7 +270,7 @@ const InputsSchema = z.object({
       "CLIENT_TO_AGENT",
     ]).describe("Optional. Operating Mode of Agent Gateway.").optional(),
   }).describe(
-    "Configuration for Google Managed deployment mode. Proxy is orchestrated and managed by GoogleCloud in a tenant project.",
+    "Optional. Proxy is orchestrated and managed by GoogleCloud in a tenant project.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Set of label tags associated with the AgentGateway resource.",
@@ -312,15 +289,18 @@ const InputsSchema = z.object({
       targetProject: z.string().describe(
         "Required. Target project ID to which DNS queries should be forwarded to. This can be the same project that contains the AgentGateway or a different project.",
       ).optional(),
-    }).describe("DNS peering config for the user VPC network.").optional(),
+    }).describe(
+      "Optional. Optional DNS peering configuration for connectivity to your private VPC network.",
+    ).optional(),
     egress: z.object({
       networkAttachment: z.string().describe(
         "Optional. The URI of the Network Attachment resource.",
       ).optional(),
-    }).describe("Configuration for Egress").optional(),
-  }).describe(
-    "NetworkConfig contains network configurations for the AgentGateway.",
-  ).optional(),
+    }).describe(
+      "Optional. Optional PSC-Interface network attachment for connectivity to your private VPCs network.",
+    ).optional(),
+  }).describe("Optional. Network configuration for the AgentGateway.")
+    .optional(),
   registries: z.array(z.string()).describe(
     "Optional. A list of Agent registries containing the agents, MCP servers and tools governed by the Agent Gateway. Note: Currently limited to project-scoped registries Must be of format `//agentregistry.googleapis.com/projects/{project}/locations/{location}/`",
   ).optional(),
@@ -332,7 +312,7 @@ const InputsSchema = z.object({
       "Optional. List of supported Google Cloud networking proxies in the Project and Location. resource_uris is mutually exclusive with resource_uri.",
     ).optional(),
   }).describe(
-    "Configuration for Self Managed deployment mode. Attach to existing Application Load Balancers or Secure Web Proxies.",
+    "Optional. Attach to existing Application Load Balancers or Secure Web Proxies.",
   ).optional(),
   agentGatewayId: z.string().describe(
     "Required. Short name of the AgentGateway resource to be created.",
@@ -365,7 +345,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services AgentGateways. Registered at `@swamp/gcp/networkservices/agentgateways`. */
 export const model = {
   type: "@swamp/gcp/networkservices/agentgateways",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: agentGatewayCard",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { agentGatewayCard: _agentGatewayCard, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -389,9 +379,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["agentGatewayCard"] !== undefined) {
-          body["agentGatewayCard"] = g["agentGatewayCard"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -516,9 +503,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["agentGatewayCard"] !== undefined) {
-          body["agentGatewayCard"] = g["agentGatewayCard"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

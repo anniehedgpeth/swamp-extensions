@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Output only. The time on the end day at which the interval ends.",
         ).optional(),
         startDay: z.enum([
           "DAY_OF_WEEK_UNSPECIFIED",
@@ -229,7 +229,7 @@ const GlobalArgsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Output only. The time on the start day at which the interval starts.",
         ).optional(),
       })).describe(
         "Output only. Output Only. A list of intervals in which maintenance windows are not allowed. Any time window that overlaps with any of these intervals will be considered invalid.",
@@ -248,10 +248,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "Output only. Output Only. The user can only reschedule an upgrade that starts within this range.",
       ).optional(),
     }).describe(
-      "Constraints to be applied while editing a schedule. These constraints ensure that `Upgrade` specific requirements are met.",
+      "Output only. Output Only. Constraints applied to the schedule. These constraints should be applicable at the time of any rescheduling.",
     ).optional(),
     editWindow: z.object({
       endTime: z.string().describe(
@@ -261,7 +261,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
       ).optional(),
     }).describe(
-      "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+      "Output only. Output Only. The schedule is open for edits during this time interval or window.",
     ).optional(),
     lastEditor: z.enum(["EDITOR_UNSPECIFIED", "SYSTEM", "USER"]).describe(
       "Output only. Output Only. Indicates who most recently edited the upgrade schedule. The value is updated whenever the upgrade is rescheduled.",
@@ -296,13 +296,11 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Time in UTC when the window starts.").optional(),
     })).describe(
       "Required. Weekly time windows for upgrade activities. The server performs upgrade activities during these time windows to minimize disruptions.",
     ).optional(),
-  }).describe("Schedule for the upgrade.").optional(),
+  }).describe("Schedule details for the upgrade.").optional(),
   startVersion: z.string().describe(
     "Output only. Output Only. The start version",
   ).optional(),
@@ -490,7 +488,7 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Output only. The time on the end day at which the interval ends.",
         ).optional(),
         startDay: z.enum([
           "DAY_OF_WEEK_UNSPECIFIED",
@@ -517,7 +515,7 @@ const InputsSchema = z.object({
             "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
           ).optional(),
         }).describe(
-          "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+          "Output only. The time on the start day at which the interval starts.",
         ).optional(),
       })).describe(
         "Output only. Output Only. A list of intervals in which maintenance windows are not allowed. Any time window that overlaps with any of these intervals will be considered invalid.",
@@ -536,10 +534,10 @@ const InputsSchema = z.object({
           "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
         ).optional(),
       }).describe(
-        "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+        "Output only. Output Only. The user can only reschedule an upgrade that starts within this range.",
       ).optional(),
     }).describe(
-      "Constraints to be applied while editing a schedule. These constraints ensure that `Upgrade` specific requirements are met.",
+      "Output only. Output Only. Constraints applied to the schedule. These constraints should be applicable at the time of any rescheduling.",
     ).optional(),
     editWindow: z.object({
       endTime: z.string().describe(
@@ -549,7 +547,7 @@ const InputsSchema = z.object({
         "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
       ).optional(),
     }).describe(
-      "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
+      "Output only. Output Only. The schedule is open for edits during this time interval or window.",
     ).optional(),
     lastEditor: z.enum(["EDITOR_UNSPECIFIED", "SYSTEM", "USER"]).describe(
       "Output only. Output Only. Indicates who most recently edited the upgrade schedule. The value is updated whenever the upgrade is rescheduled.",
@@ -584,13 +582,11 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Time in UTC when the window starts.").optional(),
     })).describe(
       "Required. Weekly time windows for upgrade activities. The server performs upgrade activities during these time windows to minimize disruptions.",
     ).optional(),
-  }).describe("Schedule for the upgrade.").optional(),
+  }).describe("Schedule details for the upgrade.").optional(),
   startVersion: z.string().describe(
     "Output only. Output Only. The start version",
   ).optional(),
@@ -656,7 +652,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VMware Engine PrivateClouds.Upgrades. Registered at `@swamp/gcp/vmwareengine/privateclouds-upgrades`. */
 export const model = {
   type: "@swamp/gcp/vmwareengine/privateclouds-upgrades",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -765,6 +761,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

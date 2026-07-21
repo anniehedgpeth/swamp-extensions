@@ -173,7 +173,7 @@ const GlobalArgsSchema = z.object({
     sampleRow: z.string().describe(
       "Number of the conversations that we should sample based on the dimension.",
     ).optional(),
-  }).describe("Message for sampling conversations.").optional(),
+  }).describe("The sample rule for the assessment rule.").optional(),
   scheduleInfo: z.object({
     endTime: z.string().describe(
       "End time of the schedule. If not specified, will keep scheduling new pipelines for execution util the schedule is no longer active or deleted.",
@@ -187,7 +187,7 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       "The timezone to use for the groc expression. If not specified, defaults to UTC.",
     ).optional(),
-  }).describe("Message for schedule info.").optional(),
+  }).describe("Schedule info for the assessment rule.").optional(),
   assessmentRuleId: z.string().describe(
     "Optional. A unique ID for the new AssessmentRule. This ID will become the final component of the AssessmentRule's resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
   ).optional(),
@@ -244,7 +244,7 @@ const InputsSchema = z.object({
     sampleRow: z.string().describe(
       "Number of the conversations that we should sample based on the dimension.",
     ).optional(),
-  }).describe("Message for sampling conversations.").optional(),
+  }).describe("The sample rule for the assessment rule.").optional(),
   scheduleInfo: z.object({
     endTime: z.string().describe(
       "End time of the schedule. If not specified, will keep scheduling new pipelines for execution util the schedule is no longer active or deleted.",
@@ -258,7 +258,7 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       "The timezone to use for the groc expression. If not specified, defaults to UTC.",
     ).optional(),
-  }).describe("Message for schedule info.").optional(),
+  }).describe("Schedule info for the assessment rule.").optional(),
   assessmentRuleId: z.string().describe(
     "Optional. A unique ID for the new AssessmentRule. This ID will become the final component of the AssessmentRule's resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
   ).optional(),
@@ -290,7 +290,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights AssessmentRules. Registered at `@swamp/gcp/contactcenterinsights/assessmentrules`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/assessmentrules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -394,6 +394,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

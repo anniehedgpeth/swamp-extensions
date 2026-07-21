@@ -210,9 +210,8 @@ const GlobalArgsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -221,10 +220,10 @@ const GlobalArgsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the Automation rule.",
       ).optional(),
       id: z.string().describe(
         "Required. ID of the rule. This id must be unique in the `Automation` resource to which this rule belongs. The format is `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
@@ -236,7 +235,7 @@ const GlobalArgsSchema = z.object({
         "Optional. How long to wait after a rollout is finished.",
       ).optional(),
     }).describe(
-      "The `AdvanceRollout` automation rule will automatically advance a successful Rollout to the next phase.",
+      "Optional. The `AdvanceRolloutRule` will automatically advance a successful Rollout.",
     ).optional(),
     promoteReleaseRule: z.object({
       condition: z.object({
@@ -250,9 +249,8 @@ const GlobalArgsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -261,10 +259,10 @@ const GlobalArgsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the Automation rule.",
       ).optional(),
       destinationPhase: z.string().describe(
         "Optional. The starting phase of the rollout created by this operation. Default to the first phase.",
@@ -279,7 +277,7 @@ const GlobalArgsSchema = z.object({
         "Optional. How long the release need to be paused until being promoted to the next target.",
       ).optional(),
     }).describe(
-      "The `PromoteRelease` rule will automatically promote a release from the current target to a specified target.",
+      "Optional. `PromoteReleaseRule` will automatically promote a release from the current target to a specified target.",
     ).optional(),
     repairRolloutRule: z.object({
       condition: z.object({
@@ -293,9 +291,8 @@ const GlobalArgsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -304,10 +301,10 @@ const GlobalArgsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the 'Automation' rule.",
       ).optional(),
       id: z.string().describe(
         "Required. ID of the rule. This id must be unique in the `Automation` resource to which this rule belongs. The format is `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
@@ -319,13 +316,15 @@ const GlobalArgsSchema = z.object({
         "Optional. Phases within which jobs are subject to automatic repair actions on failure. Proceeds only after phase name matched any one in the list, or for all phases if unspecified. This value must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
       ).optional(),
       repairPhases: z.array(z.object({
-        retry: z.unknown().describe("Retries the failed job.").optional(),
-        rollback: z.unknown().describe("Rolls back a `Rollout`.").optional(),
+        retry: z.unknown().describe("Optional. Retries a failed job.")
+          .optional(),
+        rollback: z.unknown().describe("Optional. Rolls back a `Rollout`.")
+          .optional(),
       })).describe(
         "Required. Defines the types of automatic repair phases for failed jobs.",
       ).optional(),
     }).describe(
-      "The `RepairRolloutRule` automation rule will automatically repair a failed `Rollout`.",
+      "Optional. The `RepairRolloutRule` will automatically repair a failed rollout.",
     ).optional(),
     timedPromoteReleaseRule: z.object({
       condition: z.object({
@@ -339,9 +338,8 @@ const GlobalArgsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -350,10 +348,10 @@ const GlobalArgsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the Automation rule.",
       ).optional(),
       destinationPhase: z.string().describe(
         "Optional. The starting phase of the rollout created by this rule. Default to the first phase.",
@@ -371,7 +369,7 @@ const GlobalArgsSchema = z.object({
         "Required. The time zone in IANA format [IANA Time Zone Database](https://www.iana.org/time-zones) (e.g. America/New_York).",
       ).optional(),
     }).describe(
-      "The `TimedPromoteReleaseRule` will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.",
+      "Optional. The `TimedPromoteReleaseRule` will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.",
     ).optional(),
   })).describe(
     "Required. List of Automation rules associated with the Automation resource. Must have at least one rule and limited to 250 rules per Delivery Pipeline. Note: the order of the rules here is not the same as the order of execution.",
@@ -385,7 +383,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
     })).describe("Optional. Contains attributes about a target.").optional(),
   }).describe(
-    "AutomationResourceSelector contains the information to select the resources to which an Automation is going to be applied.",
+    "Required. Selected resources to which the automation will be applied.",
   ).optional(),
   serviceAccount: z.string().describe(
     "Required. Email address of the user-managed IAM service account that creates Cloud Deploy release and rollout resources.",
@@ -528,9 +526,8 @@ const InputsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -539,10 +536,10 @@ const InputsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the Automation rule.",
       ).optional(),
       id: z.string().describe(
         "Required. ID of the rule. This id must be unique in the `Automation` resource to which this rule belongs. The format is `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
@@ -554,7 +551,7 @@ const InputsSchema = z.object({
         "Optional. How long to wait after a rollout is finished.",
       ).optional(),
     }).describe(
-      "The `AdvanceRollout` automation rule will automatically advance a successful Rollout to the next phase.",
+      "Optional. The `AdvanceRolloutRule` will automatically advance a successful Rollout.",
     ).optional(),
     promoteReleaseRule: z.object({
       condition: z.object({
@@ -568,9 +565,8 @@ const InputsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -579,10 +575,10 @@ const InputsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the Automation rule.",
       ).optional(),
       destinationPhase: z.string().describe(
         "Optional. The starting phase of the rollout created by this operation. Default to the first phase.",
@@ -597,7 +593,7 @@ const InputsSchema = z.object({
         "Optional. How long the release need to be paused until being promoted to the next target.",
       ).optional(),
     }).describe(
-      "The `PromoteRelease` rule will automatically promote a release from the current target to a specified target.",
+      "Optional. `PromoteReleaseRule` will automatically promote a release from the current target to a specified target.",
     ).optional(),
     repairRolloutRule: z.object({
       condition: z.object({
@@ -611,9 +607,8 @@ const InputsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -622,10 +617,10 @@ const InputsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the 'Automation' rule.",
       ).optional(),
       id: z.string().describe(
         "Required. ID of the rule. This id must be unique in the `Automation` resource to which this rule belongs. The format is `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
@@ -637,13 +632,15 @@ const InputsSchema = z.object({
         "Optional. Phases within which jobs are subject to automatic repair actions on failure. Proceeds only after phase name matched any one in the list, or for all phases if unspecified. This value must consist of lower-case letters, numbers, and hyphens, start with a letter and end with a letter or a number, and have a max length of 63 characters. In other words, it must match the following regex: `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
       ).optional(),
       repairPhases: z.array(z.object({
-        retry: z.unknown().describe("Retries the failed job.").optional(),
-        rollback: z.unknown().describe("Rolls back a `Rollout`.").optional(),
+        retry: z.unknown().describe("Optional. Retries a failed job.")
+          .optional(),
+        rollback: z.unknown().describe("Optional. Rolls back a `Rollout`.")
+          .optional(),
       })).describe(
         "Required. Defines the types of automatic repair phases for failed jobs.",
       ).optional(),
     }).describe(
-      "The `RepairRolloutRule` automation rule will automatically repair a failed `Rollout`.",
+      "Optional. The `RepairRolloutRule` will automatically repair a failed rollout.",
     ).optional(),
     timedPromoteReleaseRule: z.object({
       condition: z.object({
@@ -657,9 +654,8 @@ const InputsSchema = z.object({
           updateTime: z.unknown().describe(
             "Last time the condition was updated.",
           ).optional(),
-        }).describe(
-          "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-        ).optional(),
+        }).describe("Optional. Details around targets enumerated in the rule.")
+          .optional(),
         timedPromoteReleaseCondition: z.object({
           nextPromotionTime: z.unknown().describe(
             "Output only. When the next scheduled promotion(s) will occur.",
@@ -668,10 +664,10 @@ const InputsSchema = z.object({
             "Output only. A list of targets involved in the upcoming timed promotion(s).",
           ).optional(),
         }).describe(
-          "`TimedPromoteReleaseCondition` contains conditions specific to an Automation with a Timed Promote Release rule defined.",
+          "Optional. TimedPromoteReleaseCondition contains rule conditions specific to a an Automation with a timed promote release rule defined.",
         ).optional(),
       }).describe(
-        "`AutomationRuleCondition` contains conditions relevant to an `Automation` rule.",
+        "Output only. Information around the state of the Automation rule.",
       ).optional(),
       destinationPhase: z.string().describe(
         "Optional. The starting phase of the rollout created by this rule. Default to the first phase.",
@@ -689,7 +685,7 @@ const InputsSchema = z.object({
         "Required. The time zone in IANA format [IANA Time Zone Database](https://www.iana.org/time-zones) (e.g. America/New_York).",
       ).optional(),
     }).describe(
-      "The `TimedPromoteReleaseRule` will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.",
+      "Optional. The `TimedPromoteReleaseRule` will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.",
     ).optional(),
   })).describe(
     "Required. List of Automation rules associated with the Automation resource. Must have at least one rule and limited to 250 rules per Delivery Pipeline. Note: the order of the rules here is not the same as the order of execution.",
@@ -703,7 +699,7 @@ const InputsSchema = z.object({
         .optional(),
     })).describe("Optional. Contains attributes about a target.").optional(),
   }).describe(
-    "AutomationResourceSelector contains the information to select the resources to which an Automation is going to be applied.",
+    "Required. Selected resources to which the automation will be applied.",
   ).optional(),
   serviceAccount: z.string().describe(
     "Required. Email address of the user-managed IAM service account that creates Cloud Deploy release and rollout resources.",
@@ -747,7 +743,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy DeliveryPipelines.Automations. Registered at `@swamp/gcp/clouddeploy/deliverypipelines-automations`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/deliverypipelines-automations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -859,6 +855,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -914,14 +915,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

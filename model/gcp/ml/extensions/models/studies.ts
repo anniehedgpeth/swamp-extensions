@@ -150,9 +150,8 @@ const GlobalArgsSchema = z.object({
       }).describe(
         "The median automated stopping rule stops a pending trial if the trial's best objective_value is strictly below the median 'performance' of all completed trials reported up to the trial's last measurement. Currently, 'performance' refers to the running average of the objective values reported by the trial in each measurement.",
       ).optional(),
-    }).describe(
-      "Configuration for Automated Early Stopping of Trials. If no implementation_config is set, automated early stopping will not be run.",
-    ).optional(),
+    }).describe("Configuration for automated stopping of unpromising Trials.")
+      .optional(),
     metrics: z.array(z.object({
       goal: z.enum(["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]).describe(
         "Required. The optimization goal of the metric.",
@@ -165,7 +164,7 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Must be specified if type is `CATEGORICAL`. The list of possible categories.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for a 'CATEGORICAL' parameter.").optional(),
       childParameterSpecs: z.array(z.record(z.string(), z.unknown())).describe(
         "A child node is active if the parameter's value matches the child node's matching_parent_values. If two items in child_parameter_specs have the same name, they must have disjoint matching_parent_values.",
       ).optional(),
@@ -173,7 +172,7 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Must be specified if type is `DISCRETE`. A list of feasible points. The list should be in strictly increasing order. For instance, this parameter might have possible settings of 1.5, 2.5, and 4.0. This list should not contain more than 1,000 values.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for a 'DISCRETE' parameter.").optional(),
       doubleValueSpec: z.object({
         maxValue: z.number().describe(
           "Must be specified if type is `DOUBLE`. Maximum value of the parameter.",
@@ -181,7 +180,7 @@ const GlobalArgsSchema = z.object({
         minValue: z.number().describe(
           "Must be specified if type is `DOUBLE`. Minimum value of the parameter.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for a 'DOUBLE' parameter.").optional(),
       integerValueSpec: z.object({
         maxValue: z.string().describe(
           "Must be specified if type is `INTEGER`. Maximum value of the parameter.",
@@ -189,7 +188,7 @@ const GlobalArgsSchema = z.object({
         minValue: z.string().describe(
           "Must be specified if type is `INTEGER`. Minimum value of the parameter.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for an 'INTEGER' parameter.").optional(),
       parameter: z.string().describe(
         "Required. The parameter name must be unique amongst all ParameterSpecs.",
       ).optional(),
@@ -230,7 +229,7 @@ const GlobalArgsSchema = z.object({
         "DISCRETE",
       ]).describe("Required. The type of the parameter.").optional(),
     })).describe("Required. The set of parameters to tune.").optional(),
-  }).describe("Represents configuration of a study.").optional(),
+  }).describe("Required. Configuration of the study.").optional(),
   studyId: z.string().describe(
     "Required. The ID to use for the study, which will become the final component of the study's resource name.",
   ).optional(),
@@ -318,9 +317,8 @@ const InputsSchema = z.object({
       }).describe(
         "The median automated stopping rule stops a pending trial if the trial's best objective_value is strictly below the median 'performance' of all completed trials reported up to the trial's last measurement. Currently, 'performance' refers to the running average of the objective values reported by the trial in each measurement.",
       ).optional(),
-    }).describe(
-      "Configuration for Automated Early Stopping of Trials. If no implementation_config is set, automated early stopping will not be run.",
-    ).optional(),
+    }).describe("Configuration for automated stopping of unpromising Trials.")
+      .optional(),
     metrics: z.array(z.object({
       goal: z.enum(["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]).describe(
         "Required. The optimization goal of the metric.",
@@ -333,7 +331,7 @@ const InputsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Must be specified if type is `CATEGORICAL`. The list of possible categories.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for a 'CATEGORICAL' parameter.").optional(),
       childParameterSpecs: z.array(z.record(z.string(), z.unknown())).describe(
         "A child node is active if the parameter's value matches the child node's matching_parent_values. If two items in child_parameter_specs have the same name, they must have disjoint matching_parent_values.",
       ).optional(),
@@ -341,7 +339,7 @@ const InputsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Must be specified if type is `DISCRETE`. A list of feasible points. The list should be in strictly increasing order. For instance, this parameter might have possible settings of 1.5, 2.5, and 4.0. This list should not contain more than 1,000 values.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for a 'DISCRETE' parameter.").optional(),
       doubleValueSpec: z.object({
         maxValue: z.number().describe(
           "Must be specified if type is `DOUBLE`. Maximum value of the parameter.",
@@ -349,7 +347,7 @@ const InputsSchema = z.object({
         minValue: z.number().describe(
           "Must be specified if type is `DOUBLE`. Minimum value of the parameter.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for a 'DOUBLE' parameter.").optional(),
       integerValueSpec: z.object({
         maxValue: z.string().describe(
           "Must be specified if type is `INTEGER`. Maximum value of the parameter.",
@@ -357,7 +355,7 @@ const InputsSchema = z.object({
         minValue: z.string().describe(
           "Must be specified if type is `INTEGER`. Minimum value of the parameter.",
         ).optional(),
-      }).optional(),
+      }).describe("The value spec for an 'INTEGER' parameter.").optional(),
       parameter: z.string().describe(
         "Required. The parameter name must be unique amongst all ParameterSpecs.",
       ).optional(),
@@ -398,7 +396,7 @@ const InputsSchema = z.object({
         "DISCRETE",
       ]).describe("Required. The type of the parameter.").optional(),
     })).describe("Required. The set of parameters to tune.").optional(),
-  }).describe("Represents configuration of a study.").optional(),
+  }).describe("Required. Configuration of the study.").optional(),
   studyId: z.string().describe(
     "Required. The ID to use for the study, which will become the final component of the study's resource name.",
   ).optional(),
@@ -430,7 +428,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AI Platform Training & Prediction Studies. Registered at `@swamp/gcp/ml/studies`. */
 export const model = {
   type: "@swamp/gcp/ml/studies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -547,6 +545,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -600,16 +603,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

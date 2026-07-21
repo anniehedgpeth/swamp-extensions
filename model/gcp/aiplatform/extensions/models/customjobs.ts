@@ -147,20 +147,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key options for a CustomJob. If this is set, then all resources created by the CustomJob will be encrypted with the provided encryption key.",
   ).optional(),
   jobSpec: z.object({
     baseOutputDirectory: z.object({
@@ -168,7 +155,7 @@ const GlobalArgsSchema = z.object({
         "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
       ).optional(),
     }).describe(
-      "The Google Cloud Storage location where the output is to be written to.",
+      "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob's baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = `/model/` * AIP_CHECKPOINT_DIR = `/checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `/logs/` For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = `//model/` * AIP_CHECKPOINT_DIR = `//checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `//logs/`",
     ).optional(),
     enableDashboardAccess: z.boolean().describe(
       "Optional. Whether you want Vertex AI to enable access to the customized dashboard in training chief container. If set to `true`, you can access the dashboard at the URIs given by CustomJob.web_access_uris or Trial.web_access_uris (within HyperparameterTuningJob.trials).",
@@ -211,7 +198,7 @@ const GlobalArgsSchema = z.object({
       networkAttachment: z.string().describe(
         "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
       ).optional(),
-    }).describe("Configuration for PSC-I.").optional(),
+    }).describe("Optional. Configuration for PSC-I for CustomJob.").optional(),
     reservedIpRanges: z.array(z.string()).describe(
       "Optional. A list of names for the reserved ip ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
     ).optional(),
@@ -238,9 +225,7 @@ const GlobalArgsSchema = z.object({
       timeout: z.string().describe(
         "Optional. The maximum job running time. The default is 7 days.",
       ).optional(),
-    }).describe(
-      "All parameters related to queuing and scheduling of custom jobs.",
-    ).optional(),
+    }).describe("Scheduling options for a CustomJob.").optional(),
     serviceAccount: z.string().describe(
       "Specifies the service account for workload run-as account. Users submitting jobs must have act-as permission on this run-as account. If unspecified, the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project is used.",
     ).optional(),
@@ -261,7 +246,7 @@ const GlobalArgsSchema = z.object({
         imageUri: z.string().describe(
           "Required. The URI of a container image in the Container Registry that is to be run on each worker replica.",
         ).optional(),
-      }).describe("The spec of a Container.").optional(),
+      }).describe("The custom container task.").optional(),
       diskSpec: z.object({
         bootDiskSizeGb: z.number().int().describe(
           "Size in GB of the boot disk (default is 100GB).",
@@ -269,7 +254,7 @@ const GlobalArgsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk. For non-A3U machines, the default value is "pd-ssd", for A3U machines, the default value is "hyperdisk-balanced". Valid values: "pd-ssd" (Persistent Disk Solid State Drive), "pd-standard" (Persistent Disk Hard Disk Drive) or "hyperdisk-balanced".',
         ).optional(),
-      }).describe("Represents the spec of disk options.").optional(),
+      }).describe("Disk spec.").optional(),
       lustreMounts: z.array(z.object({
         filesystem: z.unknown().describe(
           "Required. The name of the Lustre filesystem.",
@@ -328,12 +313,13 @@ const GlobalArgsSchema = z.object({
             "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
           ).optional(),
         }).describe(
-          "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+          "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
         ).optional(),
         tpuTopology: z.string().describe(
           'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
         ).optional(),
-      }).describe("Specification of a single machine.").optional(),
+      }).describe("Optional. Immutable. The specification of a single machine.")
+        .optional(),
       nfsMounts: z.array(z.object({
         mountPoint: z.unknown().describe(
           "Required. Destination mount path. The NFS will be mounted for the user under /mnt/nfs/",
@@ -360,14 +346,14 @@ const GlobalArgsSchema = z.object({
         pythonModule: z.string().describe(
           "Required. The Python module name to run after installing the packages.",
         ).optional(),
-      }).describe("The spec of a Python packaged code.").optional(),
+      }).describe("The Python packaged task.").optional(),
       replicaCount: z.string().describe(
         "Optional. The number of worker replicas to use for this worker pool.",
       ).optional(),
     })).describe(
       "Required. The spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value.",
     ).optional(),
-  }).describe("Represents the spec of a CustomJob.").optional(),
+  }).describe("Required. Job spec.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize CustomJobs. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
@@ -488,20 +474,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key options for a CustomJob. If this is set, then all resources created by the CustomJob will be encrypted with the provided encryption key.",
   ).optional(),
   jobSpec: z.object({
     baseOutputDirectory: z.object({
@@ -509,7 +482,7 @@ const InputsSchema = z.object({
         "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
       ).optional(),
     }).describe(
-      "The Google Cloud Storage location where the output is to be written to.",
+      "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob's baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = `/model/` * AIP_CHECKPOINT_DIR = `/checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `/logs/` For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = `//model/` * AIP_CHECKPOINT_DIR = `//checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `//logs/`",
     ).optional(),
     enableDashboardAccess: z.boolean().describe(
       "Optional. Whether you want Vertex AI to enable access to the customized dashboard in training chief container. If set to `true`, you can access the dashboard at the URIs given by CustomJob.web_access_uris or Trial.web_access_uris (within HyperparameterTuningJob.trials).",
@@ -552,7 +525,7 @@ const InputsSchema = z.object({
       networkAttachment: z.string().describe(
         "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
       ).optional(),
-    }).describe("Configuration for PSC-I.").optional(),
+    }).describe("Optional. Configuration for PSC-I for CustomJob.").optional(),
     reservedIpRanges: z.array(z.string()).describe(
       "Optional. A list of names for the reserved ip ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
     ).optional(),
@@ -579,9 +552,7 @@ const InputsSchema = z.object({
       timeout: z.string().describe(
         "Optional. The maximum job running time. The default is 7 days.",
       ).optional(),
-    }).describe(
-      "All parameters related to queuing and scheduling of custom jobs.",
-    ).optional(),
+    }).describe("Scheduling options for a CustomJob.").optional(),
     serviceAccount: z.string().describe(
       "Specifies the service account for workload run-as account. Users submitting jobs must have act-as permission on this run-as account. If unspecified, the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project is used.",
     ).optional(),
@@ -602,7 +573,7 @@ const InputsSchema = z.object({
         imageUri: z.string().describe(
           "Required. The URI of a container image in the Container Registry that is to be run on each worker replica.",
         ).optional(),
-      }).describe("The spec of a Container.").optional(),
+      }).describe("The custom container task.").optional(),
       diskSpec: z.object({
         bootDiskSizeGb: z.number().int().describe(
           "Size in GB of the boot disk (default is 100GB).",
@@ -610,7 +581,7 @@ const InputsSchema = z.object({
         bootDiskType: z.string().describe(
           'Type of the boot disk. For non-A3U machines, the default value is "pd-ssd", for A3U machines, the default value is "hyperdisk-balanced". Valid values: "pd-ssd" (Persistent Disk Solid State Drive), "pd-standard" (Persistent Disk Hard Disk Drive) or "hyperdisk-balanced".',
         ).optional(),
-      }).describe("Represents the spec of disk options.").optional(),
+      }).describe("Disk spec.").optional(),
       lustreMounts: z.array(z.object({
         filesystem: z.unknown().describe(
           "Required. The name of the Lustre filesystem.",
@@ -669,12 +640,13 @@ const InputsSchema = z.object({
             "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
           ).optional(),
         }).describe(
-          "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+          "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
         ).optional(),
         tpuTopology: z.string().describe(
           'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
         ).optional(),
-      }).describe("Specification of a single machine.").optional(),
+      }).describe("Optional. Immutable. The specification of a single machine.")
+        .optional(),
       nfsMounts: z.array(z.object({
         mountPoint: z.unknown().describe(
           "Required. Destination mount path. The NFS will be mounted for the user under /mnt/nfs/",
@@ -701,14 +673,14 @@ const InputsSchema = z.object({
         pythonModule: z.string().describe(
           "Required. The Python module name to run after installing the packages.",
         ).optional(),
-      }).describe("The spec of a Python packaged code.").optional(),
+      }).describe("The Python packaged task.").optional(),
       replicaCount: z.string().describe(
         "Optional. The number of worker replicas to use for this worker pool.",
       ).optional(),
     })).describe(
       "Required. The spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value.",
     ).optional(),
-  }).describe("Represents the spec of a CustomJob.").optional(),
+  }).describe("Required. Job spec.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize CustomJobs. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
@@ -740,7 +712,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform CustomJobs. Registered at `@swamp/gcp/aiplatform/customjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/customjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -877,6 +849,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -908,7 +888,6 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["jobSpec"] !== undefined) body["jobSpec"] = g["jobSpec"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) {

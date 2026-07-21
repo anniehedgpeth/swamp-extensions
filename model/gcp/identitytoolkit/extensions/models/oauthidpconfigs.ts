@@ -178,7 +178,7 @@ const GlobalArgsSchema = z.object({
       "Do not use. The `token` response type is not supported at the moment.",
     ).optional(),
   }).describe(
-    "The response type to request for in the OAuth authorization flow. You can set either `id_token` or `code` to true, but not both. Setting both types to be simultaneously true (`{code: true, id_token: true}`) is not yet supported. See https://openid.net/specs/openid-connect-core-1_0.html#Authentication for a mapping of response type to OAuth 2.0 flow.",
+    "The response type to request for in the OAuth authorization flow. You can set either `id_token` or `code` to true, but not both. Setting both types to be simultaneously true (`{code: true, id_token: true}`) is not yet supported.",
   ).optional(),
   oauthIdpConfigId: z.string().describe("The id to use for this config.")
     .optional(),
@@ -234,7 +234,7 @@ const InputsSchema = z.object({
       "Do not use. The `token` response type is not supported at the moment.",
     ).optional(),
   }).describe(
-    "The response type to request for in the OAuth authorization flow. You can set either `id_token` or `code` to true, but not both. Setting both types to be simultaneously true (`{code: true, id_token: true}`) is not yet supported. See https://openid.net/specs/openid-connect-core-1_0.html#Authentication for a mapping of response type to OAuth 2.0 flow.",
+    "The response type to request for in the OAuth authorization flow. You can set either `id_token` or `code` to true, but not both. Setting both types to be simultaneously true (`{code: true, id_token: true}`) is not yet supported.",
   ).optional(),
   oauthIdpConfigId: z.string().describe("The id to use for this config.")
     .optional(),
@@ -266,7 +266,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Toolkit OauthIdpConfigs. Registered at `@swamp/gcp/identitytoolkit/oauthidpconfigs`. */
 export const model = {
   type: "@swamp/gcp/identitytoolkit/oauthidpconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -305,6 +305,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

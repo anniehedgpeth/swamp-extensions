@@ -199,170 +199,13 @@ const GlobalArgsSchema = z.object({
       "The list of allowed reasons for access to a CryptoKey. Note that empty allowed_access_reasons has a different meaning depending on where this message appears. If this is under KeyAccessJustificationsPolicyConfig, it means allow-all. If this is under CryptoKey, it means deny-all.",
     ).optional(),
   }).describe(
-    "A KeyAccessJustificationsPolicy specifies zero or more allowed AccessReason values for encrypt, decrypt, and sign operations on a CryptoKey or KeyAccessJustificationsPolicyConfig (the default Key Access Justifications policy).",
+    "Optional. The policy used for Key Access Justifications Policy Enforcement. If this field is present and this key is enrolled in Key Access Justifications Policy Enforcement, the policy will be evaluated in encrypt, decrypt, and sign operations, and the operation will fail if rejected by the policy. The policy is defined by specifying zero or more allowed justification codes. https://cloud.google.com/assured-workloads/key-access-justifications/docs/justification-codes By default, this field is absent, and all justification codes are allowed. If the `key_access_justifications_policy.allowed_access_reasons` is empty (zero allowed justification code), all encrypt, decrypt, and sign operations will fail.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels with user-defined metadata. For more information, see [Labeling Keys](https://cloud.google.com/kms/docs/labeling-keys).",
   ).optional(),
   nextRotationTime: z.string().describe(
     "At next_rotation_time, the Key Management Service will automatically: 1. Create a new version of this CryptoKey. 2. Mark the new version as primary. Key rotations performed manually via CreateCryptoKeyVersion and UpdateCryptoKeyPrimaryVersion do not affect next_rotation_time. Keys with purpose ENCRYPT_DECRYPT support automatic rotation. For other keys, this field must be omitted.",
-  ).optional(),
-  primary: z.object({
-    algorithm: z.enum([
-      "CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED",
-      "GOOGLE_SYMMETRIC_ENCRYPTION",
-      "AES_128_GCM",
-      "AES_256_GCM",
-      "AES_128_CBC",
-      "AES_256_CBC",
-      "AES_128_CTR",
-      "AES_256_CTR",
-      "RSA_SIGN_PSS_2048_SHA256",
-      "RSA_SIGN_PSS_3072_SHA256",
-      "RSA_SIGN_PSS_4096_SHA256",
-      "RSA_SIGN_PSS_4096_SHA512",
-      "RSA_SIGN_PKCS1_2048_SHA256",
-      "RSA_SIGN_PKCS1_3072_SHA256",
-      "RSA_SIGN_PKCS1_4096_SHA256",
-      "RSA_SIGN_PKCS1_4096_SHA512",
-      "RSA_SIGN_RAW_PKCS1_2048",
-      "RSA_SIGN_RAW_PKCS1_3072",
-      "RSA_SIGN_RAW_PKCS1_4096",
-      "RSA_DECRYPT_OAEP_2048_SHA256",
-      "RSA_DECRYPT_OAEP_3072_SHA256",
-      "RSA_DECRYPT_OAEP_4096_SHA256",
-      "RSA_DECRYPT_OAEP_4096_SHA512",
-      "RSA_DECRYPT_OAEP_2048_SHA1",
-      "RSA_DECRYPT_OAEP_3072_SHA1",
-      "RSA_DECRYPT_OAEP_4096_SHA1",
-      "EC_SIGN_P256_SHA256",
-      "EC_SIGN_P384_SHA384",
-      "EC_SIGN_SECP256K1_SHA256",
-      "EC_SIGN_ED25519",
-      "HMAC_SHA256",
-      "HMAC_SHA1",
-      "HMAC_SHA384",
-      "HMAC_SHA512",
-      "HMAC_SHA224",
-      "EXTERNAL_SYMMETRIC_ENCRYPTION",
-      "ML_KEM_768",
-      "ML_KEM_1024",
-      "KEM_XWING",
-      "PQ_SIGN_ML_DSA_44",
-      "PQ_SIGN_ML_DSA_65",
-      "PQ_SIGN_ML_DSA_87",
-      "PQ_SIGN_SLH_DSA_SHA2_128S",
-      "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256",
-      "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
-      "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
-      "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
-      "AES_256_KWP",
-    ]).describe(
-      "Output only. The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports.",
-    ).optional(),
-    attestation: z.object({
-      certChains: z.object({
-        caviumCerts: z.array(z.string()).describe(
-          "Cavium certificate chain corresponding to the attestation.",
-        ).optional(),
-        googleCardCerts: z.array(z.string()).describe(
-          "Google card certificate chain corresponding to the attestation.",
-        ).optional(),
-        googlePartitionCerts: z.array(z.string()).describe(
-          "Google partition certificate chain corresponding to the attestation.",
-        ).optional(),
-      }).describe(
-        "Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.",
-      ).optional(),
-      content: z.string().describe(
-        "Output only. The attestation data provided by the HSM when the key operation was performed.",
-      ).optional(),
-      format: z.enum([
-        "ATTESTATION_FORMAT_UNSPECIFIED",
-        "CAVIUM_V1_COMPRESSED",
-        "CAVIUM_V2_COMPRESSED",
-      ]).describe("Output only. The format of the attestation data.")
-        .optional(),
-    }).describe(
-      "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
-    ).optional(),
-    createTime: z.string().describe(
-      "Output only. The time at which this CryptoKeyVersion was created.",
-    ).optional(),
-    destroyEventTime: z.string().describe(
-      "Output only. The time this CryptoKeyVersion's key material was destroyed. Only present if state is DESTROYED.",
-    ).optional(),
-    destroyTime: z.string().describe(
-      "Output only. The time this CryptoKeyVersion's key material is scheduled for destruction. Only present if state is DESTROY_SCHEDULED.",
-    ).optional(),
-    externalDestructionFailureReason: z.string().describe(
-      "Output only. The root cause of the most recent external destruction failure. Only present if state is EXTERNAL_DESTRUCTION_FAILED.",
-    ).optional(),
-    externalProtectionLevelOptions: z.object({
-      ekmConnectionBackendOverride: z.string().describe(
-        "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
-      ).optional(),
-      ekmConnectionKeyPath: z.string().describe(
-        'Optional. The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
-      ).optional(),
-      externalKeyUri: z.string().describe(
-        "Optional. The URI for an external resource that this CryptoKeyVersion represents.",
-      ).optional(),
-    }).describe(
-      "ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.",
-    ).optional(),
-    generateTime: z.string().describe(
-      "Output only. The time this CryptoKeyVersion's key material was generated.",
-    ).optional(),
-    generationFailureReason: z.string().describe(
-      "Output only. The root cause of the most recent generation failure. Only present if state is GENERATION_FAILED.",
-    ).optional(),
-    hsmTrusted: z.boolean().describe(
-      "Output only. Field indicating that the key wrapping key is trusted. This field is only valid for key purpose AES_256_WRAPPING, and protection level HSM_SINGLE_TENANT.",
-    ).optional(),
-    importFailureReason: z.string().describe(
-      "Output only. The root cause of the most recent import failure. Only present if state is IMPORT_FAILED.",
-    ).optional(),
-    importJob: z.string().describe(
-      "Output only. The name of the ImportJob used in the most recent import of this CryptoKeyVersion. Only present if the underlying key material was imported.",
-    ).optional(),
-    importTime: z.string().describe(
-      "Output only. The time at which this CryptoKeyVersion's key material was most recently imported.",
-    ).optional(),
-    name: z.string().describe(
-      "Output only. The resource name for this CryptoKeyVersion in the format `projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*`.",
-    ).optional(),
-    protectionLevel: z.enum([
-      "PROTECTION_LEVEL_UNSPECIFIED",
-      "SOFTWARE",
-      "HSM",
-      "EXTERNAL",
-      "EXTERNAL_VPC",
-      "HSM_SINGLE_TENANT",
-    ]).describe(
-      "Output only. The ProtectionLevel describing how crypto operations are performed with this CryptoKeyVersion.",
-    ).optional(),
-    reimportEligible: z.boolean().describe(
-      "Output only. Whether or not this key version is eligible for reimport, by being specified as a target in ImportCryptoKeyVersionRequest.crypto_key_version.",
-    ).optional(),
-    state: z.enum([
-      "CRYPTO_KEY_VERSION_STATE_UNSPECIFIED",
-      "PENDING_GENERATION",
-      "ENABLED",
-      "DISABLED",
-      "DESTROYED",
-      "DESTROY_SCHEDULED",
-      "PENDING_IMPORT",
-      "IMPORT_FAILED",
-      "GENERATION_FAILED",
-      "PENDING_EXTERNAL_DESTRUCTION",
-      "EXTERNAL_DESTRUCTION_FAILED",
-    ]).describe("The current state of the CryptoKeyVersion.").optional(),
-    trustedWrappingEnabled: z.boolean().describe(
-      "Immutable. Field indicating that the key may be wrapped by a trusted key. This field can be set for all key purposes except ENCRYPT_DECRYPT, and is only valid for keys with protection level HSM_SINGLE_TENANT. This field can only be set at creation or import time via CreateCryptoKeyVersion, or ImportCryptoKeyVersion.",
-    ).optional(),
-  }).describe(
-    "A CryptoKeyVersion represents an individual cryptographic key, and the associated key material. An ENABLED version can be used for cryptographic operations. For security reasons, the raw cryptographic key material represented by a CryptoKeyVersion can never be viewed or exported. It can only be used to encrypt, decrypt, or sign data when an authorized user or application invokes Cloud KMS.",
   ).optional(),
   purpose: z.enum([
     "CRYPTO_KEY_PURPOSE_UNSPECIFIED",
@@ -441,7 +284,7 @@ const GlobalArgsSchema = z.object({
       "ProtectionLevel to use when creating a CryptoKeyVersion based on this template. Immutable. Defaults to SOFTWARE.",
     ).optional(),
   }).describe(
-    "A CryptoKeyVersionTemplate specifies the properties to use when creating a new CryptoKeyVersion, either manually with CreateCryptoKeyVersion or automatically as a result of auto-rotation.",
+    "A template describing settings for new CryptoKeyVersion instances. The properties of new CryptoKeyVersion instances created by either CreateCryptoKeyVersion or auto-rotation are controlled by this template.",
   ).optional(),
   cryptoKeyId: z.string().describe(
     "Required. It must be unique within a KeyRing and match the regular expression `[a-zA-Z0-9_-]{1,63}`",
@@ -548,170 +391,13 @@ const InputsSchema = z.object({
       "The list of allowed reasons for access to a CryptoKey. Note that empty allowed_access_reasons has a different meaning depending on where this message appears. If this is under KeyAccessJustificationsPolicyConfig, it means allow-all. If this is under CryptoKey, it means deny-all.",
     ).optional(),
   }).describe(
-    "A KeyAccessJustificationsPolicy specifies zero or more allowed AccessReason values for encrypt, decrypt, and sign operations on a CryptoKey or KeyAccessJustificationsPolicyConfig (the default Key Access Justifications policy).",
+    "Optional. The policy used for Key Access Justifications Policy Enforcement. If this field is present and this key is enrolled in Key Access Justifications Policy Enforcement, the policy will be evaluated in encrypt, decrypt, and sign operations, and the operation will fail if rejected by the policy. The policy is defined by specifying zero or more allowed justification codes. https://cloud.google.com/assured-workloads/key-access-justifications/docs/justification-codes By default, this field is absent, and all justification codes are allowed. If the `key_access_justifications_policy.allowed_access_reasons` is empty (zero allowed justification code), all encrypt, decrypt, and sign operations will fail.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels with user-defined metadata. For more information, see [Labeling Keys](https://cloud.google.com/kms/docs/labeling-keys).",
   ).optional(),
   nextRotationTime: z.string().describe(
     "At next_rotation_time, the Key Management Service will automatically: 1. Create a new version of this CryptoKey. 2. Mark the new version as primary. Key rotations performed manually via CreateCryptoKeyVersion and UpdateCryptoKeyPrimaryVersion do not affect next_rotation_time. Keys with purpose ENCRYPT_DECRYPT support automatic rotation. For other keys, this field must be omitted.",
-  ).optional(),
-  primary: z.object({
-    algorithm: z.enum([
-      "CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED",
-      "GOOGLE_SYMMETRIC_ENCRYPTION",
-      "AES_128_GCM",
-      "AES_256_GCM",
-      "AES_128_CBC",
-      "AES_256_CBC",
-      "AES_128_CTR",
-      "AES_256_CTR",
-      "RSA_SIGN_PSS_2048_SHA256",
-      "RSA_SIGN_PSS_3072_SHA256",
-      "RSA_SIGN_PSS_4096_SHA256",
-      "RSA_SIGN_PSS_4096_SHA512",
-      "RSA_SIGN_PKCS1_2048_SHA256",
-      "RSA_SIGN_PKCS1_3072_SHA256",
-      "RSA_SIGN_PKCS1_4096_SHA256",
-      "RSA_SIGN_PKCS1_4096_SHA512",
-      "RSA_SIGN_RAW_PKCS1_2048",
-      "RSA_SIGN_RAW_PKCS1_3072",
-      "RSA_SIGN_RAW_PKCS1_4096",
-      "RSA_DECRYPT_OAEP_2048_SHA256",
-      "RSA_DECRYPT_OAEP_3072_SHA256",
-      "RSA_DECRYPT_OAEP_4096_SHA256",
-      "RSA_DECRYPT_OAEP_4096_SHA512",
-      "RSA_DECRYPT_OAEP_2048_SHA1",
-      "RSA_DECRYPT_OAEP_3072_SHA1",
-      "RSA_DECRYPT_OAEP_4096_SHA1",
-      "EC_SIGN_P256_SHA256",
-      "EC_SIGN_P384_SHA384",
-      "EC_SIGN_SECP256K1_SHA256",
-      "EC_SIGN_ED25519",
-      "HMAC_SHA256",
-      "HMAC_SHA1",
-      "HMAC_SHA384",
-      "HMAC_SHA512",
-      "HMAC_SHA224",
-      "EXTERNAL_SYMMETRIC_ENCRYPTION",
-      "ML_KEM_768",
-      "ML_KEM_1024",
-      "KEM_XWING",
-      "PQ_SIGN_ML_DSA_44",
-      "PQ_SIGN_ML_DSA_65",
-      "PQ_SIGN_ML_DSA_87",
-      "PQ_SIGN_SLH_DSA_SHA2_128S",
-      "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256",
-      "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
-      "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
-      "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
-      "AES_256_KWP",
-    ]).describe(
-      "Output only. The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports.",
-    ).optional(),
-    attestation: z.object({
-      certChains: z.object({
-        caviumCerts: z.array(z.string()).describe(
-          "Cavium certificate chain corresponding to the attestation.",
-        ).optional(),
-        googleCardCerts: z.array(z.string()).describe(
-          "Google card certificate chain corresponding to the attestation.",
-        ).optional(),
-        googlePartitionCerts: z.array(z.string()).describe(
-          "Google partition certificate chain corresponding to the attestation.",
-        ).optional(),
-      }).describe(
-        "Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.",
-      ).optional(),
-      content: z.string().describe(
-        "Output only. The attestation data provided by the HSM when the key operation was performed.",
-      ).optional(),
-      format: z.enum([
-        "ATTESTATION_FORMAT_UNSPECIFIED",
-        "CAVIUM_V1_COMPRESSED",
-        "CAVIUM_V2_COMPRESSED",
-      ]).describe("Output only. The format of the attestation data.")
-        .optional(),
-    }).describe(
-      "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
-    ).optional(),
-    createTime: z.string().describe(
-      "Output only. The time at which this CryptoKeyVersion was created.",
-    ).optional(),
-    destroyEventTime: z.string().describe(
-      "Output only. The time this CryptoKeyVersion's key material was destroyed. Only present if state is DESTROYED.",
-    ).optional(),
-    destroyTime: z.string().describe(
-      "Output only. The time this CryptoKeyVersion's key material is scheduled for destruction. Only present if state is DESTROY_SCHEDULED.",
-    ).optional(),
-    externalDestructionFailureReason: z.string().describe(
-      "Output only. The root cause of the most recent external destruction failure. Only present if state is EXTERNAL_DESTRUCTION_FAILED.",
-    ).optional(),
-    externalProtectionLevelOptions: z.object({
-      ekmConnectionBackendOverride: z.string().describe(
-        "Optional. The resource name of the backend environment where the key material of CryptoKeyVersions is associated with. Setting this field overrides the CryptoKeyBackend. This field may be set when CryptoKeyVersions is set to EXTERNAL_VPC. Format: `projects/*/locations/*/ekmConnections/*`.",
-      ).optional(),
-      ekmConnectionKeyPath: z.string().describe(
-        'Optional. The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.',
-      ).optional(),
-      externalKeyUri: z.string().describe(
-        "Optional. The URI for an external resource that this CryptoKeyVersion represents.",
-      ).optional(),
-    }).describe(
-      "ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.",
-    ).optional(),
-    generateTime: z.string().describe(
-      "Output only. The time this CryptoKeyVersion's key material was generated.",
-    ).optional(),
-    generationFailureReason: z.string().describe(
-      "Output only. The root cause of the most recent generation failure. Only present if state is GENERATION_FAILED.",
-    ).optional(),
-    hsmTrusted: z.boolean().describe(
-      "Output only. Field indicating that the key wrapping key is trusted. This field is only valid for key purpose AES_256_WRAPPING, and protection level HSM_SINGLE_TENANT.",
-    ).optional(),
-    importFailureReason: z.string().describe(
-      "Output only. The root cause of the most recent import failure. Only present if state is IMPORT_FAILED.",
-    ).optional(),
-    importJob: z.string().describe(
-      "Output only. The name of the ImportJob used in the most recent import of this CryptoKeyVersion. Only present if the underlying key material was imported.",
-    ).optional(),
-    importTime: z.string().describe(
-      "Output only. The time at which this CryptoKeyVersion's key material was most recently imported.",
-    ).optional(),
-    name: z.string().describe(
-      "Output only. The resource name for this CryptoKeyVersion in the format `projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*`.",
-    ).optional(),
-    protectionLevel: z.enum([
-      "PROTECTION_LEVEL_UNSPECIFIED",
-      "SOFTWARE",
-      "HSM",
-      "EXTERNAL",
-      "EXTERNAL_VPC",
-      "HSM_SINGLE_TENANT",
-    ]).describe(
-      "Output only. The ProtectionLevel describing how crypto operations are performed with this CryptoKeyVersion.",
-    ).optional(),
-    reimportEligible: z.boolean().describe(
-      "Output only. Whether or not this key version is eligible for reimport, by being specified as a target in ImportCryptoKeyVersionRequest.crypto_key_version.",
-    ).optional(),
-    state: z.enum([
-      "CRYPTO_KEY_VERSION_STATE_UNSPECIFIED",
-      "PENDING_GENERATION",
-      "ENABLED",
-      "DISABLED",
-      "DESTROYED",
-      "DESTROY_SCHEDULED",
-      "PENDING_IMPORT",
-      "IMPORT_FAILED",
-      "GENERATION_FAILED",
-      "PENDING_EXTERNAL_DESTRUCTION",
-      "EXTERNAL_DESTRUCTION_FAILED",
-    ]).describe("The current state of the CryptoKeyVersion.").optional(),
-    trustedWrappingEnabled: z.boolean().describe(
-      "Immutable. Field indicating that the key may be wrapped by a trusted key. This field can be set for all key purposes except ENCRYPT_DECRYPT, and is only valid for keys with protection level HSM_SINGLE_TENANT. This field can only be set at creation or import time via CreateCryptoKeyVersion, or ImportCryptoKeyVersion.",
-    ).optional(),
-  }).describe(
-    "A CryptoKeyVersion represents an individual cryptographic key, and the associated key material. An ENABLED version can be used for cryptographic operations. For security reasons, the raw cryptographic key material represented by a CryptoKeyVersion can never be viewed or exported. It can only be used to encrypt, decrypt, or sign data when an authorized user or application invokes Cloud KMS.",
   ).optional(),
   purpose: z.enum([
     "CRYPTO_KEY_PURPOSE_UNSPECIFIED",
@@ -790,7 +476,7 @@ const InputsSchema = z.object({
       "ProtectionLevel to use when creating a CryptoKeyVersion based on this template. Immutable. Defaults to SOFTWARE.",
     ).optional(),
   }).describe(
-    "A CryptoKeyVersionTemplate specifies the properties to use when creating a new CryptoKeyVersion, either manually with CreateCryptoKeyVersion or automatically as a result of auto-rotation.",
+    "A template describing settings for new CryptoKeyVersion instances. The properties of new CryptoKeyVersion instances created by either CreateCryptoKeyVersion or auto-rotation are controlled by this template.",
   ).optional(),
   cryptoKeyId: z.string().describe(
     "Required. It must be unique within a KeyRing and match the regular expression `[a-zA-Z0-9_-]{1,63}`",
@@ -832,7 +518,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.CryptoKeys. Registered at `@swamp/gcp/cloudkms/keyrings-cryptokeys`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-cryptokeys",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -953,6 +639,14 @@ export const model = {
       description: "Added: trustedWrappingEnabled",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: primary",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { primary: _primary, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -991,7 +685,6 @@ export const model = {
         if (g["nextRotationTime"] !== undefined) {
           body["nextRotationTime"] = g["nextRotationTime"];
         }
-        if (g["primary"] !== undefined) body["primary"] = g["primary"];
         if (g["purpose"] !== undefined) body["purpose"] = g["purpose"];
         if (g["rotationPeriod"] !== undefined) {
           body["rotationPeriod"] = g["rotationPeriod"];
@@ -1025,14 +718,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1125,7 +811,6 @@ export const model = {
         if (g["nextRotationTime"] !== undefined) {
           body["nextRotationTime"] = g["nextRotationTime"];
         }
-        if (g["primary"] !== undefined) body["primary"] = g["primary"];
         if (g["rotationPeriod"] !== undefined) {
           body["rotationPeriod"] = g["rotationPeriod"];
         }

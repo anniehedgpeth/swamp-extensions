@@ -170,7 +170,7 @@ const GlobalArgsSchema = z.object({
         "The name of the SLT associated with the application.",
       ).optional(),
     }).describe(
-      "BackupApplianceBackupConfig captures the backup configuration for applications that are protected by Backup Appliances.",
+      "Configuration for an application backed up by a Backup Appliance.",
     ).optional(),
     gcpBackupConfig: z.object({
       backupPlan: z.string().describe("The name of the backup plan.")
@@ -190,9 +190,7 @@ const GlobalArgsSchema = z.object({
       backupPlanRules: z.array(z.string()).describe(
         "The names of the backup plan rules which point to this backupvault",
       ).optional(),
-    }).describe(
-      "GcpBackupConfig captures the Backup configuration details for Google Cloud resources. All Google Cloud resources regardless of type are protected with backup plan associations.",
-    ).optional(),
+    }).describe("Configuration for a Google Cloud resource.").optional(),
     lastBackupError: z.object({
       code: z.number().int().describe(
         "The status code, which should be an enum value of google.rpc.Code.",
@@ -204,7 +202,7 @@ const GlobalArgsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. If the last backup failed, this field has the error message.",
     ).optional(),
     lastBackupState: z.enum([
       "LAST_BACKUP_STATE_UNSPECIFIED",
@@ -219,7 +217,7 @@ const GlobalArgsSchema = z.object({
       "Output only. If the last backup were successful, this field has the consistency date.",
     ).optional(),
   }).describe(
-    "BackupConfigInfo has information about how the resource is configured for Backup and about the most recent backup to this vault.",
+    "Output only. Details of how the resource is configured for backup.",
   ).optional(),
   backupCount: z.string().describe("Number of backups in the data source.")
     .optional(),
@@ -244,9 +242,8 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     type: z.string().describe("The type of the application. e.g. VMBackup")
       .optional(),
-  }).describe(
-    "BackupApplianceApplication describes a Source Resource when it is an application backed up by a BackupAppliance.",
-  ).optional(),
+  }).describe("The backed up resource is a backup appliance application.")
+    .optional(),
   dataSourceGcpResource: z.object({
     alloyDbClusterDatasourceProperties: z.object({
       clusterUid: z.string().describe(
@@ -269,7 +266,7 @@ const GlobalArgsSchema = z.object({
         "Output only. Point in time recovery windows. The order is guaranteed to be ascending by start time.",
       ).optional(),
     }).describe(
-      "AlloyDBClusterDataSourceProperties represents the properties of a AlloyDB cluster resource that are stored in the DataSource..",
+      "Output only. AlloyDBClusterDataSourceProperties has a subset of AlloyDB cluster properties that are useful at the Datasource level. Currently none of its child properties are auditable. If new auditable properties are added, the AUDIT annotation should be added.",
     ).optional(),
     cloudSqlInstanceDatasourceProperties: z.object({
       databaseInstalledVersion: z.string().describe(
@@ -285,7 +282,7 @@ const GlobalArgsSchema = z.object({
         "Output only. Name of the Cloud SQL instance backed up by the datasource. Format: projects/{project}/instances/{instance}",
       ).optional(),
     }).describe(
-      "CloudSqlInstanceDataSourceProperties represents the properties of a Cloud SQL resource that are stored in the DataSource.",
+      "Output only. CloudSqlInstanceDataSourceProperties has a subset of Cloud SQL Instance properties that are useful at the Datasource level.",
     ).optional(),
     computeInstanceDatasourceProperties: z.object({
       description: z.string().describe(
@@ -302,7 +299,7 @@ const GlobalArgsSchema = z.object({
       totalDiskSizeGb: z.string().describe("The sum of all the disk sizes.")
         .optional(),
     }).describe(
-      "ComputeInstanceDataSourceProperties represents the properties of a ComputeEngine resource that are stored in the DataSource.",
+      "ComputeInstanceDataSourceProperties has a subset of Compute Instance properties that are useful at the Datasource level.",
     ).optional(),
     diskDatasourceProperties: z.object({
       description: z.string().describe("The description of the disk.")
@@ -312,7 +309,7 @@ const GlobalArgsSchema = z.object({
       sizeGb: z.string().describe("The size of the disk in GB.").optional(),
       type: z.string().describe("The type of the disk.").optional(),
     }).describe(
-      "DiskDataSourceProperties represents the properties of a Disk resource that are stored in the DataSource..",
+      "DiskDataSourceProperties has a subset of Disk properties that are useful at the Datasource level.",
     ).optional(),
     filestoreInstanceDatasourceProperties: z.object({
       instanceCreateTime: z.string().describe(
@@ -322,7 +319,7 @@ const GlobalArgsSchema = z.object({
         "Output only. Name of the Filestore instance backed up by the datasource.",
       ).optional(),
     }).describe(
-      "FilestoreInstanceDataSourceProperties represents the properties of a Filestore resource that are stored in the DataSource..",
+      "Output only. FilestoreInstanceDataSourceProperties has a subset of FileStore instance properties that are useful at the Datasource level.",
     ).optional(),
     gcpResourcename: z.string().describe(
       "Output only. Full resource pathname URL of the source Google Cloud resource.",
@@ -334,7 +331,7 @@ const GlobalArgsSchema = z.object({
       "The type of the Google Cloud resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.",
     ).optional(),
   }).describe(
-    "DataSourceGcpResource is used for protected resources that are Google Cloud Resources. This name is easeier to understand than GcpResourceDataSource or GcpDataSourceResource",
+    "The backed up resource is a Google Cloud resource. The word 'DataSource' was included in the names to indicate that this is the representation of the Google Cloud resource used within the DataSource object.",
   ).optional(),
   etag: z.string().describe(
     "Server specified ETag for the ManagementServer resource to prevent simultaneous updates from overwiting each other.",
@@ -483,7 +480,7 @@ const InputsSchema = z.object({
         "The name of the SLT associated with the application.",
       ).optional(),
     }).describe(
-      "BackupApplianceBackupConfig captures the backup configuration for applications that are protected by Backup Appliances.",
+      "Configuration for an application backed up by a Backup Appliance.",
     ).optional(),
     gcpBackupConfig: z.object({
       backupPlan: z.string().describe("The name of the backup plan.")
@@ -503,9 +500,7 @@ const InputsSchema = z.object({
       backupPlanRules: z.array(z.string()).describe(
         "The names of the backup plan rules which point to this backupvault",
       ).optional(),
-    }).describe(
-      "GcpBackupConfig captures the Backup configuration details for Google Cloud resources. All Google Cloud resources regardless of type are protected with backup plan associations.",
-    ).optional(),
+    }).describe("Configuration for a Google Cloud resource.").optional(),
     lastBackupError: z.object({
       code: z.number().int().describe(
         "The status code, which should be an enum value of google.rpc.Code.",
@@ -517,7 +512,7 @@ const InputsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. If the last backup failed, this field has the error message.",
     ).optional(),
     lastBackupState: z.enum([
       "LAST_BACKUP_STATE_UNSPECIFIED",
@@ -532,7 +527,7 @@ const InputsSchema = z.object({
       "Output only. If the last backup were successful, this field has the consistency date.",
     ).optional(),
   }).describe(
-    "BackupConfigInfo has information about how the resource is configured for Backup and about the most recent backup to this vault.",
+    "Output only. Details of how the resource is configured for backup.",
   ).optional(),
   backupCount: z.string().describe("Number of backups in the data source.")
     .optional(),
@@ -557,9 +552,8 @@ const InputsSchema = z.object({
     ).optional(),
     type: z.string().describe("The type of the application. e.g. VMBackup")
       .optional(),
-  }).describe(
-    "BackupApplianceApplication describes a Source Resource when it is an application backed up by a BackupAppliance.",
-  ).optional(),
+  }).describe("The backed up resource is a backup appliance application.")
+    .optional(),
   dataSourceGcpResource: z.object({
     alloyDbClusterDatasourceProperties: z.object({
       clusterUid: z.string().describe(
@@ -582,7 +576,7 @@ const InputsSchema = z.object({
         "Output only. Point in time recovery windows. The order is guaranteed to be ascending by start time.",
       ).optional(),
     }).describe(
-      "AlloyDBClusterDataSourceProperties represents the properties of a AlloyDB cluster resource that are stored in the DataSource..",
+      "Output only. AlloyDBClusterDataSourceProperties has a subset of AlloyDB cluster properties that are useful at the Datasource level. Currently none of its child properties are auditable. If new auditable properties are added, the AUDIT annotation should be added.",
     ).optional(),
     cloudSqlInstanceDatasourceProperties: z.object({
       databaseInstalledVersion: z.string().describe(
@@ -598,7 +592,7 @@ const InputsSchema = z.object({
         "Output only. Name of the Cloud SQL instance backed up by the datasource. Format: projects/{project}/instances/{instance}",
       ).optional(),
     }).describe(
-      "CloudSqlInstanceDataSourceProperties represents the properties of a Cloud SQL resource that are stored in the DataSource.",
+      "Output only. CloudSqlInstanceDataSourceProperties has a subset of Cloud SQL Instance properties that are useful at the Datasource level.",
     ).optional(),
     computeInstanceDatasourceProperties: z.object({
       description: z.string().describe(
@@ -615,7 +609,7 @@ const InputsSchema = z.object({
       totalDiskSizeGb: z.string().describe("The sum of all the disk sizes.")
         .optional(),
     }).describe(
-      "ComputeInstanceDataSourceProperties represents the properties of a ComputeEngine resource that are stored in the DataSource.",
+      "ComputeInstanceDataSourceProperties has a subset of Compute Instance properties that are useful at the Datasource level.",
     ).optional(),
     diskDatasourceProperties: z.object({
       description: z.string().describe("The description of the disk.")
@@ -625,7 +619,7 @@ const InputsSchema = z.object({
       sizeGb: z.string().describe("The size of the disk in GB.").optional(),
       type: z.string().describe("The type of the disk.").optional(),
     }).describe(
-      "DiskDataSourceProperties represents the properties of a Disk resource that are stored in the DataSource..",
+      "DiskDataSourceProperties has a subset of Disk properties that are useful at the Datasource level.",
     ).optional(),
     filestoreInstanceDatasourceProperties: z.object({
       instanceCreateTime: z.string().describe(
@@ -635,7 +629,7 @@ const InputsSchema = z.object({
         "Output only. Name of the Filestore instance backed up by the datasource.",
       ).optional(),
     }).describe(
-      "FilestoreInstanceDataSourceProperties represents the properties of a Filestore resource that are stored in the DataSource..",
+      "Output only. FilestoreInstanceDataSourceProperties has a subset of FileStore instance properties that are useful at the Datasource level.",
     ).optional(),
     gcpResourcename: z.string().describe(
       "Output only. Full resource pathname URL of the source Google Cloud resource.",
@@ -647,7 +641,7 @@ const InputsSchema = z.object({
       "The type of the Google Cloud resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.",
     ).optional(),
   }).describe(
-    "DataSourceGcpResource is used for protected resources that are Google Cloud Resources. This name is easeier to understand than GcpResourceDataSource or GcpDataSourceResource",
+    "The backed up resource is a Google Cloud resource. The word 'DataSource' was included in the names to indicate that this is the representation of the Google Cloud resource used within the DataSource object.",
   ).optional(),
   etag: z.string().describe(
     "Server specified ETag for the ManagementServer resource to prevent simultaneous updates from overwiting each other.",
@@ -703,7 +697,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupVaults.DataSources. Registered at `@swamp/gcp/backupdr/backupvaults-datasources`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupvaults-datasources",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -807,6 +801,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

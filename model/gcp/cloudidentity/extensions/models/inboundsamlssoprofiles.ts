@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     singleSignOnServiceUri: z.string().describe(
       "Required. The `SingleSignOnService` endpoint location (sign-in page URL) of the identity provider. This is the URL where the `AuthnRequest` will be sent. Must use `HTTPS`. Assumed to accept the `HTTP-Redirect` binding.",
     ).optional(),
-  }).describe("SAML IDP (identity provider) configuration.").optional(),
+  }).describe("SAML identity provider configuration.").optional(),
   spConfig: z.object({
     assertionConsumerServiceUri: z.string().describe(
       "Output only. The SAML **Assertion Consumer Service (ACS) URL** to be used for the IDP-initiated login. Assumed to accept response messages via the `HTTP-POST` binding.",
@@ -164,7 +164,9 @@ const GlobalArgsSchema = z.object({
     entityId: z.string().describe(
       "Output only. The SAML **Entity ID** for this service provider.",
     ).optional(),
-  }).describe("SAML SP (service provider) configuration.").optional(),
+  }).describe(
+    "SAML service provider configuration for this SAML SSO profile. These are the service provider details provided by Google that should be configured on the corresponding identity provider.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -210,7 +212,7 @@ const InputsSchema = z.object({
     singleSignOnServiceUri: z.string().describe(
       "Required. The `SingleSignOnService` endpoint location (sign-in page URL) of the identity provider. This is the URL where the `AuthnRequest` will be sent. Must use `HTTPS`. Assumed to accept the `HTTP-Redirect` binding.",
     ).optional(),
-  }).describe("SAML IDP (identity provider) configuration.").optional(),
+  }).describe("SAML identity provider configuration.").optional(),
   spConfig: z.object({
     assertionConsumerServiceUri: z.string().describe(
       "Output only. The SAML **Assertion Consumer Service (ACS) URL** to be used for the IDP-initiated login. Assumed to accept response messages via the `HTTP-POST` binding.",
@@ -218,7 +220,9 @@ const InputsSchema = z.object({
     entityId: z.string().describe(
       "Output only. The SAML **Entity ID** for this service provider.",
     ).optional(),
-  }).describe("SAML SP (service provider) configuration.").optional(),
+  }).describe(
+    "SAML service provider configuration for this SAML SSO profile. These are the service provider details provided by Google that should be configured on the corresponding identity provider.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -244,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity InboundSamlSsoProfiles. Registered at `@swamp/gcp/cloudidentity/inboundsamlssoprofiles`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/inboundsamlssoprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -343,6 +347,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

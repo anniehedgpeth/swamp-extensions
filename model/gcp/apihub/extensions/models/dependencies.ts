@@ -178,25 +178,30 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the dependency resource. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -210,21 +215,12 @@ const GlobalArgsSchema = z.object({
     operationResourceName: z.string().describe(
       "The resource name of an operation in the API Hub. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}/operations/{operation}`",
     ).optional(),
-  }).describe("Reference to an entity participating in a dependency.")
-    .optional(),
+  }).describe(
+    "Required. Immutable. The entity acting as the consumer in the dependency.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Human readable description corresponding of the dependency.",
   ).optional(),
-  errorDetail: z.object({
-    error: z.enum([
-      "ERROR_UNSPECIFIED",
-      "SUPPLIER_NOT_FOUND",
-      "SUPPLIER_RECREATED",
-    ]).describe("Optional. Error in the dependency.").optional(),
-    errorTime: z.string().describe(
-      "Optional. Timestamp at which the error was found.",
-    ).optional(),
-  }).describe("Details describing error condition of a dependency.").optional(),
   name: z.string().describe(
     "Identifier. The name of the dependency in the API Hub. Format: `projects/{project}/locations/{location}/dependencies/{dependency}`",
   ).optional(),
@@ -237,8 +233,9 @@ const GlobalArgsSchema = z.object({
     operationResourceName: z.string().describe(
       "The resource name of an operation in the API Hub. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}/operations/{operation}`",
     ).optional(),
-  }).describe("Reference to an entity participating in a dependency.")
-    .optional(),
+  }).describe(
+    "Required. Immutable. The entity acting as the supplier in the dependency.",
+  ).optional(),
   dependencyId: z.string().describe(
     "Optional. The ID to use for the dependency resource, which will become the final component of the dependency's resource name. This field is optional. * If provided, the same will be used. The service will throw an error if duplicate id is provided by the client. * If not provided, a system generated id will be used. This value should be 4-500 characters, and valid characters are `a-z[0-9]-_`.",
   ).optional(),
@@ -301,25 +298,30 @@ const InputsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the dependency resource. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -333,21 +335,12 @@ const InputsSchema = z.object({
     operationResourceName: z.string().describe(
       "The resource name of an operation in the API Hub. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}/operations/{operation}`",
     ).optional(),
-  }).describe("Reference to an entity participating in a dependency.")
-    .optional(),
+  }).describe(
+    "Required. Immutable. The entity acting as the consumer in the dependency.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Human readable description corresponding of the dependency.",
   ).optional(),
-  errorDetail: z.object({
-    error: z.enum([
-      "ERROR_UNSPECIFIED",
-      "SUPPLIER_NOT_FOUND",
-      "SUPPLIER_RECREATED",
-    ]).describe("Optional. Error in the dependency.").optional(),
-    errorTime: z.string().describe(
-      "Optional. Timestamp at which the error was found.",
-    ).optional(),
-  }).describe("Details describing error condition of a dependency.").optional(),
   name: z.string().describe(
     "Identifier. The name of the dependency in the API Hub. Format: `projects/{project}/locations/{location}/dependencies/{dependency}`",
   ).optional(),
@@ -360,8 +353,9 @@ const InputsSchema = z.object({
     operationResourceName: z.string().describe(
       "The resource name of an operation in the API Hub. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}/operations/{operation}`",
     ).optional(),
-  }).describe("Reference to an entity participating in a dependency.")
-    .optional(),
+  }).describe(
+    "Required. Immutable. The entity acting as the supplier in the dependency.",
+  ).optional(),
   dependencyId: z.string().describe(
     "Optional. The ID to use for the dependency resource, which will become the final component of the dependency's resource name. This field is optional. * If provided, the same will be used. The service will throw an error if duplicate id is provided by the client. * If not provided, a system generated id will be used. This value should be 4-500 characters, and valid characters are `a-z[0-9]-_`.",
   ).optional(),
@@ -393,7 +387,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Dependencies. Registered at `@swamp/gcp/apihub/dependencies`. */
 export const model = {
   type: "@swamp/gcp/apihub/dependencies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -505,6 +499,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: errorDetail",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { errorDetail: _errorDetail, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -534,9 +536,6 @@ export const model = {
         if (g["consumer"] !== undefined) body["consumer"] = g["consumer"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
-        }
-        if (g["errorDetail"] !== undefined) {
-          body["errorDetail"] = g["errorDetail"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["supplier"] !== undefined) body["supplier"] = g["supplier"];
@@ -650,14 +649,9 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["attributes"] !== undefined) body["attributes"] = g["attributes"];
-        if (g["consumer"] !== undefined) body["consumer"] = g["consumer"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["errorDetail"] !== undefined) {
-          body["errorDetail"] = g["errorDetail"];
-        }
-        if (g["supplier"] !== undefined) body["supplier"] = g["supplier"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

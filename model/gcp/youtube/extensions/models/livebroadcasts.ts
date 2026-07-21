@@ -230,7 +230,9 @@ const GlobalArgsSchema = z.object({
       enableMonitorStream: z.boolean().describe(
         "This value determines whether the monitor stream is enabled for the broadcast. If the monitor stream is enabled, then YouTube will broadcast the event content on a special stream intended only for the broadcaster's consumption. The broadcaster can use the stream to review the event content and also to identify the optimal times to insert cuepoints. You need to set this value to true if you intend to have a broadcast delay for your event. *Note:* This property cannot be updated once the broadcast is in the testing or live state.",
       ).optional(),
-    }).describe("Settings and Info of the monitor stream").optional(),
+    }).describe(
+      "The monitorStream object contains information about the monitor stream, which the broadcaster can use to review the event content before the broadcast stream is shown publicly.",
+    ).optional(),
     projection: z.enum(["projectionUnspecified", "rectangular", "360", "mesh"])
       .describe(
         "The projection format of this broadcast. This defaults to rectangular.",
@@ -249,7 +251,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "The 3D stereo layout of this broadcast. This defaults to mono.",
     ).optional(),
-  }).describe("Detailed settings of a broadcast.").optional(),
+  }).describe(
+    "The contentDetails object contains information about the event's video content, such as whether the content can be shown in an embedded video player or if it will be archived and therefore available for viewing after the event has concluded.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube assigns to uniquely identify the broadcast.",
   ).optional(),
@@ -272,7 +276,9 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Schedule to insert cuepoints into a broadcast by ads automator.",
     ).optional(),
-  }).describe("Monetization settings of a broadcast.").optional(),
+  }).describe(
+    "The monetizationDetails object contains information about the event's monetization details.",
+  ).optional(),
   snippet: z.object({
     actualEndTime: z.string().describe(
       "The date and time that the broadcast actually ended. This information is only available once the broadcast's state is complete.",
@@ -310,8 +316,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -320,8 +325,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -330,7 +334,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -340,8 +344,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -350,20 +353,22 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the broadcast. For each nested object in this object, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe(
       "The broadcast's title. Note that the broadcast represents exactly one YouTube video. You can set this field by modifying the broadcast resource or by setting the title field of the corresponding video resource.",
     ).optional(),
-  }).describe("Basic broadcast information.").optional(),
+  }).describe(
+    "The snippet object contains basic details about the event, including its title, description, start time, and end time.",
+  ).optional(),
   statistics: z.object({
     concurrentViewers: z.string().describe(
       "The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.",
     ).optional(),
   }).describe(
-    "Statistics about the live broadcast. These represent a snapshot of the values at the time of the request. Statistics are only returned for live broadcasts.",
+    "The statistics object contains info about the event's current stats. These include concurrent viewers and total chat count. Statistics can change (in either direction) during the lifetime of an event. Statistics are only returned while the event is live.",
   ).optional(),
   status: z.object({
     lifeCycleStatus: z.enum([
@@ -401,7 +406,9 @@ const GlobalArgsSchema = z.object({
     selfDeclaredMadeForKids: z.boolean().describe(
       "This field will be set to True if the creator declares the broadcast to be kids only: go/live-cw-work.",
     ).optional(),
-  }).describe("Live broadcast state.").optional(),
+  }).describe(
+    "The status object contains information about the event's status.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. The part properties that you can include in the parameter value are id, snippet, contentDetails, and status.",
   ),
@@ -563,7 +570,9 @@ const InputsSchema = z.object({
       enableMonitorStream: z.boolean().describe(
         "This value determines whether the monitor stream is enabled for the broadcast. If the monitor stream is enabled, then YouTube will broadcast the event content on a special stream intended only for the broadcaster's consumption. The broadcaster can use the stream to review the event content and also to identify the optimal times to insert cuepoints. You need to set this value to true if you intend to have a broadcast delay for your event. *Note:* This property cannot be updated once the broadcast is in the testing or live state.",
       ).optional(),
-    }).describe("Settings and Info of the monitor stream").optional(),
+    }).describe(
+      "The monitorStream object contains information about the monitor stream, which the broadcaster can use to review the event content before the broadcast stream is shown publicly.",
+    ).optional(),
     projection: z.enum(["projectionUnspecified", "rectangular", "360", "mesh"])
       .describe(
         "The projection format of this broadcast. This defaults to rectangular.",
@@ -582,7 +591,9 @@ const InputsSchema = z.object({
     ]).describe(
       "The 3D stereo layout of this broadcast. This defaults to mono.",
     ).optional(),
-  }).describe("Detailed settings of a broadcast.").optional(),
+  }).describe(
+    "The contentDetails object contains information about the event's video content, such as whether the content can be shown in an embedded video player or if it will be archived and therefore available for viewing after the event has concluded.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube assigns to uniquely identify the broadcast.",
   ).optional(),
@@ -605,7 +616,9 @@ const InputsSchema = z.object({
     }).describe(
       "Schedule to insert cuepoints into a broadcast by ads automator.",
     ).optional(),
-  }).describe("Monetization settings of a broadcast.").optional(),
+  }).describe(
+    "The monetizationDetails object contains information about the event's monetization details.",
+  ).optional(),
   snippet: z.object({
     actualEndTime: z.string().describe(
       "The date and time that the broadcast actually ended. This information is only available once the broadcast's state is complete.",
@@ -643,8 +656,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -653,8 +665,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -663,7 +674,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -673,8 +684,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -683,20 +693,22 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the broadcast. For each nested object in this object, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe(
       "The broadcast's title. Note that the broadcast represents exactly one YouTube video. You can set this field by modifying the broadcast resource or by setting the title field of the corresponding video resource.",
     ).optional(),
-  }).describe("Basic broadcast information.").optional(),
+  }).describe(
+    "The snippet object contains basic details about the event, including its title, description, start time, and end time.",
+  ).optional(),
   statistics: z.object({
     concurrentViewers: z.string().describe(
       "The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.",
     ).optional(),
   }).describe(
-    "Statistics about the live broadcast. These represent a snapshot of the values at the time of the request. Statistics are only returned for live broadcasts.",
+    "The statistics object contains info about the event's current stats. These include concurrent viewers and total chat count. Statistics can change (in either direction) during the lifetime of an event. Statistics are only returned while the event is live.",
   ).optional(),
   status: z.object({
     lifeCycleStatus: z.enum([
@@ -734,7 +746,9 @@ const InputsSchema = z.object({
     selfDeclaredMadeForKids: z.boolean().describe(
       "This field will be set to True if the creator declares the broadcast to be kids only: go/live-cw-work.",
     ).optional(),
-  }).describe("Live broadcast state.").optional(),
+  }).describe(
+    "The status object contains information about the event's status.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. The part properties that you can include in the parameter value are id, snippet, contentDetails, and status.",
   ).optional(),
@@ -769,7 +783,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveBroadcasts. Registered at `@swamp/gcp/youtube/livebroadcasts`. */
 export const model = {
   type: "@swamp/gcp/youtube/livebroadcasts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -861,6 +875,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -911,12 +930,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

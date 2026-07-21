@@ -160,9 +160,7 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Required. The user name of the custom account.",
       ).optional(),
-    }).describe(
-      "Describes authentication configuration that uses a custom account.",
-    ).optional(),
+    }).describe("Authentication using a custom account.").optional(),
     googleAccount: z.object({
       password: z.string().describe(
         "Required. Input only. The password of the Google account. The credential is stored encrypted and not returned in any response nor included in audit logs.",
@@ -170,21 +168,19 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Required. The user name of the Google account.",
       ).optional(),
-    }).describe(
-      "Describes authentication configuration that uses a Google account.",
-    ).optional(),
+    }).describe("Authentication using a Google account.").optional(),
     iapCredential: z.object({
       iapTestServiceAccountInfo: z.object({
         targetAudienceClientId: z.string().describe(
           "Required. Describes OAuth2 client id of resources protected by Identity-Aware-Proxy (IAP).",
         ).optional(),
       }).describe(
-        "Describes authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.",
+        "Authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.",
       ).optional(),
-    }).describe(
-      "Describes authentication configuration for Identity-Aware-Proxy (IAP).",
-    ).optional(),
-  }).describe("Scan authentication configuration.").optional(),
+    }).describe("Authentication using Identity-Aware-Proxy (IAP).").optional(),
+  }).describe(
+    "The authentication configuration. If specified, service will use the authentication configuration during scanning.",
+  ).optional(),
   blacklistPatterns: z.array(z.string()).describe(
     "The excluded URL patterns as described in https://cloud.google.com/security-command-center/docs/how-to-use-web-security-scanner#excluding_urls",
   ).optional(),
@@ -271,10 +267,11 @@ const GlobalArgsSchema = z.object({
           'Output only. Indicates the full name of the ScanConfig field that triggers this error, for example "scan_config.max_qps". This field is provided for troubleshooting purposes only and its actual value can change in the future.',
         ).optional(),
       }).describe(
-        "Defines a custom error message used by CreateScanConfig and UpdateScanConfig APIs when scan configuration validation fails. It is also reported as part of a ScanRunErrorTrace message if scan validation fails due to a scan configuration error.",
+        "Output only. If the scan encounters SCAN_CONFIG_ISSUE error, this field has the error message encountered during scan configuration validation that is performed before each scan run.",
       ).optional(),
-    }).describe("Output only. Defines an error trace message for a ScanRun.")
-      .optional(),
+    }).describe(
+      "Output only. If result_state is an ERROR, this field provides the primary reason for scan's termination and more details, if such are available.",
+    ).optional(),
     executionState: z.enum([
       "EXECUTION_STATE_UNSPECIFIED",
       "QUEUED",
@@ -338,7 +335,7 @@ const GlobalArgsSchema = z.object({
     scheduleTime: z.string().describe(
       "A timestamp indicates when the next run will be scheduled. The value is refreshed by the server after each run. If unspecified, it will default to current server time, which means the scan will be scheduled to start immediately.",
     ).optional(),
-  }).describe("Scan schedule configuration.").optional(),
+  }).describe("The schedule of the ScanConfig.").optional(),
   startingUrls: z.array(z.string()).describe(
     "Required. The starting URLs from which the scanner finds site pages.",
   ).optional(),
@@ -442,9 +439,7 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Required. The user name of the custom account.",
       ).optional(),
-    }).describe(
-      "Describes authentication configuration that uses a custom account.",
-    ).optional(),
+    }).describe("Authentication using a custom account.").optional(),
     googleAccount: z.object({
       password: z.string().describe(
         "Required. Input only. The password of the Google account. The credential is stored encrypted and not returned in any response nor included in audit logs.",
@@ -452,21 +447,19 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Required. The user name of the Google account.",
       ).optional(),
-    }).describe(
-      "Describes authentication configuration that uses a Google account.",
-    ).optional(),
+    }).describe("Authentication using a Google account.").optional(),
     iapCredential: z.object({
       iapTestServiceAccountInfo: z.object({
         targetAudienceClientId: z.string().describe(
           "Required. Describes OAuth2 client id of resources protected by Identity-Aware-Proxy (IAP).",
         ).optional(),
       }).describe(
-        "Describes authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.",
+        "Authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.",
       ).optional(),
-    }).describe(
-      "Describes authentication configuration for Identity-Aware-Proxy (IAP).",
-    ).optional(),
-  }).describe("Scan authentication configuration.").optional(),
+    }).describe("Authentication using Identity-Aware-Proxy (IAP).").optional(),
+  }).describe(
+    "The authentication configuration. If specified, service will use the authentication configuration during scanning.",
+  ).optional(),
   blacklistPatterns: z.array(z.string()).describe(
     "The excluded URL patterns as described in https://cloud.google.com/security-command-center/docs/how-to-use-web-security-scanner#excluding_urls",
   ).optional(),
@@ -553,10 +546,11 @@ const InputsSchema = z.object({
           'Output only. Indicates the full name of the ScanConfig field that triggers this error, for example "scan_config.max_qps". This field is provided for troubleshooting purposes only and its actual value can change in the future.',
         ).optional(),
       }).describe(
-        "Defines a custom error message used by CreateScanConfig and UpdateScanConfig APIs when scan configuration validation fails. It is also reported as part of a ScanRunErrorTrace message if scan validation fails due to a scan configuration error.",
+        "Output only. If the scan encounters SCAN_CONFIG_ISSUE error, this field has the error message encountered during scan configuration validation that is performed before each scan run.",
       ).optional(),
-    }).describe("Output only. Defines an error trace message for a ScanRun.")
-      .optional(),
+    }).describe(
+      "Output only. If result_state is an ERROR, this field provides the primary reason for scan's termination and more details, if such are available.",
+    ).optional(),
     executionState: z.enum([
       "EXECUTION_STATE_UNSPECIFIED",
       "QUEUED",
@@ -620,7 +614,7 @@ const InputsSchema = z.object({
     scheduleTime: z.string().describe(
       "A timestamp indicates when the next run will be scheduled. The value is refreshed by the server after each run. If unspecified, it will default to current server time, which means the scan will be scheduled to start immediately.",
     ).optional(),
-  }).describe("Scan schedule configuration.").optional(),
+  }).describe("The schedule of the ScanConfig.").optional(),
   startingUrls: z.array(z.string()).describe(
     "Required. The starting URLs from which the scanner finds site pages.",
   ).optional(),
@@ -672,7 +666,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Security Scanner ScanConfigs. Registered at `@swamp/gcp/websecurityscanner/scanconfigs`. */
 export const model = {
   type: "@swamp/gcp/websecurityscanner/scanconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -776,6 +770,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

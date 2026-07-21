@@ -227,7 +227,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Whether or not we should only fire tags if the form submit or link click event is not cancelled by some other event handler (e.g. because of validation). Only valid for Form Submission and Link Click triggers.",
+  ).optional(),
   containerId: z.string().describe("GTM Container ID.").optional(),
   continuousTimeMinMilliseconds: z.object({
     isWeakReference: z.boolean().describe(
@@ -257,7 +259,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger minimum continuous visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+  ).optional(),
   customEventFilter: z.array(z.object({
     parameter: z.array(z.object({
       isWeakReference: z.boolean().describe(
@@ -335,7 +339,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Name of the GTM event that is fired. Only valid for Timer triggers.",
+  ).optional(),
   filter: z.array(z.object({
     parameter: z.array(z.object({
       isWeakReference: z.boolean().describe(
@@ -415,7 +421,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled horizontally. Only valid for AMP scroll triggers.",
+  ).optional(),
   interval: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -444,7 +452,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Time between triggering recurring Timer Events (in milliseconds). Only valid for Timer triggers.",
+  ).optional(),
   intervalSeconds: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -473,7 +483,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Time between Timer Events to fire (in seconds). Only valid for AMP Timer trigger.",
+  ).optional(),
   limit: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -502,7 +514,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Limit of the number of GTM events this Timer Trigger will fire. If no limit is set, we will continue to fire GTM events until the user leaves the page. Only valid for Timer triggers.",
+  ).optional(),
   maxTimerLengthSeconds: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -531,7 +545,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Max time to fire Timer Events (in seconds). Only valid for AMP Timer trigger.",
+  ).optional(),
   name: z.string().describe("Trigger display name.").optional(),
   notes: z.string().describe(
     "User notes on how to apply this trigger in the container.",
@@ -595,7 +611,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    'A click trigger CSS selector (i.e. "a", "button" etc.). Only valid for AMP Click trigger.',
+  ).optional(),
   tagManagerUrl: z.string().describe(
     "Auto generated link to the tag manager UI",
   ).optional(),
@@ -627,7 +645,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger minimum total visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+  ).optional(),
   triggerId: z.string().describe(
     "The Trigger ID uniquely identifies the GTM Trigger.",
   ).optional(),
@@ -697,7 +717,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Globally unique id of the trigger that auto-generates this (a Form Submit, Link Click or Timer listener) if any. Used to make incompatible auto-events work together with trigger filtering based on trigger ids. This value is populated during output generation since the tags implied by triggers don't exist until then. Only valid for Form Submit, Link Click and Timer triggers.",
+  ).optional(),
   verticalScrollPercentageList: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -726,7 +748,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled vertically. Only valid for AMP scroll triggers.",
+  ).optional(),
   visibilitySelector: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -755,7 +779,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    'A visibility trigger CSS selector (i.e. "#id"). Only valid for AMP Visibility trigger.',
+  ).optional(),
   visiblePercentageMax: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -784,7 +810,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger maximum percent visibility. Only valid for AMP Visibility trigger.",
+  ).optional(),
   visiblePercentageMin: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -813,7 +841,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger minimum percent visibility. Only valid for AMP Visibility trigger.",
+  ).optional(),
   waitForTags: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -842,7 +872,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Whether or not we should delay the form submissions or link opening until all of the tags have fired (by preventing the default action and later simulating the default action). Only valid for Form Submission and Link Click triggers.",
+  ).optional(),
   waitForTagsTimeout: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -871,7 +903,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "How long to wait (in milliseconds) for tags to fire when 'waits_for_tags' above evaluates to true. Only valid for Form Submission and Link Click triggers.",
+  ).optional(),
   workspaceId: z.string().describe("GTM Workspace ID.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1152,7 +1186,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Whether or not we should only fire tags if the form submit or link click event is not cancelled by some other event handler (e.g. because of validation). Only valid for Form Submission and Link Click triggers.",
+  ).optional(),
   containerId: z.string().describe("GTM Container ID.").optional(),
   continuousTimeMinMilliseconds: z.object({
     isWeakReference: z.boolean().describe(
@@ -1182,7 +1218,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger minimum continuous visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+  ).optional(),
   customEventFilter: z.array(z.object({
     parameter: z.array(z.object({
       isWeakReference: z.boolean().describe(
@@ -1260,7 +1298,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Name of the GTM event that is fired. Only valid for Timer triggers.",
+  ).optional(),
   filter: z.array(z.object({
     parameter: z.array(z.object({
       isWeakReference: z.boolean().describe(
@@ -1340,7 +1380,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled horizontally. Only valid for AMP scroll triggers.",
+  ).optional(),
   interval: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1369,7 +1411,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Time between triggering recurring Timer Events (in milliseconds). Only valid for Timer triggers.",
+  ).optional(),
   intervalSeconds: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1398,7 +1442,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Time between Timer Events to fire (in seconds). Only valid for AMP Timer trigger.",
+  ).optional(),
   limit: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1427,7 +1473,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Limit of the number of GTM events this Timer Trigger will fire. If no limit is set, we will continue to fire GTM events until the user leaves the page. Only valid for Timer triggers.",
+  ).optional(),
   maxTimerLengthSeconds: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1456,7 +1504,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Max time to fire Timer Events (in seconds). Only valid for AMP Timer trigger.",
+  ).optional(),
   name: z.string().describe("Trigger display name.").optional(),
   notes: z.string().describe(
     "User notes on how to apply this trigger in the container.",
@@ -1520,7 +1570,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    'A click trigger CSS selector (i.e. "a", "button" etc.). Only valid for AMP Click trigger.',
+  ).optional(),
   tagManagerUrl: z.string().describe(
     "Auto generated link to the tag manager UI",
   ).optional(),
@@ -1552,7 +1604,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger minimum total visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+  ).optional(),
   triggerId: z.string().describe(
     "The Trigger ID uniquely identifies the GTM Trigger.",
   ).optional(),
@@ -1622,7 +1676,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Globally unique id of the trigger that auto-generates this (a Form Submit, Link Click or Timer listener) if any. Used to make incompatible auto-events work together with trigger filtering based on trigger ids. This value is populated during output generation since the tags implied by triggers don't exist until then. Only valid for Form Submit, Link Click and Timer triggers.",
+  ).optional(),
   verticalScrollPercentageList: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1651,7 +1707,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled vertically. Only valid for AMP scroll triggers.",
+  ).optional(),
   visibilitySelector: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1680,7 +1738,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    'A visibility trigger CSS selector (i.e. "#id"). Only valid for AMP Visibility trigger.',
+  ).optional(),
   visiblePercentageMax: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1709,7 +1769,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger maximum percent visibility. Only valid for AMP Visibility trigger.",
+  ).optional(),
   visiblePercentageMin: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1738,7 +1800,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A visibility trigger minimum percent visibility. Only valid for AMP Visibility trigger.",
+  ).optional(),
   waitForTags: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1767,7 +1831,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "Whether or not we should delay the form submissions or link opening until all of the tags have fired (by preventing the default action and later simulating the default action). Only valid for Form Submission and Link Click triggers.",
+  ).optional(),
   waitForTagsTimeout: z.object({
     isWeakReference: z.boolean().describe(
       "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1796,7 +1862,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "How long to wait (in milliseconds) for tags to fire when 'waits_for_tags' above evaluates to true. Only valid for Form Submission and Link Click triggers.",
+  ).optional(),
   workspaceId: z.string().describe("GTM Workspace ID.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -1826,7 +1894,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Workspaces.Triggers. Registered at `@swamp/gcp/tagmanager/accounts-containers-workspaces-triggers`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-workspaces-triggers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1930,6 +1998,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

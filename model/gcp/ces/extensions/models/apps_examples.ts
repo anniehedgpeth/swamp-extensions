@@ -178,17 +178,14 @@ const GlobalArgsSchema = z.object({
         targetAgent: z.unknown().describe(
           "Required. The agent to which the conversation is being transferred. The agent will handle the conversation from this point forward. Format: `projects/{project}/locations/{location}/apps/{app}/agents/{agent}`",
         ).optional(),
-      }).describe(
-        "Represents an event indicating the transfer of a conversation to a different agent.",
-      ).optional(),
+      }).describe("Optional. Agent transfer event.").optional(),
       blob: z.object({
         data: z.unknown().describe("Required. Raw bytes of the blob.")
           .optional(),
         mimeType: z.unknown().describe(
           "Required. The IANA standard MIME type of the source data.",
         ).optional(),
-      }).describe("Represents a blob input or output in the conversation.")
-        .optional(),
+      }).describe("Optional. Blob data.").optional(),
       defaultVariables: z.record(z.string(), z.unknown()).describe(
         "A struct represents default variables at the start of the conversation, keyed by variable names.",
       ).optional(),
@@ -198,8 +195,7 @@ const GlobalArgsSchema = z.object({
         mimeType: z.unknown().describe(
           "Required. The IANA standard MIME type of the source data. Supported image types includes: * image/png * image/jpeg * image/webp",
         ).optional(),
-      }).describe("Represents an image input or output in the conversation.")
-        .optional(),
+      }).describe("Optional. Image data.").optional(),
       payload: z.record(z.string(), z.unknown()).describe(
         "Optional. Custom payload data.",
       ).optional(),
@@ -218,11 +214,9 @@ const GlobalArgsSchema = z.object({
           "Optional. The name of the tool to execute. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
         ).optional(),
         toolsetTool: z.unknown().describe(
-          "A tool that is created from a toolset.",
+          "Optional. The toolset tool to execute.",
         ).optional(),
-      }).describe(
-        "Request for the client or the agent to execute the specified tool.",
-      ).optional(),
+      }).describe("Optional. Tool execution request.").optional(),
       toolResponse: z.object({
         displayName: z.unknown().describe(
           "Output only. Display name of the tool.",
@@ -237,11 +231,9 @@ const GlobalArgsSchema = z.object({
           "Optional. The name of the tool to execute. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
         ).optional(),
         toolsetTool: z.unknown().describe(
-          "A tool that is created from a toolset.",
+          "Optional. The toolset tool that got executed.",
         ).optional(),
-      }).describe(
-        "The execution result of a specific tool from the client or the agent.",
-      ).optional(),
+      }).describe("Optional. Tool execution response.").optional(),
       transcript: z.string().describe(
         "Optional. Transcript associated with the audio.",
       ).optional(),
@@ -345,17 +337,14 @@ const InputsSchema = z.object({
         targetAgent: z.unknown().describe(
           "Required. The agent to which the conversation is being transferred. The agent will handle the conversation from this point forward. Format: `projects/{project}/locations/{location}/apps/{app}/agents/{agent}`",
         ).optional(),
-      }).describe(
-        "Represents an event indicating the transfer of a conversation to a different agent.",
-      ).optional(),
+      }).describe("Optional. Agent transfer event.").optional(),
       blob: z.object({
         data: z.unknown().describe("Required. Raw bytes of the blob.")
           .optional(),
         mimeType: z.unknown().describe(
           "Required. The IANA standard MIME type of the source data.",
         ).optional(),
-      }).describe("Represents a blob input or output in the conversation.")
-        .optional(),
+      }).describe("Optional. Blob data.").optional(),
       defaultVariables: z.record(z.string(), z.unknown()).describe(
         "A struct represents default variables at the start of the conversation, keyed by variable names.",
       ).optional(),
@@ -365,8 +354,7 @@ const InputsSchema = z.object({
         mimeType: z.unknown().describe(
           "Required. The IANA standard MIME type of the source data. Supported image types includes: * image/png * image/jpeg * image/webp",
         ).optional(),
-      }).describe("Represents an image input or output in the conversation.")
-        .optional(),
+      }).describe("Optional. Image data.").optional(),
       payload: z.record(z.string(), z.unknown()).describe(
         "Optional. Custom payload data.",
       ).optional(),
@@ -385,11 +373,9 @@ const InputsSchema = z.object({
           "Optional. The name of the tool to execute. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
         ).optional(),
         toolsetTool: z.unknown().describe(
-          "A tool that is created from a toolset.",
+          "Optional. The toolset tool to execute.",
         ).optional(),
-      }).describe(
-        "Request for the client or the agent to execute the specified tool.",
-      ).optional(),
+      }).describe("Optional. Tool execution request.").optional(),
       toolResponse: z.object({
         displayName: z.unknown().describe(
           "Output only. Display name of the tool.",
@@ -404,11 +390,9 @@ const InputsSchema = z.object({
           "Optional. The name of the tool to execute. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
         ).optional(),
         toolsetTool: z.unknown().describe(
-          "A tool that is created from a toolset.",
+          "Optional. The toolset tool that got executed.",
         ).optional(),
-      }).describe(
-        "The execution result of a specific tool from the client or the agent.",
-      ).optional(),
+      }).describe("Optional. Tool execution response.").optional(),
       transcript: z.string().describe(
         "Optional. Transcript associated with the audio.",
       ).optional(),
@@ -463,7 +447,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Examples. Registered at `@swamp/gcp/ces/apps-examples`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-examples",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -572,6 +556,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

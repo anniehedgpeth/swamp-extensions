@@ -185,19 +185,6 @@ const GlobalArgsSchema = z.object({
   network: z.string().describe(
     "Required. The resource name of the multicast consumer VPC network. Use following format: `projects/{project}/locations/global/networks/{network}`.",
   ).optional(),
-  state: z.object({
-    state: z.enum([
-      "STATE_ENUM_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UPDATING",
-      "UPDATE_FAILED",
-      "INACTIVE",
-      "OBSOLETE",
-    ]).describe("Optional. The state of the multicast resource.").optional(),
-  }).describe("The multicast resource's state.").optional(),
   multicastConsumerAssociationId: z.string().describe(
     "Required. A unique name for the multicast consumer association. The name is restricted to lower-case letters, numbers, and hyphen, with the first character a lower-case letter, and the last a letter or a number. The name must not exceed 48 characters.",
   ).optional(),
@@ -247,19 +234,6 @@ const InputsSchema = z.object({
   network: z.string().describe(
     "Required. The resource name of the multicast consumer VPC network. Use following format: `projects/{project}/locations/global/networks/{network}`.",
   ).optional(),
-  state: z.object({
-    state: z.enum([
-      "STATE_ENUM_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UPDATING",
-      "UPDATE_FAILED",
-      "INACTIVE",
-      "OBSOLETE",
-    ]).describe("Optional. The state of the multicast resource.").optional(),
-  }).describe("The multicast resource's state.").optional(),
   multicastConsumerAssociationId: z.string().describe(
     "Required. A unique name for the multicast consumer association. The name is restricted to lower-case letters, numbers, and hyphen, with the first character a lower-case letter, and the last a letter or a number. The name must not exceed 48 characters.",
   ).optional(),
@@ -294,7 +268,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services MulticastConsumerAssociations. Registered at `@swamp/gcp/networkservices/multicastconsumerassociations`. */
 export const model = {
   type: "@swamp/gcp/networkservices/multicastconsumerassociations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -327,7 +311,6 @@ export const model = {
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["network"] !== undefined) body["network"] = g["network"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["multicastConsumerAssociationId"] !== undefined) {
           params["multicastConsumerAssociationId"] = String(
             g["multicastConsumerAssociationId"],
@@ -452,7 +435,6 @@ export const model = {
           body["multicastDomainActivation"] = g["multicastDomainActivation"];
         }
         if (g["network"] !== undefined) body["network"] = g["network"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

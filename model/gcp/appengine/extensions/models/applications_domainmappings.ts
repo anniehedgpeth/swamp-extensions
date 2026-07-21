@@ -237,7 +237,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "SSL management type for this domain. If AUTOMATIC, a managed certificate is automatically provisioned. If MANUAL, certificate_id must be manually specified in order to configure SSL for this domain.",
     ).optional(),
-  }).describe("SSL configuration for a DomainMapping resource.").optional(),
+  }).describe(
+    "SSL configuration for this domain. If unconfigured, this domain will not serve with SSL.",
+  ).optional(),
   projectsId: z.string().describe(
     "Part of `parent`. Required. Name of the parent Application resource. Example: apps/myapp.",
   ),
@@ -292,7 +294,9 @@ const InputsSchema = z.object({
     ]).describe(
       "SSL management type for this domain. If AUTOMATIC, a managed certificate is automatically provisioned. If MANUAL, certificate_id must be manually specified in order to configure SSL for this domain.",
     ).optional(),
-  }).describe("SSL configuration for a DomainMapping resource.").optional(),
+  }).describe(
+    "SSL configuration for this domain. If unconfigured, this domain will not serve with SSL.",
+  ).optional(),
   projectsId: z.string().describe(
     "Part of `parent`. Required. Name of the parent Application resource. Example: apps/myapp.",
   ).optional(),
@@ -330,7 +334,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Applications.DomainMappings. Registered at `@swamp/gcp/appengine/applications-domainmappings`. */
 export const model = {
   type: "@swamp/gcp/appengine/applications-domainmappings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -432,6 +436,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -479,16 +488,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectsId": String(g["projectsId"] ?? ""),
-              "locationsId": String(g["locationsId"] ?? ""),
-              "applicationsId": String(g["applicationsId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

@@ -216,7 +216,9 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Resource name for a Google Group. Represents a [group](https://cloud.google.com/identity/docs/reference/rest/v1/groups) in Cloud Identity Groups API. Format: groups/{group}",
     ).optional(),
-  }).describe("A Google Group in Google Chat.").optional(),
+  }).describe(
+    "Optional. The Google Group the membership corresponds to. Reading or mutating memberships for Google Groups requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
+  ).optional(),
   member: z.object({
     displayName: z.string().describe("Output only. The user's display name.")
       .optional(),
@@ -232,7 +234,7 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
       .optional(),
   }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
+    "Optional. The Google Chat user or app the membership corresponds to. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output populates the [user](https://developers.google.com/workspace/chat/api/reference/rest/v1/User) `name` and `type`.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the membership, assigned by the server. Format: `spaces/{space}/members/{member}`",
@@ -283,7 +285,9 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Resource name for a Google Group. Represents a [group](https://cloud.google.com/identity/docs/reference/rest/v1/groups) in Cloud Identity Groups API. Format: groups/{group}",
     ).optional(),
-  }).describe("A Google Group in Google Chat.").optional(),
+  }).describe(
+    "Optional. The Google Group the membership corresponds to. Reading or mutating memberships for Google Groups requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
+  ).optional(),
   member: z.object({
     displayName: z.string().describe("Output only. The user's display name.")
       .optional(),
@@ -299,7 +303,7 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
       .optional(),
   }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
+    "Optional. The Google Chat user or app the membership corresponds to. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output populates the [user](https://developers.google.com/workspace/chat/api/reference/rest/v1/User) `name` and `type`.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the membership, assigned by the server. Format: `spaces/{space}/members/{member}`",
@@ -343,7 +347,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Members. Registered at `@swamp/gcp/chat/spaces-members`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-members",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -447,6 +451,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

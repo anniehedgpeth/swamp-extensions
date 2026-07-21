@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     trainingConversationsCount: z.string().describe(
       "Output only. Number of conversations used in training. Output only.",
     ).optional(),
-  }).describe("Configs for the input data used to create the issue model.")
+  }).describe("Configs for the input data that used to create the issue model.")
     .optional(),
   languageCode: z.string().describe("Language of the model.").optional(),
   modelType: z.enum(["MODEL_TYPE_UNSPECIFIED", "TYPE_V1", "TYPE_V2"]).describe(
@@ -165,28 +165,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Immutable. The resource name of the issue model. Format: projects/{project}/locations/{location}/issueModels/{issue_model}",
   ).optional(),
-  trainingStats: z.object({
-    analyzedConversationsCount: z.string().describe(
-      "Number of conversations the issue model has analyzed at this point in time.",
-    ).optional(),
-    issueStats: z.record(
-      z.string(),
-      z.object({
-        displayName: z.string().describe("Display name of the issue.")
-          .optional(),
-        issue: z.string().describe(
-          "Issue resource. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}",
-        ).optional(),
-        labeledConversationsCount: z.string().describe(
-          "Number of conversations attached to the issue at this point in time.",
-        ).optional(),
-      }),
-    ).describe("Statistics on each issue. Key is the issue's resource name.")
-      .optional(),
-    unclassifiedConversationsCount: z.string().describe(
-      "Number of analyzed conversations for which no issue was applicable at this point in time.",
-    ).optional(),
-  }).describe("Aggregated statistics about an issue model.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -233,7 +211,7 @@ const InputsSchema = z.object({
     trainingConversationsCount: z.string().describe(
       "Output only. Number of conversations used in training. Output only.",
     ).optional(),
-  }).describe("Configs for the input data used to create the issue model.")
+  }).describe("Configs for the input data that used to create the issue model.")
     .optional(),
   languageCode: z.string().describe("Language of the model.").optional(),
   modelType: z.enum(["MODEL_TYPE_UNSPECIFIED", "TYPE_V1", "TYPE_V2"]).describe(
@@ -242,28 +220,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Immutable. The resource name of the issue model. Format: projects/{project}/locations/{location}/issueModels/{issue_model}",
   ).optional(),
-  trainingStats: z.object({
-    analyzedConversationsCount: z.string().describe(
-      "Number of conversations the issue model has analyzed at this point in time.",
-    ).optional(),
-    issueStats: z.record(
-      z.string(),
-      z.object({
-        displayName: z.string().describe("Display name of the issue.")
-          .optional(),
-        issue: z.string().describe(
-          "Issue resource. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}",
-        ).optional(),
-        labeledConversationsCount: z.string().describe(
-          "Number of conversations attached to the issue at this point in time.",
-        ).optional(),
-      }),
-    ).describe("Statistics on each issue. Key is the issue's resource name.")
-      .optional(),
-    unclassifiedConversationsCount: z.string().describe(
-      "Number of analyzed conversations for which no issue was applicable at this point in time.",
-    ).optional(),
-  }).describe("Aggregated statistics about an issue model.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -292,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights IssueModels. Registered at `@swamp/gcp/contactcenterinsights/issuemodels`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/issuemodels",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -404,6 +360,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: trainingStats",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { trainingStats: _trainingStats, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -439,9 +403,6 @@ export const model = {
         }
         if (g["modelType"] !== undefined) body["modelType"] = g["modelType"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["trainingStats"] !== undefined) {
-          body["trainingStats"] = g["trainingStats"];
-        }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
             `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
@@ -558,9 +519,6 @@ export const model = {
           body["languageCode"] = g["languageCode"];
         }
         if (g["modelType"] !== undefined) body["modelType"] = g["modelType"];
-        if (g["trainingStats"] !== undefined) {
-          body["trainingStats"] = g["trainingStats"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

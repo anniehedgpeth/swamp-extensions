@@ -143,21 +143,21 @@ const GlobalArgsSchema = z.object({
     filter: z.string().describe(
       "Optional. Assets filter, supports the same syntax as asset listing.",
     ).optional(),
-  }).describe("Conditions for selecting assets to export.").optional(),
-  inventory: z.object({}).describe(
-    "Configuration for asset inventory details exports.",
-  ).optional(),
+  }).describe("Optional. Conditions for selecting assets to export.")
+    .optional(),
+  inventory: z.object({}).describe("Export asset inventory details.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
   ).optional(),
   networkDependencies: z.object({}).describe(
-    "Configuration for network dependencies exports.",
+    "Export data regarding asset network dependencies.",
   ).optional(),
   performanceData: z.object({
     maxDays: z.number().int().describe(
       "Optional. When this value is set to a positive integer, performance data will be returned for the most recent days for which data is available. When this value is unset (or set to zero), all available data is returned. The maximum value is 420; values above 420 will be coerced to 420. If unset (0 value) a default value of 40 will be used.",
     ).optional(),
-  }).describe("Configuration for performance data exports.").optional(),
+  }).describe("Export asset with performance data.").optional(),
   showHidden: z.boolean().describe(
     "Optional. When this value is set to 'true' the response will include all assets, including those that are hidden.",
   ).optional(),
@@ -165,7 +165,8 @@ const GlobalArgsSchema = z.object({
     fileFormat: z.enum(["FILE_FORMAT_UNSPECIFIED", "CSV", "XLSX"]).describe(
       "Required. The file format to export.",
     ).optional(),
-  }).describe("Signed URI destination configuration.").optional(),
+  }).describe("Export to Cloud Storage files downloadable using signed URIs.")
+    .optional(),
   assetsExportJobId: z.string().describe(
     "Required. The ID to use for the asset export job.",
   ).optional(),
@@ -228,21 +229,21 @@ const InputsSchema = z.object({
     filter: z.string().describe(
       "Optional. Assets filter, supports the same syntax as asset listing.",
     ).optional(),
-  }).describe("Conditions for selecting assets to export.").optional(),
-  inventory: z.object({}).describe(
-    "Configuration for asset inventory details exports.",
-  ).optional(),
+  }).describe("Optional. Conditions for selecting assets to export.")
+    .optional(),
+  inventory: z.object({}).describe("Export asset inventory details.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
   ).optional(),
   networkDependencies: z.object({}).describe(
-    "Configuration for network dependencies exports.",
+    "Export data regarding asset network dependencies.",
   ).optional(),
   performanceData: z.object({
     maxDays: z.number().int().describe(
       "Optional. When this value is set to a positive integer, performance data will be returned for the most recent days for which data is available. When this value is unset (or set to zero), all available data is returned. The maximum value is 420; values above 420 will be coerced to 420. If unset (0 value) a default value of 40 will be used.",
     ).optional(),
-  }).describe("Configuration for performance data exports.").optional(),
+  }).describe("Export asset with performance data.").optional(),
   showHidden: z.boolean().describe(
     "Optional. When this value is set to 'true' the response will include all assets, including those that are hidden.",
   ).optional(),
@@ -250,7 +251,8 @@ const InputsSchema = z.object({
     fileFormat: z.enum(["FILE_FORMAT_UNSPECIFIED", "CSV", "XLSX"]).describe(
       "Required. The file format to export.",
     ).optional(),
-  }).describe("Signed URI destination configuration.").optional(),
+  }).describe("Export to Cloud Storage files downloadable using signed URIs.")
+    .optional(),
   assetsExportJobId: z.string().describe(
     "Required. The ID to use for the asset export job.",
   ).optional(),
@@ -285,7 +287,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center AssetsExportJobs. Registered at `@swamp/gcp/migrationcenter/assetsexportjobs`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/assetsexportjobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -392,6 +394,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -448,16 +455,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

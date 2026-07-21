@@ -154,33 +154,12 @@ const GlobalArgsSchema = z.object({
   deployment: z.string().describe(
     "Optional. Optional deployment reference. If specified, the preview will be performed using the provided deployment's current state and use any relevant fields from the deployment unless explicitly specified in the preview create request.",
   ).optional(),
-  errorStatus: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the preview.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the preview. Resource name can be user provided or server generated ID if unspecified. Format: `projects/{project}/locations/{location}/previews/{preview}`",
   ).optional(),
-  previewArtifacts: z.object({
-    artifacts: z.string().describe(
-      "Output only. Location of artifacts in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-    content: z.string().describe(
-      "Output only. Location of a blueprint copy and other content in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-  }).describe("Artifacts created by preview.").optional(),
   previewMode: z.enum(["PREVIEW_MODE_UNSPECIFIED", "DEFAULT", "DELETE"])
     .describe("Optional. Current mode of preview.").optional(),
   providerConfig: z.object({
@@ -188,7 +167,7 @@ const GlobalArgsSchema = z.object({
       .describe(
         "Optional. ProviderSource specifies the source type of the provider.",
       ).optional(),
-  }).describe("ProviderConfig contains the provider configurations.")
+  }).describe("Optional. This field specifies the provider configurations.")
     .optional(),
   serviceAccount: z.string().describe(
     "Required. User-specified Service Account (SA) credentials to be used when previewing resources. Format: `projects/{projectID}/serviceAccounts/{serviceAccount}`",
@@ -204,8 +183,7 @@ const GlobalArgsSchema = z.object({
           outputName: z.string().describe(
             "Required. The name of the output variable in the source deployment's latest successfully applied revision.",
           ).optional(),
-        }).describe("Configuration for a value sourced from a Deployment.")
-          .optional(),
+        }).describe("A source from a Deployment.").optional(),
       }),
     ).describe(
       "Optional. Map of input variable names in this blueprint to configurations for importing values from external sources.",
@@ -222,7 +200,7 @@ const GlobalArgsSchema = z.object({
       repo: z.string().describe(
         "Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
       ).optional(),
-    }).describe("A set of files in a Git repository.").optional(),
+    }).describe("URI of a public Git repo.").optional(),
     inputValues: z.record(
       z.string(),
       z.object({
@@ -231,9 +209,7 @@ const GlobalArgsSchema = z.object({
       }),
     ).describe("Optional. Input variable values for the Terraform blueprint.")
       .optional(),
-  }).describe(
-    "TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.",
-  ).optional(),
+  }).describe("The terraform blueprint to preview.").optional(),
   tfVersionConstraint: z.string().describe(
     'The user-specified Terraform version constraint. Example: "=1.3.10".',
   ).optional(),
@@ -316,33 +292,12 @@ const InputsSchema = z.object({
   deployment: z.string().describe(
     "Optional. Optional deployment reference. If specified, the preview will be performed using the provided deployment's current state and use any relevant fields from the deployment unless explicitly specified in the preview create request.",
   ).optional(),
-  errorStatus: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for the preview.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the preview. Resource name can be user provided or server generated ID if unspecified. Format: `projects/{project}/locations/{location}/previews/{preview}`",
   ).optional(),
-  previewArtifacts: z.object({
-    artifacts: z.string().describe(
-      "Output only. Location of artifacts in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-    content: z.string().describe(
-      "Output only. Location of a blueprint copy and other content in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-  }).describe("Artifacts created by preview.").optional(),
   previewMode: z.enum(["PREVIEW_MODE_UNSPECIFIED", "DEFAULT", "DELETE"])
     .describe("Optional. Current mode of preview.").optional(),
   providerConfig: z.object({
@@ -350,7 +305,7 @@ const InputsSchema = z.object({
       .describe(
         "Optional. ProviderSource specifies the source type of the provider.",
       ).optional(),
-  }).describe("ProviderConfig contains the provider configurations.")
+  }).describe("Optional. This field specifies the provider configurations.")
     .optional(),
   serviceAccount: z.string().describe(
     "Required. User-specified Service Account (SA) credentials to be used when previewing resources. Format: `projects/{projectID}/serviceAccounts/{serviceAccount}`",
@@ -366,8 +321,7 @@ const InputsSchema = z.object({
           outputName: z.string().describe(
             "Required. The name of the output variable in the source deployment's latest successfully applied revision.",
           ).optional(),
-        }).describe("Configuration for a value sourced from a Deployment.")
-          .optional(),
+        }).describe("A source from a Deployment.").optional(),
       }),
     ).describe(
       "Optional. Map of input variable names in this blueprint to configurations for importing values from external sources.",
@@ -384,7 +338,7 @@ const InputsSchema = z.object({
       repo: z.string().describe(
         "Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
       ).optional(),
-    }).describe("A set of files in a Git repository.").optional(),
+    }).describe("URI of a public Git repo.").optional(),
     inputValues: z.record(
       z.string(),
       z.object({
@@ -393,9 +347,7 @@ const InputsSchema = z.object({
       }),
     ).describe("Optional. Input variable values for the Terraform blueprint.")
       .optional(),
-  }).describe(
-    "TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.",
-  ).optional(),
+  }).describe("The terraform blueprint to preview.").optional(),
   tfVersionConstraint: z.string().describe(
     'The user-specified Terraform version constraint. Example: "=1.3.10".',
   ).optional(),
@@ -434,7 +386,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Infrastructure Manager Previews. Registered at `@swamp/gcp/config/previews`. */
 export const model = {
   type: "@swamp/gcp/config/previews",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -561,6 +513,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: errorStatus, previewArtifacts",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          errorStatus: _errorStatus,
+          previewArtifacts: _previewArtifacts,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -597,14 +561,8 @@ export const model = {
           body["artifactsGcsBucket"] = g["artifactsGcsBucket"];
         }
         if (g["deployment"] !== undefined) body["deployment"] = g["deployment"];
-        if (g["errorStatus"] !== undefined) {
-          body["errorStatus"] = g["errorStatus"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["previewArtifacts"] !== undefined) {
-          body["previewArtifacts"] = g["previewArtifacts"];
-        }
         if (g["previewMode"] !== undefined) {
           body["previewMode"] = g["previewMode"];
         }

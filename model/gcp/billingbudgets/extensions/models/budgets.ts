@@ -157,7 +157,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   amount: z.object({
     lastPeriodAmount: z.object({}).describe(
-      "Describes a budget amount targeted to the last Filter.calendar_period spend. At this time, the amount is automatically 100% of the last calendar period's spend; that is, there are no other options yet. LastPeriodAmount cannot be set for a budget configured with a Filter.custom_period.",
+      "Use the last period's actual spend as the budget for the present period. LastPeriodAmount can only be set when the budget's time period is a Filter.calendar_period. It cannot be set in combination with Filter.custom_period.",
     ).optional(),
     specifiedAmount: z.object({
       currencyCode: z.string().describe(
@@ -169,9 +169,10 @@ const GlobalArgsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
-  }).describe("The budgeted amount for each usage period.").optional(),
+    }).describe(
+      "A specified amount to use as the budget. `currency_code` is optional. If specified when creating a budget, it must match the currency of the billing account. If specified when updating a budget, it must match the currency_code of the existing budget. The `currency_code` is provided on output.",
+    ).optional(),
+  }).describe("Required. Budgeted amount.").optional(),
   budgetFilter: z.object({
     calendarPeriod: z.enum([
       "CALENDAR_PERIOD_UNSPECIFIED",
@@ -204,7 +205,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Optional. The end date of the time period. Budgets with elapsed end date won't be processed. If unset, specifies to track all usage incurred since the start_date.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -216,11 +217,10 @@ const GlobalArgsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
+      }).describe("Required. The start date must be after January 1, 2017.")
+        .optional(),
     }).describe(
-      "All date times begin at 12 AM US and Canadian Pacific Time (UTC-8).",
+      "Optional. Specifies to track usage from any start date (required) to any end date (optional). This time period is static, it does not recur.",
     ).optional(),
     labels: z.record(z.string(), z.array(z.string())).describe(
       'Optional. A single label and value pair specifying that usage from only this set of labeled resources should be included in the budget. If omitted, the report includes all labeled and unlabeled usage. An object containing a single `"key": value` pair. Example: `{ "name": "wrench" }`. _Currently, multiple entries or multiple values per entry are not allowed._',
@@ -238,7 +238,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account is included. If the field is omitted, the report includes usage from the parent account and all subaccounts, if they exist.",
     ).optional(),
   }).describe(
-    "A filter for a budget, limiting the scope of the cost to calculate.",
+    "Optional. Filters that define which resources are used to compute the actual spend against the budget amount, such as projects, services, and the budget's time period, as well as other filters.",
   ).optional(),
   displayName: z.string().describe(
     "User data for display name in UI. The name must be less than or equal to 60 characters.",
@@ -260,7 +260,7 @@ const GlobalArgsSchema = z.object({
       'Optional. Required when NotificationsRule.pubsub_topic is set. The schema version of the notification sent to NotificationsRule.pubsub_topic. Only "1.0" is accepted. It represents the JSON schema as defined in https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications#notification_format.',
     ).optional(),
   }).describe(
-    "NotificationsRule defines notifications that are sent based on budget spend and thresholds.",
+    "Optional. Rules to apply to notifications sent based on budget spend and thresholds.",
   ).optional(),
   ownershipScope: z.enum([
     "OWNERSHIP_SCOPE_UNSPECIFIED",
@@ -344,7 +344,7 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   amount: z.object({
     lastPeriodAmount: z.object({}).describe(
-      "Describes a budget amount targeted to the last Filter.calendar_period spend. At this time, the amount is automatically 100% of the last calendar period's spend; that is, there are no other options yet. LastPeriodAmount cannot be set for a budget configured with a Filter.custom_period.",
+      "Use the last period's actual spend as the budget for the present period. LastPeriodAmount can only be set when the budget's time period is a Filter.calendar_period. It cannot be set in combination with Filter.custom_period.",
     ).optional(),
     specifiedAmount: z.object({
       currencyCode: z.string().describe(
@@ -356,9 +356,10 @@ const InputsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
-  }).describe("The budgeted amount for each usage period.").optional(),
+    }).describe(
+      "A specified amount to use as the budget. `currency_code` is optional. If specified when creating a budget, it must match the currency of the billing account. If specified when updating a budget, it must match the currency_code of the existing budget. The `currency_code` is provided on output.",
+    ).optional(),
+  }).describe("Required. Budgeted amount.").optional(),
   budgetFilter: z.object({
     calendarPeriod: z.enum([
       "CALENDAR_PERIOD_UNSPECIFIED",
@@ -391,7 +392,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Optional. The end date of the time period. Budgets with elapsed end date won't be processed. If unset, specifies to track all usage incurred since the start_date.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -403,11 +404,10 @@ const InputsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
+      }).describe("Required. The start date must be after January 1, 2017.")
+        .optional(),
     }).describe(
-      "All date times begin at 12 AM US and Canadian Pacific Time (UTC-8).",
+      "Optional. Specifies to track usage from any start date (required) to any end date (optional). This time period is static, it does not recur.",
     ).optional(),
     labels: z.record(z.string(), z.array(z.string())).describe(
       'Optional. A single label and value pair specifying that usage from only this set of labeled resources should be included in the budget. If omitted, the report includes all labeled and unlabeled usage. An object containing a single `"key": value` pair. Example: `{ "name": "wrench" }`. _Currently, multiple entries or multiple values per entry are not allowed._',
@@ -425,7 +425,7 @@ const InputsSchema = z.object({
       "Optional. A set of subaccounts of the form `billingAccounts/{account_id}`, specifying that usage from only this set of subaccounts should be included in the budget. If a subaccount is set to the name of the parent account, usage from the parent account is included. If the field is omitted, the report includes usage from the parent account and all subaccounts, if they exist.",
     ).optional(),
   }).describe(
-    "A filter for a budget, limiting the scope of the cost to calculate.",
+    "Optional. Filters that define which resources are used to compute the actual spend against the budget amount, such as projects, services, and the budget's time period, as well as other filters.",
   ).optional(),
   displayName: z.string().describe(
     "User data for display name in UI. The name must be less than or equal to 60 characters.",
@@ -447,7 +447,7 @@ const InputsSchema = z.object({
       'Optional. Required when NotificationsRule.pubsub_topic is set. The schema version of the notification sent to NotificationsRule.pubsub_topic. Only "1.0" is accepted. It represents the JSON schema as defined in https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications#notification_format.',
     ).optional(),
   }).describe(
-    "NotificationsRule defines notifications that are sent based on budget spend and thresholds.",
+    "Optional. Rules to apply to notifications sent based on budget spend and thresholds.",
   ).optional(),
   ownershipScope: z.enum([
     "OWNERSHIP_SCOPE_UNSPECIFIED",
@@ -496,7 +496,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Billing Budget Budgets. Registered at `@swamp/gcp/billingbudgets/budgets`. */
 export const model = {
   type: "@swamp/gcp/billingbudgets/budgets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -595,6 +595,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

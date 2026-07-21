@@ -167,39 +167,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  access: z.object({
-    read: z.enum(["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]).describe(
-      "Output only. Describes the read access mechanism of the data. Not user settable.",
-    ).optional(),
-  }).describe(
-    "Describes the access mechanism of the data within its storage location.",
-  ).optional(),
   asset: z.string().describe(
     "Required. Immutable. The ID of the asset associated with the storage location containing the entity data. The entity must be with in the same zone with the asset.",
   ).optional(),
-  compatibility: z.object({
-    bigquery: z.object({
-      compatible: z.boolean().describe(
-        "Output only. Whether the entity is compatible and can be represented in the metadata store.",
-      ).optional(),
-      reason: z.string().describe(
-        "Output only. Provides additional detail if the entity is incompatible with the metadata store.",
-      ).optional(),
-    }).describe(
-      "Provides compatibility information for a specific metadata store.",
-    ).optional(),
-    hiveMetastore: z.object({
-      compatible: z.boolean().describe(
-        "Output only. Whether the entity is compatible and can be represented in the metadata store.",
-      ).optional(),
-      reason: z.string().describe(
-        "Output only. Provides additional detail if the entity is incompatible with the metadata store.",
-      ).optional(),
-    }).describe(
-      "Provides compatibility information for a specific metadata store.",
-    ).optional(),
-  }).describe("Provides compatibility information for various metadata stores.")
-    .optional(),
   dataPath: z.string().describe(
     "Required. Immutable. The storage path of the entity data. For Cloud Storage data, this is the fully-qualified path to the entity, such as gs://bucket/path/to/data. For BigQuery data, this is the name of the table resource, such as projects/project_id/datasets/dataset_id/tables/table_id.",
   ).optional(),
@@ -233,7 +203,7 @@ const GlobalArgsSchema = z.object({
       quote: z.string().describe(
         "Optional. The character used to quote column values. Accepts '\"' (double quotation mark) or ''' (single quotation mark). Defaults to '\"' (double quotation mark) if unspecified.",
       ).optional(),
-    }).describe("Describes CSV and similar semi-structured data formats.")
+    }).describe("Optional. Additional information about CSV formatted data.")
       .optional(),
     format: z.enum([
       "FORMAT_UNSPECIFIED",
@@ -256,17 +226,20 @@ const GlobalArgsSchema = z.object({
       metadataLocation: z.string().describe(
         "Optional. The location of where the iceberg metadata is present, must be within the table path",
       ).optional(),
-    }).describe("Describes Iceberg data format.").optional(),
+    }).describe("Optional. Additional information about iceberg tables.")
+      .optional(),
     json: z.object({
       encoding: z.string().describe(
         'Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8" and "ISO-8859-1". Defaults to UTF-8 if not specified.',
       ).optional(),
-    }).describe("Describes JSON data format.").optional(),
+    }).describe("Optional. Additional information about CSV formatted data.")
+      .optional(),
     mimeType: z.string().describe(
       "Required. The mime type descriptor for the data. Must match the pattern {type}/{subtype}. Supported values: application/x-parquet application/x-avro application/x-orc application/x-tfrecord application/x-parquet+iceberg application/x-avro+iceberg application/x-orc+iceberg application/json application/{subtypes} text/csv text/ image/{image subtype} video/{video subtype} audio/{audio subtype}",
     ).optional(),
-  }).describe("Describes the format of the data within its storage location.")
-    .optional(),
+  }).describe(
+    "Required. Identifies the storage format of the entity data. It does not apply to entities with data stored in BigQuery.",
+  ).optional(),
   id: z.string().describe(
     "Required. A user-provided entity ID. It is mutable, and will be used as the published table name. Specifying a new ID in an update entity request will override the existing value. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores, and consist of 256 or fewer characters.",
   ).optional(),
@@ -337,7 +310,7 @@ const GlobalArgsSchema = z.object({
       "Required. Set to true if user-managed or false if managed by Dataplex Universal Catalog. The default is false (managed by Dataplex Universal Catalog). Set to falseto enable Dataplex Universal Catalog discovery to update the schema. including new data discovery, schema inference, and schema evolution. Users retain the ability to input and edit the schema. Dataplex Universal Catalog treats schema input by the user as though produced by a previous Dataplex Universal Catalog discovery operation, and it will evolve the schema and take action based on that treatment. Set to true to fully manage the entity schema. This setting guarantees that Dataplex Universal Catalog will not change schema fields.",
     ).optional(),
   }).describe(
-    "Schema information describing the structure and layout of the data.",
+    "Required. The description of the data structure and layout. The schema is not included in list responses. It is only included in SCHEMA and FULL entity views of a GetEntity response.",
   ).optional(),
   system: z.enum(["STORAGE_SYSTEM_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"])
     .describe(
@@ -424,39 +397,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  access: z.object({
-    read: z.enum(["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]).describe(
-      "Output only. Describes the read access mechanism of the data. Not user settable.",
-    ).optional(),
-  }).describe(
-    "Describes the access mechanism of the data within its storage location.",
-  ).optional(),
   asset: z.string().describe(
     "Required. Immutable. The ID of the asset associated with the storage location containing the entity data. The entity must be with in the same zone with the asset.",
   ).optional(),
-  compatibility: z.object({
-    bigquery: z.object({
-      compatible: z.boolean().describe(
-        "Output only. Whether the entity is compatible and can be represented in the metadata store.",
-      ).optional(),
-      reason: z.string().describe(
-        "Output only. Provides additional detail if the entity is incompatible with the metadata store.",
-      ).optional(),
-    }).describe(
-      "Provides compatibility information for a specific metadata store.",
-    ).optional(),
-    hiveMetastore: z.object({
-      compatible: z.boolean().describe(
-        "Output only. Whether the entity is compatible and can be represented in the metadata store.",
-      ).optional(),
-      reason: z.string().describe(
-        "Output only. Provides additional detail if the entity is incompatible with the metadata store.",
-      ).optional(),
-    }).describe(
-      "Provides compatibility information for a specific metadata store.",
-    ).optional(),
-  }).describe("Provides compatibility information for various metadata stores.")
-    .optional(),
   dataPath: z.string().describe(
     "Required. Immutable. The storage path of the entity data. For Cloud Storage data, this is the fully-qualified path to the entity, such as gs://bucket/path/to/data. For BigQuery data, this is the name of the table resource, such as projects/project_id/datasets/dataset_id/tables/table_id.",
   ).optional(),
@@ -490,7 +433,7 @@ const InputsSchema = z.object({
       quote: z.string().describe(
         "Optional. The character used to quote column values. Accepts '\"' (double quotation mark) or ''' (single quotation mark). Defaults to '\"' (double quotation mark) if unspecified.",
       ).optional(),
-    }).describe("Describes CSV and similar semi-structured data formats.")
+    }).describe("Optional. Additional information about CSV formatted data.")
       .optional(),
     format: z.enum([
       "FORMAT_UNSPECIFIED",
@@ -513,17 +456,20 @@ const InputsSchema = z.object({
       metadataLocation: z.string().describe(
         "Optional. The location of where the iceberg metadata is present, must be within the table path",
       ).optional(),
-    }).describe("Describes Iceberg data format.").optional(),
+    }).describe("Optional. Additional information about iceberg tables.")
+      .optional(),
     json: z.object({
       encoding: z.string().describe(
         'Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8" and "ISO-8859-1". Defaults to UTF-8 if not specified.',
       ).optional(),
-    }).describe("Describes JSON data format.").optional(),
+    }).describe("Optional. Additional information about CSV formatted data.")
+      .optional(),
     mimeType: z.string().describe(
       "Required. The mime type descriptor for the data. Must match the pattern {type}/{subtype}. Supported values: application/x-parquet application/x-avro application/x-orc application/x-tfrecord application/x-parquet+iceberg application/x-avro+iceberg application/x-orc+iceberg application/json application/{subtypes} text/csv text/ image/{image subtype} video/{video subtype} audio/{audio subtype}",
     ).optional(),
-  }).describe("Describes the format of the data within its storage location.")
-    .optional(),
+  }).describe(
+    "Required. Identifies the storage format of the entity data. It does not apply to entities with data stored in BigQuery.",
+  ).optional(),
   id: z.string().describe(
     "Required. A user-provided entity ID. It is mutable, and will be used as the published table name. Specifying a new ID in an update entity request will override the existing value. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores, and consist of 256 or fewer characters.",
   ).optional(),
@@ -594,7 +540,7 @@ const InputsSchema = z.object({
       "Required. Set to true if user-managed or false if managed by Dataplex Universal Catalog. The default is false (managed by Dataplex Universal Catalog). Set to falseto enable Dataplex Universal Catalog discovery to update the schema. including new data discovery, schema inference, and schema evolution. Users retain the ability to input and edit the schema. Dataplex Universal Catalog treats schema input by the user as though produced by a previous Dataplex Universal Catalog discovery operation, and it will evolve the schema and take action based on that treatment. Set to true to fully manage the entity schema. This setting guarantees that Dataplex Universal Catalog will not change schema fields.",
     ).optional(),
   }).describe(
-    "Schema information describing the structure and layout of the data.",
+    "Required. The description of the data structure and layout. The schema is not included in list responses. It is only included in SCHEMA and FULL entity views of a GetEntity response.",
   ).optional(),
   system: z.enum(["STORAGE_SYSTEM_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"])
     .describe(
@@ -634,7 +580,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Lakes.Entities. Registered at `@swamp/gcp/dataplex/lakes-entities`. */
 export const model = {
   type: "@swamp/gcp/dataplex/lakes-entities",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -741,6 +687,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: access, compatibility",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { access: _access, compatibility: _compatibility, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -764,11 +718,7 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["access"] !== undefined) body["access"] = g["access"];
         if (g["asset"] !== undefined) body["asset"] = g["asset"];
-        if (g["compatibility"] !== undefined) {
-          body["compatibility"] = g["compatibility"];
-        }
         if (g["dataPath"] !== undefined) body["dataPath"] = g["dataPath"];
         if (g["dataPathPattern"] !== undefined) {
           body["dataPathPattern"] = g["dataPathPattern"];
@@ -889,10 +839,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["access"] !== undefined) body["access"] = g["access"];
-        if (g["compatibility"] !== undefined) {
-          body["compatibility"] = g["compatibility"];
-        }
         if (g["dataPathPattern"] !== undefined) {
           body["dataPathPattern"] = g["dataPathPattern"];
         }

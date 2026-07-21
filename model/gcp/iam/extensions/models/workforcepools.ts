@@ -164,7 +164,9 @@ const GlobalArgsSchema = z.object({
     disableProgrammaticSignin: z.boolean().describe(
       "Optional. Disable programmatic sign-in by disabling token issue via the Security Token API endpoint. See [Security Token Service API] (https://cloud.google.com/iam/docs/reference/sts/rest).",
     ).optional(),
-  }).describe("Access related restrictions on the workforce pool.").optional(),
+  }).describe(
+    "Optional. Configure access restrictions on the workforce pool users. This is an optional field. If specified web sign-in can be restricted to given set of services or programmatic sign-in can be disabled for pool users.",
+  ).optional(),
   description: z.string().describe(
     "Optional. A description of the pool. Cannot exceed 256 characters.",
   ).optional(),
@@ -226,7 +228,9 @@ const InputsSchema = z.object({
     disableProgrammaticSignin: z.boolean().describe(
       "Optional. Disable programmatic sign-in by disabling token issue via the Security Token API endpoint. See [Security Token Service API] (https://cloud.google.com/iam/docs/reference/sts/rest).",
     ).optional(),
-  }).describe("Access related restrictions on the workforce pool.").optional(),
+  }).describe(
+    "Optional. Configure access restrictions on the workforce pool users. This is an optional field. If specified web sign-in can be restricted to given set of services or programmatic sign-in can be disabled for pool users.",
+  ).optional(),
   description: z.string().describe(
     "Optional. A description of the pool. Cannot exceed 256 characters.",
   ).optional(),
@@ -276,7 +280,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkforcePools. Registered at `@swamp/gcp/iam/workforcepools`. */
 export const model = {
   type: "@swamp/gcp/iam/workforcepools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

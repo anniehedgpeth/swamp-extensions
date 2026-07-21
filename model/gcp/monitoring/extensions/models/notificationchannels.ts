@@ -158,7 +158,7 @@ const GlobalArgsSchema = z.object({
     mutatedBy: z.string().describe(
       "The email address of the user making the change.",
     ).optional(),
-  }).describe("Describes a change made to a configuration.").optional(),
+  }).describe("Record of the creation of this channel.").optional(),
   description: z.string().describe(
     "An optional human-readable description of this notification channel. This description may provide additional details, beyond the display name, for the channel. This may not exceed 1024 Unicode characters.",
   ).optional(),
@@ -226,7 +226,7 @@ const InputsSchema = z.object({
     mutatedBy: z.string().describe(
       "The email address of the user making the change.",
     ).optional(),
-  }).describe("Describes a change made to a configuration.").optional(),
+  }).describe("Record of the creation of this channel.").optional(),
   description: z.string().describe(
     "An optional human-readable description of this notification channel. This description may provide additional details, beyond the display name, for the channel. This may not exceed 1024 Unicode characters.",
   ).optional(),
@@ -286,7 +286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring NotificationChannels. Registered at `@swamp/gcp/monitoring/notificationchannels`. */
 export const model = {
   type: "@swamp/gcp/monitoring/notificationchannels",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -380,6 +380,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -168,7 +168,7 @@ const GlobalArgsSchema = z.object({
       "The playlist ids for type single_playlist and multiple_playlists. For singlePlaylist, only one playlistId is allowed.",
     ).optional(),
   }).describe(
-    "Details about a channelsection, including playlists and channels.",
+    "The contentDetails object contains details about the channel section content, such as a list of playlists or channels featured in the section.",
   ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the channel section.",
@@ -184,7 +184,7 @@ const GlobalArgsSchema = z.object({
       title: z.string().describe(
         "The localized strings for channel section's title.",
       ).optional(),
-    }).describe("ChannelSection localization setting").optional(),
+    }).describe("Localized title, read-only.").optional(),
     position: z.number().int().describe(
       "The position of the channel section in the channel.",
     ).optional(),
@@ -216,7 +216,7 @@ const GlobalArgsSchema = z.object({
       "subscriptions",
     ]).describe("The type of the channel section.").optional(),
   }).describe(
-    "Basic details about a channel section, including title, style and position.",
+    "The snippet object contains basic details about the channel section, such as its type, style and title.",
   ).optional(),
   targeting: z.object({
     countries: z.array(z.string()).describe(
@@ -228,7 +228,9 @@ const GlobalArgsSchema = z.object({
     regions: z.array(z.string()).describe(
       "The region the channel section is targeting.",
     ).optional(),
-  }).describe("ChannelSection targeting setting.").optional(),
+  }).describe(
+    "The targeting object contains basic targeting settings about the channel section.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. The part names that you can include in the parameter value are snippet and contentDetails.",
   ),
@@ -283,7 +285,7 @@ const InputsSchema = z.object({
       "The playlist ids for type single_playlist and multiple_playlists. For singlePlaylist, only one playlistId is allowed.",
     ).optional(),
   }).describe(
-    "Details about a channelsection, including playlists and channels.",
+    "The contentDetails object contains details about the channel section content, such as a list of playlists or channels featured in the section.",
   ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the channel section.",
@@ -299,7 +301,7 @@ const InputsSchema = z.object({
       title: z.string().describe(
         "The localized strings for channel section's title.",
       ).optional(),
-    }).describe("ChannelSection localization setting").optional(),
+    }).describe("Localized title, read-only.").optional(),
     position: z.number().int().describe(
       "The position of the channel section in the channel.",
     ).optional(),
@@ -331,7 +333,7 @@ const InputsSchema = z.object({
       "subscriptions",
     ]).describe("The type of the channel section.").optional(),
   }).describe(
-    "Basic details about a channel section, including title, style and position.",
+    "The snippet object contains basic details about the channel section, such as its type, style and title.",
   ).optional(),
   targeting: z.object({
     countries: z.array(z.string()).describe(
@@ -343,7 +345,9 @@ const InputsSchema = z.object({
     regions: z.array(z.string()).describe(
       "The region the channel section is targeting.",
     ).optional(),
-  }).describe("ChannelSection targeting setting.").optional(),
+  }).describe(
+    "The targeting object contains basic targeting settings about the channel section.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. The part names that you can include in the parameter value are snippet and contentDetails.",
   ).optional(),
@@ -378,7 +382,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data ChannelSections. Registered at `@swamp/gcp/youtube/channelsections`. */
 export const model = {
   type: "@swamp/gcp/youtube/channelsections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -470,6 +474,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -515,12 +524,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

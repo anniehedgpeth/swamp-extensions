@@ -220,7 +220,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   campaignId: z.string().describe(
     "Campaign ID of this placement group. This field is required on insertion.",
   ).optional(),
@@ -242,7 +244,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   childPlacementIds: z.array(z.string()).describe(
     "IDs of placements which are assigned to this placement group. This is a read-only, auto-generated field.",
   ).optional(),
@@ -254,7 +258,9 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this placement group. This is a read-only field.",
+  ).optional(),
   directorySiteId: z.string().describe(
     "Directory site ID associated with this placement group. On insert, you must set either this field or the site_id field to specify the site associated with this placement group. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -276,7 +282,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the directory site. This is a read-only, auto-generated field.",
+  ).optional(),
   externalId: z.string().describe("External ID for this placement.").optional(),
   id: z.string().describe(
     "ID of this placement group. This is a read-only, auto-generated field.",
@@ -299,12 +307,16 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this placement group. This is a read-only, auto-generated field.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this placement group. This is a read-only field.",
+  ).optional(),
   name: z.string().describe(
     "Name of this placement group. This is a required field and must be less than 256 characters long.",
   ).optional(),
@@ -351,7 +363,9 @@ const GlobalArgsSchema = z.object({
       .optional(),
     startDate: z.string().optional(),
     testingStartDate: z.string().optional(),
-  }).describe("Pricing Schedule").optional(),
+  }).describe(
+    "Pricing schedule of this placement group. This field is required on insertion.",
+  ).optional(),
   primaryPlacementId: z.string().describe(
     "ID of the primary placement, used to calculate the media cost of a roadblock (placement group). Modifying this field will automatically modify the primary field on all affected roadblock child placements.",
   ).optional(),
@@ -373,7 +387,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the primary placement. This is a read-only, auto-generated field.",
+  ).optional(),
   siteId: z.string().describe(
     "Site ID associated with this placement group. On insert, you must set either this field or the directorySiteId field to specify the site associated with this placement group. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -395,7 +411,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the site. This is a read-only, auto-generated field.",
+  ).optional(),
   subaccountId: z.string().describe(
     "Subaccount ID of this placement group. This is a read-only field that can be left blank.",
   ).optional(),
@@ -534,7 +552,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   campaignId: z.string().describe(
     "Campaign ID of this placement group. This field is required on insertion.",
   ).optional(),
@@ -556,7 +576,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   childPlacementIds: z.array(z.string()).describe(
     "IDs of placements which are assigned to this placement group. This is a read-only, auto-generated field.",
   ).optional(),
@@ -568,7 +590,9 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this placement group. This is a read-only field.",
+  ).optional(),
   directorySiteId: z.string().describe(
     "Directory site ID associated with this placement group. On insert, you must set either this field or the site_id field to specify the site associated with this placement group. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -590,7 +614,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the directory site. This is a read-only, auto-generated field.",
+  ).optional(),
   externalId: z.string().describe("External ID for this placement.").optional(),
   id: z.string().describe(
     "ID of this placement group. This is a read-only, auto-generated field.",
@@ -613,12 +639,16 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this placement group. This is a read-only, auto-generated field.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this placement group. This is a read-only field.",
+  ).optional(),
   name: z.string().describe(
     "Name of this placement group. This is a required field and must be less than 256 characters long.",
   ).optional(),
@@ -665,7 +695,9 @@ const InputsSchema = z.object({
       .optional(),
     startDate: z.string().optional(),
     testingStartDate: z.string().optional(),
-  }).describe("Pricing Schedule").optional(),
+  }).describe(
+    "Pricing schedule of this placement group. This field is required on insertion.",
+  ).optional(),
   primaryPlacementId: z.string().describe(
     "ID of the primary placement, used to calculate the media cost of a roadblock (placement group). Modifying this field will automatically modify the primary field on all affected roadblock child placements.",
   ).optional(),
@@ -687,7 +719,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the primary placement. This is a read-only, auto-generated field.",
+  ).optional(),
   siteId: z.string().describe(
     "Site ID associated with this placement group. On insert, you must set either this field or the directorySiteId field to specify the site associated with this placement group. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -709,7 +743,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the site. This is a read-only, auto-generated field.",
+  ).optional(),
   subaccountId: z.string().describe(
     "Subaccount ID of this placement group. This is a read-only field that can be left blank.",
   ).optional(),
@@ -741,7 +777,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 PlacementGroups. Registered at `@swamp/gcp/dfareporting/placementgroups`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/placementgroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -830,6 +866,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

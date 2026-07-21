@@ -184,74 +184,9 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Optional. User-friendly display name. Maximum length is 256 characters.",
   ).optional(),
-  executionReport: z.object({
-    executionErrors: z.object({
-      fileValidations: z.array(z.object({
-        fileErrors: z.array(z.unknown()).describe("List of file level errors.")
-          .optional(),
-        fileName: z.string().describe("The name of the file.").optional(),
-        partialReport: z.boolean().describe(
-          "Flag indicating that processing was aborted due to maximum number of errors.",
-        ).optional(),
-        rowErrors: z.array(z.unknown()).describe(
-          "Partial list of rows that encountered validation error.",
-        ).optional(),
-      })).describe("List of errors found in files.").optional(),
-      jobErrors: z.array(z.object({
-        errorDetails: z.string().describe("The error information.").optional(),
-        severity: z.enum(["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"])
-          .describe("The severity of the error.").optional(),
-      })).describe("List of job level errors.").optional(),
-    }).describe("A resource that aggregates errors across import job files.")
-      .optional(),
-    framesReported: z.number().int().describe(
-      "Total number of asset frames reported for the import job.",
-    ).optional(),
-    totalRowsCount: z.number().int().describe(
-      "Output only. Total number of rows in the import job.",
-    ).optional(),
-  }).describe("A resource that reports result of the import job execution.")
-    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels as key value pairs.",
   ).optional(),
-  validationReport: z.object({
-    fileValidations: z.array(z.object({
-      fileErrors: z.array(z.object({
-        errorDetails: z.unknown().describe("The error information.").optional(),
-        severity: z.unknown().describe("The severity of the error.").optional(),
-      })).describe("List of file level errors.").optional(),
-      fileName: z.string().describe("The name of the file.").optional(),
-      partialReport: z.boolean().describe(
-        "Flag indicating that processing was aborted due to maximum number of errors.",
-      ).optional(),
-      rowErrors: z.array(z.object({
-        archiveError: z.unknown().describe("Error details for an archive file.")
-          .optional(),
-        assetTitle: z.unknown().describe("Output only. The asset title.")
-          .optional(),
-        csvError: z.unknown().describe("Error details for a CSV file.")
-          .optional(),
-        errors: z.unknown().describe("The list of errors detected in the row.")
-          .optional(),
-        rowNumber: z.unknown().describe(
-          "The row number where the error was detected.",
-        ).optional(),
-        vmName: z.unknown().describe("The name of the VM in the row.")
-          .optional(),
-        vmUuid: z.unknown().describe("The VM UUID.").optional(),
-        xlsxError: z.unknown().describe("Error details for an XLSX file.")
-          .optional(),
-      })).describe("Partial list of rows that encountered validation error.")
-        .optional(),
-    })).describe("List of errors found in files.").optional(),
-    jobErrors: z.array(z.object({
-      errorDetails: z.string().describe("The error information.").optional(),
-      severity: z.enum(["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"])
-        .describe("The severity of the error.").optional(),
-    })).describe("List of job level errors.").optional(),
-  }).describe("A resource that aggregates errors across import job files.")
-    .optional(),
   importJobId: z.string().describe("Required. ID of the import job.")
     .optional(),
   requestId: z.string().describe(
@@ -326,74 +261,9 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "Optional. User-friendly display name. Maximum length is 256 characters.",
   ).optional(),
-  executionReport: z.object({
-    executionErrors: z.object({
-      fileValidations: z.array(z.object({
-        fileErrors: z.array(z.unknown()).describe("List of file level errors.")
-          .optional(),
-        fileName: z.string().describe("The name of the file.").optional(),
-        partialReport: z.boolean().describe(
-          "Flag indicating that processing was aborted due to maximum number of errors.",
-        ).optional(),
-        rowErrors: z.array(z.unknown()).describe(
-          "Partial list of rows that encountered validation error.",
-        ).optional(),
-      })).describe("List of errors found in files.").optional(),
-      jobErrors: z.array(z.object({
-        errorDetails: z.string().describe("The error information.").optional(),
-        severity: z.enum(["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"])
-          .describe("The severity of the error.").optional(),
-      })).describe("List of job level errors.").optional(),
-    }).describe("A resource that aggregates errors across import job files.")
-      .optional(),
-    framesReported: z.number().int().describe(
-      "Total number of asset frames reported for the import job.",
-    ).optional(),
-    totalRowsCount: z.number().int().describe(
-      "Output only. Total number of rows in the import job.",
-    ).optional(),
-  }).describe("A resource that reports result of the import job execution.")
-    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels as key value pairs.",
   ).optional(),
-  validationReport: z.object({
-    fileValidations: z.array(z.object({
-      fileErrors: z.array(z.object({
-        errorDetails: z.unknown().describe("The error information.").optional(),
-        severity: z.unknown().describe("The severity of the error.").optional(),
-      })).describe("List of file level errors.").optional(),
-      fileName: z.string().describe("The name of the file.").optional(),
-      partialReport: z.boolean().describe(
-        "Flag indicating that processing was aborted due to maximum number of errors.",
-      ).optional(),
-      rowErrors: z.array(z.object({
-        archiveError: z.unknown().describe("Error details for an archive file.")
-          .optional(),
-        assetTitle: z.unknown().describe("Output only. The asset title.")
-          .optional(),
-        csvError: z.unknown().describe("Error details for a CSV file.")
-          .optional(),
-        errors: z.unknown().describe("The list of errors detected in the row.")
-          .optional(),
-        rowNumber: z.unknown().describe(
-          "The row number where the error was detected.",
-        ).optional(),
-        vmName: z.unknown().describe("The name of the VM in the row.")
-          .optional(),
-        vmUuid: z.unknown().describe("The VM UUID.").optional(),
-        xlsxError: z.unknown().describe("Error details for an XLSX file.")
-          .optional(),
-      })).describe("Partial list of rows that encountered validation error.")
-        .optional(),
-    })).describe("List of errors found in files.").optional(),
-    jobErrors: z.array(z.object({
-      errorDetails: z.string().describe("The error information.").optional(),
-      severity: z.enum(["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"])
-        .describe("The severity of the error.").optional(),
-    })).describe("List of job level errors.").optional(),
-  }).describe("A resource that aggregates errors across import job files.")
-    .optional(),
   importJobId: z.string().describe("Required. ID of the import job.")
     .optional(),
   requestId: z.string().describe(
@@ -427,7 +297,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center ImportJobs. Registered at `@swamp/gcp/migrationcenter/importjobs`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/importjobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -539,6 +409,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: executionReport, validationReport",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          executionReport: _executionReport,
+          validationReport: _validationReport,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -570,13 +452,7 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["executionReport"] !== undefined) {
-          body["executionReport"] = g["executionReport"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["validationReport"] !== undefined) {
-          body["validationReport"] = g["validationReport"];
-        }
         if (g["importJobId"] !== undefined) {
           params["importJobId"] = String(g["importJobId"]);
         }
@@ -696,13 +572,7 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["executionReport"] !== undefined) {
-          body["executionReport"] = g["executionReport"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["validationReport"] !== undefined) {
-          body["validationReport"] = g["validationReport"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

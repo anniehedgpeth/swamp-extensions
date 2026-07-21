@@ -162,9 +162,7 @@ const GlobalArgsSchema = z.object({
     samplingRate: z.number().describe(
       "Field sampling rate. This value is only applicable when using the PROBABILITY sampler. The supported values are > 0 and <= 0.5.",
     ).optional(),
-  }).describe(
-    "TraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.",
-  ).optional(),
+  }).describe("Trace configuration to override.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -199,9 +197,7 @@ const InputsSchema = z.object({
     samplingRate: z.number().describe(
       "Field sampling rate. This value is only applicable when using the PROBABILITY sampler. The supported values are > 0 and <= 0.5.",
     ).optional(),
-  }).describe(
-    "TraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.",
-  ).optional(),
+  }).describe("Trace configuration to override.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -230,7 +226,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.TraceConfig.Overrides. Registered at `@swamp/gcp/apigee/environments-traceconfig-overrides`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-traceconfig-overrides",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -329,6 +325,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

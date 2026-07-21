@@ -211,14 +211,12 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Mode of operation for binauthz policy evaluation. If unspecified, defaults to DISABLED.",
     ).optional(),
-  }).describe("Configuration for Binary Authorization.").optional(),
+  }).describe("Binary Authorization related configurations.").optional(),
   clusterOperations: z.object({
     enableApplicationLogs: z.boolean().describe(
       "Whether collection of application logs/metrics should be enabled (in addition to system logs/metrics).",
     ).optional(),
-  }).describe(
-    "Specifies the bare metal user cluster's observability infrastructure.",
-  ).optional(),
+  }).describe("Cluster operations configuration.").optional(),
   controlPlane: z.object({
     apiServerArgs: z.array(z.object({
       argument: z.string().describe(
@@ -243,7 +241,7 @@ const GlobalArgsSchema = z.object({
             "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
           ).optional(),
         }).describe(
-          "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+          "The modifiable kubelet configurations for the bare metal machines.",
         ).optional(),
         labels: z.record(z.string(), z.string()).describe(
           'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -270,20 +268,13 @@ const GlobalArgsSchema = z.object({
         })).describe("The initial taints assigned to nodes of this node pool.")
           .optional(),
       }).describe(
-        "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
+        "Required. The generic configuration for a node pool running the control plane.",
       ).optional(),
-    }).describe("Specifies the control plane node pool configuration.")
+    }).describe("Required. Configures the node pool running the control plane.")
       .optional(),
-  }).describe("Specifies the control plane configuration.").optional(),
+  }).describe("Required. Control plane configuration.").optional(),
   description: z.string().describe(
     "A human readable description of this bare metal user cluster.",
-  ).optional(),
-  fleet: z.object({
-    membership: z.string().describe(
-      "Output only. The name of the managed fleet Membership resource associated to this cluster. Membership names are formatted as `projects//locations//memberships/`.",
-    ).optional(),
-  }).describe(
-    "Fleet related configuration. Fleets are a Google Cloud concept for logically organizing clusters, letting you use and manage multi-cluster capabilities and apply consistent policies across your systems. See [Anthos Fleets](`https://cloud.google.com/anthos/multicluster-management/fleets`) for more details on Anthos multi-cluster capabilities using Fleets. ##",
   ).optional(),
   loadBalancer: z.object({
     bgpLbConfig: z.object({
@@ -331,7 +322,7 @@ const GlobalArgsSchema = z.object({
               "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
             ).optional(),
           }).describe(
-            "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+            "The modifiable kubelet configurations for the bare metal machines.",
           ).optional(),
           labels: z.record(z.string(), z.unknown()).describe(
             'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -346,19 +337,18 @@ const GlobalArgsSchema = z.object({
             "The initial taints assigned to nodes of this node pool.",
           ).optional(),
         }).describe(
-          "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
+          "The generic configuration for a node pool running a load balancer.",
         ).optional(),
-      }).describe("Specifies the load balancer's node pool configuration.")
-        .optional(),
+      }).describe(
+        "Specifies the node pool running data plane load balancing. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used for data plane load balancing.",
+      ).optional(),
     }).describe(
-      "BareMetalBgpLbConfig represents configuration parameters for a Border Gateway Protocol (BGP) load balancer.",
+      "Configuration for BGP typed load balancers. When set network_config.advanced_networking is automatically set to true.",
     ).optional(),
     manualLbConfig: z.object({
       enabled: z.boolean().describe("Whether manual load balancing is enabled.")
         .optional(),
-    }).describe(
-      "Represents configuration parameters for a manual load balancer.",
-    ).optional(),
+    }).describe("Manually configured load balancers.").optional(),
     metalLbConfig: z.object({
       addressPools: z.array(z.object({
         addresses: z.array(z.unknown()).describe(
@@ -388,7 +378,7 @@ const GlobalArgsSchema = z.object({
               "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
             ).optional(),
           }).describe(
-            "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+            "The modifiable kubelet configurations for the bare metal machines.",
           ).optional(),
           labels: z.record(z.string(), z.unknown()).describe(
             'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -403,20 +393,18 @@ const GlobalArgsSchema = z.object({
             "The initial taints assigned to nodes of this node pool.",
           ).optional(),
         }).describe(
-          "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
+          "The generic configuration for a node pool running a load balancer.",
         ).optional(),
-      }).describe("Specifies the load balancer's node pool configuration.")
-        .optional(),
-    }).describe(
-      "Represents configuration parameters for a MetalLB load balancer.",
-    ).optional(),
+      }).describe(
+        "Specifies the node pool running the load balancer. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used as the load balancer pool.",
+      ).optional(),
+    }).describe("Configuration for MetalLB load balancers.").optional(),
     portConfig: z.object({
       controlPlaneLoadBalancerPort: z.number().int().describe(
         "The port that control plane hosted load balancers will listen on.",
       ).optional(),
-    }).describe(
-      "Specifies load balancer ports for the bare metal user cluster.",
-    ).optional(),
+    }).describe("Configures the ports that the load balancer will listen on.")
+      .optional(),
     vipConfig: z.object({
       controlPlaneVip: z.string().describe(
         "The VIP which you previously set aside for the Kubernetes API of this bare metal user cluster.",
@@ -424,32 +412,13 @@ const GlobalArgsSchema = z.object({
       ingressVip: z.string().describe(
         "The VIP which you previously set aside for ingress traffic into this bare metal user cluster.",
       ).optional(),
-    }).describe("Specifies the VIP config for the bare metal load balancer.")
-      .optional(),
-  }).describe("Specifies the load balancer configuration.").optional(),
+    }).describe("The VIPs used by the load balancer.").optional(),
+  }).describe("Required. Load balancer configuration.").optional(),
   maintenanceConfig: z.object({
     maintenanceAddressCidrBlocks: z.array(z.string()).describe(
       'Required. All IPv4 address from these ranges will be placed into maintenance mode. Nodes in maintenance mode will be cordoned and drained. When both of these are true, the "baremetal.cluster.gke.io/maintenance" annotation will be set on the node resource.',
     ).optional(),
-  }).describe(
-    "Specifies configurations to put bare metal nodes in and out of maintenance.",
-  ).optional(),
-  maintenanceStatus: z.object({
-    machineDrainStatus: z.object({
-      drainedMachines: z.array(z.object({
-        nodeIp: z.string().describe("Drained machine IP address.").optional(),
-      })).describe("The list of drained machines.").optional(),
-      drainingMachines: z.array(z.object({
-        nodeIp: z.string().describe("Draining machine IP address.").optional(),
-        podCount: z.number().int().describe("The count of pods yet to drain.")
-          .optional(),
-      })).describe("The list of draning machines.").optional(),
-    }).describe(
-      "Represents the status of node machines that are undergoing drain operations.",
-    ).optional(),
-  }).describe(
-    "Represents the maintenance status of the bare metal user cluster.",
-  ).optional(),
+  }).describe("Maintenance configuration.").optional(),
   name: z.string().describe(
     "Immutable. The bare metal user cluster resource name.",
   ).optional(),
@@ -465,40 +434,35 @@ const GlobalArgsSchema = z.object({
         "Required. All services in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field is mutable after creation starting with version 1.15.",
       ).optional(),
     }).describe(
-      "Specifies the cluster CIDR configuration while running in island mode.",
+      "Configuration for island mode CIDR. In an island-mode network, nodes have unique IP addresses, but pods don't have unique addresses across clusters. This doesn't cause problems because pods in one cluster never directly communicate with pods in another cluster. Instead, there are gateways that mediate between a pod in one cluster and a pod in another cluster.",
     ).optional(),
     multipleNetworkInterfacesConfig: z.object({
       enabled: z.boolean().describe(
         "Whether to enable multiple network interfaces for your pods. When set network_config.advanced_networking is automatically set to true.",
       ).optional(),
-    }).describe(
-      "Specifies the multiple networking interfaces cluster configuration.",
-    ).optional(),
+    }).describe("Configuration for multiple network interfaces.").optional(),
     srIovConfig: z.object({
       enabled: z.boolean().describe("Whether to install the SR-IOV operator.")
         .optional(),
-    }).describe("Specifies the SR-IOV networking operator config.").optional(),
-  }).describe("Specifies the cluster network configuration.").optional(),
+    }).describe("Configuration for SR-IOV.").optional(),
+  }).describe("Required. Network configuration.").optional(),
   nodeAccessConfig: z.object({
     loginUser: z.string().describe(
       'LoginUser is the user name used to access node machines. It defaults to "root" if not set.',
     ).optional(),
-  }).describe(
-    "Specifies the node access related settings for the bare metal user cluster.",
-  ).optional(),
+  }).describe("Node access related configurations.").optional(),
   nodeConfig: z.object({
     containerRuntime: z.enum(["CONTAINER_RUNTIME_UNSPECIFIED", "CONTAINERD"])
       .describe("Specifies which container runtime will be used.").optional(),
     maxPodsPerNode: z.string().describe(
       "The maximum number of pods a node can run. The size of the CIDR range assigned to the node will be derived from this parameter.",
     ).optional(),
-  }).describe("Specifies the workload node configurations.").optional(),
+  }).describe("Workload node configuration.").optional(),
   osEnvironmentConfig: z.object({
     packageRepoExcluded: z.boolean().describe(
       "Whether the package repo should not be included when initializing bare metal machines.",
     ).optional(),
-  }).describe("Specifies operating system settings for cluster provisioning.")
-    .optional(),
+  }).describe("OS environment related configurations.").optional(),
   proxy: z.object({
     noProxy: z.array(z.string()).describe(
       'A list of IPs, hostnames, and domains that should skip the proxy. Examples: ["127.0.0.1", "example.com", ".corp", "localhost"].',
@@ -506,7 +470,7 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "Required. Specifies the address of your proxy server. Examples: `http://domain` Do not provide credentials in the format `http://(username:password@)domain` these will be rejected by the server.",
     ).optional(),
-  }).describe("Specifies the cluster proxy configuration.").optional(),
+  }).describe("Proxy configuration.").optional(),
   securityConfig: z.object({
     authorization: z.object({
       adminUsers: z.array(z.object({
@@ -516,63 +480,17 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "For VMware and bare metal user clusters, users will be granted the cluster-admin role on the cluster, which provides full administrative access to the cluster. For bare metal admin clusters, users will be granted the cluster-view role, which limits users to read-only access.",
       ).optional(),
-    }).describe(
-      "Authorization defines the On-Prem cluster authorization configuration to bootstrap onto the admin cluster.",
-    ).optional(),
-  }).describe(
-    "Specifies the security related settings for the bare metal user cluster.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-  ).optional(),
+    }).describe("Configures user access to the user cluster.").optional(),
+  }).describe("Security related setting configuration.").optional(),
   storage: z.object({
     lvpNodeMountsConfig: z.object({
       path: z.string().describe("Required. The host machine path.").optional(),
       storageClass: z.string().describe(
         "Required. The StorageClass name that PVs will be created with.",
       ).optional(),
-    }).describe("Specifies the configs for local persistent volumes (PVs).")
-      .optional(),
+    }).describe(
+      "Required. Specifies the config for local PersistentVolumes backed by mounted node disks. These disks need to be formatted and mounted by the user, which can be done before or after cluster creation.",
+    ).optional(),
     lvpShareConfig: z.object({
       lvpConfig: z.object({
         path: z.string().describe("Required. The host machine path.")
@@ -580,63 +498,23 @@ const GlobalArgsSchema = z.object({
         storageClass: z.string().describe(
           "Required. The StorageClass name that PVs will be created with.",
         ).optional(),
-      }).describe("Specifies the configs for local persistent volumes (PVs).")
-        .optional(),
+      }).describe(
+        "Required. Defines the machine path and storage class for the LVP Share.",
+      ).optional(),
       sharedPathPvCount: z.number().int().describe(
         "The number of subdirectories to create under path.",
       ).optional(),
     }).describe(
-      "Specifies the configs for local persistent volumes under a shared file system.",
+      "Required. Specifies the config for local PersistentVolumes backed by subdirectories in a shared filesystem. These subdirectores are automatically created during cluster creation.",
     ).optional(),
-  }).describe(
-    "BareMetalStorageConfig specifies the cluster storage configuration.",
-  ).optional(),
+  }).describe("Required. Storage configuration.").optional(),
   upgradePolicy: z.object({
     pause: z.boolean().describe(
       "Output only. Pause is used to show the upgrade pause status. It's view only for now.",
     ).optional(),
     policy: z.enum(["NODE_POOL_POLICY_UNSPECIFIED", "SERIAL", "CONCURRENT"])
       .describe("Specifies which upgrade policy to use.").optional(),
-  }).describe(
-    "BareMetalClusterUpgradePolicy defines the cluster upgrade policy.",
-  ).optional(),
-  validationCheck: z.object({
-    option: z.enum([
-      "OPTIONS_UNSPECIFIED",
-      "SKIP_VALIDATION_CHECK_BLOCKING",
-      "SKIP_VALIDATION_ALL",
-    ]).describe("Options used for the validation check").optional(),
-    scenario: z.enum(["SCENARIO_UNSPECIFIED", "CREATE", "UPDATE"]).describe(
-      "Output only. The scenario when the preflight checks were run.",
-    ).optional(),
-    status: z.object({
-      result: z.array(z.object({
-        category: z.string().describe("The category of the validation.")
-          .optional(),
-        description: z.string().describe(
-          "The description of the validation check.",
-        ).optional(),
-        details: z.string().describe(
-          "Detailed failure information, which might be unformatted.",
-        ).optional(),
-        reason: z.string().describe(
-          "A human-readable message of the check failure.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNKNOWN",
-          "STATE_FAILURE",
-          "STATE_SKIPPED",
-          "STATE_FATAL",
-          "STATE_WARNING",
-        ]).describe("The validation check state.").optional(),
-      })).describe(
-        "Individual checks which failed as part of the Preflight check execution.",
-      ).optional(),
-    }).describe(
-      "ValidationCheckStatus defines the detailed validation check status.",
-    ).optional(),
-  }).describe("ValidationCheck represents the result of preflight check.")
-    .optional(),
+  }).describe("The cluster upgrade policy.").optional(),
   allowPreflightFailure: z.string().describe(
     'Optional. If set to true, CLM will force CCFE to persist the cluster resource in RMS when the creation fails during standalone preflight checks. In that case the subsequent create call will fail with "cluster already exists" error and hence a update cluster is required to fix the cluster.',
   ).optional(),
@@ -881,14 +759,12 @@ const InputsSchema = z.object({
     ]).describe(
       "Mode of operation for binauthz policy evaluation. If unspecified, defaults to DISABLED.",
     ).optional(),
-  }).describe("Configuration for Binary Authorization.").optional(),
+  }).describe("Binary Authorization related configurations.").optional(),
   clusterOperations: z.object({
     enableApplicationLogs: z.boolean().describe(
       "Whether collection of application logs/metrics should be enabled (in addition to system logs/metrics).",
     ).optional(),
-  }).describe(
-    "Specifies the bare metal user cluster's observability infrastructure.",
-  ).optional(),
+  }).describe("Cluster operations configuration.").optional(),
   controlPlane: z.object({
     apiServerArgs: z.array(z.object({
       argument: z.string().describe(
@@ -913,7 +789,7 @@ const InputsSchema = z.object({
             "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
           ).optional(),
         }).describe(
-          "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+          "The modifiable kubelet configurations for the bare metal machines.",
         ).optional(),
         labels: z.record(z.string(), z.string()).describe(
           'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -940,20 +816,13 @@ const InputsSchema = z.object({
         })).describe("The initial taints assigned to nodes of this node pool.")
           .optional(),
       }).describe(
-        "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
+        "Required. The generic configuration for a node pool running the control plane.",
       ).optional(),
-    }).describe("Specifies the control plane node pool configuration.")
+    }).describe("Required. Configures the node pool running the control plane.")
       .optional(),
-  }).describe("Specifies the control plane configuration.").optional(),
+  }).describe("Required. Control plane configuration.").optional(),
   description: z.string().describe(
     "A human readable description of this bare metal user cluster.",
-  ).optional(),
-  fleet: z.object({
-    membership: z.string().describe(
-      "Output only. The name of the managed fleet Membership resource associated to this cluster. Membership names are formatted as `projects//locations//memberships/`.",
-    ).optional(),
-  }).describe(
-    "Fleet related configuration. Fleets are a Google Cloud concept for logically organizing clusters, letting you use and manage multi-cluster capabilities and apply consistent policies across your systems. See [Anthos Fleets](`https://cloud.google.com/anthos/multicluster-management/fleets`) for more details on Anthos multi-cluster capabilities using Fleets. ##",
   ).optional(),
   loadBalancer: z.object({
     bgpLbConfig: z.object({
@@ -1001,7 +870,7 @@ const InputsSchema = z.object({
               "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
             ).optional(),
           }).describe(
-            "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+            "The modifiable kubelet configurations for the bare metal machines.",
           ).optional(),
           labels: z.record(z.string(), z.unknown()).describe(
             'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -1016,19 +885,18 @@ const InputsSchema = z.object({
             "The initial taints assigned to nodes of this node pool.",
           ).optional(),
         }).describe(
-          "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
+          "The generic configuration for a node pool running a load balancer.",
         ).optional(),
-      }).describe("Specifies the load balancer's node pool configuration.")
-        .optional(),
+      }).describe(
+        "Specifies the node pool running data plane load balancing. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used for data plane load balancing.",
+      ).optional(),
     }).describe(
-      "BareMetalBgpLbConfig represents configuration parameters for a Border Gateway Protocol (BGP) load balancer.",
+      "Configuration for BGP typed load balancers. When set network_config.advanced_networking is automatically set to true.",
     ).optional(),
     manualLbConfig: z.object({
       enabled: z.boolean().describe("Whether manual load balancing is enabled.")
         .optional(),
-    }).describe(
-      "Represents configuration parameters for a manual load balancer.",
-    ).optional(),
+    }).describe("Manually configured load balancers.").optional(),
     metalLbConfig: z.object({
       addressPools: z.array(z.object({
         addresses: z.array(z.unknown()).describe(
@@ -1058,7 +926,7 @@ const InputsSchema = z.object({
               "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
             ).optional(),
           }).describe(
-            "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+            "The modifiable kubelet configurations for the bare metal machines.",
           ).optional(),
           labels: z.record(z.string(), z.unknown()).describe(
             'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -1073,20 +941,18 @@ const InputsSchema = z.object({
             "The initial taints assigned to nodes of this node pool.",
           ).optional(),
         }).describe(
-          "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
+          "The generic configuration for a node pool running a load balancer.",
         ).optional(),
-      }).describe("Specifies the load balancer's node pool configuration.")
-        .optional(),
-    }).describe(
-      "Represents configuration parameters for a MetalLB load balancer.",
-    ).optional(),
+      }).describe(
+        "Specifies the node pool running the load balancer. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used as the load balancer pool.",
+      ).optional(),
+    }).describe("Configuration for MetalLB load balancers.").optional(),
     portConfig: z.object({
       controlPlaneLoadBalancerPort: z.number().int().describe(
         "The port that control plane hosted load balancers will listen on.",
       ).optional(),
-    }).describe(
-      "Specifies load balancer ports for the bare metal user cluster.",
-    ).optional(),
+    }).describe("Configures the ports that the load balancer will listen on.")
+      .optional(),
     vipConfig: z.object({
       controlPlaneVip: z.string().describe(
         "The VIP which you previously set aside for the Kubernetes API of this bare metal user cluster.",
@@ -1094,32 +960,13 @@ const InputsSchema = z.object({
       ingressVip: z.string().describe(
         "The VIP which you previously set aside for ingress traffic into this bare metal user cluster.",
       ).optional(),
-    }).describe("Specifies the VIP config for the bare metal load balancer.")
-      .optional(),
-  }).describe("Specifies the load balancer configuration.").optional(),
+    }).describe("The VIPs used by the load balancer.").optional(),
+  }).describe("Required. Load balancer configuration.").optional(),
   maintenanceConfig: z.object({
     maintenanceAddressCidrBlocks: z.array(z.string()).describe(
       'Required. All IPv4 address from these ranges will be placed into maintenance mode. Nodes in maintenance mode will be cordoned and drained. When both of these are true, the "baremetal.cluster.gke.io/maintenance" annotation will be set on the node resource.',
     ).optional(),
-  }).describe(
-    "Specifies configurations to put bare metal nodes in and out of maintenance.",
-  ).optional(),
-  maintenanceStatus: z.object({
-    machineDrainStatus: z.object({
-      drainedMachines: z.array(z.object({
-        nodeIp: z.string().describe("Drained machine IP address.").optional(),
-      })).describe("The list of drained machines.").optional(),
-      drainingMachines: z.array(z.object({
-        nodeIp: z.string().describe("Draining machine IP address.").optional(),
-        podCount: z.number().int().describe("The count of pods yet to drain.")
-          .optional(),
-      })).describe("The list of draning machines.").optional(),
-    }).describe(
-      "Represents the status of node machines that are undergoing drain operations.",
-    ).optional(),
-  }).describe(
-    "Represents the maintenance status of the bare metal user cluster.",
-  ).optional(),
+  }).describe("Maintenance configuration.").optional(),
   name: z.string().describe(
     "Immutable. The bare metal user cluster resource name.",
   ).optional(),
@@ -1135,40 +982,35 @@ const InputsSchema = z.object({
         "Required. All services in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field is mutable after creation starting with version 1.15.",
       ).optional(),
     }).describe(
-      "Specifies the cluster CIDR configuration while running in island mode.",
+      "Configuration for island mode CIDR. In an island-mode network, nodes have unique IP addresses, but pods don't have unique addresses across clusters. This doesn't cause problems because pods in one cluster never directly communicate with pods in another cluster. Instead, there are gateways that mediate between a pod in one cluster and a pod in another cluster.",
     ).optional(),
     multipleNetworkInterfacesConfig: z.object({
       enabled: z.boolean().describe(
         "Whether to enable multiple network interfaces for your pods. When set network_config.advanced_networking is automatically set to true.",
       ).optional(),
-    }).describe(
-      "Specifies the multiple networking interfaces cluster configuration.",
-    ).optional(),
+    }).describe("Configuration for multiple network interfaces.").optional(),
     srIovConfig: z.object({
       enabled: z.boolean().describe("Whether to install the SR-IOV operator.")
         .optional(),
-    }).describe("Specifies the SR-IOV networking operator config.").optional(),
-  }).describe("Specifies the cluster network configuration.").optional(),
+    }).describe("Configuration for SR-IOV.").optional(),
+  }).describe("Required. Network configuration.").optional(),
   nodeAccessConfig: z.object({
     loginUser: z.string().describe(
       'LoginUser is the user name used to access node machines. It defaults to "root" if not set.',
     ).optional(),
-  }).describe(
-    "Specifies the node access related settings for the bare metal user cluster.",
-  ).optional(),
+  }).describe("Node access related configurations.").optional(),
   nodeConfig: z.object({
     containerRuntime: z.enum(["CONTAINER_RUNTIME_UNSPECIFIED", "CONTAINERD"])
       .describe("Specifies which container runtime will be used.").optional(),
     maxPodsPerNode: z.string().describe(
       "The maximum number of pods a node can run. The size of the CIDR range assigned to the node will be derived from this parameter.",
     ).optional(),
-  }).describe("Specifies the workload node configurations.").optional(),
+  }).describe("Workload node configuration.").optional(),
   osEnvironmentConfig: z.object({
     packageRepoExcluded: z.boolean().describe(
       "Whether the package repo should not be included when initializing bare metal machines.",
     ).optional(),
-  }).describe("Specifies operating system settings for cluster provisioning.")
-    .optional(),
+  }).describe("OS environment related configurations.").optional(),
   proxy: z.object({
     noProxy: z.array(z.string()).describe(
       'A list of IPs, hostnames, and domains that should skip the proxy. Examples: ["127.0.0.1", "example.com", ".corp", "localhost"].',
@@ -1176,7 +1018,7 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "Required. Specifies the address of your proxy server. Examples: `http://domain` Do not provide credentials in the format `http://(username:password@)domain` these will be rejected by the server.",
     ).optional(),
-  }).describe("Specifies the cluster proxy configuration.").optional(),
+  }).describe("Proxy configuration.").optional(),
   securityConfig: z.object({
     authorization: z.object({
       adminUsers: z.array(z.object({
@@ -1186,63 +1028,17 @@ const InputsSchema = z.object({
       })).describe(
         "For VMware and bare metal user clusters, users will be granted the cluster-admin role on the cluster, which provides full administrative access to the cluster. For bare metal admin clusters, users will be granted the cluster-view role, which limits users to read-only access.",
       ).optional(),
-    }).describe(
-      "Authorization defines the On-Prem cluster authorization configuration to bootstrap onto the admin cluster.",
-    ).optional(),
-  }).describe(
-    "Specifies the security related settings for the bare metal user cluster.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-  ).optional(),
+    }).describe("Configures user access to the user cluster.").optional(),
+  }).describe("Security related setting configuration.").optional(),
   storage: z.object({
     lvpNodeMountsConfig: z.object({
       path: z.string().describe("Required. The host machine path.").optional(),
       storageClass: z.string().describe(
         "Required. The StorageClass name that PVs will be created with.",
       ).optional(),
-    }).describe("Specifies the configs for local persistent volumes (PVs).")
-      .optional(),
+    }).describe(
+      "Required. Specifies the config for local PersistentVolumes backed by mounted node disks. These disks need to be formatted and mounted by the user, which can be done before or after cluster creation.",
+    ).optional(),
     lvpShareConfig: z.object({
       lvpConfig: z.object({
         path: z.string().describe("Required. The host machine path.")
@@ -1250,63 +1046,23 @@ const InputsSchema = z.object({
         storageClass: z.string().describe(
           "Required. The StorageClass name that PVs will be created with.",
         ).optional(),
-      }).describe("Specifies the configs for local persistent volumes (PVs).")
-        .optional(),
+      }).describe(
+        "Required. Defines the machine path and storage class for the LVP Share.",
+      ).optional(),
       sharedPathPvCount: z.number().int().describe(
         "The number of subdirectories to create under path.",
       ).optional(),
     }).describe(
-      "Specifies the configs for local persistent volumes under a shared file system.",
+      "Required. Specifies the config for local PersistentVolumes backed by subdirectories in a shared filesystem. These subdirectores are automatically created during cluster creation.",
     ).optional(),
-  }).describe(
-    "BareMetalStorageConfig specifies the cluster storage configuration.",
-  ).optional(),
+  }).describe("Required. Storage configuration.").optional(),
   upgradePolicy: z.object({
     pause: z.boolean().describe(
       "Output only. Pause is used to show the upgrade pause status. It's view only for now.",
     ).optional(),
     policy: z.enum(["NODE_POOL_POLICY_UNSPECIFIED", "SERIAL", "CONCURRENT"])
       .describe("Specifies which upgrade policy to use.").optional(),
-  }).describe(
-    "BareMetalClusterUpgradePolicy defines the cluster upgrade policy.",
-  ).optional(),
-  validationCheck: z.object({
-    option: z.enum([
-      "OPTIONS_UNSPECIFIED",
-      "SKIP_VALIDATION_CHECK_BLOCKING",
-      "SKIP_VALIDATION_ALL",
-    ]).describe("Options used for the validation check").optional(),
-    scenario: z.enum(["SCENARIO_UNSPECIFIED", "CREATE", "UPDATE"]).describe(
-      "Output only. The scenario when the preflight checks were run.",
-    ).optional(),
-    status: z.object({
-      result: z.array(z.object({
-        category: z.string().describe("The category of the validation.")
-          .optional(),
-        description: z.string().describe(
-          "The description of the validation check.",
-        ).optional(),
-        details: z.string().describe(
-          "Detailed failure information, which might be unformatted.",
-        ).optional(),
-        reason: z.string().describe(
-          "A human-readable message of the check failure.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNKNOWN",
-          "STATE_FAILURE",
-          "STATE_SKIPPED",
-          "STATE_FATAL",
-          "STATE_WARNING",
-        ]).describe("The validation check state.").optional(),
-      })).describe(
-        "Individual checks which failed as part of the Preflight check execution.",
-      ).optional(),
-    }).describe(
-      "ValidationCheckStatus defines the detailed validation check status.",
-    ).optional(),
-  }).describe("ValidationCheck represents the result of preflight check.")
-    .optional(),
+  }).describe("The cluster upgrade policy.").optional(),
   allowPreflightFailure: z.string().describe(
     'Optional. If set to true, CLM will force CCFE to persist the cluster resource in RMS when the creation fails during standalone preflight checks. In that case the subsequent create call will fail with "cluster already exists" error and hence a update cluster is required to fix the cluster.',
   ).optional(),
@@ -1341,7 +1097,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE On-Prem BareMetalClusters. Registered at `@swamp/gcp/gkeonprem/baremetalclusters`. */
 export const model = {
   type: "@swamp/gcp/gkeonprem/baremetalclusters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1453,6 +1209,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: fleet, maintenanceStatus, status, validationCheck",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          fleet: _fleet,
+          maintenanceStatus: _maintenanceStatus,
+          status: _status,
+          validationCheck: _validationCheck,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1502,15 +1272,11 @@ export const model = {
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["fleet"] !== undefined) body["fleet"] = g["fleet"];
         if (g["loadBalancer"] !== undefined) {
           body["loadBalancer"] = g["loadBalancer"];
         }
         if (g["maintenanceConfig"] !== undefined) {
           body["maintenanceConfig"] = g["maintenanceConfig"];
-        }
-        if (g["maintenanceStatus"] !== undefined) {
-          body["maintenanceStatus"] = g["maintenanceStatus"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["networkConfig"] !== undefined) {
@@ -1527,13 +1293,9 @@ export const model = {
         if (g["securityConfig"] !== undefined) {
           body["securityConfig"] = g["securityConfig"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["storage"] !== undefined) body["storage"] = g["storage"];
         if (g["upgradePolicy"] !== undefined) {
           body["upgradePolicy"] = g["upgradePolicy"];
-        }
-        if (g["validationCheck"] !== undefined) {
-          body["validationCheck"] = g["validationCheck"];
         }
         if (g["allowPreflightFailure"] !== undefined) {
           params["allowPreflightFailure"] = String(g["allowPreflightFailure"]);
@@ -1680,15 +1442,11 @@ export const model = {
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["fleet"] !== undefined) body["fleet"] = g["fleet"];
         if (g["loadBalancer"] !== undefined) {
           body["loadBalancer"] = g["loadBalancer"];
         }
         if (g["maintenanceConfig"] !== undefined) {
           body["maintenanceConfig"] = g["maintenanceConfig"];
-        }
-        if (g["maintenanceStatus"] !== undefined) {
-          body["maintenanceStatus"] = g["maintenanceStatus"];
         }
         if (g["networkConfig"] !== undefined) {
           body["networkConfig"] = g["networkConfig"];
@@ -1704,13 +1462,9 @@ export const model = {
         if (g["securityConfig"] !== undefined) {
           body["securityConfig"] = g["securityConfig"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["storage"] !== undefined) body["storage"] = g["storage"];
         if (g["upgradePolicy"] !== undefined) {
           body["upgradePolicy"] = g["upgradePolicy"];
-        }
-        if (g["validationCheck"] !== undefined) {
-          body["validationCheck"] = g["validationCheck"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

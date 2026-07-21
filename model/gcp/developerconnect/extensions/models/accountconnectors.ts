@@ -221,7 +221,7 @@ const GlobalArgsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to connect to a private service.",
     ).optional(),
     sslCaCertificate: z.string().describe(
       "Optional. SSL certificate to use for requests to a private service.",
@@ -229,7 +229,7 @@ const GlobalArgsSchema = z.object({
     tokenUri: z.string().describe(
       "Required. Immutable. The OAuth2 token request URL.",
     ).optional(),
-  }).describe("Message for a customized OAuth config.").optional(),
+  }).describe("Custom OAuth config.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs",
   ).optional(),
@@ -252,8 +252,7 @@ const GlobalArgsSchema = z.object({
       "DYNATRACE",
     ]).describe("Optional. Immutable. Developer Connect provided OAuth.")
       .optional(),
-  }).describe("ProviderOAuthConfig is the OAuth config for a provider.")
-    .optional(),
+  }).describe("Optional. Provider OAuth config.").optional(),
   proxyConfig: z.object({
     enabled: z.boolean().describe(
       "Optional. Setting this to true allows the git and http proxies to perform actions on behalf of the user configured under the account connector.",
@@ -261,7 +260,8 @@ const GlobalArgsSchema = z.object({
     httpProxyBaseUri: z.string().describe(
       "Output only. The base URI for the HTTP proxy endpoint. Has the format `https://{generatedID}-a-h-{shortRegion}.developerconnect.dev` Populated only when `enabled` is set to `true`. This endpoint is used by other Google services that integrate with Developer Connect.",
     ).optional(),
-  }).describe("The proxy configuration.").optional(),
+  }).describe("Optional. Configuration for the http and git proxy features.")
+    .optional(),
   accountConnectorId: z.string().describe(
     "Required. The ID to use for the AccountConnector, which will become the final component of the AccountConnector's resource name. Its format should adhere to https://google.aip.dev/122#resource-id-segments Names must be unique per-project per-location.",
   ).optional(),
@@ -350,7 +350,7 @@ const InputsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to connect to a private service.",
     ).optional(),
     sslCaCertificate: z.string().describe(
       "Optional. SSL certificate to use for requests to a private service.",
@@ -358,7 +358,7 @@ const InputsSchema = z.object({
     tokenUri: z.string().describe(
       "Required. Immutable. The OAuth2 token request URL.",
     ).optional(),
-  }).describe("Message for a customized OAuth config.").optional(),
+  }).describe("Custom OAuth config.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs",
   ).optional(),
@@ -381,8 +381,7 @@ const InputsSchema = z.object({
       "DYNATRACE",
     ]).describe("Optional. Immutable. Developer Connect provided OAuth.")
       .optional(),
-  }).describe("ProviderOAuthConfig is the OAuth config for a provider.")
-    .optional(),
+  }).describe("Optional. Provider OAuth config.").optional(),
   proxyConfig: z.object({
     enabled: z.boolean().describe(
       "Optional. Setting this to true allows the git and http proxies to perform actions on behalf of the user configured under the account connector.",
@@ -390,7 +389,8 @@ const InputsSchema = z.object({
     httpProxyBaseUri: z.string().describe(
       "Output only. The base URI for the HTTP proxy endpoint. Has the format `https://{generatedID}-a-h-{shortRegion}.developerconnect.dev` Populated only when `enabled` is set to `true`. This endpoint is used by other Google services that integrate with Developer Connect.",
     ).optional(),
-  }).describe("The proxy configuration.").optional(),
+  }).describe("Optional. Configuration for the http and git proxy features.")
+    .optional(),
   accountConnectorId: z.string().describe(
     "Required. The ID to use for the AccountConnector, which will become the final component of the AccountConnector's resource name. Its format should adhere to https://google.aip.dev/122#resource-id-segments Names must be unique per-project per-location.",
   ).optional(),
@@ -425,7 +425,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Developer Connect AccountConnectors. Registered at `@swamp/gcp/developerconnect/accountconnectors`. */
 export const model = {
   type: "@swamp/gcp/developerconnect/accountconnectors",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -554,6 +554,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

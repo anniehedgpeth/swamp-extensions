@@ -218,13 +218,14 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "List of given sampling behaviors to enable. For example, specifying behaviors = [ALWAYS_ON] samples in-flight elements but does not sample exceptions. Can be used to specify multiple behaviors like, behaviors = [ALWAYS_ON, EXCEPTIONS] for specifying periodic sampling and exception sampling. If DISABLED is in the list, then sampling will be disabled and ignore the other given behaviors. Ordering does not matter.",
         ).optional(),
-      }).describe("Configuration options for sampling elements.").optional(),
+      }).describe(
+        "Configuration options for sampling elements from a running pipeline.",
+      ).optional(),
       enableHotKeyLogging: z.boolean().describe(
         "Optional. When true, enables the logging of the literal hot key to the user's Cloud Logging.",
       ).optional(),
-    }).describe(
-      "Describes any options that have an effect on the debugging of pipelines.",
-    ).optional(),
+    }).describe("Optional. Any debugging options to be supplied to the job.")
+      .optional(),
     experiments: z.array(z.string()).describe(
       "The list of experiments to enable. This field should be used for SDK related experiments and not for service related experiments. The proper field for service related experiments is service_options.",
     ).optional(),
@@ -286,7 +287,7 @@ const GlobalArgsSchema = z.object({
         maxNumWorkers: z.number().int().describe(
           "The maximum number of workers to cap scaling at.",
         ).optional(),
-      }).describe("Settings for WorkerPool autoscaling.").optional(),
+      }).describe("Settings for autoscaling of this WorkerPool.").optional(),
       dataDisks: z.array(z.object({
         diskType: z.unknown().describe(
           'Disk storage type, as defined by Google Compute Engine. This must be a disk type appropriate to the project and zone in which the workers will run. If unknown or unspecified, the service will attempt to choose a reasonable default. For example, the standard persistent disk type is a resource name typically ending in "pd-standard". If SSD persistent disks are available, the resource name typically ends with "pd-ssd". The actual valid values are defined the Google Compute Engine API, not by the Cloud Dataflow API; consult the Google Compute Engine documentation for more information about determining the set of available disk types for a particular project and zone. Google Compute Engine Disk types are local to a particular project in a particular zone, and so the resource name will typically look something like this: compute.googleapis.com/projects/project-id/zones/zone/diskTypes/pd-standard',
@@ -433,7 +434,7 @@ const GlobalArgsSchema = z.object({
           workerId: z.unknown().describe(
             "The ID of the worker running this pipeline.",
           ).optional(),
-        }).describe("Provides data to pass through to the worker harness.")
+        }).describe("The settings to pass to the parallel worker harness.")
           .optional(),
         streamingWorkerMainClass: z.string().describe(
           "The streaming worker main class name.",
@@ -451,7 +452,9 @@ const GlobalArgsSchema = z.object({
         workflowFileName: z.string().describe(
           "The file to store the workflow in.",
         ).optional(),
-      }).describe("Taskrunner configuration settings.").optional(),
+      }).describe(
+        "Settings passed through to Google Compute Engine workers when using the standard Dataflow task runner. Users should ignore this field.",
+      ).optional(),
       teardownPolicy: z.enum([
         "TEARDOWN_POLICY_UNKNOWN",
         "TEARDOWN_ALWAYS",
@@ -475,8 +478,7 @@ const GlobalArgsSchema = z.object({
     workerZone: z.string().describe(
       'Optional. The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane\'s region is chosen based on available capacity.',
     ).optional(),
-  }).describe("Describes the environment in which a Dataflow Job runs.")
-    .optional(),
+  }).describe("Optional. The environment for the job.").optional(),
   executionInfo: z.object({
     stages: z.record(
       z.string(),
@@ -487,9 +489,7 @@ const GlobalArgsSchema = z.object({
       }),
     ).describe("A mapping from each stage to the information about that stage.")
       .optional(),
-  }).describe(
-    "Additional information about how a Cloud Dataflow job will be executed that isn't contained in the submitted job.",
-  ).optional(),
+  }).describe("Deprecated.").optional(),
   id: z.string().describe(
     "The unique ID of this job. This field is set by the Dataflow service when the job is created, and is immutable for the life of the job.",
   ).optional(),
@@ -566,7 +566,7 @@ const GlobalArgsSchema = z.object({
       versionDisplayName: z.string().describe(
         "A readable string describing the version of the SDK.",
       ).optional(),
-    }).describe("The version of the SDK used to run the job.").optional(),
+    }).describe("The SDK version used to run the job.").optional(),
     spannerDetails: z.array(z.object({
       databaseId: z.string().describe("DatabaseId accessed in the connection.")
         .optional(),
@@ -580,7 +580,7 @@ const GlobalArgsSchema = z.object({
       "List of display properties to help UI filter jobs.",
     ).optional(),
   }).describe(
-    "Metadata available primarily for filtering jobs. Will be included in the ListJob response and Job SUMMARY view.",
+    "This field is populated by the Dataflow service to support filtering jobs by the metadata values provided here. Populated for ListJobs and all GetJob views SUMMARY and higher.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "User-defined labels for this job. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \\p{Ll}\\p{Lo}{0,62} * Values must conform to regexp: [\\p{Ll}\\p{Lo}\\p{N}_-]{0,63} * Both keys and values are additionally constrained to be <= 128 bytes in size.",
@@ -766,7 +766,7 @@ const GlobalArgsSchema = z.object({
       "A hash value of the submitted pipeline portable graph step names if exists.",
     ).optional(),
   }).describe(
-    "A descriptive representation of submitted pipeline as well as the executed form. This data is provided by the Dataflow service for ease of visualizing the pipeline and interpreting Dataflow provided metrics.",
+    "Preliminary field: The format of this data may change at any time. A description of the user pipeline and stages through which it is executed. Created by Cloud Dataflow service. Only retrieved with JOB_VIEW_DESCRIPTION or JOB_VIEW_ALL.",
   ).optional(),
   projectId: z.string().describe(
     "The ID of the Google Cloud project that the job belongs to.",
@@ -816,17 +816,11 @@ const GlobalArgsSchema = z.object({
       "Target worker utilization, compared against the aggregate utilization of the worker pool by autoscaler, to determine upscaling and downscaling when absent other constraints such as backlog. For more information, see [Update an existing pipeline](https://cloud.google.com/dataflow/docs/guides/updating-a-pipeline).",
     ).optional(),
   }).describe(
-    "Additional job parameters that can only be updated during runtime using the projects.jobs.update method. These fields have no effect when specified during job creation.",
+    "This field may ONLY be modified at runtime using the projects.jobs.update method to adjust job behavior. This field has no effect when specified at job creation.",
   ).optional(),
   satisfiesPzs: z.boolean().describe(
     "Reserved for future use. This field is set only in responses from the server; it is ignored if it is set in any requests.",
   ).optional(),
-  serviceResources: z.object({
-    zones: z.array(z.string()).describe(
-      "Output only. List of Cloud Zones being used by the Dataflow Service for this job. Example: us-central1-c",
-    ).optional(),
-  }).describe("Resources used by the Dataflow Service to run the job.")
-    .optional(),
   stageStates: z.array(z.object({
     currentStateTime: z.string().describe(
       "The time at which the stage transitioned to this state.",
@@ -1191,13 +1185,14 @@ const InputsSchema = z.object({
         ).describe(
           "List of given sampling behaviors to enable. For example, specifying behaviors = [ALWAYS_ON] samples in-flight elements but does not sample exceptions. Can be used to specify multiple behaviors like, behaviors = [ALWAYS_ON, EXCEPTIONS] for specifying periodic sampling and exception sampling. If DISABLED is in the list, then sampling will be disabled and ignore the other given behaviors. Ordering does not matter.",
         ).optional(),
-      }).describe("Configuration options for sampling elements.").optional(),
+      }).describe(
+        "Configuration options for sampling elements from a running pipeline.",
+      ).optional(),
       enableHotKeyLogging: z.boolean().describe(
         "Optional. When true, enables the logging of the literal hot key to the user's Cloud Logging.",
       ).optional(),
-    }).describe(
-      "Describes any options that have an effect on the debugging of pipelines.",
-    ).optional(),
+    }).describe("Optional. Any debugging options to be supplied to the job.")
+      .optional(),
     experiments: z.array(z.string()).describe(
       "The list of experiments to enable. This field should be used for SDK related experiments and not for service related experiments. The proper field for service related experiments is service_options.",
     ).optional(),
@@ -1259,7 +1254,7 @@ const InputsSchema = z.object({
         maxNumWorkers: z.number().int().describe(
           "The maximum number of workers to cap scaling at.",
         ).optional(),
-      }).describe("Settings for WorkerPool autoscaling.").optional(),
+      }).describe("Settings for autoscaling of this WorkerPool.").optional(),
       dataDisks: z.array(z.object({
         diskType: z.unknown().describe(
           'Disk storage type, as defined by Google Compute Engine. This must be a disk type appropriate to the project and zone in which the workers will run. If unknown or unspecified, the service will attempt to choose a reasonable default. For example, the standard persistent disk type is a resource name typically ending in "pd-standard". If SSD persistent disks are available, the resource name typically ends with "pd-ssd". The actual valid values are defined the Google Compute Engine API, not by the Cloud Dataflow API; consult the Google Compute Engine documentation for more information about determining the set of available disk types for a particular project and zone. Google Compute Engine Disk types are local to a particular project in a particular zone, and so the resource name will typically look something like this: compute.googleapis.com/projects/project-id/zones/zone/diskTypes/pd-standard',
@@ -1406,7 +1401,7 @@ const InputsSchema = z.object({
           workerId: z.unknown().describe(
             "The ID of the worker running this pipeline.",
           ).optional(),
-        }).describe("Provides data to pass through to the worker harness.")
+        }).describe("The settings to pass to the parallel worker harness.")
           .optional(),
         streamingWorkerMainClass: z.string().describe(
           "The streaming worker main class name.",
@@ -1424,7 +1419,9 @@ const InputsSchema = z.object({
         workflowFileName: z.string().describe(
           "The file to store the workflow in.",
         ).optional(),
-      }).describe("Taskrunner configuration settings.").optional(),
+      }).describe(
+        "Settings passed through to Google Compute Engine workers when using the standard Dataflow task runner. Users should ignore this field.",
+      ).optional(),
       teardownPolicy: z.enum([
         "TEARDOWN_POLICY_UNKNOWN",
         "TEARDOWN_ALWAYS",
@@ -1448,8 +1445,7 @@ const InputsSchema = z.object({
     workerZone: z.string().describe(
       'Optional. The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane\'s region is chosen based on available capacity.',
     ).optional(),
-  }).describe("Describes the environment in which a Dataflow Job runs.")
-    .optional(),
+  }).describe("Optional. The environment for the job.").optional(),
   executionInfo: z.object({
     stages: z.record(
       z.string(),
@@ -1460,9 +1456,7 @@ const InputsSchema = z.object({
       }),
     ).describe("A mapping from each stage to the information about that stage.")
       .optional(),
-  }).describe(
-    "Additional information about how a Cloud Dataflow job will be executed that isn't contained in the submitted job.",
-  ).optional(),
+  }).describe("Deprecated.").optional(),
   id: z.string().describe(
     "The unique ID of this job. This field is set by the Dataflow service when the job is created, and is immutable for the life of the job.",
   ).optional(),
@@ -1539,7 +1533,7 @@ const InputsSchema = z.object({
       versionDisplayName: z.string().describe(
         "A readable string describing the version of the SDK.",
       ).optional(),
-    }).describe("The version of the SDK used to run the job.").optional(),
+    }).describe("The SDK version used to run the job.").optional(),
     spannerDetails: z.array(z.object({
       databaseId: z.string().describe("DatabaseId accessed in the connection.")
         .optional(),
@@ -1553,7 +1547,7 @@ const InputsSchema = z.object({
       "List of display properties to help UI filter jobs.",
     ).optional(),
   }).describe(
-    "Metadata available primarily for filtering jobs. Will be included in the ListJob response and Job SUMMARY view.",
+    "This field is populated by the Dataflow service to support filtering jobs by the metadata values provided here. Populated for ListJobs and all GetJob views SUMMARY and higher.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "User-defined labels for this job. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \\p{Ll}\\p{Lo}{0,62} * Values must conform to regexp: [\\p{Ll}\\p{Lo}\\p{N}_-]{0,63} * Both keys and values are additionally constrained to be <= 128 bytes in size.",
@@ -1739,7 +1733,7 @@ const InputsSchema = z.object({
       "A hash value of the submitted pipeline portable graph step names if exists.",
     ).optional(),
   }).describe(
-    "A descriptive representation of submitted pipeline as well as the executed form. This data is provided by the Dataflow service for ease of visualizing the pipeline and interpreting Dataflow provided metrics.",
+    "Preliminary field: The format of this data may change at any time. A description of the user pipeline and stages through which it is executed. Created by Cloud Dataflow service. Only retrieved with JOB_VIEW_DESCRIPTION or JOB_VIEW_ALL.",
   ).optional(),
   projectId: z.string().describe(
     "The ID of the Google Cloud project that the job belongs to.",
@@ -1789,17 +1783,11 @@ const InputsSchema = z.object({
       "Target worker utilization, compared against the aggregate utilization of the worker pool by autoscaler, to determine upscaling and downscaling when absent other constraints such as backlog. For more information, see [Update an existing pipeline](https://cloud.google.com/dataflow/docs/guides/updating-a-pipeline).",
     ).optional(),
   }).describe(
-    "Additional job parameters that can only be updated during runtime using the projects.jobs.update method. These fields have no effect when specified during job creation.",
+    "This field may ONLY be modified at runtime using the projects.jobs.update method to adjust job behavior. This field has no effect when specified at job creation.",
   ).optional(),
   satisfiesPzs: z.boolean().describe(
     "Reserved for future use. This field is set only in responses from the server; it is ignored if it is set in any requests.",
   ).optional(),
-  serviceResources: z.object({
-    zones: z.array(z.string()).describe(
-      "Output only. List of Cloud Zones being used by the Dataflow Service for this job. Example: us-central1-c",
-    ).optional(),
-  }).describe("Resources used by the Dataflow Service to run the job.")
-    .optional(),
   stageStates: z.array(z.object({
     currentStateTime: z.string().describe(
       "The time at which the stage transitioned to this state.",
@@ -1881,7 +1869,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Jobs. Registered at `@swamp/gcp/dataflow/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataflow/jobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2033,6 +2021,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: serviceResources",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { serviceResources: _serviceResources, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2100,9 +2096,6 @@ export const model = {
         }
         if (g["satisfiesPzs"] !== undefined) {
           body["satisfiesPzs"] = g["satisfiesPzs"];
-        }
-        if (g["serviceResources"] !== undefined) {
-          body["serviceResources"] = g["serviceResources"];
         }
         if (g["stageStates"] !== undefined) {
           body["stageStates"] = g["stageStates"];
@@ -2242,9 +2235,6 @@ export const model = {
         }
         if (g["satisfiesPzs"] !== undefined) {
           body["satisfiesPzs"] = g["satisfiesPzs"];
-        }
-        if (g["serviceResources"] !== undefined) {
-          body["serviceResources"] = g["serviceResources"];
         }
         if (g["stageStates"] !== undefined) {
           body["stageStates"] = g["stageStates"];

@@ -169,7 +169,7 @@ const GlobalArgsSchema = z.object({
       'This value will be used to populate the value for all conversions of the specified event_name where the event "value" parameter is unset.',
     ).optional(),
   }).describe(
-    "Defines a default value/currency for a conversion event. Both value and currency must be provided.",
+    "Optional. Defines a default value/currency for a conversion event.",
   ).optional(),
   eventName: z.string().describe(
     "Immutable. The event name for this conversion event. Examples: 'click', 'purchase'",
@@ -217,7 +217,7 @@ const InputsSchema = z.object({
       'This value will be used to populate the value for all conversions of the specified event_name where the event "value" parameter is unset.',
     ).optional(),
   }).describe(
-    "Defines a default value/currency for a conversion event. Both value and currency must be provided.",
+    "Optional. Defines a default value/currency for a conversion event.",
   ).optional(),
   eventName: z.string().describe(
     "Immutable. The event name for this conversion event. Examples: 'click', 'purchase'",
@@ -253,7 +253,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Admin Properties.ConversionEvents. Registered at `@swamp/gcp/analyticsadmin/properties-conversionevents`. */
 export const model = {
   type: "@swamp/gcp/analyticsadmin/properties-conversionevents",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -372,6 +372,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

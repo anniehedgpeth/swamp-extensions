@@ -137,21 +137,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  connectionInfo: z.object({
-    loadBalancerHostname: z.string().describe(
-      "Output only. The hostname of the load balancer.",
-    ).optional(),
-    loadBalancerIp: z.string().describe(
-      "Output only. The IP address of the load balancer.",
-    ).optional(),
-    routingToken: z.string().describe(
-      "Output only. The routing token for the SandboxEnvironment.",
-    ).optional(),
-    sandboxInternalIp: z.string().describe(
-      "Output only. The internal IP address of the SandboxEnvironment.",
-    ).optional(),
-  }).describe("The connection information of the SandboxEnvironment.")
-    .optional(),
   displayName: z.string().describe(
     "Required. The display name of the SandboxEnvironment.",
   ).optional(),
@@ -182,9 +167,9 @@ const GlobalArgsSchema = z.object({
         "MACHINE_CONFIG_VCPU4_RAM4GIB",
       ]).describe("The machine config of the code execution environment.")
         .optional(),
-    }).describe("The code execution environment with customized settings.")
-      .optional(),
-  }).describe("The specification of a SandboxEnvironment.").optional(),
+    }).describe("Optional. The code execution environment.").optional(),
+  }).describe("Optional. The configuration of the SandboxEnvironment.")
+    .optional(),
   ttl: z.string().describe(
     "Optional. Input only. The TTL for the sandbox environment. The expiration time is computed: now + TTL.",
   ).optional(),
@@ -229,21 +214,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  connectionInfo: z.object({
-    loadBalancerHostname: z.string().describe(
-      "Output only. The hostname of the load balancer.",
-    ).optional(),
-    loadBalancerIp: z.string().describe(
-      "Output only. The IP address of the load balancer.",
-    ).optional(),
-    routingToken: z.string().describe(
-      "Output only. The routing token for the SandboxEnvironment.",
-    ).optional(),
-    sandboxInternalIp: z.string().describe(
-      "Output only. The internal IP address of the SandboxEnvironment.",
-    ).optional(),
-  }).describe("The connection information of the SandboxEnvironment.")
-    .optional(),
   displayName: z.string().describe(
     "Required. The display name of the SandboxEnvironment.",
   ).optional(),
@@ -274,9 +244,9 @@ const InputsSchema = z.object({
         "MACHINE_CONFIG_VCPU4_RAM4GIB",
       ]).describe("The machine config of the code execution environment.")
         .optional(),
-    }).describe("The code execution environment with customized settings.")
-      .optional(),
-  }).describe("The specification of a SandboxEnvironment.").optional(),
+    }).describe("Optional. The code execution environment.").optional(),
+  }).describe("Optional. The configuration of the SandboxEnvironment.")
+    .optional(),
   ttl: z.string().describe(
     "Optional. Input only. The TTL for the sandbox environment. The expiration time is computed: now + TTL.",
   ).optional(),
@@ -311,7 +281,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironments. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -509,6 +479,14 @@ export const model = {
         "Added: owner, sandboxEnvironmentSnapshot, sandboxEnvironmentTemplate",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: connectionInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { connectionInfo: _connectionInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -532,9 +510,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["connectionInfo"] !== undefined) {
-          body["connectionInfo"] = g["connectionInfo"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }

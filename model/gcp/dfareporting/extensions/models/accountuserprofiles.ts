@@ -173,7 +173,9 @@ const GlobalArgsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which advertisers are visible to the user profile.",
+  ).optional(),
   campaignFilter: z.object({
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string "dfareporting#objectFilter".',
@@ -184,7 +186,9 @@ const GlobalArgsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which campaigns are visible to the user profile.",
+  ).optional(),
   comments: z.string().describe("Comments for this user profile.").optional(),
   email: z.string().describe(
     "Email of the user profile. The email address must be linked to a Google Account. This field is required on insertion and is read-only after insertion.",
@@ -208,7 +212,9 @@ const GlobalArgsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which sites are visible to the user profile.",
+  ).optional(),
   subaccountId: z.string().describe(
     "Subaccount ID of the user profile. This is a read-only field that can be left blank.",
   ).optional(),
@@ -237,7 +243,9 @@ const GlobalArgsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which user roles are visible to the user profile.",
+  ).optional(),
   userRoleId: z.string().describe(
     "User role ID of the user profile. This is a required field.",
   ).optional(),
@@ -304,7 +312,9 @@ const InputsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which advertisers are visible to the user profile.",
+  ).optional(),
   campaignFilter: z.object({
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string "dfareporting#objectFilter".',
@@ -315,7 +325,9 @@ const InputsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which campaigns are visible to the user profile.",
+  ).optional(),
   comments: z.string().describe("Comments for this user profile.").optional(),
   email: z.string().describe(
     "Email of the user profile. The email address must be linked to a Google Account. This field is required on insertion and is read-only after insertion.",
@@ -339,7 +351,9 @@ const InputsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which sites are visible to the user profile.",
+  ).optional(),
   subaccountId: z.string().describe(
     "Subaccount ID of the user profile. This is a read-only field that can be left blank.",
   ).optional(),
@@ -368,7 +382,9 @@ const InputsSchema = z.object({
     status: z.enum(["NONE", "ASSIGNED", "ALL"]).describe(
       "Status of the filter. NONE means the user has access to none of the objects. ALL means the user has access to all objects. ASSIGNED means the user has access to the objects with IDs in the objectIds list.",
     ).optional(),
-  }).describe("Object Filter.").optional(),
+  }).describe(
+    "Filter that describes which user roles are visible to the user profile.",
+  ).optional(),
   userRoleId: z.string().describe(
     "User role ID of the user profile. This is a required field.",
   ).optional(),
@@ -400,7 +416,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 AccountUserProfiles. Registered at `@swamp/gcp/dfareporting/accountuserprofiles`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/accountuserprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -489,6 +505,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

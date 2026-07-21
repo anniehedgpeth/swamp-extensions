@@ -202,7 +202,8 @@ const GlobalArgsSchema = z.object({
           resolvedData: z.unknown().describe(
             "Output only. The resolved CNAME chain. Empty list if the CNAME record for `CNAME.name` is not found. Otherwise the first item is the value of the CNAME record for `CNAME.name`. If the CNAME chain is longer, the second item is the value of the CNAME record for the first item, and so on.",
           ).optional(),
-        }).describe("CNAME troubleshooting information.").optional(),
+        }).describe("Output only. CNAME troubleshooting information.")
+          .optional(),
         ips: z.object({
           resolved: z.unknown().describe(
             "Output only. The list of IP addresses resolved from the domain's A/AAAA records. Can contain both ipv4 and ipv6 addresses.",
@@ -213,12 +214,13 @@ const GlobalArgsSchema = z.object({
           servingOnAltPorts: z.unknown().describe(
             "Output only. The list of IP addresses, where the certificate is attached, but port 443 is not open.",
           ).optional(),
-        }).describe("IPs troubleshooting information.").optional(),
+        }).describe("Output only. IPs troubleshooting information.").optional(),
         issues: z.array(z.unknown()).describe(
           "Output only. The list of issues discovered during the authorization attempt.",
         ).optional(),
-      }).describe("Troubleshooting information for the authorization attempt.")
-        .optional(),
+      }).describe(
+        "Output only. Troubleshooting information for the authorization attempt. This field is only populated if the authorization attempt failed.",
+      ).optional(),
     })).describe(
       "Output only. Detailed state of the latest authorization attempt for each domain specified for managed certificate resource.",
     ).optional(),
@@ -241,13 +243,13 @@ const GlobalArgsSchema = z.object({
         "RATE_LIMITED",
       ]).describe("Output only. Reason for provisioning failures.").optional(),
     }).describe(
-      "Information about issues with provisioning a Managed Certificate.",
+      "Output only. Information about issues with provisioning a Managed Certificate.",
     ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "PROVISIONING", "FAILED", "ACTIVE"])
       .describe("Output only. State of the managed certificate resource.")
       .optional(),
   }).describe(
-    "Configuration and state of a Managed Certificate. Certificate Manager provisions and renews Managed Certificates automatically, for as long as it's authorized to do so.",
+    "If set, contains configuration and state of a managed certificate.",
   ).optional(),
   managedIdentity: z.object({
     identity: z.string().describe(
@@ -263,13 +265,13 @@ const GlobalArgsSchema = z.object({
         "RATE_LIMITED",
       ]).describe("Output only. Reason for provisioning failures.").optional(),
     }).describe(
-      "Information about issues with provisioning a Managed Certificate.",
+      "Output only. Information about issues with provisioning a managed certificate.",
     ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "PROVISIONING", "FAILED", "ACTIVE"])
       .describe("Output only. State of the managed certificate resource.")
       .optional(),
   }).describe(
-    "Configuration and state of a Managed Identity Certificate. Certificate Manager provisions and renews Managed Identity Certificates automatically, for as long as it's authorized to do so.",
+    "If set, contains configuration and state of a managed identity certificate.",
   ).optional(),
   name: z.string().describe(
     "Identifier. A user-defined name of the certificate. Certificate names must be unique globally and match pattern `projects/*/locations/*/certificates/*`.",
@@ -283,9 +285,7 @@ const GlobalArgsSchema = z.object({
     pemPrivateKey: z.string().describe(
       "Optional. Input only. The PEM-encoded private key of the leaf certificate.",
     ).optional(),
-  }).describe(
-    "Certificate data for a SelfManaged Certificate. SelfManaged Certificates are uploaded by the user. Updating such certificates before they expire remains the user's responsibility.",
-  ).optional(),
+  }).describe("If set, defines data of a self-managed certificate.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
@@ -406,7 +406,8 @@ const InputsSchema = z.object({
           resolvedData: z.unknown().describe(
             "Output only. The resolved CNAME chain. Empty list if the CNAME record for `CNAME.name` is not found. Otherwise the first item is the value of the CNAME record for `CNAME.name`. If the CNAME chain is longer, the second item is the value of the CNAME record for the first item, and so on.",
           ).optional(),
-        }).describe("CNAME troubleshooting information.").optional(),
+        }).describe("Output only. CNAME troubleshooting information.")
+          .optional(),
         ips: z.object({
           resolved: z.unknown().describe(
             "Output only. The list of IP addresses resolved from the domain's A/AAAA records. Can contain both ipv4 and ipv6 addresses.",
@@ -417,12 +418,13 @@ const InputsSchema = z.object({
           servingOnAltPorts: z.unknown().describe(
             "Output only. The list of IP addresses, where the certificate is attached, but port 443 is not open.",
           ).optional(),
-        }).describe("IPs troubleshooting information.").optional(),
+        }).describe("Output only. IPs troubleshooting information.").optional(),
         issues: z.array(z.unknown()).describe(
           "Output only. The list of issues discovered during the authorization attempt.",
         ).optional(),
-      }).describe("Troubleshooting information for the authorization attempt.")
-        .optional(),
+      }).describe(
+        "Output only. Troubleshooting information for the authorization attempt. This field is only populated if the authorization attempt failed.",
+      ).optional(),
     })).describe(
       "Output only. Detailed state of the latest authorization attempt for each domain specified for managed certificate resource.",
     ).optional(),
@@ -445,13 +447,13 @@ const InputsSchema = z.object({
         "RATE_LIMITED",
       ]).describe("Output only. Reason for provisioning failures.").optional(),
     }).describe(
-      "Information about issues with provisioning a Managed Certificate.",
+      "Output only. Information about issues with provisioning a Managed Certificate.",
     ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "PROVISIONING", "FAILED", "ACTIVE"])
       .describe("Output only. State of the managed certificate resource.")
       .optional(),
   }).describe(
-    "Configuration and state of a Managed Certificate. Certificate Manager provisions and renews Managed Certificates automatically, for as long as it's authorized to do so.",
+    "If set, contains configuration and state of a managed certificate.",
   ).optional(),
   managedIdentity: z.object({
     identity: z.string().describe(
@@ -467,13 +469,13 @@ const InputsSchema = z.object({
         "RATE_LIMITED",
       ]).describe("Output only. Reason for provisioning failures.").optional(),
     }).describe(
-      "Information about issues with provisioning a Managed Certificate.",
+      "Output only. Information about issues with provisioning a managed certificate.",
     ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "PROVISIONING", "FAILED", "ACTIVE"])
       .describe("Output only. State of the managed certificate resource.")
       .optional(),
   }).describe(
-    "Configuration and state of a Managed Identity Certificate. Certificate Manager provisions and renews Managed Identity Certificates automatically, for as long as it's authorized to do so.",
+    "If set, contains configuration and state of a managed identity certificate.",
   ).optional(),
   name: z.string().describe(
     "Identifier. A user-defined name of the certificate. Certificate names must be unique globally and match pattern `projects/*/locations/*/certificates/*`.",
@@ -487,9 +489,7 @@ const InputsSchema = z.object({
     pemPrivateKey: z.string().describe(
       "Optional. Input only. The PEM-encoded private key of the leaf certificate.",
     ).optional(),
-  }).describe(
-    "Certificate data for a SelfManaged Certificate. SelfManaged Certificates are uploaded by the user. Updating such certificates before they expire remains the user's responsibility.",
-  ).optional(),
+  }).describe("If set, defines data of a self-managed certificate.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
@@ -524,7 +524,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager Certificates. Registered at `@swamp/gcp/certificatemanager/certificates`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/certificates",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -647,6 +647,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

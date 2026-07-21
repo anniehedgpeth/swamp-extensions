@@ -185,8 +185,7 @@ const GlobalArgsSchema = z.object({
         "MEDIUM",
         "LOW",
       ]).describe("Required. Criticality Type.").optional(),
-    }).describe("Criticality of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined criticality information.").optional(),
     developerOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -203,8 +202,7 @@ const GlobalArgsSchema = z.object({
         "TEST",
         "DEVELOPMENT",
       ]).describe("Required. Environment Type.").optional(),
-    }).describe("Environment of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined environment information.").optional(),
     operatorOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -213,7 +211,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
     })).describe("Optional. Operator team that ensures runtime and operations.")
       .optional(),
-  }).describe("Consumer provided attributes.").optional(),
+  }).describe("Optional. Consumer provided attributes.").optional(),
   description: z.string().describe(
     "Optional. User-defined description of a Workload. Can have a maximum length of 2048 characters.",
   ).optional(),
@@ -225,47 +223,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   name: z.string().describe(
     'Identifier. The resource name of the Workload. Format: `"projects/{host-project-id}/locations/{location}/applications/{application-id}/workloads/{workload-id}"`',
-  ).optional(),
-  workloadProperties: z.object({
-    extendedMetadata: z.record(
-      z.string(),
-      z.object({
-        metadataStruct: z.record(z.string(), z.string()).describe(
-          "Output only. The metadata contents.",
-        ).optional(),
-      }),
-    ).describe(
-      "Output only. Additional metadata specific to the resource type. The key is a string that identifies the type of metadata and the value is the metadata contents specific to that type. Key format: `apphub.googleapis.com/{metadataType}`",
-    ).optional(),
-    functionalType: z.object({
-      type: z.enum(["TYPE_UNSPECIFIED", "AGENT", "MCP_SERVER", "ENDPOINT"])
-        .describe("Output only. The functional type of a service or workload.")
-        .optional(),
-    }).describe("The functional type of a service or workload.").optional(),
-    gcpProject: z.string().describe(
-      "Output only. The service project identifier that the underlying cloud resource resides in. Empty for non-cloud resources.",
-    ).optional(),
-    identity: z.object({
-      principal: z.string().describe(
-        "Output only. The principal of the identity. Supported formats: * `sa://my-sa@PROJECT_ID.iam.gserviceaccount.com` for GCP Service Account * `principal://POOL_ID.global.PROJECT_NUMBER.workload.id.goog/ns/NAMESPACE_ID/sa/MANAGED_IDENTITY_ID` for Managed Workload Identity",
-      ).optional(),
-    }).describe("The identity associated with a service or workload.")
-      .optional(),
-    location: z.string().describe(
-      "Output only. The location that the underlying compute resource resides in (for example, us-west1).",
-    ).optional(),
-    zone: z.string().describe(
-      "Output only. The location that the underlying compute resource resides in if it is zonal (for example, us-west1-a).",
-    ).optional(),
-  }).describe(
-    "Properties of an underlying compute resource represented by the Workload.",
-  ).optional(),
-  workloadReference: z.object({
-    uri: z.string().describe(
-      "Output only. The underlying compute resource uri.",
-    ).optional(),
-  }).describe(
-    "Reference of an underlying compute resource represented by the Workload.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -352,8 +309,7 @@ const InputsSchema = z.object({
         "MEDIUM",
         "LOW",
       ]).describe("Required. Criticality Type.").optional(),
-    }).describe("Criticality of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined criticality information.").optional(),
     developerOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -370,8 +326,7 @@ const InputsSchema = z.object({
         "TEST",
         "DEVELOPMENT",
       ]).describe("Required. Environment Type.").optional(),
-    }).describe("Environment of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined environment information.").optional(),
     operatorOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -380,7 +335,7 @@ const InputsSchema = z.object({
         .optional(),
     })).describe("Optional. Operator team that ensures runtime and operations.")
       .optional(),
-  }).describe("Consumer provided attributes.").optional(),
+  }).describe("Optional. Consumer provided attributes.").optional(),
   description: z.string().describe(
     "Optional. User-defined description of a Workload. Can have a maximum length of 2048 characters.",
   ).optional(),
@@ -392,47 +347,6 @@ const InputsSchema = z.object({
   ).optional(),
   name: z.string().describe(
     'Identifier. The resource name of the Workload. Format: `"projects/{host-project-id}/locations/{location}/applications/{application-id}/workloads/{workload-id}"`',
-  ).optional(),
-  workloadProperties: z.object({
-    extendedMetadata: z.record(
-      z.string(),
-      z.object({
-        metadataStruct: z.record(z.string(), z.string()).describe(
-          "Output only. The metadata contents.",
-        ).optional(),
-      }),
-    ).describe(
-      "Output only. Additional metadata specific to the resource type. The key is a string that identifies the type of metadata and the value is the metadata contents specific to that type. Key format: `apphub.googleapis.com/{metadataType}`",
-    ).optional(),
-    functionalType: z.object({
-      type: z.enum(["TYPE_UNSPECIFIED", "AGENT", "MCP_SERVER", "ENDPOINT"])
-        .describe("Output only. The functional type of a service or workload.")
-        .optional(),
-    }).describe("The functional type of a service or workload.").optional(),
-    gcpProject: z.string().describe(
-      "Output only. The service project identifier that the underlying cloud resource resides in. Empty for non-cloud resources.",
-    ).optional(),
-    identity: z.object({
-      principal: z.string().describe(
-        "Output only. The principal of the identity. Supported formats: * `sa://my-sa@PROJECT_ID.iam.gserviceaccount.com` for GCP Service Account * `principal://POOL_ID.global.PROJECT_NUMBER.workload.id.goog/ns/NAMESPACE_ID/sa/MANAGED_IDENTITY_ID` for Managed Workload Identity",
-      ).optional(),
-    }).describe("The identity associated with a service or workload.")
-      .optional(),
-    location: z.string().describe(
-      "Output only. The location that the underlying compute resource resides in (for example, us-west1).",
-    ).optional(),
-    zone: z.string().describe(
-      "Output only. The location that the underlying compute resource resides in if it is zonal (for example, us-west1-a).",
-    ).optional(),
-  }).describe(
-    "Properties of an underlying compute resource represented by the Workload.",
-  ).optional(),
-  workloadReference: z.object({
-    uri: z.string().describe(
-      "Output only. The underlying compute resource uri.",
-    ).optional(),
-  }).describe(
-    "Reference of an underlying compute resource represented by the Workload.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -471,7 +385,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Hub Applications.Workloads. Registered at `@swamp/gcp/apphub/applications-workloads`. */
 export const model = {
   type: "@swamp/gcp/apphub/applications-workloads",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -578,6 +492,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: workloadProperties, workloadReference",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          workloadProperties: _workloadProperties,
+          workloadReference: _workloadReference,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -616,12 +542,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["workloadProperties"] !== undefined) {
-          body["workloadProperties"] = g["workloadProperties"];
-        }
-        if (g["workloadReference"] !== undefined) {
-          body["workloadReference"] = g["workloadReference"];
-        }
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);
         }
@@ -750,12 +670,6 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["workloadProperties"] !== undefined) {
-          body["workloadProperties"] = g["workloadProperties"];
-        }
-        if (g["workloadReference"] !== undefined) {
-          body["workloadReference"] = g["workloadReference"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

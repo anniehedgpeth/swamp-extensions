@@ -156,30 +156,18 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         samplingMethod: z.enum(["SAMPLING_METHOD_UNSPECIFIED", "RANDOM"])
           .describe("Optional. The sampling method to use.").optional(),
-      }).describe("The sampling config.").optional(),
+      }).describe("Optional. The sampling config for the bigquery resource.")
+        .optional(),
       uri: z.string().describe(
         "Required. The URI of a BigQuery table. e.g. bq://projectId.bqDatasetId.bqTableId",
       ).optional(),
-    }).describe("The request set for the evaluation run.").optional(),
+    }).describe("Evaluation data in bigquery.").optional(),
     evaluationSet: z.string().describe(
       "The EvaluationSet resource name. Format: `projects/{project}/locations/{location}/evaluationSets/{evaluation_set}`",
     ).optional(),
-  }).describe("The data source for the evaluation run.").optional(),
+  }).describe("Required. The data source for the evaluation run.").optional(),
   displayName: z.string().describe(
     "Required. The display name of the Evaluation Run.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
   ).optional(),
   evaluationConfig: z.object({
     autoraterConfig: z.object({
@@ -210,7 +198,7 @@ const GlobalArgsSchema = z.object({
             mimeType: z.unknown().describe(
               "Optional. The image format that the output should be saved as.",
             ).optional(),
-          }).describe("The image output format for generated images.")
+          }).describe("Optional. The image output format for generated images.")
             .optional(),
           imageSize: z.string().describe(
             "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -231,7 +219,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
           ).optional(),
         }).describe(
-          "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+          "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
         ).optional(),
         logprobs: z.number().int().describe(
           "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -251,18 +239,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
         responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
+          audio: z.unknown().describe("Audio output format.").optional(),
+          image: z.unknown().describe("Image output format.").optional(),
+          text: z.unknown().describe("Text output format.").optional(),
+          video: z.unknown().describe("Video output format.").optional(),
         })).describe(
           "Optional. New response format field for the model to configure output formatting and delivery.",
         ).optional(),
@@ -363,7 +343,7 @@ const GlobalArgsSchema = z.object({
             "NULL",
           ]).describe("Optional. Data type of the schema field.").optional(),
         }).describe(
-          "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+          "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
         ).optional(),
         routingConfig: z.object({
           autoMode: z.object({
@@ -371,18 +351,15 @@ const GlobalArgsSchema = z.object({
               "The model routing preference.",
             ).optional(),
           }).describe(
-            "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+            "In this mode, the model is selected automatically based on the content of the request.",
           ).optional(),
           manualMode: z.object({
             modelName: z.unknown().describe(
               "The name of the model to use. Only public LLM models are accepted.",
             ).optional(),
-          }).describe(
-            "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
-          ).optional(),
-        }).describe(
-          "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-        ).optional(),
+          }).describe("In this mode, the model is specified manually.")
+            .optional(),
+        }).describe("Optional. Routing configuration.").optional(),
         seed: z.number().int().describe(
           "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
         ).optional(),
@@ -395,17 +372,17 @@ const GlobalArgsSchema = z.object({
               "Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.",
             ).optional(),
           }).describe(
-            "Configuration for a multi-speaker text-to-speech request.",
+            "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
           ).optional(),
           voiceConfig: z.object({
             prebuiltVoiceConfig: z.unknown().describe(
-              "Configuration for a prebuilt voice.",
+              "The configuration for a prebuilt voice.",
             ).optional(),
             replicatedVoiceConfig: z.unknown().describe(
-              "The configuration for the replicated voice to use.",
+              "Optional. The configuration for a replicated voice. This enables users to replicate a voice from an audio sample.",
             ).optional(),
-          }).describe("Configuration for a voice.").optional(),
-        }).describe("Configuration for speech generation.").optional(),
+          }).describe("The configuration for the voice to use.").optional(),
+        }).describe("Optional. The speech generation config.").optional(),
         stopSequences: z.array(z.string()).describe(
           'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
         ).optional(),
@@ -429,7 +406,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The number of thoughts tokens that the model should generate.",
           ).optional(),
         }).describe(
-          'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+          "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
         ).optional(),
         topK: z.number().describe(
           "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -438,12 +415,13 @@ const GlobalArgsSchema = z.object({
           "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
         ).optional(),
       }).describe(
-        "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+        "Optional. Configuration options for model generation and outputs.",
       ).optional(),
       sampleCount: z.number().int().describe(
         "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
       ).optional(),
-    }).describe("The autorater config used for the evaluation run.").optional(),
+    }).describe("Optional. The autorater config for the evaluation run.")
+      .optional(),
     cloudLoggingConfig: z.object({
       project: z.string().describe(
         "Optional. Google Cloud project to write logs to. Defaults to the request project.",
@@ -464,9 +442,10 @@ const GlobalArgsSchema = z.object({
         traceId: z.string().describe(
           "Optional. Trace ID being written to Cloud Trace in association with this log entry. e.g., `12345`, the numeric ID from the resource name. If a trace or span is being evaluated, this field should be populated.",
         ).optional(),
-      }).describe("Tracing context for Observability correlation.").optional(),
+      }).describe("Optional. Tracing context for the evaluation run.")
+        .optional(),
     }).describe(
-      "Specifies configuration for exporting evaluation results to Cloud Logging.",
+      "Optional. Configuration for exporting evaluation results to Cloud Logging.",
     ).optional(),
     datasetCustomMetrics: z.array(z.object({
       aggregationFunction: z.string().describe(
@@ -500,7 +479,7 @@ const GlobalArgsSchema = z.object({
           "ROUGE",
         ]).describe("Required. The type of the computation based metric.")
           .optional(),
-      }).describe("Specification for a computation based metric.").optional(),
+      }).describe("Spec for a computation based metric.").optional(),
       llmBasedMetricSpec: z.object({
         additionalConfig: z.record(z.string(), z.unknown()).describe(
           "Optional. Optional additional configuration for the metric.",
@@ -510,13 +489,14 @@ const GlobalArgsSchema = z.object({
             "Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Tuned model endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           sampleCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
-        }).describe("The autorater config used for the evaluation run.")
-          .optional(),
+        }).describe(
+          "Optional. Optional configuration for the judge LLM (Autorater).",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Template for the prompt sent to the judge model.",
         ).optional(),
@@ -527,13 +507,14 @@ const GlobalArgsSchema = z.object({
           parameters: z.unknown().describe(
             "Optional. The parameters needed to run the pre-defined metric.",
           ).optional(),
-        }).describe("Specification for a pre-defined metric.").optional(),
+        }).describe("Dynamically generate rubrics using a predefined spec.")
+          .optional(),
         rubricGenerationSpec: z.object({
           metricResourceName: z.unknown().describe(
             "Optional. Resource name of the metric definition.",
           ).optional(),
           modelConfig: z.unknown().describe(
-            "The autorater config used for the evaluation run.",
+            "Optional. Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
           ).optional(),
           promptTemplate: z.unknown().describe(
             "Optional. Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
@@ -544,7 +525,7 @@ const GlobalArgsSchema = z.object({
           rubricTypeOntology: z.unknown().describe(
             "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
           ).optional(),
-        }).describe("Specification for how rubrics should be generated.")
+        }).describe("Dynamically generate rubrics using this specification.")
           .optional(),
         rubricGroupKey: z.string().describe(
           "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -552,7 +533,7 @@ const GlobalArgsSchema = z.object({
         systemInstruction: z.string().describe(
           "Optional. System instructions for the judge model.",
         ).optional(),
-      }).describe("Specification for an LLM based metric.").optional(),
+      }).describe("Spec for an LLM based metric.").optional(),
       metric: z.string().describe("Required. The name of the metric.")
         .optional(),
       metricConfig: z.object({
@@ -563,9 +544,7 @@ const GlobalArgsSchema = z.object({
           useEffectiveOrder: z.unknown().describe(
             "Optional. Whether to use_effective_order to compute bleu score.",
           ).optional(),
-        }).describe(
-          "Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.",
-        ).optional(),
+        }).describe("Spec for bleu metric.").optional(),
         computationBasedMetricSpec: z.object({
           parameters: z.unknown().describe(
             'Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.',
@@ -573,35 +552,32 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Required. The type of the computation based metric.",
           ).optional(),
-        }).describe("Specification for a computation based metric.").optional(),
+        }).describe("Spec for a computation based metric.").optional(),
         customCodeExecutionSpec: z.object({
           evaluationFunction: z.unknown().describe(
             "Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -> float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input: ` instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text=\"The answer is 4.\"), reference=EvaluationInstance.InstanceData(text=\"4\")) ` Example converted input: ` { 'response': {'text': 'The answer is 4.'}, 'reference': {'text': '4'} } ` Example python function: ` def evaluate(instance: dict[str, Any]) -> float: if instance'response' == instance'reference': return 1.0 return 0.0 ` CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.",
           ).optional(),
-        }).describe(
-          "Specificies a metric that is populated by evaluating user-defined Python code.",
-        ).optional(),
-        exactMatchSpec: z.object({}).describe(
-          "Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.",
-        ).optional(),
+        }).describe("Spec for Custom Code Execution metric.").optional(),
+        exactMatchSpec: z.object({}).describe("Spec for exact match metric.")
+          .optional(),
         llmBasedMetricSpec: z.object({
           additionalConfig: z.unknown().describe(
             "Optional. Optional additional configuration for the metric.",
           ).optional(),
           judgeAutoraterConfig: z.unknown().describe(
-            "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+            "Optional. Optional configuration for the judge LLM (Autorater).",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Template for the prompt sent to the judge model.",
           ).optional(),
           predefinedRubricGenerationSpec: z.unknown().describe(
-            "The spec for a pre-defined metric.",
+            "Dynamically generate rubrics using a predefined spec.",
           ).optional(),
           resultParserConfig: z.unknown().describe(
-            "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
+            "Optional. The parser config for the metric result.",
           ).optional(),
           rubricGenerationSpec: z.unknown().describe(
-            "Specification for how rubrics should be generated.",
+            "Dynamically generate rubrics using this specification.",
           ).optional(),
           rubricGroupKey: z.unknown().describe(
             "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -609,19 +585,19 @@ const GlobalArgsSchema = z.object({
           systemInstruction: z.unknown().describe(
             "Optional. System instructions for the judge model.",
           ).optional(),
-        }).describe("Specification for an LLM based metric.").optional(),
+        }).describe("Spec for an LLM based metric.").optional(),
         metadata: z.object({
           otherMetadata: z.unknown().describe(
             "Optional. Flexible metadata for user-defined attributes.",
           ).optional(),
           scoreRange: z.unknown().describe(
-            "The range of possible scores for this metric, used for plotting.",
+            "Optional. The range of possible scores for this metric, used for plotting.",
           ).optional(),
           title: z.unknown().describe(
             "Optional. The user-friendly name for the metric. If not set for a registered metric, it will default to the metric's display name.",
           ).optional(),
         }).describe(
-          "Metadata about the metric, used for visualization and organization.",
+          "Optional. Metadata about the metric, used for visualization and organization.",
         ).optional(),
         pairwiseMetricSpec: z.object({
           baselineResponseFieldName: z.unknown().describe(
@@ -631,7 +607,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The field name of the candidate response.",
           ).optional(),
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. When this config is set, the default output is replaced with the raw output string. If a custom format is chosen, the `pairwise_choice` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pairwise metric.",
@@ -642,7 +618,7 @@ const GlobalArgsSchema = z.object({
         }).describe("Spec for pairwise metric.").optional(),
         pointwiseMetricSpec: z.object({
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the `score` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pointwise metric.",
@@ -669,10 +645,8 @@ const GlobalArgsSchema = z.object({
           useStemmer: z.unknown().describe(
             "Optional. Whether to use stemmer to compute rouge score.",
           ).optional(),
-        }).describe(
-          "Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.",
-        ).optional(),
-      }).describe("The metric used for running evaluations.").optional(),
+        }).describe("Spec for rouge metric.").optional(),
+      }).describe("The metric config.").optional(),
       metricResourceName: z.string().describe(
         "Optional. The resource name of the metric definition.",
       ).optional(),
@@ -683,25 +657,24 @@ const GlobalArgsSchema = z.object({
         parameters: z.record(z.string(), z.unknown()).describe(
           "Optional. The parameters needed to run the pre-defined metric.",
         ).optional(),
-      }).describe("Specification for a pre-defined metric.").optional(),
+      }).describe("Spec for a pre-defined metric.").optional(),
       rubricBasedMetricSpec: z.object({
         inlineRubrics: z.object({
           rubrics: z.unknown().describe("The list of rubrics.").optional(),
-        }).describe(
-          "Defines a list of rubrics, used when providing rubrics inline.",
-        ).optional(),
+        }).describe("Use rubrics provided directly in the spec.").optional(),
         judgeAutoraterConfig: z.object({
           autoraterModel: z.unknown().describe(
             "Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Tuned model endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           sampleCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
-        }).describe("The autorater config used for the evaluation run.")
-          .optional(),
+        }).describe(
+          "Optional. Optional configuration for the judge LLM (Autorater). The definition of AutoraterConfig needs to be provided.",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Optional. Template for the prompt used by the judge model to evaluate against rubrics.",
         ).optional(),
@@ -710,7 +683,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Resource name of the metric definition.",
           ).optional(),
           modelConfig: z.unknown().describe(
-            "The autorater config used for the evaluation run.",
+            "Optional. Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
           ).optional(),
           promptTemplate: z.unknown().describe(
             "Optional. Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
@@ -721,13 +694,13 @@ const GlobalArgsSchema = z.object({
           rubricTypeOntology: z.unknown().describe(
             "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
           ).optional(),
-        }).describe("Specification for how rubrics should be generated.")
-          .optional(),
+        }).describe(
+          "Dynamically generate rubrics for evaluation using this specification.",
+        ).optional(),
         rubricGroupKey: z.string().describe(
           "Use a pre-defined group of rubrics associated with the input content. This refers to a key in the `rubric_groups` map of `RubricEnhancedContents`.",
         ).optional(),
-      }).describe("Specification for a metric that is based on rubrics.")
-        .optional(),
+      }).describe("Spec for rubric based metric.").optional(),
     })).describe(
       "Optional. The metrics to be calculated in the evaluation run. Required when analysis_configs is not set.",
     ).optional(),
@@ -736,15 +709,15 @@ const GlobalArgsSchema = z.object({
         outputUri: z.string().describe(
           "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
         ).optional(),
-      }).describe("The BigQuery location for the output content.").optional(),
+      }).describe("BigQuery destination for evaluation output.").optional(),
       gcsDestination: z.object({
         outputUriPrefix: z.string().describe(
           "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
         ).optional(),
-      }).describe(
-        "The Google Cloud Storage location where the output is to be written to.",
-      ).optional(),
-    }).describe("The output config for the evaluation run.").optional(),
+      }).describe("Cloud Storage destination for evaluation output.")
+        .optional(),
+    }).describe("Optional. The output config for the evaluation run.")
+      .optional(),
     promptTemplate: z.object({
       gcsUri: z.string().describe(
         'Prompt template stored in Cloud Storage. Format: "gs://my-bucket/file-name.txt".',
@@ -752,7 +725,9 @@ const GlobalArgsSchema = z.object({
       promptTemplate: z.string().describe(
         'Inline prompt template. Template variables should be in the format "{var_name}". Example: "Translate the following from {source_lang} to {target_lang}: {text}"',
       ).optional(),
-    }).describe("Prompt template used for inference.").optional(),
+    }).describe(
+      "The prompt template used for inference. The values for variables in the prompt template are defined in EvaluationItem.EvaluationPrompt.PromptTemplateData.values.",
+    ).optional(),
     rubricConfigs: z.array(z.object({
       predefinedRubricGenerationSpec: z.object({
         metricSpecName: z.string().describe(
@@ -761,7 +736,8 @@ const GlobalArgsSchema = z.object({
         parameters: z.record(z.string(), z.unknown()).describe(
           "Optional. The parameters needed to run the pre-defined metric.",
         ).optional(),
-      }).describe("Specification for a pre-defined metric.").optional(),
+      }).describe("Dynamically generate rubrics using a predefined spec.")
+        .optional(),
       rubricGenerationSpec: z.object({
         metricResourceName: z.string().describe(
           "Optional. Resource name of the metric definition.",
@@ -771,13 +747,14 @@ const GlobalArgsSchema = z.object({
             "Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Tuned model endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           sampleCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
-        }).describe("The autorater config used for the evaluation run.")
-          .optional(),
+        }).describe(
+          "Optional. Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
+        ).optional(),
         promptTemplate: z.string().describe(
           "Optional. Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
         ).optional(),
@@ -791,7 +768,7 @@ const GlobalArgsSchema = z.object({
         rubricTypeOntology: z.array(z.unknown()).describe(
           "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
         ).optional(),
-      }).describe("Specification for how rubrics should be generated.")
+      }).describe("Dynamically generate rubrics using this specification.")
         .optional(),
       rubricGroupKey: z.string().describe(
         "Required. The key used to save the generated rubrics. If a generation spec is provided, this key will be used for the name of the generated rubric group. Otherwise, this key will be used to look up the existing rubric group on the evaluation item. Note that if a rubric group key is specified on both a rubric config and an evaluation metric, the key from the metric will be used to select the rubrics for evaluation.",
@@ -799,24 +776,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. The rubric configs for the evaluation run. They are used to generate rubrics which can be used by rubric-based metrics. Multiple rubric configs can be specified for rubric generation but only one rubric config can be used for a rubric-based metric. If more than one rubric config is provided, the evaluation metric must specify a rubric group key. Note that if a generation spec is specified on both a rubric config and an evaluation metric, the rubrics generated for the metric will be used for evaluation.",
     ).optional(),
-  }).describe("The Evalution configuration used for the evaluation run.")
-    .optional(),
-  evaluationResults: z.object({
-    evaluationSet: z.string().describe(
-      "The evaluation set where item level results are stored.",
-    ).optional(),
-    summaryMetrics: z.object({
-      failedItems: z.number().int().describe(
-        "Optional. The number of items that failed to be evaluated.",
-      ).optional(),
-      metrics: z.record(z.string(), z.string()).describe(
-        "Optional. Map of metric name to metric value.",
-      ).optional(),
-      totalItems: z.number().int().describe(
-        "Optional. The total number of items that were evaluated.",
-      ).optional(),
-    }).describe("The summary metrics for the evaluation run.").optional(),
-  }).describe("The results of the evaluation run.").optional(),
+  }).describe(
+    "Optional. The configuration used for the evaluation. Optional when analysis_configs is provided.",
+  ).optional(),
   inferenceConfigs: z.record(
     z.string(),
     z.object({
@@ -834,7 +796,8 @@ const GlobalArgsSchema = z.object({
           userId: z.string().describe(
             "Optional. The user id for the agent session. The ID can be up to 128 characters long.",
           ).optional(),
-        }).describe("Session input to run an Agent.").optional(),
+        }).describe("Optional. The session input to get agent running results.")
+          .optional(),
         userSimulatorConfig: z.object({
           maxTurn: z.number().int().describe(
             "Maximum number of invocations allowed by the multi-turn agent scraping. This property allows us to stop a run-off conversation, where the agent and the user simulator get into a never ending loop. The initial fixed prompt is also counted as an invocation.",
@@ -853,7 +816,7 @@ const GlobalArgsSchema = z.object({
               "Optional. Penalizes tokens based on their frequency in the generated text. A positive value helps to reduce the repetition of words and phrases. Valid values can range from [-2.0, 2.0].",
             ).optional(),
             imageConfig: z.unknown().describe(
-              "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+              "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
             ).optional(),
             logprobs: z.unknown().describe(
               "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -883,16 +846,16 @@ const GlobalArgsSchema = z.object({
               "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
             ).optional(),
             responseSchema: z.unknown().describe(
-              "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+              "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
             ).optional(),
             routingConfig: z.unknown().describe(
-              "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
+              "Optional. Routing configuration.",
             ).optional(),
             seed: z.unknown().describe(
               "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
             ).optional(),
             speechConfig: z.unknown().describe(
-              "Configuration for speech generation.",
+              "Optional. The speech generation config.",
             ).optional(),
             stopSequences: z.unknown().describe(
               'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
@@ -901,7 +864,7 @@ const GlobalArgsSchema = z.object({
               "Optional. Controls the randomness of the output. A higher temperature results in more creative and diverse responses, while a lower temperature makes the output more predictable and focused. The valid range is (0.0, 2.0].",
             ).optional(),
             thinkingConfig: z.unknown().describe(
-              'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+              "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
             ).optional(),
             topK: z.unknown().describe(
               "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -909,16 +872,14 @@ const GlobalArgsSchema = z.object({
             topP: z.unknown().describe(
               "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
             ).optional(),
-          }).describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
-          ).optional(),
+          }).describe("The configuration for the model.").optional(),
           modelName: z.string().describe(
             'The model name to use for multi-turn agent scraping to get next user message, e.g. "gemini-3-flash-preview".',
           ).optional(),
         }).describe(
-          "Used for multi-turn agent scraping. Contains configuration for a user simulator that uses an LLM to generate messages on behalf of the user.",
+          "The configuration for a user simulator that uses an LLM to generate messages on behalf of the user.",
         ).optional(),
-      }).describe("Configuration for Agent Run.").optional(),
+      }).describe("Optional. Agent run config.").optional(),
       agents: z.record(
         z.string(),
         z.object({
@@ -968,7 +929,7 @@ const GlobalArgsSchema = z.object({
             mimeType: z.unknown().describe(
               "Optional. The image format that the output should be saved as.",
             ).optional(),
-          }).describe("The image output format for generated images.")
+          }).describe("Optional. The image output format for generated images.")
             .optional(),
           imageSize: z.string().describe(
             "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -989,7 +950,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
           ).optional(),
         }).describe(
-          "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+          "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
         ).optional(),
         logprobs: z.number().int().describe(
           "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -1009,18 +970,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
         responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
+          audio: z.unknown().describe("Audio output format.").optional(),
+          image: z.unknown().describe("Image output format.").optional(),
+          text: z.unknown().describe("Text output format.").optional(),
+          video: z.unknown().describe("Video output format.").optional(),
         })).describe(
           "Optional. New response format field for the model to configure output formatting and delivery.",
         ).optional(),
@@ -1121,7 +1074,7 @@ const GlobalArgsSchema = z.object({
             "NULL",
           ]).describe("Optional. Data type of the schema field.").optional(),
         }).describe(
-          "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+          "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
         ).optional(),
         routingConfig: z.object({
           autoMode: z.object({
@@ -1129,18 +1082,15 @@ const GlobalArgsSchema = z.object({
               "The model routing preference.",
             ).optional(),
           }).describe(
-            "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+            "In this mode, the model is selected automatically based on the content of the request.",
           ).optional(),
           manualMode: z.object({
             modelName: z.unknown().describe(
               "The name of the model to use. Only public LLM models are accepted.",
             ).optional(),
-          }).describe(
-            "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
-          ).optional(),
-        }).describe(
-          "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-        ).optional(),
+          }).describe("In this mode, the model is specified manually.")
+            .optional(),
+        }).describe("Optional. Routing configuration.").optional(),
         seed: z.number().int().describe(
           "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
         ).optional(),
@@ -1153,17 +1103,17 @@ const GlobalArgsSchema = z.object({
               "Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.",
             ).optional(),
           }).describe(
-            "Configuration for a multi-speaker text-to-speech request.",
+            "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
           ).optional(),
           voiceConfig: z.object({
             prebuiltVoiceConfig: z.unknown().describe(
-              "Configuration for a prebuilt voice.",
+              "The configuration for a prebuilt voice.",
             ).optional(),
             replicatedVoiceConfig: z.unknown().describe(
-              "The configuration for the replicated voice to use.",
+              "Optional. The configuration for a replicated voice. This enables users to replicate a voice from an audio sample.",
             ).optional(),
-          }).describe("Configuration for a voice.").optional(),
-        }).describe("Configuration for speech generation.").optional(),
+          }).describe("The configuration for the voice to use.").optional(),
+        }).describe("Optional. The speech generation config.").optional(),
         stopSequences: z.array(z.string()).describe(
           'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
         ).optional(),
@@ -1187,7 +1137,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The number of thoughts tokens that the model should generate.",
           ).optional(),
         }).describe(
-          'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+          "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
         ).optional(),
         topK: z.number().describe(
           "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -1195,9 +1145,7 @@ const GlobalArgsSchema = z.object({
         topP: z.number().describe(
           "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
         ).optional(),
-      }).describe(
-        "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
-      ).optional(),
+      }).describe("Optional. Generation config.").optional(),
       model: z.string().describe(
         "Optional. The fully qualified name of the publisher model or endpoint to use. Anthropic and Llama third-party models are also supported through Model Garden. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Third-party model formats: `projects/{project}/locations/{location}/publishers/anthropic/models/{model}` or `projects/{project}/locations/{location}/publishers/llama/models/{model}` Endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
       ).optional(),
@@ -1211,7 +1159,9 @@ const GlobalArgsSchema = z.object({
         promptTemplate: z.string().describe(
           'Inline prompt template. Template variables should be in the format "{var_name}". Example: "Translate the following from {source_lang} to {target_lang}: {text}"',
         ).optional(),
-      }).describe("Prompt template used for inference.").optional(),
+      }).describe(
+        "Optional. The prompt template used for inference. The values for variables in the prompt template are defined in EvaluationItem.EvaluationPrompt.PromptTemplateData.values. If not specified, the prompt template in the EvaluationConfig will be used.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The candidate to inference config map for the evaluation run. The candidate can be up to 128 characters long and can consist of any UTF-8 characters.",
@@ -1538,30 +1488,18 @@ const InputsSchema = z.object({
         ).optional(),
         samplingMethod: z.enum(["SAMPLING_METHOD_UNSPECIFIED", "RANDOM"])
           .describe("Optional. The sampling method to use.").optional(),
-      }).describe("The sampling config.").optional(),
+      }).describe("Optional. The sampling config for the bigquery resource.")
+        .optional(),
       uri: z.string().describe(
         "Required. The URI of a BigQuery table. e.g. bq://projectId.bqDatasetId.bqTableId",
       ).optional(),
-    }).describe("The request set for the evaluation run.").optional(),
+    }).describe("Evaluation data in bigquery.").optional(),
     evaluationSet: z.string().describe(
       "The EvaluationSet resource name. Format: `projects/{project}/locations/{location}/evaluationSets/{evaluation_set}`",
     ).optional(),
-  }).describe("The data source for the evaluation run.").optional(),
+  }).describe("Required. The data source for the evaluation run.").optional(),
   displayName: z.string().describe(
     "Required. The display name of the Evaluation Run.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
   ).optional(),
   evaluationConfig: z.object({
     autoraterConfig: z.object({
@@ -1592,7 +1530,7 @@ const InputsSchema = z.object({
             mimeType: z.unknown().describe(
               "Optional. The image format that the output should be saved as.",
             ).optional(),
-          }).describe("The image output format for generated images.")
+          }).describe("Optional. The image output format for generated images.")
             .optional(),
           imageSize: z.string().describe(
             "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -1613,7 +1551,7 @@ const InputsSchema = z.object({
             "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
           ).optional(),
         }).describe(
-          "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+          "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
         ).optional(),
         logprobs: z.number().int().describe(
           "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -1633,18 +1571,10 @@ const InputsSchema = z.object({
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
         responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
+          audio: z.unknown().describe("Audio output format.").optional(),
+          image: z.unknown().describe("Image output format.").optional(),
+          text: z.unknown().describe("Text output format.").optional(),
+          video: z.unknown().describe("Video output format.").optional(),
         })).describe(
           "Optional. New response format field for the model to configure output formatting and delivery.",
         ).optional(),
@@ -1745,7 +1675,7 @@ const InputsSchema = z.object({
             "NULL",
           ]).describe("Optional. Data type of the schema field.").optional(),
         }).describe(
-          "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+          "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
         ).optional(),
         routingConfig: z.object({
           autoMode: z.object({
@@ -1753,18 +1683,15 @@ const InputsSchema = z.object({
               "The model routing preference.",
             ).optional(),
           }).describe(
-            "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+            "In this mode, the model is selected automatically based on the content of the request.",
           ).optional(),
           manualMode: z.object({
             modelName: z.unknown().describe(
               "The name of the model to use. Only public LLM models are accepted.",
             ).optional(),
-          }).describe(
-            "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
-          ).optional(),
-        }).describe(
-          "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-        ).optional(),
+          }).describe("In this mode, the model is specified manually.")
+            .optional(),
+        }).describe("Optional. Routing configuration.").optional(),
         seed: z.number().int().describe(
           "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
         ).optional(),
@@ -1777,17 +1704,17 @@ const InputsSchema = z.object({
               "Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.",
             ).optional(),
           }).describe(
-            "Configuration for a multi-speaker text-to-speech request.",
+            "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
           ).optional(),
           voiceConfig: z.object({
             prebuiltVoiceConfig: z.unknown().describe(
-              "Configuration for a prebuilt voice.",
+              "The configuration for a prebuilt voice.",
             ).optional(),
             replicatedVoiceConfig: z.unknown().describe(
-              "The configuration for the replicated voice to use.",
+              "Optional. The configuration for a replicated voice. This enables users to replicate a voice from an audio sample.",
             ).optional(),
-          }).describe("Configuration for a voice.").optional(),
-        }).describe("Configuration for speech generation.").optional(),
+          }).describe("The configuration for the voice to use.").optional(),
+        }).describe("Optional. The speech generation config.").optional(),
         stopSequences: z.array(z.string()).describe(
           'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
         ).optional(),
@@ -1811,7 +1738,7 @@ const InputsSchema = z.object({
             "Optional. The number of thoughts tokens that the model should generate.",
           ).optional(),
         }).describe(
-          'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+          "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
         ).optional(),
         topK: z.number().describe(
           "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -1820,12 +1747,13 @@ const InputsSchema = z.object({
           "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
         ).optional(),
       }).describe(
-        "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+        "Optional. Configuration options for model generation and outputs.",
       ).optional(),
       sampleCount: z.number().int().describe(
         "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
       ).optional(),
-    }).describe("The autorater config used for the evaluation run.").optional(),
+    }).describe("Optional. The autorater config for the evaluation run.")
+      .optional(),
     cloudLoggingConfig: z.object({
       project: z.string().describe(
         "Optional. Google Cloud project to write logs to. Defaults to the request project.",
@@ -1846,9 +1774,10 @@ const InputsSchema = z.object({
         traceId: z.string().describe(
           "Optional. Trace ID being written to Cloud Trace in association with this log entry. e.g., `12345`, the numeric ID from the resource name. If a trace or span is being evaluated, this field should be populated.",
         ).optional(),
-      }).describe("Tracing context for Observability correlation.").optional(),
+      }).describe("Optional. Tracing context for the evaluation run.")
+        .optional(),
     }).describe(
-      "Specifies configuration for exporting evaluation results to Cloud Logging.",
+      "Optional. Configuration for exporting evaluation results to Cloud Logging.",
     ).optional(),
     datasetCustomMetrics: z.array(z.object({
       aggregationFunction: z.string().describe(
@@ -1882,7 +1811,7 @@ const InputsSchema = z.object({
           "ROUGE",
         ]).describe("Required. The type of the computation based metric.")
           .optional(),
-      }).describe("Specification for a computation based metric.").optional(),
+      }).describe("Spec for a computation based metric.").optional(),
       llmBasedMetricSpec: z.object({
         additionalConfig: z.record(z.string(), z.unknown()).describe(
           "Optional. Optional additional configuration for the metric.",
@@ -1892,13 +1821,14 @@ const InputsSchema = z.object({
             "Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Tuned model endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           sampleCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
-        }).describe("The autorater config used for the evaluation run.")
-          .optional(),
+        }).describe(
+          "Optional. Optional configuration for the judge LLM (Autorater).",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Template for the prompt sent to the judge model.",
         ).optional(),
@@ -1909,13 +1839,14 @@ const InputsSchema = z.object({
           parameters: z.unknown().describe(
             "Optional. The parameters needed to run the pre-defined metric.",
           ).optional(),
-        }).describe("Specification for a pre-defined metric.").optional(),
+        }).describe("Dynamically generate rubrics using a predefined spec.")
+          .optional(),
         rubricGenerationSpec: z.object({
           metricResourceName: z.unknown().describe(
             "Optional. Resource name of the metric definition.",
           ).optional(),
           modelConfig: z.unknown().describe(
-            "The autorater config used for the evaluation run.",
+            "Optional. Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
           ).optional(),
           promptTemplate: z.unknown().describe(
             "Optional. Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
@@ -1926,7 +1857,7 @@ const InputsSchema = z.object({
           rubricTypeOntology: z.unknown().describe(
             "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
           ).optional(),
-        }).describe("Specification for how rubrics should be generated.")
+        }).describe("Dynamically generate rubrics using this specification.")
           .optional(),
         rubricGroupKey: z.string().describe(
           "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -1934,7 +1865,7 @@ const InputsSchema = z.object({
         systemInstruction: z.string().describe(
           "Optional. System instructions for the judge model.",
         ).optional(),
-      }).describe("Specification for an LLM based metric.").optional(),
+      }).describe("Spec for an LLM based metric.").optional(),
       metric: z.string().describe("Required. The name of the metric.")
         .optional(),
       metricConfig: z.object({
@@ -1945,9 +1876,7 @@ const InputsSchema = z.object({
           useEffectiveOrder: z.unknown().describe(
             "Optional. Whether to use_effective_order to compute bleu score.",
           ).optional(),
-        }).describe(
-          "Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.",
-        ).optional(),
+        }).describe("Spec for bleu metric.").optional(),
         computationBasedMetricSpec: z.object({
           parameters: z.unknown().describe(
             'Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.',
@@ -1955,35 +1884,32 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Required. The type of the computation based metric.",
           ).optional(),
-        }).describe("Specification for a computation based metric.").optional(),
+        }).describe("Spec for a computation based metric.").optional(),
         customCodeExecutionSpec: z.object({
           evaluationFunction: z.unknown().describe(
             "Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -> float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input: ` instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text=\"The answer is 4.\"), reference=EvaluationInstance.InstanceData(text=\"4\")) ` Example converted input: ` { 'response': {'text': 'The answer is 4.'}, 'reference': {'text': '4'} } ` Example python function: ` def evaluate(instance: dict[str, Any]) -> float: if instance'response' == instance'reference': return 1.0 return 0.0 ` CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.",
           ).optional(),
-        }).describe(
-          "Specificies a metric that is populated by evaluating user-defined Python code.",
-        ).optional(),
-        exactMatchSpec: z.object({}).describe(
-          "Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.",
-        ).optional(),
+        }).describe("Spec for Custom Code Execution metric.").optional(),
+        exactMatchSpec: z.object({}).describe("Spec for exact match metric.")
+          .optional(),
         llmBasedMetricSpec: z.object({
           additionalConfig: z.unknown().describe(
             "Optional. Optional additional configuration for the metric.",
           ).optional(),
           judgeAutoraterConfig: z.unknown().describe(
-            "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+            "Optional. Optional configuration for the judge LLM (Autorater).",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Template for the prompt sent to the judge model.",
           ).optional(),
           predefinedRubricGenerationSpec: z.unknown().describe(
-            "The spec for a pre-defined metric.",
+            "Dynamically generate rubrics using a predefined spec.",
           ).optional(),
           resultParserConfig: z.unknown().describe(
-            "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
+            "Optional. The parser config for the metric result.",
           ).optional(),
           rubricGenerationSpec: z.unknown().describe(
-            "Specification for how rubrics should be generated.",
+            "Dynamically generate rubrics using this specification.",
           ).optional(),
           rubricGroupKey: z.unknown().describe(
             "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -1991,19 +1917,19 @@ const InputsSchema = z.object({
           systemInstruction: z.unknown().describe(
             "Optional. System instructions for the judge model.",
           ).optional(),
-        }).describe("Specification for an LLM based metric.").optional(),
+        }).describe("Spec for an LLM based metric.").optional(),
         metadata: z.object({
           otherMetadata: z.unknown().describe(
             "Optional. Flexible metadata for user-defined attributes.",
           ).optional(),
           scoreRange: z.unknown().describe(
-            "The range of possible scores for this metric, used for plotting.",
+            "Optional. The range of possible scores for this metric, used for plotting.",
           ).optional(),
           title: z.unknown().describe(
             "Optional. The user-friendly name for the metric. If not set for a registered metric, it will default to the metric's display name.",
           ).optional(),
         }).describe(
-          "Metadata about the metric, used for visualization and organization.",
+          "Optional. Metadata about the metric, used for visualization and organization.",
         ).optional(),
         pairwiseMetricSpec: z.object({
           baselineResponseFieldName: z.unknown().describe(
@@ -2013,7 +1939,7 @@ const InputsSchema = z.object({
             "Optional. The field name of the candidate response.",
           ).optional(),
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. When this config is set, the default output is replaced with the raw output string. If a custom format is chosen, the `pairwise_choice` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pairwise metric.",
@@ -2024,7 +1950,7 @@ const InputsSchema = z.object({
         }).describe("Spec for pairwise metric.").optional(),
         pointwiseMetricSpec: z.object({
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the `score` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pointwise metric.",
@@ -2051,10 +1977,8 @@ const InputsSchema = z.object({
           useStemmer: z.unknown().describe(
             "Optional. Whether to use stemmer to compute rouge score.",
           ).optional(),
-        }).describe(
-          "Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.",
-        ).optional(),
-      }).describe("The metric used for running evaluations.").optional(),
+        }).describe("Spec for rouge metric.").optional(),
+      }).describe("The metric config.").optional(),
       metricResourceName: z.string().describe(
         "Optional. The resource name of the metric definition.",
       ).optional(),
@@ -2065,25 +1989,24 @@ const InputsSchema = z.object({
         parameters: z.record(z.string(), z.unknown()).describe(
           "Optional. The parameters needed to run the pre-defined metric.",
         ).optional(),
-      }).describe("Specification for a pre-defined metric.").optional(),
+      }).describe("Spec for a pre-defined metric.").optional(),
       rubricBasedMetricSpec: z.object({
         inlineRubrics: z.object({
           rubrics: z.unknown().describe("The list of rubrics.").optional(),
-        }).describe(
-          "Defines a list of rubrics, used when providing rubrics inline.",
-        ).optional(),
+        }).describe("Use rubrics provided directly in the spec.").optional(),
         judgeAutoraterConfig: z.object({
           autoraterModel: z.unknown().describe(
             "Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Tuned model endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           sampleCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
-        }).describe("The autorater config used for the evaluation run.")
-          .optional(),
+        }).describe(
+          "Optional. Optional configuration for the judge LLM (Autorater). The definition of AutoraterConfig needs to be provided.",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Optional. Template for the prompt used by the judge model to evaluate against rubrics.",
         ).optional(),
@@ -2092,7 +2015,7 @@ const InputsSchema = z.object({
             "Optional. Resource name of the metric definition.",
           ).optional(),
           modelConfig: z.unknown().describe(
-            "The autorater config used for the evaluation run.",
+            "Optional. Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
           ).optional(),
           promptTemplate: z.unknown().describe(
             "Optional. Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
@@ -2103,13 +2026,13 @@ const InputsSchema = z.object({
           rubricTypeOntology: z.unknown().describe(
             "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
           ).optional(),
-        }).describe("Specification for how rubrics should be generated.")
-          .optional(),
+        }).describe(
+          "Dynamically generate rubrics for evaluation using this specification.",
+        ).optional(),
         rubricGroupKey: z.string().describe(
           "Use a pre-defined group of rubrics associated with the input content. This refers to a key in the `rubric_groups` map of `RubricEnhancedContents`.",
         ).optional(),
-      }).describe("Specification for a metric that is based on rubrics.")
-        .optional(),
+      }).describe("Spec for rubric based metric.").optional(),
     })).describe(
       "Optional. The metrics to be calculated in the evaluation run. Required when analysis_configs is not set.",
     ).optional(),
@@ -2118,15 +2041,15 @@ const InputsSchema = z.object({
         outputUri: z.string().describe(
           "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
         ).optional(),
-      }).describe("The BigQuery location for the output content.").optional(),
+      }).describe("BigQuery destination for evaluation output.").optional(),
       gcsDestination: z.object({
         outputUriPrefix: z.string().describe(
           "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
         ).optional(),
-      }).describe(
-        "The Google Cloud Storage location where the output is to be written to.",
-      ).optional(),
-    }).describe("The output config for the evaluation run.").optional(),
+      }).describe("Cloud Storage destination for evaluation output.")
+        .optional(),
+    }).describe("Optional. The output config for the evaluation run.")
+      .optional(),
     promptTemplate: z.object({
       gcsUri: z.string().describe(
         'Prompt template stored in Cloud Storage. Format: "gs://my-bucket/file-name.txt".',
@@ -2134,7 +2057,9 @@ const InputsSchema = z.object({
       promptTemplate: z.string().describe(
         'Inline prompt template. Template variables should be in the format "{var_name}". Example: "Translate the following from {source_lang} to {target_lang}: {text}"',
       ).optional(),
-    }).describe("Prompt template used for inference.").optional(),
+    }).describe(
+      "The prompt template used for inference. The values for variables in the prompt template are defined in EvaluationItem.EvaluationPrompt.PromptTemplateData.values.",
+    ).optional(),
     rubricConfigs: z.array(z.object({
       predefinedRubricGenerationSpec: z.object({
         metricSpecName: z.string().describe(
@@ -2143,7 +2068,8 @@ const InputsSchema = z.object({
         parameters: z.record(z.string(), z.unknown()).describe(
           "Optional. The parameters needed to run the pre-defined metric.",
         ).optional(),
-      }).describe("Specification for a pre-defined metric.").optional(),
+      }).describe("Dynamically generate rubrics using a predefined spec.")
+        .optional(),
       rubricGenerationSpec: z.object({
         metricResourceName: z.string().describe(
           "Optional. Resource name of the metric definition.",
@@ -2153,13 +2079,14 @@ const InputsSchema = z.object({
             "Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Tuned model endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           sampleCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
-        }).describe("The autorater config used for the evaluation run.")
-          .optional(),
+        }).describe(
+          "Optional. Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
+        ).optional(),
         promptTemplate: z.string().describe(
           "Optional. Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
         ).optional(),
@@ -2173,7 +2100,7 @@ const InputsSchema = z.object({
         rubricTypeOntology: z.array(z.unknown()).describe(
           "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
         ).optional(),
-      }).describe("Specification for how rubrics should be generated.")
+      }).describe("Dynamically generate rubrics using this specification.")
         .optional(),
       rubricGroupKey: z.string().describe(
         "Required. The key used to save the generated rubrics. If a generation spec is provided, this key will be used for the name of the generated rubric group. Otherwise, this key will be used to look up the existing rubric group on the evaluation item. Note that if a rubric group key is specified on both a rubric config and an evaluation metric, the key from the metric will be used to select the rubrics for evaluation.",
@@ -2181,24 +2108,9 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. The rubric configs for the evaluation run. They are used to generate rubrics which can be used by rubric-based metrics. Multiple rubric configs can be specified for rubric generation but only one rubric config can be used for a rubric-based metric. If more than one rubric config is provided, the evaluation metric must specify a rubric group key. Note that if a generation spec is specified on both a rubric config and an evaluation metric, the rubrics generated for the metric will be used for evaluation.",
     ).optional(),
-  }).describe("The Evalution configuration used for the evaluation run.")
-    .optional(),
-  evaluationResults: z.object({
-    evaluationSet: z.string().describe(
-      "The evaluation set where item level results are stored.",
-    ).optional(),
-    summaryMetrics: z.object({
-      failedItems: z.number().int().describe(
-        "Optional. The number of items that failed to be evaluated.",
-      ).optional(),
-      metrics: z.record(z.string(), z.string()).describe(
-        "Optional. Map of metric name to metric value.",
-      ).optional(),
-      totalItems: z.number().int().describe(
-        "Optional. The total number of items that were evaluated.",
-      ).optional(),
-    }).describe("The summary metrics for the evaluation run.").optional(),
-  }).describe("The results of the evaluation run.").optional(),
+  }).describe(
+    "Optional. The configuration used for the evaluation. Optional when analysis_configs is provided.",
+  ).optional(),
   inferenceConfigs: z.record(
     z.string(),
     z.object({
@@ -2216,7 +2128,8 @@ const InputsSchema = z.object({
           userId: z.string().describe(
             "Optional. The user id for the agent session. The ID can be up to 128 characters long.",
           ).optional(),
-        }).describe("Session input to run an Agent.").optional(),
+        }).describe("Optional. The session input to get agent running results.")
+          .optional(),
         userSimulatorConfig: z.object({
           maxTurn: z.number().int().describe(
             "Maximum number of invocations allowed by the multi-turn agent scraping. This property allows us to stop a run-off conversation, where the agent and the user simulator get into a never ending loop. The initial fixed prompt is also counted as an invocation.",
@@ -2235,7 +2148,7 @@ const InputsSchema = z.object({
               "Optional. Penalizes tokens based on their frequency in the generated text. A positive value helps to reduce the repetition of words and phrases. Valid values can range from [-2.0, 2.0].",
             ).optional(),
             imageConfig: z.unknown().describe(
-              "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+              "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
             ).optional(),
             logprobs: z.unknown().describe(
               "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -2265,16 +2178,16 @@ const InputsSchema = z.object({
               "Optional. The modalities of the response. The model will generate a response that includes all the specified modalities. For example, if this is set to `[TEXT, IMAGE]`, the response will include both text and an image.",
             ).optional(),
             responseSchema: z.unknown().describe(
-              "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+              "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
             ).optional(),
             routingConfig: z.unknown().describe(
-              "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
+              "Optional. Routing configuration.",
             ).optional(),
             seed: z.unknown().describe(
               "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
             ).optional(),
             speechConfig: z.unknown().describe(
-              "Configuration for speech generation.",
+              "Optional. The speech generation config.",
             ).optional(),
             stopSequences: z.unknown().describe(
               'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
@@ -2283,7 +2196,7 @@ const InputsSchema = z.object({
               "Optional. Controls the randomness of the output. A higher temperature results in more creative and diverse responses, while a lower temperature makes the output more predictable and focused. The valid range is (0.0, 2.0].",
             ).optional(),
             thinkingConfig: z.unknown().describe(
-              'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+              "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
             ).optional(),
             topK: z.unknown().describe(
               "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -2291,16 +2204,14 @@ const InputsSchema = z.object({
             topP: z.unknown().describe(
               "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
             ).optional(),
-          }).describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
-          ).optional(),
+          }).describe("The configuration for the model.").optional(),
           modelName: z.string().describe(
             'The model name to use for multi-turn agent scraping to get next user message, e.g. "gemini-3-flash-preview".',
           ).optional(),
         }).describe(
-          "Used for multi-turn agent scraping. Contains configuration for a user simulator that uses an LLM to generate messages on behalf of the user.",
+          "The configuration for a user simulator that uses an LLM to generate messages on behalf of the user.",
         ).optional(),
-      }).describe("Configuration for Agent Run.").optional(),
+      }).describe("Optional. Agent run config.").optional(),
       agents: z.record(
         z.string(),
         z.object({
@@ -2350,7 +2261,7 @@ const InputsSchema = z.object({
             mimeType: z.unknown().describe(
               "Optional. The image format that the output should be saved as.",
             ).optional(),
-          }).describe("The image output format for generated images.")
+          }).describe("Optional. The image output format for generated images.")
             .optional(),
           imageSize: z.string().describe(
             "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -2371,7 +2282,7 @@ const InputsSchema = z.object({
             "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
           ).optional(),
         }).describe(
-          "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+          "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
         ).optional(),
         logprobs: z.number().int().describe(
           "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -2391,18 +2302,10 @@ const InputsSchema = z.object({
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
         responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
+          audio: z.unknown().describe("Audio output format.").optional(),
+          image: z.unknown().describe("Image output format.").optional(),
+          text: z.unknown().describe("Text output format.").optional(),
+          video: z.unknown().describe("Video output format.").optional(),
         })).describe(
           "Optional. New response format field for the model to configure output formatting and delivery.",
         ).optional(),
@@ -2503,7 +2406,7 @@ const InputsSchema = z.object({
             "NULL",
           ]).describe("Optional. Data type of the schema field.").optional(),
         }).describe(
-          "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+          "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
         ).optional(),
         routingConfig: z.object({
           autoMode: z.object({
@@ -2511,18 +2414,15 @@ const InputsSchema = z.object({
               "The model routing preference.",
             ).optional(),
           }).describe(
-            "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+            "In this mode, the model is selected automatically based on the content of the request.",
           ).optional(),
           manualMode: z.object({
             modelName: z.unknown().describe(
               "The name of the model to use. Only public LLM models are accepted.",
             ).optional(),
-          }).describe(
-            "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
-          ).optional(),
-        }).describe(
-          "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-        ).optional(),
+          }).describe("In this mode, the model is specified manually.")
+            .optional(),
+        }).describe("Optional. Routing configuration.").optional(),
         seed: z.number().int().describe(
           "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
         ).optional(),
@@ -2535,17 +2435,17 @@ const InputsSchema = z.object({
               "Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.",
             ).optional(),
           }).describe(
-            "Configuration for a multi-speaker text-to-speech request.",
+            "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
           ).optional(),
           voiceConfig: z.object({
             prebuiltVoiceConfig: z.unknown().describe(
-              "Configuration for a prebuilt voice.",
+              "The configuration for a prebuilt voice.",
             ).optional(),
             replicatedVoiceConfig: z.unknown().describe(
-              "The configuration for the replicated voice to use.",
+              "Optional. The configuration for a replicated voice. This enables users to replicate a voice from an audio sample.",
             ).optional(),
-          }).describe("Configuration for a voice.").optional(),
-        }).describe("Configuration for speech generation.").optional(),
+          }).describe("The configuration for the voice to use.").optional(),
+        }).describe("Optional. The speech generation config.").optional(),
         stopSequences: z.array(z.string()).describe(
           'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
         ).optional(),
@@ -2569,7 +2469,7 @@ const InputsSchema = z.object({
             "Optional. The number of thoughts tokens that the model should generate.",
           ).optional(),
         }).describe(
-          'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+          "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
         ).optional(),
         topK: z.number().describe(
           "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -2577,9 +2477,7 @@ const InputsSchema = z.object({
         topP: z.number().describe(
           "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
         ).optional(),
-      }).describe(
-        "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
-      ).optional(),
+      }).describe("Optional. Generation config.").optional(),
       model: z.string().describe(
         "Optional. The fully qualified name of the publisher model or endpoint to use. Anthropic and Llama third-party models are also supported through Model Garden. Publisher model format: `projects/{project}/locations/{location}/publishers/*/models/*` Third-party model formats: `projects/{project}/locations/{location}/publishers/anthropic/models/{model}` or `projects/{project}/locations/{location}/publishers/llama/models/{model}` Endpoint format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
       ).optional(),
@@ -2593,7 +2491,9 @@ const InputsSchema = z.object({
         promptTemplate: z.string().describe(
           'Inline prompt template. Template variables should be in the format "{var_name}". Example: "Translate the following from {source_lang} to {target_lang}: {text}"',
         ).optional(),
-      }).describe("Prompt template used for inference.").optional(),
+      }).describe(
+        "Optional. The prompt template used for inference. The values for variables in the prompt template are defined in EvaluationItem.EvaluationPrompt.PromptTemplateData.values. If not specified, the prompt template in the EvaluationConfig will be used.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The candidate to inference config map for the evaluation run. The candidate can be up to 128 characters long and can consist of any UTF-8 characters.",
@@ -2635,7 +2535,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationRuns. Registered at `@swamp/gcp/aiplatform/evaluationruns`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationruns",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2802,6 +2702,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, evaluationResults",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          error: _error,
+          evaluationResults: _evaluationResults,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2835,12 +2747,8 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["evaluationConfig"] !== undefined) {
           body["evaluationConfig"] = g["evaluationConfig"];
-        }
-        if (g["evaluationResults"] !== undefined) {
-          body["evaluationResults"] = g["evaluationResults"];
         }
         if (g["inferenceConfigs"] !== undefined) {
           body["inferenceConfigs"] = g["inferenceConfigs"];

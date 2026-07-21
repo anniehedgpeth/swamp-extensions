@@ -166,10 +166,9 @@ const GlobalArgsSchema = z.object({
       caPool: z.string().describe(
         'Required. A CA pool resource used to issue a certificate. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".',
       ).optional(),
-    }).describe("Contains information required to contact CA service.")
-      .optional(),
+    }).describe("Defines a CertificateAuthorityServiceConfig.").optional(),
   }).describe(
-    "The CA that issues the workload certificate. It includes CA address, type, authentication to CA service, etc.",
+    "Required. The CA that issues the workload certificate. It includes the CA address, type, authentication to CA service, etc.",
   ).optional(),
   description: z.string().describe(
     "Optional. One or more paragraphs of text description of a CertificateIssuanceConfig.",
@@ -230,10 +229,9 @@ const InputsSchema = z.object({
       caPool: z.string().describe(
         'Required. A CA pool resource used to issue a certificate. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".',
       ).optional(),
-    }).describe("Contains information required to contact CA service.")
-      .optional(),
+    }).describe("Defines a CertificateAuthorityServiceConfig.").optional(),
   }).describe(
-    "The CA that issues the workload certificate. It includes CA address, type, authentication to CA service, etc.",
+    "Required. The CA that issues the workload certificate. It includes the CA address, type, authentication to CA service, etc.",
   ).optional(),
   description: z.string().describe(
     "Optional. One or more paragraphs of text description of a CertificateIssuanceConfig.",
@@ -288,7 +286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager CertificateIssuanceConfigs. Registered at `@swamp/gcp/certificatemanager/certificateissuanceconfigs`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/certificateissuanceconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -406,6 +404,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

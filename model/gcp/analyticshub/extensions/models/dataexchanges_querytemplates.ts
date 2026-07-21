@@ -176,7 +176,8 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     routineType: z.enum(["ROUTINE_TYPE_UNSPECIFIED", "TABLE_VALUED_FUNCTION"])
       .describe("Required. The type of routine.").optional(),
-  }).describe("Represents a bigquery routine.").optional(),
+  }).describe("Optional. The routine associated with the QueryTemplate.")
+    .optional(),
   queryTemplateId: z.string().describe(
     "Required. The ID of the QueryTemplate to create. Must contain only Unicode letters, numbers (0-9), underscores (_). Max length: 100 bytes.",
   ).optional(),
@@ -233,7 +234,8 @@ const InputsSchema = z.object({
     ).optional(),
     routineType: z.enum(["ROUTINE_TYPE_UNSPECIFIED", "TABLE_VALUED_FUNCTION"])
       .describe("Required. The type of routine.").optional(),
-  }).describe("Represents a bigquery routine.").optional(),
+  }).describe("Optional. The routine associated with the QueryTemplate.")
+    .optional(),
   queryTemplateId: z.string().describe(
     "Required. The ID of the QueryTemplate to create. Must contain only Unicode letters, numbers (0-9), underscores (_). Max length: 100 bytes.",
   ).optional(),
@@ -268,7 +270,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Analytics Hub DataExchanges.QueryTemplates. Registered at `@swamp/gcp/analyticshub/dataexchanges-querytemplates`. */
 export const model = {
   type: "@swamp/gcp/analyticshub/dataexchanges-querytemplates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -372,6 +374,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

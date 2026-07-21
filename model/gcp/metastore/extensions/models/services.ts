@@ -178,7 +178,9 @@ const GlobalArgsSchema = z.object({
     kmsKey: z.string().describe(
       "Optional. The fully qualified customer provided Cloud KMS key name to use for customer data encryption, in the following format:projects/{project_number}/locations/{location_id}/keyRings/{key_ring_id}/cryptoKeys/{crypto_key_id}.",
     ).optional(),
-  }).describe("Encryption settings for the service.").optional(),
+  }).describe(
+    "Immutable. Information used to configure the Dataproc Metastore service to encrypt customer data at rest. Cannot be updated.",
+  ).optional(),
   hiveMetastoreConfig: z.object({
     auxiliaryVersions: z.record(
       z.string(),
@@ -190,8 +192,9 @@ const GlobalArgsSchema = z.object({
           consumers: z.array(z.unknown()).describe(
             "Immutable. The consumer-side network configuration for the Dataproc Metastore instance.",
           ).optional(),
-        }).describe("Network configuration for the Dataproc Metastore service.")
-          .optional(),
+        }).describe(
+          "Output only. The network configuration contains the endpoint URI(s) of the auxiliary Hive metastore service.",
+        ).optional(),
         version: z.string().describe(
           "Optional. The Hive metastore version of the auxiliary service. It must be less than the primary Hive metastore service's version.",
         ).optional(),
@@ -214,20 +217,23 @@ const GlobalArgsSchema = z.object({
         cloudSecret: z.string().describe(
           "Optional. The relative resource name of a Secret Manager secret version, in the following form:projects/{project_number}/secrets/{secret_id}/versions/{version_id}.",
         ).optional(),
-      }).describe("A securely stored value.").optional(),
+      }).describe(
+        "Optional. A Kerberos keytab file that can be used to authenticate a service principal with a Kerberos Key Distribution Center (KDC).",
+      ).optional(),
       krb5ConfigGcsUri: z.string().describe(
         "Optional. A Cloud Storage URI that specifies the path to a krb5.conf file. It is of the form gs://{bucket_name}/path/to/krb5.conf, although the file does not need to be named krb5.conf explicitly.",
       ).optional(),
       principal: z.string().describe(
         "Optional. A Kerberos principal that exists in the both the keytab the KDC to authenticate as. A typical principal is of the form primary/instance@REALM, but there is no exact format.",
       ).optional(),
-    }).describe("Configuration information for a Kerberos principal.")
-      .optional(),
+    }).describe(
+      "Optional. Information used to configure the Hive metastore service as a service principal in a Kerberos realm. To disable Kerberos, use the UpdateService method and specify this field's path (hive_metastore_config.kerberos_config) in the request's update_mask while omitting this field from the request's service.",
+    ).optional(),
     version: z.string().describe(
       "Immutable. The Hive metastore schema version.",
     ).optional(),
   }).describe(
-    "Specifies configuration information specific to running Hive metastore software as the metastore service.",
+    "Configuration information specific to running Hive metastore software as the metastore service.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "User-defined labels for the metastore service.",
@@ -248,7 +254,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The hour of day (0-23) when the window starts.",
     ).optional(),
   }).describe(
-    "Maintenance window. This specifies when Dataproc Metastore may perform system maintenance operation to the service.",
+    "Optional. The one hour maintenance window of the metastore service. This specifies when the service can be restarted for maintenance purposes in UTC time. Maintenance window is not needed for services with the SPANNER database type.",
   ).optional(),
   metadataIntegration: z.object({
     dataCatalogConfig: z.object({
@@ -256,64 +262,11 @@ const GlobalArgsSchema = z.object({
         "Optional. Defines whether the metastore metadata should be synced to Data Catalog. The default value is to disable syncing metastore metadata to Data Catalog.",
       ).optional(),
     }).describe(
-      "Specifies how metastore metadata should be integrated with the Data Catalog service.",
+      "Optional. The integration config for the Data Catalog service.",
     ).optional(),
   }).describe(
-    "Specifies how metastore metadata should be integrated with external services.",
+    "Optional. The setting that defines how metastore metadata should be integrated with external services and systems.",
   ).optional(),
-  metadataManagementActivity: z.object({
-    metadataExports: z.array(z.object({
-      databaseDumpType: z.enum(["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]).describe(
-        "Output only. The type of the database dump.",
-      ).optional(),
-      destinationGcsUri: z.string().describe(
-        "Output only. A Cloud Storage URI of a folder that metadata are exported to, in the form of gs:////, where is automatically generated.",
-      ).optional(),
-      endTime: z.string().describe(
-        "Output only. The time when the export ended.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. The time when the export started.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "RUNNING",
-        "SUCCEEDED",
-        "FAILED",
-        "CANCELLED",
-      ]).describe("Output only. The current state of the export.").optional(),
-    })).describe(
-      "Output only. The latest metadata exports of the metastore service.",
-    ).optional(),
-    restores: z.array(z.object({
-      backup: z.string().describe(
-        "Output only. The relative resource name of the metastore service backup to restore from, in the following form:projects/{project_id}/locations/{location_id}/services/{service_id}/backups/{backup_id}.",
-      ).optional(),
-      backupLocation: z.string().describe(
-        "Optional. A Cloud Storage URI specifying where the backup artifacts are stored, in the format gs:///.",
-      ).optional(),
-      details: z.string().describe(
-        "Output only. The restore details containing the revision of the service to be restored to, in format of JSON.",
-      ).optional(),
-      endTime: z.string().describe(
-        "Output only. The time when the restore ended.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. The time when the restore started.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "RUNNING",
-        "SUCCEEDED",
-        "FAILED",
-        "CANCELLED",
-      ]).describe("Output only. The current state of the restore.").optional(),
-      type: z.enum(["RESTORE_TYPE_UNSPECIFIED", "FULL", "METADATA_ONLY"])
-        .describe("Output only. The type of restore.").optional(),
-    })).describe("Output only. The latest restores of the metastore service.")
-      .optional(),
-  }).describe("The metadata management activities of the metastore service.")
-    .optional(),
   name: z.string().describe(
     "Immutable. Identifier. The relative resource name of the metastore service, in the following format:projects/{project_number}/locations/{location_id}/services/{service_id}.",
   ).optional(),
@@ -334,8 +287,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Immutable. The consumer-side network configuration for the Dataproc Metastore instance.",
     ).optional(),
-  }).describe("Network configuration for the Dataproc Metastore service.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration specifying the network settings for the Dataproc Metastore service.",
+  ).optional(),
   port: z.number().int().describe(
     "Optional. The TCP port at which the metastore service is reached. Default: 9083.",
   ).optional(),
@@ -358,12 +312,8 @@ const GlobalArgsSchema = z.object({
         minScalingFactor: z.number().describe(
           "Optional. The lowest scaling factor that the service should be autoscaled to.",
         ).optional(),
-      }).describe(
-        "Represents the autoscaling limit configuration of a metastore service.",
-      ).optional(),
-    }).describe(
-      "Represents the autoscaling configuration of a metastore service.",
-    ).optional(),
+      }).describe("Optional. The LimitConfig of the service.").optional(),
+    }).describe("Optional. The autoscaling configuration.").optional(),
     instanceSize: z.enum([
       "INSTANCE_SIZE_UNSPECIFIED",
       "EXTRA_SMALL",
@@ -377,7 +327,7 @@ const GlobalArgsSchema = z.object({
     scalingFactor: z.number().describe(
       "Scaling factor, increments of 0.1 for values less than 1.0, and increments of 1.0 for values greater than 1.0.",
     ).optional(),
-  }).describe("Represents the scaling configuration of a metastore service.")
+  }).describe("Optional. Scaling configuration of the metastore service.")
     .optional(),
   scheduledBackup: z.object({
     backupLocation: z.string().describe(
@@ -401,15 +351,17 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       state: z.enum(["STATE_UNSPECIFIED", "IN_PROGRESS", "SUCCEEDED", "FAILED"])
         .describe("Output only. The current state of the backup.").optional(),
-    }).describe("The details of the latest scheduled backup.").optional(),
+    }).describe("Output only. The details of the latest scheduled backup.")
+      .optional(),
     nextScheduledTime: z.string().describe(
       "Output only. The time when the next backups execution is scheduled to start.",
     ).optional(),
     timeZone: z.string().describe(
       "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. America/Los_Angeles or Africa/Abidjan. If left unspecified, the default is UTC.",
     ).optional(),
-  }).describe("This specifies the configuration of scheduled backup.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration of scheduled backup for the metastore service.",
+  ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
@@ -417,8 +369,9 @@ const GlobalArgsSchema = z.object({
     logFormat: z.enum(["LOG_FORMAT_UNSPECIFIED", "LEGACY", "JSON"]).describe(
       "Optional. The output format of the Dataproc Metastore service's logs.",
     ).optional(),
-  }).describe("Telemetry Configuration for the Dataproc Metastore service.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration specifying telemetry settings for the Dataproc Metastore service. If unspecified defaults to JSON.",
+  ).optional(),
   tier: z.enum(["TIER_UNSPECIFIED", "DEVELOPER", "ENTERPRISE"]).describe(
     "Optional. The tier of the service.",
   ).optional(),
@@ -548,7 +501,9 @@ const InputsSchema = z.object({
     kmsKey: z.string().describe(
       "Optional. The fully qualified customer provided Cloud KMS key name to use for customer data encryption, in the following format:projects/{project_number}/locations/{location_id}/keyRings/{key_ring_id}/cryptoKeys/{crypto_key_id}.",
     ).optional(),
-  }).describe("Encryption settings for the service.").optional(),
+  }).describe(
+    "Immutable. Information used to configure the Dataproc Metastore service to encrypt customer data at rest. Cannot be updated.",
+  ).optional(),
   hiveMetastoreConfig: z.object({
     auxiliaryVersions: z.record(
       z.string(),
@@ -560,8 +515,9 @@ const InputsSchema = z.object({
           consumers: z.array(z.unknown()).describe(
             "Immutable. The consumer-side network configuration for the Dataproc Metastore instance.",
           ).optional(),
-        }).describe("Network configuration for the Dataproc Metastore service.")
-          .optional(),
+        }).describe(
+          "Output only. The network configuration contains the endpoint URI(s) of the auxiliary Hive metastore service.",
+        ).optional(),
         version: z.string().describe(
           "Optional. The Hive metastore version of the auxiliary service. It must be less than the primary Hive metastore service's version.",
         ).optional(),
@@ -584,20 +540,23 @@ const InputsSchema = z.object({
         cloudSecret: z.string().describe(
           "Optional. The relative resource name of a Secret Manager secret version, in the following form:projects/{project_number}/secrets/{secret_id}/versions/{version_id}.",
         ).optional(),
-      }).describe("A securely stored value.").optional(),
+      }).describe(
+        "Optional. A Kerberos keytab file that can be used to authenticate a service principal with a Kerberos Key Distribution Center (KDC).",
+      ).optional(),
       krb5ConfigGcsUri: z.string().describe(
         "Optional. A Cloud Storage URI that specifies the path to a krb5.conf file. It is of the form gs://{bucket_name}/path/to/krb5.conf, although the file does not need to be named krb5.conf explicitly.",
       ).optional(),
       principal: z.string().describe(
         "Optional. A Kerberos principal that exists in the both the keytab the KDC to authenticate as. A typical principal is of the form primary/instance@REALM, but there is no exact format.",
       ).optional(),
-    }).describe("Configuration information for a Kerberos principal.")
-      .optional(),
+    }).describe(
+      "Optional. Information used to configure the Hive metastore service as a service principal in a Kerberos realm. To disable Kerberos, use the UpdateService method and specify this field's path (hive_metastore_config.kerberos_config) in the request's update_mask while omitting this field from the request's service.",
+    ).optional(),
     version: z.string().describe(
       "Immutable. The Hive metastore schema version.",
     ).optional(),
   }).describe(
-    "Specifies configuration information specific to running Hive metastore software as the metastore service.",
+    "Configuration information specific to running Hive metastore software as the metastore service.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "User-defined labels for the metastore service.",
@@ -618,7 +577,7 @@ const InputsSchema = z.object({
       "Optional. The hour of day (0-23) when the window starts.",
     ).optional(),
   }).describe(
-    "Maintenance window. This specifies when Dataproc Metastore may perform system maintenance operation to the service.",
+    "Optional. The one hour maintenance window of the metastore service. This specifies when the service can be restarted for maintenance purposes in UTC time. Maintenance window is not needed for services with the SPANNER database type.",
   ).optional(),
   metadataIntegration: z.object({
     dataCatalogConfig: z.object({
@@ -626,64 +585,11 @@ const InputsSchema = z.object({
         "Optional. Defines whether the metastore metadata should be synced to Data Catalog. The default value is to disable syncing metastore metadata to Data Catalog.",
       ).optional(),
     }).describe(
-      "Specifies how metastore metadata should be integrated with the Data Catalog service.",
+      "Optional. The integration config for the Data Catalog service.",
     ).optional(),
   }).describe(
-    "Specifies how metastore metadata should be integrated with external services.",
+    "Optional. The setting that defines how metastore metadata should be integrated with external services and systems.",
   ).optional(),
-  metadataManagementActivity: z.object({
-    metadataExports: z.array(z.object({
-      databaseDumpType: z.enum(["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]).describe(
-        "Output only. The type of the database dump.",
-      ).optional(),
-      destinationGcsUri: z.string().describe(
-        "Output only. A Cloud Storage URI of a folder that metadata are exported to, in the form of gs:////, where is automatically generated.",
-      ).optional(),
-      endTime: z.string().describe(
-        "Output only. The time when the export ended.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. The time when the export started.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "RUNNING",
-        "SUCCEEDED",
-        "FAILED",
-        "CANCELLED",
-      ]).describe("Output only. The current state of the export.").optional(),
-    })).describe(
-      "Output only. The latest metadata exports of the metastore service.",
-    ).optional(),
-    restores: z.array(z.object({
-      backup: z.string().describe(
-        "Output only. The relative resource name of the metastore service backup to restore from, in the following form:projects/{project_id}/locations/{location_id}/services/{service_id}/backups/{backup_id}.",
-      ).optional(),
-      backupLocation: z.string().describe(
-        "Optional. A Cloud Storage URI specifying where the backup artifacts are stored, in the format gs:///.",
-      ).optional(),
-      details: z.string().describe(
-        "Output only. The restore details containing the revision of the service to be restored to, in format of JSON.",
-      ).optional(),
-      endTime: z.string().describe(
-        "Output only. The time when the restore ended.",
-      ).optional(),
-      startTime: z.string().describe(
-        "Output only. The time when the restore started.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "RUNNING",
-        "SUCCEEDED",
-        "FAILED",
-        "CANCELLED",
-      ]).describe("Output only. The current state of the restore.").optional(),
-      type: z.enum(["RESTORE_TYPE_UNSPECIFIED", "FULL", "METADATA_ONLY"])
-        .describe("Output only. The type of restore.").optional(),
-    })).describe("Output only. The latest restores of the metastore service.")
-      .optional(),
-  }).describe("The metadata management activities of the metastore service.")
-    .optional(),
   name: z.string().describe(
     "Immutable. Identifier. The relative resource name of the metastore service, in the following format:projects/{project_number}/locations/{location_id}/services/{service_id}.",
   ).optional(),
@@ -704,8 +610,9 @@ const InputsSchema = z.object({
     })).describe(
       "Immutable. The consumer-side network configuration for the Dataproc Metastore instance.",
     ).optional(),
-  }).describe("Network configuration for the Dataproc Metastore service.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration specifying the network settings for the Dataproc Metastore service.",
+  ).optional(),
   port: z.number().int().describe(
     "Optional. The TCP port at which the metastore service is reached. Default: 9083.",
   ).optional(),
@@ -728,12 +635,8 @@ const InputsSchema = z.object({
         minScalingFactor: z.number().describe(
           "Optional. The lowest scaling factor that the service should be autoscaled to.",
         ).optional(),
-      }).describe(
-        "Represents the autoscaling limit configuration of a metastore service.",
-      ).optional(),
-    }).describe(
-      "Represents the autoscaling configuration of a metastore service.",
-    ).optional(),
+      }).describe("Optional. The LimitConfig of the service.").optional(),
+    }).describe("Optional. The autoscaling configuration.").optional(),
     instanceSize: z.enum([
       "INSTANCE_SIZE_UNSPECIFIED",
       "EXTRA_SMALL",
@@ -747,7 +650,7 @@ const InputsSchema = z.object({
     scalingFactor: z.number().describe(
       "Scaling factor, increments of 0.1 for values less than 1.0, and increments of 1.0 for values greater than 1.0.",
     ).optional(),
-  }).describe("Represents the scaling configuration of a metastore service.")
+  }).describe("Optional. Scaling configuration of the metastore service.")
     .optional(),
   scheduledBackup: z.object({
     backupLocation: z.string().describe(
@@ -771,15 +674,17 @@ const InputsSchema = z.object({
       ).optional(),
       state: z.enum(["STATE_UNSPECIFIED", "IN_PROGRESS", "SUCCEEDED", "FAILED"])
         .describe("Output only. The current state of the backup.").optional(),
-    }).describe("The details of the latest scheduled backup.").optional(),
+    }).describe("Output only. The details of the latest scheduled backup.")
+      .optional(),
     nextScheduledTime: z.string().describe(
       "Output only. The time when the next backups execution is scheduled to start.",
     ).optional(),
     timeZone: z.string().describe(
       "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. America/Los_Angeles or Africa/Abidjan. If left unspecified, the default is UTC.",
     ).optional(),
-  }).describe("This specifies the configuration of scheduled backup.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration of scheduled backup for the metastore service.",
+  ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
@@ -787,8 +692,9 @@ const InputsSchema = z.object({
     logFormat: z.enum(["LOG_FORMAT_UNSPECIFIED", "LEGACY", "JSON"]).describe(
       "Optional. The output format of the Dataproc Metastore service's logs.",
     ).optional(),
-  }).describe("Telemetry Configuration for the Dataproc Metastore service.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration specifying telemetry settings for the Dataproc Metastore service. If unspecified defaults to JSON.",
+  ).optional(),
   tier: z.enum(["TIER_UNSPECIFIED", "DEVELOPER", "ENTERPRISE"]).describe(
     "Optional. The tier of the service.",
   ).optional(),
@@ -826,7 +732,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Metastore Services. Registered at `@swamp/gcp/metastore/services`. */
 export const model = {
   type: "@swamp/gcp/metastore/services",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -938,6 +844,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: metadataManagementActivity",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          metadataManagementActivity: _metadataManagementActivity,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -984,9 +901,6 @@ export const model = {
         }
         if (g["metadataIntegration"] !== undefined) {
           body["metadataIntegration"] = g["metadataIntegration"];
-        }
-        if (g["metadataManagementActivity"] !== undefined) {
-          body["metadataManagementActivity"] = g["metadataManagementActivity"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["network"] !== undefined) body["network"] = g["network"];
@@ -1135,9 +1049,6 @@ export const model = {
         if (g["deletionProtection"] !== undefined) {
           body["deletionProtection"] = g["deletionProtection"];
         }
-        if (g["encryptionConfig"] !== undefined) {
-          body["encryptionConfig"] = g["encryptionConfig"];
-        }
         if (g["hiveMetastoreConfig"] !== undefined) {
           body["hiveMetastoreConfig"] = g["hiveMetastoreConfig"];
         }
@@ -1147,9 +1058,6 @@ export const model = {
         }
         if (g["metadataIntegration"] !== undefined) {
           body["metadataIntegration"] = g["metadataIntegration"];
-        }
-        if (g["metadataManagementActivity"] !== undefined) {
-          body["metadataManagementActivity"] = g["metadataManagementActivity"];
         }
         if (g["networkConfig"] !== undefined) {
           body["networkConfig"] = g["networkConfig"];

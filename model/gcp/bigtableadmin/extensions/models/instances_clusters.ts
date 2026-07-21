@@ -155,9 +155,7 @@ const GlobalArgsSchema = z.object({
         minServeNodes: z.number().int().describe(
           "Required. Minimum number of nodes to scale down to.",
         ).optional(),
-      }).describe(
-        "Limits for the number of nodes a Cluster can autoscale up/down to.",
-      ).optional(),
+      }).describe("Required. Autoscaling limits for this cluster.").optional(),
       autoscalingTargets: z.object({
         cpuUtilizationPercent: z.number().int().describe(
           "The cpu utilization that the Autoscaler should be trying to achieve. This number is on a scale from 0 (no utilization) to 100 (total utilization), and is limited between 10 and 80, otherwise it will return INVALID_ARGUMENT error.",
@@ -165,11 +163,9 @@ const GlobalArgsSchema = z.object({
         storageUtilizationGibPerNode: z.number().int().describe(
           "The storage utilization that the Autoscaler should be trying to achieve. This number is limited between 2560 (2.5TiB) and 5120 (5TiB) for a SSD cluster and between 8192 (8TiB) and 16384 (16TiB) for an HDD cluster, otherwise it will return INVALID_ARGUMENT error. If this value is set to 0, it will be treated as if it were set to the default value: 2560 for SSD, 8192 for HDD.",
         ).optional(),
-      }).describe(
-        "The Autoscaling targets for a Cluster. These determine the recommended nodes.",
-      ).optional(),
-    }).describe("Autoscaling config for a cluster.").optional(),
-  }).describe("Configuration for a cluster.").optional(),
+      }).describe("Required. Autoscaling targets for this cluster.").optional(),
+    }).describe("Autoscaling configuration for this cluster.").optional(),
+  }).describe("Configuration for this cluster.").optional(),
   defaultStorageType: z.enum(["STORAGE_TYPE_UNSPECIFIED", "SSD", "HDD"])
     .describe(
       "Immutable. The type of storage used by this cluster to serve its parent instance's tables, unless explicitly overridden.",
@@ -179,7 +175,7 @@ const GlobalArgsSchema = z.object({
       "Describes the Cloud KMS encryption key that will be used to protect the destination Bigtable cluster. The requirements for this key are: 1) The Cloud Bigtable service account associated with the project that contains this cluster must be granted the `cloudkms.cryptoKeyEncrypterDecrypter` role on the CMEK key. 2) Only regional keys can be used and the region of the CMEK key must match the region of the cluster. Values are of the form `projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}`",
     ).optional(),
   }).describe(
-    "Cloud Key Management Service (Cloud KMS) settings for a CMEK-protected cluster.",
+    "Immutable. The encryption configuration for CMEK-protected clusters.",
   ).optional(),
   location: z.string().describe(
     "Immutable. The location where this cluster's nodes and storage reside. For best performance, clients should be located as close as possible to this cluster. Currently only zones are supported, so values should be of the form `projects/{project}/locations/{zone}`.",
@@ -243,9 +239,7 @@ const InputsSchema = z.object({
         minServeNodes: z.number().int().describe(
           "Required. Minimum number of nodes to scale down to.",
         ).optional(),
-      }).describe(
-        "Limits for the number of nodes a Cluster can autoscale up/down to.",
-      ).optional(),
+      }).describe("Required. Autoscaling limits for this cluster.").optional(),
       autoscalingTargets: z.object({
         cpuUtilizationPercent: z.number().int().describe(
           "The cpu utilization that the Autoscaler should be trying to achieve. This number is on a scale from 0 (no utilization) to 100 (total utilization), and is limited between 10 and 80, otherwise it will return INVALID_ARGUMENT error.",
@@ -253,11 +247,9 @@ const InputsSchema = z.object({
         storageUtilizationGibPerNode: z.number().int().describe(
           "The storage utilization that the Autoscaler should be trying to achieve. This number is limited between 2560 (2.5TiB) and 5120 (5TiB) for a SSD cluster and between 8192 (8TiB) and 16384 (16TiB) for an HDD cluster, otherwise it will return INVALID_ARGUMENT error. If this value is set to 0, it will be treated as if it were set to the default value: 2560 for SSD, 8192 for HDD.",
         ).optional(),
-      }).describe(
-        "The Autoscaling targets for a Cluster. These determine the recommended nodes.",
-      ).optional(),
-    }).describe("Autoscaling config for a cluster.").optional(),
-  }).describe("Configuration for a cluster.").optional(),
+      }).describe("Required. Autoscaling targets for this cluster.").optional(),
+    }).describe("Autoscaling configuration for this cluster.").optional(),
+  }).describe("Configuration for this cluster.").optional(),
   defaultStorageType: z.enum(["STORAGE_TYPE_UNSPECIFIED", "SSD", "HDD"])
     .describe(
       "Immutable. The type of storage used by this cluster to serve its parent instance's tables, unless explicitly overridden.",
@@ -267,7 +259,7 @@ const InputsSchema = z.object({
       "Describes the Cloud KMS encryption key that will be used to protect the destination Bigtable cluster. The requirements for this key are: 1) The Cloud Bigtable service account associated with the project that contains this cluster must be granted the `cloudkms.cryptoKeyEncrypterDecrypter` role on the CMEK key. 2) Only regional keys can be used and the region of the CMEK key must match the region of the cluster. Values are of the form `projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}`",
     ).optional(),
   }).describe(
-    "Cloud Key Management Service (Cloud KMS) settings for a CMEK-protected cluster.",
+    "Immutable. The encryption configuration for CMEK-protected clusters.",
   ).optional(),
   location: z.string().describe(
     "Immutable. The location where this cluster's nodes and storage reside. For best performance, clients should be located as close as possible to this cluster. Currently only zones are supported, so values should be of the form `projects/{project}/locations/{zone}`.",
@@ -314,7 +306,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Clusters. Registered at `@swamp/gcp/bigtableadmin/instances-clusters`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-clusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -463,6 +455,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -629,9 +626,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["clusterConfig"] !== undefined) {
           body["clusterConfig"] = g["clusterConfig"];
-        }
-        if (g["encryptionConfig"] !== undefined) {
-          body["encryptionConfig"] = g["encryptionConfig"];
         }
         if (g["serveNodes"] !== undefined) body["serveNodes"] = g["serveNodes"];
         for (const key of Object.keys(existing)) {

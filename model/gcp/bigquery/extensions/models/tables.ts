@@ -207,30 +207,15 @@ const GlobalArgsSchema = z.object({
       "Optional. The table format the metadata only snapshots are stored in.",
     ).optional(),
   }).describe(
-    "Configuration for BigQuery tables for Apache Iceberg (formerly BigLake managed tables.)",
+    "Optional. Specifies the configuration of a BigQuery table for Apache Iceberg.",
   ).optional(),
-  cloneDefinition: z.object({
-    baseTableReference: z.object({
-      datasetId: z.string().describe(
-        "Required. The ID of the dataset containing this table.",
-      ).optional(),
-      projectId: z.string().describe(
-        "Required. The ID of the project containing this table.",
-      ).optional(),
-      tableId: z.string().describe(
-        "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
-      ).optional(),
-    }).optional(),
-    cloneTime: z.string().describe(
-      "Required. The time at which the base table was cloned. This value is reported in the JSON response using RFC3339 format.",
-    ).optional(),
-  }).describe("Information about base table and clone time of a table clone.")
-    .optional(),
   clustering: z.object({
     fields: z.array(z.string()).describe(
       "One or more fields on which data should be clustered. Only top-level, non-repeated, simple-type fields are supported. The ordering of the clustering fields should be prioritized from most to least important for filtering purposes. For additional information, see [Introduction to clustered tables](https://cloud.google.com/bigquery/docs/clustered-tables#limitations).",
     ).optional(),
-  }).describe("Configures table clustering.").optional(),
+  }).describe(
+    "Clustering specification for the table. Must be specified with time-based partitioning, data in the table will be first partitioned and subsequently clustered.",
+  ).optional(),
   defaultCollation: z.string().describe(
     "Optional. Defines the default collation specification of new STRING fields in the table. During table creation or update, if a STRING field is added to this table without explicit collation specified, then the table inherits the table default collation. A change to this field affects only fields added afterwards, and does not alter the existing fields. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
   ).optional(),
@@ -248,7 +233,8 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
     ).optional(),
-  }).describe("Configuration for Cloud KMS encryption settings.").optional(),
+  }).describe("Custom encryption configuration (e.g., Cloud KMS keys).")
+    .optional(),
   expirationTime: z.string().describe(
     "Optional. The time when this table expires, in milliseconds since the epoch. If not present, the table will persist indefinitely. Expired tables will be deleted and their storage reclaimed. The defaultTableExpirationMs property of the encapsulating dataset can be used to set a default expirationTime on newly created tables.",
   ).optional(),
@@ -279,13 +265,13 @@ const GlobalArgsSchema = z.object({
         serializationLibrary: z.string().describe(
           "Required. Specifies a fully-qualified class name of the serialization library that is responsible for the translation of data between table representation and the underlying low-level input and output format structures. The maximum length is 256 characters.",
         ).optional(),
-      }).describe("Serializer and deserializer information.").optional(),
+      }).describe("Optional. Serializer and deserializer information.")
+        .optional(),
     }).describe(
-      "Contains information about how a table's data is stored and accessed by open source query engines.",
+      "Optional. A storage descriptor containing information about the physical storage of this table.",
     ).optional(),
-  }).describe(
-    "Metadata about open source compatible table. The fields contained in these options correspond to Hive metastore's table-level properties.",
-  ).optional(),
+  }).describe("Optional. Options defining open source compatible table.")
+    .optional(),
   externalDataConfiguration: z.object({
     autodetect: z.boolean().describe(
       "Try to detect schema and format options automatically. Any option specified explicitly will be honored.",
@@ -294,7 +280,9 @@ const GlobalArgsSchema = z.object({
       useAvroLogicalTypes: z.boolean().describe(
         'Optional. If sourceFormat is set to "AVRO", indicates whether to interpret logical types as the corresponding BigQuery data type (for example, TIMESTAMP), instead of using the raw type (for example, INTEGER).',
       ).optional(),
-    }).describe("Options for external data sources.").optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to AVRO.",
+    ).optional(),
     bigtableOptions: z.object({
       columnFamilies: z.array(z.object({
         columns: z.array(z.unknown()).describe(
@@ -315,8 +303,9 @@ const GlobalArgsSchema = z.object({
           schemaBundleId: z.unknown().describe(
             "Optional. The ID of the Bigtable SchemaBundle resource associated with this protobuf. The ID should be referred to within the parent table, e.g., `foo` rather than `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/foo`. See [more details on Bigtable SchemaBundles](https://docs.cloud.google.com/bigtable/docs/create-manage-protobuf-schemas).",
           ).optional(),
-        }).describe("Information related to a Bigtable protobuf column.")
-          .optional(),
+        }).describe(
+          "Optional. Protobuf-specific configurations, only takes effect when the encoding is PROTO_BINARY.",
+        ).optional(),
         type: z.string().describe(
           "Optional. The type to convert the value in cells of this column family. The values are expected to be encoded using HBase Bytes.toBytes function when using the BINARY encoding value. Following BigQuery types are allowed (case-sensitive): * BYTES * STRING * INTEGER * FLOAT * BOOLEAN * JSON Default type is BYTES. This can be overridden for a specific column by listing that column in 'columns' and specifying a type for it.",
         ).optional(),
@@ -332,8 +321,9 @@ const GlobalArgsSchema = z.object({
       readRowkeyAsString: z.boolean().describe(
         "Optional. If field is true, then the rowkey column families will be read and converted to string. Otherwise they are read with BYTES type values and users need to manually cast them with CAST if necessary. The default value is false.",
       ).optional(),
-    }).describe("Options specific to Google Cloud Bigtable data sources.")
-      .optional(),
+    }).describe(
+      "Optional. Additional options if sourceFormat is set to BIGTABLE.",
+    ).optional(),
     compression: z.string().describe(
       "Optional. The compression type of the data source. Possible values include GZIP and NONE. The default value is NONE. This setting is ignored for Google Cloud Bigtable, Google Cloud Datastore backups, Avro, ORC and Parquet formats. An empty string is an invalid value.",
     ).optional(),
@@ -371,7 +361,9 @@ const GlobalArgsSchema = z.object({
       sourceColumnMatch: z.string().describe(
         "Optional. Controls the strategy used to match loaded columns to the schema. If not set, a sensible default is chosen based on how the schema is provided. If autodetect is used, then columns are matched by name. Otherwise, columns are matched by position. This is done to keep the behavior backward-compatible. Acceptable values are: POSITION - matches by position. This assumes that the columns are ordered the same way as the schema. NAME - matches by name. This reads the header row as column names and reorders columns to match the field names in the schema.",
       ).optional(),
-    }).describe("Information related to a CSV data source.").optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to CSV.",
+    ).optional(),
     dateFormat: z.string().describe(
       "Optional. Format used to parse DATE values. Supports C-style and SQL-style values.",
     ).optional(),
@@ -401,7 +393,9 @@ const GlobalArgsSchema = z.object({
       skipLeadingRows: z.string().describe(
         "Optional. The number of rows at the top of a sheet that BigQuery will skip when reading the data. The default value is 0. This property is useful if you have header rows that should be skipped. When autodetect is on, the behavior is the following: * skipLeadingRows unspecified - Autodetect tries to detect headers in the first row. If they are not detected, the row is read as data. Otherwise data is read starting from the second row. * skipLeadingRows is 0 - Instructs autodetect that there are no headers and data should be read starting from the first row. * skipLeadingRows = N > 0 - Autodetect skips N-1 rows and tries to detect headers in row N. If headers are not detected, row N is just skipped. Otherwise row N is used to extract column names for the detected schema.",
       ).optional(),
-    }).describe("Options specific to Google Sheets data sources.").optional(),
+    }).describe(
+      "Optional. Additional options if sourceFormat is set to GOOGLE_SHEETS.",
+    ).optional(),
     hivePartitioningOptions: z.object({
       fields: z.array(z.string()).describe(
         "Output only. For permanent external tables, this field is populated with the hive partition keys in the order they were inferred. The types of the partition keys can be deduced by checking the table schema (which will include the partition keys). Not every API will populate this field in the output. For example, Tables.Get will populate it, but Tables.List will not contain this field.",
@@ -415,7 +409,9 @@ const GlobalArgsSchema = z.object({
       sourceUriPrefix: z.string().describe(
         "Optional. When hive partition detection is requested, a common prefix for all source uris must be required. The prefix must end immediately before the partition key encoding begins. For example, consider files following this data layout: gs://bucket/path_to_table/dt=2019-06-01/country=USA/id=7/file.avro gs://bucket/path_to_table/dt=2019-05-31/country=CA/id=3/file.avro When hive partitioning is requested with either AUTO or STRINGS detection, the common prefix can be either of gs://bucket/path_to_table or gs://bucket/path_to_table/. CUSTOM detection requires encoding the partitioning schema immediately after the common prefix. For CUSTOM, any of * gs://bucket/path_to_table/{dt:DATE}/{country:STRING}/{id:INTEGER} * gs://bucket/path_to_table/{dt:STRING}/{country:STRING}/{id:INTEGER} * gs://bucket/path_to_table/{dt:DATE}/{country:STRING}/{id:STRING} would all be valid source URI prefixes.",
       ).optional(),
-    }).describe("Options for configuring hive partitioning detect.").optional(),
+    }).describe(
+      "Optional. When set, configures hive partitioning support. Not all storage formats support hive partitioning -- requesting hive partitioning on an unsupported format will lead to an error, as will providing an invalid specification.",
+    ).optional(),
     ignoreUnknownValues: z.boolean().describe(
       "Optional. Indicates if BigQuery should allow extra values that are not represented in the table schema. If true, the extra values are ignored. If false, records with extra columns are treated as bad records, and if there are too many bad records, an invalid error is returned in the job result. The default value is false. The sourceFormat property determines what BigQuery treats as an extra value: CSV: Trailing columns JSON: Named values that don't match any column names Google Cloud Bigtable: This setting is ignored. Google Cloud Datastore backups: This setting is ignored. Avro: This setting is ignored. ORC: This setting is ignored. Parquet: This setting is ignored.",
     ).optional(),
@@ -426,7 +422,9 @@ const GlobalArgsSchema = z.object({
       encoding: z.string().describe(
         "Optional. The character encoding of the data. The supported values are UTF-8, UTF-16BE, UTF-16LE, UTF-32BE, and UTF-32LE. The default value is UTF-8.",
       ).optional(),
-    }).describe("Json Options for load and make external tables.").optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to JSON.",
+    ).optional(),
     maxBadRecords: z.number().int().describe(
       "Optional. The maximum number of bad records that BigQuery can ignore when reading data. If the number of bad records exceeds this value, an invalid error is returned in the job result. The default value is 0, which requires that all records are valid. This setting is ignored for Google Cloud Bigtable, Google Cloud Datastore backups, Avro, ORC and Parquet formats.",
     ).optional(),
@@ -455,8 +453,9 @@ const GlobalArgsSchema = z.object({
         .describe(
           "Optional. Indicates how to represent a Parquet map if present.",
         ).optional(),
-    }).describe("Parquet Options for load and make external tables.")
-      .optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to PARQUET.",
+    ).optional(),
     referenceFileSchemaUri: z.string().describe(
       "Optional. When creating an external table, the user can provide a reference file with the table schema. This is enabled for the following formats: AVRO, PARQUET, ORC.",
     ).optional(),
@@ -483,7 +482,7 @@ const GlobalArgsSchema = z.object({
             "Contains a list of data policy options. At most 9 data policies are allowed per field.",
           ).optional(),
         }).describe(
-          "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
+          "Optional. Specifies data policies attached to this field, used for field-level access control. When set, this will be the source of truth for data policy information.",
         ).optional(),
         defaultValueExpression: z.string().describe(
           "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -552,9 +551,11 @@ const GlobalArgsSchema = z.object({
           "Required. Specifies the system which defines the foreign data type.",
         ).optional(),
       }).describe(
-        "Metadata about the foreign data type definition such as the system in which the type is defined.",
+        "Optional. Specifies metadata of the foreign data type definition in field schema (TableFieldSchema.foreign_type_definition).",
       ).optional(),
-    }).describe("Schema of a table").optional(),
+    }).describe(
+      "Optional. The schema for the data. Schema is required for CSV and JSON formats if autodetect is not on. Schema is disallowed for Google Cloud Bigtable, Cloud Datastore backups, Avro, ORC and Parquet formats.",
+    ).optional(),
     sourceFormat: z.string().describe(
       '[Required] The data format. For CSV files, specify "CSV". For Google sheets, specify "GOOGLE_SHEETS". For newline-delimited JSON, specify "NEWLINE_DELIMITED_JSON". For Avro files, specify "AVRO". For Google Cloud Datastore backups, specify "DATASTORE_BACKUP". For Apache Iceberg tables, specify "ICEBERG". For ORC files, specify "ORC". For Parquet files, specify "PARQUET". [Beta] For Google Cloud Bigtable, specify "BIGTABLE".',
     ).optional(),
@@ -573,7 +574,9 @@ const GlobalArgsSchema = z.object({
     timestampTargetPrecision: z.array(z.number().int()).describe(
       "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Optional. Describes the data format, location, and other properties of a table stored outside of BigQuery. By defining these properties, the data source can then be queried as if it were a standard BigQuery table.",
+  ).optional(),
   friendlyName: z.string().describe(
     "Optional. A descriptive name for this table.",
   ).optional(),
@@ -605,28 +608,7 @@ const GlobalArgsSchema = z.object({
     refreshIntervalMs: z.string().describe(
       'Optional. The maximum frequency at which this materialized view will be refreshed. The default value is "1800000" (30 minutes).',
     ).optional(),
-  }).describe("Definition and configuration of a materialized view.")
-    .optional(),
-  materializedViewStatus: z.object({
-    lastRefreshStatus: z.object({
-      debugInfo: z.string().describe(
-        "Debugging information. This property is internal to Google and should not be used.",
-      ).optional(),
-      location: z.string().describe(
-        "Specifies where the error occurred, if present.",
-      ).optional(),
-      message: z.string().describe("A human-readable description of the error.")
-        .optional(),
-      reason: z.string().describe(
-        "A short error code that summarizes the error.",
-      ).optional(),
-    }).describe("Error details.").optional(),
-    refreshWatermark: z.string().describe(
-      "Output only. Refresh watermark of materialized view. The base tables' data were collected into the materialized view cache until this time.",
-    ).optional(),
-  }).describe(
-    "Status of a materialized view. The last refresh timestamp status is omitted here, but is present in the MaterializedViewDefinition message.",
-  ).optional(),
+  }).describe("Optional. The materialized view definition.").optional(),
   maxStaleness: z.string().describe(
     "Optional. The maximum staleness of data that could be returned when the table (or stale MV) is queried. Staleness encoded as a string encoding of sql IntervalValue type.",
   ).optional(),
@@ -658,17 +640,7 @@ const GlobalArgsSchema = z.object({
         warmStart: z.boolean().optional(),
       }).describe("Deprecated.").optional(),
     })).describe("Deprecated.").optional(),
-  }).optional(),
-  partitionDefinition: z.object({
-    partitionedColumn: z.array(z.object({
-      field: z.string().describe("Required. The name of the partition column.")
-        .optional(),
-    })).describe(
-      "Optional. Details about each partitioning column. This field is output only for all partitioning types other than metastore partitioned tables. BigQuery native tables only support 1 partitioning column. Other table types may support 0, 1 or more partitioning columns. For metastore partitioned tables, the order must match the definition order in the Hive Metastore, where it must match the physical layout of the table. For example, CREATE TABLE a_table(id BIGINT, name STRING) PARTITIONED BY (city STRING, state STRING). In this case the values must be ['city', 'state'] in that order.",
-    ).optional(),
-  }).describe(
-    "The partitioning information, which includes managed table, external table and metastore partitioned table partition information.",
-  ).optional(),
+  }).describe("Deprecated.").optional(),
   rangePartitioning: z.object({
     field: z.string().describe(
       "Required. The name of the column to partition the table on. It must be a top-level, INT64 column whose mode is NULLABLE or REQUIRED.",
@@ -685,18 +657,14 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("[Experimental] Defines the ranges for range partitioning.")
       .optional(),
-  }).optional(),
+  }).describe("If specified, configures range partitioning for this table.")
+    .optional(),
   requirePartitionFilter: z.boolean().describe(
     "Optional. If set to true, queries over this table require a partition filter that can be used for partition elimination to be specified.",
   ).optional(),
   resourceTags: z.record(z.string(), z.string()).describe(
     '[Optional] The tags associated with this table. Tag keys are globally unique. See additional information on [tags](https://cloud.google.com/iam/docs/tags-access-control#definitions). An object containing a list of "key": value pairs. The key is the namespaced friendly name of the tag key, e.g. "12345/environment" where 12345 is parent id. The value is the friendly short name of the tag value, e.g. "production".',
   ).optional(),
-  restrictions: z.object({
-    type: z.enum(["RESTRICTION_TYPE_UNSPECIFIED", "RESTRICTED_DATA_EGRESS"])
-      .describe("Output only. Specifies the type of dataset/table restriction.")
-      .optional(),
-  }).optional(),
   schema: z.object({
     fields: z.array(z.object({
       categories: z.object({
@@ -724,7 +692,7 @@ const GlobalArgsSchema = z.object({
           "Contains a list of data policy options. At most 9 data policies are allowed per field.",
         ).optional(),
       }).describe(
-        "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
+        "Optional. Specifies data policies attached to this field, used for field-level access control. When set, this will be the source of truth for data policy information.",
       ).optional(),
       defaultValueExpression: z.string().describe(
         "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -806,37 +774,9 @@ const GlobalArgsSchema = z.object({
         "Required. Specifies the system which defines the foreign data type.",
       ).optional(),
     }).describe(
-      "Metadata about the foreign data type definition such as the system in which the type is defined.",
+      "Optional. Specifies metadata of the foreign data type definition in field schema (TableFieldSchema.foreign_type_definition).",
     ).optional(),
-  }).describe("Schema of a table").optional(),
-  snapshotDefinition: z.object({
-    baseTableReference: z.object({
-      datasetId: z.string().describe(
-        "Required. The ID of the dataset containing this table.",
-      ).optional(),
-      projectId: z.string().describe(
-        "Required. The ID of the project containing this table.",
-      ).optional(),
-      tableId: z.string().describe(
-        "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
-      ).optional(),
-    }).optional(),
-    snapshotTime: z.string().describe(
-      "Required. The time at which the base table was snapshot. This value is reported in the JSON response using RFC3339 format.",
-    ).optional(),
-  }).describe("Information about base table and snapshot time of the snapshot.")
-    .optional(),
-  streamingBuffer: z.object({
-    estimatedBytes: z.string().describe(
-      "Output only. A lower-bound estimate of the number of bytes currently in the streaming buffer.",
-    ).optional(),
-    estimatedRows: z.string().describe(
-      "Output only. A lower-bound estimate of the number of rows currently in the streaming buffer.",
-    ).optional(),
-    oldestEntryTime: z.string().describe(
-      "Output only. Contains the timestamp of the oldest entry in the streaming buffer, in milliseconds since the epoch, if the streaming buffer is available.",
-    ).optional(),
-  }).optional(),
+  }).describe("Optional. Describes the schema of this table.").optional(),
   tableConstraints: z.object({
     foreignKeys: z.array(z.object({
       columnReferences: z.array(z.object({
@@ -865,7 +805,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Represents the primary key constraint on a table's columns.")
       .optional(),
-  }).describe("The TableConstraints defines the primary key and foreign key.")
+  }).describe("Optional. Tables Primary Key and Foreign Key information")
     .optional(),
   tableReference: z.object({
     datasetId: z.string().describe(
@@ -877,7 +817,8 @@ const GlobalArgsSchema = z.object({
     tableId: z.string().describe(
       "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
     ).optional(),
-  }).optional(),
+  }).describe("Required. Reference describing the ID of this table.")
+    .optional(),
   tableReplicationInfo: z.object({
     replicatedSourceLastRefreshTime: z.string().describe(
       "Optional. Output only. If source is a materialized view, this field signifies the last refresh time of the source.",
@@ -894,7 +835,9 @@ const GlobalArgsSchema = z.object({
       reason: z.string().describe(
         "A short error code that summarizes the error.",
       ).optional(),
-    }).describe("Error details.").optional(),
+    }).describe(
+      "Optional. Output only. Replication error that will permanently stopped table replication.",
+    ).optional(),
     replicationIntervalMs: z.string().describe(
       "Optional. Specifies the interval at which the source table is polled for updates. It's Optional. If not specified, default replication interval would be applied.",
     ).optional(),
@@ -917,9 +860,10 @@ const GlobalArgsSchema = z.object({
       tableId: z.string().describe(
         "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. Source table reference that is replicated.")
+      .optional(),
   }).describe(
-    "Replication info of a table created using `AS REPLICA` DDL like: `CREATE MATERIALIZED VIEW mv1 AS REPLICA OF src_mv`",
+    "Optional. Table replication info for table created `AS REPLICA` DDL like: `CREATE MATERIALIZED VIEW mv1 AS REPLICA OF src_mv`",
   ).optional(),
   timePartitioning: z.object({
     expirationMs: z.string().describe(
@@ -934,7 +878,9 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe(
       "Required. The supported types are DAY, HOUR, MONTH, and YEAR, which will generate one partition per day, hour, month, and year, respectively.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "If specified, configures time-based partitioning for this table.",
+  ).optional(),
   view: z.object({
     foreignDefinitions: z.array(z.object({
       dialect: z.string().describe(
@@ -951,9 +897,8 @@ const GlobalArgsSchema = z.object({
         threshold: z.string().describe(
           'Optional. The threshold for the "aggregation threshold" policy.',
         ).optional(),
-      }).describe(
-        'Represents privacy policy associated with "aggregation threshold" method.',
-      ).optional(),
+      }).describe("Optional. Policy used for aggregation thresholds.")
+        .optional(),
       differentialPrivacyPolicy: z.object({
         deltaBudget: z.number().describe(
           "Optional. The total delta budget for all queries against the privacy-protected view. Each subscriber query against this view charges the amount of delta that is pre-defined by the contributor through the privacy policy delta_per_query field. If there is sufficient budget, then the subscriber query attempts to complete. It might still fail due to other reasons, in which case the charge is refunded. If there is insufficient budget the query is rejected. There might be multiple charge attempts if a single query references multiple views. In this case there must be sufficient budget for all charges or the query is rejected and charges are refunded in best effort. The budget does not have a refresh policy and can only be updated via ALTER VIEW or circumvented by creating a new view that can be queried with a fresh budget.",
@@ -979,9 +924,7 @@ const GlobalArgsSchema = z.object({
         privacyUnitColumn: z.string().describe(
           "Optional. The privacy unit column associated with this policy. Differential privacy policies can only have one privacy unit column per data source object (table, view).",
         ).optional(),
-      }).describe(
-        'Represents privacy policy associated with "differential privacy" method.',
-      ).optional(),
+      }).describe("Optional. Policy used for differential privacy.").optional(),
       joinRestrictionPolicy: z.object({
         joinAllowedColumns: z.array(z.string()).describe(
           "Optional. The only columns that joins are allowed on. This field is must be specified for join_conditions JOIN_ANY and JOIN_ALL and it cannot be set for JOIN_BLOCKED.",
@@ -996,11 +939,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Specifies if a join is required or not on queries for the view. Default is JOIN_CONDITION_UNSPECIFIED.",
         ).optional(),
       }).describe(
-        "Represents privacy policy associated with \"join restrictions\". Join restriction gives data providers the ability to enforce joins on the 'join_allowed_columns' when data is queried from a privacy protected view.",
+        "Optional. Join restriction policy is outside of the one of policies, since this policy can be set along with other policies. This policy gives data providers the ability to enforce joins on the 'join_allowed_columns' when data is queried from a privacy protected view.",
       ).optional(),
-    }).describe(
-      "Represents privacy policy that contains the privacy requirements specified by the data owner. Currently, this is only supported on views.",
-    ).optional(),
+    }).describe("Optional. Specifies the privacy policy for the view.")
+      .optional(),
     query: z.string().describe(
       "Required. A query that BigQuery executes when the view is referenced.",
     ).optional(),
@@ -1019,7 +961,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Describes user-defined function resources used in the query.")
       .optional(),
-  }).describe("Describes the definition of a logical view.").optional(),
+  }).describe("Optional. The view definition.").optional(),
   datasetId: z.string().describe("Required. Dataset ID of the new table"),
 });
 
@@ -1426,30 +1368,15 @@ const InputsSchema = z.object({
       "Optional. The table format the metadata only snapshots are stored in.",
     ).optional(),
   }).describe(
-    "Configuration for BigQuery tables for Apache Iceberg (formerly BigLake managed tables.)",
+    "Optional. Specifies the configuration of a BigQuery table for Apache Iceberg.",
   ).optional(),
-  cloneDefinition: z.object({
-    baseTableReference: z.object({
-      datasetId: z.string().describe(
-        "Required. The ID of the dataset containing this table.",
-      ).optional(),
-      projectId: z.string().describe(
-        "Required. The ID of the project containing this table.",
-      ).optional(),
-      tableId: z.string().describe(
-        "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
-      ).optional(),
-    }).optional(),
-    cloneTime: z.string().describe(
-      "Required. The time at which the base table was cloned. This value is reported in the JSON response using RFC3339 format.",
-    ).optional(),
-  }).describe("Information about base table and clone time of a table clone.")
-    .optional(),
   clustering: z.object({
     fields: z.array(z.string()).describe(
       "One or more fields on which data should be clustered. Only top-level, non-repeated, simple-type fields are supported. The ordering of the clustering fields should be prioritized from most to least important for filtering purposes. For additional information, see [Introduction to clustered tables](https://cloud.google.com/bigquery/docs/clustered-tables#limitations).",
     ).optional(),
-  }).describe("Configures table clustering.").optional(),
+  }).describe(
+    "Clustering specification for the table. Must be specified with time-based partitioning, data in the table will be first partitioned and subsequently clustered.",
+  ).optional(),
   defaultCollation: z.string().describe(
     "Optional. Defines the default collation specification of new STRING fields in the table. During table creation or update, if a STRING field is added to this table without explicit collation specified, then the table inherits the table default collation. A change to this field affects only fields added afterwards, and does not alter the existing fields. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
   ).optional(),
@@ -1467,7 +1394,8 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
     ).optional(),
-  }).describe("Configuration for Cloud KMS encryption settings.").optional(),
+  }).describe("Custom encryption configuration (e.g., Cloud KMS keys).")
+    .optional(),
   expirationTime: z.string().describe(
     "Optional. The time when this table expires, in milliseconds since the epoch. If not present, the table will persist indefinitely. Expired tables will be deleted and their storage reclaimed. The defaultTableExpirationMs property of the encapsulating dataset can be used to set a default expirationTime on newly created tables.",
   ).optional(),
@@ -1498,13 +1426,13 @@ const InputsSchema = z.object({
         serializationLibrary: z.string().describe(
           "Required. Specifies a fully-qualified class name of the serialization library that is responsible for the translation of data between table representation and the underlying low-level input and output format structures. The maximum length is 256 characters.",
         ).optional(),
-      }).describe("Serializer and deserializer information.").optional(),
+      }).describe("Optional. Serializer and deserializer information.")
+        .optional(),
     }).describe(
-      "Contains information about how a table's data is stored and accessed by open source query engines.",
+      "Optional. A storage descriptor containing information about the physical storage of this table.",
     ).optional(),
-  }).describe(
-    "Metadata about open source compatible table. The fields contained in these options correspond to Hive metastore's table-level properties.",
-  ).optional(),
+  }).describe("Optional. Options defining open source compatible table.")
+    .optional(),
   externalDataConfiguration: z.object({
     autodetect: z.boolean().describe(
       "Try to detect schema and format options automatically. Any option specified explicitly will be honored.",
@@ -1513,7 +1441,9 @@ const InputsSchema = z.object({
       useAvroLogicalTypes: z.boolean().describe(
         'Optional. If sourceFormat is set to "AVRO", indicates whether to interpret logical types as the corresponding BigQuery data type (for example, TIMESTAMP), instead of using the raw type (for example, INTEGER).',
       ).optional(),
-    }).describe("Options for external data sources.").optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to AVRO.",
+    ).optional(),
     bigtableOptions: z.object({
       columnFamilies: z.array(z.object({
         columns: z.array(z.unknown()).describe(
@@ -1534,8 +1464,9 @@ const InputsSchema = z.object({
           schemaBundleId: z.unknown().describe(
             "Optional. The ID of the Bigtable SchemaBundle resource associated with this protobuf. The ID should be referred to within the parent table, e.g., `foo` rather than `projects/{project}/instances/{instance}/tables/{table}/schemaBundles/foo`. See [more details on Bigtable SchemaBundles](https://docs.cloud.google.com/bigtable/docs/create-manage-protobuf-schemas).",
           ).optional(),
-        }).describe("Information related to a Bigtable protobuf column.")
-          .optional(),
+        }).describe(
+          "Optional. Protobuf-specific configurations, only takes effect when the encoding is PROTO_BINARY.",
+        ).optional(),
         type: z.string().describe(
           "Optional. The type to convert the value in cells of this column family. The values are expected to be encoded using HBase Bytes.toBytes function when using the BINARY encoding value. Following BigQuery types are allowed (case-sensitive): * BYTES * STRING * INTEGER * FLOAT * BOOLEAN * JSON Default type is BYTES. This can be overridden for a specific column by listing that column in 'columns' and specifying a type for it.",
         ).optional(),
@@ -1551,8 +1482,9 @@ const InputsSchema = z.object({
       readRowkeyAsString: z.boolean().describe(
         "Optional. If field is true, then the rowkey column families will be read and converted to string. Otherwise they are read with BYTES type values and users need to manually cast them with CAST if necessary. The default value is false.",
       ).optional(),
-    }).describe("Options specific to Google Cloud Bigtable data sources.")
-      .optional(),
+    }).describe(
+      "Optional. Additional options if sourceFormat is set to BIGTABLE.",
+    ).optional(),
     compression: z.string().describe(
       "Optional. The compression type of the data source. Possible values include GZIP and NONE. The default value is NONE. This setting is ignored for Google Cloud Bigtable, Google Cloud Datastore backups, Avro, ORC and Parquet formats. An empty string is an invalid value.",
     ).optional(),
@@ -1590,7 +1522,9 @@ const InputsSchema = z.object({
       sourceColumnMatch: z.string().describe(
         "Optional. Controls the strategy used to match loaded columns to the schema. If not set, a sensible default is chosen based on how the schema is provided. If autodetect is used, then columns are matched by name. Otherwise, columns are matched by position. This is done to keep the behavior backward-compatible. Acceptable values are: POSITION - matches by position. This assumes that the columns are ordered the same way as the schema. NAME - matches by name. This reads the header row as column names and reorders columns to match the field names in the schema.",
       ).optional(),
-    }).describe("Information related to a CSV data source.").optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to CSV.",
+    ).optional(),
     dateFormat: z.string().describe(
       "Optional. Format used to parse DATE values. Supports C-style and SQL-style values.",
     ).optional(),
@@ -1620,7 +1554,9 @@ const InputsSchema = z.object({
       skipLeadingRows: z.string().describe(
         "Optional. The number of rows at the top of a sheet that BigQuery will skip when reading the data. The default value is 0. This property is useful if you have header rows that should be skipped. When autodetect is on, the behavior is the following: * skipLeadingRows unspecified - Autodetect tries to detect headers in the first row. If they are not detected, the row is read as data. Otherwise data is read starting from the second row. * skipLeadingRows is 0 - Instructs autodetect that there are no headers and data should be read starting from the first row. * skipLeadingRows = N > 0 - Autodetect skips N-1 rows and tries to detect headers in row N. If headers are not detected, row N is just skipped. Otherwise row N is used to extract column names for the detected schema.",
       ).optional(),
-    }).describe("Options specific to Google Sheets data sources.").optional(),
+    }).describe(
+      "Optional. Additional options if sourceFormat is set to GOOGLE_SHEETS.",
+    ).optional(),
     hivePartitioningOptions: z.object({
       fields: z.array(z.string()).describe(
         "Output only. For permanent external tables, this field is populated with the hive partition keys in the order they were inferred. The types of the partition keys can be deduced by checking the table schema (which will include the partition keys). Not every API will populate this field in the output. For example, Tables.Get will populate it, but Tables.List will not contain this field.",
@@ -1634,7 +1570,9 @@ const InputsSchema = z.object({
       sourceUriPrefix: z.string().describe(
         "Optional. When hive partition detection is requested, a common prefix for all source uris must be required. The prefix must end immediately before the partition key encoding begins. For example, consider files following this data layout: gs://bucket/path_to_table/dt=2019-06-01/country=USA/id=7/file.avro gs://bucket/path_to_table/dt=2019-05-31/country=CA/id=3/file.avro When hive partitioning is requested with either AUTO or STRINGS detection, the common prefix can be either of gs://bucket/path_to_table or gs://bucket/path_to_table/. CUSTOM detection requires encoding the partitioning schema immediately after the common prefix. For CUSTOM, any of * gs://bucket/path_to_table/{dt:DATE}/{country:STRING}/{id:INTEGER} * gs://bucket/path_to_table/{dt:STRING}/{country:STRING}/{id:INTEGER} * gs://bucket/path_to_table/{dt:DATE}/{country:STRING}/{id:STRING} would all be valid source URI prefixes.",
       ).optional(),
-    }).describe("Options for configuring hive partitioning detect.").optional(),
+    }).describe(
+      "Optional. When set, configures hive partitioning support. Not all storage formats support hive partitioning -- requesting hive partitioning on an unsupported format will lead to an error, as will providing an invalid specification.",
+    ).optional(),
     ignoreUnknownValues: z.boolean().describe(
       "Optional. Indicates if BigQuery should allow extra values that are not represented in the table schema. If true, the extra values are ignored. If false, records with extra columns are treated as bad records, and if there are too many bad records, an invalid error is returned in the job result. The default value is false. The sourceFormat property determines what BigQuery treats as an extra value: CSV: Trailing columns JSON: Named values that don't match any column names Google Cloud Bigtable: This setting is ignored. Google Cloud Datastore backups: This setting is ignored. Avro: This setting is ignored. ORC: This setting is ignored. Parquet: This setting is ignored.",
     ).optional(),
@@ -1645,7 +1583,9 @@ const InputsSchema = z.object({
       encoding: z.string().describe(
         "Optional. The character encoding of the data. The supported values are UTF-8, UTF-16BE, UTF-16LE, UTF-32BE, and UTF-32LE. The default value is UTF-8.",
       ).optional(),
-    }).describe("Json Options for load and make external tables.").optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to JSON.",
+    ).optional(),
     maxBadRecords: z.number().int().describe(
       "Optional. The maximum number of bad records that BigQuery can ignore when reading data. If the number of bad records exceeds this value, an invalid error is returned in the job result. The default value is 0, which requires that all records are valid. This setting is ignored for Google Cloud Bigtable, Google Cloud Datastore backups, Avro, ORC and Parquet formats.",
     ).optional(),
@@ -1674,8 +1614,9 @@ const InputsSchema = z.object({
         .describe(
           "Optional. Indicates how to represent a Parquet map if present.",
         ).optional(),
-    }).describe("Parquet Options for load and make external tables.")
-      .optional(),
+    }).describe(
+      "Optional. Additional properties to set if sourceFormat is set to PARQUET.",
+    ).optional(),
     referenceFileSchemaUri: z.string().describe(
       "Optional. When creating an external table, the user can provide a reference file with the table schema. This is enabled for the following formats: AVRO, PARQUET, ORC.",
     ).optional(),
@@ -1702,7 +1643,7 @@ const InputsSchema = z.object({
             "Contains a list of data policy options. At most 9 data policies are allowed per field.",
           ).optional(),
         }).describe(
-          "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
+          "Optional. Specifies data policies attached to this field, used for field-level access control. When set, this will be the source of truth for data policy information.",
         ).optional(),
         defaultValueExpression: z.string().describe(
           "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -1771,9 +1712,11 @@ const InputsSchema = z.object({
           "Required. Specifies the system which defines the foreign data type.",
         ).optional(),
       }).describe(
-        "Metadata about the foreign data type definition such as the system in which the type is defined.",
+        "Optional. Specifies metadata of the foreign data type definition in field schema (TableFieldSchema.foreign_type_definition).",
       ).optional(),
-    }).describe("Schema of a table").optional(),
+    }).describe(
+      "Optional. The schema for the data. Schema is required for CSV and JSON formats if autodetect is not on. Schema is disallowed for Google Cloud Bigtable, Cloud Datastore backups, Avro, ORC and Parquet formats.",
+    ).optional(),
     sourceFormat: z.string().describe(
       '[Required] The data format. For CSV files, specify "CSV". For Google sheets, specify "GOOGLE_SHEETS". For newline-delimited JSON, specify "NEWLINE_DELIMITED_JSON". For Avro files, specify "AVRO". For Google Cloud Datastore backups, specify "DATASTORE_BACKUP". For Apache Iceberg tables, specify "ICEBERG". For ORC files, specify "ORC". For Parquet files, specify "PARQUET". [Beta] For Google Cloud Bigtable, specify "BIGTABLE".',
     ).optional(),
@@ -1792,7 +1735,9 @@ const InputsSchema = z.object({
     timestampTargetPrecision: z.array(z.number().int()).describe(
       "Precisions (maximum number of total digits in base 10) for seconds of TIMESTAMP types that are allowed to the destination table for autodetection mode. Available for the formats: CSV, PARQUET, AVRO, and Iceberg External Table. Possible values include: Not Specified, [], or [6]: timestamp(6) for all auto detected TIMESTAMP columns [6, 12]: timestamp(6) for all auto detected TIMESTAMP columns that have less than 6 digits of subseconds. timestamp(12) for all auto detected TIMESTAMP columns that have more than 6 digits of subseconds. [12]: timestamp(12) for all auto detected TIMESTAMP columns. The order of the elements in this array is ignored. Inputs that have higher precision than the highest target precision in this array will be truncated.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Optional. Describes the data format, location, and other properties of a table stored outside of BigQuery. By defining these properties, the data source can then be queried as if it were a standard BigQuery table.",
+  ).optional(),
   friendlyName: z.string().describe(
     "Optional. A descriptive name for this table.",
   ).optional(),
@@ -1824,28 +1769,7 @@ const InputsSchema = z.object({
     refreshIntervalMs: z.string().describe(
       'Optional. The maximum frequency at which this materialized view will be refreshed. The default value is "1800000" (30 minutes).',
     ).optional(),
-  }).describe("Definition and configuration of a materialized view.")
-    .optional(),
-  materializedViewStatus: z.object({
-    lastRefreshStatus: z.object({
-      debugInfo: z.string().describe(
-        "Debugging information. This property is internal to Google and should not be used.",
-      ).optional(),
-      location: z.string().describe(
-        "Specifies where the error occurred, if present.",
-      ).optional(),
-      message: z.string().describe("A human-readable description of the error.")
-        .optional(),
-      reason: z.string().describe(
-        "A short error code that summarizes the error.",
-      ).optional(),
-    }).describe("Error details.").optional(),
-    refreshWatermark: z.string().describe(
-      "Output only. Refresh watermark of materialized view. The base tables' data were collected into the materialized view cache until this time.",
-    ).optional(),
-  }).describe(
-    "Status of a materialized view. The last refresh timestamp status is omitted here, but is present in the MaterializedViewDefinition message.",
-  ).optional(),
+  }).describe("Optional. The materialized view definition.").optional(),
   maxStaleness: z.string().describe(
     "Optional. The maximum staleness of data that could be returned when the table (or stale MV) is queried. Staleness encoded as a string encoding of sql IntervalValue type.",
   ).optional(),
@@ -1877,17 +1801,7 @@ const InputsSchema = z.object({
         warmStart: z.boolean().optional(),
       }).describe("Deprecated.").optional(),
     })).describe("Deprecated.").optional(),
-  }).optional(),
-  partitionDefinition: z.object({
-    partitionedColumn: z.array(z.object({
-      field: z.string().describe("Required. The name of the partition column.")
-        .optional(),
-    })).describe(
-      "Optional. Details about each partitioning column. This field is output only for all partitioning types other than metastore partitioned tables. BigQuery native tables only support 1 partitioning column. Other table types may support 0, 1 or more partitioning columns. For metastore partitioned tables, the order must match the definition order in the Hive Metastore, where it must match the physical layout of the table. For example, CREATE TABLE a_table(id BIGINT, name STRING) PARTITIONED BY (city STRING, state STRING). In this case the values must be ['city', 'state'] in that order.",
-    ).optional(),
-  }).describe(
-    "The partitioning information, which includes managed table, external table and metastore partitioned table partition information.",
-  ).optional(),
+  }).describe("Deprecated.").optional(),
   rangePartitioning: z.object({
     field: z.string().describe(
       "Required. The name of the column to partition the table on. It must be a top-level, INT64 column whose mode is NULLABLE or REQUIRED.",
@@ -1904,18 +1818,14 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("[Experimental] Defines the ranges for range partitioning.")
       .optional(),
-  }).optional(),
+  }).describe("If specified, configures range partitioning for this table.")
+    .optional(),
   requirePartitionFilter: z.boolean().describe(
     "Optional. If set to true, queries over this table require a partition filter that can be used for partition elimination to be specified.",
   ).optional(),
   resourceTags: z.record(z.string(), z.string()).describe(
     '[Optional] The tags associated with this table. Tag keys are globally unique. See additional information on [tags](https://cloud.google.com/iam/docs/tags-access-control#definitions). An object containing a list of "key": value pairs. The key is the namespaced friendly name of the tag key, e.g. "12345/environment" where 12345 is parent id. The value is the friendly short name of the tag value, e.g. "production".',
   ).optional(),
-  restrictions: z.object({
-    type: z.enum(["RESTRICTION_TYPE_UNSPECIFIED", "RESTRICTED_DATA_EGRESS"])
-      .describe("Output only. Specifies the type of dataset/table restriction.")
-      .optional(),
-  }).optional(),
   schema: z.object({
     fields: z.array(z.object({
       categories: z.object({
@@ -1943,7 +1853,7 @@ const InputsSchema = z.object({
           "Contains a list of data policy options. At most 9 data policies are allowed per field.",
         ).optional(),
       }).describe(
-        "A list of data policy options. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).",
+        "Optional. Specifies data policies attached to this field, used for field-level access control. When set, this will be the source of truth for data policy information.",
       ).optional(),
       defaultValueExpression: z.string().describe(
         "Optional. A SQL expression to specify the [default value] (https://cloud.google.com/bigquery/docs/default-values) for this field.",
@@ -2025,37 +1935,9 @@ const InputsSchema = z.object({
         "Required. Specifies the system which defines the foreign data type.",
       ).optional(),
     }).describe(
-      "Metadata about the foreign data type definition such as the system in which the type is defined.",
+      "Optional. Specifies metadata of the foreign data type definition in field schema (TableFieldSchema.foreign_type_definition).",
     ).optional(),
-  }).describe("Schema of a table").optional(),
-  snapshotDefinition: z.object({
-    baseTableReference: z.object({
-      datasetId: z.string().describe(
-        "Required. The ID of the dataset containing this table.",
-      ).optional(),
-      projectId: z.string().describe(
-        "Required. The ID of the project containing this table.",
-      ).optional(),
-      tableId: z.string().describe(
-        "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
-      ).optional(),
-    }).optional(),
-    snapshotTime: z.string().describe(
-      "Required. The time at which the base table was snapshot. This value is reported in the JSON response using RFC3339 format.",
-    ).optional(),
-  }).describe("Information about base table and snapshot time of the snapshot.")
-    .optional(),
-  streamingBuffer: z.object({
-    estimatedBytes: z.string().describe(
-      "Output only. A lower-bound estimate of the number of bytes currently in the streaming buffer.",
-    ).optional(),
-    estimatedRows: z.string().describe(
-      "Output only. A lower-bound estimate of the number of rows currently in the streaming buffer.",
-    ).optional(),
-    oldestEntryTime: z.string().describe(
-      "Output only. Contains the timestamp of the oldest entry in the streaming buffer, in milliseconds since the epoch, if the streaming buffer is available.",
-    ).optional(),
-  }).optional(),
+  }).describe("Optional. Describes the schema of this table.").optional(),
   tableConstraints: z.object({
     foreignKeys: z.array(z.object({
       columnReferences: z.array(z.object({
@@ -2084,7 +1966,7 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Represents the primary key constraint on a table's columns.")
       .optional(),
-  }).describe("The TableConstraints defines the primary key and foreign key.")
+  }).describe("Optional. Tables Primary Key and Foreign Key information")
     .optional(),
   tableReference: z.object({
     datasetId: z.string().describe(
@@ -2096,7 +1978,8 @@ const InputsSchema = z.object({
     tableId: z.string().describe(
       "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
     ).optional(),
-  }).optional(),
+  }).describe("Required. Reference describing the ID of this table.")
+    .optional(),
   tableReplicationInfo: z.object({
     replicatedSourceLastRefreshTime: z.string().describe(
       "Optional. Output only. If source is a materialized view, this field signifies the last refresh time of the source.",
@@ -2113,7 +1996,9 @@ const InputsSchema = z.object({
       reason: z.string().describe(
         "A short error code that summarizes the error.",
       ).optional(),
-    }).describe("Error details.").optional(),
+    }).describe(
+      "Optional. Output only. Replication error that will permanently stopped table replication.",
+    ).optional(),
     replicationIntervalMs: z.string().describe(
       "Optional. Specifies the interval at which the source table is polled for updates. It's Optional. If not specified, default replication interval would be applied.",
     ).optional(),
@@ -2136,9 +2021,10 @@ const InputsSchema = z.object({
       tableId: z.string().describe(
         "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. Source table reference that is replicated.")
+      .optional(),
   }).describe(
-    "Replication info of a table created using `AS REPLICA` DDL like: `CREATE MATERIALIZED VIEW mv1 AS REPLICA OF src_mv`",
+    "Optional. Table replication info for table created `AS REPLICA` DDL like: `CREATE MATERIALIZED VIEW mv1 AS REPLICA OF src_mv`",
   ).optional(),
   timePartitioning: z.object({
     expirationMs: z.string().describe(
@@ -2153,7 +2039,9 @@ const InputsSchema = z.object({
     type: z.string().describe(
       "Required. The supported types are DAY, HOUR, MONTH, and YEAR, which will generate one partition per day, hour, month, and year, respectively.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "If specified, configures time-based partitioning for this table.",
+  ).optional(),
   view: z.object({
     foreignDefinitions: z.array(z.object({
       dialect: z.string().describe(
@@ -2170,9 +2058,8 @@ const InputsSchema = z.object({
         threshold: z.string().describe(
           'Optional. The threshold for the "aggregation threshold" policy.',
         ).optional(),
-      }).describe(
-        'Represents privacy policy associated with "aggregation threshold" method.',
-      ).optional(),
+      }).describe("Optional. Policy used for aggregation thresholds.")
+        .optional(),
       differentialPrivacyPolicy: z.object({
         deltaBudget: z.number().describe(
           "Optional. The total delta budget for all queries against the privacy-protected view. Each subscriber query against this view charges the amount of delta that is pre-defined by the contributor through the privacy policy delta_per_query field. If there is sufficient budget, then the subscriber query attempts to complete. It might still fail due to other reasons, in which case the charge is refunded. If there is insufficient budget the query is rejected. There might be multiple charge attempts if a single query references multiple views. In this case there must be sufficient budget for all charges or the query is rejected and charges are refunded in best effort. The budget does not have a refresh policy and can only be updated via ALTER VIEW or circumvented by creating a new view that can be queried with a fresh budget.",
@@ -2198,9 +2085,7 @@ const InputsSchema = z.object({
         privacyUnitColumn: z.string().describe(
           "Optional. The privacy unit column associated with this policy. Differential privacy policies can only have one privacy unit column per data source object (table, view).",
         ).optional(),
-      }).describe(
-        'Represents privacy policy associated with "differential privacy" method.',
-      ).optional(),
+      }).describe("Optional. Policy used for differential privacy.").optional(),
       joinRestrictionPolicy: z.object({
         joinAllowedColumns: z.array(z.string()).describe(
           "Optional. The only columns that joins are allowed on. This field is must be specified for join_conditions JOIN_ANY and JOIN_ALL and it cannot be set for JOIN_BLOCKED.",
@@ -2215,11 +2100,10 @@ const InputsSchema = z.object({
           "Optional. Specifies if a join is required or not on queries for the view. Default is JOIN_CONDITION_UNSPECIFIED.",
         ).optional(),
       }).describe(
-        "Represents privacy policy associated with \"join restrictions\". Join restriction gives data providers the ability to enforce joins on the 'join_allowed_columns' when data is queried from a privacy protected view.",
+        "Optional. Join restriction policy is outside of the one of policies, since this policy can be set along with other policies. This policy gives data providers the ability to enforce joins on the 'join_allowed_columns' when data is queried from a privacy protected view.",
       ).optional(),
-    }).describe(
-      "Represents privacy policy that contains the privacy requirements specified by the data owner. Currently, this is only supported on views.",
-    ).optional(),
+    }).describe("Optional. Specifies the privacy policy for the view.")
+      .optional(),
     query: z.string().describe(
       "Required. A query that BigQuery executes when the view is referenced.",
     ).optional(),
@@ -2238,7 +2122,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Describes user-defined function resources used in the query.")
       .optional(),
-  }).describe("Describes the definition of a logical view.").optional(),
+  }).describe("Optional. The view definition.").optional(),
   datasetId: z.string().describe("Required. Dataset ID of the new table")
     .optional(),
 });
@@ -2266,7 +2150,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Tables. Registered at `@swamp/gcp/bigquery/tables`. */
 export const model = {
   type: "@swamp/gcp/bigquery/tables",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2393,6 +2277,23 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: cloneDefinition, materializedViewStatus, partitionDefinition, restrictions, snapshotDefinition, streamingBuffer",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          cloneDefinition: _cloneDefinition,
+          materializedViewStatus: _materializedViewStatus,
+          partitionDefinition: _partitionDefinition,
+          restrictions: _restrictions,
+          snapshotDefinition: _snapshotDefinition,
+          streamingBuffer: _streamingBuffer,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2420,9 +2321,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["biglakeConfiguration"] !== undefined) {
           body["biglakeConfiguration"] = g["biglakeConfiguration"];
-        }
-        if (g["cloneDefinition"] !== undefined) {
-          body["cloneDefinition"] = g["cloneDefinition"];
         }
         if (g["clustering"] !== undefined) body["clustering"] = g["clustering"];
         if (g["defaultCollation"] !== undefined) {
@@ -2457,16 +2355,10 @@ export const model = {
         if (g["materializedView"] !== undefined) {
           body["materializedView"] = g["materializedView"];
         }
-        if (g["materializedViewStatus"] !== undefined) {
-          body["materializedViewStatus"] = g["materializedViewStatus"];
-        }
         if (g["maxStaleness"] !== undefined) {
           body["maxStaleness"] = g["maxStaleness"];
         }
         if (g["model"] !== undefined) body["model"] = g["model"];
-        if (g["partitionDefinition"] !== undefined) {
-          body["partitionDefinition"] = g["partitionDefinition"];
-        }
         if (g["rangePartitioning"] !== undefined) {
           body["rangePartitioning"] = g["rangePartitioning"];
         }
@@ -2476,16 +2368,7 @@ export const model = {
         if (g["resourceTags"] !== undefined) {
           body["resourceTags"] = g["resourceTags"];
         }
-        if (g["restrictions"] !== undefined) {
-          body["restrictions"] = g["restrictions"];
-        }
         if (g["schema"] !== undefined) body["schema"] = g["schema"];
-        if (g["snapshotDefinition"] !== undefined) {
-          body["snapshotDefinition"] = g["snapshotDefinition"];
-        }
-        if (g["streamingBuffer"] !== undefined) {
-          body["streamingBuffer"] = g["streamingBuffer"];
-        }
         if (g["tableConstraints"] !== undefined) {
           body["tableConstraints"] = g["tableConstraints"];
         }
@@ -2507,15 +2390,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "datasetId": String(g["datasetId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -2600,9 +2475,6 @@ export const model = {
         if (g["biglakeConfiguration"] !== undefined) {
           body["biglakeConfiguration"] = g["biglakeConfiguration"];
         }
-        if (g["cloneDefinition"] !== undefined) {
-          body["cloneDefinition"] = g["cloneDefinition"];
-        }
         if (g["clustering"] !== undefined) body["clustering"] = g["clustering"];
         if (g["defaultCollation"] !== undefined) {
           body["defaultCollation"] = g["defaultCollation"];
@@ -2636,16 +2508,10 @@ export const model = {
         if (g["materializedView"] !== undefined) {
           body["materializedView"] = g["materializedView"];
         }
-        if (g["materializedViewStatus"] !== undefined) {
-          body["materializedViewStatus"] = g["materializedViewStatus"];
-        }
         if (g["maxStaleness"] !== undefined) {
           body["maxStaleness"] = g["maxStaleness"];
         }
         if (g["model"] !== undefined) body["model"] = g["model"];
-        if (g["partitionDefinition"] !== undefined) {
-          body["partitionDefinition"] = g["partitionDefinition"];
-        }
         if (g["rangePartitioning"] !== undefined) {
           body["rangePartitioning"] = g["rangePartitioning"];
         }
@@ -2655,16 +2521,7 @@ export const model = {
         if (g["resourceTags"] !== undefined) {
           body["resourceTags"] = g["resourceTags"];
         }
-        if (g["restrictions"] !== undefined) {
-          body["restrictions"] = g["restrictions"];
-        }
         if (g["schema"] !== undefined) body["schema"] = g["schema"];
-        if (g["snapshotDefinition"] !== undefined) {
-          body["snapshotDefinition"] = g["snapshotDefinition"];
-        }
-        if (g["streamingBuffer"] !== undefined) {
-          body["streamingBuffer"] = g["streamingBuffer"];
-        }
         if (g["tableConstraints"] !== undefined) {
           body["tableConstraints"] = g["tableConstraints"];
         }

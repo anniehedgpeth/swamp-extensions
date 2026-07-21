@@ -177,7 +177,8 @@ const GlobalArgsSchema = z.object({
     vcpuCount: z.string().describe(
       "Required. The number of vCPUs to provision for the cluster. Minimum: 3.",
     ).optional(),
-  }).describe("A capacity configuration of a Kafka cluster.").optional(),
+  }).describe("Required. Capacity configuration for the Kafka cluster.")
+    .optional(),
   gcpConfig: z.object({
     accessConfig: z.object({
       networkConfigs: z.array(z.object({
@@ -187,12 +188,13 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.",
       ).optional(),
-    }).describe("The configuration of access to the Kafka cluster.").optional(),
+    }).describe("Required. Access configuration for the Kafka cluster.")
+      .optional(),
     kmsKey: z.string().describe(
       "Optional. Immutable. The Cloud KMS Key name to use for encryption. The key must be located in the same region as the cluster and cannot be changed. Structured like: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.",
     ).optional(),
   }).describe(
-    "Configuration properties for a Kafka cluster deployed to Google Cloud Platform.",
+    "Required. Configuration properties for a Kafka cluster deployed to Google Cloud Platform.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs.",
@@ -208,7 +210,8 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. The rebalance behavior for the cluster. When not specified, defaults to `NO_REBALANCE`.",
     ).optional(),
-  }).describe("Defines rebalancing behavior of a Kafka cluster.").optional(),
+  }).describe("Optional. Rebalance configuration for the Kafka cluster.")
+    .optional(),
   tlsConfig: z.object({
     sslPrincipalMappingRules: z.string().describe(
       'Optional. A list of rules for mapping from SSL principal names to short names. These are applied in order by Kafka. Refer to the Apache Kafka documentation for `ssl.principal.mapping.rules` for the precise formatting details and syntax. Example: "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1@example.com/,DEFAULT" This is a static Kafka broker configuration. Setting or modifying this field will trigger a rolling restart of the Kafka brokers to apply the change. An empty string means no rules are applied (Kafka default).',
@@ -222,15 +225,15 @@ const GlobalArgsSchema = z.object({
         "Optional. Configuration for the Google Certificate Authority Service. Maximum 10.",
       ).optional(),
     }).describe(
-      "Sources of CA certificates to install in the broker's truststore.",
+      "Optional. The configuration of the broker truststore. If specified, clients can use mTLS for authentication.",
     ).optional(),
-  }).describe("The TLS configuration for the Kafka cluster.").optional(),
+  }).describe("Optional. TLS configuration for the Kafka cluster.").optional(),
   updateOptions: z.object({
     allowBrokerDownscaleOnClusterUpscale: z.boolean().describe(
       "Optional. If true, allows an update operation that increases the total vCPU and/or memory allocation of the cluster to significantly decrease the per-broker vCPU and/or memory allocation. This can result in reduced performance and availability. By default, the update operation will fail if an upscale request results in a vCPU or memory allocation for the brokers that is smaller than 90% of the current broker size.",
     ).optional(),
   }).describe(
-    "UpdateOptions specifies options that influence how a cluster update is applied. These options control the behavior of the update process, rather than defining the desired end-state of a cluster.",
+    "Optional. UpdateOptions represents options that control how updates to the cluster are applied.",
   ).optional(),
   clusterId: z.string().describe(
     "Required. The ID to use for the cluster, which will become the final component of the cluster's name. The ID must be 1-63 characters long, and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` to comply with RFC 1035. This value is structured like: `my-cluster-id`.",
@@ -299,7 +302,8 @@ const InputsSchema = z.object({
     vcpuCount: z.string().describe(
       "Required. The number of vCPUs to provision for the cluster. Minimum: 3.",
     ).optional(),
-  }).describe("A capacity configuration of a Kafka cluster.").optional(),
+  }).describe("Required. Capacity configuration for the Kafka cluster.")
+    .optional(),
   gcpConfig: z.object({
     accessConfig: z.object({
       networkConfigs: z.array(z.object({
@@ -309,12 +313,13 @@ const InputsSchema = z.object({
       })).describe(
         "Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.",
       ).optional(),
-    }).describe("The configuration of access to the Kafka cluster.").optional(),
+    }).describe("Required. Access configuration for the Kafka cluster.")
+      .optional(),
     kmsKey: z.string().describe(
       "Optional. Immutable. The Cloud KMS Key name to use for encryption. The key must be located in the same region as the cluster and cannot be changed. Structured like: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.",
     ).optional(),
   }).describe(
-    "Configuration properties for a Kafka cluster deployed to Google Cloud Platform.",
+    "Required. Configuration properties for a Kafka cluster deployed to Google Cloud Platform.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs.",
@@ -330,7 +335,8 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. The rebalance behavior for the cluster. When not specified, defaults to `NO_REBALANCE`.",
     ).optional(),
-  }).describe("Defines rebalancing behavior of a Kafka cluster.").optional(),
+  }).describe("Optional. Rebalance configuration for the Kafka cluster.")
+    .optional(),
   tlsConfig: z.object({
     sslPrincipalMappingRules: z.string().describe(
       'Optional. A list of rules for mapping from SSL principal names to short names. These are applied in order by Kafka. Refer to the Apache Kafka documentation for `ssl.principal.mapping.rules` for the precise formatting details and syntax. Example: "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1@example.com/,DEFAULT" This is a static Kafka broker configuration. Setting or modifying this field will trigger a rolling restart of the Kafka brokers to apply the change. An empty string means no rules are applied (Kafka default).',
@@ -344,15 +350,15 @@ const InputsSchema = z.object({
         "Optional. Configuration for the Google Certificate Authority Service. Maximum 10.",
       ).optional(),
     }).describe(
-      "Sources of CA certificates to install in the broker's truststore.",
+      "Optional. The configuration of the broker truststore. If specified, clients can use mTLS for authentication.",
     ).optional(),
-  }).describe("The TLS configuration for the Kafka cluster.").optional(),
+  }).describe("Optional. TLS configuration for the Kafka cluster.").optional(),
   updateOptions: z.object({
     allowBrokerDownscaleOnClusterUpscale: z.boolean().describe(
       "Optional. If true, allows an update operation that increases the total vCPU and/or memory allocation of the cluster to significantly decrease the per-broker vCPU and/or memory allocation. This can result in reduced performance and availability. By default, the update operation will fail if an upscale request results in a vCPU or memory allocation for the brokers that is smaller than 90% of the current broker size.",
     ).optional(),
   }).describe(
-    "UpdateOptions specifies options that influence how a cluster update is applied. These options control the behavior of the update process, rather than defining the desired end-state of a cluster.",
+    "Optional. UpdateOptions represents options that control how updates to the cluster are applied.",
   ).optional(),
   clusterId: z.string().describe(
     "Required. The ID to use for the cluster, which will become the final component of the cluster's name. The ID must be 1-63 characters long, and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` to comply with RFC 1035. This value is structured like: `my-cluster-id`.",
@@ -388,7 +394,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Managed Service for Apache Kafka Clusters. Registered at `@swamp/gcp/managedkafka/clusters`. */
 export const model = {
   type: "@swamp/gcp/managedkafka/clusters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -492,6 +498,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

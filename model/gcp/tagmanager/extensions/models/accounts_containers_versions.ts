@@ -356,7 +356,7 @@ const GlobalArgsSchema = z.object({
       supportZones: z.boolean().describe(
         "Whether this Container supports zones.",
       ).optional(),
-    }).optional(),
+    }).describe("Read-only Container feature set.").optional(),
     fingerprint: z.string().describe(
       "The fingerprint of the GTM Container as computed at storage time. This value is recomputed whenever the account is modified.",
     ).optional(),
@@ -387,9 +387,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "List of Usage Contexts for the Container. Valid values include: web, android, or ios.",
     ).optional(),
-  }).describe(
-    "Represents a Google Tag Manager Container, which specifies the platform tags will run on, manages workspaces, and retains container versions.",
-  ).optional(),
+  }).describe("The container that this version was taken from.").optional(),
   containerId: z.string().describe("GTM Container ID.").optional(),
   containerVersionId: z.string().describe(
     "The Container Version ID uniquely identifies the GTM Container Version.",
@@ -425,9 +423,8 @@ const GlobalArgsSchema = z.object({
       version: z.string().describe(
         "The version of the community gallery template.",
       ).optional(),
-    }).describe(
-      "Represents the link between a custom template and an entry on the Community Template Gallery site.",
-    ).optional(),
+    }).describe("A reference to the Community Template Gallery entry.")
+      .optional(),
     name: z.string().describe("Custom Template display name.").optional(),
     path: z.string().describe("GTM Custom Template's API relative path.")
       .optional(),
@@ -560,8 +557,10 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
-    }).optional(),
+      }).describe(
+        "The type of consents to check for during tag firing if in the consent NEEDED state. This parameter must be of type LIST where each list item is of type STRING.",
+      ).optional(),
+    }).describe("Consent settings of a tag.").optional(),
     containerId: z.string().describe("GTM Container ID.").optional(),
     fingerprint: z.string().describe(
       "The fingerprint of the GTM Tag as computed at storage time. This value is recomputed whenever the tag is modified.",
@@ -600,7 +599,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A map of key-value pairs of tag metadata to be included in the event data for tag monitoring. Notes: - This parameter must be type MAP. - Each parameter in the map are type TEMPLATE, however cannot contain variable references.",
+    ).optional(),
     monitoringMetadataTagNameKey: z.string().describe(
       "If non-empty, then the tag display name will be included in the monitoring metadata map using the key specified.",
     ).optional(),
@@ -670,7 +671,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag's priority can be a positive or negative value. The default value is 0.",
+    ).optional(),
     scheduleEndMs: z.string().describe(
       "The end timestamp in milliseconds to schedule a tag.",
     ).optional(),
@@ -811,7 +814,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Whether or not we should only fire tags if the form submit or link click event is not cancelled by some other event handler (e.g. because of validation). Only valid for Form Submission and Link Click triggers.",
+    ).optional(),
     containerId: z.string().describe("GTM Container ID.").optional(),
     continuousTimeMinMilliseconds: z.object({
       isWeakReference: z.boolean().describe(
@@ -841,7 +846,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger minimum continuous visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+    ).optional(),
     customEventFilter: z.array(z.object({
       parameter: z.array(z.unknown()).describe(
         "A list of named parameters (key/value), depending on the condition's type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.",
@@ -891,7 +898,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Name of the GTM event that is fired. Only valid for Timer triggers.",
+    ).optional(),
     filter: z.array(z.object({
       parameter: z.array(z.unknown()).describe(
         "A list of named parameters (key/value), depending on the condition's type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.",
@@ -943,7 +952,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled horizontally. Only valid for AMP scroll triggers.",
+    ).optional(),
     interval: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -972,7 +983,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Time between triggering recurring Timer Events (in milliseconds). Only valid for Timer triggers.",
+    ).optional(),
     intervalSeconds: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1001,7 +1014,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Time between Timer Events to fire (in seconds). Only valid for AMP Timer trigger.",
+    ).optional(),
     limit: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1030,7 +1045,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Limit of the number of GTM events this Timer Trigger will fire. If no limit is set, we will continue to fire GTM events until the user leaves the page. Only valid for Timer triggers.",
+    ).optional(),
     maxTimerLengthSeconds: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1059,7 +1076,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Max time to fire Timer Events (in seconds). Only valid for AMP Timer trigger.",
+    ).optional(),
     name: z.string().describe("Trigger display name.").optional(),
     notes: z.string().describe(
       "User notes on how to apply this trigger in the container.",
@@ -1123,7 +1142,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      'A click trigger CSS selector (i.e. "a", "button" etc.). Only valid for AMP Click trigger.',
+    ).optional(),
     tagManagerUrl: z.string().describe(
       "Auto generated link to the tag manager UI",
     ).optional(),
@@ -1155,7 +1176,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger minimum total visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+    ).optional(),
     triggerId: z.string().describe(
       "The Trigger ID uniquely identifies the GTM Trigger.",
     ).optional(),
@@ -1225,7 +1248,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Globally unique id of the trigger that auto-generates this (a Form Submit, Link Click or Timer listener) if any. Used to make incompatible auto-events work together with trigger filtering based on trigger ids. This value is populated during output generation since the tags implied by triggers don't exist until then. Only valid for Form Submit, Link Click and Timer triggers.",
+    ).optional(),
     verticalScrollPercentageList: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1254,7 +1279,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled vertically. Only valid for AMP scroll triggers.",
+    ).optional(),
     visibilitySelector: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1283,7 +1310,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      'A visibility trigger CSS selector (i.e. "#id"). Only valid for AMP Visibility trigger.',
+    ).optional(),
     visiblePercentageMax: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1312,7 +1341,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger maximum percent visibility. Only valid for AMP Visibility trigger.",
+    ).optional(),
     visiblePercentageMin: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1341,7 +1372,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger minimum percent visibility. Only valid for AMP Visibility trigger.",
+    ).optional(),
     waitForTags: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1370,7 +1403,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Whether or not we should delay the form submissions or link opening until all of the tags have fired (by preventing the default action and later simulating the default action). Only valid for Form Submission and Link Click triggers.",
+    ).optional(),
     waitForTagsTimeout: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1399,7 +1434,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "How long to wait (in milliseconds) for tags to fire when 'waits_for_tags' above evaluates to true. Only valid for Form Submission and Link Click triggers.",
+    ).optional(),
     workspaceId: z.string().describe("GTM Workspace ID.").optional(),
   })).describe(
     "The triggers in the container that this version was taken from.",
@@ -1448,7 +1485,8 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
+      }).describe("The value to convert if a variable value is false.")
+        .optional(),
       convertNullToValue: z.object({
         isWeakReference: z.boolean().describe(
           "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1477,7 +1515,8 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
+      }).describe("The value to convert if a variable value is null.")
+        .optional(),
       convertToBoolean: z.boolean().describe(
         "The option to convert a variable value to a boolean.",
       ).optional(),
@@ -1516,7 +1555,8 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
+      }).describe("The value to convert if a variable value is true.")
+        .optional(),
       convertUndefinedToValue: z.object({
         isWeakReference: z.boolean().describe(
           "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -1545,8 +1585,10 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
-    }).optional(),
+      }).describe("The value to convert if a variable value is undefined.")
+        .optional(),
+    }).describe("Option to convert a variable value to other value.")
+      .optional(),
     name: z.string().describe("Variable display name.").optional(),
     notes: z.string().describe(
       "User notes on how to apply this variable in the container.",
@@ -1613,7 +1655,7 @@ const GlobalArgsSchema = z.object({
       customEvaluationTriggerId: z.array(z.string()).describe(
         "Custom evaluation trigger IDs. A zone will evaluate its boundary conditions when any of the listed triggers are true.",
       ).optional(),
-    }).describe("Represents a Zone's boundaries.").optional(),
+    }).describe("This Zone's boundary.").optional(),
     childContainer: z.array(z.object({
       nickname: z.string().describe(
         "The zone's nickname for the child container.",
@@ -1640,7 +1682,7 @@ const GlobalArgsSchema = z.object({
       whitelistedTypeId: z.array(z.string()).describe(
         "List of type public ids that have been whitelisted for use in this Zone.",
       ).optional(),
-    }).describe("Represents a Zone's type restrictions.").optional(),
+    }).describe("This Zone's type restrictions.").optional(),
     workspaceId: z.string().describe("GTM Workspace ID.").optional(),
     zoneId: z.string().describe("The Zone ID uniquely identifies the GTM Zone.")
       .optional(),
@@ -2355,7 +2397,7 @@ const InputsSchema = z.object({
       supportZones: z.boolean().describe(
         "Whether this Container supports zones.",
       ).optional(),
-    }).optional(),
+    }).describe("Read-only Container feature set.").optional(),
     fingerprint: z.string().describe(
       "The fingerprint of the GTM Container as computed at storage time. This value is recomputed whenever the account is modified.",
     ).optional(),
@@ -2386,9 +2428,7 @@ const InputsSchema = z.object({
     ).describe(
       "List of Usage Contexts for the Container. Valid values include: web, android, or ios.",
     ).optional(),
-  }).describe(
-    "Represents a Google Tag Manager Container, which specifies the platform tags will run on, manages workspaces, and retains container versions.",
-  ).optional(),
+  }).describe("The container that this version was taken from.").optional(),
   containerId: z.string().describe("GTM Container ID.").optional(),
   containerVersionId: z.string().describe(
     "The Container Version ID uniquely identifies the GTM Container Version.",
@@ -2424,9 +2464,8 @@ const InputsSchema = z.object({
       version: z.string().describe(
         "The version of the community gallery template.",
       ).optional(),
-    }).describe(
-      "Represents the link between a custom template and an entry on the Community Template Gallery site.",
-    ).optional(),
+    }).describe("A reference to the Community Template Gallery entry.")
+      .optional(),
     name: z.string().describe("Custom Template display name.").optional(),
     path: z.string().describe("GTM Custom Template's API relative path.")
       .optional(),
@@ -2559,8 +2598,10 @@ const InputsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
-    }).optional(),
+      }).describe(
+        "The type of consents to check for during tag firing if in the consent NEEDED state. This parameter must be of type LIST where each list item is of type STRING.",
+      ).optional(),
+    }).describe("Consent settings of a tag.").optional(),
     containerId: z.string().describe("GTM Container ID.").optional(),
     fingerprint: z.string().describe(
       "The fingerprint of the GTM Tag as computed at storage time. This value is recomputed whenever the tag is modified.",
@@ -2599,7 +2640,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A map of key-value pairs of tag metadata to be included in the event data for tag monitoring. Notes: - This parameter must be type MAP. - Each parameter in the map are type TEMPLATE, however cannot contain variable references.",
+    ).optional(),
     monitoringMetadataTagNameKey: z.string().describe(
       "If non-empty, then the tag display name will be included in the monitoring metadata map using the key specified.",
     ).optional(),
@@ -2669,7 +2712,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag's priority can be a positive or negative value. The default value is 0.",
+    ).optional(),
     scheduleEndMs: z.string().describe(
       "The end timestamp in milliseconds to schedule a tag.",
     ).optional(),
@@ -2810,7 +2855,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Whether or not we should only fire tags if the form submit or link click event is not cancelled by some other event handler (e.g. because of validation). Only valid for Form Submission and Link Click triggers.",
+    ).optional(),
     containerId: z.string().describe("GTM Container ID.").optional(),
     continuousTimeMinMilliseconds: z.object({
       isWeakReference: z.boolean().describe(
@@ -2840,7 +2887,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger minimum continuous visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+    ).optional(),
     customEventFilter: z.array(z.object({
       parameter: z.array(z.unknown()).describe(
         "A list of named parameters (key/value), depending on the condition's type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.",
@@ -2890,7 +2939,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Name of the GTM event that is fired. Only valid for Timer triggers.",
+    ).optional(),
     filter: z.array(z.object({
       parameter: z.array(z.unknown()).describe(
         "A list of named parameters (key/value), depending on the condition's type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.",
@@ -2942,7 +2993,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled horizontally. Only valid for AMP scroll triggers.",
+    ).optional(),
     interval: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -2971,7 +3024,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Time between triggering recurring Timer Events (in milliseconds). Only valid for Timer triggers.",
+    ).optional(),
     intervalSeconds: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3000,7 +3055,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Time between Timer Events to fire (in seconds). Only valid for AMP Timer trigger.",
+    ).optional(),
     limit: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3029,7 +3086,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Limit of the number of GTM events this Timer Trigger will fire. If no limit is set, we will continue to fire GTM events until the user leaves the page. Only valid for Timer triggers.",
+    ).optional(),
     maxTimerLengthSeconds: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3058,7 +3117,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Max time to fire Timer Events (in seconds). Only valid for AMP Timer trigger.",
+    ).optional(),
     name: z.string().describe("Trigger display name.").optional(),
     notes: z.string().describe(
       "User notes on how to apply this trigger in the container.",
@@ -3122,7 +3183,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      'A click trigger CSS selector (i.e. "a", "button" etc.). Only valid for AMP Click trigger.',
+    ).optional(),
     tagManagerUrl: z.string().describe(
       "Auto generated link to the tag manager UI",
     ).optional(),
@@ -3154,7 +3217,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger minimum total visible time (in milliseconds). Only valid for AMP Visibility trigger.",
+    ).optional(),
     triggerId: z.string().describe(
       "The Trigger ID uniquely identifies the GTM Trigger.",
     ).optional(),
@@ -3224,7 +3289,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Globally unique id of the trigger that auto-generates this (a Form Submit, Link Click or Timer listener) if any. Used to make incompatible auto-events work together with trigger filtering based on trigger ids. This value is populated during output generation since the tags implied by triggers don't exist until then. Only valid for Form Submit, Link Click and Timer triggers.",
+    ).optional(),
     verticalScrollPercentageList: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3253,7 +3320,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled vertically. Only valid for AMP scroll triggers.",
+    ).optional(),
     visibilitySelector: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3282,7 +3351,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      'A visibility trigger CSS selector (i.e. "#id"). Only valid for AMP Visibility trigger.',
+    ).optional(),
     visiblePercentageMax: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3311,7 +3382,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger maximum percent visibility. Only valid for AMP Visibility trigger.",
+    ).optional(),
     visiblePercentageMin: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3340,7 +3413,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "A visibility trigger minimum percent visibility. Only valid for AMP Visibility trigger.",
+    ).optional(),
     waitForTags: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3369,7 +3444,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "Whether or not we should delay the form submissions or link opening until all of the tags have fired (by preventing the default action and later simulating the default action). Only valid for Form Submission and Link Click triggers.",
+    ).optional(),
     waitForTagsTimeout: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3398,7 +3475,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe(
+      "How long to wait (in milliseconds) for tags to fire when 'waits_for_tags' above evaluates to true. Only valid for Form Submission and Link Click triggers.",
+    ).optional(),
     workspaceId: z.string().describe("GTM Workspace ID.").optional(),
   })).describe(
     "The triggers in the container that this version was taken from.",
@@ -3447,7 +3526,8 @@ const InputsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
+      }).describe("The value to convert if a variable value is false.")
+        .optional(),
       convertNullToValue: z.object({
         isWeakReference: z.boolean().describe(
           "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3476,7 +3556,8 @@ const InputsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
+      }).describe("The value to convert if a variable value is null.")
+        .optional(),
       convertToBoolean: z.boolean().describe(
         "The option to convert a variable value to a boolean.",
       ).optional(),
@@ -3515,7 +3596,8 @@ const InputsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
+      }).describe("The value to convert if a variable value is true.")
+        .optional(),
       convertUndefinedToValue: z.object({
         isWeakReference: z.boolean().describe(
           "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -3544,8 +3626,10 @@ const InputsSchema = z.object({
         value: z.string().describe(
           "A parameter's value (may contain variable references). as appropriate to the specified type.",
         ).optional(),
-      }).describe("Represents a Google Tag Manager Parameter.").optional(),
-    }).optional(),
+      }).describe("The value to convert if a variable value is undefined.")
+        .optional(),
+    }).describe("Option to convert a variable value to other value.")
+      .optional(),
     name: z.string().describe("Variable display name.").optional(),
     notes: z.string().describe(
       "User notes on how to apply this variable in the container.",
@@ -3612,7 +3696,7 @@ const InputsSchema = z.object({
       customEvaluationTriggerId: z.array(z.string()).describe(
         "Custom evaluation trigger IDs. A zone will evaluate its boundary conditions when any of the listed triggers are true.",
       ).optional(),
-    }).describe("Represents a Zone's boundaries.").optional(),
+    }).describe("This Zone's boundary.").optional(),
     childContainer: z.array(z.object({
       nickname: z.string().describe(
         "The zone's nickname for the child container.",
@@ -3639,7 +3723,7 @@ const InputsSchema = z.object({
       whitelistedTypeId: z.array(z.string()).describe(
         "List of type public ids that have been whitelisted for use in this Zone.",
       ).optional(),
-    }).describe("Represents a Zone's type restrictions.").optional(),
+    }).describe("This Zone's type restrictions.").optional(),
     workspaceId: z.string().describe("GTM Workspace ID.").optional(),
     zoneId: z.string().describe("The Zone ID uniquely identifies the GTM Zone.")
       .optional(),
@@ -3670,7 +3754,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Versions. Registered at `@swamp/gcp/tagmanager/accounts-containers-versions`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-versions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3789,6 +3873,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

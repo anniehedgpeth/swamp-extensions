@@ -186,7 +186,9 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.record(z.string(), z.unknown())).describe(
           "Values in the array.",
         ).optional(),
-      }).describe("An array value.").optional(),
+      }).describe(
+        "An array value. Cannot directly contain another array value, though can contain a map which contains another array.",
+      ).optional(),
       booleanValue: z.boolean().describe("A boolean value.").optional(),
       bytesValue: z.string().describe(
         "A bytes value. Must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes are considered by queries.",
@@ -207,7 +209,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Optional named arguments that certain functions may support.",
           ).optional(),
       }).describe(
-        'Represents an unevaluated scalar expression. For example, the expression `like(user_name, "%alice%")` is represented as: ` name: "like" args { field_reference: "user_name" } args { string_value: "%alice%" } `',
+        "A value that represents an unevaluated expression. **Requires:** * Not allowed to be used when writing documents.",
       ).optional(),
       geoPointValue: z.object({
         latitude: z.number().describe(
@@ -217,7 +219,7 @@ const GlobalArgsSchema = z.object({
           "The longitude in degrees. It must be in the range [-180.0, +180.0].",
         ).optional(),
       }).describe(
-        "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+        "A geo point value representing a point on the surface of Earth.",
       ).optional(),
       integerValue: z.string().describe("An integer value.").optional(),
       mapValue: z.object({
@@ -241,7 +243,7 @@ const GlobalArgsSchema = z.object({
         })).describe("Required. Ordered list of stages to evaluate.")
           .optional(),
       }).describe(
-        "A Firestore query represented as an ordered list of operations / stages.",
+        "A value that represents an unevaluated pipeline. **Requires:** * Not allowed to be used when writing documents.",
       ).optional(),
       referenceValue: z.string().describe(
         "A reference to a document. For example: `projects/{project_id}/databases/{database_id}/documents/{document_path}`.",
@@ -300,7 +302,9 @@ const InputsSchema = z.object({
         values: z.array(z.record(z.string(), z.unknown())).describe(
           "Values in the array.",
         ).optional(),
-      }).describe("An array value.").optional(),
+      }).describe(
+        "An array value. Cannot directly contain another array value, though can contain a map which contains another array.",
+      ).optional(),
       booleanValue: z.boolean().describe("A boolean value.").optional(),
       bytesValue: z.string().describe(
         "A bytes value. Must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes are considered by queries.",
@@ -321,7 +325,7 @@ const InputsSchema = z.object({
             "Optional. Optional named arguments that certain functions may support.",
           ).optional(),
       }).describe(
-        'Represents an unevaluated scalar expression. For example, the expression `like(user_name, "%alice%")` is represented as: ` name: "like" args { field_reference: "user_name" } args { string_value: "%alice%" } `',
+        "A value that represents an unevaluated expression. **Requires:** * Not allowed to be used when writing documents.",
       ).optional(),
       geoPointValue: z.object({
         latitude: z.number().describe(
@@ -331,7 +335,7 @@ const InputsSchema = z.object({
           "The longitude in degrees. It must be in the range [-180.0, +180.0].",
         ).optional(),
       }).describe(
-        "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+        "A geo point value representing a point on the surface of Earth.",
       ).optional(),
       integerValue: z.string().describe("An integer value.").optional(),
       mapValue: z.object({
@@ -355,7 +359,7 @@ const InputsSchema = z.object({
         })).describe("Required. Ordered list of stages to evaluate.")
           .optional(),
       }).describe(
-        "A Firestore query represented as an ordered list of operations / stages.",
+        "A value that represents an unevaluated pipeline. **Requires:** * Not allowed to be used when writing documents.",
       ).optional(),
       referenceValue: z.string().describe(
         "A reference to a document. For example: `projects/{project_id}/databases/{database_id}/documents/{document_path}`.",
@@ -413,7 +417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.Documents. Registered at `@swamp/gcp/firestore/databases-documents`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-documents",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -562,6 +566,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

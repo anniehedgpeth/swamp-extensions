@@ -146,9 +146,8 @@ const GlobalArgsSchema = z.object({
       "ACTION_REQUIRED",
     ]).describe("Output only. The state of the URI.").optional(),
     uri: z.string().describe("Required. The about page URI.").optional(),
-  }).describe(
-    "Collection of information related to the about page ([impressum](https://support.google.com/merchants/answer/14675634?ref_topic=15145634&sjid=6892280366904591178-NC)).",
-  ).optional(),
+  }).describe("Optional. The about page URI and state for this country.")
+    .optional(),
   inStock: z.object({
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -160,7 +159,8 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "Optional. Product landing page URI. It is only used for the review of MHLSF in-stock serving. This URI domain should match with the business's homepage. Required to be empty if the lsf_type is GHLSF, and required when the lsf_type is MHLSF_FULL or MHLSF_BASIC.",
     ).optional(),
-  }).describe("Collection of information related to InStock.").optional(),
+  }).describe("Optional. The InStock URI and state for this country.")
+    .optional(),
   inventoryVerification: z.object({
     contact: z.string().describe(
       "Required. The name of the contact for the inventory verification process.",
@@ -186,23 +186,8 @@ const GlobalArgsSchema = z.object({
     ]).describe("Output only. The state of the inventory verification process.")
       .optional(),
   }).describe(
-    "Collection of information related to [inventory verification](https://support.google.com/merchants/answer/14684499?ref_topic=15145634&sjid=6892280366904591178-NC).",
+    "Optional. The inventory verification contact and state for this country.",
   ).optional(),
-  lfpLink: z.object({
-    externalAccountId: z.string().describe(
-      "Required. The account ID by which this merchant is known to the LFP provider.",
-    ).optional(),
-    lfpProvider: z.string().describe(
-      "Required. The resource name of the LFP provider. Format: `lfpProviders/{lfp_provider}`",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "ACTIVE",
-      "FAILED",
-      "RUNNING",
-      "ACTION_REQUIRED",
-    ]).describe("Output only. The state of the LFP link.").optional(),
-  }).describe("Collection of information related to the LFP link.").optional(),
   lsfType: z.enum([
     "LSF_TYPE_UNSPECIFIED",
     "GHLSF",
@@ -225,7 +210,7 @@ const GlobalArgsSchema = z.object({
       "Required. The on display to order (ODO) policy URI.",
     ).optional(),
   }).describe(
-    "Collection of information related to the on display to order ([ODO](https://support.google.com/merchants/answer/14615056?ref_topic=15145747&sjid=6892280366904591178-NC)).",
+    "Optional. The On Display to Order (ODO) policy URI and state for this country.",
   ).optional(),
   pickup: z.object({
     state: z.enum([
@@ -238,7 +223,8 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "Required. Pickup product page URI. It is only used for the review of pickup serving. This URI domain should match with the business's homepage.",
     ).optional(),
-  }).describe("Collection of information related to Pickup.").optional(),
+  }).describe("Optional. The Pickup URI and state for this country.")
+    .optional(),
   regionCode: z.string().describe(
     "Required. Immutable. Region code defined by [CLDR](https://cldr.unicode.org/). Must be provided in the Create method, and is immutable.",
   ).optional(),
@@ -296,9 +282,8 @@ const InputsSchema = z.object({
       "ACTION_REQUIRED",
     ]).describe("Output only. The state of the URI.").optional(),
     uri: z.string().describe("Required. The about page URI.").optional(),
-  }).describe(
-    "Collection of information related to the about page ([impressum](https://support.google.com/merchants/answer/14675634?ref_topic=15145634&sjid=6892280366904591178-NC)).",
-  ).optional(),
+  }).describe("Optional. The about page URI and state for this country.")
+    .optional(),
   inStock: z.object({
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -310,7 +295,8 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "Optional. Product landing page URI. It is only used for the review of MHLSF in-stock serving. This URI domain should match with the business's homepage. Required to be empty if the lsf_type is GHLSF, and required when the lsf_type is MHLSF_FULL or MHLSF_BASIC.",
     ).optional(),
-  }).describe("Collection of information related to InStock.").optional(),
+  }).describe("Optional. The InStock URI and state for this country.")
+    .optional(),
   inventoryVerification: z.object({
     contact: z.string().describe(
       "Required. The name of the contact for the inventory verification process.",
@@ -336,23 +322,8 @@ const InputsSchema = z.object({
     ]).describe("Output only. The state of the inventory verification process.")
       .optional(),
   }).describe(
-    "Collection of information related to [inventory verification](https://support.google.com/merchants/answer/14684499?ref_topic=15145634&sjid=6892280366904591178-NC).",
+    "Optional. The inventory verification contact and state for this country.",
   ).optional(),
-  lfpLink: z.object({
-    externalAccountId: z.string().describe(
-      "Required. The account ID by which this merchant is known to the LFP provider.",
-    ).optional(),
-    lfpProvider: z.string().describe(
-      "Required. The resource name of the LFP provider. Format: `lfpProviders/{lfp_provider}`",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "ACTIVE",
-      "FAILED",
-      "RUNNING",
-      "ACTION_REQUIRED",
-    ]).describe("Output only. The state of the LFP link.").optional(),
-  }).describe("Collection of information related to the LFP link.").optional(),
   lsfType: z.enum([
     "LSF_TYPE_UNSPECIFIED",
     "GHLSF",
@@ -375,7 +346,7 @@ const InputsSchema = z.object({
       "Required. The on display to order (ODO) policy URI.",
     ).optional(),
   }).describe(
-    "Collection of information related to the on display to order ([ODO](https://support.google.com/merchants/answer/14615056?ref_topic=15145747&sjid=6892280366904591178-NC)).",
+    "Optional. The On Display to Order (ODO) policy URI and state for this country.",
   ).optional(),
   pickup: z.object({
     state: z.enum([
@@ -388,7 +359,8 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "Required. Pickup product page URI. It is only used for the review of pickup serving. This URI domain should match with the business's homepage.",
     ).optional(),
-  }).describe("Collection of information related to Pickup.").optional(),
+  }).describe("Optional. The Pickup URI and state for this country.")
+    .optional(),
   regionCode: z.string().describe(
     "Required. Immutable. Region code defined by [CLDR](https://cldr.unicode.org/). Must be provided in the Create method, and is immutable.",
   ).optional(),
@@ -420,7 +392,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.OmnichannelSettings. Registered at `@swamp/gcp/merchantapi/accounts-omnichannelsettings`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-omnichannelsettings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: lfpLink",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { lfpLink: _lfpLink, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -448,7 +430,6 @@ export const model = {
         if (g["inventoryVerification"] !== undefined) {
           body["inventoryVerification"] = g["inventoryVerification"];
         }
-        if (g["lfpLink"] !== undefined) body["lfpLink"] = g["lfpLink"];
         if (g["lsfType"] !== undefined) body["lsfType"] = g["lsfType"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["odo"] !== undefined) body["odo"] = g["odo"];
@@ -563,7 +544,6 @@ export const model = {
         if (g["inventoryVerification"] !== undefined) {
           body["inventoryVerification"] = g["inventoryVerification"];
         }
-        if (g["lfpLink"] !== undefined) body["lfpLink"] = g["lfpLink"];
         if (g["lsfType"] !== undefined) body["lsfType"] = g["lsfType"];
         if (g["odo"] !== undefined) body["odo"] = g["odo"];
         if (g["pickup"] !== undefined) body["pickup"] = g["pickup"];

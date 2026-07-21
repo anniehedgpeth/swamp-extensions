@@ -158,7 +158,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   propertyDefinitions: z.array(z.object({
     dateTimeTypeOptions: z.object({}).describe(
-      "Configurations for a date time property.",
+      "Date time property. It is not supported by CMEK compliant deployment.",
     ).optional(),
     displayName: z.string().describe(
       "The display-name for the property, used for front-end.",
@@ -170,13 +170,9 @@ const GlobalArgsSchema = z.object({
       validationCheckDisabled: z.boolean().describe(
         "Make sure the Enum property value provided in the document is in the possile value list during document creation. The validation check runs by default.",
       ).optional(),
-    }).describe("Configurations for an enum/categorical property.").optional(),
-    floatTypeOptions: z.object({}).describe(
-      "Configurations for a float property.",
-    ).optional(),
-    integerTypeOptions: z.object({}).describe(
-      "Configurations for an integer property.",
-    ).optional(),
+    }).describe("Enum/categorical property.").optional(),
+    floatTypeOptions: z.object({}).describe("Float property.").optional(),
+    integerTypeOptions: z.object({}).describe("Integer property.").optional(),
     isFilterable: z.boolean().describe(
       "Whether the property can be filtered. If this is a sub-property, all the parent properties must be marked filterable.",
     ).optional(),
@@ -192,8 +188,7 @@ const GlobalArgsSchema = z.object({
     isSearchable: z.boolean().describe(
       "Indicates that the property should be included in a global search.",
     ).optional(),
-    mapTypeOptions: z.object({}).describe("Configurations for a Map property.")
-      .optional(),
+    mapTypeOptions: z.object({}).describe("Map property.").optional(),
     name: z.string().describe(
       "Required. The name of the metadata property. Must be unique within a document schema and is case insensitive. Names must be non-blank, start with a letter, and can contain alphanumeric characters and: /,:, -, _, and.",
     ).optional(),
@@ -201,8 +196,7 @@ const GlobalArgsSchema = z.object({
       propertyDefinitions: z.array(z.record(z.string(), z.unknown())).describe(
         "Required. List of property definitions.",
       ).optional(),
-    }).describe("Configurations for a nested structured data property.")
-      .optional(),
+    }).describe("Nested structured data property.").optional(),
     retrievalImportance: z.enum([
       "RETRIEVAL_IMPORTANCE_UNSPECIFIED",
       "HIGHEST",
@@ -220,11 +214,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "The mapping information between this property to another schema source.",
     ).optional(),
-    textTypeOptions: z.object({}).describe(
-      "Configurations for a text property.",
-    ).optional(),
+    textTypeOptions: z.object({}).describe("Text/string property.").optional(),
     timestampTypeOptions: z.object({}).describe(
-      "Configurations for a timestamp property.",
+      "Timestamp property. It is not supported by CMEK compliant deployment.",
     ).optional(),
   })).describe("Document details.").optional(),
   documentSchema: z.object({
@@ -243,7 +235,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     propertyDefinitions: z.array(z.object({
       dateTimeTypeOptions: z.object({}).describe(
-        "Configurations for a date time property.",
+        "Date time property. It is not supported by CMEK compliant deployment.",
       ).optional(),
       displayName: z.string().describe(
         "The display-name for the property, used for front-end.",
@@ -255,14 +247,9 @@ const GlobalArgsSchema = z.object({
         validationCheckDisabled: z.boolean().describe(
           "Make sure the Enum property value provided in the document is in the possile value list during document creation. The validation check runs by default.",
         ).optional(),
-      }).describe("Configurations for an enum/categorical property.")
-        .optional(),
-      floatTypeOptions: z.object({}).describe(
-        "Configurations for a float property.",
-      ).optional(),
-      integerTypeOptions: z.object({}).describe(
-        "Configurations for an integer property.",
-      ).optional(),
+      }).describe("Enum/categorical property.").optional(),
+      floatTypeOptions: z.object({}).describe("Float property.").optional(),
+      integerTypeOptions: z.object({}).describe("Integer property.").optional(),
       isFilterable: z.boolean().describe(
         "Whether the property can be filtered. If this is a sub-property, all the parent properties must be marked filterable.",
       ).optional(),
@@ -278,9 +265,7 @@ const GlobalArgsSchema = z.object({
       isSearchable: z.boolean().describe(
         "Indicates that the property should be included in a global search.",
       ).optional(),
-      mapTypeOptions: z.object({}).describe(
-        "Configurations for a Map property.",
-      ).optional(),
+      mapTypeOptions: z.object({}).describe("Map property.").optional(),
       name: z.string().describe(
         "Required. The name of the metadata property. Must be unique within a document schema and is case insensitive. Names must be non-blank, start with a letter, and can contain alphanumeric characters and: /,:, -, _, and.",
       ).optional(),
@@ -288,8 +273,7 @@ const GlobalArgsSchema = z.object({
         propertyDefinitions: z.array(z.unknown()).describe(
           "Required. List of property definitions.",
         ).optional(),
-      }).describe("Configurations for a nested structured data property.")
-        .optional(),
+      }).describe("Nested structured data property.").optional(),
       retrievalImportance: z.enum([
         "RETRIEVAL_IMPORTANCE_UNSPECIFIED",
         "HIGHEST",
@@ -307,18 +291,16 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "The mapping information between this property to another schema source.",
       ).optional(),
-      textTypeOptions: z.object({}).describe(
-        "Configurations for a text property.",
-      ).optional(),
+      textTypeOptions: z.object({}).describe("Text/string property.")
+        .optional(),
       timestampTypeOptions: z.object({}).describe(
-        "Configurations for a timestamp property.",
+        "Timestamp property. It is not supported by CMEK compliant deployment.",
       ).optional(),
     })).describe("Document details.").optional(),
     updateTime: z.string().describe(
       "Output only. The time when the document schema is last updated.",
     ).optional(),
-  }).describe("A document schema used to define document structure.")
-    .optional(),
+  }).describe("Required. The document schema to update with.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -379,7 +361,7 @@ const InputsSchema = z.object({
   ).optional(),
   propertyDefinitions: z.array(z.object({
     dateTimeTypeOptions: z.object({}).describe(
-      "Configurations for a date time property.",
+      "Date time property. It is not supported by CMEK compliant deployment.",
     ).optional(),
     displayName: z.string().describe(
       "The display-name for the property, used for front-end.",
@@ -391,13 +373,9 @@ const InputsSchema = z.object({
       validationCheckDisabled: z.boolean().describe(
         "Make sure the Enum property value provided in the document is in the possile value list during document creation. The validation check runs by default.",
       ).optional(),
-    }).describe("Configurations for an enum/categorical property.").optional(),
-    floatTypeOptions: z.object({}).describe(
-      "Configurations for a float property.",
-    ).optional(),
-    integerTypeOptions: z.object({}).describe(
-      "Configurations for an integer property.",
-    ).optional(),
+    }).describe("Enum/categorical property.").optional(),
+    floatTypeOptions: z.object({}).describe("Float property.").optional(),
+    integerTypeOptions: z.object({}).describe("Integer property.").optional(),
     isFilterable: z.boolean().describe(
       "Whether the property can be filtered. If this is a sub-property, all the parent properties must be marked filterable.",
     ).optional(),
@@ -413,8 +391,7 @@ const InputsSchema = z.object({
     isSearchable: z.boolean().describe(
       "Indicates that the property should be included in a global search.",
     ).optional(),
-    mapTypeOptions: z.object({}).describe("Configurations for a Map property.")
-      .optional(),
+    mapTypeOptions: z.object({}).describe("Map property.").optional(),
     name: z.string().describe(
       "Required. The name of the metadata property. Must be unique within a document schema and is case insensitive. Names must be non-blank, start with a letter, and can contain alphanumeric characters and: /,:, -, _, and.",
     ).optional(),
@@ -422,8 +399,7 @@ const InputsSchema = z.object({
       propertyDefinitions: z.array(z.record(z.string(), z.unknown())).describe(
         "Required. List of property definitions.",
       ).optional(),
-    }).describe("Configurations for a nested structured data property.")
-      .optional(),
+    }).describe("Nested structured data property.").optional(),
     retrievalImportance: z.enum([
       "RETRIEVAL_IMPORTANCE_UNSPECIFIED",
       "HIGHEST",
@@ -441,11 +417,9 @@ const InputsSchema = z.object({
     })).describe(
       "The mapping information between this property to another schema source.",
     ).optional(),
-    textTypeOptions: z.object({}).describe(
-      "Configurations for a text property.",
-    ).optional(),
+    textTypeOptions: z.object({}).describe("Text/string property.").optional(),
     timestampTypeOptions: z.object({}).describe(
-      "Configurations for a timestamp property.",
+      "Timestamp property. It is not supported by CMEK compliant deployment.",
     ).optional(),
   })).describe("Document details.").optional(),
   documentSchema: z.object({
@@ -464,7 +438,7 @@ const InputsSchema = z.object({
     ).optional(),
     propertyDefinitions: z.array(z.object({
       dateTimeTypeOptions: z.object({}).describe(
-        "Configurations for a date time property.",
+        "Date time property. It is not supported by CMEK compliant deployment.",
       ).optional(),
       displayName: z.string().describe(
         "The display-name for the property, used for front-end.",
@@ -476,14 +450,9 @@ const InputsSchema = z.object({
         validationCheckDisabled: z.boolean().describe(
           "Make sure the Enum property value provided in the document is in the possile value list during document creation. The validation check runs by default.",
         ).optional(),
-      }).describe("Configurations for an enum/categorical property.")
-        .optional(),
-      floatTypeOptions: z.object({}).describe(
-        "Configurations for a float property.",
-      ).optional(),
-      integerTypeOptions: z.object({}).describe(
-        "Configurations for an integer property.",
-      ).optional(),
+      }).describe("Enum/categorical property.").optional(),
+      floatTypeOptions: z.object({}).describe("Float property.").optional(),
+      integerTypeOptions: z.object({}).describe("Integer property.").optional(),
       isFilterable: z.boolean().describe(
         "Whether the property can be filtered. If this is a sub-property, all the parent properties must be marked filterable.",
       ).optional(),
@@ -499,9 +468,7 @@ const InputsSchema = z.object({
       isSearchable: z.boolean().describe(
         "Indicates that the property should be included in a global search.",
       ).optional(),
-      mapTypeOptions: z.object({}).describe(
-        "Configurations for a Map property.",
-      ).optional(),
+      mapTypeOptions: z.object({}).describe("Map property.").optional(),
       name: z.string().describe(
         "Required. The name of the metadata property. Must be unique within a document schema and is case insensitive. Names must be non-blank, start with a letter, and can contain alphanumeric characters and: /,:, -, _, and.",
       ).optional(),
@@ -509,8 +476,7 @@ const InputsSchema = z.object({
         propertyDefinitions: z.array(z.unknown()).describe(
           "Required. List of property definitions.",
         ).optional(),
-      }).describe("Configurations for a nested structured data property.")
-        .optional(),
+      }).describe("Nested structured data property.").optional(),
       retrievalImportance: z.enum([
         "RETRIEVAL_IMPORTANCE_UNSPECIFIED",
         "HIGHEST",
@@ -528,18 +494,16 @@ const InputsSchema = z.object({
       })).describe(
         "The mapping information between this property to another schema source.",
       ).optional(),
-      textTypeOptions: z.object({}).describe(
-        "Configurations for a text property.",
-      ).optional(),
+      textTypeOptions: z.object({}).describe("Text/string property.")
+        .optional(),
       timestampTypeOptions: z.object({}).describe(
-        "Configurations for a timestamp property.",
+        "Timestamp property. It is not supported by CMEK compliant deployment.",
       ).optional(),
     })).describe("Document details.").optional(),
     updateTime: z.string().describe(
       "Output only. The time when the document schema is last updated.",
     ).optional(),
-  }).describe("A document schema used to define document structure.")
-    .optional(),
+  }).describe("Required. The document schema to update with.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -568,7 +532,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Document AI Warehouse DocumentSchemas. Registered at `@swamp/gcp/contentwarehouse/documentschemas`. */
 export const model = {
   type: "@swamp/gcp/contentwarehouse/documentschemas",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -682,6 +646,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

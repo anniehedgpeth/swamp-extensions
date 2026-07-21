@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Represents the maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.",
           ).optional(),
         }).describe(
-          "Represents configuration for customizing how memories are consolidated.",
+          "Optional. Represents configuration for customizing how memories are consolidated together.",
         ).optional(),
         disableNaturalLanguageMemories: z.boolean().describe(
           "Optional. Indicates whether natural language memory generation should be disabled for all requests. By default, natural language memory generation is enabled. Set this to `true` when you only want to generate structured memories.",
@@ -202,20 +202,23 @@ const GlobalArgsSchema = z.object({
               "Optional. Re-include the last N already-processed events in the next window.",
             ).optional(),
           }).describe(
-            "Represents the active rule that determines when to flush the buffer.",
+            "Optional. Represents the active rule that determines when to flush the buffer. If not set, then the stream will be force flushed immediately.",
           ).optional(),
-        }).describe("Represents configuration for triggering generation.")
-          .optional(),
+        }).describe(
+          "Optional. Specifies the default trigger configuration for generating memories using `IngestEvents`.",
+        ).optional(),
         model: z.string().describe(
           "Optional. The model used to generate memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
         ).optional(),
-      }).describe("Configuration for how to generate memories.").optional(),
+      }).describe(
+        "Optional. Configuration for how to generate memories for the Memory Bank.",
+      ).optional(),
       similaritySearchConfig: z.object({
         embeddingModel: z.string().describe(
           "Required. The model used to generate embeddings to lookup similar memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
         ).optional(),
       }).describe(
-        "Configuration for how to perform similarity search on memories.",
+        "Optional. Configuration for how to perform similarity search on memories. If not set, the Memory Bank will use the default embedding model `text-embedding-005`.",
       ).optional(),
       ttlConfig: z.object({
         defaultTtl: z.string().describe(
@@ -232,17 +235,19 @@ const GlobalArgsSchema = z.object({
             "Optional. The TTL duration for memories updated via GenerateMemories (GenerateMemoriesResponse.GeneratedMemory.Action.UPDATED). In the case of an UPDATE action, the `expire_time` of the existing memory will be updated to the new value (now + TTL).",
           ).optional(),
         }).describe(
-          "Configuration for TTL of the memories in the Memory Bank based on the action that created or updated the memory.",
+          "Optional. The granular TTL configuration of the memories in the Memory Bank.",
         ).optional(),
         memoryRevisionDefaultTtl: z.string().describe(
           "Optional. The default TTL duration of the memory revisions in the Memory Bank. This applies to all operations that create a memory revision. If not set, a default TTL of 365 days will be used.",
         ).optional(),
       }).describe(
-        'Configuration for automatically setting the TTL ("time-to-live") of the memories in the Memory Bank.',
+        'Optional. Configuration for automatic TTL ("time-to-live") of the memories in the Memory Bank. If not set, TTL will not be applied automatically. The TTL can be explicitly set by modifying the `expire_time` of each Memory resource.',
       ).optional(),
-    }).describe("Specification for a Memory Bank.").optional(),
+    }).describe(
+      "Optional. Specification for a Memory Bank, which manages memories for the Agent Engine.",
+    ).optional(),
   }).describe(
-    "Configuration for how Agent Engine sub-resources should manage context.",
+    "Optional. Configuration for how Agent Engine sub-resources should manage context.",
   ).optional(),
   description: z.string().describe(
     "Optional. The description of the ReasoningEngine.",
@@ -255,7 +260,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for a ReasoningEngine. If set, this ReasoningEngine and all sub-resources of this ReasoningEngine will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels for the ReasoningEngine.",
@@ -271,7 +276,8 @@ const GlobalArgsSchema = z.object({
       workerPool: z.string().describe(
         "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
       ).optional(),
-    }).describe("Specification for building container image.").optional(),
+    }).describe("Optional. Configuration for building container image.")
+      .optional(),
     classMethods: z.array(z.record(z.string(), z.string())).describe(
       "Optional. Declarations for object class methods in OpenAPI specification format.",
     ).optional(),
@@ -279,8 +285,9 @@ const GlobalArgsSchema = z.object({
       imageUri: z.string().describe(
         "Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.",
       ).optional(),
-    }).describe("Specification for deploying from a container image.")
-      .optional(),
+    }).describe(
+      "Deploy from a container image with a defined entrypoint and commands.",
+    ).optional(),
     deploymentSpec: z.object({
       agentGatewayConfig: z.object({
         agentToAnywhereConfig: z.object({
@@ -288,16 +295,17 @@ const GlobalArgsSchema = z.object({
             "Required. The resource name of the Agent Gateway for outbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `AGENT_TO_ANYWHERE`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
           ).optional(),
         }).describe(
-          "Configuration for traffic originating from a Reasoning Engine.",
+          "Optional. Configuration for traffic originating from the Reasoning Engine. When unset, outgoing traffic is not routed through an Agent Gateway.",
         ).optional(),
         clientToAgentConfig: z.object({
           agentGateway: z.string().describe(
             "Required. The resource name of the Agent Gateway to use for inbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `CLIENT_TO_AGENT`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
           ).optional(),
-        }).describe("Configuration for traffic targeting a Reasoning Engine.")
-          .optional(),
+        }).describe(
+          "Optional. Configuration for traffic targeting the Reasoning Engine. When unset, incoming traffic is not routed through an Agent Gateway.",
+        ).optional(),
       }).describe(
-        "Agent Gateway configuration for a Reasoning Engine deployment.",
+        "Optional. Agent Gateway configuration for the Reasoning Engine deployment.",
       ).optional(),
       containerConcurrency: z.number().int().describe(
         "Optional. Concurrency for each container and agent server. Recommended value: 2 * cpu + 1. Defaults to 9.",
@@ -320,13 +328,14 @@ const GlobalArgsSchema = z.object({
           port: z.number().int().describe(
             "Optional. Specifies the port number on the container to which the request is sent.",
           ).optional(),
-        }).describe("Specifies the HTTP GET configuration for the probe.")
-          .optional(),
+        }).describe(
+          "Optional. Specifies the HTTP GET configuration for the probe.",
+        ).optional(),
         maxSeconds: z.number().int().describe(
           "Optional. Specifies the maximum duration (in seconds) to keep the instance alive via this probe. Can be a maximum of 3600 seconds (1 hour).",
         ).optional(),
       }).describe(
-        "Represents the configuration for keep-alive probe. Contains configuration on a specified endpoint that a deployment host should use to keep the container alive based on the probe settings.",
+        "Optional. Specifies the configuration for keep-alive probe. Contains configuration on a specified endpoint that a deployment host should use to keep the container alive based on the probe settings.",
       ).optional(),
       maxInstances: z.number().int().describe(
         "Optional. The maximum number of application instances that can be launched to handle increased traffic. Defaults to 100. Range: [1, 1000]. If VPC-SC or PSC-I is enabled, the acceptable range is [1, 100].",
@@ -351,7 +360,7 @@ const GlobalArgsSchema = z.object({
         networkAttachment: z.string().describe(
           "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
         ).optional(),
-      }).describe("Configuration for PSC-I.").optional(),
+      }).describe("Optional. Configuration for PSC-I.").optional(),
       resourceLimits: z.record(z.string(), z.string()).describe(
         "Optional. Resource limits for each container. Only 'cpu' and 'memory' keys are supported. Defaults to {\"cpu\": \"4\", \"memory\": \"4Gi\"}. * The only supported values for CPU are '1', '2', '4', '6' and '8'. For more information, go to https://cloud.google.com/run/docs/configuring/cpu. * The only supported values for memory are '1Gi', '2Gi',... '32 Gi'. * For required cpu on different memory values, go to https://cloud.google.com/run/docs/configuring/memory-limits",
       ).optional(),
@@ -367,12 +376,12 @@ const GlobalArgsSchema = z.object({
             "The Cloud Secret Manager secret version. Can be 'latest' for the latest version, an integer for a specific version, or a version alias.",
           ).optional(),
         }).describe(
-          "Reference to a secret stored in the Cloud Secret Manager that will provide the value for this environment variable.",
+          "Required. Reference to a secret stored in the Cloud Secret Manager that will provide the value for this environment variable.",
         ).optional(),
       })).describe(
         "Optional. Environment variables where the value is a secret in Cloud Secret Manager. To use this feature, add 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) to AI Platform Reasoning Engine Service Agent.",
       ).optional(),
-    }).describe("The specification of a Reasoning Engine deployment.")
+    }).describe("Optional. The specification of a Reasoning Engine deployment.")
       .optional(),
     effectiveIdentity: z.string().describe(
       "Output only. The identity to use for the Reasoning Engine. It can contain one of the following values: * service-{project}@gcp-sa-aiplatform-re.googleapis.com (for SERVICE_AGENT identity type) * {name}@{project}.gserviceaccount.com (for SERVICE_ACCOUNT identity type) * agents.global.{org}.system.id.goog/resources/aiplatform/projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine} (for AGENT_IDENTITY identity type)",
@@ -398,7 +407,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The Cloud Storage URI of the `requirements.txt` file",
       ).optional(),
     }).describe(
-      "User-provided package specification, containing pickled object and package requirements.",
+      "Optional. User provided package spec of the ReasoningEngine. Ignored when users directly specify a deployment image through `deployment_spec.first_party_image_override`, but keeping the field_behavior to avoid introducing breaking changes. The `deployment_source` field should not be set if `package_spec` is specified.",
     ).optional(),
     serviceAccount: z.string().describe(
       'Optional. The service account that the Reasoning Engine artifact runs as. It should have "roles/storage.objectViewer" for reading the user project\'s Cloud Storage and "roles/aiplatform.user" for using Vertex extensions. If not specified, the Vertex AI Reasoning Engine Service Agent in the project will be used.',
@@ -409,16 +418,15 @@ const GlobalArgsSchema = z.object({
           jsonConfig: z.record(z.string(), z.unknown()).describe(
             "Required. The value of the ADK config in JSON format.",
           ).optional(),
-        }).describe("Configuration for the Agent Development Kit (ADK).")
-          .optional(),
+        }).describe("Required. The ADK configuration.").optional(),
         inlineSource: z.object({
           sourceArchive: z.string().describe(
             "Required. Input only. The application source code archive. It must be a compressed tarball (.tar.gz) file.",
           ).optional(),
-        }).describe("Specifies source code provided as a byte stream.")
-          .optional(),
-      }).describe("Specification for the deploying from agent config.")
-        .optional(),
+        }).describe(
+          "Optional. Any additional files needed to interpret the config. If a `requirements.txt` file is present in the `inline_source`, the corresponding packages will be installed. If no `requirements.txt` file is present in `inline_source`, then the latest version of `google-adk` will be installed for interpreting the ADK config.",
+        ).optional(),
+      }).describe("Source code is generated from the agent config.").optional(),
       developerConnectSource: z.object({
         config: z.object({
           dir: z.string().describe(
@@ -431,23 +439,23 @@ const GlobalArgsSchema = z.object({
             "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
           ).optional(),
         }).describe(
-          "Specifies the configuration for fetching source code from a Git repository that is managed by Developer Connect. This includes the repository, revision, and directory to use.",
+          "Required. The Developer Connect configuration that defines the specific repository, revision, and directory to use as the source code root.",
         ).optional(),
       }).describe(
-        "Specifies source code to be fetched from a Git repository managed through the Developer Connect service.",
+        "Source code is in a Git repository managed by Developer Connect.",
       ).optional(),
       imageSpec: z.object({
         buildArgs: z.record(z.string(), z.string()).describe(
           "Optional. Build arguments to be used. They will be passed through --build-arg flags.",
         ).optional(),
       }).describe(
-        "The image spec for building an image (within a single build step), based on the config file (i.e. Dockerfile) in the source directory.",
+        "Optional. Configuration for building an image with custom config file.",
       ).optional(),
       inlineSource: z.object({
         sourceArchive: z.string().describe(
           "Required. Input only. The application source code archive. It must be a compressed tarball (.tar.gz) file.",
         ).optional(),
-      }).describe("Specifies source code provided as a byte stream.")
+      }).describe("Source code is provided directly in the request.")
         .optional(),
       pythonSpec: z.object({
         entrypointModule: z.string().describe(
@@ -462,10 +470,10 @@ const GlobalArgsSchema = z.object({
         version: z.string().describe(
           "Optional. The version of Python to use. Supported versions include 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.",
         ).optional(),
-      }).describe("Specification for running a Python application from source.")
-        .optional(),
-    }).describe("Specification for deploying from source code.").optional(),
-  }).describe("ReasoningEngine configurations").optional(),
+      }).describe("Configuration for a Python application.").optional(),
+    }).describe("Deploy from source code files with a defined entrypoint.")
+      .optional(),
+  }).describe("Optional. Configurations of the ReasoningEngine").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -625,7 +633,7 @@ const InputsSchema = z.object({
             "Optional. Represents the maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.",
           ).optional(),
         }).describe(
-          "Represents configuration for customizing how memories are consolidated.",
+          "Optional. Represents configuration for customizing how memories are consolidated together.",
         ).optional(),
         disableNaturalLanguageMemories: z.boolean().describe(
           "Optional. Indicates whether natural language memory generation should be disabled for all requests. By default, natural language memory generation is enabled. Set this to `true` when you only want to generate structured memories.",
@@ -664,20 +672,23 @@ const InputsSchema = z.object({
               "Optional. Re-include the last N already-processed events in the next window.",
             ).optional(),
           }).describe(
-            "Represents the active rule that determines when to flush the buffer.",
+            "Optional. Represents the active rule that determines when to flush the buffer. If not set, then the stream will be force flushed immediately.",
           ).optional(),
-        }).describe("Represents configuration for triggering generation.")
-          .optional(),
+        }).describe(
+          "Optional. Specifies the default trigger configuration for generating memories using `IngestEvents`.",
+        ).optional(),
         model: z.string().describe(
           "Optional. The model used to generate memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
         ).optional(),
-      }).describe("Configuration for how to generate memories.").optional(),
+      }).describe(
+        "Optional. Configuration for how to generate memories for the Memory Bank.",
+      ).optional(),
       similaritySearchConfig: z.object({
         embeddingModel: z.string().describe(
           "Required. The model used to generate embeddings to lookup similar memories. Format: `projects/{project}/locations/{location}/publishers/google/models/{model}`.",
         ).optional(),
       }).describe(
-        "Configuration for how to perform similarity search on memories.",
+        "Optional. Configuration for how to perform similarity search on memories. If not set, the Memory Bank will use the default embedding model `text-embedding-005`.",
       ).optional(),
       ttlConfig: z.object({
         defaultTtl: z.string().describe(
@@ -694,17 +705,19 @@ const InputsSchema = z.object({
             "Optional. The TTL duration for memories updated via GenerateMemories (GenerateMemoriesResponse.GeneratedMemory.Action.UPDATED). In the case of an UPDATE action, the `expire_time` of the existing memory will be updated to the new value (now + TTL).",
           ).optional(),
         }).describe(
-          "Configuration for TTL of the memories in the Memory Bank based on the action that created or updated the memory.",
+          "Optional. The granular TTL configuration of the memories in the Memory Bank.",
         ).optional(),
         memoryRevisionDefaultTtl: z.string().describe(
           "Optional. The default TTL duration of the memory revisions in the Memory Bank. This applies to all operations that create a memory revision. If not set, a default TTL of 365 days will be used.",
         ).optional(),
       }).describe(
-        'Configuration for automatically setting the TTL ("time-to-live") of the memories in the Memory Bank.',
+        'Optional. Configuration for automatic TTL ("time-to-live") of the memories in the Memory Bank. If not set, TTL will not be applied automatically. The TTL can be explicitly set by modifying the `expire_time` of each Memory resource.',
       ).optional(),
-    }).describe("Specification for a Memory Bank.").optional(),
+    }).describe(
+      "Optional. Specification for a Memory Bank, which manages memories for the Agent Engine.",
+    ).optional(),
   }).describe(
-    "Configuration for how Agent Engine sub-resources should manage context.",
+    "Optional. Configuration for how Agent Engine sub-resources should manage context.",
   ).optional(),
   description: z.string().describe(
     "Optional. The description of the ReasoningEngine.",
@@ -717,7 +730,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for a ReasoningEngine. If set, this ReasoningEngine and all sub-resources of this ReasoningEngine will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels for the ReasoningEngine.",
@@ -733,7 +746,8 @@ const InputsSchema = z.object({
       workerPool: z.string().describe(
         "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
       ).optional(),
-    }).describe("Specification for building container image.").optional(),
+    }).describe("Optional. Configuration for building container image.")
+      .optional(),
     classMethods: z.array(z.record(z.string(), z.string())).describe(
       "Optional. Declarations for object class methods in OpenAPI specification format.",
     ).optional(),
@@ -741,8 +755,9 @@ const InputsSchema = z.object({
       imageUri: z.string().describe(
         "Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.",
       ).optional(),
-    }).describe("Specification for deploying from a container image.")
-      .optional(),
+    }).describe(
+      "Deploy from a container image with a defined entrypoint and commands.",
+    ).optional(),
     deploymentSpec: z.object({
       agentGatewayConfig: z.object({
         agentToAnywhereConfig: z.object({
@@ -750,16 +765,17 @@ const InputsSchema = z.object({
             "Required. The resource name of the Agent Gateway for outbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `AGENT_TO_ANYWHERE`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
           ).optional(),
         }).describe(
-          "Configuration for traffic originating from a Reasoning Engine.",
+          "Optional. Configuration for traffic originating from the Reasoning Engine. When unset, outgoing traffic is not routed through an Agent Gateway.",
         ).optional(),
         clientToAgentConfig: z.object({
           agentGateway: z.string().describe(
             "Required. The resource name of the Agent Gateway to use for inbound traffic. It must be set to a Google-managed gateway whose `governed_access_path` is `CLIENT_TO_AGENT`. Format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`",
           ).optional(),
-        }).describe("Configuration for traffic targeting a Reasoning Engine.")
-          .optional(),
+        }).describe(
+          "Optional. Configuration for traffic targeting the Reasoning Engine. When unset, incoming traffic is not routed through an Agent Gateway.",
+        ).optional(),
       }).describe(
-        "Agent Gateway configuration for a Reasoning Engine deployment.",
+        "Optional. Agent Gateway configuration for the Reasoning Engine deployment.",
       ).optional(),
       containerConcurrency: z.number().int().describe(
         "Optional. Concurrency for each container and agent server. Recommended value: 2 * cpu + 1. Defaults to 9.",
@@ -782,13 +798,14 @@ const InputsSchema = z.object({
           port: z.number().int().describe(
             "Optional. Specifies the port number on the container to which the request is sent.",
           ).optional(),
-        }).describe("Specifies the HTTP GET configuration for the probe.")
-          .optional(),
+        }).describe(
+          "Optional. Specifies the HTTP GET configuration for the probe.",
+        ).optional(),
         maxSeconds: z.number().int().describe(
           "Optional. Specifies the maximum duration (in seconds) to keep the instance alive via this probe. Can be a maximum of 3600 seconds (1 hour).",
         ).optional(),
       }).describe(
-        "Represents the configuration for keep-alive probe. Contains configuration on a specified endpoint that a deployment host should use to keep the container alive based on the probe settings.",
+        "Optional. Specifies the configuration for keep-alive probe. Contains configuration on a specified endpoint that a deployment host should use to keep the container alive based on the probe settings.",
       ).optional(),
       maxInstances: z.number().int().describe(
         "Optional. The maximum number of application instances that can be launched to handle increased traffic. Defaults to 100. Range: [1, 1000]. If VPC-SC or PSC-I is enabled, the acceptable range is [1, 100].",
@@ -813,7 +830,7 @@ const InputsSchema = z.object({
         networkAttachment: z.string().describe(
           "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
         ).optional(),
-      }).describe("Configuration for PSC-I.").optional(),
+      }).describe("Optional. Configuration for PSC-I.").optional(),
       resourceLimits: z.record(z.string(), z.string()).describe(
         "Optional. Resource limits for each container. Only 'cpu' and 'memory' keys are supported. Defaults to {\"cpu\": \"4\", \"memory\": \"4Gi\"}. * The only supported values for CPU are '1', '2', '4', '6' and '8'. For more information, go to https://cloud.google.com/run/docs/configuring/cpu. * The only supported values for memory are '1Gi', '2Gi',... '32 Gi'. * For required cpu on different memory values, go to https://cloud.google.com/run/docs/configuring/memory-limits",
       ).optional(),
@@ -829,12 +846,12 @@ const InputsSchema = z.object({
             "The Cloud Secret Manager secret version. Can be 'latest' for the latest version, an integer for a specific version, or a version alias.",
           ).optional(),
         }).describe(
-          "Reference to a secret stored in the Cloud Secret Manager that will provide the value for this environment variable.",
+          "Required. Reference to a secret stored in the Cloud Secret Manager that will provide the value for this environment variable.",
         ).optional(),
       })).describe(
         "Optional. Environment variables where the value is a secret in Cloud Secret Manager. To use this feature, add 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) to AI Platform Reasoning Engine Service Agent.",
       ).optional(),
-    }).describe("The specification of a Reasoning Engine deployment.")
+    }).describe("Optional. The specification of a Reasoning Engine deployment.")
       .optional(),
     effectiveIdentity: z.string().describe(
       "Output only. The identity to use for the Reasoning Engine. It can contain one of the following values: * service-{project}@gcp-sa-aiplatform-re.googleapis.com (for SERVICE_AGENT identity type) * {name}@{project}.gserviceaccount.com (for SERVICE_ACCOUNT identity type) * agents.global.{org}.system.id.goog/resources/aiplatform/projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine} (for AGENT_IDENTITY identity type)",
@@ -860,7 +877,7 @@ const InputsSchema = z.object({
         "Optional. The Cloud Storage URI of the `requirements.txt` file",
       ).optional(),
     }).describe(
-      "User-provided package specification, containing pickled object and package requirements.",
+      "Optional. User provided package spec of the ReasoningEngine. Ignored when users directly specify a deployment image through `deployment_spec.first_party_image_override`, but keeping the field_behavior to avoid introducing breaking changes. The `deployment_source` field should not be set if `package_spec` is specified.",
     ).optional(),
     serviceAccount: z.string().describe(
       'Optional. The service account that the Reasoning Engine artifact runs as. It should have "roles/storage.objectViewer" for reading the user project\'s Cloud Storage and "roles/aiplatform.user" for using Vertex extensions. If not specified, the Vertex AI Reasoning Engine Service Agent in the project will be used.',
@@ -871,16 +888,15 @@ const InputsSchema = z.object({
           jsonConfig: z.record(z.string(), z.unknown()).describe(
             "Required. The value of the ADK config in JSON format.",
           ).optional(),
-        }).describe("Configuration for the Agent Development Kit (ADK).")
-          .optional(),
+        }).describe("Required. The ADK configuration.").optional(),
         inlineSource: z.object({
           sourceArchive: z.string().describe(
             "Required. Input only. The application source code archive. It must be a compressed tarball (.tar.gz) file.",
           ).optional(),
-        }).describe("Specifies source code provided as a byte stream.")
-          .optional(),
-      }).describe("Specification for the deploying from agent config.")
-        .optional(),
+        }).describe(
+          "Optional. Any additional files needed to interpret the config. If a `requirements.txt` file is present in the `inline_source`, the corresponding packages will be installed. If no `requirements.txt` file is present in `inline_source`, then the latest version of `google-adk` will be installed for interpreting the ADK config.",
+        ).optional(),
+      }).describe("Source code is generated from the agent config.").optional(),
       developerConnectSource: z.object({
         config: z.object({
           dir: z.string().describe(
@@ -893,23 +909,23 @@ const InputsSchema = z.object({
             "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
           ).optional(),
         }).describe(
-          "Specifies the configuration for fetching source code from a Git repository that is managed by Developer Connect. This includes the repository, revision, and directory to use.",
+          "Required. The Developer Connect configuration that defines the specific repository, revision, and directory to use as the source code root.",
         ).optional(),
       }).describe(
-        "Specifies source code to be fetched from a Git repository managed through the Developer Connect service.",
+        "Source code is in a Git repository managed by Developer Connect.",
       ).optional(),
       imageSpec: z.object({
         buildArgs: z.record(z.string(), z.string()).describe(
           "Optional. Build arguments to be used. They will be passed through --build-arg flags.",
         ).optional(),
       }).describe(
-        "The image spec for building an image (within a single build step), based on the config file (i.e. Dockerfile) in the source directory.",
+        "Optional. Configuration for building an image with custom config file.",
       ).optional(),
       inlineSource: z.object({
         sourceArchive: z.string().describe(
           "Required. Input only. The application source code archive. It must be a compressed tarball (.tar.gz) file.",
         ).optional(),
-      }).describe("Specifies source code provided as a byte stream.")
+      }).describe("Source code is provided directly in the request.")
         .optional(),
       pythonSpec: z.object({
         entrypointModule: z.string().describe(
@@ -924,10 +940,10 @@ const InputsSchema = z.object({
         version: z.string().describe(
           "Optional. The version of Python to use. Supported versions include 3.10, 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.",
         ).optional(),
-      }).describe("Specification for running a Python application from source.")
-        .optional(),
-    }).describe("Specification for deploying from source code.").optional(),
-  }).describe("ReasoningEngine configurations").optional(),
+      }).describe("Configuration for a Python application.").optional(),
+    }).describe("Deploy from source code files with a defined entrypoint.")
+      .optional(),
+  }).describe("Optional. Configurations of the ReasoningEngine").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -956,7 +972,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines. Registered at `@swamp/gcp/aiplatform/reasoningengines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1120,6 +1136,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

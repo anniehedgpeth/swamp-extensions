@@ -135,7 +135,9 @@ const GlobalArgsSchema = z.object({
       disabled: z.boolean().describe(
         "Optional. If true, the MCP data sync to the Agent Registry will be disabled. The default value is false.",
       ).optional(),
-    }).describe("The configuration for Agent Registry sync.").optional(),
+    }).describe(
+      "Optional. The configuration for syncing MCP data in the API Hub instance to the Agent Registry.",
+    ).optional(),
     cmekKeyName: z.string().describe(
       "Optional. The Customer Managed Encryption Key (CMEK) used for data encryption. The CMEK name should follow the format of `projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+)`, where the location must match the instance location. If the CMEK is not provided, a GMEK will be created for the instance.",
     ).optional(),
@@ -149,8 +151,7 @@ const GlobalArgsSchema = z.object({
     vertexLocation: z.string().describe(
       "Optional. The name of the Vertex AI location where the data store is stored.",
     ).optional(),
-  }).describe("Available configurations to provision an ApiHub Instance.")
-    .optional(),
+  }).describe("Required. Config of the ApiHub instance.").optional(),
   description: z.string().describe(
     "Optional. Description of the ApiHub instance.",
   ).optional(),
@@ -199,7 +200,9 @@ const InputsSchema = z.object({
       disabled: z.boolean().describe(
         "Optional. If true, the MCP data sync to the Agent Registry will be disabled. The default value is false.",
       ).optional(),
-    }).describe("The configuration for Agent Registry sync.").optional(),
+    }).describe(
+      "Optional. The configuration for syncing MCP data in the API Hub instance to the Agent Registry.",
+    ).optional(),
     cmekKeyName: z.string().describe(
       "Optional. The Customer Managed Encryption Key (CMEK) used for data encryption. The CMEK name should follow the format of `projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+)`, where the location must match the instance location. If the CMEK is not provided, a GMEK will be created for the instance.",
     ).optional(),
@@ -213,8 +216,7 @@ const InputsSchema = z.object({
     vertexLocation: z.string().describe(
       "Optional. The name of the Vertex AI location where the data store is stored.",
     ).optional(),
-  }).describe("Available configurations to provision an ApiHub Instance.")
-    .optional(),
+  }).describe("Required. Config of the ApiHub instance.").optional(),
   description: z.string().describe(
     "Optional. Description of the ApiHub instance.",
   ).optional(),
@@ -255,7 +257,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub ApiHubInstances. Registered at `@swamp/gcp/apihub/apihubinstances`. */
 export const model = {
   type: "@swamp/gcp/apihub/apihubinstances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -359,6 +361,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

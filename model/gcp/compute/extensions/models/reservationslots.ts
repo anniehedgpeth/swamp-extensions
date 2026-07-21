@@ -189,7 +189,9 @@ const GlobalArgsSchema = z.object({
     subBlock: z.string().describe(
       "The unique identifier of the capacity sub-block within the capacity block.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Output only. [Output Only] The physical topology of the reservation slot.",
+  ).optional(),
   selfLink: z.string().describe(
     "Output only. [Output Only] A server-defined fully-qualified URL for this resource.",
   ).optional(),
@@ -214,7 +216,7 @@ const GlobalArgsSchema = z.object({
       "SPECIFIC_PROJECTS",
     ]).describe("Type of sharing for this shared-reservation").optional(),
   }).describe(
-    "The share setting for reservations and sole tenancy node groups.",
+    "Specify share settings to create a shared slot. Set to empty to inherit the share settings from a parent resource.",
   ).optional(),
   state: z.enum([
     "ACTIVE",
@@ -238,14 +240,17 @@ const GlobalArgsSchema = z.object({
       subBlock: z.string().describe(
         "The unique identifier of the capacity sub-block within the capacity block.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Output only. [Output Only] The physical topology of the reservation sub-block.",
+    ).optional(),
     rdmaIpAddresses: z.array(z.string()).describe(
       "Output only. The RDMA IP address of the physical host.",
     ).optional(),
     runningInstances: z.array(z.string()).describe(
       "Output only. The URIs of the instances currently running on this slot.",
     ).optional(),
-  }).optional(),
+  }).describe("Output only. [Output Only] The status of the reservation slot.")
+    .optional(),
   zone: z.string().describe(
     "Output only. [Output Only] The zone in which the reservation slot resides.",
   ).optional(),
@@ -319,7 +324,9 @@ const InputsSchema = z.object({
     subBlock: z.string().describe(
       "The unique identifier of the capacity sub-block within the capacity block.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Output only. [Output Only] The physical topology of the reservation slot.",
+  ).optional(),
   selfLink: z.string().describe(
     "Output only. [Output Only] A server-defined fully-qualified URL for this resource.",
   ).optional(),
@@ -344,7 +351,7 @@ const InputsSchema = z.object({
       "SPECIFIC_PROJECTS",
     ]).describe("Type of sharing for this shared-reservation").optional(),
   }).describe(
-    "The share setting for reservations and sole tenancy node groups.",
+    "Specify share settings to create a shared slot. Set to empty to inherit the share settings from a parent resource.",
   ).optional(),
   state: z.enum([
     "ACTIVE",
@@ -368,14 +375,17 @@ const InputsSchema = z.object({
       subBlock: z.string().describe(
         "The unique identifier of the capacity sub-block within the capacity block.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Output only. [Output Only] The physical topology of the reservation sub-block.",
+    ).optional(),
     rdmaIpAddresses: z.array(z.string()).describe(
       "Output only. The RDMA IP address of the physical host.",
     ).optional(),
     runningInstances: z.array(z.string()).describe(
       "Output only. The URIs of the instances currently running on this slot.",
     ).optional(),
-  }).optional(),
+  }).describe("Output only. [Output Only] The status of the reservation slot.")
+    .optional(),
   zone: z.string().describe(
     "Output only. [Output Only] The zone in which the reservation slot resides.",
   ).optional(),
@@ -407,7 +417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine ReservationSlots. Registered at `@swamp/gcp/compute/reservationslots`. */
 export const model = {
   type: "@swamp/gcp/compute/reservationslots",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -506,6 +516,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

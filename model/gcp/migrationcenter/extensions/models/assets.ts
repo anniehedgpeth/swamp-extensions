@@ -169,10 +169,10 @@ const GlobalArgsSchema = z.object({
       databaseCount: z.number().int().describe(
         "Output only. The number of databases in the deployment.",
       ).optional(),
-    }).describe("Aggregated stats for the database deployment.").optional(),
-    awsRds: z.object({}).describe(
-      "Specific details for an AWS RDS database deployment.",
-    ).optional(),
+    }).describe("Output only. Aggregated stats for the database deployment.")
+      .optional(),
+    awsRds: z.object({}).describe("Optional. Details of an AWS RDS instance.")
+      .optional(),
     edition: z.string().describe("Optional. The database deployment edition.")
       .optional(),
     generatedId: z.string().describe(
@@ -208,7 +208,7 @@ const GlobalArgsSchema = z.object({
         variable: z.string().describe("Required. The variable name.")
           .optional(),
       })).describe("Optional. List of MySql variables.").optional(),
-    }).describe("Specific details for a Mysql database deployment.").optional(),
+    }).describe("Optional. Details of a MYSQL database deployment.").optional(),
     postgresql: z.object({
       properties: z.array(z.object({
         enabled: z.boolean().describe("Required. The property is enabled.")
@@ -233,7 +233,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         unit: z.string().describe("Optional. The setting unit.").optional(),
       })).describe("Optional. List of PostgreSql settings.").optional(),
-    }).describe("Specific details for a PostgreSQL database deployment.")
+    }).describe("Optional. Details of a PostgreSQL database deployment.")
       .optional(),
     sqlServer: z.object({
       features: z.array(z.object({
@@ -260,7 +260,7 @@ const GlobalArgsSchema = z.object({
           .optional(),
       })).describe("Optional. List of SQL Server trace flags.").optional(),
     }).describe(
-      "Specific details for a Microsoft SQL Server database deployment.",
+      "Optional. Details of a Microsoft SQL Server database deployment.",
     ).optional(),
     topology: z.object({
       coreCount: z.number().int().describe(
@@ -287,7 +287,7 @@ const GlobalArgsSchema = z.object({
           primaryMacAddress: z.unknown().describe(
             "Optional. The instance's primary MAC address.",
           ).optional(),
-        }).describe("Network details of a database instance.").optional(),
+        }).describe("Optional. Networking details.").optional(),
         role: z.enum(["ROLE_UNSPECIFIED", "PRIMARY", "SECONDARY", "ARBITER"])
           .describe("Optional. The instance role in the database engine.")
           .optional(),
@@ -303,10 +303,13 @@ const GlobalArgsSchema = z.object({
       physicalCoreLimit: z.number().int().describe(
         "Optional. Number of total physical cores limited by db deployment.",
       ).optional(),
-    }).describe("Details of database deployment's topology.").optional(),
+    }).describe("Optional. Details of the database deployment topology.")
+      .optional(),
     version: z.string().describe("Optional. The database deployment version.")
       .optional(),
-  }).describe("The details of a database deployment asset.").optional(),
+  }).describe(
+    "Output only. Asset information specific for database deployments.",
+  ).optional(),
   databaseDetails: z.object({
     allocatedStorageBytes: z.string().describe(
       "Optional. The allocated storage for the database in bytes.",
@@ -320,14 +323,15 @@ const GlobalArgsSchema = z.object({
       manualUniqueId: z.string().describe(
         "Optional. The parent database deployment optional manual unique ID set by the user.",
       ).optional(),
-    }).describe("The identifiers of the parent database deployment.")
-      .optional(),
+    }).describe(
+      "Required. The parent database deployment that contains the logical database.",
+    ).optional(),
     schemas: z.array(z.object({
       mysql: z.object({
         storageEngines: z.array(z.unknown()).describe(
           "Optional. Mysql storage engine tables.",
         ).optional(),
-      }).describe("Specific details for a Mysql database.").optional(),
+      }).describe("Optional. Details of a Mysql schema.").optional(),
       objects: z.array(z.object({
         category: z.unknown().describe("Optional. The category of the objects.")
           .optional(),
@@ -342,19 +346,20 @@ const GlobalArgsSchema = z.object({
         postgresqlExtensions: z.array(z.unknown()).describe(
           "Optional. PostgreSql extensions.",
         ).optional(),
-      }).describe("Specific details for a PostgreSql schema.").optional(),
+      }).describe("Optional. Details of a PostgreSql schema.").optional(),
       schemaName: z.string().describe("Required. The name of the schema.")
         .optional(),
       sqlServer: z.object({
         clrObjectCount: z.number().int().describe(
           "Optional. SqlServer number of CLR objects.",
         ).optional(),
-      }).describe("Specific details for a SqlServer database.").optional(),
+      }).describe("Optional. Details of a SqlServer schema.").optional(),
       tablesSizeBytes: z.string().describe(
         "Optional. The total size of tables in bytes.",
       ).optional(),
     })).describe("Optional. The database schemas.").optional(),
-  }).describe("Details of a logical database.").optional(),
+  }).describe("Output only. Asset information specific for logical databases.")
+    .optional(),
   hidden: z.boolean().describe("Optional. Indicates if the asset is hidden.")
     .optional(),
   hideReason: z.string().describe(
@@ -375,23 +380,26 @@ const GlobalArgsSchema = z.object({
         messageId: z.string().describe(
           "Output only. Represents a globally unique message id for this insight, can be used for localization purposes, in case message_code is not yet known by the client use default_message instead.",
         ).optional(),
-      }).describe("A generic insight about an asset.").optional(),
+      }).describe("Output only. A generic insight about an asset.").optional(),
       migrationInsight: z.object({
         computeEngineTarget: z.object({
-          shape: z.unknown().describe("Compute Engine target shape descriptor.")
-            .optional(),
-        }).describe("Compute engine migration target.").optional(),
+          shape: z.unknown().describe(
+            "Description of the suggested shape for the migration target.",
+          ).optional(),
+        }).describe("Output only. A Google Compute Engine target.").optional(),
         fit: z.object({
           fitLevel: z.unknown().describe("Output only. Fit level.").optional(),
         }).describe(
-          "Describes the fit level of an asset for migration to a specific target.",
+          "Output only. Description of how well the asset this insight is associated with fits the proposed migration.",
         ).optional(),
-      }).describe("An insight about potential migrations for an asset.")
-        .optional(),
+      }).describe(
+        "Output only. An insight about potential migrations for an asset.",
+      ).optional(),
     })).describe("Output only. Insights of the list.").optional(),
     updateTime: z.string().describe("Output only. Update timestamp.")
       .optional(),
-  }).describe("Message containing insights list.").optional(),
+  }).describe("Output only. The list of insights associated with the asset.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels as key value pairs.",
   ).optional(),
@@ -413,12 +421,10 @@ const GlobalArgsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("BIOS release date.").optional(),
         smbiosUuid: z.string().describe("SMBIOS UUID.").optional(),
         version: z.string().describe("BIOS version.").optional(),
-      }).describe("Details about the BIOS.").optional(),
+      }).describe("BIOS Details.").optional(),
       cpuArchitecture: z.string().describe(
         'CPU architecture, e.g., "x64-based PC", "x86_64", "i686" etc.',
       ).optional(),
@@ -442,7 +448,7 @@ const GlobalArgsSchema = z.object({
         "ENABLED",
       ]).describe("CPU hyper-threading support.").optional(),
       vendor: z.string().describe("Hardware vendor.").optional(),
-    }).describe("Details of the machine architecture.").optional(),
+    }).describe("Architecture details (vendor, CPU architecture).").optional(),
     coreCount: z.number().int().describe(
       "Number of logical CPU cores in the machine. Must be non-negative.",
     ).optional(),
@@ -465,11 +471,13 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe("Partition type.").optional(),
           uuid: z.unknown().describe("Partition UUID.").optional(),
         })).describe("Partition entries.").optional(),
-      }).describe("Disk partition list.").optional(),
+      }).describe("Optional. List of partitions.").optional(),
       totalCapacityBytes: z.string().describe(
         "Output only. Total capacity of all partitions.",
       ).optional(),
-    }).describe("Disk partition details.").optional(),
+    }).describe(
+      "Optional. Disk partitions details. Note: Partitions are not necessarily mounted on local disks and therefore might not have a one-to-one correspondence with local disks.",
+    ).optional(),
     disks: z.object({
       disks: z.object({
         entries: z.array(z.object({
@@ -483,23 +491,22 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           interfaceType: z.unknown().describe("Disks interface type.")
             .optional(),
-          partitions: z.unknown().describe("Disk partition list.").optional(),
-          vmware: z.unknown().describe("VMware disk config details.")
-            .optional(),
+          partitions: z.unknown().describe("Partition layout.").optional(),
+          vmware: z.unknown().describe("VMware disk details.").optional(),
         })).describe("Disk entries.").optional(),
-      }).describe("VM disks.").optional(),
+      }).describe("List of disks.").optional(),
       totalCapacityBytes: z.string().describe("Disk total Capacity.")
         .optional(),
       totalFreeBytes: z.string().describe("Total disk free space.").optional(),
-    }).describe("Details of machine disks.").optional(),
+    }).describe("Disk details.").optional(),
     guestOs: z.object({
       config: z.object({
         fstab: z.object({
           entries: z.array(z.unknown()).describe("Fstab entries.").optional(),
-        }).describe("Fstab content.").optional(),
+        }).describe("Mount list (Linux fstab).").optional(),
         hosts: z.object({
           entries: z.array(z.unknown()).describe("Hosts entries.").optional(),
-        }).describe("Hosts content.").optional(),
+        }).describe("Hosts file (/etc/hosts).").optional(),
         issue: z.string().describe("OS issue (typically /etc/issue in Linux).")
           .optional(),
         nfsExports: z.object({
@@ -512,7 +519,7 @@ const GlobalArgsSchema = z.object({
           "SE_LINUX_MODE_PERMISSIVE",
           "SE_LINUX_MODE_ENFORCING",
         ]).describe("Security-Enhanced Linux (SELinux) mode.").optional(),
-      }).describe("Guest OS config information.").optional(),
+      }).describe("OS and app configuration.").optional(),
       family: z.enum([
         "OS_FAMILY_UNKNOWN",
         "OS_FAMILY_WINDOWS",
@@ -528,7 +535,7 @@ const GlobalArgsSchema = z.object({
         installedApps: z.object({
           entries: z.array(z.unknown()).describe("Application entries.")
             .optional(),
-        }).describe("Guest installed application list.").optional(),
+        }).describe("Installed applications information.").optional(),
         lastBootTime: z.string().describe("Last time the OS was booted.")
           .optional(),
         machineName: z.string().describe("Machine name.").optional(),
@@ -536,26 +543,27 @@ const GlobalArgsSchema = z.object({
           connections: z.object({
             entries: z.unknown().describe("Network connection entries.")
               .optional(),
-          }).describe("Network connection list.").optional(),
+          }).describe("Network connections.").optional(),
           scanTime: z.string().describe("Time of the last network scan.")
             .optional(),
-        }).describe("Runtime networking information.").optional(),
+        }).describe("Runtime network information (connections, ports).")
+          .optional(),
         openFileList: z.object({
           entries: z.array(z.unknown()).describe("Open file details entries.")
             .optional(),
-        }).describe("Open file list.").optional(),
+        }).describe("Open files information.").optional(),
         processes: z.object({
           entries: z.array(z.unknown()).describe("Running process entries.")
             .optional(),
-        }).describe("List of running guest OS processes.").optional(),
+        }).describe("Running processes.").optional(),
         services: z.object({
           entries: z.array(z.unknown()).describe("Running service entries.")
             .optional(),
-        }).describe("List of running guest OS services.").optional(),
-      }).describe("Guest OS runtime information.").optional(),
+        }).describe("Running background services.").optional(),
+      }).describe("Runtime information.").optional(),
       version: z.string().describe("The version of the operating system.")
         .optional(),
-    }).describe("Information from Guest-level collections.").optional(),
+    }).describe("Guest OS information.").optional(),
     machineName: z.string().describe("Machine name.").optional(),
     memoryMb: z.number().int().describe(
       "The amount of memory in the machine. Must be non-negative.",
@@ -566,9 +574,7 @@ const GlobalArgsSchema = z.object({
           adapterType: z.unknown().describe(
             "Network adapter type (e.g. VMXNET3).",
           ).optional(),
-          addresses: z.unknown().describe(
-            "List of allocated/assigned network addresses.",
-          ).optional(),
+          addresses: z.unknown().describe("NetworkAddressList").optional(),
           macAddress: z.unknown().describe("MAC address.").optional(),
         })).describe("Network adapter entries.").optional(),
       }).describe("List of network adapters.").optional(),
@@ -583,7 +589,7 @@ const GlobalArgsSchema = z.object({
       publicIpAddress: z.string().describe(
         "The public IP address of the machine.",
       ).optional(),
-    }).describe("Details of network adapters and settings.").optional(),
+    }).describe("Network details.").optional(),
     platform: z.object({
       awsEc2Details: z.object({
         hyperthreading: z.enum([
@@ -634,8 +640,7 @@ const GlobalArgsSchema = z.object({
         location: z.string().describe(
           "Free text representation of the machine location. The format of this field should not be relied on. Different machines in the same location may have different string values for this field.",
         ).optional(),
-      }).describe("Platform specific details for Physical Machines.")
-        .optional(),
+      }).describe("Physical machines platform details.").optional(),
       vmwareDetails: z.object({
         esxHyperthreading: z.enum([
           "HYPERTHREADING_STATUS_UNSPECIFIED",
@@ -654,7 +659,7 @@ const GlobalArgsSchema = z.object({
         vcenterVersion: z.string().describe("vCenter version.").optional(),
         vcenterVmId: z.string().describe("vCenter VM ID.").optional(),
       }).describe("VMware specific details.").optional(),
-    }).describe("Information about the platform.").optional(),
+    }).describe("Platform specific information.").optional(),
     powerState: z.enum([
       "POWER_STATE_UNSPECIFIED",
       "PENDING",
@@ -665,7 +670,9 @@ const GlobalArgsSchema = z.object({
       "DELETED",
     ]).describe("Power state of the machine.").optional(),
     uuid: z.string().describe("Machine unique identifier.").optional(),
-  }).describe("Details of a machine.").optional(),
+  }).describe(
+    "Output only. Asset information specific for virtual and physical machines.",
+  ).optional(),
   name: z.string().describe("Output only. The full name of the asset.")
     .optional(),
   performanceData: z.object({
@@ -678,10 +685,8 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of CPU usage.").optional(),
+        }).describe("CPU utilization percentage.").optional(),
+      }).describe("CPU usage.").optional(),
       date: z.object({
         day: z.number().int().describe(
           "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -692,9 +697,8 @@ const GlobalArgsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
+      }).describe("Aggregation date. Day boundaries are at midnight UTC.")
+        .optional(),
       disk: z.object({
         iops: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
@@ -703,9 +707,7 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
+        }).describe("Optional. Disk I/O operations per second.").optional(),
         readIops: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
           median: z.unknown().describe("Median usage value.").optional(),
@@ -713,9 +715,8 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
+        }).describe("Optional. Disk read I/O operations per second.")
+          .optional(),
         writeIops: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
           median: z.unknown().describe("Median usage value.").optional(),
@@ -723,10 +724,9 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of disk usage.").optional(),
+        }).describe("Optional. Disk write I/O operations per second.")
+          .optional(),
+      }).describe("Disk usage.").optional(),
       memory: z.object({
         utilizationPercentage: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
@@ -735,10 +735,8 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of memory usage.").optional(),
+        }).describe("Memory utilization percentage.").optional(),
+      }).describe("Memory usage.").optional(),
       network: z.object({
         egressBps: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
@@ -747,9 +745,7 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
+        }).describe("Network egress in B/s.").optional(),
         ingressBps: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
           median: z.unknown().describe("Median usage value.").optional(),
@@ -757,14 +753,12 @@ const GlobalArgsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of network usage.").optional(),
+        }).describe("Network ingress in B/s.").optional(),
+      }).describe("Network usage.").optional(),
     })).describe(
       "Daily resource usage aggregations. Contains all of the data available for an asset, up to the last 420 days. Aggregations are sorted from oldest to most recent.",
     ).optional(),
-  }).describe("Performance data for an asset.").optional(),
+  }).describe("Output only. Performance data for the asset.").optional(),
   sources: z.array(z.string()).describe(
     "Output only. The list of sources contributing to the asset.",
   ).optional(),
@@ -1140,10 +1134,10 @@ const InputsSchema = z.object({
       databaseCount: z.number().int().describe(
         "Output only. The number of databases in the deployment.",
       ).optional(),
-    }).describe("Aggregated stats for the database deployment.").optional(),
-    awsRds: z.object({}).describe(
-      "Specific details for an AWS RDS database deployment.",
-    ).optional(),
+    }).describe("Output only. Aggregated stats for the database deployment.")
+      .optional(),
+    awsRds: z.object({}).describe("Optional. Details of an AWS RDS instance.")
+      .optional(),
     edition: z.string().describe("Optional. The database deployment edition.")
       .optional(),
     generatedId: z.string().describe(
@@ -1179,7 +1173,7 @@ const InputsSchema = z.object({
         variable: z.string().describe("Required. The variable name.")
           .optional(),
       })).describe("Optional. List of MySql variables.").optional(),
-    }).describe("Specific details for a Mysql database deployment.").optional(),
+    }).describe("Optional. Details of a MYSQL database deployment.").optional(),
     postgresql: z.object({
       properties: z.array(z.object({
         enabled: z.boolean().describe("Required. The property is enabled.")
@@ -1204,7 +1198,7 @@ const InputsSchema = z.object({
         ).optional(),
         unit: z.string().describe("Optional. The setting unit.").optional(),
       })).describe("Optional. List of PostgreSql settings.").optional(),
-    }).describe("Specific details for a PostgreSQL database deployment.")
+    }).describe("Optional. Details of a PostgreSQL database deployment.")
       .optional(),
     sqlServer: z.object({
       features: z.array(z.object({
@@ -1231,7 +1225,7 @@ const InputsSchema = z.object({
           .optional(),
       })).describe("Optional. List of SQL Server trace flags.").optional(),
     }).describe(
-      "Specific details for a Microsoft SQL Server database deployment.",
+      "Optional. Details of a Microsoft SQL Server database deployment.",
     ).optional(),
     topology: z.object({
       coreCount: z.number().int().describe(
@@ -1258,7 +1252,7 @@ const InputsSchema = z.object({
           primaryMacAddress: z.unknown().describe(
             "Optional. The instance's primary MAC address.",
           ).optional(),
-        }).describe("Network details of a database instance.").optional(),
+        }).describe("Optional. Networking details.").optional(),
         role: z.enum(["ROLE_UNSPECIFIED", "PRIMARY", "SECONDARY", "ARBITER"])
           .describe("Optional. The instance role in the database engine.")
           .optional(),
@@ -1274,10 +1268,13 @@ const InputsSchema = z.object({
       physicalCoreLimit: z.number().int().describe(
         "Optional. Number of total physical cores limited by db deployment.",
       ).optional(),
-    }).describe("Details of database deployment's topology.").optional(),
+    }).describe("Optional. Details of the database deployment topology.")
+      .optional(),
     version: z.string().describe("Optional. The database deployment version.")
       .optional(),
-  }).describe("The details of a database deployment asset.").optional(),
+  }).describe(
+    "Output only. Asset information specific for database deployments.",
+  ).optional(),
   databaseDetails: z.object({
     allocatedStorageBytes: z.string().describe(
       "Optional. The allocated storage for the database in bytes.",
@@ -1291,14 +1288,15 @@ const InputsSchema = z.object({
       manualUniqueId: z.string().describe(
         "Optional. The parent database deployment optional manual unique ID set by the user.",
       ).optional(),
-    }).describe("The identifiers of the parent database deployment.")
-      .optional(),
+    }).describe(
+      "Required. The parent database deployment that contains the logical database.",
+    ).optional(),
     schemas: z.array(z.object({
       mysql: z.object({
         storageEngines: z.array(z.unknown()).describe(
           "Optional. Mysql storage engine tables.",
         ).optional(),
-      }).describe("Specific details for a Mysql database.").optional(),
+      }).describe("Optional. Details of a Mysql schema.").optional(),
       objects: z.array(z.object({
         category: z.unknown().describe("Optional. The category of the objects.")
           .optional(),
@@ -1313,19 +1311,20 @@ const InputsSchema = z.object({
         postgresqlExtensions: z.array(z.unknown()).describe(
           "Optional. PostgreSql extensions.",
         ).optional(),
-      }).describe("Specific details for a PostgreSql schema.").optional(),
+      }).describe("Optional. Details of a PostgreSql schema.").optional(),
       schemaName: z.string().describe("Required. The name of the schema.")
         .optional(),
       sqlServer: z.object({
         clrObjectCount: z.number().int().describe(
           "Optional. SqlServer number of CLR objects.",
         ).optional(),
-      }).describe("Specific details for a SqlServer database.").optional(),
+      }).describe("Optional. Details of a SqlServer schema.").optional(),
       tablesSizeBytes: z.string().describe(
         "Optional. The total size of tables in bytes.",
       ).optional(),
     })).describe("Optional. The database schemas.").optional(),
-  }).describe("Details of a logical database.").optional(),
+  }).describe("Output only. Asset information specific for logical databases.")
+    .optional(),
   hidden: z.boolean().describe("Optional. Indicates if the asset is hidden.")
     .optional(),
   hideReason: z.string().describe(
@@ -1346,23 +1345,26 @@ const InputsSchema = z.object({
         messageId: z.string().describe(
           "Output only. Represents a globally unique message id for this insight, can be used for localization purposes, in case message_code is not yet known by the client use default_message instead.",
         ).optional(),
-      }).describe("A generic insight about an asset.").optional(),
+      }).describe("Output only. A generic insight about an asset.").optional(),
       migrationInsight: z.object({
         computeEngineTarget: z.object({
-          shape: z.unknown().describe("Compute Engine target shape descriptor.")
-            .optional(),
-        }).describe("Compute engine migration target.").optional(),
+          shape: z.unknown().describe(
+            "Description of the suggested shape for the migration target.",
+          ).optional(),
+        }).describe("Output only. A Google Compute Engine target.").optional(),
         fit: z.object({
           fitLevel: z.unknown().describe("Output only. Fit level.").optional(),
         }).describe(
-          "Describes the fit level of an asset for migration to a specific target.",
+          "Output only. Description of how well the asset this insight is associated with fits the proposed migration.",
         ).optional(),
-      }).describe("An insight about potential migrations for an asset.")
-        .optional(),
+      }).describe(
+        "Output only. An insight about potential migrations for an asset.",
+      ).optional(),
     })).describe("Output only. Insights of the list.").optional(),
     updateTime: z.string().describe("Output only. Update timestamp.")
       .optional(),
-  }).describe("Message containing insights list.").optional(),
+  }).describe("Output only. The list of insights associated with the asset.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels as key value pairs.",
   ).optional(),
@@ -1384,12 +1386,10 @@ const InputsSchema = z.object({
           year: z.number().int().describe(
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
-        }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-        ).optional(),
+        }).describe("BIOS release date.").optional(),
         smbiosUuid: z.string().describe("SMBIOS UUID.").optional(),
         version: z.string().describe("BIOS version.").optional(),
-      }).describe("Details about the BIOS.").optional(),
+      }).describe("BIOS Details.").optional(),
       cpuArchitecture: z.string().describe(
         'CPU architecture, e.g., "x64-based PC", "x86_64", "i686" etc.',
       ).optional(),
@@ -1413,7 +1413,7 @@ const InputsSchema = z.object({
         "ENABLED",
       ]).describe("CPU hyper-threading support.").optional(),
       vendor: z.string().describe("Hardware vendor.").optional(),
-    }).describe("Details of the machine architecture.").optional(),
+    }).describe("Architecture details (vendor, CPU architecture).").optional(),
     coreCount: z.number().int().describe(
       "Number of logical CPU cores in the machine. Must be non-negative.",
     ).optional(),
@@ -1436,11 +1436,13 @@ const InputsSchema = z.object({
           type: z.unknown().describe("Partition type.").optional(),
           uuid: z.unknown().describe("Partition UUID.").optional(),
         })).describe("Partition entries.").optional(),
-      }).describe("Disk partition list.").optional(),
+      }).describe("Optional. List of partitions.").optional(),
       totalCapacityBytes: z.string().describe(
         "Output only. Total capacity of all partitions.",
       ).optional(),
-    }).describe("Disk partition details.").optional(),
+    }).describe(
+      "Optional. Disk partitions details. Note: Partitions are not necessarily mounted on local disks and therefore might not have a one-to-one correspondence with local disks.",
+    ).optional(),
     disks: z.object({
       disks: z.object({
         entries: z.array(z.object({
@@ -1454,23 +1456,22 @@ const InputsSchema = z.object({
           ).optional(),
           interfaceType: z.unknown().describe("Disks interface type.")
             .optional(),
-          partitions: z.unknown().describe("Disk partition list.").optional(),
-          vmware: z.unknown().describe("VMware disk config details.")
-            .optional(),
+          partitions: z.unknown().describe("Partition layout.").optional(),
+          vmware: z.unknown().describe("VMware disk details.").optional(),
         })).describe("Disk entries.").optional(),
-      }).describe("VM disks.").optional(),
+      }).describe("List of disks.").optional(),
       totalCapacityBytes: z.string().describe("Disk total Capacity.")
         .optional(),
       totalFreeBytes: z.string().describe("Total disk free space.").optional(),
-    }).describe("Details of machine disks.").optional(),
+    }).describe("Disk details.").optional(),
     guestOs: z.object({
       config: z.object({
         fstab: z.object({
           entries: z.array(z.unknown()).describe("Fstab entries.").optional(),
-        }).describe("Fstab content.").optional(),
+        }).describe("Mount list (Linux fstab).").optional(),
         hosts: z.object({
           entries: z.array(z.unknown()).describe("Hosts entries.").optional(),
-        }).describe("Hosts content.").optional(),
+        }).describe("Hosts file (/etc/hosts).").optional(),
         issue: z.string().describe("OS issue (typically /etc/issue in Linux).")
           .optional(),
         nfsExports: z.object({
@@ -1483,7 +1484,7 @@ const InputsSchema = z.object({
           "SE_LINUX_MODE_PERMISSIVE",
           "SE_LINUX_MODE_ENFORCING",
         ]).describe("Security-Enhanced Linux (SELinux) mode.").optional(),
-      }).describe("Guest OS config information.").optional(),
+      }).describe("OS and app configuration.").optional(),
       family: z.enum([
         "OS_FAMILY_UNKNOWN",
         "OS_FAMILY_WINDOWS",
@@ -1499,7 +1500,7 @@ const InputsSchema = z.object({
         installedApps: z.object({
           entries: z.array(z.unknown()).describe("Application entries.")
             .optional(),
-        }).describe("Guest installed application list.").optional(),
+        }).describe("Installed applications information.").optional(),
         lastBootTime: z.string().describe("Last time the OS was booted.")
           .optional(),
         machineName: z.string().describe("Machine name.").optional(),
@@ -1507,26 +1508,27 @@ const InputsSchema = z.object({
           connections: z.object({
             entries: z.unknown().describe("Network connection entries.")
               .optional(),
-          }).describe("Network connection list.").optional(),
+          }).describe("Network connections.").optional(),
           scanTime: z.string().describe("Time of the last network scan.")
             .optional(),
-        }).describe("Runtime networking information.").optional(),
+        }).describe("Runtime network information (connections, ports).")
+          .optional(),
         openFileList: z.object({
           entries: z.array(z.unknown()).describe("Open file details entries.")
             .optional(),
-        }).describe("Open file list.").optional(),
+        }).describe("Open files information.").optional(),
         processes: z.object({
           entries: z.array(z.unknown()).describe("Running process entries.")
             .optional(),
-        }).describe("List of running guest OS processes.").optional(),
+        }).describe("Running processes.").optional(),
         services: z.object({
           entries: z.array(z.unknown()).describe("Running service entries.")
             .optional(),
-        }).describe("List of running guest OS services.").optional(),
-      }).describe("Guest OS runtime information.").optional(),
+        }).describe("Running background services.").optional(),
+      }).describe("Runtime information.").optional(),
       version: z.string().describe("The version of the operating system.")
         .optional(),
-    }).describe("Information from Guest-level collections.").optional(),
+    }).describe("Guest OS information.").optional(),
     machineName: z.string().describe("Machine name.").optional(),
     memoryMb: z.number().int().describe(
       "The amount of memory in the machine. Must be non-negative.",
@@ -1537,9 +1539,7 @@ const InputsSchema = z.object({
           adapterType: z.unknown().describe(
             "Network adapter type (e.g. VMXNET3).",
           ).optional(),
-          addresses: z.unknown().describe(
-            "List of allocated/assigned network addresses.",
-          ).optional(),
+          addresses: z.unknown().describe("NetworkAddressList").optional(),
           macAddress: z.unknown().describe("MAC address.").optional(),
         })).describe("Network adapter entries.").optional(),
       }).describe("List of network adapters.").optional(),
@@ -1554,7 +1554,7 @@ const InputsSchema = z.object({
       publicIpAddress: z.string().describe(
         "The public IP address of the machine.",
       ).optional(),
-    }).describe("Details of network adapters and settings.").optional(),
+    }).describe("Network details.").optional(),
     platform: z.object({
       awsEc2Details: z.object({
         hyperthreading: z.enum([
@@ -1605,8 +1605,7 @@ const InputsSchema = z.object({
         location: z.string().describe(
           "Free text representation of the machine location. The format of this field should not be relied on. Different machines in the same location may have different string values for this field.",
         ).optional(),
-      }).describe("Platform specific details for Physical Machines.")
-        .optional(),
+      }).describe("Physical machines platform details.").optional(),
       vmwareDetails: z.object({
         esxHyperthreading: z.enum([
           "HYPERTHREADING_STATUS_UNSPECIFIED",
@@ -1625,7 +1624,7 @@ const InputsSchema = z.object({
         vcenterVersion: z.string().describe("vCenter version.").optional(),
         vcenterVmId: z.string().describe("vCenter VM ID.").optional(),
       }).describe("VMware specific details.").optional(),
-    }).describe("Information about the platform.").optional(),
+    }).describe("Platform specific information.").optional(),
     powerState: z.enum([
       "POWER_STATE_UNSPECIFIED",
       "PENDING",
@@ -1636,7 +1635,9 @@ const InputsSchema = z.object({
       "DELETED",
     ]).describe("Power state of the machine.").optional(),
     uuid: z.string().describe("Machine unique identifier.").optional(),
-  }).describe("Details of a machine.").optional(),
+  }).describe(
+    "Output only. Asset information specific for virtual and physical machines.",
+  ).optional(),
   name: z.string().describe("Output only. The full name of the asset.")
     .optional(),
   performanceData: z.object({
@@ -1649,10 +1650,8 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of CPU usage.").optional(),
+        }).describe("CPU utilization percentage.").optional(),
+      }).describe("CPU usage.").optional(),
       date: z.object({
         day: z.number().int().describe(
           "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -1663,9 +1662,8 @@ const InputsSchema = z.object({
         year: z.number().int().describe(
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
-      }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-      ).optional(),
+      }).describe("Aggregation date. Day boundaries are at midnight UTC.")
+        .optional(),
       disk: z.object({
         iops: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
@@ -1674,9 +1672,7 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
+        }).describe("Optional. Disk I/O operations per second.").optional(),
         readIops: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
           median: z.unknown().describe("Median usage value.").optional(),
@@ -1684,9 +1680,8 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
+        }).describe("Optional. Disk read I/O operations per second.")
+          .optional(),
         writeIops: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
           median: z.unknown().describe("Median usage value.").optional(),
@@ -1694,10 +1689,9 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of disk usage.").optional(),
+        }).describe("Optional. Disk write I/O operations per second.")
+          .optional(),
+      }).describe("Disk usage.").optional(),
       memory: z.object({
         utilizationPercentage: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
@@ -1706,10 +1700,8 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of memory usage.").optional(),
+        }).describe("Memory utilization percentage.").optional(),
+      }).describe("Memory usage.").optional(),
       network: z.object({
         egressBps: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
@@ -1718,9 +1710,7 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
+        }).describe("Network egress in B/s.").optional(),
         ingressBps: z.object({
           average: z.unknown().describe("Average usage value.").optional(),
           median: z.unknown().describe("Median usage value.").optional(),
@@ -1728,14 +1718,12 @@ const InputsSchema = z.object({
             "95th percentile usage value.",
           ).optional(),
           peak: z.unknown().describe("Peak usage value.").optional(),
-        }).describe(
-          "Statistical aggregation of samples for a single resource usage.",
-        ).optional(),
-      }).describe("Statistical aggregation of network usage.").optional(),
+        }).describe("Network ingress in B/s.").optional(),
+      }).describe("Network usage.").optional(),
     })).describe(
       "Daily resource usage aggregations. Contains all of the data available for an asset, up to the last 420 days. Aggregations are sorted from oldest to most recent.",
     ).optional(),
-  }).describe("Performance data for an asset.").optional(),
+  }).describe("Output only. Performance data for the asset.").optional(),
   sources: z.array(z.string()).describe(
     "Output only. The list of sources contributing to the asset.",
   ).optional(),
@@ -1773,7 +1761,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center Assets. Registered at `@swamp/gcp/migrationcenter/assets`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/assets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1882,6 +1870,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

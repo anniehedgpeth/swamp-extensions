@@ -184,43 +184,11 @@ const GlobalArgsSchema = z.object({
         .describe(
           "Optional. Flag indicating if the volume has tiering policy enable/pause. Default is PAUSED.",
         ).optional(),
-    }).describe("Defines tiering policy for the volume.").optional(),
+    }).describe("Optional. Tiering policy for the volume.").optional(),
     volumeId: z.string().describe(
       "Desired destination volume resource id. If not specified, source volume's resource id will be used. This value must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.",
     ).optional(),
-  }).describe(
-    "DestinationVolumeParameters specify input parameters used for creating destination volume.",
-  ).optional(),
-  hybridPeeringDetails: z.object({
-    command: z.string().describe(
-      "Output only. Copy-paste-able commands to be used on user's ONTAP to accept peering requests.",
-    ).optional(),
-    commandExpiryTime: z.string().describe(
-      "Output only. Expiration time for the peering command to be executed on user's ONTAP.",
-    ).optional(),
-    passphrase: z.string().describe(
-      "Output only. Temporary passphrase generated to accept cluster peering command.",
-    ).optional(),
-    peerClusterName: z.string().describe(
-      "Output only. Name of the user's local source cluster to be peered with the destination cluster.",
-    ).optional(),
-    peerSvmName: z.string().describe(
-      "Output only. Name of the user's local source vserver svm to be peered with the destination vserver svm.",
-    ).optional(),
-    peerVolumeName: z.string().describe(
-      "Output only. Name of the user's local source volume to be peered with the destination volume.",
-    ).optional(),
-    subnetIp: z.string().describe("Output only. IP address of the subnet.")
-      .optional(),
-  }).describe("HybridPeeringDetails contains details about the hybrid peering.")
-    .optional(),
-  hybridReplicationUserCommands: z.object({
-    commands: z.array(z.string()).describe(
-      "Output only. List of commands to be executed by the customer.",
-    ).optional(),
-  }).describe(
-    "UserCommands contains the commands to be executed by the customer.",
-  ).optional(),
+  }).describe("Required. Input only. Destination volume parameters").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Resource labels to represent user provided metadata.",
   ).optional(),
@@ -233,32 +201,6 @@ const GlobalArgsSchema = z.object({
     "HOURLY",
     "DAILY",
   ]).describe("Required. Indicates the schedule for replication.").optional(),
-  transferStats: z.object({
-    lagDuration: z.string().describe(
-      "Lag duration indicates the duration by which Destination region volume content lags behind the primary region volume content.",
-    ).optional(),
-    lastTransferBytes: z.string().describe("Last transfer size in bytes.")
-      .optional(),
-    lastTransferDuration: z.string().describe(
-      "Time taken during last transfer.",
-    ).optional(),
-    lastTransferEndTime: z.string().describe(
-      "Time when last transfer completed.",
-    ).optional(),
-    lastTransferError: z.string().describe(
-      "A message describing the cause of the last transfer failure.",
-    ).optional(),
-    totalTransferDuration: z.string().describe(
-      "Cumulative time taken across all transfers for the replication relationship.",
-    ).optional(),
-    transferBytes: z.string().describe(
-      "Cumulative bytes transferred so far for the replication relationship.",
-    ).optional(),
-    updateTime: z.string().describe("Time when progress was updated last.")
-      .optional(),
-  }).describe(
-    "TransferStats reports all statistics related to replication transfer.",
-  ).optional(),
   replicationId: z.string().describe(
     "Required. ID of the replication to create. Must be unique within the parent resource. Must contain only letters, numbers and hyphen, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
   ).optional(),
@@ -353,43 +295,11 @@ const InputsSchema = z.object({
         .describe(
           "Optional. Flag indicating if the volume has tiering policy enable/pause. Default is PAUSED.",
         ).optional(),
-    }).describe("Defines tiering policy for the volume.").optional(),
+    }).describe("Optional. Tiering policy for the volume.").optional(),
     volumeId: z.string().describe(
       "Desired destination volume resource id. If not specified, source volume's resource id will be used. This value must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.",
     ).optional(),
-  }).describe(
-    "DestinationVolumeParameters specify input parameters used for creating destination volume.",
-  ).optional(),
-  hybridPeeringDetails: z.object({
-    command: z.string().describe(
-      "Output only. Copy-paste-able commands to be used on user's ONTAP to accept peering requests.",
-    ).optional(),
-    commandExpiryTime: z.string().describe(
-      "Output only. Expiration time for the peering command to be executed on user's ONTAP.",
-    ).optional(),
-    passphrase: z.string().describe(
-      "Output only. Temporary passphrase generated to accept cluster peering command.",
-    ).optional(),
-    peerClusterName: z.string().describe(
-      "Output only. Name of the user's local source cluster to be peered with the destination cluster.",
-    ).optional(),
-    peerSvmName: z.string().describe(
-      "Output only. Name of the user's local source vserver svm to be peered with the destination vserver svm.",
-    ).optional(),
-    peerVolumeName: z.string().describe(
-      "Output only. Name of the user's local source volume to be peered with the destination volume.",
-    ).optional(),
-    subnetIp: z.string().describe("Output only. IP address of the subnet.")
-      .optional(),
-  }).describe("HybridPeeringDetails contains details about the hybrid peering.")
-    .optional(),
-  hybridReplicationUserCommands: z.object({
-    commands: z.array(z.string()).describe(
-      "Output only. List of commands to be executed by the customer.",
-    ).optional(),
-  }).describe(
-    "UserCommands contains the commands to be executed by the customer.",
-  ).optional(),
+  }).describe("Required. Input only. Destination volume parameters").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Resource labels to represent user provided metadata.",
   ).optional(),
@@ -402,32 +312,6 @@ const InputsSchema = z.object({
     "HOURLY",
     "DAILY",
   ]).describe("Required. Indicates the schedule for replication.").optional(),
-  transferStats: z.object({
-    lagDuration: z.string().describe(
-      "Lag duration indicates the duration by which Destination region volume content lags behind the primary region volume content.",
-    ).optional(),
-    lastTransferBytes: z.string().describe("Last transfer size in bytes.")
-      .optional(),
-    lastTransferDuration: z.string().describe(
-      "Time taken during last transfer.",
-    ).optional(),
-    lastTransferEndTime: z.string().describe(
-      "Time when last transfer completed.",
-    ).optional(),
-    lastTransferError: z.string().describe(
-      "A message describing the cause of the last transfer failure.",
-    ).optional(),
-    totalTransferDuration: z.string().describe(
-      "Cumulative time taken across all transfers for the replication relationship.",
-    ).optional(),
-    transferBytes: z.string().describe(
-      "Cumulative bytes transferred so far for the replication relationship.",
-    ).optional(),
-    updateTime: z.string().describe("Time when progress was updated last.")
-      .optional(),
-  }).describe(
-    "TransferStats reports all statistics related to replication transfer.",
-  ).optional(),
   replicationId: z.string().describe(
     "Required. ID of the replication to create. Must be unique within the parent resource. Must contain only letters, numbers and hyphen, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
   ).optional(),
@@ -462,7 +346,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp Volumes.Replications. Registered at `@swamp/gcp/netapp/volumes-replications`. */
 export const model = {
   type: "@swamp/gcp/netapp/volumes-replications",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -569,6 +453,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: hybridPeeringDetails, hybridReplicationUserCommands, transferStats",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          hybridPeeringDetails: _hybridPeeringDetails,
+          hybridReplicationUserCommands: _hybridReplicationUserCommands,
+          transferStats: _transferStats,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -606,20 +504,10 @@ export const model = {
           body["destinationVolumeParameters"] =
             g["destinationVolumeParameters"];
         }
-        if (g["hybridPeeringDetails"] !== undefined) {
-          body["hybridPeeringDetails"] = g["hybridPeeringDetails"];
-        }
-        if (g["hybridReplicationUserCommands"] !== undefined) {
-          body["hybridReplicationUserCommands"] =
-            g["hybridReplicationUserCommands"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["replicationSchedule"] !== undefined) {
           body["replicationSchedule"] = g["replicationSchedule"];
-        }
-        if (g["transferStats"] !== undefined) {
-          body["transferStats"] = g["transferStats"];
         }
         if (g["replicationId"] !== undefined) {
           params["replicationId"] = String(g["replicationId"]);
@@ -750,19 +638,9 @@ export const model = {
           body["destinationVolumeParameters"] =
             g["destinationVolumeParameters"];
         }
-        if (g["hybridPeeringDetails"] !== undefined) {
-          body["hybridPeeringDetails"] = g["hybridPeeringDetails"];
-        }
-        if (g["hybridReplicationUserCommands"] !== undefined) {
-          body["hybridReplicationUserCommands"] =
-            g["hybridReplicationUserCommands"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["replicationSchedule"] !== undefined) {
           body["replicationSchedule"] = g["replicationSchedule"];
-        }
-        if (g["transferStats"] !== undefined) {
-          body["transferStats"] = g["transferStats"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

@@ -194,7 +194,7 @@ const GlobalArgsSchema = z.object({
       "Optional. When set to true, transitive dependents of included actions will be executed.",
     ).optional(),
   }).describe(
-    "Includes various configuration options for a workflow invocation. If both `included_targets` and `included_tags` are unset, all actions will be included.",
+    "Optional. If left unset, a default InvocationConfig will be used.",
   ).optional(),
   name: z.string().describe("Identifier. The workflow config's name.")
     .optional(),
@@ -297,7 +297,7 @@ const InputsSchema = z.object({
       "Optional. When set to true, transitive dependents of included actions will be executed.",
     ).optional(),
   }).describe(
-    "Includes various configuration options for a workflow invocation. If both `included_targets` and `included_tags` are unset, all actions will be included.",
+    "Optional. If left unset, a default InvocationConfig will be used.",
   ).optional(),
   name: z.string().describe("Identifier. The workflow config's name.")
     .optional(),
@@ -341,7 +341,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.WorkflowConfigs. Registered at `@swamp/gcp/dataform/repositories-workflowconfigs`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-workflowconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -445,6 +445,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

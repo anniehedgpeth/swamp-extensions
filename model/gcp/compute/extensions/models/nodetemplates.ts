@@ -209,7 +209,7 @@ const GlobalArgsSchema = z.object({
     cpus: z.string().optional(),
     localSsd: z.string().optional(),
     memory: z.string().optional(),
-  }).optional(),
+  }).describe("Do not use. Instead, use the node_type property.").optional(),
   region: z.string().describe(
     "Output only. [Output Only] The name of the region where the node template resides, such as us-central1.",
   ).optional(),
@@ -219,7 +219,9 @@ const GlobalArgsSchema = z.object({
       "RESTART_NODE_ON_MINIMAL_SERVERS",
       "SERVER_BINDING_TYPE_UNSPECIFIED",
     ]).optional(),
-  }).optional(),
+  }).describe(
+    "Sets the binding properties for the physical server. Valid values include: - *[Default]* RESTART_NODE_ON_ANY_SERVER: Restarts VMs on any available physical server - RESTART_NODE_ON_MINIMAL_SERVER: Restarts VMs on the same physical server whenever possible See Sole-tenant node options for more information.",
+  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -303,7 +305,7 @@ const InputsSchema = z.object({
     cpus: z.string().optional(),
     localSsd: z.string().optional(),
     memory: z.string().optional(),
-  }).optional(),
+  }).describe("Do not use. Instead, use the node_type property.").optional(),
   region: z.string().describe(
     "Output only. [Output Only] The name of the region where the node template resides, such as us-central1.",
   ).optional(),
@@ -313,7 +315,9 @@ const InputsSchema = z.object({
       "RESTART_NODE_ON_MINIMAL_SERVERS",
       "SERVER_BINDING_TYPE_UNSPECIFIED",
     ]).optional(),
-  }).optional(),
+  }).describe(
+    "Sets the binding properties for the physical server. Valid values include: - *[Default]* RESTART_NODE_ON_ANY_SERVER: Restarts VMs on any available physical server - RESTART_NODE_ON_MINIMAL_SERVER: Restarts VMs on the same physical server whenever possible See Sole-tenant node options for more information.",
+  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -342,7 +346,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine NodeTemplates. Registered at `@swamp/gcp/compute/nodetemplates`. */
 export const model = {
   type: "@swamp/gcp/compute/nodetemplates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -441,6 +445,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

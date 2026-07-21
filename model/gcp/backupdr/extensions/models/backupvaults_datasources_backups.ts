@@ -165,9 +165,7 @@ const GlobalArgsSchema = z.object({
     storedBytes: z.string().describe(
       "Output only. Storage usage of this particular backup",
     ).optional(),
-  }).describe(
-    "AlloyDbClusterBackupProperties represents AlloyDB cluster backup properties..",
-  ).optional(),
+  }).describe("Output only. AlloyDB specific backup properties.").optional(),
   backupApplianceBackupProperties: z.object({
     finalizeTime: z.string().describe(
       "Output only. The time when this backup object was finalized (if none, backup is not finalized).",
@@ -181,9 +179,8 @@ const GlobalArgsSchema = z.object({
     recoveryRangeStartTime: z.string().describe(
       "Optional. The earliest timestamp of data available in this Backup.",
     ).optional(),
-  }).describe(
-    "BackupApplianceBackupProperties represents BackupDR backup appliance's properties.",
-  ).optional(),
+  }).describe("Output only. Backup Appliance specific backup properties.")
+    .optional(),
   backupApplianceLocks: z.array(z.object({
     backupApplianceLockInfo: z.object({
       backupApplianceId: z.string().describe(
@@ -205,7 +202,7 @@ const GlobalArgsSchema = z.object({
         "The SLA on the backup/recovery appliance that owns the lock.",
       ).optional(),
     }).describe(
-      "BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.",
+      "If the client is a backup and recovery appliance, this contains metadata about why the lock exists.",
     ).optional(),
     lockUntilTime: z.string().describe(
       "Required. The time after which this lock is not considered valid and will no longer protect the Backup from deletion.",
@@ -215,7 +212,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.",
       ).optional(),
     }).describe(
-      "ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.",
+      "Output only. Contains metadata about the lock exist for Google Cloud native backups.",
     ).optional(),
   })).describe(
     "Optional. The list of BackupLocks taken by the accessor Backup Appliance.",
@@ -254,9 +251,7 @@ const GlobalArgsSchema = z.object({
     sourceInstance: z.string().describe(
       "Output only. The source instance of the backup. Format: projects/{project}/instances/{instance}",
     ).optional(),
-  }).describe(
-    "CloudSqlInstanceBackupProperties represents Cloud SQL Instance Backup properties.",
-  ).optional(),
+  }).describe("Output only. Cloud SQL specific backup properties.").optional(),
   computeInstanceBackupProperties: z.object({
     canIpForward: z.boolean().describe(
       "Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify `true`. If unsure, leave this set to `false`. See the https://cloud.google.com/vpc/docs/using-routes#canipforward documentation for more information.",
@@ -287,7 +282,9 @@ const GlobalArgsSchema = z.object({
         rsaEncryptedKey: z.string().describe(
           "Optional. RSA-wrapped 2048-bit customer-supplied encryption key to either encrypt or decrypt this resource.",
         ).optional(),
-      }).describe("A customer-supplied encryption key.").optional(),
+      }).describe(
+        "Optional. Encrypts or decrypts a disk using a customer-supplied encryption key.",
+      ).optional(),
       diskInterface: z.enum([
         "DISK_INTERFACE_UNSPECIFIED",
         "SCSI",
@@ -322,7 +319,7 @@ const GlobalArgsSchema = z.object({
         replicaZones: z.array(z.unknown()).describe(
           "Optional. URL of the zone where the disk should be created. Required for each regional disk associated with the instance.",
         ).optional(),
-      }).describe("Specifies the parameters to initialize this disk.")
+      }).describe("Optional. Specifies the parameters to initialize this disk.")
         .optional(),
       kind: z.string().describe("Optional. Type of the resource.").optional(),
       license: z.array(z.string()).describe(
@@ -382,7 +379,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Array of key/value pairs. The total size of all keys and values must be less than 512 KB.",
       ).optional(),
-    }).describe("A metadata key/value entry.").optional(),
+    }).describe(
+      "The metadata key/value pairs to assign to instances that are created from these properties. These pairs can consist of custom metadata or predefined keys. See https://cloud.google.com/compute/docs/metadata/overview for more information.",
+    ).optional(),
     minCpuPlatform: z.string().describe(
       "Minimum cpu/platform to be used by instances. The instance may be scheduled on the specified or newer cpu/platform. Applicable values are the friendly names of CPU platforms, such as `minCpuPlatform: Intel Haswell` or `minCpuPlatform: Intel Sandy Bridge`. For more information, read https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform.",
     ).optional(),
@@ -511,7 +510,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Span of time at a resolution of a second.",
         ).optional(),
       }).describe(
-        'A SchedulingDuration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+        "Optional. Specifies the maximum amount of time a Local Ssd Vm should wait while recovery of the Local Ssd state is attempted. Its value should be in between 0 and 168 hours with hour granularity and the default value being 1 hour.",
       ).optional(),
       minNodeCpus: z.number().int().describe(
         "Optional. The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node.",
@@ -545,7 +544,9 @@ const GlobalArgsSchema = z.object({
         "SPOT",
       ]).describe("Optional. Specifies the provisioning model of the instance.")
         .optional(),
-    }).describe("Sets the scheduling options for an Instance.").optional(),
+    }).describe(
+      "Specifies the scheduling options for the instances that are created from these properties.",
+    ).optional(),
     serviceAccount: z.array(z.object({
       email: z.string().describe(
         "Optional. Email address of the service account.",
@@ -563,10 +564,11 @@ const GlobalArgsSchema = z.object({
       items: z.array(z.string()).describe(
         "Optional. An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.",
       ).optional(),
-    }).describe("A set of instance tags.").optional(),
-  }).describe(
-    "ComputeInstanceBackupProperties represents Compute Engine instance backup properties.",
-  ).optional(),
+    }).describe(
+      "A list of tags to apply to the instances that are created from these properties. The tags identify valid sources or targets for network firewalls. The setTags method can modify this list of tags. Each tag within the list must comply with RFC1035 (https://www.ietf.org/rfc/rfc1035.txt).",
+    ).optional(),
+  }).describe("Output only. Compute Engine specific backup properties.")
+    .optional(),
   consistencyTime: z.string().describe(
     "Output only. The point in time when this backup was captured from the source.",
   ).optional(),
@@ -642,9 +644,7 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe("The URL of the type of the disk.").optional(),
     zone: z.string().describe("The URL of the Zone where the source disk.")
       .optional(),
-  }).describe(
-    "DiskBackupProperties represents the properties of a Disk backup.",
-  ).optional(),
+  }).describe("Output only. Disk specific backup properties.").optional(),
   enforcedRetentionEndTime: z.string().describe(
     "Optional. The backup can not be deleted before this time.",
   ).optional(),
@@ -658,9 +658,7 @@ const GlobalArgsSchema = z.object({
     sourceInstance: z.string().describe(
       "Output only. The source instance of the backup.",
     ).optional(),
-  }).describe(
-    "FilestoreInstanceBackupProperties represents the properties of a Filestore instance that are backed up by the datasource..",
-  ).optional(),
+  }).describe("Output only. Filestore specific backup properties.").optional(),
   gcpBackupPlanInfo: z.object({
     backupPlan: z.string().describe(
       "Resource name of backup plan by which workload is protected at the time of the backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}",
@@ -674,9 +672,8 @@ const GlobalArgsSchema = z.object({
     backupPlanRuleId: z.string().describe(
       "The rule id of the backup plan which triggered this backup in case of scheduled backup or used for",
     ).optional(),
-  }).describe(
-    "GCPBackupPlanInfo captures the plan configuration details of Google Cloud resources at the time of backup.",
-  ).optional(),
+  }).describe("Output only. Configuration for a Google Cloud resource.")
+    .optional(),
   gcpResource: z.object({
     gcpResourcename: z.string().describe("Name of the Google Cloud resource.")
       .optional(),
@@ -687,7 +684,7 @@ const GlobalArgsSchema = z.object({
       "Type of the resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.",
     ).optional(),
   }).describe(
-    "Minimum details to identify a Google Cloud resource for a backup.",
+    "Output only. Unique identifier of the GCP resource that is being backed up.",
   ).optional(),
   kmsKeyVersions: z.array(z.string()).describe(
     "Optional. Output only. The list of KMS key versions used to encrypt the backup.",
@@ -728,7 +725,7 @@ const GlobalArgsSchema = z.object({
         "The SLA on the backup/recovery appliance that owns the lock.",
       ).optional(),
     }).describe(
-      "BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.",
+      "If the client is a backup and recovery appliance, this contains metadata about why the lock exists.",
     ).optional(),
     lockUntilTime: z.string().describe(
       "Required. The time after which this lock is not considered valid and will no longer protect the Backup from deletion.",
@@ -738,7 +735,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.",
       ).optional(),
     }).describe(
-      "ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.",
+      "Output only. Contains metadata about the lock exist for Google Cloud native backups.",
     ).optional(),
   })).describe(
     "Output only. The list of BackupLocks taken by the service to prevent the deletion of the backup.",
@@ -995,9 +992,7 @@ const InputsSchema = z.object({
     storedBytes: z.string().describe(
       "Output only. Storage usage of this particular backup",
     ).optional(),
-  }).describe(
-    "AlloyDbClusterBackupProperties represents AlloyDB cluster backup properties..",
-  ).optional(),
+  }).describe("Output only. AlloyDB specific backup properties.").optional(),
   backupApplianceBackupProperties: z.object({
     finalizeTime: z.string().describe(
       "Output only. The time when this backup object was finalized (if none, backup is not finalized).",
@@ -1011,9 +1006,8 @@ const InputsSchema = z.object({
     recoveryRangeStartTime: z.string().describe(
       "Optional. The earliest timestamp of data available in this Backup.",
     ).optional(),
-  }).describe(
-    "BackupApplianceBackupProperties represents BackupDR backup appliance's properties.",
-  ).optional(),
+  }).describe("Output only. Backup Appliance specific backup properties.")
+    .optional(),
   backupApplianceLocks: z.array(z.object({
     backupApplianceLockInfo: z.object({
       backupApplianceId: z.string().describe(
@@ -1035,7 +1029,7 @@ const InputsSchema = z.object({
         "The SLA on the backup/recovery appliance that owns the lock.",
       ).optional(),
     }).describe(
-      "BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.",
+      "If the client is a backup and recovery appliance, this contains metadata about why the lock exists.",
     ).optional(),
     lockUntilTime: z.string().describe(
       "Required. The time after which this lock is not considered valid and will no longer protect the Backup from deletion.",
@@ -1045,7 +1039,7 @@ const InputsSchema = z.object({
         "Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.",
       ).optional(),
     }).describe(
-      "ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.",
+      "Output only. Contains metadata about the lock exist for Google Cloud native backups.",
     ).optional(),
   })).describe(
     "Optional. The list of BackupLocks taken by the accessor Backup Appliance.",
@@ -1084,9 +1078,7 @@ const InputsSchema = z.object({
     sourceInstance: z.string().describe(
       "Output only. The source instance of the backup. Format: projects/{project}/instances/{instance}",
     ).optional(),
-  }).describe(
-    "CloudSqlInstanceBackupProperties represents Cloud SQL Instance Backup properties.",
-  ).optional(),
+  }).describe("Output only. Cloud SQL specific backup properties.").optional(),
   computeInstanceBackupProperties: z.object({
     canIpForward: z.boolean().describe(
       "Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify `true`. If unsure, leave this set to `false`. See the https://cloud.google.com/vpc/docs/using-routes#canipforward documentation for more information.",
@@ -1117,7 +1109,9 @@ const InputsSchema = z.object({
         rsaEncryptedKey: z.string().describe(
           "Optional. RSA-wrapped 2048-bit customer-supplied encryption key to either encrypt or decrypt this resource.",
         ).optional(),
-      }).describe("A customer-supplied encryption key.").optional(),
+      }).describe(
+        "Optional. Encrypts or decrypts a disk using a customer-supplied encryption key.",
+      ).optional(),
       diskInterface: z.enum([
         "DISK_INTERFACE_UNSPECIFIED",
         "SCSI",
@@ -1152,7 +1146,7 @@ const InputsSchema = z.object({
         replicaZones: z.array(z.unknown()).describe(
           "Optional. URL of the zone where the disk should be created. Required for each regional disk associated with the instance.",
         ).optional(),
-      }).describe("Specifies the parameters to initialize this disk.")
+      }).describe("Optional. Specifies the parameters to initialize this disk.")
         .optional(),
       kind: z.string().describe("Optional. Type of the resource.").optional(),
       license: z.array(z.string()).describe(
@@ -1212,7 +1206,9 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Array of key/value pairs. The total size of all keys and values must be less than 512 KB.",
       ).optional(),
-    }).describe("A metadata key/value entry.").optional(),
+    }).describe(
+      "The metadata key/value pairs to assign to instances that are created from these properties. These pairs can consist of custom metadata or predefined keys. See https://cloud.google.com/compute/docs/metadata/overview for more information.",
+    ).optional(),
     minCpuPlatform: z.string().describe(
       "Minimum cpu/platform to be used by instances. The instance may be scheduled on the specified or newer cpu/platform. Applicable values are the friendly names of CPU platforms, such as `minCpuPlatform: Intel Haswell` or `minCpuPlatform: Intel Sandy Bridge`. For more information, read https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform.",
     ).optional(),
@@ -1341,7 +1337,7 @@ const InputsSchema = z.object({
           "Optional. Span of time at a resolution of a second.",
         ).optional(),
       }).describe(
-        'A SchedulingDuration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+        "Optional. Specifies the maximum amount of time a Local Ssd Vm should wait while recovery of the Local Ssd state is attempted. Its value should be in between 0 and 168 hours with hour granularity and the default value being 1 hour.",
       ).optional(),
       minNodeCpus: z.number().int().describe(
         "Optional. The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node.",
@@ -1375,7 +1371,9 @@ const InputsSchema = z.object({
         "SPOT",
       ]).describe("Optional. Specifies the provisioning model of the instance.")
         .optional(),
-    }).describe("Sets the scheduling options for an Instance.").optional(),
+    }).describe(
+      "Specifies the scheduling options for the instances that are created from these properties.",
+    ).optional(),
     serviceAccount: z.array(z.object({
       email: z.string().describe(
         "Optional. Email address of the service account.",
@@ -1393,10 +1391,11 @@ const InputsSchema = z.object({
       items: z.array(z.string()).describe(
         "Optional. An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.",
       ).optional(),
-    }).describe("A set of instance tags.").optional(),
-  }).describe(
-    "ComputeInstanceBackupProperties represents Compute Engine instance backup properties.",
-  ).optional(),
+    }).describe(
+      "A list of tags to apply to the instances that are created from these properties. The tags identify valid sources or targets for network firewalls. The setTags method can modify this list of tags. Each tag within the list must comply with RFC1035 (https://www.ietf.org/rfc/rfc1035.txt).",
+    ).optional(),
+  }).describe("Output only. Compute Engine specific backup properties.")
+    .optional(),
   consistencyTime: z.string().describe(
     "Output only. The point in time when this backup was captured from the source.",
   ).optional(),
@@ -1472,9 +1471,7 @@ const InputsSchema = z.object({
     type: z.string().describe("The URL of the type of the disk.").optional(),
     zone: z.string().describe("The URL of the Zone where the source disk.")
       .optional(),
-  }).describe(
-    "DiskBackupProperties represents the properties of a Disk backup.",
-  ).optional(),
+  }).describe("Output only. Disk specific backup properties.").optional(),
   enforcedRetentionEndTime: z.string().describe(
     "Optional. The backup can not be deleted before this time.",
   ).optional(),
@@ -1488,9 +1485,7 @@ const InputsSchema = z.object({
     sourceInstance: z.string().describe(
       "Output only. The source instance of the backup.",
     ).optional(),
-  }).describe(
-    "FilestoreInstanceBackupProperties represents the properties of a Filestore instance that are backed up by the datasource..",
-  ).optional(),
+  }).describe("Output only. Filestore specific backup properties.").optional(),
   gcpBackupPlanInfo: z.object({
     backupPlan: z.string().describe(
       "Resource name of backup plan by which workload is protected at the time of the backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}",
@@ -1504,9 +1499,8 @@ const InputsSchema = z.object({
     backupPlanRuleId: z.string().describe(
       "The rule id of the backup plan which triggered this backup in case of scheduled backup or used for",
     ).optional(),
-  }).describe(
-    "GCPBackupPlanInfo captures the plan configuration details of Google Cloud resources at the time of backup.",
-  ).optional(),
+  }).describe("Output only. Configuration for a Google Cloud resource.")
+    .optional(),
   gcpResource: z.object({
     gcpResourcename: z.string().describe("Name of the Google Cloud resource.")
       .optional(),
@@ -1517,7 +1511,7 @@ const InputsSchema = z.object({
       "Type of the resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.",
     ).optional(),
   }).describe(
-    "Minimum details to identify a Google Cloud resource for a backup.",
+    "Output only. Unique identifier of the GCP resource that is being backed up.",
   ).optional(),
   kmsKeyVersions: z.array(z.string()).describe(
     "Optional. Output only. The list of KMS key versions used to encrypt the backup.",
@@ -1558,7 +1552,7 @@ const InputsSchema = z.object({
         "The SLA on the backup/recovery appliance that owns the lock.",
       ).optional(),
     }).describe(
-      "BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.",
+      "If the client is a backup and recovery appliance, this contains metadata about why the lock exists.",
     ).optional(),
     lockUntilTime: z.string().describe(
       "Required. The time after which this lock is not considered valid and will no longer protect the Backup from deletion.",
@@ -1568,7 +1562,7 @@ const InputsSchema = z.object({
         "Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.",
       ).optional(),
     }).describe(
-      "ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.",
+      "Output only. Contains metadata about the lock exist for Google Cloud native backups.",
     ).optional(),
   })).describe(
     "Output only. The list of BackupLocks taken by the service to prevent the deletion of the backup.",
@@ -1615,7 +1609,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupVaults.DataSources.Backups. Registered at `@swamp/gcp/backupdr/backupvaults-datasources-backups`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupvaults-datasources-backups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1734,6 +1728,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

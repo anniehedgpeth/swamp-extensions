@@ -136,7 +136,7 @@ const GlobalArgsSchema = z.object({
         'The status of the verification process for the About page. Supported values are: - "`active`" - "`inactive`" - "`pending`"',
       ).optional(),
       url: z.string().describe("The URL for the About page.").optional(),
-    }).optional(),
+    }).describe("The settings for the About page.").optional(),
     country: z.string().describe(
       'Required. CLDR country code (for example, "US").',
     ).optional(),
@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
       status: z.string().describe(
         'The status of the inventory verification process. Acceptable values are: - "`active`" - "`inactive`" - "`pending`"',
       ).optional(),
-    }).optional(),
+    }).describe("LIA inventory verification settings.").optional(),
     omnichannelExperience: z.object({
       country: z.string().describe('The CLDR country code (for example, "US").')
         .optional(),
@@ -166,7 +166,8 @@ const GlobalArgsSchema = z.object({
       pickupTypes: z.array(z.string()).describe(
         'The Pickup types for this country. Acceptable values are: - "`pickupToday`" - "`pickupLater`"',
       ).optional(),
-    }).describe("Omnichannel experience details.").optional(),
+    }).describe("The omnichannel experience configured for this country.")
+      .optional(),
     onDisplayToOrder: z.object({
       shippingCostPolicyUrl: z.string().describe(
         "Shipping cost and policy URL.",
@@ -174,14 +175,14 @@ const GlobalArgsSchema = z.object({
       status: z.string().describe(
         'The status of the?On display to order? feature. Acceptable values are: - "`active`" - "`inactive`" - "`pending`"',
       ).optional(),
-    }).optional(),
+    }).describe('LIA "On Display To Order" settings.').optional(),
     posDataProvider: z.object({
       posDataProviderId: z.string().describe("The ID of the POS data provider.")
         .optional(),
       posExternalAccountId: z.string().describe(
         "The account ID by which this merchant is known to the POS data provider.",
       ).optional(),
-    }).optional(),
+    }).describe("The POS data provider linked with this country.").optional(),
     storePickupActive: z.boolean().describe(
       'The status of the "Store pickup" feature.',
     ).optional(),
@@ -244,7 +245,7 @@ const InputsSchema = z.object({
         'The status of the verification process for the About page. Supported values are: - "`active`" - "`inactive`" - "`pending`"',
       ).optional(),
       url: z.string().describe("The URL for the About page.").optional(),
-    }).optional(),
+    }).describe("The settings for the About page.").optional(),
     country: z.string().describe(
       'Required. CLDR country code (for example, "US").',
     ).optional(),
@@ -264,7 +265,7 @@ const InputsSchema = z.object({
       status: z.string().describe(
         'The status of the inventory verification process. Acceptable values are: - "`active`" - "`inactive`" - "`pending`"',
       ).optional(),
-    }).optional(),
+    }).describe("LIA inventory verification settings.").optional(),
     omnichannelExperience: z.object({
       country: z.string().describe('The CLDR country code (for example, "US").')
         .optional(),
@@ -274,7 +275,8 @@ const InputsSchema = z.object({
       pickupTypes: z.array(z.string()).describe(
         'The Pickup types for this country. Acceptable values are: - "`pickupToday`" - "`pickupLater`"',
       ).optional(),
-    }).describe("Omnichannel experience details.").optional(),
+    }).describe("The omnichannel experience configured for this country.")
+      .optional(),
     onDisplayToOrder: z.object({
       shippingCostPolicyUrl: z.string().describe(
         "Shipping cost and policy URL.",
@@ -282,14 +284,14 @@ const InputsSchema = z.object({
       status: z.string().describe(
         'The status of the?On display to order? feature. Acceptable values are: - "`active`" - "`inactive`" - "`pending`"',
       ).optional(),
-    }).optional(),
+    }).describe('LIA "On Display To Order" settings.').optional(),
     posDataProvider: z.object({
       posDataProviderId: z.string().describe("The ID of the POS data provider.")
         .optional(),
       posExternalAccountId: z.string().describe(
         "The account ID by which this merchant is known to the POS data provider.",
       ).optional(),
-    }).optional(),
+    }).describe("The POS data provider linked with this country.").optional(),
     storePickupActive: z.boolean().describe(
       'The status of the "Store pickup" feature.',
     ).optional(),
@@ -325,7 +327,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Liasettings. Registered at `@swamp/gcp/content/liasettings`. */
 export const model = {
   type: "@swamp/gcp/content/liasettings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -414,6 +416,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -160,20 +160,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Optional. Customer-managed encryption key spec for a PersistentResource. If set, this PersistentResource and all sub-resources of this PersistentResource will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels with user-defined metadata to organize PersistentResource. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -200,7 +187,8 @@ const GlobalArgsSchema = z.object({
     networkAttachment: z.string().describe(
       "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
     ).optional(),
-  }).describe("Configuration for PSC-I.").optional(),
+  }).describe("Optional. Configuration for PSC-I for PersistentResource.")
+    .optional(),
   reservedIpRanges: z.array(z.string()).describe(
     "Optional. A list of names for the reserved IP ranges under the VPC network that can be used for this persistent resource. If set, we will deploy the persistent resource within the provided IP ranges. Otherwise, the persistent resource is deployed to any IP ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
   ).optional(),
@@ -213,7 +201,7 @@ const GlobalArgsSchema = z.object({
         "Optional. min replicas in the node pool, must be ≤ replica_count and  0, we added a corresponding validation inside CreatePersistentResourceRequestValidator.java.",
       ).optional(),
     }).describe(
-      "The min/max number of replicas allowed if enabling autoscaling",
+      "Optional. Optional spec to configure GKE or Ray-on-Vertex autoscaling",
     ).optional(),
     diskSpec: z.object({
       bootDiskSizeGb: z.number().int().describe(
@@ -222,7 +210,8 @@ const GlobalArgsSchema = z.object({
       bootDiskType: z.string().describe(
         'Type of the boot disk. For non-A3U machines, the default value is "pd-ssd", for A3U machines, the default value is "hyperdisk-balanced". Valid values: "pd-ssd" (Persistent Disk Solid State Drive), "pd-standard" (Persistent Disk Hard Disk Drive) or "hyperdisk-balanced".',
       ).optional(),
-    }).describe("Represents the spec of disk options.").optional(),
+    }).describe("Optional. Disk spec for the machine in this node pool.")
+      .optional(),
     id: z.string().describe(
       "Immutable. The unique ID in a PersistentResource for referring to this resource pool. User can specify it if necessary. Otherwise, it's generated automatically.",
     ).optional(),
@@ -274,12 +263,13 @@ const GlobalArgsSchema = z.object({
           "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
         ).optional(),
       }).describe(
-        "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+        "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
       ).optional(),
       tpuTopology: z.string().describe(
         'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
       ).optional(),
-    }).describe("Specification of a single machine.").optional(),
+    }).describe("Required. Immutable. The specification of a single machine.")
+      .optional(),
     replicaCount: z.string().describe(
       "Optional. The total number of machines to use for this resource pool.",
     ).optional(),
@@ -288,11 +278,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   })).describe("Required. The spec of the pools of different resources.")
     .optional(),
-  resourceRuntime: z.object({
-    accessUris: z.record(z.string(), z.string()).describe(
-      'Output only. URIs for user to connect to the Cluster. Example: { "RAY_HEAD_NODE_INTERNAL_IP": "head-node-IP:10001" "RAY_DASHBOARD_URI": "ray-dashboard-address:8888" }',
-    ).optional(),
-  }).describe("Persistent Cluster runtime information as output").optional(),
   resourceRuntimeSpec: z.object({
     raySpec: z.object({
       headNodeResourcePoolId: z.string().describe(
@@ -305,17 +290,17 @@ const GlobalArgsSchema = z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the export of Ray OSS logs to Cloud Logging.",
         ).optional(),
-      }).describe("Configuration for the Ray OSS Logs.").optional(),
+      }).describe("Optional. OSS Ray logging configurations.").optional(),
       rayMetricSpec: z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the Ray metrics collection.",
         ).optional(),
-      }).describe("Configuration for the Ray metrics.").optional(),
+      }).describe("Optional. Ray metrics configurations.").optional(),
       resourcePoolImages: z.record(z.string(), z.string()).describe(
         'Optional. Required if image_uri isn\'t set. A map of resource_pool_id to prebuild Ray image if user need to use different images for different head/worker pools. This map needs to cover all the resource pool ids. Example: { "ray_head_node_pool": "head image" "ray_worker_node_pool1": "worker image" "ray_worker_node_pool2": "another worker image" }',
       ).optional(),
     }).describe(
-      "Configuration information for the Ray cluster. For experimental launch, Ray cluster creation and Persistent cluster creation are 1:1 mapping: We will provision all the nodes within the Persistent cluster as Ray nodes.",
+      "Optional. Ray cluster configuration. Required when creating a dedicated RayCluster on the PersistentResource.",
     ).optional(),
     serviceAccountSpec: z.object({
       enableCustomServiceAccount: z.boolean().describe(
@@ -325,10 +310,10 @@ const GlobalArgsSchema = z.object({
         "Optional. Required when all below conditions are met * `enable_custom_service_account` is true; * any runtime is specified via `ResourceRuntimeSpec` on creation time, for example, Ray The users must have `iam.serviceAccounts.actAs` permission on this service account and then the specified runtime containers will run as it. Do not set this field if you want to submit jobs using custom service account to this PersistentResource after creation, but only specify the `service_account` inside the job.",
       ).optional(),
     }).describe(
-      "Configuration for the use of custom service account to run the workloads.",
+      "Optional. Configure the use of workload identity on the PersistentResource",
     ).optional(),
   }).describe(
-    "Configuration for the runtime on a PersistentResource instance, including but not limited to: * Service accounts used to run the workloads. * Whether to make it a dedicated Ray Cluster.",
+    "Optional. Persistent Resource runtime spec. For example, used for Ray cluster configuration.",
   ).optional(),
   persistentResourceId: z.string().describe(
     "Required. The ID to use for the PersistentResource, which become the final component of the PersistentResource's resource name. The maximum length is 63 characters, and valid characters are `/^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/`.",
@@ -428,20 +413,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Optional. Customer-managed encryption key spec for a PersistentResource. If set, this PersistentResource and all sub-resources of this PersistentResource will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels with user-defined metadata to organize PersistentResource. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -468,7 +440,8 @@ const InputsSchema = z.object({
     networkAttachment: z.string().describe(
       "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
     ).optional(),
-  }).describe("Configuration for PSC-I.").optional(),
+  }).describe("Optional. Configuration for PSC-I for PersistentResource.")
+    .optional(),
   reservedIpRanges: z.array(z.string()).describe(
     "Optional. A list of names for the reserved IP ranges under the VPC network that can be used for this persistent resource. If set, we will deploy the persistent resource within the provided IP ranges. Otherwise, the persistent resource is deployed to any IP ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
   ).optional(),
@@ -481,7 +454,7 @@ const InputsSchema = z.object({
         "Optional. min replicas in the node pool, must be ≤ replica_count and  0, we added a corresponding validation inside CreatePersistentResourceRequestValidator.java.",
       ).optional(),
     }).describe(
-      "The min/max number of replicas allowed if enabling autoscaling",
+      "Optional. Optional spec to configure GKE or Ray-on-Vertex autoscaling",
     ).optional(),
     diskSpec: z.object({
       bootDiskSizeGb: z.number().int().describe(
@@ -490,7 +463,8 @@ const InputsSchema = z.object({
       bootDiskType: z.string().describe(
         'Type of the boot disk. For non-A3U machines, the default value is "pd-ssd", for A3U machines, the default value is "hyperdisk-balanced". Valid values: "pd-ssd" (Persistent Disk Solid State Drive), "pd-standard" (Persistent Disk Hard Disk Drive) or "hyperdisk-balanced".',
       ).optional(),
-    }).describe("Represents the spec of disk options.").optional(),
+    }).describe("Optional. Disk spec for the machine in this node pool.")
+      .optional(),
     id: z.string().describe(
       "Immutable. The unique ID in a PersistentResource for referring to this resource pool. User can specify it if necessary. Otherwise, it's generated automatically.",
     ).optional(),
@@ -542,12 +516,13 @@ const InputsSchema = z.object({
           "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
         ).optional(),
       }).describe(
-        "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+        "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
       ).optional(),
       tpuTopology: z.string().describe(
         'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
       ).optional(),
-    }).describe("Specification of a single machine.").optional(),
+    }).describe("Required. Immutable. The specification of a single machine.")
+      .optional(),
     replicaCount: z.string().describe(
       "Optional. The total number of machines to use for this resource pool.",
     ).optional(),
@@ -556,11 +531,6 @@ const InputsSchema = z.object({
     ).optional(),
   })).describe("Required. The spec of the pools of different resources.")
     .optional(),
-  resourceRuntime: z.object({
-    accessUris: z.record(z.string(), z.string()).describe(
-      'Output only. URIs for user to connect to the Cluster. Example: { "RAY_HEAD_NODE_INTERNAL_IP": "head-node-IP:10001" "RAY_DASHBOARD_URI": "ray-dashboard-address:8888" }',
-    ).optional(),
-  }).describe("Persistent Cluster runtime information as output").optional(),
   resourceRuntimeSpec: z.object({
     raySpec: z.object({
       headNodeResourcePoolId: z.string().describe(
@@ -573,17 +543,17 @@ const InputsSchema = z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the export of Ray OSS logs to Cloud Logging.",
         ).optional(),
-      }).describe("Configuration for the Ray OSS Logs.").optional(),
+      }).describe("Optional. OSS Ray logging configurations.").optional(),
       rayMetricSpec: z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the Ray metrics collection.",
         ).optional(),
-      }).describe("Configuration for the Ray metrics.").optional(),
+      }).describe("Optional. Ray metrics configurations.").optional(),
       resourcePoolImages: z.record(z.string(), z.string()).describe(
         'Optional. Required if image_uri isn\'t set. A map of resource_pool_id to prebuild Ray image if user need to use different images for different head/worker pools. This map needs to cover all the resource pool ids. Example: { "ray_head_node_pool": "head image" "ray_worker_node_pool1": "worker image" "ray_worker_node_pool2": "another worker image" }',
       ).optional(),
     }).describe(
-      "Configuration information for the Ray cluster. For experimental launch, Ray cluster creation and Persistent cluster creation are 1:1 mapping: We will provision all the nodes within the Persistent cluster as Ray nodes.",
+      "Optional. Ray cluster configuration. Required when creating a dedicated RayCluster on the PersistentResource.",
     ).optional(),
     serviceAccountSpec: z.object({
       enableCustomServiceAccount: z.boolean().describe(
@@ -593,10 +563,10 @@ const InputsSchema = z.object({
         "Optional. Required when all below conditions are met * `enable_custom_service_account` is true; * any runtime is specified via `ResourceRuntimeSpec` on creation time, for example, Ray The users must have `iam.serviceAccounts.actAs` permission on this service account and then the specified runtime containers will run as it. Do not set this field if you want to submit jobs using custom service account to this PersistentResource after creation, but only specify the `service_account` inside the job.",
       ).optional(),
     }).describe(
-      "Configuration for the use of custom service account to run the workloads.",
+      "Optional. Configure the use of workload identity on the PersistentResource",
     ).optional(),
   }).describe(
-    "Configuration for the runtime on a PersistentResource instance, including but not limited to: * Service accounts used to run the workloads. * Whether to make it a dedicated Ray Cluster.",
+    "Optional. Persistent Resource runtime spec. For example, used for Ray cluster configuration.",
   ).optional(),
   persistentResourceId: z.string().describe(
     "Required. The ID to use for the PersistentResource, which become the final component of the PersistentResource's resource name. The maximum length is 63 characters, and valid characters are `/^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/`.",
@@ -629,7 +599,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform PersistentResources. Registered at `@swamp/gcp/aiplatform/persistentresources`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/persistentresources",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -771,6 +741,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, resourceRuntime",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, resourceRuntime: _resourceRuntime, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -806,7 +785,6 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["network"] !== undefined) body["network"] = g["network"];
@@ -818,9 +796,6 @@ export const model = {
         }
         if (g["resourcePools"] !== undefined) {
           body["resourcePools"] = g["resourcePools"];
-        }
-        if (g["resourceRuntime"] !== undefined) {
-          body["resourceRuntime"] = g["resourceRuntime"];
         }
         if (g["resourceRuntimeSpec"] !== undefined) {
           body["resourceRuntimeSpec"] = g["resourceRuntimeSpec"];
@@ -952,7 +927,6 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["network"] !== undefined) body["network"] = g["network"];
         if (g["pscInterfaceConfig"] !== undefined) {
@@ -963,9 +937,6 @@ export const model = {
         }
         if (g["resourcePools"] !== undefined) {
           body["resourcePools"] = g["resourcePools"];
-        }
-        if (g["resourceRuntime"] !== undefined) {
-          body["resourceRuntime"] = g["resourceRuntime"];
         }
         if (g["resourceRuntimeSpec"] !== undefined) {
           body["resourceRuntimeSpec"] = g["resourceRuntimeSpec"];

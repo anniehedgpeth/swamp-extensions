@@ -99,24 +99,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  cancellationDetails: z.object({
-    reason: z.enum([
-      "CANCELLATION_REASON_UNSPECIFIED",
-      "CANCELLATION_REASON_FRAUD",
-      "CANCELLATION_REASON_REMORSE",
-      "CANCELLATION_REASON_ACCIDENTAL_PURCHASE",
-      "CANCELLATION_REASON_PAST_DUE",
-      "CANCELLATION_REASON_ACCOUNT_CLOSED",
-      "CANCELLATION_REASON_UPGRADE_DOWNGRADE",
-      "CANCELLATION_REASON_USER_DELINQUENCY",
-      "CANCELLATION_REASON_SYSTEM_ERROR",
-      "CANCELLATION_REASON_SYSTEM_CANCEL",
-      "CANCELLATION_REASON_BILLING_SYSTEM_SWITCH",
-      "CANCELLATION_REASON_OTHER",
-    ]).describe("Output only. The reason of the cancellation.").optional(),
-  }).describe(
-    "Describes the details of a cancelled or cancelling subscription.",
-  ).optional(),
   lineItems: z.array(z.object({
     amount: z.object({
       amountMicros: z.string().describe(
@@ -125,8 +107,9 @@ const GlobalArgsSchema = z.object({
       currencyCode: z.string().describe(
         "Required. Currency codes in accordance with [ISO-4217 Currency Codes] (https://en.wikipedia.org/wiki/ISO_4217). For example, USD.",
       ).optional(),
-    }).describe("Describes the amount unit including the currency code.")
-      .optional(),
+    }).describe(
+      "Output only. The price of the product/service in this line item. The amount could be the wholesale price, or it can include a cost of sale based on the contract.",
+    ).optional(),
     bundleDetails: z.object({
       bundleElementDetails: z.array(z.object({
         product: z.unknown().describe(
@@ -139,7 +122,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The details for each element in the hard bundle.",
       ).optional(),
     }).describe(
-      "The bundle details for a line item corresponding to a hard bundle.",
+      "Output only. The bundle details for the line item. Only populated if the line item corresponds to a hard bundle.",
     ).optional(),
     description: z.string().describe(
       "Output only. Description of this line item.",
@@ -149,7 +132,7 @@ const GlobalArgsSchema = z.object({
         "The number of a subscription line item billing cycles after which billing will stop automatically.",
       ).optional(),
     }).describe(
-      "Details for a subscription line item with finite billing cycles.",
+      "Optional. Details for a subscription line item with finite billing cycles. If unset, the line item will be charged indefinitely. Used only with LINE_ITEM_RECURRENCE_TYPE_PERIODIC.",
     ).optional(),
     lineItemFreeTrialEndTime: z.string().describe(
       'Output only. The free trial end time will be populated after the line item is successfully processed. End time of the line item free trial period, in ISO 8061 format. For example, "2019-08-31T17:28:54.564Z". It will be set the same as createTime if no free trial promotion is specified.',
@@ -162,13 +145,16 @@ const GlobalArgsSchema = z.object({
         count: z.unknown().describe("number of duration units to be included.")
           .optional(),
         unit: z.unknown().describe("The unit used for the duration").optional(),
-      }).describe("Describes the length of a period of a time.").optional(),
+      }).describe(
+        "Output only. The duration of the free trial if the promotion is of type FREE_TRIAL.",
+      ).optional(),
       introductoryPricingDetails: z.object({
         introductoryPricingSpecs: z.unknown().describe(
           "Output only. Specifies the introductory pricing periods.",
         ).optional(),
-      }).describe("The details of a introductory pricing promotion.")
-        .optional(),
+      }).describe(
+        "Output only. The details of the introductory pricing spec if the promotion is of type INTRODUCTORY_PRICING.",
+      ).optional(),
       promotion: z.string().describe(
         "Required. Promotion resource name that identifies a promotion. The format is 'partners/{partner_id}/promotions/{promotion_id}'.",
       ).optional(),
@@ -192,10 +178,11 @@ const GlobalArgsSchema = z.object({
         startTime: z.string().describe(
           "Required. The start time of the service period. Time is inclusive.",
         ).optional(),
-      }).describe(
-        "A description of what time period or moment in time the product or service is being delivered over.",
-      ).optional(),
-    }).describe("Details for a ONE_TIME recurrence line item.").optional(),
+      }).describe("Output only. The service period of the ONE_TIME line item.")
+        .optional(),
+    }).describe(
+      "Output only. Details only set for a ONE_TIME recurrence line item.",
+    ).optional(),
     product: z.string().describe(
       "Required. Product resource name that identifies the product associated with this line item. The format is 'partners/{partner_id}/products/{product_id}'.",
     ).optional(),
@@ -210,7 +197,7 @@ const GlobalArgsSchema = z.object({
         partnerStructureId: z.string().describe(
           "Optional. This identifies the structure ID on partner side that the subscription should be applied to. Only required when the partner requires structure mapping.",
         ).optional(),
-      }).describe("Payload specific for Google Home products.").optional(),
+      }).describe("Payload specific to Google Home products.").optional(),
       googleOnePayload: z.object({
         campaigns: z.array(z.unknown()).describe(
           "Campaign attributed to sales of this subscription.",
@@ -236,7 +223,9 @@ const GlobalArgsSchema = z.object({
         storeId: z.string().describe(
           "The identifier for the partner store where the subscription was sold.",
         ).optional(),
-      }).describe("Payload specific to Google One products.").optional(),
+      }).describe(
+        "Product-specific payloads. Payload specific to Google One products.",
+      ).optional(),
       youtubePayload: z.object({
         accessEndTime: z.string().describe(
           "Output only. The access expiration time for this line item.",
@@ -253,7 +242,8 @@ const GlobalArgsSchema = z.object({
           "Optional. Specifies the plan type offered to the end user by the partner.",
         ).optional(),
       }).describe("Payload specific to Youtube products.").optional(),
-    }).describe("Specifies product specific payload.").optional(),
+    }).describe("Optional. Product specific payload for this line item.")
+      .optional(),
     recurrenceType: z.enum([
       "LINE_ITEM_RECURRENCE_TYPE_UNSPECIFIED",
       "LINE_ITEM_RECURRENCE_TYPE_PERIODIC",
@@ -271,11 +261,6 @@ const GlobalArgsSchema = z.object({
       "LINE_ITEM_STATE_OFF_CYCLE_CHARGING",
     ]).describe("Output only. The state of the line item.").optional(),
   })).describe("Required. The line items of the subscription.").optional(),
-  migrationDetails: z.object({
-    migratedSubscriptionId: z.string().describe(
-      "Output only. The migrated subscription id in the legacy system.",
-    ).optional(),
-  }).describe("Describes the details of the migrated subscription.").optional(),
   name: z.string().describe(
     'Identifier. Resource name of the subscription. It will have the format of "partners/{partner_id}/subscriptions/{subscription_id}". This is available for authorizeAddon, but otherwise is response only.',
   ).optional(),
@@ -293,11 +278,13 @@ const GlobalArgsSchema = z.object({
       unit: z.enum(["UNIT_UNSPECIFIED", "MONTH", "DAY", "HOUR"]).describe(
         "The unit used for the duration",
       ).optional(),
-    }).describe("Describes the length of a period of a time.").optional(),
+    }).describe(
+      "Output only. The duration of the free trial if the promotion is of type FREE_TRIAL.",
+    ).optional(),
     introductoryPricingDetails: z.object({
       introductoryPricingSpecs: z.array(z.object({
         discountAmount: z.unknown().describe(
-          "Describes the amount unit including the currency code.",
+          "Output only. The discount amount. The value is positive.",
         ).optional(),
         discountRatioMicros: z.unknown().describe(
           "Output only. The discount percentage in micros. For example, 50,000 represents 5%.",
@@ -310,7 +297,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("Output only. Specifies the introductory pricing periods.")
         .optional(),
-    }).describe("The details of a introductory pricing promotion.").optional(),
+    }).describe(
+      "Output only. The details of the introductory pricing spec if the promotion is of type INTRODUCTORY_PRICING.",
+    ).optional(),
     promotion: z.string().describe(
       "Required. Promotion resource name that identifies a promotion. The format is 'partners/{partner_id}/promotions/{promotion_id}'.",
     ).optional(),
@@ -336,7 +325,9 @@ const GlobalArgsSchema = z.object({
     regionCode: z.string().describe(
       "2-letter ISO region code for current content region. Ex. “US” Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1",
     ).optional(),
-  }).describe("Describes a location of an end user.").optional(),
+  }).describe(
+    "Required. The location that the service is provided as indicated by the partner.",
+  ).optional(),
   upgradeDowngradeDetails: z.object({
     billingCycleSpec: z.enum([
       "BILLING_CYCLE_SPEC_UNSPECIFIED",
@@ -350,7 +341,7 @@ const GlobalArgsSchema = z.object({
       "Required. The previous subscription id to be replaced. The format can be one of the following: 1. `subscription_id`: the old subscription id under the same partner_id. 2. `partners/{partner_id}/subscriptions/{subscription_id}`. A different partner_id is allowed. But they must be under the same partner group.",
     ).optional(),
   }).describe(
-    "Details about the previous subscription that this new subscription upgrades/downgrades from.",
+    "Optional. Details about the previous subscription that this new subscription upgrades/downgrades from. Only populated if this subscription is an upgrade/downgrade from another subscription.",
   ).optional(),
   subscriptionId: z.string().describe(
     "Required. Identifies the subscription resource on the Partner side. The value is restricted to 63 ASCII characters at the maximum. If a subscription with the same ID already exists, the creation fails with an `ALREADY_EXISTS` error.",
@@ -471,24 +462,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  cancellationDetails: z.object({
-    reason: z.enum([
-      "CANCELLATION_REASON_UNSPECIFIED",
-      "CANCELLATION_REASON_FRAUD",
-      "CANCELLATION_REASON_REMORSE",
-      "CANCELLATION_REASON_ACCIDENTAL_PURCHASE",
-      "CANCELLATION_REASON_PAST_DUE",
-      "CANCELLATION_REASON_ACCOUNT_CLOSED",
-      "CANCELLATION_REASON_UPGRADE_DOWNGRADE",
-      "CANCELLATION_REASON_USER_DELINQUENCY",
-      "CANCELLATION_REASON_SYSTEM_ERROR",
-      "CANCELLATION_REASON_SYSTEM_CANCEL",
-      "CANCELLATION_REASON_BILLING_SYSTEM_SWITCH",
-      "CANCELLATION_REASON_OTHER",
-    ]).describe("Output only. The reason of the cancellation.").optional(),
-  }).describe(
-    "Describes the details of a cancelled or cancelling subscription.",
-  ).optional(),
   lineItems: z.array(z.object({
     amount: z.object({
       amountMicros: z.string().describe(
@@ -497,8 +470,9 @@ const InputsSchema = z.object({
       currencyCode: z.string().describe(
         "Required. Currency codes in accordance with [ISO-4217 Currency Codes] (https://en.wikipedia.org/wiki/ISO_4217). For example, USD.",
       ).optional(),
-    }).describe("Describes the amount unit including the currency code.")
-      .optional(),
+    }).describe(
+      "Output only. The price of the product/service in this line item. The amount could be the wholesale price, or it can include a cost of sale based on the contract.",
+    ).optional(),
     bundleDetails: z.object({
       bundleElementDetails: z.array(z.object({
         product: z.unknown().describe(
@@ -511,7 +485,7 @@ const InputsSchema = z.object({
         "Output only. The details for each element in the hard bundle.",
       ).optional(),
     }).describe(
-      "The bundle details for a line item corresponding to a hard bundle.",
+      "Output only. The bundle details for the line item. Only populated if the line item corresponds to a hard bundle.",
     ).optional(),
     description: z.string().describe(
       "Output only. Description of this line item.",
@@ -521,7 +495,7 @@ const InputsSchema = z.object({
         "The number of a subscription line item billing cycles after which billing will stop automatically.",
       ).optional(),
     }).describe(
-      "Details for a subscription line item with finite billing cycles.",
+      "Optional. Details for a subscription line item with finite billing cycles. If unset, the line item will be charged indefinitely. Used only with LINE_ITEM_RECURRENCE_TYPE_PERIODIC.",
     ).optional(),
     lineItemFreeTrialEndTime: z.string().describe(
       'Output only. The free trial end time will be populated after the line item is successfully processed. End time of the line item free trial period, in ISO 8061 format. For example, "2019-08-31T17:28:54.564Z". It will be set the same as createTime if no free trial promotion is specified.',
@@ -534,13 +508,16 @@ const InputsSchema = z.object({
         count: z.unknown().describe("number of duration units to be included.")
           .optional(),
         unit: z.unknown().describe("The unit used for the duration").optional(),
-      }).describe("Describes the length of a period of a time.").optional(),
+      }).describe(
+        "Output only. The duration of the free trial if the promotion is of type FREE_TRIAL.",
+      ).optional(),
       introductoryPricingDetails: z.object({
         introductoryPricingSpecs: z.unknown().describe(
           "Output only. Specifies the introductory pricing periods.",
         ).optional(),
-      }).describe("The details of a introductory pricing promotion.")
-        .optional(),
+      }).describe(
+        "Output only. The details of the introductory pricing spec if the promotion is of type INTRODUCTORY_PRICING.",
+      ).optional(),
       promotion: z.string().describe(
         "Required. Promotion resource name that identifies a promotion. The format is 'partners/{partner_id}/promotions/{promotion_id}'.",
       ).optional(),
@@ -564,10 +541,11 @@ const InputsSchema = z.object({
         startTime: z.string().describe(
           "Required. The start time of the service period. Time is inclusive.",
         ).optional(),
-      }).describe(
-        "A description of what time period or moment in time the product or service is being delivered over.",
-      ).optional(),
-    }).describe("Details for a ONE_TIME recurrence line item.").optional(),
+      }).describe("Output only. The service period of the ONE_TIME line item.")
+        .optional(),
+    }).describe(
+      "Output only. Details only set for a ONE_TIME recurrence line item.",
+    ).optional(),
     product: z.string().describe(
       "Required. Product resource name that identifies the product associated with this line item. The format is 'partners/{partner_id}/products/{product_id}'.",
     ).optional(),
@@ -582,7 +560,7 @@ const InputsSchema = z.object({
         partnerStructureId: z.string().describe(
           "Optional. This identifies the structure ID on partner side that the subscription should be applied to. Only required when the partner requires structure mapping.",
         ).optional(),
-      }).describe("Payload specific for Google Home products.").optional(),
+      }).describe("Payload specific to Google Home products.").optional(),
       googleOnePayload: z.object({
         campaigns: z.array(z.unknown()).describe(
           "Campaign attributed to sales of this subscription.",
@@ -608,7 +586,9 @@ const InputsSchema = z.object({
         storeId: z.string().describe(
           "The identifier for the partner store where the subscription was sold.",
         ).optional(),
-      }).describe("Payload specific to Google One products.").optional(),
+      }).describe(
+        "Product-specific payloads. Payload specific to Google One products.",
+      ).optional(),
       youtubePayload: z.object({
         accessEndTime: z.string().describe(
           "Output only. The access expiration time for this line item.",
@@ -625,7 +605,8 @@ const InputsSchema = z.object({
           "Optional. Specifies the plan type offered to the end user by the partner.",
         ).optional(),
       }).describe("Payload specific to Youtube products.").optional(),
-    }).describe("Specifies product specific payload.").optional(),
+    }).describe("Optional. Product specific payload for this line item.")
+      .optional(),
     recurrenceType: z.enum([
       "LINE_ITEM_RECURRENCE_TYPE_UNSPECIFIED",
       "LINE_ITEM_RECURRENCE_TYPE_PERIODIC",
@@ -643,11 +624,6 @@ const InputsSchema = z.object({
       "LINE_ITEM_STATE_OFF_CYCLE_CHARGING",
     ]).describe("Output only. The state of the line item.").optional(),
   })).describe("Required. The line items of the subscription.").optional(),
-  migrationDetails: z.object({
-    migratedSubscriptionId: z.string().describe(
-      "Output only. The migrated subscription id in the legacy system.",
-    ).optional(),
-  }).describe("Describes the details of the migrated subscription.").optional(),
   name: z.string().describe(
     'Identifier. Resource name of the subscription. It will have the format of "partners/{partner_id}/subscriptions/{subscription_id}". This is available for authorizeAddon, but otherwise is response only.',
   ).optional(),
@@ -665,11 +641,13 @@ const InputsSchema = z.object({
       unit: z.enum(["UNIT_UNSPECIFIED", "MONTH", "DAY", "HOUR"]).describe(
         "The unit used for the duration",
       ).optional(),
-    }).describe("Describes the length of a period of a time.").optional(),
+    }).describe(
+      "Output only. The duration of the free trial if the promotion is of type FREE_TRIAL.",
+    ).optional(),
     introductoryPricingDetails: z.object({
       introductoryPricingSpecs: z.array(z.object({
         discountAmount: z.unknown().describe(
-          "Describes the amount unit including the currency code.",
+          "Output only. The discount amount. The value is positive.",
         ).optional(),
         discountRatioMicros: z.unknown().describe(
           "Output only. The discount percentage in micros. For example, 50,000 represents 5%.",
@@ -682,7 +660,9 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("Output only. Specifies the introductory pricing periods.")
         .optional(),
-    }).describe("The details of a introductory pricing promotion.").optional(),
+    }).describe(
+      "Output only. The details of the introductory pricing spec if the promotion is of type INTRODUCTORY_PRICING.",
+    ).optional(),
     promotion: z.string().describe(
       "Required. Promotion resource name that identifies a promotion. The format is 'partners/{partner_id}/promotions/{promotion_id}'.",
     ).optional(),
@@ -708,7 +688,9 @@ const InputsSchema = z.object({
     regionCode: z.string().describe(
       "2-letter ISO region code for current content region. Ex. “US” Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1",
     ).optional(),
-  }).describe("Describes a location of an end user.").optional(),
+  }).describe(
+    "Required. The location that the service is provided as indicated by the partner.",
+  ).optional(),
   upgradeDowngradeDetails: z.object({
     billingCycleSpec: z.enum([
       "BILLING_CYCLE_SPEC_UNSPECIFIED",
@@ -722,7 +704,7 @@ const InputsSchema = z.object({
       "Required. The previous subscription id to be replaced. The format can be one of the following: 1. `subscription_id`: the old subscription id under the same partner_id. 2. `partners/{partner_id}/subscriptions/{subscription_id}`. A different partner_id is allowed. But they must be under the same partner group.",
     ).optional(),
   }).describe(
-    "Details about the previous subscription that this new subscription upgrades/downgrades from.",
+    "Optional. Details about the previous subscription that this new subscription upgrades/downgrades from. Only populated if this subscription is an upgrade/downgrade from another subscription.",
   ).optional(),
   subscriptionId: z.string().describe(
     "Required. Identifies the subscription resource on the Partner side. The value is restricted to 63 ASCII characters at the maximum. If a subscription with the same ID already exists, the creation fails with an `ALREADY_EXISTS` error.",
@@ -755,7 +737,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Payments Reseller Subscription Partners.Subscriptions. Registered at `@swamp/gcp/paymentsresellersubscription/partners-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/paymentsresellersubscription/partners-subscriptions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -887,6 +869,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cancellationDetails, migrationDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          cancellationDetails: _cancellationDetails,
+          migrationDetails: _migrationDetails,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -910,13 +904,7 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["cancellationDetails"] !== undefined) {
-          body["cancellationDetails"] = g["cancellationDetails"];
-        }
         if (g["lineItems"] !== undefined) body["lineItems"] = g["lineItems"];
-        if (g["migrationDetails"] !== undefined) {
-          body["migrationDetails"] = g["migrationDetails"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["partnerUserToken"] !== undefined) {
           body["partnerUserToken"] = g["partnerUserToken"];

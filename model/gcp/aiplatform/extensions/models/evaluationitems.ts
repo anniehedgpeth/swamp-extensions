@@ -139,19 +139,6 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Required. The display name of the EvaluationItem.",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   evaluationItemType: z.enum([
     "EVALUATION_ITEM_TYPE_UNSPECIFIED",
     "REQUEST",
@@ -166,8 +153,9 @@ const GlobalArgsSchema = z.object({
         turns: z.array(z.unknown()).describe(
           "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
         ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
+      }).describe(
+        "Optional. Represents the complete execution trace of a multi-turn conversation, which can involve single or multiple agents. This field is used to provide the full output of an agent's run, including all turns and events, for direct evaluation.",
+      ).optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -181,9 +169,8 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Output only. Error while scraping model or agent.")
+        .optional(),
       text: z.string().describe("Text response.").optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the response template.",
@@ -231,8 +218,9 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
         ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
+      }).describe(
+        "Optional. Represents the complete execution trace of a multi-turn conversation, which can involve single or multiple agents. This field is used to provide the full output of an agent's run, including all turns and events, for direct evaluation.",
+      ).optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -246,14 +234,13 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Output only. Error while scraping model or agent.")
+        .optional(),
       text: z.string().describe("Text response.").optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the response template.",
       ).optional(),
-    }).describe("Responses from model or agent.").optional(),
+    }).describe("Optional. The Ideal response or ground truth.").optional(),
     prompt: z.object({
       agentData: z.object({
         agents: z.record(
@@ -294,8 +281,9 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
         ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
+      }).describe(
+        "Optional. Represents the complete execution trace of a multi-turn conversation, which can involve single or multiple agents. This serves as the input context for agent scraping.",
+      ).optional(),
       promptTemplateData: z.object({
         values: z.record(
           z.string(),
@@ -308,9 +296,7 @@ const GlobalArgsSchema = z.object({
             ).optional(),
           }),
         ).describe("The values for fields in the prompt template.").optional(),
-      }).describe(
-        "Message to hold a prompt template and the values to populate the template.",
-      ).optional(),
+      }).describe("Prompt template data.").optional(),
       text: z.string().describe("Text prompt.").optional(),
       userScenario: z.object({
         conversationPlan: z.string().describe(
@@ -320,14 +306,12 @@ const GlobalArgsSchema = z.object({
           "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
         ).optional(),
       }).describe(
-        "User scenario to help simulate multi-turn agent running results.",
+        "Optional. The generated user scenario used to drive multi-turn agent running results.",
       ).optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the prompt template.",
       ).optional(),
-    }).describe(
-      "Prompt to be evaluated. This can represent a single-turn prompt or a multi-turn conversation for agent evaluations.",
-    ).optional(),
+    }).describe("Optional. The request/prompt to evaluate.").optional(),
     rubrics: z.record(
       z.string(),
       z.object({
@@ -338,7 +322,7 @@ const GlobalArgsSchema = z.object({
           .optional(),
         rubrics: z.array(z.object({
           content: z.unknown().describe(
-            "Content of the rubric, defining the testable criteria.",
+            "Required. The actual testable criteria for the rubric.",
           ).optional(),
           importance: z.unknown().describe(
             "Optional. The relative importance of this rubric.",
@@ -354,178 +338,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "Optional. Named groups of rubrics associated with this prompt. The key is a user-defined name for the rubric group.",
     ).optional(),
-  }).describe(
-    "A single evaluation request supporting input for both single-turn model generation and multi-turn agent execution traces. Valid input modes: 1. Inference Mode: `prompt` is set (containing text or AgentData context). 2. Offline Eval Mode: `prompt` is unset, and `candidate_responses` contains `agent_data` (the completed execution trace). Validation Rule: Either `prompt` must be set, OR at least one of the `candidate_responses` must contain `agent_data`.",
-  ).optional(),
-  evaluationResponse: z.object({
-    candidateResults: z.array(z.object({
-      additionalResults: z.string().describe(
-        "Optional. Additional results for the metric.",
-      ).optional(),
-      candidate: z.string().describe(
-        "Required. The candidate that is being evaluated. The value is the same as the candidate name in the EvaluationRequest.",
-      ).optional(),
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.unknown()).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
-      explanation: z.string().describe(
-        "Optional. The explanation for the metric.",
-      ).optional(),
-      metric: z.string().describe("Required. The metric that was evaluated.")
-        .optional(),
-      rubricVerdicts: z.array(z.object({
-        evaluatedRubric: z.unknown().describe(
-          "Message representing a single testable criterion for evaluation. One input prompt could have multiple rubrics.",
-        ).optional(),
-        reasoning: z.unknown().describe(
-          "Optional. Human-readable reasoning or explanation for the verdict. This can include specific examples or details from the evaluated content that justify the given verdict.",
-        ).optional(),
-        verdict: z.unknown().describe(
-          'Required. Outcome of the evaluation against the rubric, represented as a boolean. `true` indicates a "Pass", `false` indicates a "Fail".',
-        ).optional(),
-      })).describe("Optional. The rubric verdicts for the metric.").optional(),
-      score: z.number().describe("Optional. The score for the metric.")
-        .optional(),
-    })).describe("Optional. The results for the metric.").optional(),
-    evaluationRequest: z.string().describe(
-      "Required. The request item that was evaluated. Format: projects/{project}/locations/{location}/evaluationItems/{evaluation_item}",
-    ).optional(),
-    evaluationRun: z.string().describe(
-      "Required. The evaluation run that was used to generate the result. Format: projects/{project}/locations/{location}/evaluationRuns/{evaluation_run}",
-    ).optional(),
-    metadata: z.string().describe(
-      "Optional. Metadata about the evaluation result.",
-    ).optional(),
-    metric: z.string().describe("Required. The metric that was evaluated.")
-      .optional(),
-    request: z.object({
-      candidateResponses: z.array(z.object({
-        agentData: z.object({
-          agents: z.unknown().describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.unknown().describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
-        candidate: z.string().describe(
-          "Required. The name of the candidate that produced the response.",
-        ).optional(),
-        error: z.object({
-          code: z.unknown().describe(
-            "The status code, which should be an enum value of google.rpc.Code.",
-          ).optional(),
-          details: z.unknown().describe(
-            "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-          ).optional(),
-          message: z.unknown().describe(
-            "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-          ).optional(),
-        }).describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        text: z.string().describe("Text response.").optional(),
-        value: z.string().describe(
-          "Fields and values that can be used to populate the response template.",
-        ).optional(),
-      })).describe(
-        "Optional. Responses from model under test and other baseline models for comparison.",
-      ).optional(),
-      goldenResponse: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
-        candidate: z.string().describe(
-          "Required. The name of the candidate that produced the response.",
-        ).optional(),
-        error: z.object({
-          code: z.number().int().describe(
-            "The status code, which should be an enum value of google.rpc.Code.",
-          ).optional(),
-          details: z.array(z.unknown()).describe(
-            "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-          ).optional(),
-          message: z.string().describe(
-            "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-          ).optional(),
-        }).describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        text: z.string().describe("Text response.").optional(),
-        value: z.string().describe(
-          "Fields and values that can be used to populate the response template.",
-        ).optional(),
-      }).describe("Responses from model or agent.").optional(),
-      prompt: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
-        promptTemplateData: z.object({
-          values: z.record(z.string(), z.unknown()).describe(
-            "The values for fields in the prompt template.",
-          ).optional(),
-        }).describe(
-          "Message to hold a prompt template and the values to populate the template.",
-        ).optional(),
-        text: z.string().describe("Text prompt.").optional(),
-        userScenario: z.object({
-          conversationPlan: z.string().describe(
-            "Required. The plan for the conversation, used to drive the multi-turn agent run and generate the simulated agent evaluation dataset.",
-          ).optional(),
-          startingPrompt: z.string().describe(
-            "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
-          ).optional(),
-        }).describe(
-          "User scenario to help simulate multi-turn agent running results.",
-        ).optional(),
-        value: z.string().describe(
-          "Fields and values that can be used to populate the prompt template.",
-        ).optional(),
-      }).describe(
-        "Prompt to be evaluated. This can represent a single-turn prompt or a multi-turn conversation for agent evaluations.",
-      ).optional(),
-      rubrics: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            'Human-readable name for the group. This should be unique within a given context if used for display or selection. Example: "Instruction Following V1", "Content Quality - Summarization Task".',
-          ).optional(),
-          groupId: z.string().describe("Unique identifier for the group.")
-            .optional(),
-          rubrics: z.array(z.unknown()).describe(
-            "Rubrics that are part of this group.",
-          ).optional(),
-        }),
-      ).describe(
-        "Optional. Named groups of rubrics associated with this prompt. The key is a user-defined name for the rubric group.",
-      ).optional(),
-    }).describe(
-      "A single evaluation request supporting input for both single-turn model generation and multi-turn agent execution traces. Valid input modes: 1. Inference Mode: `prompt` is set (containing text or AgentData context). 2. Offline Eval Mode: `prompt` is unset, and `candidate_responses` contains `agent_data` (the completed execution trace). Validation Rule: Either `prompt` must be set, OR at least one of the `candidate_responses` must contain `agent_data`.",
-    ).optional(),
-  }).describe("Evaluation result.").optional(),
+  }).describe("The request to evaluate.").optional(),
   gcsUri: z.string().describe(
     "The Cloud Storage object where the request or response is stored.",
   ).optional(),
@@ -690,19 +503,6 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "Required. The display name of the EvaluationItem.",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   evaluationItemType: z.enum([
     "EVALUATION_ITEM_TYPE_UNSPECIFIED",
     "REQUEST",
@@ -717,8 +517,9 @@ const InputsSchema = z.object({
         turns: z.array(z.unknown()).describe(
           "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
         ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
+      }).describe(
+        "Optional. Represents the complete execution trace of a multi-turn conversation, which can involve single or multiple agents. This field is used to provide the full output of an agent's run, including all turns and events, for direct evaluation.",
+      ).optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -732,9 +533,8 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Output only. Error while scraping model or agent.")
+        .optional(),
       text: z.string().describe("Text response.").optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the response template.",
@@ -782,8 +582,9 @@ const InputsSchema = z.object({
         })).describe(
           "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
         ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
+      }).describe(
+        "Optional. Represents the complete execution trace of a multi-turn conversation, which can involve single or multiple agents. This field is used to provide the full output of an agent's run, including all turns and events, for direct evaluation.",
+      ).optional(),
       candidate: z.string().describe(
         "Required. The name of the candidate that produced the response.",
       ).optional(),
@@ -797,14 +598,13 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Output only. Error while scraping model or agent.")
+        .optional(),
       text: z.string().describe("Text response.").optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the response template.",
       ).optional(),
-    }).describe("Responses from model or agent.").optional(),
+    }).describe("Optional. The Ideal response or ground truth.").optional(),
     prompt: z.object({
       agentData: z.object({
         agents: z.record(
@@ -845,8 +645,9 @@ const InputsSchema = z.object({
         })).describe(
           "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
         ).optional(),
-      }).describe("Represents data specific to multi-turn agent evaluations.")
-        .optional(),
+      }).describe(
+        "Optional. Represents the complete execution trace of a multi-turn conversation, which can involve single or multiple agents. This serves as the input context for agent scraping.",
+      ).optional(),
       promptTemplateData: z.object({
         values: z.record(
           z.string(),
@@ -859,9 +660,7 @@ const InputsSchema = z.object({
             ).optional(),
           }),
         ).describe("The values for fields in the prompt template.").optional(),
-      }).describe(
-        "Message to hold a prompt template and the values to populate the template.",
-      ).optional(),
+      }).describe("Prompt template data.").optional(),
       text: z.string().describe("Text prompt.").optional(),
       userScenario: z.object({
         conversationPlan: z.string().describe(
@@ -871,14 +670,12 @@ const InputsSchema = z.object({
           "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
         ).optional(),
       }).describe(
-        "User scenario to help simulate multi-turn agent running results.",
+        "Optional. The generated user scenario used to drive multi-turn agent running results.",
       ).optional(),
       value: z.string().describe(
         "Fields and values that can be used to populate the prompt template.",
       ).optional(),
-    }).describe(
-      "Prompt to be evaluated. This can represent a single-turn prompt or a multi-turn conversation for agent evaluations.",
-    ).optional(),
+    }).describe("Optional. The request/prompt to evaluate.").optional(),
     rubrics: z.record(
       z.string(),
       z.object({
@@ -889,7 +686,7 @@ const InputsSchema = z.object({
           .optional(),
         rubrics: z.array(z.object({
           content: z.unknown().describe(
-            "Content of the rubric, defining the testable criteria.",
+            "Required. The actual testable criteria for the rubric.",
           ).optional(),
           importance: z.unknown().describe(
             "Optional. The relative importance of this rubric.",
@@ -905,178 +702,7 @@ const InputsSchema = z.object({
     ).describe(
       "Optional. Named groups of rubrics associated with this prompt. The key is a user-defined name for the rubric group.",
     ).optional(),
-  }).describe(
-    "A single evaluation request supporting input for both single-turn model generation and multi-turn agent execution traces. Valid input modes: 1. Inference Mode: `prompt` is set (containing text or AgentData context). 2. Offline Eval Mode: `prompt` is unset, and `candidate_responses` contains `agent_data` (the completed execution trace). Validation Rule: Either `prompt` must be set, OR at least one of the `candidate_responses` must contain `agent_data`.",
-  ).optional(),
-  evaluationResponse: z.object({
-    candidateResults: z.array(z.object({
-      additionalResults: z.string().describe(
-        "Optional. Additional results for the metric.",
-      ).optional(),
-      candidate: z.string().describe(
-        "Required. The candidate that is being evaluated. The value is the same as the candidate name in the EvaluationRequest.",
-      ).optional(),
-      error: z.object({
-        code: z.number().int().describe(
-          "The status code, which should be an enum value of google.rpc.Code.",
-        ).optional(),
-        details: z.array(z.unknown()).describe(
-          "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-        ).optional(),
-        message: z.string().describe(
-          "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-        ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
-      explanation: z.string().describe(
-        "Optional. The explanation for the metric.",
-      ).optional(),
-      metric: z.string().describe("Required. The metric that was evaluated.")
-        .optional(),
-      rubricVerdicts: z.array(z.object({
-        evaluatedRubric: z.unknown().describe(
-          "Message representing a single testable criterion for evaluation. One input prompt could have multiple rubrics.",
-        ).optional(),
-        reasoning: z.unknown().describe(
-          "Optional. Human-readable reasoning or explanation for the verdict. This can include specific examples or details from the evaluated content that justify the given verdict.",
-        ).optional(),
-        verdict: z.unknown().describe(
-          'Required. Outcome of the evaluation against the rubric, represented as a boolean. `true` indicates a "Pass", `false` indicates a "Fail".',
-        ).optional(),
-      })).describe("Optional. The rubric verdicts for the metric.").optional(),
-      score: z.number().describe("Optional. The score for the metric.")
-        .optional(),
-    })).describe("Optional. The results for the metric.").optional(),
-    evaluationRequest: z.string().describe(
-      "Required. The request item that was evaluated. Format: projects/{project}/locations/{location}/evaluationItems/{evaluation_item}",
-    ).optional(),
-    evaluationRun: z.string().describe(
-      "Required. The evaluation run that was used to generate the result. Format: projects/{project}/locations/{location}/evaluationRuns/{evaluation_run}",
-    ).optional(),
-    metadata: z.string().describe(
-      "Optional. Metadata about the evaluation result.",
-    ).optional(),
-    metric: z.string().describe("Required. The metric that was evaluated.")
-      .optional(),
-    request: z.object({
-      candidateResponses: z.array(z.object({
-        agentData: z.object({
-          agents: z.unknown().describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.unknown().describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
-        candidate: z.string().describe(
-          "Required. The name of the candidate that produced the response.",
-        ).optional(),
-        error: z.object({
-          code: z.unknown().describe(
-            "The status code, which should be an enum value of google.rpc.Code.",
-          ).optional(),
-          details: z.unknown().describe(
-            "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-          ).optional(),
-          message: z.unknown().describe(
-            "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-          ).optional(),
-        }).describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        text: z.string().describe("Text response.").optional(),
-        value: z.string().describe(
-          "Fields and values that can be used to populate the response template.",
-        ).optional(),
-      })).describe(
-        "Optional. Responses from model under test and other baseline models for comparison.",
-      ).optional(),
-      goldenResponse: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
-        candidate: z.string().describe(
-          "Required. The name of the candidate that produced the response.",
-        ).optional(),
-        error: z.object({
-          code: z.number().int().describe(
-            "The status code, which should be an enum value of google.rpc.Code.",
-          ).optional(),
-          details: z.array(z.unknown()).describe(
-            "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-          ).optional(),
-          message: z.string().describe(
-            "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-          ).optional(),
-        }).describe(
-          "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-        ).optional(),
-        text: z.string().describe("Text response.").optional(),
-        value: z.string().describe(
-          "Fields and values that can be used to populate the response template.",
-        ).optional(),
-      }).describe("Responses from model or agent.").optional(),
-      prompt: z.object({
-        agentData: z.object({
-          agents: z.record(z.string(), z.unknown()).describe(
-            "Optional. A map containing the static configurations for each agent in the system. Key: agent_id (matches the `author` field in events). Value: The static configuration of the agent.",
-          ).optional(),
-          turns: z.array(z.unknown()).describe(
-            "Optional. A chronological list of conversation turns. Each turn represents a logical execution cycle (e.g., User Input -> Agent Response).",
-          ).optional(),
-        }).describe("Represents data specific to multi-turn agent evaluations.")
-          .optional(),
-        promptTemplateData: z.object({
-          values: z.record(z.string(), z.unknown()).describe(
-            "The values for fields in the prompt template.",
-          ).optional(),
-        }).describe(
-          "Message to hold a prompt template and the values to populate the template.",
-        ).optional(),
-        text: z.string().describe("Text prompt.").optional(),
-        userScenario: z.object({
-          conversationPlan: z.string().describe(
-            "Required. The plan for the conversation, used to drive the multi-turn agent run and generate the simulated agent evaluation dataset.",
-          ).optional(),
-          startingPrompt: z.string().describe(
-            "Required. The prompt that starts the conversation between the simulated user and the agent under test.",
-          ).optional(),
-        }).describe(
-          "User scenario to help simulate multi-turn agent running results.",
-        ).optional(),
-        value: z.string().describe(
-          "Fields and values that can be used to populate the prompt template.",
-        ).optional(),
-      }).describe(
-        "Prompt to be evaluated. This can represent a single-turn prompt or a multi-turn conversation for agent evaluations.",
-      ).optional(),
-      rubrics: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            'Human-readable name for the group. This should be unique within a given context if used for display or selection. Example: "Instruction Following V1", "Content Quality - Summarization Task".',
-          ).optional(),
-          groupId: z.string().describe("Unique identifier for the group.")
-            .optional(),
-          rubrics: z.array(z.unknown()).describe(
-            "Rubrics that are part of this group.",
-          ).optional(),
-        }),
-      ).describe(
-        "Optional. Named groups of rubrics associated with this prompt. The key is a user-defined name for the rubric group.",
-      ).optional(),
-    }).describe(
-      "A single evaluation request supporting input for both single-turn model generation and multi-turn agent execution traces. Valid input modes: 1. Inference Mode: `prompt` is set (containing text or AgentData context). 2. Offline Eval Mode: `prompt` is unset, and `candidate_responses` contains `agent_data` (the completed execution trace). Validation Rule: Either `prompt` must be set, OR at least one of the `candidate_responses` must contain `agent_data`.",
-    ).optional(),
-  }).describe("Evaluation result.").optional(),
+  }).describe("The request to evaluate.").optional(),
   gcsUri: z.string().describe(
     "The Cloud Storage object where the request or response is stored.",
   ).optional(),
@@ -1116,7 +742,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationItems. Registered at `@swamp/gcp/aiplatform/evaluationitems`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationitems",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1258,6 +884,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, evaluationResponse",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          error: _error,
+          evaluationResponse: _evaluationResponse,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1286,15 +924,11 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["evaluationItemType"] !== undefined) {
           body["evaluationItemType"] = g["evaluationItemType"];
         }
         if (g["evaluationRequest"] !== undefined) {
           body["evaluationRequest"] = g["evaluationRequest"];
-        }
-        if (g["evaluationResponse"] !== undefined) {
-          body["evaluationResponse"] = g["evaluationResponse"];
         }
         if (g["gcsUri"] !== undefined) body["gcsUri"] = g["gcsUri"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];

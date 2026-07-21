@@ -193,7 +193,7 @@ const GlobalArgsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the step status was set to complete. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set",
   ).optional(),
   creationTime: z.object({
     nanos: z.number().int().describe(
@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the step was created. - In response: always set - In create/update request: never set",
   ).optional(),
   description: z.string().describe(
     "A description of this tool For example: mvn clean package -D skipTests=true - In response: present if set by create/update request - In create/update request: optional",
@@ -216,7 +216,7 @@ const GlobalArgsSchema = z.object({
       "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+    "How much the device resource is used to perform the test. This is the device usage used for billing purpose, which is different from the run_duration, for example, infrastructure failure won't be charged for device usage. PRECONDITION_FAILED will be returned if one attempts to set a device_usage on a step which already has this field set. - In response: present if previously set. - In create request: optional - In update request: optional",
   ).optional(),
   dimensionValue: z.array(z.object({
     key: z.string().optional(),
@@ -257,9 +257,7 @@ const GlobalArgsSchema = z.object({
           seconds: z.unknown().describe(
             "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
           ).optional(),
-        }).describe(
-          'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
-        ).optional(),
+        }).describe("How long it took for this step to run.").optional(),
         stepId: z.string().optional(),
       })).describe("Step Id and outcome of each individual step.").optional(),
       rollUp: z.enum([
@@ -272,14 +270,12 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Rollup test status of multiple steps that were run with the same configuration as a group.",
       ).optional(),
-    }).describe(
-      "Stores rollup test status of multiple steps that were run as a group and outcome of each individual step.",
-    ).optional(),
+    }).describe("Present if it is a primary (original) step.").optional(),
     primaryStepId: z.string().describe(
       "Step Id of the primary (original) step, which might be this step.",
     ).optional(),
   }).describe(
-    "Details when multiple steps are run with the same configuration as a group.",
+    "Details when multiple steps are run with the same configuration as a group. These details can be used identify which group this step is part of. It also identifies the groups 'primary step' which indexes all the group members. - In response: present if previously set. - In create request: optional, set iff this step was performed more than once. - In update request: optional",
   ).optional(),
   name: z.string().describe(
     "A short human-readable name to display in the UI. Maximum of 100 characters. For example: Clean build A PRECONDITION_FAILED will be returned upon creating a new step if it shares its name and dimension_value with an existing step. If two steps represent a similar action, but have different dimension values, they should share the same name. For instance, if the same set of tests is run on two different platforms, the two steps should have the same name. - In response: always set - In create request: always set - In update request: never set",
@@ -307,8 +303,9 @@ const GlobalArgsSchema = z.object({
       unableToCrawl: z.boolean().describe(
         "If the robo was unable to crawl the app; perhaps because the app did not start.",
       ).optional(),
-    }).describe("Details for an outcome with a FAILURE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional",
+    ).optional(),
     inconclusiveDetail: z.object({
       abortedByUser: z.boolean().describe(
         "If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.",
@@ -319,8 +316,9 @@ const GlobalArgsSchema = z.object({
       infrastructureFailure: z.boolean().describe(
         "If the test runner could not determine success or failure because the test depends on a component other than the system under test which failed. For example, a mobile test requires provisioning a device where the test executes, and that provisioning can fail.",
       ).optional(),
-    }).describe("Details for an outcome with an INCONCLUSIVE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about an INCONCLUSIVE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not INCONCLUSIVE. Optional",
+    ).optional(),
     skippedDetail: z.object({
       incompatibleAppVersion: z.boolean().describe(
         "If the App doesn't support the specific API level.",
@@ -334,14 +332,15 @@ const GlobalArgsSchema = z.object({
       pendingTimeout: z.boolean().describe(
         "Indicates that the test could not be scheduled in the requested time because no suitable device was available.",
       ).optional(),
-    }).describe("Details for an outcome with a SKIPPED outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a SKIPPED outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SKIPPED. Optional",
+    ).optional(),
     successDetail: z.object({
       otherNativeCrash: z.boolean().describe(
         "If a native process other than the app crashed.",
       ).optional(),
     }).describe(
-      "Details for an outcome with a SUCCESS outcome summary. LINT.IfChange",
+      "More information about a SUCCESS outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SUCCESS. Optional",
     ).optional(),
     summary: z.enum([
       "unset",
@@ -351,8 +350,9 @@ const GlobalArgsSchema = z.object({
       "skipped",
       "flaky",
     ]).describe("The simplest way to interpret a result. Required").optional(),
-  }).describe("Interprets a result so that humans and machines can act on it.")
-    .optional(),
+  }).describe(
+    "Classification of the result, for example into SUCCESS or FAILURE - In response: present if set by create/update request - In create/update request: optional",
+  ).optional(),
   runDuration: z.object({
     nanos: z.number().int().describe(
       "Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.",
@@ -361,7 +361,7 @@ const GlobalArgsSchema = z.object({
       "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+    "How long it took for this step to run. If unset, this is set to the difference between creation_time and completion_time when the step is set to the COMPLETE state. In some cases, it is appropriate to set this value separately: For instance, if a step is created, but the operation it represents is queued for a few minutes before it executes, it would be appropriate not to include the time spent queued in its run_duration. PRECONDITION_FAILED will be returned if one attempts to set a run_duration on a step which already has this field set. - In response: present if previously set; always present on COMPLETE step - In create request: optional - In update request: optional",
   ).optional(),
   state: z.enum(["unknownState", "pending", "inProgress", "complete"]).describe(
     "The initial state is IN_PROGRESS. The only legal state transitions are * IN_PROGRESS -> COMPLETE A PRECONDITION_FAILED will be returned if an invalid transition is requested. It is valid to create Step with a state set to COMPLETE. The state can only be set to COMPLETE once. A PRECONDITION_FAILED will be returned if the state is set to COMPLETE multiple times. - In response: always set - In create/update request: optional",
@@ -387,7 +387,9 @@ const GlobalArgsSchema = z.object({
       stackTrace: z.object({
         exception: z.string().describe("The stack trace message. Required")
           .optional(),
-      }).describe("A stacktrace.").optional(),
+      }).describe(
+        "Deprecated in favor of stack trace fields inside specific warnings.",
+      ).optional(),
       type: z.enum([
         "unspecifiedType",
         "fatalException",
@@ -432,7 +434,7 @@ const GlobalArgsSchema = z.object({
           "Must be a valid serialized protocol buffer of the above specified type.",
         ).optional(),
       }).describe(
-        '`Any` contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message. Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type. Example 1: Pack and unpack a message in C++. Foo foo =...; Any any; any.PackFrom(foo);... if (any.UnpackTo(&foo)) {... } Example 2: Pack and unpack a message in Java. Foo foo =...; Any any = Any.pack(foo);... if (any.is(Foo.class)) { foo = any.unpack(Foo.class); } Example 3: Pack and unpack a message in Python. foo = Foo(...) any = Any() any.Pack(foo)... if any.Is(Foo.DESCRIPTOR): any.Unpack(foo)... Example 4: Pack and unpack a message in Go foo:= &pb.Foo{...} any, err:= ptypes.MarshalAny(foo)... foo:= &pb.Foo{} if err:= ptypes.UnmarshalAny(any, foo); err!= nil {... } The pack methods provided by protobuf library will by default use \'type.googleapis.com/full.type.name\' as the type URL and the unpack methods only use the fully qualified type name after the last \'/\' in the type URL, for example "foo.bar.com/x/y.z" will yield type name "y.z". # JSON The JSON representation of an `Any` value uses the regular representation of the deserialized, embedded message, with an additional field `@type` which contains the type URL. Example: package google.profile; message Person { string first_name = 1; string last_name = 2; } { "@type": "type.googleapis.com/google.profile.Person", "firstName":, "lastName": } If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field `value` which holds the custom JSON in addition to the `@type` field. Example (for message google.protobuf.Duration): { "@type": "type.googleapis.com/google.protobuf.Duration", "value": "1.212s" }',
+        "Warning message with additional details of the issue. Should always be a message from com.google.devtools.toolresults.v1.warnings",
       ).optional(),
     })).describe(
       "Issues observed during the test execution. For example, if the mobile app under test crashed during the test, the error message and the stack trace content can be recorded here to assist debugging. - In response: present if set by create or update - In create/update request: optional",
@@ -445,9 +447,7 @@ const GlobalArgsSchema = z.object({
         seconds: z.string().describe(
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
-      }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
-      ).optional(),
+      }).describe("Elapsed time of test suite.").optional(),
       errorCount: z.number().int().describe(
         "Number of test cases in error, typically set by the service by parsing the xml_source. - In create/response: always set - In update request: never",
       ).optional(),
@@ -470,7 +470,9 @@ const GlobalArgsSchema = z.object({
         fileUri: z.string().describe(
           "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
         ).optional(),
-      }).describe("A reference to a file.").optional(),
+      }).describe(
+        "If this test suite was parsed from XML, this is the URI where the original XML file is stored. Note: Multiple test suites can share the same xml_source Returns INVALID_ARGUMENT if the uri format is not supported. - In create/response: optional - In update request: never",
+      ).optional(),
     })).describe(
       "List of test suite overview contents. This could be parsed from xUnit XML log by server, or uploaded directly by user. This references should only be called when test suites are fully parsed or uploaded. The maximum allowed number of test suite overviews per step is 1000. - In response: always set - In create request: optional - In update request: never (use publishXunitXmlFiles custom method instead)",
     ).optional(),
@@ -483,9 +485,11 @@ const GlobalArgsSchema = z.object({
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+        "How long it took to run the test process. - In response: present if previously set. - In create/update request: optional",
       ).optional(),
-    }).describe("Testing timing break down to know phases.").optional(),
+    }).describe(
+      "The timing break down of the test execution. - In response: present if set by create or update - In create/update request: optional",
+    ).optional(),
     toolExecution: z.object({
       commandLineArguments: z.array(z.string()).describe(
         "The full tokenized command line including the program name (equivalent to argv in a C program). - In response: present if set by create request - In create request: optional - In update request: never set",
@@ -494,7 +498,9 @@ const GlobalArgsSchema = z.object({
         number: z.number().int().describe(
           "Tool execution exit code. A value of 0 means that the execution was successful. - In response: always set - In create/update request: always set",
         ).optional(),
-      }).describe("Exit code from a tool execution.").optional(),
+      }).describe(
+        "Tool execution exit code. This field will be set once the tool has exited. - In response: present if set by create/update request - In create request: optional - In update request: optional, a FAILED_PRECONDITION error will be returned if an exit_code is already set.",
+      ).optional(),
       toolLogs: z.array(z.object({
         fileUri: z.string().describe(
           "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
@@ -511,13 +517,15 @@ const GlobalArgsSchema = z.object({
             "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
           ).optional(),
         }).describe(
-          'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+          "The creation time of the file. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
         output: z.object({
           fileUri: z.unknown().describe(
             "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
           ).optional(),
-        }).describe("A reference to a file.").optional(),
+        }).describe(
+          "A FileReference to an output file. - In response: always set - In create/update request: always set",
+        ).optional(),
         testCase: z.object({
           className: z.unknown().describe("The name of the class.").optional(),
           name: z.unknown().describe("The name of the test case. Required.")
@@ -526,17 +534,15 @@ const GlobalArgsSchema = z.object({
             "The name of the test suite to which this test case belongs.",
           ).optional(),
         }).describe(
-          "A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.",
+          "The test case to which this output file belongs. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
       })).describe(
         "References to opaque files of any format output by the tool execution. The maximum allowed number of tool outputs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list",
       ).optional(),
     }).describe(
-      "An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.",
+      "Represents the execution of the test runner. The exit code of this tool will be used to determine if the test passed. - In response: always set - In create/update request: optional",
     ).optional(),
-  }).describe(
-    "A step that represents running tests. It accepts ant-junit xml files which will be parsed into structured test results by the service. Xml file paths are updated in order to append more files, however they can't be deleted. Users can also add test results manually by using the test_result field.",
-  ).optional(),
+  }).describe("An execution of a test runner.").optional(),
   toolExecutionStep: z.object({
     toolExecution: z.object({
       commandLineArguments: z.array(z.string()).describe(
@@ -546,7 +552,9 @@ const GlobalArgsSchema = z.object({
         number: z.number().int().describe(
           "Tool execution exit code. A value of 0 means that the execution was successful. - In response: always set - In create/update request: always set",
         ).optional(),
-      }).describe("Exit code from a tool execution.").optional(),
+      }).describe(
+        "Tool execution exit code. This field will be set once the tool has exited. - In response: present if set by create/update request - In create request: optional - In update request: optional, a FAILED_PRECONDITION error will be returned if an exit_code is already set.",
+      ).optional(),
       toolLogs: z.array(z.object({
         fileUri: z.string().describe(
           "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
@@ -563,13 +571,15 @@ const GlobalArgsSchema = z.object({
             "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
           ).optional(),
         }).describe(
-          'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+          "The creation time of the file. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
         output: z.object({
           fileUri: z.unknown().describe(
             "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
           ).optional(),
-        }).describe("A reference to a file.").optional(),
+        }).describe(
+          "A FileReference to an output file. - In response: always set - In create/update request: always set",
+        ).optional(),
         testCase: z.object({
           className: z.unknown().describe("The name of the class.").optional(),
           name: z.unknown().describe("The name of the test case. Required.")
@@ -578,16 +588,16 @@ const GlobalArgsSchema = z.object({
             "The name of the test suite to which this test case belongs.",
           ).optional(),
         }).describe(
-          "A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.",
+          "The test case to which this output file belongs. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
       })).describe(
         "References to opaque files of any format output by the tool execution. The maximum allowed number of tool outputs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list",
       ).optional(),
     }).describe(
-      "An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.",
+      "A Tool execution. - In response: present if set by create/update request - In create/update request: optional",
     ).optional(),
   }).describe(
-    "Generic tool step to be used for binaries we do not explicitly support. For example: running cp to copy artifacts from one location to another.",
+    "An execution of a tool (used for steps we don't explicitly support).",
   ).optional(),
   historyId: z.string().describe("Required. A History id."),
   executionId: z.string().describe("Required. An Execution id."),
@@ -769,7 +779,7 @@ const InputsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the step status was set to complete. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set",
   ).optional(),
   creationTime: z.object({
     nanos: z.number().int().describe(
@@ -779,7 +789,7 @@ const InputsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the step was created. - In response: always set - In create/update request: never set",
   ).optional(),
   description: z.string().describe(
     "A description of this tool For example: mvn clean package -D skipTests=true - In response: present if set by create/update request - In create/update request: optional",
@@ -792,7 +802,7 @@ const InputsSchema = z.object({
       "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+    "How much the device resource is used to perform the test. This is the device usage used for billing purpose, which is different from the run_duration, for example, infrastructure failure won't be charged for device usage. PRECONDITION_FAILED will be returned if one attempts to set a device_usage on a step which already has this field set. - In response: present if previously set. - In create request: optional - In update request: optional",
   ).optional(),
   dimensionValue: z.array(z.object({
     key: z.string().optional(),
@@ -833,9 +843,7 @@ const InputsSchema = z.object({
           seconds: z.unknown().describe(
             "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
           ).optional(),
-        }).describe(
-          'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
-        ).optional(),
+        }).describe("How long it took for this step to run.").optional(),
         stepId: z.string().optional(),
       })).describe("Step Id and outcome of each individual step.").optional(),
       rollUp: z.enum([
@@ -848,14 +856,12 @@ const InputsSchema = z.object({
       ]).describe(
         "Rollup test status of multiple steps that were run with the same configuration as a group.",
       ).optional(),
-    }).describe(
-      "Stores rollup test status of multiple steps that were run as a group and outcome of each individual step.",
-    ).optional(),
+    }).describe("Present if it is a primary (original) step.").optional(),
     primaryStepId: z.string().describe(
       "Step Id of the primary (original) step, which might be this step.",
     ).optional(),
   }).describe(
-    "Details when multiple steps are run with the same configuration as a group.",
+    "Details when multiple steps are run with the same configuration as a group. These details can be used identify which group this step is part of. It also identifies the groups 'primary step' which indexes all the group members. - In response: present if previously set. - In create request: optional, set iff this step was performed more than once. - In update request: optional",
   ).optional(),
   name: z.string().describe(
     "A short human-readable name to display in the UI. Maximum of 100 characters. For example: Clean build A PRECONDITION_FAILED will be returned upon creating a new step if it shares its name and dimension_value with an existing step. If two steps represent a similar action, but have different dimension values, they should share the same name. For instance, if the same set of tests is run on two different platforms, the two steps should have the same name. - In response: always set - In create request: always set - In update request: never set",
@@ -883,8 +889,9 @@ const InputsSchema = z.object({
       unableToCrawl: z.boolean().describe(
         "If the robo was unable to crawl the app; perhaps because the app did not start.",
       ).optional(),
-    }).describe("Details for an outcome with a FAILURE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional",
+    ).optional(),
     inconclusiveDetail: z.object({
       abortedByUser: z.boolean().describe(
         "If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.",
@@ -895,8 +902,9 @@ const InputsSchema = z.object({
       infrastructureFailure: z.boolean().describe(
         "If the test runner could not determine success or failure because the test depends on a component other than the system under test which failed. For example, a mobile test requires provisioning a device where the test executes, and that provisioning can fail.",
       ).optional(),
-    }).describe("Details for an outcome with an INCONCLUSIVE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about an INCONCLUSIVE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not INCONCLUSIVE. Optional",
+    ).optional(),
     skippedDetail: z.object({
       incompatibleAppVersion: z.boolean().describe(
         "If the App doesn't support the specific API level.",
@@ -910,14 +918,15 @@ const InputsSchema = z.object({
       pendingTimeout: z.boolean().describe(
         "Indicates that the test could not be scheduled in the requested time because no suitable device was available.",
       ).optional(),
-    }).describe("Details for an outcome with a SKIPPED outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a SKIPPED outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SKIPPED. Optional",
+    ).optional(),
     successDetail: z.object({
       otherNativeCrash: z.boolean().describe(
         "If a native process other than the app crashed.",
       ).optional(),
     }).describe(
-      "Details for an outcome with a SUCCESS outcome summary. LINT.IfChange",
+      "More information about a SUCCESS outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SUCCESS. Optional",
     ).optional(),
     summary: z.enum([
       "unset",
@@ -927,8 +936,9 @@ const InputsSchema = z.object({
       "skipped",
       "flaky",
     ]).describe("The simplest way to interpret a result. Required").optional(),
-  }).describe("Interprets a result so that humans and machines can act on it.")
-    .optional(),
+  }).describe(
+    "Classification of the result, for example into SUCCESS or FAILURE - In response: present if set by create/update request - In create/update request: optional",
+  ).optional(),
   runDuration: z.object({
     nanos: z.number().int().describe(
       "Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.",
@@ -937,7 +947,7 @@ const InputsSchema = z.object({
       "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+    "How long it took for this step to run. If unset, this is set to the difference between creation_time and completion_time when the step is set to the COMPLETE state. In some cases, it is appropriate to set this value separately: For instance, if a step is created, but the operation it represents is queued for a few minutes before it executes, it would be appropriate not to include the time spent queued in its run_duration. PRECONDITION_FAILED will be returned if one attempts to set a run_duration on a step which already has this field set. - In response: present if previously set; always present on COMPLETE step - In create request: optional - In update request: optional",
   ).optional(),
   state: z.enum(["unknownState", "pending", "inProgress", "complete"]).describe(
     "The initial state is IN_PROGRESS. The only legal state transitions are * IN_PROGRESS -> COMPLETE A PRECONDITION_FAILED will be returned if an invalid transition is requested. It is valid to create Step with a state set to COMPLETE. The state can only be set to COMPLETE once. A PRECONDITION_FAILED will be returned if the state is set to COMPLETE multiple times. - In response: always set - In create/update request: optional",
@@ -963,7 +973,9 @@ const InputsSchema = z.object({
       stackTrace: z.object({
         exception: z.string().describe("The stack trace message. Required")
           .optional(),
-      }).describe("A stacktrace.").optional(),
+      }).describe(
+        "Deprecated in favor of stack trace fields inside specific warnings.",
+      ).optional(),
       type: z.enum([
         "unspecifiedType",
         "fatalException",
@@ -1008,7 +1020,7 @@ const InputsSchema = z.object({
           "Must be a valid serialized protocol buffer of the above specified type.",
         ).optional(),
       }).describe(
-        '`Any` contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message. Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type. Example 1: Pack and unpack a message in C++. Foo foo =...; Any any; any.PackFrom(foo);... if (any.UnpackTo(&foo)) {... } Example 2: Pack and unpack a message in Java. Foo foo =...; Any any = Any.pack(foo);... if (any.is(Foo.class)) { foo = any.unpack(Foo.class); } Example 3: Pack and unpack a message in Python. foo = Foo(...) any = Any() any.Pack(foo)... if any.Is(Foo.DESCRIPTOR): any.Unpack(foo)... Example 4: Pack and unpack a message in Go foo:= &pb.Foo{...} any, err:= ptypes.MarshalAny(foo)... foo:= &pb.Foo{} if err:= ptypes.UnmarshalAny(any, foo); err!= nil {... } The pack methods provided by protobuf library will by default use \'type.googleapis.com/full.type.name\' as the type URL and the unpack methods only use the fully qualified type name after the last \'/\' in the type URL, for example "foo.bar.com/x/y.z" will yield type name "y.z". # JSON The JSON representation of an `Any` value uses the regular representation of the deserialized, embedded message, with an additional field `@type` which contains the type URL. Example: package google.profile; message Person { string first_name = 1; string last_name = 2; } { "@type": "type.googleapis.com/google.profile.Person", "firstName":, "lastName": } If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field `value` which holds the custom JSON in addition to the `@type` field. Example (for message google.protobuf.Duration): { "@type": "type.googleapis.com/google.protobuf.Duration", "value": "1.212s" }',
+        "Warning message with additional details of the issue. Should always be a message from com.google.devtools.toolresults.v1.warnings",
       ).optional(),
     })).describe(
       "Issues observed during the test execution. For example, if the mobile app under test crashed during the test, the error message and the stack trace content can be recorded here to assist debugging. - In response: present if set by create or update - In create/update request: optional",
@@ -1021,9 +1033,7 @@ const InputsSchema = z.object({
         seconds: z.string().describe(
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
-      }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
-      ).optional(),
+      }).describe("Elapsed time of test suite.").optional(),
       errorCount: z.number().int().describe(
         "Number of test cases in error, typically set by the service by parsing the xml_source. - In create/response: always set - In update request: never",
       ).optional(),
@@ -1046,7 +1056,9 @@ const InputsSchema = z.object({
         fileUri: z.string().describe(
           "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
         ).optional(),
-      }).describe("A reference to a file.").optional(),
+      }).describe(
+        "If this test suite was parsed from XML, this is the URI where the original XML file is stored. Note: Multiple test suites can share the same xml_source Returns INVALID_ARGUMENT if the uri format is not supported. - In create/response: optional - In update request: never",
+      ).optional(),
     })).describe(
       "List of test suite overview contents. This could be parsed from xUnit XML log by server, or uploaded directly by user. This references should only be called when test suites are fully parsed or uploaded. The maximum allowed number of test suite overviews per step is 1000. - In response: always set - In create request: optional - In update request: never (use publishXunitXmlFiles custom method instead)",
     ).optional(),
@@ -1059,9 +1071,11 @@ const InputsSchema = z.object({
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+        "How long it took to run the test process. - In response: present if previously set. - In create/update request: optional",
       ).optional(),
-    }).describe("Testing timing break down to know phases.").optional(),
+    }).describe(
+      "The timing break down of the test execution. - In response: present if set by create or update - In create/update request: optional",
+    ).optional(),
     toolExecution: z.object({
       commandLineArguments: z.array(z.string()).describe(
         "The full tokenized command line including the program name (equivalent to argv in a C program). - In response: present if set by create request - In create request: optional - In update request: never set",
@@ -1070,7 +1084,9 @@ const InputsSchema = z.object({
         number: z.number().int().describe(
           "Tool execution exit code. A value of 0 means that the execution was successful. - In response: always set - In create/update request: always set",
         ).optional(),
-      }).describe("Exit code from a tool execution.").optional(),
+      }).describe(
+        "Tool execution exit code. This field will be set once the tool has exited. - In response: present if set by create/update request - In create request: optional - In update request: optional, a FAILED_PRECONDITION error will be returned if an exit_code is already set.",
+      ).optional(),
       toolLogs: z.array(z.object({
         fileUri: z.string().describe(
           "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
@@ -1087,13 +1103,15 @@ const InputsSchema = z.object({
             "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
           ).optional(),
         }).describe(
-          'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+          "The creation time of the file. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
         output: z.object({
           fileUri: z.unknown().describe(
             "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
           ).optional(),
-        }).describe("A reference to a file.").optional(),
+        }).describe(
+          "A FileReference to an output file. - In response: always set - In create/update request: always set",
+        ).optional(),
         testCase: z.object({
           className: z.unknown().describe("The name of the class.").optional(),
           name: z.unknown().describe("The name of the test case. Required.")
@@ -1102,17 +1120,15 @@ const InputsSchema = z.object({
             "The name of the test suite to which this test case belongs.",
           ).optional(),
         }).describe(
-          "A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.",
+          "The test case to which this output file belongs. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
       })).describe(
         "References to opaque files of any format output by the tool execution. The maximum allowed number of tool outputs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list",
       ).optional(),
     }).describe(
-      "An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.",
+      "Represents the execution of the test runner. The exit code of this tool will be used to determine if the test passed. - In response: always set - In create/update request: optional",
     ).optional(),
-  }).describe(
-    "A step that represents running tests. It accepts ant-junit xml files which will be parsed into structured test results by the service. Xml file paths are updated in order to append more files, however they can't be deleted. Users can also add test results manually by using the test_result field.",
-  ).optional(),
+  }).describe("An execution of a test runner.").optional(),
   toolExecutionStep: z.object({
     toolExecution: z.object({
       commandLineArguments: z.array(z.string()).describe(
@@ -1122,7 +1138,9 @@ const InputsSchema = z.object({
         number: z.number().int().describe(
           "Tool execution exit code. A value of 0 means that the execution was successful. - In response: always set - In create/update request: always set",
         ).optional(),
-      }).describe("Exit code from a tool execution.").optional(),
+      }).describe(
+        "Tool execution exit code. This field will be set once the tool has exited. - In response: present if set by create/update request - In create request: optional - In update request: optional, a FAILED_PRECONDITION error will be returned if an exit_code is already set.",
+      ).optional(),
       toolLogs: z.array(z.object({
         fileUri: z.string().describe(
           "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
@@ -1139,13 +1157,15 @@ const InputsSchema = z.object({
             "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
           ).optional(),
         }).describe(
-          'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+          "The creation time of the file. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
         output: z.object({
           fileUri: z.unknown().describe(
             "The URI of a file stored in Google Cloud Storage. For example: `http://storage.googleapis.com/mybucket/path/to/test.xml` or in Cloud Storage URI format: `gs://mybucket/path/to/test.xml` with version-specific info, `gs://mybucket/path/to/test.xml#1360383693690000` An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set",
           ).optional(),
-        }).describe("A reference to a file.").optional(),
+        }).describe(
+          "A FileReference to an output file. - In response: always set - In create/update request: always set",
+        ).optional(),
         testCase: z.object({
           className: z.unknown().describe("The name of the class.").optional(),
           name: z.unknown().describe("The name of the test case. Required.")
@@ -1154,16 +1174,16 @@ const InputsSchema = z.object({
             "The name of the test suite to which this test case belongs.",
           ).optional(),
         }).describe(
-          "A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.",
+          "The test case to which this output file belongs. - In response: present if set by create/update request - In create/update request: optional",
         ).optional(),
       })).describe(
         "References to opaque files of any format output by the tool execution. The maximum allowed number of tool outputs per step is 1000. - In response: present if set by create/update request - In create request: optional - In update request: optional, any value provided will be appended to the existing list",
       ).optional(),
     }).describe(
-      "An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.",
+      "A Tool execution. - In response: present if set by create/update request - In create/update request: optional",
     ).optional(),
   }).describe(
-    "Generic tool step to be used for binaries we do not explicitly support. For example: running cp to copy artifacts from one location to another.",
+    "An execution of a tool (used for steps we don't explicitly support).",
   ).optional(),
   historyId: z.string().describe("Required. A History id.").optional(),
   executionId: z.string().describe("Required. An Execution id.").optional(),
@@ -1195,7 +1215,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tool Results Histories.Executions.Steps. Registered at `@swamp/gcp/toolresults/histories-executions-steps`. */
 export const model = {
   type: "@swamp/gcp/toolresults/histories-executions-steps",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1309,6 +1329,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

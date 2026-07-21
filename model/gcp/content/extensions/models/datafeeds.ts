@@ -192,9 +192,7 @@ const GlobalArgsSchema = z.object({
     weekday: z.string().describe(
       'The day of the week the feed file should be fetched. Acceptable values are: - "`monday`" - "`tuesday`" - "`wednesday`" - "`thursday`" - "`friday`" - "`saturday`" - "`sunday`"',
     ).optional(),
-  }).describe(
-    "The required fields vary based on the frequency of fetching. For a monthly fetch schedule, day_of_month and hour are required. For a weekly fetch schedule, weekday and hour are required. For a daily fetch schedule, only hour is required.",
-  ).optional(),
+  }).describe("Fetch schedule for the feed file.").optional(),
   fileName: z.string().describe(
     "Required. The filename of the feed. All feeds must have a unique file name.",
   ).optional(),
@@ -208,7 +206,7 @@ const GlobalArgsSchema = z.object({
     quotingMode: z.string().describe(
       'Specifies how double quotes are interpreted. If not specified, the mode will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "`normal character`" - "`value quoting`"',
     ).optional(),
-  }).optional(),
+  }).describe("Format of the feed file.").optional(),
   id: z.string().describe("Required for update. The ID of the data feed.")
     .optional(),
   name: z.string().describe(
@@ -313,9 +311,7 @@ const InputsSchema = z.object({
     weekday: z.string().describe(
       'The day of the week the feed file should be fetched. Acceptable values are: - "`monday`" - "`tuesday`" - "`wednesday`" - "`thursday`" - "`friday`" - "`saturday`" - "`sunday`"',
     ).optional(),
-  }).describe(
-    "The required fields vary based on the frequency of fetching. For a monthly fetch schedule, day_of_month and hour are required. For a weekly fetch schedule, weekday and hour are required. For a daily fetch schedule, only hour is required.",
-  ).optional(),
+  }).describe("Fetch schedule for the feed file.").optional(),
   fileName: z.string().describe(
     "Required. The filename of the feed. All feeds must have a unique file name.",
   ).optional(),
@@ -329,7 +325,7 @@ const InputsSchema = z.object({
     quotingMode: z.string().describe(
       'Specifies how double quotes are interpreted. If not specified, the mode will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "`normal character`" - "`value quoting`"',
     ).optional(),
-  }).optional(),
+  }).describe("Format of the feed file.").optional(),
   id: z.string().describe("Required for update. The ID of the data feed.")
     .optional(),
   name: z.string().describe(
@@ -385,7 +381,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Datafeeds. Registered at `@swamp/gcp/content/datafeeds`. */
 export const model = {
   type: "@swamp/gcp/content/datafeeds",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -474,6 +470,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

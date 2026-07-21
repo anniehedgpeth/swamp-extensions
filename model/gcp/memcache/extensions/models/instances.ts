@@ -215,24 +215,13 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Start time of the window in UTC.").optional(),
     })).describe(
       "Required. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_windows is expected to be one.",
     ).optional(),
-  }).describe("Maintenance policy per instance.").optional(),
-  maintenanceSchedule: z.object({
-    endTime: z.string().describe(
-      "Output only. The end time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-    scheduleDeadlineTime: z.string().describe(
-      "Output only. The deadline that the maintenance schedule start time can not go beyond, including reschedule.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Output only. The start time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-  }).describe("Upcoming maintenance schedule.").optional(),
+  }).describe(
+    "The maintenance policy for the instance. If not provided, the maintenance event will be performed based on Memorystore internal rollout schedule.",
+  ).optional(),
   maintenanceVersion: z.string().describe(
     "Optional. Last self service update maintenance version triggered by the customer. If it is empty, it means that the maintenance version is not set by the user.",
   ).optional(),
@@ -253,7 +242,7 @@ const GlobalArgsSchema = z.object({
     memorySizeMb: z.number().int().describe(
       "Required. Memory size in MiB for each Memcached node.",
     ).optional(),
-  }).describe("Configuration for a Memcached Node.").optional(),
+  }).describe("Required. Configuration for Memcached nodes.").optional(),
   nodeCount: z.number().int().describe(
     "Required. Number of nodes in the Memcached instance.",
   ).optional(),
@@ -264,7 +253,9 @@ const GlobalArgsSchema = z.object({
     params: z.record(z.string(), z.string()).describe(
       "User defined set of parameters to use in the memcached process.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "User defined parameters to apply to the memcached process on each node.",
+  ).optional(),
   reservedIpRangeId: z.array(z.string()).describe(
     'Optional. Contains the id of allocated IP address ranges associated with the private service access connection for example, "test-default" associated with IP range 10.0.0.0/29.',
   ).optional(),
@@ -409,24 +400,13 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Start time of the window in UTC.").optional(),
     })).describe(
       "Required. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_windows is expected to be one.",
     ).optional(),
-  }).describe("Maintenance policy per instance.").optional(),
-  maintenanceSchedule: z.object({
-    endTime: z.string().describe(
-      "Output only. The end time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-    scheduleDeadlineTime: z.string().describe(
-      "Output only. The deadline that the maintenance schedule start time can not go beyond, including reschedule.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Output only. The start time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-  }).describe("Upcoming maintenance schedule.").optional(),
+  }).describe(
+    "The maintenance policy for the instance. If not provided, the maintenance event will be performed based on Memorystore internal rollout schedule.",
+  ).optional(),
   maintenanceVersion: z.string().describe(
     "Optional. Last self service update maintenance version triggered by the customer. If it is empty, it means that the maintenance version is not set by the user.",
   ).optional(),
@@ -447,7 +427,7 @@ const InputsSchema = z.object({
     memorySizeMb: z.number().int().describe(
       "Required. Memory size in MiB for each Memcached node.",
     ).optional(),
-  }).describe("Configuration for a Memcached Node.").optional(),
+  }).describe("Required. Configuration for Memcached nodes.").optional(),
   nodeCount: z.number().int().describe(
     "Required. Number of nodes in the Memcached instance.",
   ).optional(),
@@ -458,7 +438,9 @@ const InputsSchema = z.object({
     params: z.record(z.string(), z.string()).describe(
       "User defined set of parameters to use in the memcached process.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "User defined parameters to apply to the memcached process on each node.",
+  ).optional(),
   reservedIpRangeId: z.array(z.string()).describe(
     'Optional. Contains the id of allocated IP address ranges associated with the private service access connection for example, "test-default" associated with IP range 10.0.0.0/29.',
   ).optional(),
@@ -496,7 +478,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Memorystore for Memcached Instances. Registered at `@swamp/gcp/memcache/instances`. */
 export const model = {
   type: "@swamp/gcp/memcache/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -603,6 +585,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: maintenanceSchedule",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { maintenanceSchedule: _maintenanceSchedule, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -643,9 +633,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["maintenancePolicy"] !== undefined) {
           body["maintenancePolicy"] = g["maintenancePolicy"];
-        }
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
         }
         if (g["maintenanceVersion"] !== undefined) {
           body["maintenanceVersion"] = g["maintenanceVersion"];
@@ -794,9 +781,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["maintenancePolicy"] !== undefined) {
           body["maintenancePolicy"] = g["maintenancePolicy"];
-        }
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
         }
         if (g["maintenanceVersion"] !== undefined) {
           body["maintenanceVersion"] = g["maintenanceVersion"];

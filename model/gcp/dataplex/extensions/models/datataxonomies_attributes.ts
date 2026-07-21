@@ -175,7 +175,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on data stored within resources.",
     ).optional(),
   }).describe(
-    "DataAccessSpec holds the access control configuration to be enforced on data stored within resources (eg: rows, columns in BigQuery Tables). When associated with data, the data is only accessible to principals explicitly granted access through the DataAccessSpec. Principals with access to the containing resource are not implicitly granted access.",
+    "Optional. Specified when applied to data stored on the resource (eg: rows, columns in BigQuery Tables).",
   ).optional(),
   description: z.string().describe(
     "Optional. Description of the DataAttribute.",
@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The set of principals to be granted writer role on the resource.",
     ).optional(),
   }).describe(
-    "ResourceAccessSpec holds the access control configuration to be enforced on the resources, for example, Cloud Storage bucket, BigQuery dataset, BigQuery table.",
+    "Optional. Specified when applied to a resource (eg: Cloud Storage bucket, BigQuery dataset, BigQuery table).",
   ).optional(),
   dataAttributeId: z.string().describe(
     "Required. DataAttribute identifier. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the DataTaxonomy.",
@@ -246,7 +246,7 @@ const InputsSchema = z.object({
       "Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on data stored within resources.",
     ).optional(),
   }).describe(
-    "DataAccessSpec holds the access control configuration to be enforced on data stored within resources (eg: rows, columns in BigQuery Tables). When associated with data, the data is only accessible to principals explicitly granted access through the DataAccessSpec. Principals with access to the containing resource are not implicitly granted access.",
+    "Optional. Specified when applied to data stored on the resource (eg: rows, columns in BigQuery Tables).",
   ).optional(),
   description: z.string().describe(
     "Optional. Description of the DataAttribute.",
@@ -270,7 +270,7 @@ const InputsSchema = z.object({
       "Optional. The set of principals to be granted writer role on the resource.",
     ).optional(),
   }).describe(
-    "ResourceAccessSpec holds the access control configuration to be enforced on the resources, for example, Cloud Storage bucket, BigQuery dataset, BigQuery table.",
+    "Optional. Specified when applied to a resource (eg: Cloud Storage bucket, BigQuery dataset, BigQuery table).",
   ).optional(),
   dataAttributeId: z.string().describe(
     "Required. DataAttribute identifier. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the DataTaxonomy.",
@@ -306,7 +306,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataTaxonomies.Attributes. Registered at `@swamp/gcp/dataplex/datataxonomies-attributes`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datataxonomies-attributes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -410,6 +410,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

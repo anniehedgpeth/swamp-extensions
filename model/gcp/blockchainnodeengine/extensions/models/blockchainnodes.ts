@@ -173,23 +173,6 @@ const GlobalArgsSchema = z.object({
   blockchainType: z.enum(["BLOCKCHAIN_TYPE_UNSPECIFIED", "ETHEREUM"]).describe(
     "Immutable. The blockchain type of the node.",
   ).optional(),
-  connectionInfo: z.object({
-    endpointInfo: z.object({
-      jsonRpcApiEndpoint: z.string().describe(
-        "Output only. The assigned URL for the node JSON-RPC API endpoint.",
-      ).optional(),
-      websocketsApiEndpoint: z.string().describe(
-        "Output only. The assigned URL for the node WebSockets API endpoint.",
-      ).optional(),
-    }).describe(
-      "Contains endpoint information through which to interact with a blockchain node.",
-    ).optional(),
-    serviceAttachment: z.string().describe(
-      "Output only. A service attachment that exposes a node, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}",
-    ).optional(),
-  }).describe(
-    "The connection information through which to interact with a blockchain node.",
-  ).optional(),
   ethereumDetails: z.object({
     additionalEndpoints: z.object({
       beaconApiEndpoint: z.string().describe(
@@ -201,7 +184,7 @@ const GlobalArgsSchema = z.object({
       executionClientPrometheusMetricsApiEndpoint: z.string().describe(
         "Output only. The assigned URL for the node's execution client's Prometheus metrics endpoint.",
       ).optional(),
-    }).describe("Contains endpoint information specific to Ethereum nodes.")
+    }).describe("Output only. Ethereum-specific endpoint information.")
       .optional(),
     apiEnableAdmin: z.boolean().describe(
       "Immutable. Enables JSON-RPC access to functions in the `admin` namespace. Defaults to `false`.",
@@ -222,9 +205,7 @@ const GlobalArgsSchema = z.object({
         "FULL",
         "ARCHIVE",
       ]).describe("Immutable. Blockchain garbage collection mode.").optional(),
-    }).describe(
-      "Options for the Geth execution client. See [Command-line Options](https://geth.ethereum.org/docs/fundamentals/command-line-options) for more details.",
-    ).optional(),
+    }).describe("Details for the Geth execution client.").optional(),
     network: z.enum([
       "NETWORK_UNSPECIFIED",
       "MAINNET",
@@ -312,23 +293,6 @@ const InputsSchema = z.object({
   blockchainType: z.enum(["BLOCKCHAIN_TYPE_UNSPECIFIED", "ETHEREUM"]).describe(
     "Immutable. The blockchain type of the node.",
   ).optional(),
-  connectionInfo: z.object({
-    endpointInfo: z.object({
-      jsonRpcApiEndpoint: z.string().describe(
-        "Output only. The assigned URL for the node JSON-RPC API endpoint.",
-      ).optional(),
-      websocketsApiEndpoint: z.string().describe(
-        "Output only. The assigned URL for the node WebSockets API endpoint.",
-      ).optional(),
-    }).describe(
-      "Contains endpoint information through which to interact with a blockchain node.",
-    ).optional(),
-    serviceAttachment: z.string().describe(
-      "Output only. A service attachment that exposes a node, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}",
-    ).optional(),
-  }).describe(
-    "The connection information through which to interact with a blockchain node.",
-  ).optional(),
   ethereumDetails: z.object({
     additionalEndpoints: z.object({
       beaconApiEndpoint: z.string().describe(
@@ -340,7 +304,7 @@ const InputsSchema = z.object({
       executionClientPrometheusMetricsApiEndpoint: z.string().describe(
         "Output only. The assigned URL for the node's execution client's Prometheus metrics endpoint.",
       ).optional(),
-    }).describe("Contains endpoint information specific to Ethereum nodes.")
+    }).describe("Output only. Ethereum-specific endpoint information.")
       .optional(),
     apiEnableAdmin: z.boolean().describe(
       "Immutable. Enables JSON-RPC access to functions in the `admin` namespace. Defaults to `false`.",
@@ -361,9 +325,7 @@ const InputsSchema = z.object({
         "FULL",
         "ARCHIVE",
       ]).describe("Immutable. Blockchain garbage collection mode.").optional(),
-    }).describe(
-      "Options for the Geth execution client. See [Command-line Options](https://geth.ethereum.org/docs/fundamentals/command-line-options) for more details.",
-    ).optional(),
+    }).describe("Details for the Geth execution client.").optional(),
     network: z.enum([
       "NETWORK_UNSPECIFIED",
       "MAINNET",
@@ -425,7 +387,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Blockchain Node Engine BlockchainNodes. Registered at `@swamp/gcp/blockchainnodeengine/blockchainnodes`. */
 export const model = {
   type: "@swamp/gcp/blockchainnodeengine/blockchainnodes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -532,6 +494,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: connectionInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { connectionInfo: _connectionInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -563,9 +533,6 @@ export const model = {
         if (g["blockchainType"] !== undefined) {
           body["blockchainType"] = g["blockchainType"];
         }
-        if (g["connectionInfo"] !== undefined) {
-          body["connectionInfo"] = g["connectionInfo"];
-        }
         if (g["ethereumDetails"] !== undefined) {
           body["ethereumDetails"] = g["ethereumDetails"];
         }
@@ -595,16 +562,7 @@ export const model = {
               "failedValues": ["ERROR"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -695,9 +653,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["connectionInfo"] !== undefined) {
-          body["connectionInfo"] = g["connectionInfo"];
-        }
         if (g["ethereumDetails"] !== undefined) {
           body["ethereumDetails"] = g["ethereumDetails"];
         }

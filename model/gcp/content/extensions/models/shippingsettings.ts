@@ -169,12 +169,16 @@ const GlobalArgsSchema = z.object({
         timezone: z.string().describe(
           'Timezone identifier for the cutoff time (for example, "Europe/Zurich"). List of identifiers. Required.',
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Business days cutoff time definition. If not configured, the cutoff time will be defaulted to 8AM PST. If local delivery, use Service.StoreConfig.CutoffConfig.",
+      ).optional(),
       handlingBusinessDayConfig: z.object({
         businessDays: z.array(z.unknown()).describe(
           "Regular business days, such as '\"monday\"'. May not be empty.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The business days during which orders can be handled. If not provided, Monday to Friday business days will be assumed.",
+      ).optional(),
       holidayCutoffs: z.array(z.object({
         deadlineDate: z.unknown().describe(
           'Date of the order deadline, in ISO 8601 format. For example, "2016-11-29" for 29th November 2016. Required.',
@@ -210,7 +214,9 @@ const GlobalArgsSchema = z.object({
         businessDays: z.array(z.unknown()).describe(
           "Regular business days, such as '\"monday\"'. May not be empty.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The business days during which orders can be in-transit. If not provided, Monday to Friday business days will be assumed.",
+      ).optional(),
       transitTimeTable: z.object({
         postalCodeGroupNames: z.array(z.unknown()).describe(
           'A list of postal group names. The last value can be `"all other locations"`. Example: `["zone 1", "zone 2", "all other locations"]`. The referred postal code groups must match the delivery country of the service.',
@@ -219,7 +225,9 @@ const GlobalArgsSchema = z.object({
         transitTimeLabels: z.array(z.unknown()).describe(
           'A list of transit time labels. The last value can be `"all other labels"`. Example: `["food", "electronics", "all other labels"]`.',
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Transit time table, number of business days spent in transit based on row and column dimensions. Either `{min,max}TransitTimeInDays` or `transitTimeTable` can be set, but not both.",
+      ).optional(),
       warehouseBasedDeliveryTimes: z.array(z.object({
         carrier: z.unknown().describe(
           'Required. Carrier, such as `"UPS"` or `"Fedex"`. The list of supported carriers can be retrieved through the `listSupportedCarriers` method.',
@@ -244,7 +252,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Indicates that the delivery time should be calculated per warehouse (shipping origin location) based on the settings of the selected carrier. When set, no other transit time related field in DeliveryTime should be set.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Time spent in various aspects from order to the delivery of the product. Required.",
+    ).optional(),
     eligibility: z.string().describe(
       'Eligibility for this service. Acceptable values are: - "`All scenarios`" - "`All scenarios except Shopping Actions`" - "`Shopping Actions`"',
     ).optional(),
@@ -252,15 +262,21 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Minimum order value for this service. If set, indicates that customers will have to spend at least this amount. All prices within a service must have the same currency. Cannot be set together with minimum_order_value_table.",
+    ).optional(),
     minimumOrderValueTable: z.object({
       storeCodeSetWithMovs: z.array(z.object({
         storeCodes: z.unknown().describe(
           "A list of unique store codes or empty for the catch all.",
         ).optional(),
-        value: z.unknown().optional(),
+        value: z.unknown().describe(
+          "The minimum order value for the given stores.",
+        ).optional(),
       })).optional(),
-    }).optional(),
+    }).describe(
+      "Table of per store minimum order values for the pickup fulfillment type. Cannot be set together with minimum_order_value.",
+    ).optional(),
     name: z.string().describe(
       "Free-form name of the service. Must be unique within target account. Required.",
     ).optional(),
@@ -271,7 +287,9 @@ const GlobalArgsSchema = z.object({
       serviceName: z.string().describe(
         'The name of the pickup service (for example, `"Access point"`). Required.',
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The carrier-service pair delivering items to collection points. The list of supported pickup services can be retrieved through the `getSupportedPickupServices` method. Required if and only if the service delivery type is `pickup`.",
+    ).optional(),
     rateGroups: z.array(z.object({
       applicableShippingLabels: z.array(z.unknown()).describe(
         "A list of shipping labels defining the products to which this rate group applies to. This is a disjunction: only one of the labels has to match for the rate group to apply. May only be empty for the last rate group of a service. Required.",
@@ -281,18 +299,20 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       mainTable: z.object({
         columnHeaders: z.unknown().describe(
-          "A non-empty list of row or column headers for a table. Exactly one of `prices`, `weights`, `numItems`, `postalCodeGroupNames`, or `location` must be set.",
+          "Headers of the table's columns. Optional: if not set then the table has only one dimension.",
         ).optional(),
         name: z.unknown().describe(
           "Name of the table. Required for subtables, ignored for the main table.",
         ).optional(),
         rowHeaders: z.unknown().describe(
-          "A non-empty list of row or column headers for a table. Exactly one of `prices`, `weights`, `numItems`, `postalCodeGroupNames`, or `location` must be set.",
+          "Headers of the table's rows. Required.",
         ).optional(),
         rows: z.unknown().describe(
           "The list of rows that constitute the table. Must have the same length as `rowHeaders`. Required.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "A table defining the rate group, when `singleValue` is not expressive enough. Can only be set if `singleValue` is not set.",
+      ).optional(),
       name: z.string().describe(
         "Name of the rate group. Optional. If set has to be unique within shipping service.",
       ).optional(),
@@ -300,7 +320,9 @@ const GlobalArgsSchema = z.object({
         carrierRateName: z.unknown().describe(
           "The name of a carrier rate referring to a carrier rate defined in the same rate group. Can only be set if all other fields are not set.",
         ).optional(),
-        flatRate: z.unknown().optional(),
+        flatRate: z.unknown().describe(
+          "A flat rate. Can only be set if all other fields are not set.",
+        ).optional(),
         noShipping: z.unknown().describe(
           "If true, then the product can't ship. Must be true when set, can only be set if all other fields are not set.",
         ).optional(),
@@ -311,7 +333,7 @@ const GlobalArgsSchema = z.object({
           "The name of a subtable. Can only be set in table cells (not for single values), and only if all other fields are not set.",
         ).optional(),
       }).describe(
-        "The single value of a rate group or the value of a rate group table's cell. Exactly one of `noShipping`, `flatRate`, `pricePercentage`, `carrierRateName`, `subtableName` must be set.",
+        "The value of the rate group (for example, flat rate $10). Can only be set if `mainTable` and `subtables` are not set.",
       ).optional(),
       subtables: z.array(z.unknown()).describe(
         "A list of subtables referred to by `mainTable`. Can only be set if `mainTable` is set.",
@@ -341,7 +363,7 @@ const GlobalArgsSchema = z.object({
           "Represents cutoff time as the number of hours before store closing. Mutually exclusive with other fields (hour and minute).",
         ).optional(),
       }).describe(
-        "Time local delivery ends for the day based on the local timezone of the store. `local_cutoff_time` and `store_close_offset_hours` are mutually exclusive.",
+        "Time local delivery ends for the day. This can be either `local_cutoff_time` or `store_close_offset_hours`, if both are provided an error is thrown.",
       ).optional(),
       serviceRadius: z.object({
         unit: z.string().describe(
@@ -349,7 +371,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The distance represented as a number.")
           .optional(),
-      }).describe("Distance represented by an integer and unit.").optional(),
+      }).describe(
+        "Maximum delivery radius. Only needed for local delivery fulfillment type.",
+      ).optional(),
       storeCodes: z.array(z.string()).describe(
         "A list of store codes that provide local delivery. If empty, then `store_service_type` must be `all_stores`, or an error is thrown. If not empty, then `store_service_type` must be `selected_stores`, or an error is thrown.",
       ).optional(),
@@ -357,7 +381,7 @@ const GlobalArgsSchema = z.object({
         "Indicates whether all stores listed by this merchant provide local delivery or not. Acceptable values are `all stores` and `selected stores`",
       ).optional(),
     }).describe(
-      "Stores that provide local delivery. Only valid with local delivery fulfillment.",
+      "A list of stores your products are delivered from. This is only available for the local delivery shipment type.",
     ).optional(),
   })).describe("The target account's list of services. Optional.").optional(),
   warehouses: z.array(z.object({
@@ -365,7 +389,9 @@ const GlobalArgsSchema = z.object({
       businessDays: z.array(z.string()).describe(
         "Regular business days, such as '\"monday\"'. May not be empty.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Business days of the warehouse. If not set, will be Monday to Friday by default.",
+    ).optional(),
     cutoffTime: z.object({
       hour: z.number().int().describe(
         "Required. Hour (24-hour clock) of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Hour is based on the timezone of warehouse.",
@@ -373,7 +399,9 @@ const GlobalArgsSchema = z.object({
       minute: z.number().int().describe(
         "Required. Minute of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Minute is based on the timezone of warehouse.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Required. The latest time of day that an order can be accepted and begin processing. Later orders will be processed in the next day. The time is based on the warehouse postal code.",
+    ).optional(),
     handlingDays: z.string().describe(
       "Required. The number of days it takes for this warehouse to pack up and ship an item. This is on the warehouse level, but can be overridden on the offer level based on the attributes of an item.",
     ).optional(),
@@ -396,7 +424,7 @@ const GlobalArgsSchema = z.object({
       streetAddress: z.string().describe(
         "Street-level part of the address. Use `\\n` to add a second line.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. Shipping address of the warehouse.").optional(),
   })).describe(
     "Optional. A list of warehouses which can be referred to in `services`.",
   ).optional(),
@@ -581,12 +609,16 @@ const InputsSchema = z.object({
         timezone: z.string().describe(
           'Timezone identifier for the cutoff time (for example, "Europe/Zurich"). List of identifiers. Required.',
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Business days cutoff time definition. If not configured, the cutoff time will be defaulted to 8AM PST. If local delivery, use Service.StoreConfig.CutoffConfig.",
+      ).optional(),
       handlingBusinessDayConfig: z.object({
         businessDays: z.array(z.unknown()).describe(
           "Regular business days, such as '\"monday\"'. May not be empty.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The business days during which orders can be handled. If not provided, Monday to Friday business days will be assumed.",
+      ).optional(),
       holidayCutoffs: z.array(z.object({
         deadlineDate: z.unknown().describe(
           'Date of the order deadline, in ISO 8601 format. For example, "2016-11-29" for 29th November 2016. Required.',
@@ -622,7 +654,9 @@ const InputsSchema = z.object({
         businessDays: z.array(z.unknown()).describe(
           "Regular business days, such as '\"monday\"'. May not be empty.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The business days during which orders can be in-transit. If not provided, Monday to Friday business days will be assumed.",
+      ).optional(),
       transitTimeTable: z.object({
         postalCodeGroupNames: z.array(z.unknown()).describe(
           'A list of postal group names. The last value can be `"all other locations"`. Example: `["zone 1", "zone 2", "all other locations"]`. The referred postal code groups must match the delivery country of the service.',
@@ -631,7 +665,9 @@ const InputsSchema = z.object({
         transitTimeLabels: z.array(z.unknown()).describe(
           'A list of transit time labels. The last value can be `"all other labels"`. Example: `["food", "electronics", "all other labels"]`.',
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Transit time table, number of business days spent in transit based on row and column dimensions. Either `{min,max}TransitTimeInDays` or `transitTimeTable` can be set, but not both.",
+      ).optional(),
       warehouseBasedDeliveryTimes: z.array(z.object({
         carrier: z.unknown().describe(
           'Required. Carrier, such as `"UPS"` or `"Fedex"`. The list of supported carriers can be retrieved through the `listSupportedCarriers` method.',
@@ -656,7 +692,9 @@ const InputsSchema = z.object({
       })).describe(
         "Indicates that the delivery time should be calculated per warehouse (shipping origin location) based on the settings of the selected carrier. When set, no other transit time related field in DeliveryTime should be set.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Time spent in various aspects from order to the delivery of the product. Required.",
+    ).optional(),
     eligibility: z.string().describe(
       'Eligibility for this service. Acceptable values are: - "`All scenarios`" - "`All scenarios except Shopping Actions`" - "`Shopping Actions`"',
     ).optional(),
@@ -664,15 +702,21 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Minimum order value for this service. If set, indicates that customers will have to spend at least this amount. All prices within a service must have the same currency. Cannot be set together with minimum_order_value_table.",
+    ).optional(),
     minimumOrderValueTable: z.object({
       storeCodeSetWithMovs: z.array(z.object({
         storeCodes: z.unknown().describe(
           "A list of unique store codes or empty for the catch all.",
         ).optional(),
-        value: z.unknown().optional(),
+        value: z.unknown().describe(
+          "The minimum order value for the given stores.",
+        ).optional(),
       })).optional(),
-    }).optional(),
+    }).describe(
+      "Table of per store minimum order values for the pickup fulfillment type. Cannot be set together with minimum_order_value.",
+    ).optional(),
     name: z.string().describe(
       "Free-form name of the service. Must be unique within target account. Required.",
     ).optional(),
@@ -683,7 +727,9 @@ const InputsSchema = z.object({
       serviceName: z.string().describe(
         'The name of the pickup service (for example, `"Access point"`). Required.',
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The carrier-service pair delivering items to collection points. The list of supported pickup services can be retrieved through the `getSupportedPickupServices` method. Required if and only if the service delivery type is `pickup`.",
+    ).optional(),
     rateGroups: z.array(z.object({
       applicableShippingLabels: z.array(z.unknown()).describe(
         "A list of shipping labels defining the products to which this rate group applies to. This is a disjunction: only one of the labels has to match for the rate group to apply. May only be empty for the last rate group of a service. Required.",
@@ -693,18 +739,20 @@ const InputsSchema = z.object({
       ).optional(),
       mainTable: z.object({
         columnHeaders: z.unknown().describe(
-          "A non-empty list of row or column headers for a table. Exactly one of `prices`, `weights`, `numItems`, `postalCodeGroupNames`, or `location` must be set.",
+          "Headers of the table's columns. Optional: if not set then the table has only one dimension.",
         ).optional(),
         name: z.unknown().describe(
           "Name of the table. Required for subtables, ignored for the main table.",
         ).optional(),
         rowHeaders: z.unknown().describe(
-          "A non-empty list of row or column headers for a table. Exactly one of `prices`, `weights`, `numItems`, `postalCodeGroupNames`, or `location` must be set.",
+          "Headers of the table's rows. Required.",
         ).optional(),
         rows: z.unknown().describe(
           "The list of rows that constitute the table. Must have the same length as `rowHeaders`. Required.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "A table defining the rate group, when `singleValue` is not expressive enough. Can only be set if `singleValue` is not set.",
+      ).optional(),
       name: z.string().describe(
         "Name of the rate group. Optional. If set has to be unique within shipping service.",
       ).optional(),
@@ -712,7 +760,9 @@ const InputsSchema = z.object({
         carrierRateName: z.unknown().describe(
           "The name of a carrier rate referring to a carrier rate defined in the same rate group. Can only be set if all other fields are not set.",
         ).optional(),
-        flatRate: z.unknown().optional(),
+        flatRate: z.unknown().describe(
+          "A flat rate. Can only be set if all other fields are not set.",
+        ).optional(),
         noShipping: z.unknown().describe(
           "If true, then the product can't ship. Must be true when set, can only be set if all other fields are not set.",
         ).optional(),
@@ -723,7 +773,7 @@ const InputsSchema = z.object({
           "The name of a subtable. Can only be set in table cells (not for single values), and only if all other fields are not set.",
         ).optional(),
       }).describe(
-        "The single value of a rate group or the value of a rate group table's cell. Exactly one of `noShipping`, `flatRate`, `pricePercentage`, `carrierRateName`, `subtableName` must be set.",
+        "The value of the rate group (for example, flat rate $10). Can only be set if `mainTable` and `subtables` are not set.",
       ).optional(),
       subtables: z.array(z.unknown()).describe(
         "A list of subtables referred to by `mainTable`. Can only be set if `mainTable` is set.",
@@ -753,7 +803,7 @@ const InputsSchema = z.object({
           "Represents cutoff time as the number of hours before store closing. Mutually exclusive with other fields (hour and minute).",
         ).optional(),
       }).describe(
-        "Time local delivery ends for the day based on the local timezone of the store. `local_cutoff_time` and `store_close_offset_hours` are mutually exclusive.",
+        "Time local delivery ends for the day. This can be either `local_cutoff_time` or `store_close_offset_hours`, if both are provided an error is thrown.",
       ).optional(),
       serviceRadius: z.object({
         unit: z.string().describe(
@@ -761,7 +811,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The distance represented as a number.")
           .optional(),
-      }).describe("Distance represented by an integer and unit.").optional(),
+      }).describe(
+        "Maximum delivery radius. Only needed for local delivery fulfillment type.",
+      ).optional(),
       storeCodes: z.array(z.string()).describe(
         "A list of store codes that provide local delivery. If empty, then `store_service_type` must be `all_stores`, or an error is thrown. If not empty, then `store_service_type` must be `selected_stores`, or an error is thrown.",
       ).optional(),
@@ -769,7 +821,7 @@ const InputsSchema = z.object({
         "Indicates whether all stores listed by this merchant provide local delivery or not. Acceptable values are `all stores` and `selected stores`",
       ).optional(),
     }).describe(
-      "Stores that provide local delivery. Only valid with local delivery fulfillment.",
+      "A list of stores your products are delivered from. This is only available for the local delivery shipment type.",
     ).optional(),
   })).describe("The target account's list of services. Optional.").optional(),
   warehouses: z.array(z.object({
@@ -777,7 +829,9 @@ const InputsSchema = z.object({
       businessDays: z.array(z.string()).describe(
         "Regular business days, such as '\"monday\"'. May not be empty.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Business days of the warehouse. If not set, will be Monday to Friday by default.",
+    ).optional(),
     cutoffTime: z.object({
       hour: z.number().int().describe(
         "Required. Hour (24-hour clock) of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Hour is based on the timezone of warehouse.",
@@ -785,7 +839,9 @@ const InputsSchema = z.object({
       minute: z.number().int().describe(
         "Required. Minute of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Minute is based on the timezone of warehouse.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Required. The latest time of day that an order can be accepted and begin processing. Later orders will be processed in the next day. The time is based on the warehouse postal code.",
+    ).optional(),
     handlingDays: z.string().describe(
       "Required. The number of days it takes for this warehouse to pack up and ship an item. This is on the warehouse level, but can be overridden on the offer level based on the attributes of an item.",
     ).optional(),
@@ -808,7 +864,7 @@ const InputsSchema = z.object({
       streetAddress: z.string().describe(
         "Street-level part of the address. Use `\\n` to add a second line.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. Shipping address of the warehouse.").optional(),
   })).describe(
     "Optional. A list of warehouses which can be referred to in `services`.",
   ).optional(),
@@ -840,7 +896,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Shippingsettings. Registered at `@swamp/gcp/content/shippingsettings`. */
 export const model = {
   type: "@swamp/gcp/content/shippingsettings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -934,6 +990,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

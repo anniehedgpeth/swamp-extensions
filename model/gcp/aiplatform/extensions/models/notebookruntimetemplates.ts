@@ -168,8 +168,9 @@ const GlobalArgsSchema = z.object({
     diskType: z.string().describe(
       'Type of the disk (default is "pd-standard"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) "pd-standard" (Persistent Disk Hard Disk Drive) "pd-balanced" (Balanced Persistent Disk) "pd-extreme" (Extreme Persistent Disk) "hyperdisk-balanced" (Hyperdisk Balanced) "hyperdisk-extreme" (Hyperdisk Extreme) "hyperdisk-balanced-high-availability" (Hyperdisk Balanced High Availability) "hyperdisk-ml" (Hyperdisk ML) "hyperdisk-throughput" (Hyperdisk Throughput)',
     ).optional(),
-  }).describe("Represents the spec of persistent disk and hyperdisk options.")
-    .optional(),
+  }).describe(
+    "Optional. The specification of persistent disk attached to the runtime as data disk storage.",
+  ).optional(),
   description: z.string().describe(
     "The description of the NotebookRuntimeTemplate.",
   ).optional(),
@@ -180,9 +181,8 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
-  }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
+  }).describe("Customer-managed encryption key spec for the notebook runtime.")
+    .optional(),
   eucConfig: z.object({
     bypassActasCheck: z.boolean().describe(
       "Output only. Whether ActAs check is bypassed for service account attached to the VM. If false, we need ActAs check for the default Compute Engine Service account. When a Runtime is created, a VM is allocated using Default Compute Engine Service Account. Any user requesting to use this Runtime requires Service Account User (ActAs) permission over this SA. If true, Runtime owner is using EUC and does not require the above permission as VM no longer use default Compute Engine SA, but a P4SA.",
@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
     eucDisabled: z.boolean().describe(
       "Input only. Whether EUC is disabled in this NotebookRuntimeTemplate. In proto3, the default value of a boolean is false. In this way, by default EUC will be enabled for NotebookRuntimeTemplate.",
     ).optional(),
-  }).describe("The euc configuration of NotebookRuntimeTemplate.").optional(),
+  }).describe("EUC configuration of the NotebookRuntimeTemplate.").optional(),
   idleShutdownConfig: z.object({
     idleShutdownDisabled: z.boolean().describe(
       "Whether Idle Shutdown is disabled in this NotebookRuntimeTemplate.",
@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
       "Required. Duration is accurate to the second. In Notebook, Idle Timeout is accurate to minute so the range of idle_timeout (second) is: 10 * 60 ~ 1440 * 60.",
     ).optional(),
   }).describe(
-    "The idle shutdown configuration of NotebookRuntimeTemplate, which contains the idle_timeout as required field.",
+    "The idle shutdown configuration of NotebookRuntimeTemplate. This config will only be set when idle shutdown is enabled.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize the NotebookRuntimeTemplates. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -252,12 +252,14 @@ const GlobalArgsSchema = z.object({
         "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
       ).optional(),
     }).describe(
-      "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+      "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
     ).optional(),
     tpuTopology: z.string().describe(
       'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
     ).optional(),
-  }).describe("Specification of a single machine.").optional(),
+  }).describe(
+    "Optional. Immutable. The specification of a single machine for the template.",
+  ).optional(),
   name: z.string().describe("The resource name of the NotebookRuntimeTemplate.")
     .optional(),
   networkSpec: z.object({
@@ -270,7 +272,7 @@ const GlobalArgsSchema = z.object({
     subnetwork: z.string().describe(
       "The name of the subnet that this instance is in. Format: `projects/{project_id_or_number}/regions/{region}/subnetworks/{subnetwork_id}`",
     ).optional(),
-  }).describe("Network spec.").optional(),
+  }).describe("Optional. Network spec.").optional(),
   networkTags: z.array(z.string()).describe(
     "Optional. The Compute Engine tags to add to runtime (see [Tagging instances](https://cloud.google.com/vpc/docs/add-remove-network-tags)).",
   ).optional(),
@@ -295,15 +297,14 @@ const GlobalArgsSchema = z.object({
     values: z.array(z.string()).describe(
       "Optional. Corresponds to the label values of a reservation resource. This must be the full path name of Reservation.",
     ).optional(),
-  }).describe("Notebook Reservation Affinity for consuming Zonal reservation.")
-    .optional(),
+  }).describe(
+    "Optional. Reservation Affinity of the notebook runtime template.",
+  ).optional(),
   shieldedVmConfig: z.object({
     enableSecureBoot: z.boolean().describe(
       "Defines whether the instance has [Secure Boot](https://cloud.google.com/compute/shielded-vm/docs/shielded-vm#secure-boot) enabled. Secure Boot helps ensure that the system only runs authentic software by verifying the digital signature of all boot components, and halting the boot process if signature verification fails.",
     ).optional(),
-  }).describe(
-    "A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm).",
-  ).optional(),
+  }).describe("Optional. Immutable. Runtime Shielded VM spec.").optional(),
   softwareConfig: z.object({
     colabImage: z.object({
       description: z.string().describe(
@@ -312,7 +313,8 @@ const GlobalArgsSchema = z.object({
       releaseName: z.string().describe(
         'Optional. The release name of the NotebookRuntime Colab image, e.g. "py310". If not specified, detault to the latest release.',
       ).optional(),
-    }).describe("Colab image of the runtime.").optional(),
+    }).describe("Optional. Google-managed NotebookRuntime colab image.")
+      .optional(),
     env: z.array(z.object({
       name: z.string().describe(
         "Required. Name of the environment variable. Must be a valid C identifier.",
@@ -338,9 +340,9 @@ const GlobalArgsSchema = z.object({
       postStartupScriptUrl: z.string().describe(
         "Optional. Post startup script url to download. Example: `gs://bucket/script.sh`",
       ).optional(),
-    }).describe("Post startup script config.").optional(),
+    }).describe("Optional. Post startup script config.").optional(),
   }).describe(
-    "Notebook Software Config. This is passed to the backend when user makes software configurations in UI.",
+    "Optional. The notebook software configuration of the notebook runtime.",
   ).optional(),
   notebookRuntimeTemplateId: z.string().describe(
     "Optional. User specified ID for the notebook runtime template.",
@@ -433,8 +435,9 @@ const InputsSchema = z.object({
     diskType: z.string().describe(
       'Type of the disk (default is "pd-standard"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) "pd-standard" (Persistent Disk Hard Disk Drive) "pd-balanced" (Balanced Persistent Disk) "pd-extreme" (Extreme Persistent Disk) "hyperdisk-balanced" (Hyperdisk Balanced) "hyperdisk-extreme" (Hyperdisk Extreme) "hyperdisk-balanced-high-availability" (Hyperdisk Balanced High Availability) "hyperdisk-ml" (Hyperdisk ML) "hyperdisk-throughput" (Hyperdisk Throughput)',
     ).optional(),
-  }).describe("Represents the spec of persistent disk and hyperdisk options.")
-    .optional(),
+  }).describe(
+    "Optional. The specification of persistent disk attached to the runtime as data disk storage.",
+  ).optional(),
   description: z.string().describe(
     "The description of the NotebookRuntimeTemplate.",
   ).optional(),
@@ -445,9 +448,8 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
-  }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
+  }).describe("Customer-managed encryption key spec for the notebook runtime.")
+    .optional(),
   eucConfig: z.object({
     bypassActasCheck: z.boolean().describe(
       "Output only. Whether ActAs check is bypassed for service account attached to the VM. If false, we need ActAs check for the default Compute Engine Service account. When a Runtime is created, a VM is allocated using Default Compute Engine Service Account. Any user requesting to use this Runtime requires Service Account User (ActAs) permission over this SA. If true, Runtime owner is using EUC and does not require the above permission as VM no longer use default Compute Engine SA, but a P4SA.",
@@ -455,7 +457,7 @@ const InputsSchema = z.object({
     eucDisabled: z.boolean().describe(
       "Input only. Whether EUC is disabled in this NotebookRuntimeTemplate. In proto3, the default value of a boolean is false. In this way, by default EUC will be enabled for NotebookRuntimeTemplate.",
     ).optional(),
-  }).describe("The euc configuration of NotebookRuntimeTemplate.").optional(),
+  }).describe("EUC configuration of the NotebookRuntimeTemplate.").optional(),
   idleShutdownConfig: z.object({
     idleShutdownDisabled: z.boolean().describe(
       "Whether Idle Shutdown is disabled in this NotebookRuntimeTemplate.",
@@ -464,7 +466,7 @@ const InputsSchema = z.object({
       "Required. Duration is accurate to the second. In Notebook, Idle Timeout is accurate to minute so the range of idle_timeout (second) is: 10 * 60 ~ 1440 * 60.",
     ).optional(),
   }).describe(
-    "The idle shutdown configuration of NotebookRuntimeTemplate, which contains the idle_timeout as required field.",
+    "The idle shutdown configuration of NotebookRuntimeTemplate. This config will only be set when idle shutdown is enabled.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize the NotebookRuntimeTemplates. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -517,12 +519,14 @@ const InputsSchema = z.object({
         "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
       ).optional(),
     }).describe(
-      "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+      "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
     ).optional(),
     tpuTopology: z.string().describe(
       'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
     ).optional(),
-  }).describe("Specification of a single machine.").optional(),
+  }).describe(
+    "Optional. Immutable. The specification of a single machine for the template.",
+  ).optional(),
   name: z.string().describe("The resource name of the NotebookRuntimeTemplate.")
     .optional(),
   networkSpec: z.object({
@@ -535,7 +539,7 @@ const InputsSchema = z.object({
     subnetwork: z.string().describe(
       "The name of the subnet that this instance is in. Format: `projects/{project_id_or_number}/regions/{region}/subnetworks/{subnetwork_id}`",
     ).optional(),
-  }).describe("Network spec.").optional(),
+  }).describe("Optional. Network spec.").optional(),
   networkTags: z.array(z.string()).describe(
     "Optional. The Compute Engine tags to add to runtime (see [Tagging instances](https://cloud.google.com/vpc/docs/add-remove-network-tags)).",
   ).optional(),
@@ -560,15 +564,14 @@ const InputsSchema = z.object({
     values: z.array(z.string()).describe(
       "Optional. Corresponds to the label values of a reservation resource. This must be the full path name of Reservation.",
     ).optional(),
-  }).describe("Notebook Reservation Affinity for consuming Zonal reservation.")
-    .optional(),
+  }).describe(
+    "Optional. Reservation Affinity of the notebook runtime template.",
+  ).optional(),
   shieldedVmConfig: z.object({
     enableSecureBoot: z.boolean().describe(
       "Defines whether the instance has [Secure Boot](https://cloud.google.com/compute/shielded-vm/docs/shielded-vm#secure-boot) enabled. Secure Boot helps ensure that the system only runs authentic software by verifying the digital signature of all boot components, and halting the boot process if signature verification fails.",
     ).optional(),
-  }).describe(
-    "A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm).",
-  ).optional(),
+  }).describe("Optional. Immutable. Runtime Shielded VM spec.").optional(),
   softwareConfig: z.object({
     colabImage: z.object({
       description: z.string().describe(
@@ -577,7 +580,8 @@ const InputsSchema = z.object({
       releaseName: z.string().describe(
         'Optional. The release name of the NotebookRuntime Colab image, e.g. "py310". If not specified, detault to the latest release.',
       ).optional(),
-    }).describe("Colab image of the runtime.").optional(),
+    }).describe("Optional. Google-managed NotebookRuntime colab image.")
+      .optional(),
     env: z.array(z.object({
       name: z.string().describe(
         "Required. Name of the environment variable. Must be a valid C identifier.",
@@ -603,9 +607,9 @@ const InputsSchema = z.object({
       postStartupScriptUrl: z.string().describe(
         "Optional. Post startup script url to download. Example: `gs://bucket/script.sh`",
       ).optional(),
-    }).describe("Post startup script config.").optional(),
+    }).describe("Optional. Post startup script config.").optional(),
   }).describe(
-    "Notebook Software Config. This is passed to the backend when user makes software configurations in UI.",
+    "Optional. The notebook software configuration of the notebook runtime.",
   ).optional(),
   notebookRuntimeTemplateId: z.string().describe(
     "Optional. User specified ID for the notebook runtime template.",
@@ -638,7 +642,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform NotebookRuntimeTemplates. Registered at `@swamp/gcp/aiplatform/notebookruntimetemplates`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/notebookruntimetemplates",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -777,6 +781,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -974,9 +983,6 @@ export const model = {
           body["idleShutdownConfig"] = g["idleShutdownConfig"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["machineSpec"] !== undefined) {
-          body["machineSpec"] = g["machineSpec"];
-        }
         if (g["networkSpec"] !== undefined) {
           body["networkSpec"] = g["networkSpec"];
         }
@@ -985,9 +991,6 @@ export const model = {
         }
         if (g["reservationAffinity"] !== undefined) {
           body["reservationAffinity"] = g["reservationAffinity"];
-        }
-        if (g["shieldedVmConfig"] !== undefined) {
-          body["shieldedVmConfig"] = g["shieldedVmConfig"];
         }
         if (g["softwareConfig"] !== undefined) {
           body["softwareConfig"] = g["softwareConfig"];

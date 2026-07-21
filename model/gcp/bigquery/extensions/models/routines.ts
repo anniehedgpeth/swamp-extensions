@@ -211,7 +211,9 @@ const GlobalArgsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -234,9 +236,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
-    }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
-    ).optional(),
+    }).describe("Set if argument_kind == FIXED_TYPE.").optional(),
     isAggregate: z.boolean().describe(
       'Optional. Whether the argument is an aggregate function parameter. Must be Unset for routine types other than AGGREGATE_FUNCTION. For AGGREGATE_FUNCTION, if set to false, it is equivalent to adding "NOT AGGREGATE" clause in DDL; Otherwise, it is equivalent to omitting "NOT AGGREGATE" clause in DDL.',
     ).optional(),
@@ -252,42 +252,11 @@ const GlobalArgsSchema = z.object({
           "Optional. The name of this field. Can be absent for struct fields.",
         ).optional(),
         type: z.unknown().describe(
-          'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+          'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
         ).optional(),
       })).describe("The columns in this table type").optional(),
-    }).describe("A table type").optional(),
+    }).describe("Optional. Set if argument_kind == FIXED_TABLE.").optional(),
   })).describe("Optional.").optional(),
-  buildStatus: z.object({
-    buildDuration: z.string().describe(
-      "Output only. The time taken for the image build. Populated only after the build succeeds or fails.",
-    ).optional(),
-    buildState: z.enum([
-      "BUILD_STATE_UNSPECIFIED",
-      "IN_PROGRESS",
-      "SUCCEEDED",
-      "FAILED",
-    ]).describe("Output only. The current build state of the routine.")
-      .optional(),
-    buildStateUpdateTime: z.string().describe(
-      "Output only. The time when the build state was updated last.",
-    ).optional(),
-    errorResult: z.object({
-      debugInfo: z.string().describe(
-        "Debugging information. This property is internal to Google and should not be used.",
-      ).optional(),
-      location: z.string().describe(
-        "Specifies where the error occurred, if present.",
-      ).optional(),
-      message: z.string().describe("A human-readable description of the error.")
-        .optional(),
-      reason: z.string().describe(
-        "A short error code that summarizes the error.",
-      ).optional(),
-    }).describe("Error details.").optional(),
-    imageSizeBytes: z.string().describe(
-      "Output only. The size of the image in bytes. Populated only after the build succeeds.",
-    ).optional(),
-  }).describe("The status of a routine build.").optional(),
   dataGovernanceType: z.enum([
     "DATA_GOVERNANCE_TYPE_UNSPECIFIED",
     "DATA_MASKING",
@@ -326,7 +295,9 @@ const GlobalArgsSchema = z.object({
     runtimeVersion: z.string().describe(
       "Optional. Language runtime version. Example: `python-3.11`.",
     ).optional(),
-  }).describe("Options for the runtime of the external system.").optional(),
+  }).describe(
+    "Optional. Options for the runtime of the external system executing the routine. This field is only applicable for Python UDFs. [Preview](https://cloud.google.com/products/#product-launch-stages)",
+  ).optional(),
   importedLibraries: z.array(z.string()).describe(
     'Optional. If language = "JAVASCRIPT", this field stores the path of the imported JAVASCRIPT libraries.',
   ).optional(),
@@ -347,7 +318,9 @@ const GlobalArgsSchema = z.object({
     packages: z.array(z.string()).describe(
       'Optional. A list of Python package names along with versions to be installed. Example: ["pandas>=2.1", "google-cloud-translate==3.11"]. For more information, see [Use third-party packages](https://cloud.google.com/bigquery/docs/user-defined-functions-python#third-party-packages).',
     ).optional(),
-  }).describe("Options for a user-defined Python function.").optional(),
+  }).describe(
+    "Optional. Options for the Python UDF. [Preview](https://cloud.google.com/products/#product-launch-stages)",
+  ).optional(),
   remoteFunctionOptions: z.object({
     connection: z.string().describe(
       'Fully qualified name of the user-provided connection object which holds the authentication information to send requests to the remote service. Format: ` "projects/{projectId}/locations/{locationId}/connections/{connectionId}" `',
@@ -361,7 +334,7 @@ const GlobalArgsSchema = z.object({
     userDefinedContext: z.record(z.string(), z.string()).describe(
       "User-defined context as a set of key/value pairs, which will be sent as function invocation context together with batched arguments in the requests to the remote service. The total number of bytes of keys and values must be less than 8KB.",
     ).optional(),
-  }).describe("Options for a remote user-defined function.").optional(),
+  }).describe("Optional. Remote function specific options.").optional(),
   returnTableType: z.object({
     columns: z.array(z.object({
       name: z.string().describe(
@@ -376,7 +349,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         structType: z.object({
           fields: z.unknown().describe("Fields within the struct.").optional(),
-        }).describe("The representation of a SQL STRUCT type.").optional(),
+        }).describe(
+          'The fields of this struct, in order, if type_kind = "STRUCT".',
+        ).optional(),
         typeKind: z.enum([
           "TYPE_KIND_UNSPECIFIED",
           "INT64",
@@ -400,10 +375,12 @@ const GlobalArgsSchema = z.object({
           'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
         ).optional(),
       }).describe(
-        'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+        'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
       ).optional(),
     })).describe("The columns in this table type").optional(),
-  }).describe("A table type").optional(),
+  }).describe(
+    'Optional. Can be set only if routine_type = "TABLE_VALUED_FUNCTION". If absent, the return table type is inferred from definition_body at query time in each query that references this routine. If present, then the columns in the evaluated table result will be cast to match the column types specified in return table type, at query time.',
+  ).optional(),
   returnType: z.object({
     arrayElementType: z.record(z.string(), z.unknown()).describe(
       "Circular reference to StandardSqlDataType",
@@ -420,7 +397,8 @@ const GlobalArgsSchema = z.object({
           "Circular reference to StandardSqlDataType",
         ).optional(),
       })).describe("Fields within the struct.").optional(),
-    }).describe("The representation of a SQL STRUCT type.").optional(),
+    }).describe('The fields of this struct, in order, if type_kind = "STRUCT".')
+      .optional(),
     typeKind: z.enum([
       "TYPE_KIND_UNSPECIFIED",
       "INT64",
@@ -444,7 +422,7 @@ const GlobalArgsSchema = z.object({
       'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
     ).optional(),
   }).describe(
-    'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+    'Optional if language = "SQL"; required otherwise. Cannot be set if routine_type = "TABLE_VALUED_FUNCTION". If absent, the return type is inferred from definition_body at query time in each query that references this routine. If present, then the evaluated result will be cast to the specified returned type at query time. For example, for the functions created with the following statements: * `CREATE FUNCTION Add(x FLOAT64, y FLOAT64) RETURNS FLOAT64 AS (x + y);` * `CREATE FUNCTION Increment(x FLOAT64) AS (Add(x, 1));` * `CREATE FUNCTION Decrement(x FLOAT64) RETURNS FLOAT64 AS (Add(x, -1));` The return_type is `{type_kind: "FLOAT64"}` for `Add` and `Decrement`, and is absent for `Increment` (inferred as FLOAT64 at query time). Suppose the function `Add` is replaced by `CREATE OR REPLACE FUNCTION Add(x INT64, y INT64) AS (x + y);` Then the inferred return type of `Increment` is automatically changed to INT64 at query time, while the return type of `Decrement` remains FLOAT64.',
   ).optional(),
   routineReference: z.object({
     datasetId: z.string().describe(
@@ -456,7 +434,8 @@ const GlobalArgsSchema = z.object({
     routineId: z.string().describe(
       "Required. The ID of the routine. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
     ).optional(),
-  }).describe("Id path of a routine.").optional(),
+  }).describe("Required. Reference describing the ID of this routine.")
+    .optional(),
   routineType: z.enum([
     "ROUTINE_TYPE_UNSPECIFIED",
     "SCALAR_FUNCTION",
@@ -499,7 +478,7 @@ const GlobalArgsSchema = z.object({
     runtimeVersion: z.string().describe(
       "Runtime version. If not specified, the default runtime version is used.",
     ).optional(),
-  }).describe("Options for a user-defined Spark routine.").optional(),
+  }).describe("Optional. Spark specific options.").optional(),
   strictMode: z.boolean().describe(
     "Optional. Use this option to catch many common errors. Error checking is not exhaustive, and successfully creating a procedure doesn't guarantee that the procedure will successfully execute at runtime. If `strictMode` is set to `TRUE`, the procedure body is further checked for errors such as non-existent tables or columns. The `CREATE PROCEDURE` statement fails if the body fails any of these checks. If `strictMode` is set to `FALSE`, the procedure body is checked only for syntax. For procedures that invoke themselves recursively, specify `strictMode=FALSE` to avoid non-existent procedure errors during validation. Default value is `TRUE`.",
   ).optional(),
@@ -638,7 +617,9 @@ const InputsSchema = z.object({
       structType: z.object({
         fields: z.array(z.unknown()).describe("Fields within the struct.")
           .optional(),
-      }).describe("The representation of a SQL STRUCT type.").optional(),
+      }).describe(
+        'The fields of this struct, in order, if type_kind = "STRUCT".',
+      ).optional(),
       typeKind: z.enum([
         "TYPE_KIND_UNSPECIFIED",
         "INT64",
@@ -661,9 +642,7 @@ const InputsSchema = z.object({
       ]).describe(
         'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
       ).optional(),
-    }).describe(
-      'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
-    ).optional(),
+    }).describe("Set if argument_kind == FIXED_TYPE.").optional(),
     isAggregate: z.boolean().describe(
       'Optional. Whether the argument is an aggregate function parameter. Must be Unset for routine types other than AGGREGATE_FUNCTION. For AGGREGATE_FUNCTION, if set to false, it is equivalent to adding "NOT AGGREGATE" clause in DDL; Otherwise, it is equivalent to omitting "NOT AGGREGATE" clause in DDL.',
     ).optional(),
@@ -679,42 +658,11 @@ const InputsSchema = z.object({
           "Optional. The name of this field. Can be absent for struct fields.",
         ).optional(),
         type: z.unknown().describe(
-          'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+          'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
         ).optional(),
       })).describe("The columns in this table type").optional(),
-    }).describe("A table type").optional(),
+    }).describe("Optional. Set if argument_kind == FIXED_TABLE.").optional(),
   })).describe("Optional.").optional(),
-  buildStatus: z.object({
-    buildDuration: z.string().describe(
-      "Output only. The time taken for the image build. Populated only after the build succeeds or fails.",
-    ).optional(),
-    buildState: z.enum([
-      "BUILD_STATE_UNSPECIFIED",
-      "IN_PROGRESS",
-      "SUCCEEDED",
-      "FAILED",
-    ]).describe("Output only. The current build state of the routine.")
-      .optional(),
-    buildStateUpdateTime: z.string().describe(
-      "Output only. The time when the build state was updated last.",
-    ).optional(),
-    errorResult: z.object({
-      debugInfo: z.string().describe(
-        "Debugging information. This property is internal to Google and should not be used.",
-      ).optional(),
-      location: z.string().describe(
-        "Specifies where the error occurred, if present.",
-      ).optional(),
-      message: z.string().describe("A human-readable description of the error.")
-        .optional(),
-      reason: z.string().describe(
-        "A short error code that summarizes the error.",
-      ).optional(),
-    }).describe("Error details.").optional(),
-    imageSizeBytes: z.string().describe(
-      "Output only. The size of the image in bytes. Populated only after the build succeeds.",
-    ).optional(),
-  }).describe("The status of a routine build.").optional(),
   dataGovernanceType: z.enum([
     "DATA_GOVERNANCE_TYPE_UNSPECIFIED",
     "DATA_MASKING",
@@ -753,7 +701,9 @@ const InputsSchema = z.object({
     runtimeVersion: z.string().describe(
       "Optional. Language runtime version. Example: `python-3.11`.",
     ).optional(),
-  }).describe("Options for the runtime of the external system.").optional(),
+  }).describe(
+    "Optional. Options for the runtime of the external system executing the routine. This field is only applicable for Python UDFs. [Preview](https://cloud.google.com/products/#product-launch-stages)",
+  ).optional(),
   importedLibraries: z.array(z.string()).describe(
     'Optional. If language = "JAVASCRIPT", this field stores the path of the imported JAVASCRIPT libraries.',
   ).optional(),
@@ -774,7 +724,9 @@ const InputsSchema = z.object({
     packages: z.array(z.string()).describe(
       'Optional. A list of Python package names along with versions to be installed. Example: ["pandas>=2.1", "google-cloud-translate==3.11"]. For more information, see [Use third-party packages](https://cloud.google.com/bigquery/docs/user-defined-functions-python#third-party-packages).',
     ).optional(),
-  }).describe("Options for a user-defined Python function.").optional(),
+  }).describe(
+    "Optional. Options for the Python UDF. [Preview](https://cloud.google.com/products/#product-launch-stages)",
+  ).optional(),
   remoteFunctionOptions: z.object({
     connection: z.string().describe(
       'Fully qualified name of the user-provided connection object which holds the authentication information to send requests to the remote service. Format: ` "projects/{projectId}/locations/{locationId}/connections/{connectionId}" `',
@@ -788,7 +740,7 @@ const InputsSchema = z.object({
     userDefinedContext: z.record(z.string(), z.string()).describe(
       "User-defined context as a set of key/value pairs, which will be sent as function invocation context together with batched arguments in the requests to the remote service. The total number of bytes of keys and values must be less than 8KB.",
     ).optional(),
-  }).describe("Options for a remote user-defined function.").optional(),
+  }).describe("Optional. Remote function specific options.").optional(),
   returnTableType: z.object({
     columns: z.array(z.object({
       name: z.string().describe(
@@ -803,7 +755,9 @@ const InputsSchema = z.object({
         ).optional(),
         structType: z.object({
           fields: z.unknown().describe("Fields within the struct.").optional(),
-        }).describe("The representation of a SQL STRUCT type.").optional(),
+        }).describe(
+          'The fields of this struct, in order, if type_kind = "STRUCT".',
+        ).optional(),
         typeKind: z.enum([
           "TYPE_KIND_UNSPECIFIED",
           "INT64",
@@ -827,10 +781,12 @@ const InputsSchema = z.object({
           'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
         ).optional(),
       }).describe(
-        'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+        'Optional. The type of this parameter. Absent if not explicitly specified (e.g., CREATE FUNCTION statement can omit the return type; in this case the output parameter does not have this "type" field).',
       ).optional(),
     })).describe("The columns in this table type").optional(),
-  }).describe("A table type").optional(),
+  }).describe(
+    'Optional. Can be set only if routine_type = "TABLE_VALUED_FUNCTION". If absent, the return table type is inferred from definition_body at query time in each query that references this routine. If present, then the columns in the evaluated table result will be cast to match the column types specified in return table type, at query time.',
+  ).optional(),
   returnType: z.object({
     arrayElementType: z.record(z.string(), z.unknown()).describe(
       "Circular reference to StandardSqlDataType",
@@ -847,7 +803,8 @@ const InputsSchema = z.object({
           "Circular reference to StandardSqlDataType",
         ).optional(),
       })).describe("Fields within the struct.").optional(),
-    }).describe("The representation of a SQL STRUCT type.").optional(),
+    }).describe('The fields of this struct, in order, if type_kind = "STRUCT".')
+      .optional(),
     typeKind: z.enum([
       "TYPE_KIND_UNSPECIFIED",
       "INT64",
@@ -871,7 +828,7 @@ const InputsSchema = z.object({
       'Required. The top level type of this field. Can be any GoogleSQL data type (e.g., "INT64", "DATE", "ARRAY").',
     ).optional(),
   }).describe(
-    'The data type of a variable such as a function argument. Examples include: * INT64: `{"typeKind": "INT64"}` * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT>: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }',
+    'Optional if language = "SQL"; required otherwise. Cannot be set if routine_type = "TABLE_VALUED_FUNCTION". If absent, the return type is inferred from definition_body at query time in each query that references this routine. If present, then the evaluated result will be cast to the specified returned type at query time. For example, for the functions created with the following statements: * `CREATE FUNCTION Add(x FLOAT64, y FLOAT64) RETURNS FLOAT64 AS (x + y);` * `CREATE FUNCTION Increment(x FLOAT64) AS (Add(x, 1));` * `CREATE FUNCTION Decrement(x FLOAT64) RETURNS FLOAT64 AS (Add(x, -1));` The return_type is `{type_kind: "FLOAT64"}` for `Add` and `Decrement`, and is absent for `Increment` (inferred as FLOAT64 at query time). Suppose the function `Add` is replaced by `CREATE OR REPLACE FUNCTION Add(x INT64, y INT64) AS (x + y);` Then the inferred return type of `Increment` is automatically changed to INT64 at query time, while the return type of `Decrement` remains FLOAT64.',
   ).optional(),
   routineReference: z.object({
     datasetId: z.string().describe(
@@ -883,7 +840,8 @@ const InputsSchema = z.object({
     routineId: z.string().describe(
       "Required. The ID of the routine. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
     ).optional(),
-  }).describe("Id path of a routine.").optional(),
+  }).describe("Required. Reference describing the ID of this routine.")
+    .optional(),
   routineType: z.enum([
     "ROUTINE_TYPE_UNSPECIFIED",
     "SCALAR_FUNCTION",
@@ -926,7 +884,7 @@ const InputsSchema = z.object({
     runtimeVersion: z.string().describe(
       "Runtime version. If not specified, the default runtime version is used.",
     ).optional(),
-  }).describe("Options for a user-defined Spark routine.").optional(),
+  }).describe("Optional. Spark specific options.").optional(),
   strictMode: z.boolean().describe(
     "Optional. Use this option to catch many common errors. Error checking is not exhaustive, and successfully creating a procedure doesn't guarantee that the procedure will successfully execute at runtime. If `strictMode` is set to `TRUE`, the procedure body is further checked for errors such as non-existent tables or columns. The `CREATE PROCEDURE` statement fails if the body fails any of these checks. If `strictMode` is set to `FALSE`, the procedure body is checked only for syntax. For procedures that invoke themselves recursively, specify `strictMode=FALSE` to avoid non-existent procedure errors during validation. Default value is `TRUE`.",
   ).optional(),
@@ -957,7 +915,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Routines. Registered at `@swamp/gcp/bigquery/routines`. */
 export const model = {
   type: "@swamp/gcp/bigquery/routines",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1089,6 +1047,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: buildStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { buildStatus: _buildStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1114,9 +1080,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["arguments"] !== undefined) body["arguments"] = g["arguments"];
-        if (g["buildStatus"] !== undefined) {
-          body["buildStatus"] = g["buildStatus"];
-        }
         if (g["dataGovernanceType"] !== undefined) {
           body["dataGovernanceType"] = g["dataGovernanceType"];
         }
@@ -1167,15 +1130,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "datasetId": String(g["datasetId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1258,9 +1213,6 @@ export const model = {
         params["routineId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["arguments"] !== undefined) body["arguments"] = g["arguments"];
-        if (g["buildStatus"] !== undefined) {
-          body["buildStatus"] = g["buildStatus"];
-        }
         if (g["dataGovernanceType"] !== undefined) {
           body["dataGovernanceType"] = g["dataGovernanceType"];
         }

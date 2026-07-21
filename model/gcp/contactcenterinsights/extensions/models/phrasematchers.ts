@@ -164,12 +164,15 @@ const GlobalArgsSchema = z.object({
   phraseMatchRuleGroups: z.array(z.object({
     phraseMatchRules: z.array(z.object({
       config: z.object({
-        exactMatchConfig: z.unknown().describe("Exact match configuration.")
-          .optional(),
-        regexMatchConfig: z.unknown().describe("Regex match configuration.")
-          .optional(),
-      }).describe("Configuration information of a phrase match rule.")
-        .optional(),
+        exactMatchConfig: z.unknown().describe(
+          "The configuration for the exact match rule.",
+        ).optional(),
+        regexMatchConfig: z.unknown().describe(
+          "The configuration for the regex match rule.",
+        ).optional(),
+      }).describe(
+        "Provides additional information about the rule that specifies how to apply the rule.",
+      ).optional(),
       negated: z.boolean().describe(
         "Specifies whether the phrase must be missing from the transcript segment or present in the transcript segment.",
       ).optional(),
@@ -249,12 +252,15 @@ const InputsSchema = z.object({
   phraseMatchRuleGroups: z.array(z.object({
     phraseMatchRules: z.array(z.object({
       config: z.object({
-        exactMatchConfig: z.unknown().describe("Exact match configuration.")
-          .optional(),
-        regexMatchConfig: z.unknown().describe("Regex match configuration.")
-          .optional(),
-      }).describe("Configuration information of a phrase match rule.")
-        .optional(),
+        exactMatchConfig: z.unknown().describe(
+          "The configuration for the exact match rule.",
+        ).optional(),
+        regexMatchConfig: z.unknown().describe(
+          "The configuration for the regex match rule.",
+        ).optional(),
+      }).describe(
+        "Provides additional information about the rule that specifies how to apply the rule.",
+      ).optional(),
       negated: z.boolean().describe(
         "Specifies whether the phrase must be missing from the transcript segment or present in the transcript segment.",
       ).optional(),
@@ -314,7 +320,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights PhraseMatchers. Registered at `@swamp/gcp/contactcenterinsights/phrasematchers`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/phrasematchers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -423,6 +429,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

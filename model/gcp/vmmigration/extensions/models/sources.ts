@@ -178,9 +178,7 @@ const GlobalArgsSchema = z.object({
       sessionToken: z.string().describe(
         "Input only. AWS session token. Used only when AWS security token service (STS) is responsible for creating the temporary credentials.",
       ).optional(),
-    }).describe(
-      "Message describing AWS Credentials using access key id and secret.",
-    ).optional(),
+    }).describe("AWS Credentials using access key id and secret.").optional(),
     awsRegion: z.string().describe(
       "Immutable. The AWS region that the source VMs will be migrated from.",
     ).optional(),
@@ -195,7 +193,7 @@ const GlobalArgsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. Provides details on the state of the Source in case of an error.",
     ).optional(),
     inventorySecurityGroupNames: z.array(z.string()).describe(
       "AWS security group names to limit the scope of the source inventory.",
@@ -216,9 +214,7 @@ const GlobalArgsSchema = z.object({
       .describe(
         "Output only. State of the source as determined by the health check.",
       ).optional(),
-  }).describe(
-    "AwsSourceDetails message describes a specific source details for the AWS source type.",
-  ).optional(),
+  }).describe("AWS type source details.").optional(),
   azure: z.object({
     azureLocation: z.string().describe(
       "Immutable. The Azure location (region) that the source VMs will be migrated from.",
@@ -228,9 +224,8 @@ const GlobalArgsSchema = z.object({
       clientSecret: z.string().describe("Input only. Azure client secret.")
         .optional(),
       tenantId: z.string().describe("Azure tenant ID.").optional(),
-    }).describe(
-      "Message describing Azure Credentials using tenant ID, client ID and secret.",
-    ).optional(),
+    }).describe("Azure Credentials using tenant ID, client ID and secret.")
+      .optional(),
     error: z.object({
       code: z.number().int().describe(
         "The status code, which should be an enum value of google.rpc.Code.",
@@ -242,7 +237,7 @@ const GlobalArgsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. Provides details on the state of the Source in case of an error.",
     ).optional(),
     migrationResourcesUserTags: z.record(z.string(), z.string()).describe(
       "User specified tags to add to every M2VM generated resource in Azure. These tags will be set in addition to the default tags that are set as part of the migration process. The tags must not begin with the reserved prefix `m4ce` or `m2vm`.",
@@ -256,9 +251,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     subscriptionId: z.string().describe("Immutable. Azure subscription ID.")
       .optional(),
-  }).describe(
-    "AzureSourceDetails message describes a specific source details for the Azure source type.",
-  ).optional(),
+  }).describe("Azure type source details.").optional(),
   description: z.string().describe("User-provided description of the source.")
     .optional(),
   encryption: z.object({
@@ -266,7 +259,7 @@ const GlobalArgsSchema = z.object({
       "Required. The name of the encryption key that is stored in Google Cloud KMS.",
     ).optional(),
   }).describe(
-    "Encryption message describes the details of the applied encryption.",
+    "Optional. Immutable. The encryption details of the source data stored by the service.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("The labels of the source.")
     .optional(),
@@ -283,9 +276,7 @@ const GlobalArgsSchema = z.object({
     vcenterIp: z.string().describe(
       "The ip address of the vcenter this Source represents.",
     ).optional(),
-  }).describe(
-    "VmwareSourceDetails message describes a specific source details for the vmware source type.",
-  ).optional(),
+  }).describe("Vmware type source details.").optional(),
   requestId: z.string().describe(
     "A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -367,9 +358,7 @@ const InputsSchema = z.object({
       sessionToken: z.string().describe(
         "Input only. AWS session token. Used only when AWS security token service (STS) is responsible for creating the temporary credentials.",
       ).optional(),
-    }).describe(
-      "Message describing AWS Credentials using access key id and secret.",
-    ).optional(),
+    }).describe("AWS Credentials using access key id and secret.").optional(),
     awsRegion: z.string().describe(
       "Immutable. The AWS region that the source VMs will be migrated from.",
     ).optional(),
@@ -384,7 +373,7 @@ const InputsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. Provides details on the state of the Source in case of an error.",
     ).optional(),
     inventorySecurityGroupNames: z.array(z.string()).describe(
       "AWS security group names to limit the scope of the source inventory.",
@@ -405,9 +394,7 @@ const InputsSchema = z.object({
       .describe(
         "Output only. State of the source as determined by the health check.",
       ).optional(),
-  }).describe(
-    "AwsSourceDetails message describes a specific source details for the AWS source type.",
-  ).optional(),
+  }).describe("AWS type source details.").optional(),
   azure: z.object({
     azureLocation: z.string().describe(
       "Immutable. The Azure location (region) that the source VMs will be migrated from.",
@@ -417,9 +404,8 @@ const InputsSchema = z.object({
       clientSecret: z.string().describe("Input only. Azure client secret.")
         .optional(),
       tenantId: z.string().describe("Azure tenant ID.").optional(),
-    }).describe(
-      "Message describing Azure Credentials using tenant ID, client ID and secret.",
-    ).optional(),
+    }).describe("Azure Credentials using tenant ID, client ID and secret.")
+      .optional(),
     error: z.object({
       code: z.number().int().describe(
         "The status code, which should be an enum value of google.rpc.Code.",
@@ -431,7 +417,7 @@ const InputsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "Output only. Provides details on the state of the Source in case of an error.",
     ).optional(),
     migrationResourcesUserTags: z.record(z.string(), z.string()).describe(
       "User specified tags to add to every M2VM generated resource in Azure. These tags will be set in addition to the default tags that are set as part of the migration process. The tags must not begin with the reserved prefix `m4ce` or `m2vm`.",
@@ -445,9 +431,7 @@ const InputsSchema = z.object({
       ).optional(),
     subscriptionId: z.string().describe("Immutable. Azure subscription ID.")
       .optional(),
-  }).describe(
-    "AzureSourceDetails message describes a specific source details for the Azure source type.",
-  ).optional(),
+  }).describe("Azure type source details.").optional(),
   description: z.string().describe("User-provided description of the source.")
     .optional(),
   encryption: z.object({
@@ -455,7 +439,7 @@ const InputsSchema = z.object({
       "Required. The name of the encryption key that is stored in Google Cloud KMS.",
     ).optional(),
   }).describe(
-    "Encryption message describes the details of the applied encryption.",
+    "Optional. Immutable. The encryption details of the source data stored by the service.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("The labels of the source.")
     .optional(),
@@ -472,9 +456,7 @@ const InputsSchema = z.object({
     vcenterIp: z.string().describe(
       "The ip address of the vcenter this Source represents.",
     ).optional(),
-  }).describe(
-    "VmwareSourceDetails message describes a specific source details for the vmware source type.",
-  ).optional(),
+  }).describe("Vmware type source details.").optional(),
   requestId: z.string().describe(
     "A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -507,7 +489,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources. Registered at `@swamp/gcp/vmmigration/sources`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -614,6 +596,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -666,16 +653,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -765,7 +743,6 @@ export const model = {
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["encryption"] !== undefined) body["encryption"] = g["encryption"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["vmware"] !== undefined) body["vmware"] = g["vmware"];
         const updateMaskKeys = Object.keys(body);

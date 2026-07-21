@@ -182,9 +182,7 @@ const GlobalArgsSchema = z.object({
       listValues: z.array(z.string()).describe(
         "Required. The list of string values.",
       ).optional(),
-    }).describe(
-      "StringListValues is a message to store a list of string values.",
-    ).optional(),
+    }).describe("Optional. List of string values.").optional(),
     stringValue: z.string().describe("Optional. A single string value.")
       .optional(),
   })).describe(
@@ -203,7 +201,7 @@ const GlobalArgsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -211,8 +209,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. List containing additional auth configs.")
@@ -243,7 +240,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Client secret for user-provided OAuth app.")
         .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -257,9 +254,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -270,9 +265,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("Optional. The client identifier.")
         .optional(),
@@ -280,18 +273,18 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Optional. Secret version reference containing the client secret.",
+      ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+      ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Optional. Value for the "aud" claim.')
           .optional(),
@@ -299,11 +292,9 @@ const GlobalArgsSchema = z.object({
           .optional(),
         subject: z.string().describe('Optional. Value for the "sub" claim.')
           .optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("Optional. JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Optional. Format of SSH Client cert.")
         .optional(),
@@ -311,41 +302,35 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. SSH Client Cert. It should contain both public and private key.",
+      ).optional(),
       sshClientCertPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Password (passphrase) for ssh client certificate if it has one.",
+      ).optional(),
       username: z.string().describe(
         "Optional. The user account used to authenticate.",
       ).optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Secret version reference containing the password.")
         .optional(),
       username: z.string().describe("Optional. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig defines details of a authentication type.")
-    .optional(),
+    }).describe("UserPassword.").optional(),
+  }).describe(
+    "Optional. Configuration for establishing the connection's authentication with an external system.",
+  ).optional(),
   authOverrideEnabled: z.boolean().describe(
     "Optional. Auth override enabled for the connection. If Auth Override is enabled, Connection allows the backend service auth to be overridden in the entities/actions API.",
   ).optional(),
-  billingConfig: z.object({
-    billingCategory: z.enum([
-      "BILLING_CATEGORY_UNSPECIFIED",
-      "GCP_AND_TECHNICAL_CONNECTOR",
-      "NON_GCP_CONNECTOR",
-    ]).describe("Output only. Billing category for the connector.").optional(),
-  }).describe("Billing config for the connection.").optional(),
   configVariables: z.array(z.object({
     boolValue: z.boolean().describe("Optional. Value is a bool.").optional(),
     encryptionKeyValue: z.object({
@@ -355,7 +340,7 @@ const GlobalArgsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
         .describe("Optional. Specifies the type of the encryption key.")
         .optional(),
-    }).describe("Encryption Key value.").optional(),
+    }).describe("Optional. Value is a Encryption Key.").optional(),
     intValue: z.string().describe("Optional. Value is an integer").optional(),
     key: z.string().describe("Optional. Key of the config variable.")
       .optional(),
@@ -363,74 +348,13 @@ const GlobalArgsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Value is a secret.").optional(),
     stringValue: z.string().describe("Optional. Value is a string.").optional(),
   })).describe(
     "Optional. Configuration for configuring the connection with an external system.",
   ).optional(),
   connectorVersion: z.string().describe(
     "Required. Connector version on which the connection is created. The format is: projects/*/locations/*/providers/*/connectors/*/versions/* Only global location is supported for ConnectorVersion resource.",
-  ).optional(),
-  connectorVersionInfraConfig: z.object({
-    connectionRatelimitWindowSeconds: z.string().describe(
-      "Output only. The window used for ratelimiting runtime requests to connections.",
-    ).optional(),
-    deploymentModel: z.enum([
-      "DEPLOYMENT_MODEL_UNSPECIFIED",
-      "GKE_MST",
-      "CLOUD_RUN_MST",
-    ]).describe(
-      "Output only. Indicates whether connector is deployed on GKE/CloudRun",
-    ).optional(),
-    deploymentModelMigrationState: z.enum([
-      "DEPLOYMENT_MODEL_MIGRATION_STATE_UNSPECIFIED",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "ROLLEDBACK",
-      "ROLLBACK_IN_PROGRESS",
-    ]).describe("Output only. Status of the deployment model migration.")
-      .optional(),
-    hpaConfig: z.object({
-      cpuUtilizationThreshold: z.string().describe(
-        "Output only. Percent CPU utilization where HPA triggers autoscaling.",
-      ).optional(),
-      memoryUtilizationThreshold: z.string().describe(
-        "Output only. Percent Memory utilization where HPA triggers autoscaling.",
-      ).optional(),
-    }).describe("Autoscaling config for connector deployment system metrics.")
-      .optional(),
-    internalclientRatelimitThreshold: z.string().describe(
-      "Output only. Max QPS supported for internal requests originating from Connd.",
-    ).optional(),
-    maxInstanceRequestConcurrency: z.number().int().describe(
-      "Output only. Max instance request concurrency.",
-    ).optional(),
-    ratelimitThreshold: z.string().describe(
-      "Output only. Max QPS supported by the connector version before throttling of requests.",
-    ).optional(),
-    resourceLimits: z.object({
-      cpu: z.string().describe("Output only. CPU limit.").optional(),
-      memory: z.string().describe("Output only. Memory limit.").optional(),
-    }).describe(
-      "Resource limits defined for connection pods of a given connector type.",
-    ).optional(),
-    resourceRequests: z.object({
-      cpu: z.string().describe("Output only. CPU request.").optional(),
-      memory: z.string().describe("Output only. Memory request.").optional(),
-    }).describe(
-      "Resource requests defined for connection pods of a given connector type.",
-    ).optional(),
-    sharedDeployment: z.string().describe(
-      "Output only. The name of shared connector deployment.",
-    ).optional(),
-    tlsMigrationState: z.enum([
-      "TLS_MIGRATION_STATE_UNSPECIFIED",
-      "TLS_MIGRATION_NOT_STARTED",
-      "TLS_MIGRATION_COMPLETED",
-    ]).describe("Output only. Status of the TLS migration.").optional(),
-  }).describe(
-    "This configuration provides infra configs like rate limit threshold which need to be configurable for every connector version",
   ).optional(),
   description: z.string().describe("Optional. Description of the resource.")
     .optional(),
@@ -460,7 +384,7 @@ const GlobalArgsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -468,8 +392,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. List containing additional auth configs.")
@@ -500,7 +423,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Client secret for user-provided OAuth app.")
         .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -514,9 +437,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -527,9 +448,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("Optional. The client identifier.")
         .optional(),
@@ -537,18 +456,18 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Optional. Secret version reference containing the client secret.",
+      ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+      ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Optional. Value for the "aud" claim.')
           .optional(),
@@ -556,11 +475,9 @@ const GlobalArgsSchema = z.object({
           .optional(),
         subject: z.string().describe('Optional. Value for the "sub" claim.')
           .optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("Optional. JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Optional. Format of SSH Client cert.")
         .optional(),
@@ -568,31 +485,32 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. SSH Client Cert. It should contain both public and private key.",
+      ).optional(),
       sshClientCertPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Password (passphrase) for ssh client certificate if it has one.",
+      ).optional(),
       username: z.string().describe(
         "Optional. The user account used to authenticate.",
       ).optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Secret version reference containing the password.")
         .optional(),
       username: z.string().describe("Optional. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig defines details of a authentication type.")
-    .optional(),
+    }).describe("UserPassword.").optional(),
+  }).describe(
+    "Optional. Additional Oauth2.0 Auth config for EUA. If the connection is configured using non-OAuth authentication but OAuth needs to be used for EUA, this field can be populated with the OAuth config. This should be a OAuth2AuthCodeFlow Auth type only.",
+  ).optional(),
   eventingConfig: z.object({
     additionalVariables: z.array(z.object({
       boolValue: z.boolean().describe("Optional. Value is a bool.").optional(),
@@ -603,7 +521,7 @@ const GlobalArgsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -611,8 +529,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. Additional eventing related field values")
@@ -631,7 +548,7 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -640,8 +557,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. List containing additional auth configs.")
@@ -673,7 +589,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
+        }).describe("Optional. Client secret for user-provided OAuth app.")
           .optional(),
         enablePkce: z.boolean().describe(
           "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -687,9 +603,7 @@ const GlobalArgsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Optional. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlow.").optional(),
       oauth2AuthCodeFlowGoogleManaged: z.object({
         authCode: z.string().describe(
           "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -700,9 +614,7 @@ const GlobalArgsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Required. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
       oauth2ClientCredentials: z.object({
         clientId: z.string().describe("Optional. The client identifier.")
           .optional(),
@@ -710,18 +622,18 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. Secret version reference containing the client secret.",
+        ).optional(),
+      }).describe("Oauth2ClientCredentials.").optional(),
       oauth2JwtBearer: z.object({
         clientKey: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+        ).optional(),
         jwtClaims: z.object({
           audience: z.string().describe('Optional. Value for the "aud" claim.')
             .optional(),
@@ -729,11 +641,10 @@ const GlobalArgsSchema = z.object({
             .optional(),
           subject: z.string().describe('Optional. Value for the "sub" claim.')
             .optional(),
-        }).describe("JWT claims used for the jwt-bearer authorization grant.")
-          .optional(),
-      }).describe(
-        "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. JwtClaims providers fields to generate the token.",
+        ).optional(),
+      }).describe("Oauth2JwtBearer.").optional(),
       sshPublicKey: z.object({
         certType: z.string().describe("Optional. Format of SSH Client cert.")
           .optional(),
@@ -741,31 +652,31 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. SSH Client Cert. It should contain both public and private key.",
+        ).optional(),
         sshClientCertPass: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Password (passphrase) for ssh client certificate if it has one.",
+        ).optional(),
         username: z.string().describe(
           "Optional. The user account used to authenticate.",
         ).optional(),
-      }).describe("Parameters to support Ssh public key Authentication.")
-        .optional(),
+      }).describe("SSH Public Key.").optional(),
       userPassword: z.object({
         password: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing the password.",
+        ).optional(),
         username: z.string().describe("Optional. Username.").optional(),
-      }).describe("Parameters to support Username and Password Authentication.")
-        .optional(),
-    }).describe("AuthConfig defines details of a authentication type.")
-      .optional(),
+      }).describe("UserPassword.").optional(),
+    }).describe("Optional. Auth details for the webhook adapter.").optional(),
     deadLetterConfig: z.object({
       projectId: z.string().describe(
         "Optional. Project which has the topic given.",
@@ -773,12 +684,13 @@ const GlobalArgsSchema = z.object({
       topic: z.string().describe(
         "Optional. Topic to push events which couldn't be processed.",
       ).optional(),
-    }).describe("Dead Letter configuration details provided by the user.")
-      .optional(),
+    }).describe(
+      "Optional. Dead letter configuration for eventing of a connection.",
+    ).optional(),
     enrichmentConfig: z.object({
       appendAcl: z.boolean().describe("Optional. Append ACL to the event.")
         .optional(),
-    }).describe("Data enrichment configuration.").optional(),
+    }).describe("Optional. Data enrichment configuration.").optional(),
     enrichmentEnabled: z.boolean().describe("Optional. Enrichment Enabled.")
       .optional(),
     eventsListenerIngressEndpoint: z.string().describe(
@@ -798,7 +710,7 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -807,8 +719,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. List containing additional auth configs.")
@@ -840,7 +751,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
+        }).describe("Optional. Client secret for user-provided OAuth app.")
           .optional(),
         enablePkce: z.boolean().describe(
           "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -854,9 +765,7 @@ const GlobalArgsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Optional. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlow.").optional(),
       oauth2AuthCodeFlowGoogleManaged: z.object({
         authCode: z.string().describe(
           "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -867,9 +776,7 @@ const GlobalArgsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Required. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
       oauth2ClientCredentials: z.object({
         clientId: z.string().describe("Optional. The client identifier.")
           .optional(),
@@ -877,18 +784,18 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. Secret version reference containing the client secret.",
+        ).optional(),
+      }).describe("Oauth2ClientCredentials.").optional(),
       oauth2JwtBearer: z.object({
         clientKey: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+        ).optional(),
         jwtClaims: z.object({
           audience: z.string().describe('Optional. Value for the "aud" claim.')
             .optional(),
@@ -896,11 +803,10 @@ const GlobalArgsSchema = z.object({
             .optional(),
           subject: z.string().describe('Optional. Value for the "sub" claim.')
             .optional(),
-        }).describe("JWT claims used for the jwt-bearer authorization grant.")
-          .optional(),
-      }).describe(
-        "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. JwtClaims providers fields to generate the token.",
+        ).optional(),
+      }).describe("Oauth2JwtBearer.").optional(),
       sshPublicKey: z.object({
         certType: z.string().describe("Optional. Format of SSH Client cert.")
           .optional(),
@@ -908,31 +814,31 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. SSH Client Cert. It should contain both public and private key.",
+        ).optional(),
         sshClientCertPass: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Password (passphrase) for ssh client certificate if it has one.",
+        ).optional(),
         username: z.string().describe(
           "Optional. The user account used to authenticate.",
         ).optional(),
-      }).describe("Parameters to support Ssh public key Authentication.")
-        .optional(),
+      }).describe("SSH Public Key.").optional(),
       userPassword: z.object({
         password: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing the password.",
+        ).optional(),
         username: z.string().describe("Optional. Username.").optional(),
-      }).describe("Parameters to support Username and Password Authentication.")
-        .optional(),
-    }).describe("AuthConfig defines details of a authentication type.")
-      .optional(),
+      }).describe("UserPassword.").optional(),
+    }).describe("Optional. Auth details for the event listener.").optional(),
     privateConnectivityAllowlistedProjects: z.array(z.string()).describe(
       "Optional. List of projects to be allowlisted for the service attachment created in the tenant project for eventing ingress.",
     ).optional(),
@@ -952,7 +858,7 @@ const GlobalArgsSchema = z.object({
       key: z.string().describe(
         "Optional. The key is the destination identifier that is supported by the Connector.",
       ).optional(),
-    }).describe("Define the Connectors target endpoint.").optional(),
+    }).describe("Optional. Proxy for Eventing auto-registration.").optional(),
     registrationDestinationConfig: z.object({
       destinations: z.array(z.object({
         host: z.string().describe("For publicly routable host.").optional(),
@@ -966,7 +872,8 @@ const GlobalArgsSchema = z.object({
       key: z.string().describe(
         "Optional. The key is the destination identifier that is supported by the Connector.",
       ).optional(),
-    }).describe("Define the Connectors target endpoint.").optional(),
+    }).describe("Optional. Registration endpoint for auto registration.")
+      .optional(),
     sslConfig: z.object({
       additionalVariables: z.array(z.object({
         boolValue: z.boolean().describe("Optional. Value is a bool.")
@@ -978,7 +885,7 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -987,8 +894,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. Additional SSL related field values").optional(),
@@ -999,26 +905,26 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Client Certificate").optional(),
       clientPrivateKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Client Private Key").optional(),
       clientPrivateKeyPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret containing the passphrase protecting the Client Private Key",
+      ).optional(),
       privateServerCertificate: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Private Server Certificate. Needs to be specified if trust model is `PRIVATE`.",
+      ).optional(),
       serverCertType: z.enum(["CERT_TYPE_UNSPECIFIED", "PEM"]).describe(
         "Optional. Type of Server Cert (PEM/JKS/.. etc.)",
       ).optional(),
@@ -1030,107 +936,14 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       useSsl: z.boolean().describe("Optional. Bool for enabling SSL")
         .optional(),
-    }).describe("SSL Configuration of a connection").optional(),
-  }).describe("Eventing Configuration of a connection next: 21").optional(),
+    }).describe("Optional. Ssl config of a connection").optional(),
+  }).describe("Optional. Eventing config of a connection").optional(),
   eventingEnablementType: z.enum([
     "EVENTING_ENABLEMENT_TYPE_UNSPECIFIED",
     "EVENTING_AND_CONNECTION",
     "ONLY_EVENTING",
   ]).describe(
     "Optional. Eventing enablement type. Will be nil if eventing is not enabled.",
-  ).optional(),
-  eventingRuntimeData: z.object({
-    eventsListenerEndpoint: z.string().describe(
-      "Output only. Events listener endpoint. The value will populated after provisioning the events listener.",
-    ).optional(),
-    eventsListenerPscSa: z.string().describe(
-      "Output only. Events listener PSC Service attachment. The value will be populated after provisioning the events listener with private connectivity enabled.",
-    ).optional(),
-    status: z.object({
-      description: z.string().describe(
-        'Output only. Description of error if State is set to "ERROR".',
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "ACTIVE",
-        "ERROR",
-        "INGRESS_ENDPOINT_REQUIRED",
-      ]).describe("Output only. State.").optional(),
-    }).describe("EventingStatus indicates the state of eventing.").optional(),
-    webhookData: z.object({
-      additionalVariables: z.array(z.object({
-        boolValue: z.boolean().describe("Optional. Value is a bool.")
-          .optional(),
-        encryptionKeyValue: z.object({
-          kmsKeyName: z.unknown().describe(
-            "Optional. The [KMS key name] with which the content of the Operation is encrypted. The expected format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`. Will be empty string if google managed.",
-          ).optional(),
-          type: z.unknown().describe(
-            "Optional. Specifies the type of the encryption key.",
-          ).optional(),
-        }).describe("Encryption Key value.").optional(),
-        intValue: z.string().describe("Optional. Value is an integer")
-          .optional(),
-        key: z.string().describe("Optional. Key of the config variable.")
-          .optional(),
-        secretValue: z.object({
-          secretVersion: z.unknown().describe(
-            "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
-          ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
-        stringValue: z.string().describe("Optional. Value is a string.")
-          .optional(),
-      })).describe("Output only. Additional webhook related field values.")
-        .optional(),
-      createTime: z.string().describe(
-        "Output only. Timestamp when the webhook was created.",
-      ).optional(),
-      eventSubscriptions: z.array(z.string()).describe(
-        "Output only. List of event subscriptions which are using the webhook.",
-      ).optional(),
-      eventTypes: z.array(z.string()).describe(
-        "Output only. List of event types for the webhook. This is the event types subscribed by the current webhook.",
-      ).optional(),
-      id: z.string().describe("Output only. ID to uniquely identify webhook.")
-        .optional(),
-      name: z.string().describe("Output only. Name of the Webhook").optional(),
-      nextRefreshTime: z.string().describe(
-        "Output only. Next webhook refresh time. Will be null if refresh is not supported.",
-      ).optional(),
-      updateTime: z.string().describe(
-        "Output only. Timestamp when the webhook was last updated.",
-      ).optional(),
-    }).describe("WebhookData has details of webhook configuration.").optional(),
-    webhookSubscriptions: z.object({
-      webhookData: z.array(z.object({
-        additionalVariables: z.array(z.unknown()).describe(
-          "Output only. Additional webhook related field values.",
-        ).optional(),
-        createTime: z.string().describe(
-          "Output only. Timestamp when the webhook was created.",
-        ).optional(),
-        eventSubscriptions: z.array(z.unknown()).describe(
-          "Output only. List of event subscriptions which are using the webhook.",
-        ).optional(),
-        eventTypes: z.array(z.unknown()).describe(
-          "Output only. List of event types for the webhook. This is the event types subscribed by the current webhook.",
-        ).optional(),
-        id: z.string().describe("Output only. ID to uniquely identify webhook.")
-          .optional(),
-        name: z.string().describe("Output only. Name of the Webhook")
-          .optional(),
-        nextRefreshTime: z.string().describe(
-          "Output only. Next webhook refresh time. Will be null if refresh is not supported.",
-        ).optional(),
-        updateTime: z.string().describe(
-          "Output only. Timestamp when the webhook was last updated.",
-        ).optional(),
-      })).describe("Output only. Webhook data.").optional(),
-    }).describe("WebhookSubscriptions has details of webhook subscriptions.")
-      .optional(),
-  }).describe(
-    "Eventing runtime data has the details related to eventing managed by the system.",
   ).optional(),
   fallbackOnAdminCredentials: z.boolean().describe(
     "Optional. Fallback on admin credentials for the connection. If this both auth_override_enabled and fallback_on_admin_credentials are set to true, the connection will use the admin credentials if the dynamic auth header is not present during auth override.",
@@ -1146,7 +959,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Describes why a connection is locked.",
     ).optional(),
   }).describe(
-    "Determines whether or no a connection is locked. If locked, a reason must be specified.",
+    "Optional. Configuration that indicates whether or not the Connection can be edited.",
   ).optional(),
   logConfig: z.object({
     enabled: z.boolean().describe(
@@ -1155,7 +968,7 @@ const GlobalArgsSchema = z.object({
     level: z.enum(["LOG_LEVEL_UNSPECIFIED", "ERROR", "INFO", "DEBUG"]).describe(
       "Optional. Log configuration level.",
     ).optional(),
-  }).describe("Log configuration for the connection.").optional(),
+  }).describe("Optional. Log configuration for the connection.").optional(),
   nodeConfig: z.object({
     maxNodeCount: z.number().int().describe(
       "Optional. Maximum number of nodes in the runtime nodes.",
@@ -1163,7 +976,7 @@ const GlobalArgsSchema = z.object({
     minNodeCount: z.number().int().describe(
       "Optional. Minimum number of nodes in the runtime nodes.",
     ).optional(),
-  }).describe("Node configuration for the connection.").optional(),
+  }).describe("Optional. Node configuration for the connection.").optional(),
   serviceAccount: z.string().describe(
     "Optional. Service account needed for runtime plane to access Google Cloud resources.",
   ).optional(),
@@ -1177,7 +990,7 @@ const GlobalArgsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -1185,8 +998,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. Additional SSL related field values").optional(),
@@ -1197,26 +1009,26 @@ const GlobalArgsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Client Certificate").optional(),
     clientPrivateKey: z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Client Private Key").optional(),
     clientPrivateKeyPass: z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe(
+      "Optional. Secret containing the passphrase protecting the Client Private Key",
+    ).optional(),
     privateServerCertificate: z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe(
+      "Optional. Private Server Certificate. Needs to be specified if trust model is `PRIVATE`.",
+    ).optional(),
     serverCertType: z.enum(["CERT_TYPE_UNSPECIFIED", "PEM"]).describe(
       "Optional. Type of Server Cert (PEM/JKS/.. etc.)",
     ).optional(),
@@ -1227,24 +1039,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Controls the ssl type for the given connector version.",
     ).optional(),
     useSsl: z.boolean().describe("Optional. Bool for enabling SSL").optional(),
-  }).describe("SSL Configuration of a connection").optional(),
-  status: z.object({
-    description: z.string().describe("Description.").optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "INACTIVE",
-      "DELETING",
-      "UPDATING",
-      "ERROR",
-      "AUTHORIZATION_REQUIRED",
-    ]).describe("State.").optional(),
-    status: z.string().describe(
-      "Status provides detailed information for the state.",
-    ).optional(),
-  }).describe("ConnectionStatus indicates the state of the connection.")
-    .optional(),
+  }).describe("Optional. Ssl config of a connection").optional(),
   suspended: z.boolean().describe(
     "Optional. Suspended indicates if a user has suspended a connection or not.",
   ).optional(),
@@ -1799,9 +1594,7 @@ const InputsSchema = z.object({
       listValues: z.array(z.string()).describe(
         "Required. The list of string values.",
       ).optional(),
-    }).describe(
-      "StringListValues is a message to store a list of string values.",
-    ).optional(),
+    }).describe("Optional. List of string values.").optional(),
     stringValue: z.string().describe("Optional. A single string value.")
       .optional(),
   })).describe(
@@ -1820,7 +1613,7 @@ const InputsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -1828,8 +1621,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. List containing additional auth configs.")
@@ -1860,7 +1652,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Client secret for user-provided OAuth app.")
         .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -1874,9 +1666,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -1887,9 +1677,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("Optional. The client identifier.")
         .optional(),
@@ -1897,18 +1685,18 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Optional. Secret version reference containing the client secret.",
+      ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+      ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Optional. Value for the "aud" claim.')
           .optional(),
@@ -1916,11 +1704,9 @@ const InputsSchema = z.object({
           .optional(),
         subject: z.string().describe('Optional. Value for the "sub" claim.')
           .optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("Optional. JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Optional. Format of SSH Client cert.")
         .optional(),
@@ -1928,41 +1714,35 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. SSH Client Cert. It should contain both public and private key.",
+      ).optional(),
       sshClientCertPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Password (passphrase) for ssh client certificate if it has one.",
+      ).optional(),
       username: z.string().describe(
         "Optional. The user account used to authenticate.",
       ).optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Secret version reference containing the password.")
         .optional(),
       username: z.string().describe("Optional. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig defines details of a authentication type.")
-    .optional(),
+    }).describe("UserPassword.").optional(),
+  }).describe(
+    "Optional. Configuration for establishing the connection's authentication with an external system.",
+  ).optional(),
   authOverrideEnabled: z.boolean().describe(
     "Optional. Auth override enabled for the connection. If Auth Override is enabled, Connection allows the backend service auth to be overridden in the entities/actions API.",
   ).optional(),
-  billingConfig: z.object({
-    billingCategory: z.enum([
-      "BILLING_CATEGORY_UNSPECIFIED",
-      "GCP_AND_TECHNICAL_CONNECTOR",
-      "NON_GCP_CONNECTOR",
-    ]).describe("Output only. Billing category for the connector.").optional(),
-  }).describe("Billing config for the connection.").optional(),
   configVariables: z.array(z.object({
     boolValue: z.boolean().describe("Optional. Value is a bool.").optional(),
     encryptionKeyValue: z.object({
@@ -1972,7 +1752,7 @@ const InputsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
         .describe("Optional. Specifies the type of the encryption key.")
         .optional(),
-    }).describe("Encryption Key value.").optional(),
+    }).describe("Optional. Value is a Encryption Key.").optional(),
     intValue: z.string().describe("Optional. Value is an integer").optional(),
     key: z.string().describe("Optional. Key of the config variable.")
       .optional(),
@@ -1980,74 +1760,13 @@ const InputsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Value is a secret.").optional(),
     stringValue: z.string().describe("Optional. Value is a string.").optional(),
   })).describe(
     "Optional. Configuration for configuring the connection with an external system.",
   ).optional(),
   connectorVersion: z.string().describe(
     "Required. Connector version on which the connection is created. The format is: projects/*/locations/*/providers/*/connectors/*/versions/* Only global location is supported for ConnectorVersion resource.",
-  ).optional(),
-  connectorVersionInfraConfig: z.object({
-    connectionRatelimitWindowSeconds: z.string().describe(
-      "Output only. The window used for ratelimiting runtime requests to connections.",
-    ).optional(),
-    deploymentModel: z.enum([
-      "DEPLOYMENT_MODEL_UNSPECIFIED",
-      "GKE_MST",
-      "CLOUD_RUN_MST",
-    ]).describe(
-      "Output only. Indicates whether connector is deployed on GKE/CloudRun",
-    ).optional(),
-    deploymentModelMigrationState: z.enum([
-      "DEPLOYMENT_MODEL_MIGRATION_STATE_UNSPECIFIED",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "ROLLEDBACK",
-      "ROLLBACK_IN_PROGRESS",
-    ]).describe("Output only. Status of the deployment model migration.")
-      .optional(),
-    hpaConfig: z.object({
-      cpuUtilizationThreshold: z.string().describe(
-        "Output only. Percent CPU utilization where HPA triggers autoscaling.",
-      ).optional(),
-      memoryUtilizationThreshold: z.string().describe(
-        "Output only. Percent Memory utilization where HPA triggers autoscaling.",
-      ).optional(),
-    }).describe("Autoscaling config for connector deployment system metrics.")
-      .optional(),
-    internalclientRatelimitThreshold: z.string().describe(
-      "Output only. Max QPS supported for internal requests originating from Connd.",
-    ).optional(),
-    maxInstanceRequestConcurrency: z.number().int().describe(
-      "Output only. Max instance request concurrency.",
-    ).optional(),
-    ratelimitThreshold: z.string().describe(
-      "Output only. Max QPS supported by the connector version before throttling of requests.",
-    ).optional(),
-    resourceLimits: z.object({
-      cpu: z.string().describe("Output only. CPU limit.").optional(),
-      memory: z.string().describe("Output only. Memory limit.").optional(),
-    }).describe(
-      "Resource limits defined for connection pods of a given connector type.",
-    ).optional(),
-    resourceRequests: z.object({
-      cpu: z.string().describe("Output only. CPU request.").optional(),
-      memory: z.string().describe("Output only. Memory request.").optional(),
-    }).describe(
-      "Resource requests defined for connection pods of a given connector type.",
-    ).optional(),
-    sharedDeployment: z.string().describe(
-      "Output only. The name of shared connector deployment.",
-    ).optional(),
-    tlsMigrationState: z.enum([
-      "TLS_MIGRATION_STATE_UNSPECIFIED",
-      "TLS_MIGRATION_NOT_STARTED",
-      "TLS_MIGRATION_COMPLETED",
-    ]).describe("Output only. Status of the TLS migration.").optional(),
-  }).describe(
-    "This configuration provides infra configs like rate limit threshold which need to be configurable for every connector version",
   ).optional(),
   description: z.string().describe("Optional. Description of the resource.")
     .optional(),
@@ -2077,7 +1796,7 @@ const InputsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -2085,8 +1804,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. List containing additional auth configs.")
@@ -2117,7 +1835,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Client secret for user-provided OAuth app.")
         .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -2131,9 +1849,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -2144,9 +1860,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("Optional. The client identifier.")
         .optional(),
@@ -2154,18 +1868,18 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Optional. Secret version reference containing the client secret.",
+      ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+      ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Optional. Value for the "aud" claim.')
           .optional(),
@@ -2173,11 +1887,9 @@ const InputsSchema = z.object({
           .optional(),
         subject: z.string().describe('Optional. Value for the "sub" claim.')
           .optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("Optional. JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Optional. Format of SSH Client cert.")
         .optional(),
@@ -2185,31 +1897,32 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. SSH Client Cert. It should contain both public and private key.",
+      ).optional(),
       sshClientCertPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Password (passphrase) for ssh client certificate if it has one.",
+      ).optional(),
       username: z.string().describe(
         "Optional. The user account used to authenticate.",
       ).optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
+      }).describe("Optional. Secret version reference containing the password.")
         .optional(),
       username: z.string().describe("Optional. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig defines details of a authentication type.")
-    .optional(),
+    }).describe("UserPassword.").optional(),
+  }).describe(
+    "Optional. Additional Oauth2.0 Auth config for EUA. If the connection is configured using non-OAuth authentication but OAuth needs to be used for EUA, this field can be populated with the OAuth config. This should be a OAuth2AuthCodeFlow Auth type only.",
+  ).optional(),
   eventingConfig: z.object({
     additionalVariables: z.array(z.object({
       boolValue: z.boolean().describe("Optional. Value is a bool.").optional(),
@@ -2220,7 +1933,7 @@ const InputsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -2228,8 +1941,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. Additional eventing related field values")
@@ -2248,7 +1960,7 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -2257,8 +1969,7 @@ const InputsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. List containing additional auth configs.")
@@ -2290,7 +2001,7 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
+        }).describe("Optional. Client secret for user-provided OAuth app.")
           .optional(),
         enablePkce: z.boolean().describe(
           "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -2304,9 +2015,7 @@ const InputsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Optional. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlow.").optional(),
       oauth2AuthCodeFlowGoogleManaged: z.object({
         authCode: z.string().describe(
           "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -2317,9 +2026,7 @@ const InputsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Required. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
       oauth2ClientCredentials: z.object({
         clientId: z.string().describe("Optional. The client identifier.")
           .optional(),
@@ -2327,18 +2034,18 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. Secret version reference containing the client secret.",
+        ).optional(),
+      }).describe("Oauth2ClientCredentials.").optional(),
       oauth2JwtBearer: z.object({
         clientKey: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+        ).optional(),
         jwtClaims: z.object({
           audience: z.string().describe('Optional. Value for the "aud" claim.')
             .optional(),
@@ -2346,11 +2053,10 @@ const InputsSchema = z.object({
             .optional(),
           subject: z.string().describe('Optional. Value for the "sub" claim.')
             .optional(),
-        }).describe("JWT claims used for the jwt-bearer authorization grant.")
-          .optional(),
-      }).describe(
-        "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. JwtClaims providers fields to generate the token.",
+        ).optional(),
+      }).describe("Oauth2JwtBearer.").optional(),
       sshPublicKey: z.object({
         certType: z.string().describe("Optional. Format of SSH Client cert.")
           .optional(),
@@ -2358,31 +2064,31 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. SSH Client Cert. It should contain both public and private key.",
+        ).optional(),
         sshClientCertPass: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Password (passphrase) for ssh client certificate if it has one.",
+        ).optional(),
         username: z.string().describe(
           "Optional. The user account used to authenticate.",
         ).optional(),
-      }).describe("Parameters to support Ssh public key Authentication.")
-        .optional(),
+      }).describe("SSH Public Key.").optional(),
       userPassword: z.object({
         password: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing the password.",
+        ).optional(),
         username: z.string().describe("Optional. Username.").optional(),
-      }).describe("Parameters to support Username and Password Authentication.")
-        .optional(),
-    }).describe("AuthConfig defines details of a authentication type.")
-      .optional(),
+      }).describe("UserPassword.").optional(),
+    }).describe("Optional. Auth details for the webhook adapter.").optional(),
     deadLetterConfig: z.object({
       projectId: z.string().describe(
         "Optional. Project which has the topic given.",
@@ -2390,12 +2096,13 @@ const InputsSchema = z.object({
       topic: z.string().describe(
         "Optional. Topic to push events which couldn't be processed.",
       ).optional(),
-    }).describe("Dead Letter configuration details provided by the user.")
-      .optional(),
+    }).describe(
+      "Optional. Dead letter configuration for eventing of a connection.",
+    ).optional(),
     enrichmentConfig: z.object({
       appendAcl: z.boolean().describe("Optional. Append ACL to the event.")
         .optional(),
-    }).describe("Data enrichment configuration.").optional(),
+    }).describe("Optional. Data enrichment configuration.").optional(),
     enrichmentEnabled: z.boolean().describe("Optional. Enrichment Enabled.")
       .optional(),
     eventsListenerIngressEndpoint: z.string().describe(
@@ -2415,7 +2122,7 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -2424,8 +2131,7 @@ const InputsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. List containing additional auth configs.")
@@ -2457,7 +2163,7 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
+        }).describe("Optional. Client secret for user-provided OAuth app.")
           .optional(),
         enablePkce: z.boolean().describe(
           "Optional. Whether to enable PKCE when the user performs the auth code flow.",
@@ -2471,9 +2177,7 @@ const InputsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Optional. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlow.").optional(),
       oauth2AuthCodeFlowGoogleManaged: z.object({
         authCode: z.string().describe(
           "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -2484,9 +2188,7 @@ const InputsSchema = z.object({
         scopes: z.array(z.string()).describe(
           "Required. Scopes the connection will request when the user performs the auth code flow.",
         ).optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-      ).optional(),
+      }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
       oauth2ClientCredentials: z.object({
         clientId: z.string().describe("Optional. The client identifier.")
           .optional(),
@@ -2494,18 +2196,18 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
-      }).describe(
-        "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. Secret version reference containing the client secret.",
+        ).optional(),
+      }).describe("Oauth2ClientCredentials.").optional(),
       oauth2JwtBearer: z.object({
         clientKey: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/secrets/*/versions/*`.",
+        ).optional(),
         jwtClaims: z.object({
           audience: z.string().describe('Optional. Value for the "aud" claim.')
             .optional(),
@@ -2513,11 +2215,10 @@ const InputsSchema = z.object({
             .optional(),
           subject: z.string().describe('Optional. Value for the "sub" claim.')
             .optional(),
-        }).describe("JWT claims used for the jwt-bearer authorization grant.")
-          .optional(),
-      }).describe(
-        "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-      ).optional(),
+        }).describe(
+          "Optional. JwtClaims providers fields to generate the token.",
+        ).optional(),
+      }).describe("Oauth2JwtBearer.").optional(),
       sshPublicKey: z.object({
         certType: z.string().describe("Optional. Format of SSH Client cert.")
           .optional(),
@@ -2525,31 +2226,31 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. SSH Client Cert. It should contain both public and private key.",
+        ).optional(),
         sshClientCertPass: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Password (passphrase) for ssh client certificate if it has one.",
+        ).optional(),
         username: z.string().describe(
           "Optional. The user account used to authenticate.",
         ).optional(),
-      }).describe("Parameters to support Ssh public key Authentication.")
-        .optional(),
+      }).describe("SSH Public Key.").optional(),
       userPassword: z.object({
         password: z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe(
+          "Optional. Secret version reference containing the password.",
+        ).optional(),
         username: z.string().describe("Optional. Username.").optional(),
-      }).describe("Parameters to support Username and Password Authentication.")
-        .optional(),
-    }).describe("AuthConfig defines details of a authentication type.")
-      .optional(),
+      }).describe("UserPassword.").optional(),
+    }).describe("Optional. Auth details for the event listener.").optional(),
     privateConnectivityAllowlistedProjects: z.array(z.string()).describe(
       "Optional. List of projects to be allowlisted for the service attachment created in the tenant project for eventing ingress.",
     ).optional(),
@@ -2569,7 +2270,7 @@ const InputsSchema = z.object({
       key: z.string().describe(
         "Optional. The key is the destination identifier that is supported by the Connector.",
       ).optional(),
-    }).describe("Define the Connectors target endpoint.").optional(),
+    }).describe("Optional. Proxy for Eventing auto-registration.").optional(),
     registrationDestinationConfig: z.object({
       destinations: z.array(z.object({
         host: z.string().describe("For publicly routable host.").optional(),
@@ -2583,7 +2284,8 @@ const InputsSchema = z.object({
       key: z.string().describe(
         "Optional. The key is the destination identifier that is supported by the Connector.",
       ).optional(),
-    }).describe("Define the Connectors target endpoint.").optional(),
+    }).describe("Optional. Registration endpoint for auto registration.")
+      .optional(),
     sslConfig: z.object({
       additionalVariables: z.array(z.object({
         boolValue: z.boolean().describe("Optional. Value is a bool.")
@@ -2595,7 +2297,7 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -2604,8 +2306,7 @@ const InputsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. Additional SSL related field values").optional(),
@@ -2616,26 +2317,26 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Client Certificate").optional(),
       clientPrivateKey: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Client Private Key").optional(),
       clientPrivateKeyPass: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Secret containing the passphrase protecting the Client Private Key",
+      ).optional(),
       privateServerCertificate: z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. Private Server Certificate. Needs to be specified if trust model is `PRIVATE`.",
+      ).optional(),
       serverCertType: z.enum(["CERT_TYPE_UNSPECIFIED", "PEM"]).describe(
         "Optional. Type of Server Cert (PEM/JKS/.. etc.)",
       ).optional(),
@@ -2647,107 +2348,14 @@ const InputsSchema = z.object({
       ).optional(),
       useSsl: z.boolean().describe("Optional. Bool for enabling SSL")
         .optional(),
-    }).describe("SSL Configuration of a connection").optional(),
-  }).describe("Eventing Configuration of a connection next: 21").optional(),
+    }).describe("Optional. Ssl config of a connection").optional(),
+  }).describe("Optional. Eventing config of a connection").optional(),
   eventingEnablementType: z.enum([
     "EVENTING_ENABLEMENT_TYPE_UNSPECIFIED",
     "EVENTING_AND_CONNECTION",
     "ONLY_EVENTING",
   ]).describe(
     "Optional. Eventing enablement type. Will be nil if eventing is not enabled.",
-  ).optional(),
-  eventingRuntimeData: z.object({
-    eventsListenerEndpoint: z.string().describe(
-      "Output only. Events listener endpoint. The value will populated after provisioning the events listener.",
-    ).optional(),
-    eventsListenerPscSa: z.string().describe(
-      "Output only. Events listener PSC Service attachment. The value will be populated after provisioning the events listener with private connectivity enabled.",
-    ).optional(),
-    status: z.object({
-      description: z.string().describe(
-        'Output only. Description of error if State is set to "ERROR".',
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "ACTIVE",
-        "ERROR",
-        "INGRESS_ENDPOINT_REQUIRED",
-      ]).describe("Output only. State.").optional(),
-    }).describe("EventingStatus indicates the state of eventing.").optional(),
-    webhookData: z.object({
-      additionalVariables: z.array(z.object({
-        boolValue: z.boolean().describe("Optional. Value is a bool.")
-          .optional(),
-        encryptionKeyValue: z.object({
-          kmsKeyName: z.unknown().describe(
-            "Optional. The [KMS key name] with which the content of the Operation is encrypted. The expected format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`. Will be empty string if google managed.",
-          ).optional(),
-          type: z.unknown().describe(
-            "Optional. Specifies the type of the encryption key.",
-          ).optional(),
-        }).describe("Encryption Key value.").optional(),
-        intValue: z.string().describe("Optional. Value is an integer")
-          .optional(),
-        key: z.string().describe("Optional. Key of the config variable.")
-          .optional(),
-        secretValue: z.object({
-          secretVersion: z.unknown().describe(
-            "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
-          ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
-        stringValue: z.string().describe("Optional. Value is a string.")
-          .optional(),
-      })).describe("Output only. Additional webhook related field values.")
-        .optional(),
-      createTime: z.string().describe(
-        "Output only. Timestamp when the webhook was created.",
-      ).optional(),
-      eventSubscriptions: z.array(z.string()).describe(
-        "Output only. List of event subscriptions which are using the webhook.",
-      ).optional(),
-      eventTypes: z.array(z.string()).describe(
-        "Output only. List of event types for the webhook. This is the event types subscribed by the current webhook.",
-      ).optional(),
-      id: z.string().describe("Output only. ID to uniquely identify webhook.")
-        .optional(),
-      name: z.string().describe("Output only. Name of the Webhook").optional(),
-      nextRefreshTime: z.string().describe(
-        "Output only. Next webhook refresh time. Will be null if refresh is not supported.",
-      ).optional(),
-      updateTime: z.string().describe(
-        "Output only. Timestamp when the webhook was last updated.",
-      ).optional(),
-    }).describe("WebhookData has details of webhook configuration.").optional(),
-    webhookSubscriptions: z.object({
-      webhookData: z.array(z.object({
-        additionalVariables: z.array(z.unknown()).describe(
-          "Output only. Additional webhook related field values.",
-        ).optional(),
-        createTime: z.string().describe(
-          "Output only. Timestamp when the webhook was created.",
-        ).optional(),
-        eventSubscriptions: z.array(z.unknown()).describe(
-          "Output only. List of event subscriptions which are using the webhook.",
-        ).optional(),
-        eventTypes: z.array(z.unknown()).describe(
-          "Output only. List of event types for the webhook. This is the event types subscribed by the current webhook.",
-        ).optional(),
-        id: z.string().describe("Output only. ID to uniquely identify webhook.")
-          .optional(),
-        name: z.string().describe("Output only. Name of the Webhook")
-          .optional(),
-        nextRefreshTime: z.string().describe(
-          "Output only. Next webhook refresh time. Will be null if refresh is not supported.",
-        ).optional(),
-        updateTime: z.string().describe(
-          "Output only. Timestamp when the webhook was last updated.",
-        ).optional(),
-      })).describe("Output only. Webhook data.").optional(),
-    }).describe("WebhookSubscriptions has details of webhook subscriptions.")
-      .optional(),
-  }).describe(
-    "Eventing runtime data has the details related to eventing managed by the system.",
   ).optional(),
   fallbackOnAdminCredentials: z.boolean().describe(
     "Optional. Fallback on admin credentials for the connection. If this both auth_override_enabled and fallback_on_admin_credentials are set to true, the connection will use the admin credentials if the dynamic auth header is not present during auth override.",
@@ -2763,7 +2371,7 @@ const InputsSchema = z.object({
       "Optional. Describes why a connection is locked.",
     ).optional(),
   }).describe(
-    "Determines whether or no a connection is locked. If locked, a reason must be specified.",
+    "Optional. Configuration that indicates whether or not the Connection can be edited.",
   ).optional(),
   logConfig: z.object({
     enabled: z.boolean().describe(
@@ -2772,7 +2380,7 @@ const InputsSchema = z.object({
     level: z.enum(["LOG_LEVEL_UNSPECIFIED", "ERROR", "INFO", "DEBUG"]).describe(
       "Optional. Log configuration level.",
     ).optional(),
-  }).describe("Log configuration for the connection.").optional(),
+  }).describe("Optional. Log configuration for the connection.").optional(),
   nodeConfig: z.object({
     maxNodeCount: z.number().int().describe(
       "Optional. Maximum number of nodes in the runtime nodes.",
@@ -2780,7 +2388,7 @@ const InputsSchema = z.object({
     minNodeCount: z.number().int().describe(
       "Optional. Minimum number of nodes in the runtime nodes.",
     ).optional(),
-  }).describe("Node configuration for the connection.").optional(),
+  }).describe("Optional. Node configuration for the connection.").optional(),
   serviceAccount: z.string().describe(
     "Optional. Service account needed for runtime plane to access Google Cloud resources.",
   ).optional(),
@@ -2794,7 +2402,7 @@ const InputsSchema = z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
           .describe("Optional. Specifies the type of the encryption key.")
           .optional(),
-      }).describe("Encryption Key value.").optional(),
+      }).describe("Optional. Value is a Encryption Key.").optional(),
       intValue: z.string().describe("Optional. Value is an integer").optional(),
       key: z.string().describe("Optional. Key of the config variable.")
         .optional(),
@@ -2802,8 +2410,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe("Optional. Value is a secret.").optional(),
       stringValue: z.string().describe("Optional. Value is a string.")
         .optional(),
     })).describe("Optional. Additional SSL related field values").optional(),
@@ -2814,26 +2421,26 @@ const InputsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Client Certificate").optional(),
     clientPrivateKey: z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Client Private Key").optional(),
     clientPrivateKeyPass: z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe(
+      "Optional. Secret containing the passphrase protecting the Client Private Key",
+    ).optional(),
     privateServerCertificate: z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe(
+      "Optional. Private Server Certificate. Needs to be specified if trust model is `PRIVATE`.",
+    ).optional(),
     serverCertType: z.enum(["CERT_TYPE_UNSPECIFIED", "PEM"]).describe(
       "Optional. Type of Server Cert (PEM/JKS/.. etc.)",
     ).optional(),
@@ -2844,24 +2451,7 @@ const InputsSchema = z.object({
       "Optional. Controls the ssl type for the given connector version.",
     ).optional(),
     useSsl: z.boolean().describe("Optional. Bool for enabling SSL").optional(),
-  }).describe("SSL Configuration of a connection").optional(),
-  status: z.object({
-    description: z.string().describe("Description.").optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "INACTIVE",
-      "DELETING",
-      "UPDATING",
-      "ERROR",
-      "AUTHORIZATION_REQUIRED",
-    ]).describe("State.").optional(),
-    status: z.string().describe(
-      "Status provides detailed information for the state.",
-    ).optional(),
-  }).describe("ConnectionStatus indicates the state of the connection.")
-    .optional(),
+  }).describe("Optional. Ssl config of a connection").optional(),
   suspended: z.boolean().describe(
     "Optional. Suspended indicates if a user has suspended a connection or not.",
   ).optional(),
@@ -2905,7 +2495,24 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Connections. Registered at `@swamp/gcp/connectors/connections`. */
 export const model = {
   type: "@swamp/gcp/connectors/connections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: billingConfig, connectorVersionInfraConfig, eventingRuntimeData, status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          billingConfig: _billingConfig,
+          connectorVersionInfraConfig: _connectorVersionInfraConfig,
+          eventingRuntimeData: _eventingRuntimeData,
+          status: _status,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -2939,18 +2546,11 @@ export const model = {
         if (g["authOverrideEnabled"] !== undefined) {
           body["authOverrideEnabled"] = g["authOverrideEnabled"];
         }
-        if (g["billingConfig"] !== undefined) {
-          body["billingConfig"] = g["billingConfig"];
-        }
         if (g["configVariables"] !== undefined) {
           body["configVariables"] = g["configVariables"];
         }
         if (g["connectorVersion"] !== undefined) {
           body["connectorVersion"] = g["connectorVersion"];
-        }
-        if (g["connectorVersionInfraConfig"] !== undefined) {
-          body["connectorVersionInfraConfig"] =
-            g["connectorVersionInfraConfig"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
@@ -2967,9 +2567,6 @@ export const model = {
         if (g["eventingEnablementType"] !== undefined) {
           body["eventingEnablementType"] = g["eventingEnablementType"];
         }
-        if (g["eventingRuntimeData"] !== undefined) {
-          body["eventingRuntimeData"] = g["eventingRuntimeData"];
-        }
         if (g["fallbackOnAdminCredentials"] !== undefined) {
           body["fallbackOnAdminCredentials"] = g["fallbackOnAdminCredentials"];
         }
@@ -2981,7 +2578,6 @@ export const model = {
           body["serviceAccount"] = g["serviceAccount"];
         }
         if (g["sslConfig"] !== undefined) body["sslConfig"] = g["sslConfig"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["suspended"] !== undefined) body["suspended"] = g["suspended"];
         if (g["trafficShapingConfigs"] !== undefined) {
           body["trafficShapingConfigs"] = g["trafficShapingConfigs"];
@@ -3002,16 +2598,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -3106,18 +2693,11 @@ export const model = {
         if (g["authOverrideEnabled"] !== undefined) {
           body["authOverrideEnabled"] = g["authOverrideEnabled"];
         }
-        if (g["billingConfig"] !== undefined) {
-          body["billingConfig"] = g["billingConfig"];
-        }
         if (g["configVariables"] !== undefined) {
           body["configVariables"] = g["configVariables"];
         }
         if (g["connectorVersion"] !== undefined) {
           body["connectorVersion"] = g["connectorVersion"];
-        }
-        if (g["connectorVersionInfraConfig"] !== undefined) {
-          body["connectorVersionInfraConfig"] =
-            g["connectorVersionInfraConfig"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
@@ -3134,9 +2714,6 @@ export const model = {
         if (g["eventingEnablementType"] !== undefined) {
           body["eventingEnablementType"] = g["eventingEnablementType"];
         }
-        if (g["eventingRuntimeData"] !== undefined) {
-          body["eventingRuntimeData"] = g["eventingRuntimeData"];
-        }
         if (g["fallbackOnAdminCredentials"] !== undefined) {
           body["fallbackOnAdminCredentials"] = g["fallbackOnAdminCredentials"];
         }
@@ -3148,7 +2725,6 @@ export const model = {
           body["serviceAccount"] = g["serviceAccount"];
         }
         if (g["sslConfig"] !== undefined) body["sslConfig"] = g["sslConfig"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["suspended"] !== undefined) body["suspended"] = g["suspended"];
         if (g["trafficShapingConfigs"] !== undefined) {
           body["trafficShapingConfigs"] = g["trafficShapingConfigs"];

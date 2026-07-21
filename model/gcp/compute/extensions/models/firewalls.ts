@@ -213,7 +213,9 @@ const GlobalArgsSchema = z.object({
     metadata: z.enum(["EXCLUDE_ALL_METADATA", "INCLUDE_ALL_METADATA"]).describe(
       "This field can only be specified for a particular firewall rule if logging is enabled for that rule. This field denotes whether to include or exclude metadata for firewall logs.",
     ).optional(),
-  }).describe("The available logging options for a firewall rule.").optional(),
+  }).describe(
+    "This field denotes the logging options for a particular firewall rule. If logging is enabled, logs will be exported to Cloud Logging.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?`. The first character must be a lowercase letter, and all following characters (except for the last character) must be a dash, lowercase letter, or digit. The last character must be a lowercase letter or digit.",
@@ -225,7 +227,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional firewall parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   priority: z.number().int().describe(
     "Priority for this rule. This is an integer between `0` and `65535`, both inclusive. The default value is `1000`. Relative priorities determine which rule takes effect if multiple rules apply. Lower values indicate higher priority. For example, a rule with priority `0` has higher precedence than a rule with priority `1`. DENY rules take precedence over ALLOW rules if they have equal priority. Note that VPC networks have implied rules with a priority of `65535`. To avoid conflicts with the implied rules, use a priority number less than `65535`.",
   ).optional(),
@@ -329,7 +333,9 @@ const InputsSchema = z.object({
     metadata: z.enum(["EXCLUDE_ALL_METADATA", "INCLUDE_ALL_METADATA"]).describe(
       "This field can only be specified for a particular firewall rule if logging is enabled for that rule. This field denotes whether to include or exclude metadata for firewall logs.",
     ).optional(),
-  }).describe("The available logging options for a firewall rule.").optional(),
+  }).describe(
+    "This field denotes the logging options for a particular firewall rule. If logging is enabled, logs will be exported to Cloud Logging.",
+  ).optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource; provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?`. The first character must be a lowercase letter, and all following characters (except for the last character) must be a dash, lowercase letter, or digit. The last character must be a lowercase letter or digit.",
@@ -341,7 +347,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional firewall parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   priority: z.number().int().describe(
     "Priority for this rule. This is an integer between `0` and `65535`, both inclusive. The default value is `1000`. Relative priorities determine which rule takes effect if multiple rules apply. Lower values indicate higher priority. For example, a rule with priority `0` has higher precedence than a rule with priority `1`. DENY rules take precedence over ALLOW rules if they have equal priority. Note that VPC networks have implied rules with a priority of `65535`. To avoid conflicts with the implied rules, use a priority number less than `65535`.",
   ).optional(),
@@ -388,7 +396,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Firewalls. Registered at `@swamp/gcp/compute/firewalls`. */
 export const model = {
   type: "@swamp/gcp/compute/firewalls",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -492,6 +500,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

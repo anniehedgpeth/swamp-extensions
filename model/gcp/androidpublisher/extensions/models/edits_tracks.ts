@@ -182,7 +182,9 @@ const GlobalArgsSchema = z.object({
       includeRestOfWorld: z.boolean().describe(
         'Include "rest of world" as well as explicitly targeted countries.',
       ).optional(),
-    }).describe("Country targeting specification.").optional(),
+    }).describe(
+      "Restricts a release to a specific set of countries. Note this is only allowed to be set for inProgress releases in the production track.",
+    ).optional(),
     inAppUpdatePriority: z.number().int().describe(
       "In-app update priority of the release. All newly added APKs in the release will be considered at this priority. Can take values in the range [0, 5], with 5 the highest priority. Defaults to 0. in_app_update_priority can not be updated once the release is rolled out. See https://developer.android.com/guide/playcore/in-app-updates.",
     ).optional(),
@@ -264,7 +266,9 @@ const InputsSchema = z.object({
       includeRestOfWorld: z.boolean().describe(
         'Include "rest of world" as well as explicitly targeted countries.',
       ).optional(),
-    }).describe("Country targeting specification.").optional(),
+    }).describe(
+      "Restricts a release to a specific set of countries. Note this is only allowed to be set for inProgress releases in the production track.",
+    ).optional(),
     inAppUpdatePriority: z.number().int().describe(
       "In-app update priority of the release. All newly added APKs in the release will be considered at this priority. Can take values in the range [0, 5], with 5 the highest priority. Defaults to 0. in_app_update_priority can not be updated once the release is rolled out. See https://developer.android.com/guide/playcore/in-app-updates.",
     ).optional(),
@@ -321,7 +325,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Edits.Tracks. Registered at `@swamp/gcp/androidpublisher/edits-tracks`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/edits-tracks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -413,6 +417,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -449,15 +458,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "packageName": String(g["packageName"] ?? ""),
-              "editId": String(g["editId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

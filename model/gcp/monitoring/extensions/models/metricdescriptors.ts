@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
       ]),
     ).describe("The scope of the timeseries data of the metric.").optional(),
   }).describe(
-    "Additional annotations that can be used to guide the usage of a metric.",
+    "Optional. Metadata which can be used to guide usage of the metric.",
   ).optional(),
   metricKind: z.enum([
     "METRIC_KIND_UNSPECIFIED",
@@ -311,7 +311,7 @@ const InputsSchema = z.object({
       ]),
     ).describe("The scope of the timeseries data of the metric.").optional(),
   }).describe(
-    "Additional annotations that can be used to guide the usage of a metric.",
+    "Optional. Metadata which can be used to guide usage of the metric.",
   ).optional(),
   metricKind: z.enum([
     "METRIC_KIND_UNSPECIFIED",
@@ -368,7 +368,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring MetricDescriptors. Registered at `@swamp/gcp/monitoring/metricdescriptors`. */
 export const model = {
   type: "@swamp/gcp/monitoring/metricdescriptors",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -462,6 +462,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

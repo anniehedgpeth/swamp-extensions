@@ -164,19 +164,6 @@ const GlobalArgsSchema = z.object({
   scope: z.string().describe(
     "A Scope resource name in the format `projects/*/locations/*/scopes/*`.",
   ).optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe(
-      "Output only. The current state of the MembershipBinding resource.",
-    ).optional(),
-  }).describe(
-    "MembershipBindingLifecycleState describes the state of a Binding resource.",
-  ).optional(),
   membershipBindingId: z.string().describe(
     "Required. The ID to use for the MembershipBinding.",
   ).optional(),
@@ -217,19 +204,6 @@ const InputsSchema = z.object({
   scope: z.string().describe(
     "A Scope resource name in the format `projects/*/locations/*/scopes/*`.",
   ).optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe(
-      "Output only. The current state of the MembershipBinding resource.",
-    ).optional(),
-  }).describe(
-    "MembershipBindingLifecycleState describes the state of a Binding resource.",
-  ).optional(),
   membershipBindingId: z.string().describe(
     "Required. The ID to use for the MembershipBinding.",
   ).optional(),
@@ -264,7 +238,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Memberships.Bindings. Registered at `@swamp/gcp/gkehub/memberships-bindings`. */
 export const model = {
   type: "@swamp/gcp/gkehub/memberships-bindings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -290,7 +274,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["scope"] !== undefined) body["scope"] = g["scope"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["membershipBindingId"] !== undefined) {
           params["membershipBindingId"] = String(g["membershipBindingId"]);
         }
@@ -400,7 +383,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["scope"] !== undefined) body["scope"] = g["scope"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

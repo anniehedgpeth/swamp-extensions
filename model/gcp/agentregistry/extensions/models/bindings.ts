@@ -177,7 +177,7 @@ const GlobalArgsSchema = z.object({
     scopes: z.array(z.string()).describe(
       "Optional. The list of OAuth2 scopes of the AuthProvider.",
     ).optional(),
-  }).describe("The AuthProvider of the Binding.").optional(),
+  }).describe("The binding for AuthProvider.").optional(),
   description: z.string().describe(
     "Optional. User-defined description of a Binding. Can have a maximum length of `2048` characters.",
   ).optional(),
@@ -191,12 +191,13 @@ const GlobalArgsSchema = z.object({
     identifier: z.string().describe(
       "The identifier of the source Agent. Format: * `urn:agent:{publisher}:{namespace}:{name}`",
     ).optional(),
-  }).describe("The source of the Binding.").optional(),
+  }).describe("Required. The target Agent of the Binding.").optional(),
   target: z.object({
     identifier: z.string().describe(
       "The identifier of the target Agent, MCP Server, or Endpoint. Format: * `urn:agent:{publisher}:{namespace}:{name}` * `urn:mcp:{publisher}:{namespace}:{name}` * `urn:endpoint:{publisher}:{namespace}:{name}`",
     ).optional(),
-  }).describe("The target of the Binding.").optional(),
+  }).describe("Required. The target Agent Registry Resource of the Binding.")
+    .optional(),
   bindingId: z.string().describe(
     "Required. The ID to use for the binding, which will become the final component of the binding's resource name. This value should be 4-63 characters, and must conform to RFC-1034. Specifically, it must match the regular expression `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
   ).optional(),
@@ -244,7 +245,7 @@ const InputsSchema = z.object({
     scopes: z.array(z.string()).describe(
       "Optional. The list of OAuth2 scopes of the AuthProvider.",
     ).optional(),
-  }).describe("The AuthProvider of the Binding.").optional(),
+  }).describe("The binding for AuthProvider.").optional(),
   description: z.string().describe(
     "Optional. User-defined description of a Binding. Can have a maximum length of `2048` characters.",
   ).optional(),
@@ -258,12 +259,13 @@ const InputsSchema = z.object({
     identifier: z.string().describe(
       "The identifier of the source Agent. Format: * `urn:agent:{publisher}:{namespace}:{name}`",
     ).optional(),
-  }).describe("The source of the Binding.").optional(),
+  }).describe("Required. The target Agent of the Binding.").optional(),
   target: z.object({
     identifier: z.string().describe(
       "The identifier of the target Agent, MCP Server, or Endpoint. Format: * `urn:agent:{publisher}:{namespace}:{name}` * `urn:mcp:{publisher}:{namespace}:{name}` * `urn:endpoint:{publisher}:{namespace}:{name}`",
     ).optional(),
-  }).describe("The target of the Binding.").optional(),
+  }).describe("Required. The target Agent Registry Resource of the Binding.")
+    .optional(),
   bindingId: z.string().describe(
     "Required. The ID to use for the binding, which will become the final component of the binding's resource name. This value should be 4-63 characters, and must conform to RFC-1034. Specifically, it must match the regular expression `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
   ).optional(),
@@ -298,7 +300,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Registry Bindings. Registered at `@swamp/gcp/agentregistry/bindings`. */
 export const model = {
   type: "@swamp/gcp/agentregistry/bindings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

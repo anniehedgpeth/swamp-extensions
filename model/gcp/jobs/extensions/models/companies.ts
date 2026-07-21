@@ -165,9 +165,8 @@ const GlobalArgsSchema = z.object({
           longitude: z.number().describe(
             "The longitude in degrees. It must be in the range [-180.0, +180.0].",
           ).optional(),
-        }).describe(
-          "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-        ).optional(),
+        }).describe("An object representing a latitude/longitude pair.")
+          .optional(),
         locationType: z.enum([
           "LOCATION_TYPE_UNSPECIFIED",
           "COUNTRY",
@@ -218,15 +217,15 @@ const GlobalArgsSchema = z.object({
             "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
           ).optional(),
         }).describe(
-          "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+          "Postal address of the location that includes human readable information, such as postal delivery and payments addresses. Given a postal address, a postal service can deliver items to a premises, P.O. Box, or other delivery location.",
         ).optional(),
         radiusInMiles: z.number().describe(
           'Radius in miles of the job location. This value is derived from the location bounding box in which a circle with the specified radius centered from LatLng covers the area associated with the job location. For example, currently, "Mountain View, CA, USA" has a radius of 6.17 miles.',
         ).optional(),
       }).describe(
-        "Output only. A resource that represents a location with full geographic information.",
+        "A structured headquarters location of the company, resolved from Company.hq_location if provided.",
       ).optional(),
-    }).describe("Derived details about the company.").optional(),
+    }).describe("Output only. Derived details about the company.").optional(),
     displayName: z.string().describe(
       'Required. The display name of the company, for example, "Google LLC".',
     ).optional(),
@@ -268,7 +267,7 @@ const GlobalArgsSchema = z.object({
       'Optional. The URI representing the company\'s primary web site or home page, for example, "https://www.google.com". The maximum number of allowed characters is 255.',
     ).optional(),
   }).describe(
-    "A Company resource represents a company in the service. A company is the entity that owns job postings, that is, the hiring entity responsible for employing applicants for the job position.",
+    "Required. The company resource to replace the current resource in the system.",
   ).optional(),
   updateMask: z.string().describe(
     "Optional but strongly recommended for the best service experience. If update_mask is provided, only the specified fields in company are updated. Otherwise all the fields are updated. A field mask to specify the company fields to be updated. Only top level fields of Company are supported.",
@@ -337,9 +336,8 @@ const InputsSchema = z.object({
           longitude: z.number().describe(
             "The longitude in degrees. It must be in the range [-180.0, +180.0].",
           ).optional(),
-        }).describe(
-          "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-        ).optional(),
+        }).describe("An object representing a latitude/longitude pair.")
+          .optional(),
         locationType: z.enum([
           "LOCATION_TYPE_UNSPECIFIED",
           "COUNTRY",
@@ -390,15 +388,15 @@ const InputsSchema = z.object({
             "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
           ).optional(),
         }).describe(
-          "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+          "Postal address of the location that includes human readable information, such as postal delivery and payments addresses. Given a postal address, a postal service can deliver items to a premises, P.O. Box, or other delivery location.",
         ).optional(),
         radiusInMiles: z.number().describe(
           'Radius in miles of the job location. This value is derived from the location bounding box in which a circle with the specified radius centered from LatLng covers the area associated with the job location. For example, currently, "Mountain View, CA, USA" has a radius of 6.17 miles.',
         ).optional(),
       }).describe(
-        "Output only. A resource that represents a location with full geographic information.",
+        "A structured headquarters location of the company, resolved from Company.hq_location if provided.",
       ).optional(),
-    }).describe("Derived details about the company.").optional(),
+    }).describe("Output only. Derived details about the company.").optional(),
     displayName: z.string().describe(
       'Required. The display name of the company, for example, "Google LLC".',
     ).optional(),
@@ -440,7 +438,7 @@ const InputsSchema = z.object({
       'Optional. The URI representing the company\'s primary web site or home page, for example, "https://www.google.com". The maximum number of allowed characters is 255.',
     ).optional(),
   }).describe(
-    "A Company resource represents a company in the service. A company is the entity that owns job postings, that is, the hiring entity responsible for employing applicants for the job position.",
+    "Required. The company resource to replace the current resource in the system.",
   ).optional(),
   updateMask: z.string().describe(
     "Optional but strongly recommended for the best service experience. If update_mask is provided, only the specified fields in company are updated. Otherwise all the fields are updated. A field mask to specify the company fields to be updated. Only top level fields of Company are supported.",
@@ -473,7 +471,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Talent Solution Companies. Registered at `@swamp/gcp/jobs/companies`. */
 export const model = {
   type: "@swamp/gcp/jobs/companies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -512,16 +517,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

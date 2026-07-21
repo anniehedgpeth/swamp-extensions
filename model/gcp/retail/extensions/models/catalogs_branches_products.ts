@@ -187,8 +187,9 @@ const GlobalArgsSchema = z.object({
     genders: z.array(z.string()).describe(
       'The genders of the audience. Strongly encouraged to use the standard values: "male", "female", "unisex". At most 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [gender](https://support.google.com/merchants/answer/6324479). Schema.org property [Product.audience.suggestedGender](https://schema.org/suggestedGender).',
     ).optional(),
-  }).describe("An intended audience of the Product for whom it's sold.")
-    .optional(),
+  }).describe(
+    "The target group associated with a given audience (e.g. male, veterans, car owners, musicians, etc.) of the product.",
+  ).optional(),
   availability: z.enum([
     "AVAILABILITY_UNSPECIFIED",
     "IN_STOCK",
@@ -220,7 +221,9 @@ const GlobalArgsSchema = z.object({
     colors: z.array(z.string()).describe(
       'The color display names, which may be different from standard color family names, such as the color aliases used in the website frontend. Normally it is expected to have only 1 color. May consider using single "Mixed" instead of multiple values. A maximum of 75 colors are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color).',
     ).optional(),
-  }).describe("The color information of a Product.").optional(),
+  }).describe(
+    "The color of the product. Corresponding properties: Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color).",
+  ).optional(),
   conditions: z.array(z.string()).describe(
     'The condition of the product. Strongly encouraged to use the standard values: "new", "refurbished", "used". A maximum of 1 value is allowed per Product. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [condition](https://support.google.com/merchants/answer/6324469). Schema.org property [Offer.itemCondition](https://schema.org/itemCondition).',
   ).optional(),
@@ -298,7 +301,9 @@ const GlobalArgsSchema = z.object({
           .optional(),
         maximum: z.number().describe("Inclusive upper bound.").optional(),
         minimum: z.number().describe("Inclusive lower bound.").optional(),
-      }).describe("A floating point interval.").optional(),
+      }).describe(
+        "The inclusive Product.pricing_info.original_price internal of all variant Product having the same Product.primary_product_id.",
+      ).optional(),
       price: z.object({
         exclusiveMaximum: z.number().describe("Exclusive upper bound.")
           .optional(),
@@ -306,11 +311,15 @@ const GlobalArgsSchema = z.object({
           .optional(),
         maximum: z.number().describe("Inclusive upper bound.").optional(),
         minimum: z.number().describe("Inclusive lower bound.").optional(),
-      }).describe("A floating point interval.").optional(),
+      }).describe(
+        "The inclusive Product.pricing_info.price interval of all variant Product having the same Product.primary_product_id.",
+      ).optional(),
     }).describe(
-      "The price range of all variant Product having the same Product.primary_product_id.",
+      "Output only. The price range of all the child Product.Type.VARIANT Products grouped together on the Product.Type.PRIMARY Product. Only populated for Product.Type.PRIMARY Products. Note: This field is OUTPUT_ONLY for ProductService.GetProduct. Do not set this field in API requests.",
     ).optional(),
-  }).describe("The price information of a Product.").optional(),
+  }).describe(
+    "Product price and cost information. Corresponding properties: Google Merchant Center property [price](https://support.google.com/merchants/answer/6324371).",
+  ).optional(),
   primaryProductId: z.string().describe(
     "Variant group identifier. Must be an id, with the same parent branch with this product. Otherwise, an error is thrown. For Type.PRIMARY Products, this field can only be empty or set to the same value as id. For VARIANT Products, this field cannot be empty. A maximum of 2,000 products are allowed to share the same Type.PRIMARY Product. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [item_group_id](https://support.google.com/merchants/answer/6324507). Schema.org property [Product.inProductGroupWithID](https://schema.org/inProductGroupWithID).",
   ).optional(),
@@ -334,7 +343,7 @@ const GlobalArgsSchema = z.object({
     ratingHistogram: z.array(z.number().int()).describe(
       "List of rating counts per rating value (index = rating - 1). The list is empty if there is no rating. If the list is non-empty, its size is always 5. Otherwise, an INVALID_ARGUMENT error is returned. For example, [41, 14, 13, 47, 303]. It means that the Product got 41 ratings with 1 star, 14 ratings with 2 star, and so on.",
     ).optional(),
-  }).describe("The rating of a Product.").optional(),
+  }).describe("The rating of this product.").optional(),
   sizes: z.array(z.string()).describe(
     'The size of the product. To represent different size systems or size types, consider using this format: [[[size_system:]size_type:]size_value]. For example, in "US:MENS:M", "US" represents size system; "MENS" represents size type; "M" represents size value. In "GIRLS:27", size system is empty; "GIRLS" represents size type; "27" represents size value. In "32 inches", both size system and size type are empty, while size value is "32 inches". A maximum of 20 values are allowed per Product by default. This limit can be increased using dynamic override configurations. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [size](https://support.google.com/merchants/answer/6324492), [size_type](https://support.google.com/merchants/answer/6324497), and [size_system](https://support.google.com/merchants/answer/6324502). Schema.org property [Product.size](https://schema.org/size).',
   ).optional(),
@@ -589,8 +598,9 @@ const InputsSchema = z.object({
     genders: z.array(z.string()).describe(
       'The genders of the audience. Strongly encouraged to use the standard values: "male", "female", "unisex". At most 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [gender](https://support.google.com/merchants/answer/6324479). Schema.org property [Product.audience.suggestedGender](https://schema.org/suggestedGender).',
     ).optional(),
-  }).describe("An intended audience of the Product for whom it's sold.")
-    .optional(),
+  }).describe(
+    "The target group associated with a given audience (e.g. male, veterans, car owners, musicians, etc.) of the product.",
+  ).optional(),
   availability: z.enum([
     "AVAILABILITY_UNSPECIFIED",
     "IN_STOCK",
@@ -622,7 +632,9 @@ const InputsSchema = z.object({
     colors: z.array(z.string()).describe(
       'The color display names, which may be different from standard color family names, such as the color aliases used in the website frontend. Normally it is expected to have only 1 color. May consider using single "Mixed" instead of multiple values. A maximum of 75 colors are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color).',
     ).optional(),
-  }).describe("The color information of a Product.").optional(),
+  }).describe(
+    "The color of the product. Corresponding properties: Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color).",
+  ).optional(),
   conditions: z.array(z.string()).describe(
     'The condition of the product. Strongly encouraged to use the standard values: "new", "refurbished", "used". A maximum of 1 value is allowed per Product. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [condition](https://support.google.com/merchants/answer/6324469). Schema.org property [Offer.itemCondition](https://schema.org/itemCondition).',
   ).optional(),
@@ -700,7 +712,9 @@ const InputsSchema = z.object({
           .optional(),
         maximum: z.number().describe("Inclusive upper bound.").optional(),
         minimum: z.number().describe("Inclusive lower bound.").optional(),
-      }).describe("A floating point interval.").optional(),
+      }).describe(
+        "The inclusive Product.pricing_info.original_price internal of all variant Product having the same Product.primary_product_id.",
+      ).optional(),
       price: z.object({
         exclusiveMaximum: z.number().describe("Exclusive upper bound.")
           .optional(),
@@ -708,11 +722,15 @@ const InputsSchema = z.object({
           .optional(),
         maximum: z.number().describe("Inclusive upper bound.").optional(),
         minimum: z.number().describe("Inclusive lower bound.").optional(),
-      }).describe("A floating point interval.").optional(),
+      }).describe(
+        "The inclusive Product.pricing_info.price interval of all variant Product having the same Product.primary_product_id.",
+      ).optional(),
     }).describe(
-      "The price range of all variant Product having the same Product.primary_product_id.",
+      "Output only. The price range of all the child Product.Type.VARIANT Products grouped together on the Product.Type.PRIMARY Product. Only populated for Product.Type.PRIMARY Products. Note: This field is OUTPUT_ONLY for ProductService.GetProduct. Do not set this field in API requests.",
     ).optional(),
-  }).describe("The price information of a Product.").optional(),
+  }).describe(
+    "Product price and cost information. Corresponding properties: Google Merchant Center property [price](https://support.google.com/merchants/answer/6324371).",
+  ).optional(),
   primaryProductId: z.string().describe(
     "Variant group identifier. Must be an id, with the same parent branch with this product. Otherwise, an error is thrown. For Type.PRIMARY Products, this field can only be empty or set to the same value as id. For VARIANT Products, this field cannot be empty. A maximum of 2,000 products are allowed to share the same Type.PRIMARY Product. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [item_group_id](https://support.google.com/merchants/answer/6324507). Schema.org property [Product.inProductGroupWithID](https://schema.org/inProductGroupWithID).",
   ).optional(),
@@ -736,7 +754,7 @@ const InputsSchema = z.object({
     ratingHistogram: z.array(z.number().int()).describe(
       "List of rating counts per rating value (index = rating - 1). The list is empty if there is no rating. If the list is non-empty, its size is always 5. Otherwise, an INVALID_ARGUMENT error is returned. For example, [41, 14, 13, 47, 303]. It means that the Product got 41 ratings with 1 star, 14 ratings with 2 star, and so on.",
     ).optional(),
-  }).describe("The rating of a Product.").optional(),
+  }).describe("The rating of this product.").optional(),
   sizes: z.array(z.string()).describe(
     'The size of the product. To represent different size systems or size types, consider using this format: [[[size_system:]size_type:]size_value]. For example, in "US:MENS:M", "US" represents size system; "MENS" represents size type; "M" represents size value. In "GIRLS:27", size system is empty; "GIRLS" represents size type; "27" represents size value. In "32 inches", both size system and size type are empty, while size value is "32 inches". A maximum of 20 values are allowed per Product by default. This limit can be increased using dynamic override configurations. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Corresponding properties: Google Merchant Center property [size](https://support.google.com/merchants/answer/6324492), [size_type](https://support.google.com/merchants/answer/6324497), and [size_system](https://support.google.com/merchants/answer/6324502). Schema.org property [Product.size](https://schema.org/size).',
   ).optional(),
@@ -790,7 +808,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.Branches.Products. Registered at `@swamp/gcp/retail/catalogs-branches-products`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs-branches-products",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -914,6 +932,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

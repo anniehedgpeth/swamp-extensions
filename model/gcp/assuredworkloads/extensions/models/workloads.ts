@@ -211,48 +211,9 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "Required. Immutable. Compliance Regime associated with this workload.",
   ).optional(),
-  complianceStatus: z.object({
-    acknowledgedResourceViolationCount: z.number().int().describe(
-      "Number of current resource violations which are not acknowledged.",
-    ).optional(),
-    acknowledgedViolationCount: z.number().int().describe(
-      "Number of current orgPolicy violations which are acknowledged.",
-    ).optional(),
-    activeResourceViolationCount: z.number().int().describe(
-      "Number of current resource violations which are acknowledged.",
-    ).optional(),
-    activeViolationCount: z.number().int().describe(
-      "Number of current orgPolicy violations which are not acknowledged.",
-    ).optional(),
-  }).describe("Represents the Compliance Status of this workload").optional(),
   displayName: z.string().describe(
     "Required. The user-assigned display name of the Workload. When present it must be between 4 to 30 characters. Allowed characters are: lowercase and uppercase letters, numbers, hyphen, and spaces. Example: My Workload",
   ).optional(),
-  ekmProvisioningResponse: z.object({
-    ekmProvisioningErrorDomain: z.enum([
-      "EKM_PROVISIONING_ERROR_DOMAIN_UNSPECIFIED",
-      "UNSPECIFIED_ERROR",
-      "GOOGLE_SERVER_ERROR",
-      "EXTERNAL_USER_ERROR",
-      "EXTERNAL_PARTNER_ERROR",
-      "TIMEOUT_ERROR",
-    ]).describe("Indicates Ekm provisioning error if any.").optional(),
-    ekmProvisioningErrorMapping: z.enum([
-      "EKM_PROVISIONING_ERROR_MAPPING_UNSPECIFIED",
-      "INVALID_SERVICE_ACCOUNT",
-      "MISSING_METRICS_SCOPE_ADMIN_PERMISSION",
-      "MISSING_EKM_CONNECTION_ADMIN_PERMISSION",
-    ]).describe("Detailed error message if Ekm provisioning fails").optional(),
-    ekmProvisioningState: z.enum([
-      "EKM_PROVISIONING_STATE_UNSPECIFIED",
-      "EKM_PROVISIONING_STATE_PENDING",
-      "EKM_PROVISIONING_STATE_FAILED",
-      "EKM_PROVISIONING_STATE_COMPLETED",
-    ]).describe(
-      "Output only. Indicates Ekm enrollment Provisioning of a given workload.",
-    ).optional(),
-  }).describe("External key management systems(EKM) Provisioning response")
-    .optional(),
   enableSovereignControls: z.boolean().describe(
     "Optional. Indicates the sovereignty status of the given workload. Currently meant to be used by Europe/Canada customers.",
   ).optional(),
@@ -287,7 +248,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Allow partner to view access approval logs.",
     ).optional(),
   }).describe(
-    "Permissions granted to the AW Partner SA account for the customer workload",
+    "Optional. Permissions granted to the AW Partner SA account for the customer workload",
   ).optional(),
   partnerServicesBillingAccount: z.string().describe(
     "Optional. Billing account necessary for purchasing services from Sovereign Partners. This field is required for creating SIA/PSN/CNTXT/Telefonica partner workloads. The caller should have 'billing.resourceAssociations.create' IAM permission on this billing-account. The format of this string is billingAccounts/AAAAAA-BBBBBB-CCCCCC",
@@ -314,24 +275,6 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Input only. Resource properties that are used to customize workload resources. These properties (such as custom project id) will be used to create workload resources if possible. This field is optional.",
   ).optional(),
-  saaEnrollmentResponse: z.object({
-    setupErrors: z.array(
-      z.enum([
-        "SETUP_ERROR_UNSPECIFIED",
-        "ERROR_INVALID_BASE_SETUP",
-        "ERROR_MISSING_EXTERNAL_SIGNING_KEY",
-        "ERROR_NOT_ALL_SERVICES_ENROLLED",
-        "ERROR_SETUP_CHECK_FAILED",
-      ]),
-    ).describe("Indicates SAA enrollment setup error if any.").optional(),
-    setupStatus: z.enum([
-      "SETUP_STATE_UNSPECIFIED",
-      "STATUS_PENDING",
-      "STATUS_COMPLETE",
-    ]).describe(
-      "Output only. Indicates SAA enrollment status of a given workload.",
-    ).optional(),
-  }).describe("Signed Access Approvals (SAA) enrollment response.").optional(),
   violationNotificationsEnabled: z.boolean().describe(
     "Optional. Indicates whether the e-mail notification for a violation is enabled for a workload. This value will be by default True, and if not present will be considered as true. This should only be updated via updateWorkload call. Any Changes to this field during the createWorkload call will not be honored. This will always be true while creating the workload.",
   ).optional(),
@@ -341,7 +284,8 @@ const GlobalArgsSchema = z.object({
       "KEY_ACCESS_TRANSPARENCY_OFF",
     ]).describe("Optional. Specifies type of KAJ Enrollment if provided.")
       .optional(),
-  }).describe("Options to be set for the given created workload.").optional(),
+  }).describe("Optional. Options to be set for the given created workload.")
+    .optional(),
   externalId: z.string().describe(
     "Optional. A identifier associated with the workload and underlying projects which allows for the break down of billing costs for a workload. The value provided for the identifier will add a label to the workload and contained projects with the identifier as the value.",
   ).optional(),
@@ -465,48 +409,9 @@ const InputsSchema = z.object({
   ]).describe(
     "Required. Immutable. Compliance Regime associated with this workload.",
   ).optional(),
-  complianceStatus: z.object({
-    acknowledgedResourceViolationCount: z.number().int().describe(
-      "Number of current resource violations which are not acknowledged.",
-    ).optional(),
-    acknowledgedViolationCount: z.number().int().describe(
-      "Number of current orgPolicy violations which are acknowledged.",
-    ).optional(),
-    activeResourceViolationCount: z.number().int().describe(
-      "Number of current resource violations which are acknowledged.",
-    ).optional(),
-    activeViolationCount: z.number().int().describe(
-      "Number of current orgPolicy violations which are not acknowledged.",
-    ).optional(),
-  }).describe("Represents the Compliance Status of this workload").optional(),
   displayName: z.string().describe(
     "Required. The user-assigned display name of the Workload. When present it must be between 4 to 30 characters. Allowed characters are: lowercase and uppercase letters, numbers, hyphen, and spaces. Example: My Workload",
   ).optional(),
-  ekmProvisioningResponse: z.object({
-    ekmProvisioningErrorDomain: z.enum([
-      "EKM_PROVISIONING_ERROR_DOMAIN_UNSPECIFIED",
-      "UNSPECIFIED_ERROR",
-      "GOOGLE_SERVER_ERROR",
-      "EXTERNAL_USER_ERROR",
-      "EXTERNAL_PARTNER_ERROR",
-      "TIMEOUT_ERROR",
-    ]).describe("Indicates Ekm provisioning error if any.").optional(),
-    ekmProvisioningErrorMapping: z.enum([
-      "EKM_PROVISIONING_ERROR_MAPPING_UNSPECIFIED",
-      "INVALID_SERVICE_ACCOUNT",
-      "MISSING_METRICS_SCOPE_ADMIN_PERMISSION",
-      "MISSING_EKM_CONNECTION_ADMIN_PERMISSION",
-    ]).describe("Detailed error message if Ekm provisioning fails").optional(),
-    ekmProvisioningState: z.enum([
-      "EKM_PROVISIONING_STATE_UNSPECIFIED",
-      "EKM_PROVISIONING_STATE_PENDING",
-      "EKM_PROVISIONING_STATE_FAILED",
-      "EKM_PROVISIONING_STATE_COMPLETED",
-    ]).describe(
-      "Output only. Indicates Ekm enrollment Provisioning of a given workload.",
-    ).optional(),
-  }).describe("External key management systems(EKM) Provisioning response")
-    .optional(),
   enableSovereignControls: z.boolean().describe(
     "Optional. Indicates the sovereignty status of the given workload. Currently meant to be used by Europe/Canada customers.",
   ).optional(),
@@ -541,7 +446,7 @@ const InputsSchema = z.object({
       "Optional. Allow partner to view access approval logs.",
     ).optional(),
   }).describe(
-    "Permissions granted to the AW Partner SA account for the customer workload",
+    "Optional. Permissions granted to the AW Partner SA account for the customer workload",
   ).optional(),
   partnerServicesBillingAccount: z.string().describe(
     "Optional. Billing account necessary for purchasing services from Sovereign Partners. This field is required for creating SIA/PSN/CNTXT/Telefonica partner workloads. The caller should have 'billing.resourceAssociations.create' IAM permission on this billing-account. The format of this string is billingAccounts/AAAAAA-BBBBBB-CCCCCC",
@@ -568,24 +473,6 @@ const InputsSchema = z.object({
   })).describe(
     "Input only. Resource properties that are used to customize workload resources. These properties (such as custom project id) will be used to create workload resources if possible. This field is optional.",
   ).optional(),
-  saaEnrollmentResponse: z.object({
-    setupErrors: z.array(
-      z.enum([
-        "SETUP_ERROR_UNSPECIFIED",
-        "ERROR_INVALID_BASE_SETUP",
-        "ERROR_MISSING_EXTERNAL_SIGNING_KEY",
-        "ERROR_NOT_ALL_SERVICES_ENROLLED",
-        "ERROR_SETUP_CHECK_FAILED",
-      ]),
-    ).describe("Indicates SAA enrollment setup error if any.").optional(),
-    setupStatus: z.enum([
-      "SETUP_STATE_UNSPECIFIED",
-      "STATUS_PENDING",
-      "STATUS_COMPLETE",
-    ]).describe(
-      "Output only. Indicates SAA enrollment status of a given workload.",
-    ).optional(),
-  }).describe("Signed Access Approvals (SAA) enrollment response.").optional(),
   violationNotificationsEnabled: z.boolean().describe(
     "Optional. Indicates whether the e-mail notification for a violation is enabled for a workload. This value will be by default True, and if not present will be considered as true. This should only be updated via updateWorkload call. Any Changes to this field during the createWorkload call will not be honored. This will always be true while creating the workload.",
   ).optional(),
@@ -595,7 +482,8 @@ const InputsSchema = z.object({
       "KEY_ACCESS_TRANSPARENCY_OFF",
     ]).describe("Optional. Specifies type of KAJ Enrollment if provided.")
       .optional(),
-  }).describe("Options to be set for the given created workload.").optional(),
+  }).describe("Optional. Options to be set for the given created workload.")
+    .optional(),
   externalId: z.string().describe(
     "Optional. A identifier associated with the workload and underlying projects which allows for the break down of billing costs for a workload. The value provided for the identifier will add a label to the workload and contained projects with the identifier as the value.",
   ).optional(),
@@ -627,7 +515,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Assured Workloads Workloads. Registered at `@swamp/gcp/assuredworkloads/workloads`. */
 export const model = {
   type: "@swamp/gcp/assuredworkloads/workloads",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -739,6 +627,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: complianceStatus, ekmProvisioningResponse, saaEnrollmentResponse",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          complianceStatus: _complianceStatus,
+          ekmProvisioningResponse: _ekmProvisioningResponse,
+          saaEnrollmentResponse: _saaEnrollmentResponse,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -768,14 +670,8 @@ export const model = {
         if (g["complianceRegime"] !== undefined) {
           body["complianceRegime"] = g["complianceRegime"];
         }
-        if (g["complianceStatus"] !== undefined) {
-          body["complianceStatus"] = g["complianceStatus"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["ekmProvisioningResponse"] !== undefined) {
-          body["ekmProvisioningResponse"] = g["ekmProvisioningResponse"];
         }
         if (g["enableSovereignControls"] !== undefined) {
           body["enableSovereignControls"] = g["enableSovereignControls"];
@@ -795,9 +691,6 @@ export const model = {
         }
         if (g["resourceSettings"] !== undefined) {
           body["resourceSettings"] = g["resourceSettings"];
-        }
-        if (g["saaEnrollmentResponse"] !== undefined) {
-          body["saaEnrollmentResponse"] = g["saaEnrollmentResponse"];
         }
         if (g["violationNotificationsEnabled"] !== undefined) {
           body["violationNotificationsEnabled"] =
@@ -916,14 +809,8 @@ export const model = {
         if (g["billingAccount"] !== undefined) {
           body["billingAccount"] = g["billingAccount"];
         }
-        if (g["complianceStatus"] !== undefined) {
-          body["complianceStatus"] = g["complianceStatus"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["ekmProvisioningResponse"] !== undefined) {
-          body["ekmProvisioningResponse"] = g["ekmProvisioningResponse"];
         }
         if (g["enableSovereignControls"] !== undefined) {
           body["enableSovereignControls"] = g["enableSovereignControls"];
@@ -942,9 +829,6 @@ export const model = {
         }
         if (g["resourceSettings"] !== undefined) {
           body["resourceSettings"] = g["resourceSettings"];
-        }
-        if (g["saaEnrollmentResponse"] !== undefined) {
-          body["saaEnrollmentResponse"] = g["saaEnrollmentResponse"];
         }
         if (g["violationNotificationsEnabled"] !== undefined) {
           body["violationNotificationsEnabled"] =

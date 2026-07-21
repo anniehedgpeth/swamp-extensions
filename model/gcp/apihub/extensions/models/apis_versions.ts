@@ -179,23 +179,33 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The accreditations associated with the API version. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-accreditation` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.",
+  ).optional(),
   attributes: z.record(
     z.string(),
     z.object({
@@ -219,25 +229,30 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the Version resource. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -263,23 +278,33 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The compliance associated with the API version. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-compliance` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.",
+  ).optional(),
   deployments: z.array(z.string()).describe(
     "Optional. The deployments linked to this API version. Note: A particular API version could be deployed to multiple deployments (for dev deployment, UAT deployment, etc) Format is `projects/{project}/locations/{location}/deployments/{deployment}`",
   ).optional(),
@@ -291,7 +316,7 @@ const GlobalArgsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe("Optional. The documentation of the version.").optional(),
   lifecycle: z.object({
     attribute: z.string().describe(
       "Output only. The name of the attribute. Format: projects/{project}/locations/{location}/attributes/{attribute}",
@@ -313,23 +338,33 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The lifecycle of the API version. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-lifecycle` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The name of the version. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}`",
   ).optional(),
@@ -462,23 +497,33 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The accreditations associated with the API version. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-accreditation` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.",
+  ).optional(),
   attributes: z.record(
     z.string(),
     z.object({
@@ -502,25 +547,30 @@ const InputsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the Version resource. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -546,23 +596,33 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The compliance associated with the API version. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-compliance` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.",
+  ).optional(),
   deployments: z.array(z.string()).describe(
     "Optional. The deployments linked to this API version. Note: A particular API version could be deployed to multiple deployments (for dev deployment, UAT deployment, etc) Format is `projects/{project}/locations/{location}/deployments/{deployment}`",
   ).optional(),
@@ -574,7 +634,7 @@ const InputsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe("Optional. The documentation of the version.").optional(),
   lifecycle: z.object({
     attribute: z.string().describe(
       "Output only. The name of the attribute. Format: projects/{project}/locations/{location}/attributes/{attribute}",
@@ -596,23 +656,33 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The lifecycle of the API version. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-lifecycle` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The name of the version. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}`",
   ).optional(),
@@ -653,7 +723,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Apis.Versions. Registered at `@swamp/gcp/apihub/apis-versions`. */
 export const model = {
   type: "@swamp/gcp/apihub/apis-versions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -762,6 +832,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

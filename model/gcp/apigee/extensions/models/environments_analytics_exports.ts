@@ -116,7 +116,7 @@ const GlobalArgsSchema = z.object({
     start: z.string().describe(
       "Required. Start date of the data to export in the format `yyyy-mm-dd`. The date range begins at 00:00:00 UTC on the start date.",
     ).optional(),
-  }).describe("Date range of the data to export.").optional(),
+  }).describe("Required. Date range of the data to export.").optional(),
   description: z.string().describe("Optional. Description of the export job.")
     .optional(),
   name: z.string().describe("Required. Display name of the export job.")
@@ -161,7 +161,7 @@ const InputsSchema = z.object({
     start: z.string().describe(
       "Required. Start date of the data to export in the format `yyyy-mm-dd`. The date range begins at 00:00:00 UTC on the start date.",
     ).optional(),
-  }).describe("Date range of the data to export.").optional(),
+  }).describe("Required. Date range of the data to export.").optional(),
   description: z.string().describe("Optional. Description of the export job.")
     .optional(),
   name: z.string().describe("Required. Display name of the export job.")
@@ -197,7 +197,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.Analytics.Exports. Registered at `@swamp/gcp/apigee/environments-analytics-exports`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-analytics-exports",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -296,6 +296,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

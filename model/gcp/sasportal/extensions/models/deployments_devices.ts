@@ -126,7 +126,7 @@ const GlobalArgsSchema = z.object({
       supportedSpec: z.string().describe(
         "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
       ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
+    }).describe("Information about this device's air interface.").optional(),
     callSign: z.string().describe("The call sign of the device operator.")
       .optional(),
     category: z.enum([
@@ -179,8 +179,7 @@ const GlobalArgsSchema = z.object({
       verticalAccuracy: z.number().describe(
         "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
       ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
+    }).describe("Installation parameters for the device.").optional(),
     isSigned: z.boolean().describe(
       "Output only. Whether the configuration has been signed by a CPI.",
     ).optional(),
@@ -203,14 +202,16 @@ const GlobalArgsSchema = z.object({
         "The software version of the device.",
       ).optional(),
       vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
+    }).describe("Information about this device model.").optional(),
     state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
       .describe("State of the configuration.").optional(),
     updateTime: z.string().describe(
       "Output only. The last time the device configuration was edited.",
     ).optional(),
     userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
+  }).describe(
+    "Output only. Current configuration of the device as registered to the SAS.",
+  ).optional(),
   deviceMetadata: z.object({
     antennaModel: z.string().describe(
       "If populated, the Antenna Model Pattern to use. Format is: `RecordCreatorId:PatternId`",
@@ -236,10 +237,10 @@ const GlobalArgsSchema = z.object({
       state: z.enum(["STATE_UNSPECIFIED", "DRAFT", "FINAL"]).describe(
         "State of the NRQZ validation info.",
       ).optional(),
-    }).describe("Information about National Radio Quiet Zone validation.")
+    }).describe("Output only. National Radio Quiet Zone validation info.")
       .optional(),
   }).describe(
-    "Device data overridable by both SAS Portal and registration requests.",
+    "Device parameters that can be overridden by both SAS Portal and SAS registration requests.",
   ).optional(),
   displayName: z.string().describe("Device display name.").optional(),
   fccId: z.string().describe(
@@ -270,8 +271,7 @@ const GlobalArgsSchema = z.object({
       lowFrequencyMhz: z.number().describe(
         "The lowest frequency of the frequency range in MHz.",
       ).optional(),
-    }).describe("Frequency range from `low_frequency` to `high_frequency`.")
-      .optional(),
+    }).describe("The transmission frequency range.").optional(),
     grantId: z.string().describe("Grant Id.").optional(),
     lastHeartbeatTransmitExpireTime: z.string().describe(
       "The transmit expiration time of the last heartbeat.",
@@ -288,8 +288,7 @@ const GlobalArgsSchema = z.object({
         lowFrequencyMhz: z.unknown().describe(
           "The lowest frequency of the frequency range in MHz.",
         ).optional(),
-      }).describe("Frequency range from `low_frequency` to `high_frequency`.")
-        .optional(),
+      }).describe("The frequency range that the move list affects.").optional(),
     })).describe("The DPA move lists on which this grant appears.").optional(),
     state: z.enum([
       "GRANT_STATE_UNSPECIFIED",
@@ -323,7 +322,7 @@ const GlobalArgsSchema = z.object({
       supportedSpec: z.string().describe(
         "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
       ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
+    }).describe("Information about this device's air interface.").optional(),
     callSign: z.string().describe("The call sign of the device operator.")
       .optional(),
     category: z.enum([
@@ -376,8 +375,7 @@ const GlobalArgsSchema = z.object({
       verticalAccuracy: z.number().describe(
         "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
       ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
+    }).describe("Installation parameters for the device.").optional(),
     isSigned: z.boolean().describe(
       "Output only. Whether the configuration has been signed by a CPI.",
     ).optional(),
@@ -400,14 +398,15 @@ const GlobalArgsSchema = z.object({
         "The software version of the device.",
       ).optional(),
       vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
+    }).describe("Information about this device model.").optional(),
     state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
       .describe("State of the configuration.").optional(),
     updateTime: z.string().describe(
       "Output only. The last time the device configuration was edited.",
     ).optional(),
     userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
+  }).describe("Configuration of the device, as specified via SAS Portal API.")
+    .optional(),
   serialNumber: z.string().describe(
     "A serial number assigned to the device by the device manufacturer.",
   ).optional(),
@@ -569,7 +568,7 @@ const InputsSchema = z.object({
       supportedSpec: z.string().describe(
         "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
       ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
+    }).describe("Information about this device's air interface.").optional(),
     callSign: z.string().describe("The call sign of the device operator.")
       .optional(),
     category: z.enum([
@@ -622,8 +621,7 @@ const InputsSchema = z.object({
       verticalAccuracy: z.number().describe(
         "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
       ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
+    }).describe("Installation parameters for the device.").optional(),
     isSigned: z.boolean().describe(
       "Output only. Whether the configuration has been signed by a CPI.",
     ).optional(),
@@ -646,14 +644,16 @@ const InputsSchema = z.object({
         "The software version of the device.",
       ).optional(),
       vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
+    }).describe("Information about this device model.").optional(),
     state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
       .describe("State of the configuration.").optional(),
     updateTime: z.string().describe(
       "Output only. The last time the device configuration was edited.",
     ).optional(),
     userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
+  }).describe(
+    "Output only. Current configuration of the device as registered to the SAS.",
+  ).optional(),
   deviceMetadata: z.object({
     antennaModel: z.string().describe(
       "If populated, the Antenna Model Pattern to use. Format is: `RecordCreatorId:PatternId`",
@@ -679,10 +679,10 @@ const InputsSchema = z.object({
       state: z.enum(["STATE_UNSPECIFIED", "DRAFT", "FINAL"]).describe(
         "State of the NRQZ validation info.",
       ).optional(),
-    }).describe("Information about National Radio Quiet Zone validation.")
+    }).describe("Output only. National Radio Quiet Zone validation info.")
       .optional(),
   }).describe(
-    "Device data overridable by both SAS Portal and registration requests.",
+    "Device parameters that can be overridden by both SAS Portal and SAS registration requests.",
   ).optional(),
   displayName: z.string().describe("Device display name.").optional(),
   fccId: z.string().describe(
@@ -713,8 +713,7 @@ const InputsSchema = z.object({
       lowFrequencyMhz: z.number().describe(
         "The lowest frequency of the frequency range in MHz.",
       ).optional(),
-    }).describe("Frequency range from `low_frequency` to `high_frequency`.")
-      .optional(),
+    }).describe("The transmission frequency range.").optional(),
     grantId: z.string().describe("Grant Id.").optional(),
     lastHeartbeatTransmitExpireTime: z.string().describe(
       "The transmit expiration time of the last heartbeat.",
@@ -731,8 +730,7 @@ const InputsSchema = z.object({
         lowFrequencyMhz: z.unknown().describe(
           "The lowest frequency of the frequency range in MHz.",
         ).optional(),
-      }).describe("Frequency range from `low_frequency` to `high_frequency`.")
-        .optional(),
+      }).describe("The frequency range that the move list affects.").optional(),
     })).describe("The DPA move lists on which this grant appears.").optional(),
     state: z.enum([
       "GRANT_STATE_UNSPECIFIED",
@@ -766,7 +764,7 @@ const InputsSchema = z.object({
       supportedSpec: z.string().describe(
         "Optional. This field is related to the `radioTechnology` and provides the air interface specification that the CBSD is compliant with at the time of registration.",
       ).optional(),
-    }).describe("Information about the device's air interface.").optional(),
+    }).describe("Information about this device's air interface.").optional(),
     callSign: z.string().describe("The call sign of the device operator.")
       .optional(),
     category: z.enum([
@@ -819,8 +817,7 @@ const InputsSchema = z.object({
       verticalAccuracy: z.number().describe(
         "A positive number in meters to indicate accuracy of the device antenna vertical location. This optional parameter should only be present if its value is less than the FCC requirement of 3 meters.",
       ).optional(),
-    }).describe("Information about the device installation parameters.")
-      .optional(),
+    }).describe("Installation parameters for the device.").optional(),
     isSigned: z.boolean().describe(
       "Output only. Whether the configuration has been signed by a CPI.",
     ).optional(),
@@ -843,14 +840,15 @@ const InputsSchema = z.object({
         "The software version of the device.",
       ).optional(),
       vendor: z.string().describe("The name of the device vendor.").optional(),
-    }).describe("Information about the model of the device.").optional(),
+    }).describe("Information about this device model.").optional(),
     state: z.enum(["DEVICE_CONFIG_STATE_UNSPECIFIED", "DRAFT", "FINAL"])
       .describe("State of the configuration.").optional(),
     updateTime: z.string().describe(
       "Output only. The last time the device configuration was edited.",
     ).optional(),
     userId: z.string().describe("The identifier of a device user.").optional(),
-  }).describe("Information about the device configuration.").optional(),
+  }).describe("Configuration of the device, as specified via SAS Portal API.")
+    .optional(),
   serialNumber: z.string().describe(
     "A serial number assigned to the device by the device manufacturer.",
   ).optional(),
@@ -885,7 +883,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SAS Portal Deployments.Devices. Registered at `@swamp/gcp/sasportal/deployments-devices`. */
 export const model = {
   type: "@swamp/gcp/sasportal/deployments-devices",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -984,6 +982,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -152,14 +152,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  corpusStatus: z.object({
-    errorStatus: z.string().describe(
-      "Output only. Only when the `state` field is ERROR.",
-    ).optional(),
-    state: z.enum(["UNKNOWN", "INITIALIZED", "ACTIVE", "ERROR"]).describe(
-      "Output only. RagCorpus life state.",
-    ).optional(),
-  }).describe("RagCorpus status.").optional(),
   description: z.string().describe(
     "Optional. The description of the RagCorpus.",
   ).optional(),
@@ -171,7 +163,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Optional. Immutable. The CMEK key name used to encrypt at-rest data related to this Corpus. Only applicable to RagManagedDb option for Vector DB. This field can only be set at corpus creation time, and cannot be updated or deleted.",
   ).optional(),
   vectorDbConfig: z.object({
     apiAuth: z.object({
@@ -183,9 +175,7 @@ const GlobalArgsSchema = z.object({
           "The API key string. Either this or `api_key_secret_version` must be set.",
         ).optional(),
       }).describe("The API secret.").optional(),
-    }).describe(
-      "The generic reusable api auth config. Deprecated. Please use AuthConfig (google/cloud/aiplatform/master/auth.proto) instead.",
-    ).optional(),
+    }).describe("Authentication config for the chosen Vector DB.").optional(),
     pinecone: z.object({
       indexName: z.string().describe(
         "Pinecone index name. This value cannot be changed after it's set.",
@@ -203,9 +193,11 @@ const GlobalArgsSchema = z.object({
           "Output only. Version ID of the model that is deployed on the endpoint. Present only when the endpoint is not a publisher model.",
         ).optional(),
       }).describe(
-        "Config representing a model hosted on Vertex Prediction Endpoint.",
+        "The Vertex AI Prediction Endpoint that either refers to a publisher model or an endpoint that is hosting a 1P fine-tuned text embedding model. Endpoints hosting non-1P fine-tuned text embedding models are currently not supported. This is used for dense vector search.",
       ).optional(),
-    }).describe("Config for the embedding model to use for RAG.").optional(),
+    }).describe(
+      "Optional. Immutable. The embedding model config of the Vector DB.",
+    ).optional(),
     ragManagedDb: z.object({
       ann: z.object({
         leafCount: z.number().int().describe(
@@ -215,10 +207,12 @@ const GlobalArgsSchema = z.object({
           "The depth of the tree-based structure. Only depth values of 2 and 3 are supported. Recommended value is 2 if you have if you have O(10K) files in the RagCorpus and set this to 3 if more than that. Default value is 2.",
         ).optional(),
       }).describe(
-        "Config for ANN search. RagManagedDb uses a tree-based structure to partition data and facilitate faster searches. As a tradeoff, it requires longer indexing time and manual triggering of index rebuild via the ImportRagFiles and UpdateRagCorpus API.",
+        "Performs an ANN search on RagCorpus. Use this if you have a lot of files (> 10K) in your RagCorpus and want to reduce the search latency.",
       ).optional(),
-      knn: z.object({}).describe("Config for KNN search.").optional(),
-    }).describe("The config for the default RAG-managed Vector DB.").optional(),
+      knn: z.object({}).describe(
+        "Performs a KNN search on RagCorpus. Default choice if not specified.",
+      ).optional(),
+    }).describe("The config for the RAG-managed Vector DB.").optional(),
     vertexVectorSearch: z.object({
       index: z.string().describe(
         "The resource name of the Index. Format: `projects/{project}/locations/{location}/indexes/{index}`",
@@ -227,12 +221,13 @@ const GlobalArgsSchema = z.object({
         "The resource name of the Index Endpoint. Format: `projects/{project}/locations/{location}/indexEndpoints/{index_endpoint}`",
       ).optional(),
     }).describe("The config for the Vertex Vector Search.").optional(),
-  }).describe("Config for the Vector DB to use for RAG.").optional(),
+  }).describe("Optional. Immutable. The config for the Vector DBs.").optional(),
   vertexAiSearchConfig: z.object({
     servingConfig: z.string().describe(
       "Vertex AI Search Serving Config resource full name. For example, `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/servingConfigs/{serving_config}` or `projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/servingConfigs/{serving_config}`.",
     ).optional(),
-  }).describe("Config for the Vertex AI Search.").optional(),
+  }).describe("Optional. Immutable. The config for the Vertex AI Search.")
+    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -295,14 +290,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  corpusStatus: z.object({
-    errorStatus: z.string().describe(
-      "Output only. Only when the `state` field is ERROR.",
-    ).optional(),
-    state: z.enum(["UNKNOWN", "INITIALIZED", "ACTIVE", "ERROR"]).describe(
-      "Output only. RagCorpus life state.",
-    ).optional(),
-  }).describe("RagCorpus status.").optional(),
   description: z.string().describe(
     "Optional. The description of the RagCorpus.",
   ).optional(),
@@ -314,7 +301,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Optional. Immutable. The CMEK key name used to encrypt at-rest data related to this Corpus. Only applicable to RagManagedDb option for Vector DB. This field can only be set at corpus creation time, and cannot be updated or deleted.",
   ).optional(),
   vectorDbConfig: z.object({
     apiAuth: z.object({
@@ -326,9 +313,7 @@ const InputsSchema = z.object({
           "The API key string. Either this or `api_key_secret_version` must be set.",
         ).optional(),
       }).describe("The API secret.").optional(),
-    }).describe(
-      "The generic reusable api auth config. Deprecated. Please use AuthConfig (google/cloud/aiplatform/master/auth.proto) instead.",
-    ).optional(),
+    }).describe("Authentication config for the chosen Vector DB.").optional(),
     pinecone: z.object({
       indexName: z.string().describe(
         "Pinecone index name. This value cannot be changed after it's set.",
@@ -346,9 +331,11 @@ const InputsSchema = z.object({
           "Output only. Version ID of the model that is deployed on the endpoint. Present only when the endpoint is not a publisher model.",
         ).optional(),
       }).describe(
-        "Config representing a model hosted on Vertex Prediction Endpoint.",
+        "The Vertex AI Prediction Endpoint that either refers to a publisher model or an endpoint that is hosting a 1P fine-tuned text embedding model. Endpoints hosting non-1P fine-tuned text embedding models are currently not supported. This is used for dense vector search.",
       ).optional(),
-    }).describe("Config for the embedding model to use for RAG.").optional(),
+    }).describe(
+      "Optional. Immutable. The embedding model config of the Vector DB.",
+    ).optional(),
     ragManagedDb: z.object({
       ann: z.object({
         leafCount: z.number().int().describe(
@@ -358,10 +345,12 @@ const InputsSchema = z.object({
           "The depth of the tree-based structure. Only depth values of 2 and 3 are supported. Recommended value is 2 if you have if you have O(10K) files in the RagCorpus and set this to 3 if more than that. Default value is 2.",
         ).optional(),
       }).describe(
-        "Config for ANN search. RagManagedDb uses a tree-based structure to partition data and facilitate faster searches. As a tradeoff, it requires longer indexing time and manual triggering of index rebuild via the ImportRagFiles and UpdateRagCorpus API.",
+        "Performs an ANN search on RagCorpus. Use this if you have a lot of files (> 10K) in your RagCorpus and want to reduce the search latency.",
       ).optional(),
-      knn: z.object({}).describe("Config for KNN search.").optional(),
-    }).describe("The config for the default RAG-managed Vector DB.").optional(),
+      knn: z.object({}).describe(
+        "Performs a KNN search on RagCorpus. Default choice if not specified.",
+      ).optional(),
+    }).describe("The config for the RAG-managed Vector DB.").optional(),
     vertexVectorSearch: z.object({
       index: z.string().describe(
         "The resource name of the Index. Format: `projects/{project}/locations/{location}/indexes/{index}`",
@@ -370,12 +359,13 @@ const InputsSchema = z.object({
         "The resource name of the Index Endpoint. Format: `projects/{project}/locations/{location}/indexEndpoints/{index_endpoint}`",
       ).optional(),
     }).describe("The config for the Vertex Vector Search.").optional(),
-  }).describe("Config for the Vector DB to use for RAG.").optional(),
+  }).describe("Optional. Immutable. The config for the Vector DBs.").optional(),
   vertexAiSearchConfig: z.object({
     servingConfig: z.string().describe(
       "Vertex AI Search Serving Config resource full name. For example, `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/servingConfigs/{serving_config}` or `projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/servingConfigs/{serving_config}`.",
     ).optional(),
-  }).describe("Config for the Vertex AI Search.").optional(),
+  }).describe("Optional. Immutable. The config for the Vertex AI Search.")
+    .optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -404,7 +394,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform RagCorpora. Registered at `@swamp/gcp/aiplatform/ragcorpora`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/ragcorpora",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -531,6 +521,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: corpusStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { corpusStatus: _corpusStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -556,9 +554,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["corpusStatus"] !== undefined) {
-          body["corpusStatus"] = g["corpusStatus"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -681,23 +676,11 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["corpusStatus"] !== undefined) {
-          body["corpusStatus"] = g["corpusStatus"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["encryptionSpec"] !== undefined) {
-          body["encryptionSpec"] = g["encryptionSpec"];
-        }
-        if (g["vectorDbConfig"] !== undefined) {
-          body["vectorDbConfig"] = g["vectorDbConfig"];
-        }
-        if (g["vertexAiSearchConfig"] !== undefined) {
-          body["vertexAiSearchConfig"] = g["vertexAiSearchConfig"];
         }
         for (const key of Object.keys(existing)) {
           if (

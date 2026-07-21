@@ -156,9 +156,7 @@ const GlobalArgsSchema = z.object({
       numLocalSsds: z.number().int().describe(
         "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
       ).optional(),
-    }).describe(
-      "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-    ).optional(),
+    }).describe("Optional. Disk option config settings.").optional(),
     imageUri: z.string().describe(
       "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
     ).optional(),
@@ -190,7 +188,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
           ).optional(),
         }).describe(
-          "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
         ).optional(),
         machineTypes: z.array(z.unknown()).describe(
           'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -219,10 +217,10 @@ const GlobalArgsSchema = z.object({
           "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
         ).optional(),
       }).describe(
-        "Defines how to create VMs with a mixture of provisioning models.",
+        "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
       ).optional(),
     }).describe(
-      "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+      "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
     ).optional(),
     instanceNames: z.array(z.string()).describe(
       "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -259,7 +257,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The name of the Instance Template used for the Managed Instance Group.",
       ).optional(),
     }).describe(
-      "Specifies the resources used to actively manage an instance group.",
+      "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
     ).optional(),
     minCpuPlatform: z.string().describe(
       "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -283,11 +281,10 @@ const GlobalArgsSchema = z.object({
         "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
       ).optional(),
     }).describe(
-      "Configuration to handle the startup of instances during cluster create and update process.",
+      "Optional. Configuration to handle the startup of instances during cluster create and update process.",
     ).optional(),
-  }).describe(
-    "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
-  ).optional(),
+  }).describe("Optional. The node group instance group configuration.")
+    .optional(),
   roles: z.array(z.enum(["ROLE_UNSPECIFIED", "DRIVER"])).describe(
     "Required. Node group roles.",
   ).optional(),
@@ -442,9 +439,7 @@ const InputsSchema = z.object({
       numLocalSsds: z.number().int().describe(
         "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
       ).optional(),
-    }).describe(
-      "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-    ).optional(),
+    }).describe("Optional. Disk option config settings.").optional(),
     imageUri: z.string().describe(
       "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
     ).optional(),
@@ -476,7 +471,7 @@ const InputsSchema = z.object({
             "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
           ).optional(),
         }).describe(
-          "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+          "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
         ).optional(),
         machineTypes: z.array(z.unknown()).describe(
           'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -505,10 +500,10 @@ const InputsSchema = z.object({
           "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
         ).optional(),
       }).describe(
-        "Defines how to create VMs with a mixture of provisioning models.",
+        "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
       ).optional(),
     }).describe(
-      "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+      "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
     ).optional(),
     instanceNames: z.array(z.string()).describe(
       "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -545,7 +540,7 @@ const InputsSchema = z.object({
         "Output only. The name of the Instance Template used for the Managed Instance Group.",
       ).optional(),
     }).describe(
-      "Specifies the resources used to actively manage an instance group.",
+      "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
     ).optional(),
     minCpuPlatform: z.string().describe(
       "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -569,11 +564,10 @@ const InputsSchema = z.object({
         "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
       ).optional(),
     }).describe(
-      "Configuration to handle the startup of instances during cluster create and update process.",
+      "Optional. Configuration to handle the startup of instances during cluster create and update process.",
     ).optional(),
-  }).describe(
-    "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
-  ).optional(),
+  }).describe("Optional. The node group instance group configuration.")
+    .optional(),
   roles: z.array(z.enum(["ROLE_UNSPECIFIED", "DRIVER"])).describe(
     "Required. Node group roles.",
   ).optional(),
@@ -617,7 +611,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Clusters.NodeGroups. Registered at `@swamp/gcp/dataproc/clusters-nodegroups`. */
 export const model = {
   type: "@swamp/gcp/dataproc/clusters-nodegroups",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -761,6 +755,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

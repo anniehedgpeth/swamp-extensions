@@ -157,49 +157,23 @@ const GlobalArgsSchema = z.object({
         manifestLocation: z.string().describe(
           "Required. Specify the manifest file location. The format of manifest location can be an absolute path to the object in the format of `gs://bucket_name/path/object_name`. For example, `gs://bucket_name/path/object_name.csv`. Alternatively, you can specify an absolute path with a single wildcard character in the file name, for example `gs://bucket_name/path/file_name*.csv`. If the manifest location is specified with a wildcard, objects in all manifest files matching the pattern will be acted upon. The manifest is a CSV file, uploaded to Cloud Storage, that contains one object or a list of objects that you want to process. Each row in the manifest must include the `bucket` and `name` of the object. You can optionally specify the `generation` of the object. If you don't specify the `generation`, the current version of the object is used. You can optionally include a header row with the following format: `bucket,name,generation`. For example, bucket,name,generation bucket_1,object_1,generation_1 bucket_1,object_2,generation_2 bucket_1,object_3,generation_3 Note: The manifest file must specify only objects within the bucket provided to the job. Rows referencing objects in other buckets are ignored.",
         ).optional(),
-      }).describe("Describes list of objects to be transformed.").optional(),
+      }).describe("Specifies objects in a manifest file.").optional(),
       prefixList: z.object({
         includedObjectPrefixes: z.array(z.unknown()).describe(
           "Optional. Specify one or more object prefixes. For example: * To match one object, use a single prefix, `prefix1`. * To match multiple objects, use comma-separated prefixes, `prefix1, prefix2`. * To match all objects, use an empty prefix, `''`",
         ).optional(),
-      }).describe("Describes prefixes of objects to be transformed.")
-        .optional(),
+      }).describe("Specifies objects matching a prefix set.").optional(),
     })).describe(
       "Required. List of buckets and their objects to be transformed. You can specify only one bucket per job. If multiple buckets are specified, an error occurs.",
     ).optional(),
-  }).describe("Describes list of buckets and their objects to be transformed.")
-    .optional(),
-  counters: z.object({
-    failedObjectCount: z.string().describe(
-      "Output only. The number of objects that failed due to user errors or service errors.",
-    ).optional(),
-    objectCustomContextsCreated: z.string().describe(
-      "Output only. Number of object custom contexts created. This field is only populated for jobs with the UpdateObjectCustomContext transformation.",
-    ).optional(),
-    objectCustomContextsDeleted: z.string().describe(
-      "Output only. Number of object custom contexts deleted. This field is only populated for jobs with the UpdateObjectCustomContext transformation.",
-    ).optional(),
-    objectCustomContextsUpdated: z.string().describe(
-      "Output only. Number of object custom contexts updated. This counter tracks custom contexts where the key already existed, but the payload was modified. This field is only populated for jobs with the UpdateObjectCustomContext transformation.",
-    ).optional(),
-    succeededObjectCount: z.string().describe(
-      "Output only. Number of objects completed.",
-    ).optional(),
-    totalBytesFound: z.string().describe(
-      "Output only. Number of bytes found from source. This field is only populated for jobs with a prefix list object configuration.",
-    ).optional(),
-    totalBytesTransformed: z.string().describe(
-      "Output only. The total number of bytes affected by the transformation. For example, this counts bytes deleted for `DeleteObject` operations and bytes rewritten for `RewriteObject` operations.",
-    ).optional(),
-    totalObjectCount: z.string().describe(
-      "Output only. Number of objects listed.",
-    ).optional(),
-  }).describe("Describes details about the progress of the job.").optional(),
+  }).describe(
+    "Specifies a list of buckets and their objects to be transformed.",
+  ).optional(),
   deleteObject: z.object({
     permanentObjectDeletionEnabled: z.boolean().describe(
       "Required. Controls deletion behavior when versioning is enabled for the object's bucket. If true, both live and noncurrent objects will be permanently deleted. Otherwise live objects in versioned buckets will become noncurrent and objects that were already noncurrent will be skipped. This setting doesn't have any impact on the Soft Delete feature. All objects deleted by this service can be be restored for the duration of the Soft Delete retention duration if enabled. If enabled and the manifest doesn't specify an object's generation, a `GetObjectMetadata` call is made to determine the live object generation.",
     ).optional(),
-  }).describe("Describes options to delete an object.").optional(),
+  }).describe("Delete objects.").optional(),
   description: z.string().describe(
     "Optional. A user-provided description for the job. Maximum length: 1024 bytes when unicode-encoded.",
   ).optional(),
@@ -214,7 +188,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     logActions: z.array(z.enum(["LOGGABLE_ACTION_UNSPECIFIED", "TRANSFORM"]))
       .describe("Required. Specifies the actions to be logged.").optional(),
-  }).describe("Specifies the Cloud Logging behavior.").optional(),
+  }).describe("Optional. Logging configuration.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the job. Format: `projects/{project_id}/locations/global/jobs/{job_id}`. For example: `projects/123456/locations/global/jobs/job01`. `job_id` is unique in a given project.",
   ).optional(),
@@ -233,7 +207,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
     }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+      "Optional. Filters expressed in Common Expression Language (CEL) to apply to buckets to identify buckets with objects to be transformed.",
     ).optional(),
     dryRunJobId: z.string().describe(
       "Optional. The unique identifier of a dry run job to use as the baseline for the current job. Specifying this ID ensures the job is executed against the same set of objects validated during the dry run. The value corresponds to the {job_id} segment of the resource name: `projects/{project_id}/locations/{location}/jobs/{job_id}`.",
@@ -255,7 +229,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
     }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+      "Optional. Filters expressed in Common Expression Language (CEL) to apply to objects to identify objects to be transformed.",
     ).optional(),
     project: z.string().describe(
       "Required. Project name of the objects to be transformed. e.g. projects/my-project or projects/123456.",
@@ -271,10 +245,10 @@ const GlobalArgsSchema = z.object({
         "Optional. OPTIONAL. The exact Storage Insights snapshot timestamp to use for the job compatible with the RFC 3339 format (e.g., `2024-01-02T03:04:05Z`). If specified, this exact snapshot must exist in BOTH the `object_attributes_view` and `bucket_attributes_view` for every location listed in `locations`. If the snapshot is missing from either view in any of the locations, the job fails.",
       ).optional(),
     }).describe(
-      "Describes the Cloud Storage locations to include in a ProjectSource job.",
+      "Optional. Specifies the Cloud Storage locations to include in the job. If provided, only buckets and objects within these locations will be discovered from the Storage Insights dataset as configured in the `insights_dataset_config`. If omitted, the job will discover buckets and objects from all locations configured in the `insights_dataset_config`.",
     ).optional(),
   }).describe(
-    "Describes the project source where the objects satisfying the filters will be transformed.",
+    "Specifies a project source and filters to identify objects to be transformed.",
   ).optional(),
   putMetadata: z.object({
     cacheControl: z.string().describe(
@@ -307,8 +281,12 @@ const GlobalArgsSchema = z.object({
         "LOCKED",
         "UNLOCKED",
       ]).describe("Required. The retention mode.").optional(),
-    }).describe("Describes options for object retention update.").optional(),
-  }).describe("Describes options for object metadata update.").optional(),
+    }).describe(
+      "Optional. Updates an object's retention configuration. To clear an object's retention, both `retentionMode` and `retainUntilTime` must be left unset (omitted). Setting `retentionMode` to `RETENTION_MODE_UNSPECIFIED` is treated as a no-op. Unlike an unset field, it doesn't modify or clear the retention settings. An object with `LOCKED` retention mode can't have its retention cleared or its `retainUntilTime` reduced. For more information, see [Object retention](https://cloud.google.com/storage/docs/batch-operations/create-manage-batch-operation-jobs#retain-until-time).",
+    ).optional(),
+  }).describe(
+    "Updates object metadata. Allows updating fixed-key and custom metadata. For example, `Cache-Control`, `Content-Disposition`, `Content-Encoding`, `Content-Language`, `Content-Type`, `Custom-Time`, and `Retention configuration`.",
+  ).optional(),
   putObjectHold: z.object({
     eventBasedHold: z.enum(["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"])
       .describe(
@@ -317,7 +295,7 @@ const GlobalArgsSchema = z.object({
     temporaryHold: z.enum(["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"]).describe(
       "Required. Updates object temporary holds state. When object temporary hold is set, object can't be deleted or replaced.",
     ).optional(),
-  }).describe("Describes options to update object hold.").optional(),
+  }).describe("Changes object hold status.").optional(),
   rewriteObject: z.object({
     kmsKey: z.string().describe(
       "Optional. Resource name of the Cloud KMS key that is used to encrypt the object. The Cloud KMS key must be located in same location as the object. For details, see https://cloud.google.com/storage/docs/encryption/using-customer-managed-keys#add-object-key Format: `projects/{project_id}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}` For example: `projects/123456/locations/us-central1/keyRings/my-keyring/cryptoKeys/my-key`. The object will be rewritten and set with the specified KMS key.",
@@ -331,7 +309,8 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. Rewrites the object to the specified storage class. Setting this field will perform a full byte copy of the object if the storage class is different from the object's current storage class. If Autoclass is enabled on the bucket, storage class changes are ignored by Cloud Storage.",
     ).optional(),
-  }).describe("Describes options for object rewrite.").optional(),
+  }).describe("Rewrite the object and updates metadata like KMS key.")
+    .optional(),
   setObjectAcls: z.object({
     accessControlsUpdates: z.object({
       grants: z.array(z.object({
@@ -348,9 +327,9 @@ const GlobalArgsSchema = z.object({
         "Optional. Entities for which all grants should be removed. An entity can't be in both `grants` and `remove_entities`.",
       ).optional(),
     }).describe(
-      "Represents updates to existing access-control entries on an object.",
+      "Required. Add, update, or remove grants from the object's existing ACLs.",
     ).optional(),
-  }).describe("Describes options for setting object ACLs.").optional(),
+  }).describe("Updates object ACLs.").optional(),
   updateObjectCustomContext: z.object({
     clearAll: z.boolean().describe(
       "If set, must be set to true and all existing object custom contexts are deleted.",
@@ -369,9 +348,9 @@ const GlobalArgsSchema = z.object({
       ).describe("Optional. Insert or update the existing custom contexts.")
         .optional(),
     }).describe(
-      "Describes a collection of updates to apply to custom contexts identified by key.",
+      "A collection of updates to apply to specific custom contexts. Use this to add, update or delete individual contexts by key.",
     ).optional(),
-  }).describe("Describes options to update object custom contexts.").optional(),
+  }).describe("Update object custom context.").optional(),
   jobId: z.string().describe(
     "Required. A unique identifier for the job. `job_id` must be up to 128 characters and must include only characters available in DNS names, as defined by RFC-1123.",
   ).optional(),
@@ -505,49 +484,23 @@ const InputsSchema = z.object({
         manifestLocation: z.string().describe(
           "Required. Specify the manifest file location. The format of manifest location can be an absolute path to the object in the format of `gs://bucket_name/path/object_name`. For example, `gs://bucket_name/path/object_name.csv`. Alternatively, you can specify an absolute path with a single wildcard character in the file name, for example `gs://bucket_name/path/file_name*.csv`. If the manifest location is specified with a wildcard, objects in all manifest files matching the pattern will be acted upon. The manifest is a CSV file, uploaded to Cloud Storage, that contains one object or a list of objects that you want to process. Each row in the manifest must include the `bucket` and `name` of the object. You can optionally specify the `generation` of the object. If you don't specify the `generation`, the current version of the object is used. You can optionally include a header row with the following format: `bucket,name,generation`. For example, bucket,name,generation bucket_1,object_1,generation_1 bucket_1,object_2,generation_2 bucket_1,object_3,generation_3 Note: The manifest file must specify only objects within the bucket provided to the job. Rows referencing objects in other buckets are ignored.",
         ).optional(),
-      }).describe("Describes list of objects to be transformed.").optional(),
+      }).describe("Specifies objects in a manifest file.").optional(),
       prefixList: z.object({
         includedObjectPrefixes: z.array(z.unknown()).describe(
           "Optional. Specify one or more object prefixes. For example: * To match one object, use a single prefix, `prefix1`. * To match multiple objects, use comma-separated prefixes, `prefix1, prefix2`. * To match all objects, use an empty prefix, `''`",
         ).optional(),
-      }).describe("Describes prefixes of objects to be transformed.")
-        .optional(),
+      }).describe("Specifies objects matching a prefix set.").optional(),
     })).describe(
       "Required. List of buckets and their objects to be transformed. You can specify only one bucket per job. If multiple buckets are specified, an error occurs.",
     ).optional(),
-  }).describe("Describes list of buckets and their objects to be transformed.")
-    .optional(),
-  counters: z.object({
-    failedObjectCount: z.string().describe(
-      "Output only. The number of objects that failed due to user errors or service errors.",
-    ).optional(),
-    objectCustomContextsCreated: z.string().describe(
-      "Output only. Number of object custom contexts created. This field is only populated for jobs with the UpdateObjectCustomContext transformation.",
-    ).optional(),
-    objectCustomContextsDeleted: z.string().describe(
-      "Output only. Number of object custom contexts deleted. This field is only populated for jobs with the UpdateObjectCustomContext transformation.",
-    ).optional(),
-    objectCustomContextsUpdated: z.string().describe(
-      "Output only. Number of object custom contexts updated. This counter tracks custom contexts where the key already existed, but the payload was modified. This field is only populated for jobs with the UpdateObjectCustomContext transformation.",
-    ).optional(),
-    succeededObjectCount: z.string().describe(
-      "Output only. Number of objects completed.",
-    ).optional(),
-    totalBytesFound: z.string().describe(
-      "Output only. Number of bytes found from source. This field is only populated for jobs with a prefix list object configuration.",
-    ).optional(),
-    totalBytesTransformed: z.string().describe(
-      "Output only. The total number of bytes affected by the transformation. For example, this counts bytes deleted for `DeleteObject` operations and bytes rewritten for `RewriteObject` operations.",
-    ).optional(),
-    totalObjectCount: z.string().describe(
-      "Output only. Number of objects listed.",
-    ).optional(),
-  }).describe("Describes details about the progress of the job.").optional(),
+  }).describe(
+    "Specifies a list of buckets and their objects to be transformed.",
+  ).optional(),
   deleteObject: z.object({
     permanentObjectDeletionEnabled: z.boolean().describe(
       "Required. Controls deletion behavior when versioning is enabled for the object's bucket. If true, both live and noncurrent objects will be permanently deleted. Otherwise live objects in versioned buckets will become noncurrent and objects that were already noncurrent will be skipped. This setting doesn't have any impact on the Soft Delete feature. All objects deleted by this service can be be restored for the duration of the Soft Delete retention duration if enabled. If enabled and the manifest doesn't specify an object's generation, a `GetObjectMetadata` call is made to determine the live object generation.",
     ).optional(),
-  }).describe("Describes options to delete an object.").optional(),
+  }).describe("Delete objects.").optional(),
   description: z.string().describe(
     "Optional. A user-provided description for the job. Maximum length: 1024 bytes when unicode-encoded.",
   ).optional(),
@@ -562,7 +515,7 @@ const InputsSchema = z.object({
     ).optional(),
     logActions: z.array(z.enum(["LOGGABLE_ACTION_UNSPECIFIED", "TRANSFORM"]))
       .describe("Required. Specifies the actions to be logged.").optional(),
-  }).describe("Specifies the Cloud Logging behavior.").optional(),
+  }).describe("Optional. Logging configuration.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the job. Format: `projects/{project_id}/locations/global/jobs/{job_id}`. For example: `projects/123456/locations/global/jobs/job01`. `job_id` is unique in a given project.",
   ).optional(),
@@ -581,7 +534,7 @@ const InputsSchema = z.object({
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
     }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+      "Optional. Filters expressed in Common Expression Language (CEL) to apply to buckets to identify buckets with objects to be transformed.",
     ).optional(),
     dryRunJobId: z.string().describe(
       "Optional. The unique identifier of a dry run job to use as the baseline for the current job. Specifying this ID ensures the job is executed against the same set of objects validated during the dry run. The value corresponds to the {job_id} segment of the resource name: `projects/{project_id}/locations/{location}/jobs/{job_id}`.",
@@ -603,7 +556,7 @@ const InputsSchema = z.object({
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
     }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+      "Optional. Filters expressed in Common Expression Language (CEL) to apply to objects to identify objects to be transformed.",
     ).optional(),
     project: z.string().describe(
       "Required. Project name of the objects to be transformed. e.g. projects/my-project or projects/123456.",
@@ -619,10 +572,10 @@ const InputsSchema = z.object({
         "Optional. OPTIONAL. The exact Storage Insights snapshot timestamp to use for the job compatible with the RFC 3339 format (e.g., `2024-01-02T03:04:05Z`). If specified, this exact snapshot must exist in BOTH the `object_attributes_view` and `bucket_attributes_view` for every location listed in `locations`. If the snapshot is missing from either view in any of the locations, the job fails.",
       ).optional(),
     }).describe(
-      "Describes the Cloud Storage locations to include in a ProjectSource job.",
+      "Optional. Specifies the Cloud Storage locations to include in the job. If provided, only buckets and objects within these locations will be discovered from the Storage Insights dataset as configured in the `insights_dataset_config`. If omitted, the job will discover buckets and objects from all locations configured in the `insights_dataset_config`.",
     ).optional(),
   }).describe(
-    "Describes the project source where the objects satisfying the filters will be transformed.",
+    "Specifies a project source and filters to identify objects to be transformed.",
   ).optional(),
   putMetadata: z.object({
     cacheControl: z.string().describe(
@@ -655,8 +608,12 @@ const InputsSchema = z.object({
         "LOCKED",
         "UNLOCKED",
       ]).describe("Required. The retention mode.").optional(),
-    }).describe("Describes options for object retention update.").optional(),
-  }).describe("Describes options for object metadata update.").optional(),
+    }).describe(
+      "Optional. Updates an object's retention configuration. To clear an object's retention, both `retentionMode` and `retainUntilTime` must be left unset (omitted). Setting `retentionMode` to `RETENTION_MODE_UNSPECIFIED` is treated as a no-op. Unlike an unset field, it doesn't modify or clear the retention settings. An object with `LOCKED` retention mode can't have its retention cleared or its `retainUntilTime` reduced. For more information, see [Object retention](https://cloud.google.com/storage/docs/batch-operations/create-manage-batch-operation-jobs#retain-until-time).",
+    ).optional(),
+  }).describe(
+    "Updates object metadata. Allows updating fixed-key and custom metadata. For example, `Cache-Control`, `Content-Disposition`, `Content-Encoding`, `Content-Language`, `Content-Type`, `Custom-Time`, and `Retention configuration`.",
+  ).optional(),
   putObjectHold: z.object({
     eventBasedHold: z.enum(["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"])
       .describe(
@@ -665,7 +622,7 @@ const InputsSchema = z.object({
     temporaryHold: z.enum(["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"]).describe(
       "Required. Updates object temporary holds state. When object temporary hold is set, object can't be deleted or replaced.",
     ).optional(),
-  }).describe("Describes options to update object hold.").optional(),
+  }).describe("Changes object hold status.").optional(),
   rewriteObject: z.object({
     kmsKey: z.string().describe(
       "Optional. Resource name of the Cloud KMS key that is used to encrypt the object. The Cloud KMS key must be located in same location as the object. For details, see https://cloud.google.com/storage/docs/encryption/using-customer-managed-keys#add-object-key Format: `projects/{project_id}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}` For example: `projects/123456/locations/us-central1/keyRings/my-keyring/cryptoKeys/my-key`. The object will be rewritten and set with the specified KMS key.",
@@ -679,7 +636,8 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. Rewrites the object to the specified storage class. Setting this field will perform a full byte copy of the object if the storage class is different from the object's current storage class. If Autoclass is enabled on the bucket, storage class changes are ignored by Cloud Storage.",
     ).optional(),
-  }).describe("Describes options for object rewrite.").optional(),
+  }).describe("Rewrite the object and updates metadata like KMS key.")
+    .optional(),
   setObjectAcls: z.object({
     accessControlsUpdates: z.object({
       grants: z.array(z.object({
@@ -696,9 +654,9 @@ const InputsSchema = z.object({
         "Optional. Entities for which all grants should be removed. An entity can't be in both `grants` and `remove_entities`.",
       ).optional(),
     }).describe(
-      "Represents updates to existing access-control entries on an object.",
+      "Required. Add, update, or remove grants from the object's existing ACLs.",
     ).optional(),
-  }).describe("Describes options for setting object ACLs.").optional(),
+  }).describe("Updates object ACLs.").optional(),
   updateObjectCustomContext: z.object({
     clearAll: z.boolean().describe(
       "If set, must be set to true and all existing object custom contexts are deleted.",
@@ -717,9 +675,9 @@ const InputsSchema = z.object({
       ).describe("Optional. Insert or update the existing custom contexts.")
         .optional(),
     }).describe(
-      "Describes a collection of updates to apply to custom contexts identified by key.",
+      "A collection of updates to apply to specific custom contexts. Use this to add, update or delete individual contexts by key.",
     ).optional(),
-  }).describe("Describes options to update object custom contexts.").optional(),
+  }).describe("Update object custom context.").optional(),
   jobId: z.string().describe(
     "Required. A unique identifier for the job. `job_id` must be up to 128 characters and must include only characters available in DNS names, as defined by RFC-1123.",
   ).optional(),
@@ -754,7 +712,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage Batch Operations Jobs. Registered at `@swamp/gcp/storagebatchoperations/jobs`. */
 export const model = {
   type: "@swamp/gcp/storagebatchoperations/jobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -913,6 +871,14 @@ export const model = {
       description: "Added: projectSource, setObjectAcls",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: counters",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { counters: _counters, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -942,7 +908,6 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["bucketList"] !== undefined) body["bucketList"] = g["bucketList"];
-        if (g["counters"] !== undefined) body["counters"] = g["counters"];
         if (g["deleteObject"] !== undefined) {
           body["deleteObject"] = g["deleteObject"];
         }

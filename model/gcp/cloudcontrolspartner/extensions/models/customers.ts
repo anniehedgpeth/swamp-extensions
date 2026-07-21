@@ -158,27 +158,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  customerOnboardingState: z.object({
-    onboardingSteps: z.array(z.object({
-      completionState: z.enum([
-        "COMPLETION_STATE_UNSPECIFIED",
-        "PENDING",
-        "SUCCEEDED",
-        "FAILED",
-        "NOT_APPLICABLE",
-      ]).describe("Output only. Current state of the step").optional(),
-      completionTime: z.string().describe(
-        "The completion time of the onboarding step",
-      ).optional(),
-      startTime: z.string().describe("The starting time of the onboarding step")
-        .optional(),
-      step: z.enum([
-        "STEP_UNSPECIFIED",
-        "KAJ_ENROLLMENT",
-        "CUSTOMER_ENVIRONMENT",
-      ]).describe("The onboarding step").optional(),
-    })).describe("List of customer onboarding steps").optional(),
-  }).describe("Container for customer onboarding steps").optional(),
   displayName: z.string().describe("Required. Display name for the customer")
     .optional(),
   name: z.string().describe(
@@ -214,27 +193,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  customerOnboardingState: z.object({
-    onboardingSteps: z.array(z.object({
-      completionState: z.enum([
-        "COMPLETION_STATE_UNSPECIFIED",
-        "PENDING",
-        "SUCCEEDED",
-        "FAILED",
-        "NOT_APPLICABLE",
-      ]).describe("Output only. Current state of the step").optional(),
-      completionTime: z.string().describe(
-        "The completion time of the onboarding step",
-      ).optional(),
-      startTime: z.string().describe("The starting time of the onboarding step")
-        .optional(),
-      step: z.enum([
-        "STEP_UNSPECIFIED",
-        "KAJ_ENROLLMENT",
-        "CUSTOMER_ENVIRONMENT",
-      ]).describe("The onboarding step").optional(),
-    })).describe("List of customer onboarding steps").optional(),
-  }).describe("Container for customer onboarding steps").optional(),
   displayName: z.string().describe("Required. Display name for the customer")
     .optional(),
   name: z.string().describe(
@@ -271,7 +229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Controls Partner Customers. Registered at `@swamp/gcp/cloudcontrolspartner/customers`. */
 export const model = {
   type: "@swamp/gcp/cloudcontrolspartner/customers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -373,6 +331,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: customerOnboardingState",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { customerOnboardingState: _customerOnboardingState, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -395,9 +362,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["customerOnboardingState"] !== undefined) {
-          body["customerOnboardingState"] = g["customerOnboardingState"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
@@ -509,9 +473,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["customerOnboardingState"] !== undefined) {
-          body["customerOnboardingState"] = g["customerOnboardingState"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }

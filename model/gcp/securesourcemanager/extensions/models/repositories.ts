@@ -179,7 +179,8 @@ const GlobalArgsSchema = z.object({
     readme: z.string().describe(
       "README template name. Valid template name(s) are: default.",
     ).optional(),
-  }).describe("Repository initialization configuration.").optional(),
+  }).describe("Input only. Initial configurations for the repository.")
+    .optional(),
   name: z.string().describe(
     "Identifier. A unique identifier for a repository. The name should be of the format: `projects/{project}/locations/{location_id}/repositories/{repository_id}`",
   ).optional(),
@@ -191,21 +192,11 @@ const GlobalArgsSchema = z.object({
       inspectTemplate: z.string().describe(
         "Optional. The DLP inspect template to use for secret scanning.",
       ).optional(),
-    }).describe("Configuration for secret scanning.").optional(),
-  }).describe("Configuration for scanning.").optional(),
+    }).describe("Optional. Configuration for secret scanning.").optional(),
+  }).describe("Optional. Provides configuration for scanning.").optional(),
   serviceAccount: z.string().describe(
     "Optional. Repository level service account (BYOSA).",
   ).optional(),
-  uris: z.object({
-    api: z.string().describe("Output only. API is the URI for API access.")
-      .optional(),
-    gitHttps: z.string().describe(
-      "Output only. git_https is the git HTTPS URI for git operations.",
-    ).optional(),
-    html: z.string().describe(
-      "Output only. HTML is the URI for user to view the repository in a browser.",
-    ).optional(),
-  }).describe("URIs for the repository.").optional(),
   repositoryId: z.string().describe(
     "Required. The ID to use for the repository, which will become the final component of the repository's resource name. This value should be 4-63 characters, and valid characters are /a-z-/.",
   ).optional(),
@@ -264,7 +255,8 @@ const InputsSchema = z.object({
     readme: z.string().describe(
       "README template name. Valid template name(s) are: default.",
     ).optional(),
-  }).describe("Repository initialization configuration.").optional(),
+  }).describe("Input only. Initial configurations for the repository.")
+    .optional(),
   name: z.string().describe(
     "Identifier. A unique identifier for a repository. The name should be of the format: `projects/{project}/locations/{location_id}/repositories/{repository_id}`",
   ).optional(),
@@ -276,21 +268,11 @@ const InputsSchema = z.object({
       inspectTemplate: z.string().describe(
         "Optional. The DLP inspect template to use for secret scanning.",
       ).optional(),
-    }).describe("Configuration for secret scanning.").optional(),
-  }).describe("Configuration for scanning.").optional(),
+    }).describe("Optional. Configuration for secret scanning.").optional(),
+  }).describe("Optional. Provides configuration for scanning.").optional(),
   serviceAccount: z.string().describe(
     "Optional. Repository level service account (BYOSA).",
   ).optional(),
-  uris: z.object({
-    api: z.string().describe("Output only. API is the URI for API access.")
-      .optional(),
-    gitHttps: z.string().describe(
-      "Output only. git_https is the git HTTPS URI for git operations.",
-    ).optional(),
-    html: z.string().describe(
-      "Output only. HTML is the URI for user to view the repository in a browser.",
-    ).optional(),
-  }).describe("URIs for the repository.").optional(),
   repositoryId: z.string().describe(
     "Required. The ID to use for the repository, which will become the final component of the repository's resource name. This value should be 4-63 characters, and valid characters are /a-z-/.",
   ).optional(),
@@ -322,7 +304,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Repositories. Registered at `@swamp/gcp/securesourcemanager/repositories`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/repositories",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -451,6 +433,14 @@ export const model = {
       description: "Added: scanConfig, serviceAccount",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: uris",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { uris: _uris, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -486,7 +476,6 @@ export const model = {
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
         }
-        if (g["uris"] !== undefined) body["uris"] = g["uris"];
         if (g["repositoryId"] !== undefined) {
           params["repositoryId"] = String(g["repositoryId"]);
         }
@@ -606,7 +595,6 @@ export const model = {
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
         }
-        if (g["uris"] !== undefined) body["uris"] = g["uris"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

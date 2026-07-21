@@ -177,18 +177,18 @@ const GlobalArgsSchema = z.object({
       "NO_RETURNS",
       "LIFETIME_RETURNS",
     ]).describe("Policy type.").optional(),
-  }).describe("The available policies.").optional(),
+  }).describe("The return policy.").optional(),
   restockingFee: z.object({
     fixedFee: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe("Fixed restocking fee.").optional(),
     microPercent: z.number().int().describe(
       "Percent of total price in micros. 15,000,000 means 15% of the total price would be charged.",
     ).optional(),
   }).describe(
-    "The restocking fee. This can either be a fixed fee or a micro percent.",
+    "The restocking fee that applies to all return reason categories. This would be treated as a free restocking fee if the value is not set.",
   ).optional(),
   returnMethods: z.array(
     z.enum(["RETURN_METHOD_UNSPECIFIED", "BY_MAIL", "IN_STORE", "AT_A_KIOSK"]),
@@ -217,11 +217,13 @@ const GlobalArgsSchema = z.object({
         currency: z.string().describe("The currency of the price.").optional(),
         value: z.string().describe("The price represented as a number.")
           .optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Fixed return shipping fee amount. This value is only applicable when type is FIXED. We will treat the return shipping fee as free if type is FIXED and this value is not set.",
+      ).optional(),
       type: z.enum(["TYPE_UNSPECIFIED", "FIXED", "CUSTOMER_PAYING_ACTUAL_FEE"])
         .describe("Type of return shipping fee.").optional(),
     }).describe(
-      "The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.",
+      "The corresponding return shipping fee. This is only applicable when returnLabelSource is not the customer's responsibility.",
     ).optional(),
   })).describe(
     "The return reason category information. This required to not be empty unless the type of return policy is noReturns.",
@@ -293,18 +295,18 @@ const InputsSchema = z.object({
       "NO_RETURNS",
       "LIFETIME_RETURNS",
     ]).describe("Policy type.").optional(),
-  }).describe("The available policies.").optional(),
+  }).describe("The return policy.").optional(),
   restockingFee: z.object({
     fixedFee: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe("Fixed restocking fee.").optional(),
     microPercent: z.number().int().describe(
       "Percent of total price in micros. 15,000,000 means 15% of the total price would be charged.",
     ).optional(),
   }).describe(
-    "The restocking fee. This can either be a fixed fee or a micro percent.",
+    "The restocking fee that applies to all return reason categories. This would be treated as a free restocking fee if the value is not set.",
   ).optional(),
   returnMethods: z.array(
     z.enum(["RETURN_METHOD_UNSPECIFIED", "BY_MAIL", "IN_STORE", "AT_A_KIOSK"]),
@@ -333,11 +335,13 @@ const InputsSchema = z.object({
         currency: z.string().describe("The currency of the price.").optional(),
         value: z.string().describe("The price represented as a number.")
           .optional(),
-      }).describe("The price represented as a number and currency.").optional(),
+      }).describe(
+        "Fixed return shipping fee amount. This value is only applicable when type is FIXED. We will treat the return shipping fee as free if type is FIXED and this value is not set.",
+      ).optional(),
       type: z.enum(["TYPE_UNSPECIFIED", "FIXED", "CUSTOMER_PAYING_ACTUAL_FEE"])
         .describe("Type of return shipping fee.").optional(),
     }).describe(
-      "The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.",
+      "The corresponding return shipping fee. This is only applicable when returnLabelSource is not the customer's responsibility.",
     ).optional(),
   })).describe(
     "The return reason category information. This required to not be empty unless the type of return policy is noReturns.",
@@ -370,7 +374,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Returnpolicyonline. Registered at `@swamp/gcp/content/returnpolicyonline`. */
 export const model = {
   type: "@swamp/gcp/content/returnpolicyonline",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -464,6 +468,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

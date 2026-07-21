@@ -181,7 +181,8 @@ const GlobalArgsSchema = z.object({
         .optional(),
       namespace: z.string().describe("Output only. The namespace name.")
         .optional(),
-    }).describe("The backup schedule of the GoldengateDeployment.").optional(),
+    }).describe("Output only. The backup schedule of the GoldengateDeployment.")
+      .optional(),
     category: z.enum([
       "GOLDENGATE_DEPLOYMENT_CATEGORY_UNSPECIFIED",
       "DATA_REPLICATION",
@@ -211,7 +212,9 @@ const GlobalArgsSchema = z.object({
       namespace: z.string().describe("Output only. The namespace name.")
         .optional(),
       object: z.string().describe("Output only. The object name.").optional(),
-    }).describe("The deployment diagnostic data.").optional(),
+    }).describe(
+      "Output only. The deployment diagnostic data of the GoldengateDeployment.",
+    ).optional(),
     deploymentRole: z.enum([
       "GOLDENGATE_DEPLOYMENT_ROLE_TYPE_UNSPECIFIED",
       "PRIMARY",
@@ -331,8 +334,9 @@ const GlobalArgsSchema = z.object({
       securityPatchUpgradePeriodDays: z.number().int().describe(
         "Optional. Defines auto upgrade period for releases with security fix. Manually configured period cannot be longer than service defined period for security releases. Not passing this field during create will equate to using the service default.",
       ).optional(),
-    }).describe("The maintenance configuration of the GoldengateDeployment.")
-      .optional(),
+    }).describe(
+      "Optional. The maintenance configuration of the GoldengateDeployment.",
+    ).optional(),
     maintenanceWindow: z.object({
       day: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -347,7 +351,7 @@ const GlobalArgsSchema = z.object({
       startHour: z.number().int().describe(
         "Required. Start hour for maintenance period. Hour is in UTC.",
       ).optional(),
-    }).describe("The maintenance window of the GoldengateDeployment.")
+    }).describe("Optional. The maintenance window of the GoldengateDeployment.")
       .optional(),
     nextBackupScheduleTime: z.string().describe(
       "Output only. The time next backup scheduled of the GoldengateDeployment.",
@@ -404,8 +408,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         userGroupId: z.string().describe("Output only. The user group id.")
           .optional(),
-      }).describe("The group to roles mapping of the GoldengateDeployment.")
-        .optional(),
+      }).describe(
+        "Output only. The group to roles mapping of the GoldengateDeployment.",
+      ).optional(),
       identityDomainId: z.string().describe(
         "Output only. The identity domain id of the GoldengateDeployment.",
       ).optional(),
@@ -413,7 +418,8 @@ const GlobalArgsSchema = z.object({
       passwordSecretId: z.string().describe(
         "Output only. The password secret id of the GoldengateDeployment.",
       ).optional(),
-    }).describe("The Ogg data of the GoldengateDeployment.").optional(),
+    }).describe("Required. The ogg data of the GoldengateDeployment.")
+      .optional(),
     oggVersionSupportEndTime: z.string().describe(
       "Output only. The time ogg version supported until of the GoldengateDeployment.",
     ).optional(),
@@ -443,7 +449,8 @@ const GlobalArgsSchema = z.object({
     upgradeRequiredTime: z.string().describe(
       "Output only. The time upgrade required of the GoldengateDeployment.",
     ).optional(),
-  }).describe("Properties of GoldengateDeployment.").optional(),
+  }).describe("Required. The properties of the GoldengateDeployment.")
+    .optional(),
   goldengateDeploymentId: z.string().describe(
     "Required. The ID of the GoldengateDeployment to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -604,7 +611,8 @@ const InputsSchema = z.object({
         .optional(),
       namespace: z.string().describe("Output only. The namespace name.")
         .optional(),
-    }).describe("The backup schedule of the GoldengateDeployment.").optional(),
+    }).describe("Output only. The backup schedule of the GoldengateDeployment.")
+      .optional(),
     category: z.enum([
       "GOLDENGATE_DEPLOYMENT_CATEGORY_UNSPECIFIED",
       "DATA_REPLICATION",
@@ -634,7 +642,9 @@ const InputsSchema = z.object({
       namespace: z.string().describe("Output only. The namespace name.")
         .optional(),
       object: z.string().describe("Output only. The object name.").optional(),
-    }).describe("The deployment diagnostic data.").optional(),
+    }).describe(
+      "Output only. The deployment diagnostic data of the GoldengateDeployment.",
+    ).optional(),
     deploymentRole: z.enum([
       "GOLDENGATE_DEPLOYMENT_ROLE_TYPE_UNSPECIFIED",
       "PRIMARY",
@@ -754,8 +764,9 @@ const InputsSchema = z.object({
       securityPatchUpgradePeriodDays: z.number().int().describe(
         "Optional. Defines auto upgrade period for releases with security fix. Manually configured period cannot be longer than service defined period for security releases. Not passing this field during create will equate to using the service default.",
       ).optional(),
-    }).describe("The maintenance configuration of the GoldengateDeployment.")
-      .optional(),
+    }).describe(
+      "Optional. The maintenance configuration of the GoldengateDeployment.",
+    ).optional(),
     maintenanceWindow: z.object({
       day: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -770,7 +781,7 @@ const InputsSchema = z.object({
       startHour: z.number().int().describe(
         "Required. Start hour for maintenance period. Hour is in UTC.",
       ).optional(),
-    }).describe("The maintenance window of the GoldengateDeployment.")
+    }).describe("Optional. The maintenance window of the GoldengateDeployment.")
       .optional(),
     nextBackupScheduleTime: z.string().describe(
       "Output only. The time next backup scheduled of the GoldengateDeployment.",
@@ -827,8 +838,9 @@ const InputsSchema = z.object({
         ).optional(),
         userGroupId: z.string().describe("Output only. The user group id.")
           .optional(),
-      }).describe("The group to roles mapping of the GoldengateDeployment.")
-        .optional(),
+      }).describe(
+        "Output only. The group to roles mapping of the GoldengateDeployment.",
+      ).optional(),
       identityDomainId: z.string().describe(
         "Output only. The identity domain id of the GoldengateDeployment.",
       ).optional(),
@@ -836,7 +848,8 @@ const InputsSchema = z.object({
       passwordSecretId: z.string().describe(
         "Output only. The password secret id of the GoldengateDeployment.",
       ).optional(),
-    }).describe("The Ogg data of the GoldengateDeployment.").optional(),
+    }).describe("Required. The ogg data of the GoldengateDeployment.")
+      .optional(),
     oggVersionSupportEndTime: z.string().describe(
       "Output only. The time ogg version supported until of the GoldengateDeployment.",
     ).optional(),
@@ -866,7 +879,8 @@ const InputsSchema = z.object({
     upgradeRequiredTime: z.string().describe(
       "Output only. The time upgrade required of the GoldengateDeployment.",
     ).optional(),
-  }).describe("Properties of GoldengateDeployment.").optional(),
+  }).describe("Required. The properties of the GoldengateDeployment.")
+    .optional(),
   goldengateDeploymentId: z.string().describe(
     "Required. The ID of the GoldengateDeployment to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -901,7 +915,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud GoldengateDeployments. Registered at `@swamp/gcp/oracledatabase/goldengatedeployments`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/goldengatedeployments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -137,151 +137,8 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  androidSpecificAttributes: z.object({
-    ctsProfileMatch: z.boolean().describe(
-      "Whether the device passes Android CTS compliance.",
-    ).optional(),
-    enabledUnknownSources: z.boolean().describe(
-      "Whether applications from unknown sources can be installed on device.",
-    ).optional(),
-    hasPotentiallyHarmfulApps: z.boolean().describe(
-      "Whether any potentially harmful apps were detected on the device.",
-    ).optional(),
-    ownerProfileAccount: z.boolean().describe(
-      "Whether this account is on an owner/primary profile. For phones, only true for owner profiles. Android 4+ devices can have secondary or restricted user profiles.",
-    ).optional(),
-    ownershipPrivilege: z.enum([
-      "OWNERSHIP_PRIVILEGE_UNSPECIFIED",
-      "DEVICE_ADMINISTRATOR",
-      "PROFILE_OWNER",
-      "DEVICE_OWNER",
-    ]).describe("Ownership privileges on device.").optional(),
-    supportsWorkProfile: z.boolean().describe(
-      'Whether device supports Android work profiles. If false, this service will not block access to corp data even if an administrator turns on the "Enforce Work Profile" policy.',
-    ).optional(),
-    verifiedBoot: z.boolean().describe(
-      "Whether Android verified boot status is GREEN.",
-    ).optional(),
-    verifyAppsEnabled: z.boolean().describe(
-      "Whether Google Play Protect Verify Apps is enabled.",
-    ).optional(),
-  }).describe(
-    "Resource representing the Android specific attributes of a Device.",
-  ).optional(),
   assetTag: z.string().describe("Asset tag of the device.").optional(),
   deviceId: z.string().describe("Unique identifier for the device.").optional(),
-  endpointVerificationSpecificAttributes: z.object({
-    additionalSignals: z.record(z.string(), z.string()).describe(
-      "[Additional signals](https://cloud.google.com/endpoint-verification/docs/device-information) reported by Endpoint Verification. It includes the following attributes: * Non-configurable attributes: hotfixes, av_installed, av_enabled, windows_domain_name, is_os_native_firewall_enabled, and is_secure_boot_enabled. * [Configurable attributes](https://cloud.google.com/endpoint-verification/docs/collect-config-attributes): file, folder, and binary attributes; registry entries; and properties in a plist.",
-    ).optional(),
-    browserAttributes: z.array(z.object({
-      chromeBrowserInfo: z.object({
-        browserManagementState: z.enum([
-          "UNSPECIFIED",
-          "UNMANAGED",
-          "MANAGED_BY_OTHER_DOMAIN",
-          "PROFILE_MANAGED",
-          "BROWSER_MANAGED",
-        ]).describe("Output only. Browser's management state.").optional(),
-        browserVersion: z.string().describe(
-          "Version of the request initiating browser. E.g. `91.0.4442.4`.",
-        ).optional(),
-        isBuiltInDnsClientEnabled: z.boolean().describe(
-          "Current state of [built-in DNS client](https://chromeenterprise.google/policies/#BuiltInDnsClientEnabled).",
-        ).optional(),
-        isBulkDataEntryAnalysisEnabled: z.boolean().describe(
-          "Current state of [bulk data analysis](https://chromeenterprise.google/policies/#OnBulkDataEntryEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isChromeCleanupEnabled: z.boolean().describe(
-          "Deprecated: This field is not used for Chrome version 118 and later. Current state of [Chrome Cleanup](https://chromeenterprise.google/policies/#ChromeCleanupEnabled).",
-        ).optional(),
-        isChromeRemoteDesktopAppBlocked: z.boolean().describe(
-          "Current state of [Chrome Remote Desktop app](https://chromeenterprise.google/policies/#URLBlocklist).",
-        ).optional(),
-        isFileDownloadAnalysisEnabled: z.boolean().describe(
-          "Current state of [file download analysis](https://chromeenterprise.google/policies/#OnFileDownloadedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isFileUploadAnalysisEnabled: z.boolean().describe(
-          "Current state of [file upload analysis](https://chromeenterprise.google/policies/#OnFileAttachedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isRealtimeUrlCheckEnabled: z.boolean().describe(
-          "Current state of [real-time URL check](https://chromeenterprise.google/policies/#EnterpriseRealTimeUrlCheckMode). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isSecurityEventAnalysisEnabled: z.boolean().describe(
-          "Current state of [security event analysis](https://chromeenterprise.google/policies/#OnSecurityEventEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isSiteIsolationEnabled: z.boolean().describe(
-          "Current state of [site isolation](https://chromeenterprise.google/policies/?policy=IsolateOrigins).",
-        ).optional(),
-        isThirdPartyBlockingEnabled: z.boolean().describe(
-          "Current state of [third-party blocking](https://chromeenterprise.google/policies/#ThirdPartyBlockingEnabled).",
-        ).optional(),
-        passwordProtectionWarningTrigger: z.enum([
-          "PASSWORD_PROTECTION_TRIGGER_UNSPECIFIED",
-          "PROTECTION_OFF",
-          "PASSWORD_REUSE",
-          "PHISHING_REUSE",
-        ]).describe(
-          "Current state of [password protection trigger](https://chromeenterprise.google/policies/#PasswordProtectionWarningTrigger).",
-        ).optional(),
-        safeBrowsingProtectionLevel: z.enum([
-          "SAFE_BROWSING_LEVEL_UNSPECIFIED",
-          "DISABLED",
-          "STANDARD",
-          "ENHANCED",
-        ]).describe(
-          "Current state of [Safe Browsing protection level](https://chromeenterprise.google/policies/#SafeBrowsingProtectionLevel).",
-        ).optional(),
-      }).describe(
-        "Browser-specific fields reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).",
-      ).optional(),
-      chromeProfileId: z.string().describe(
-        "Chrome profile ID that is exposed by the Chrome API. It is unique for each device.",
-      ).optional(),
-      lastProfileSyncTime: z.string().describe(
-        "Timestamp in milliseconds since the Unix epoch when the profile/gcm id was last synced.",
-      ).optional(),
-    })).describe(
-      "Details of browser profiles reported by Endpoint Verification.",
-    ).optional(),
-    certificateAttributes: z.array(z.object({
-      certificateTemplate: z.object({
-        id: z.string().describe(
-          'The template id of the template. Example: "1.3.6.1.4.1.311.21.8.15608621.11768144.5720724.16068415.6889630.81.2472537.7784047".',
-        ).optional(),
-        majorVersion: z.number().int().describe(
-          "The Major version of the template. Example: 100.",
-        ).optional(),
-        minorVersion: z.number().int().describe(
-          "The minor version of the template. Example: 12.",
-        ).optional(),
-      }).describe("CertificateTemplate (v3 Extension in X.509).").optional(),
-      fingerprint: z.string().describe("The encoded certificate fingerprint.")
-        .optional(),
-      issuer: z.string().describe("The name of the issuer of this certificate.")
-        .optional(),
-      serialNumber: z.string().describe(
-        'Serial number of the certificate, Example: "123456789".',
-      ).optional(),
-      subject: z.string().describe("The subject name of this certificate.")
-        .optional(),
-      thumbprint: z.string().describe("The certificate thumbprint.").optional(),
-      validationState: z.enum([
-        "CERTIFICATE_VALIDATION_STATE_UNSPECIFIED",
-        "VALIDATION_SUCCESSFUL",
-        "VALIDATION_FAILED",
-      ]).describe("Output only. Validation state of this certificate.")
-        .optional(),
-      validityExpirationTime: z.string().describe(
-        "Certificate not valid at or after this timestamp.",
-      ).optional(),
-      validityStartTime: z.string().describe(
-        "Certificate not valid before this timestamp.",
-      ).optional(),
-    })).describe("Details of certificates.").optional(),
-  }).describe(
-    "Resource representing the [Endpoint Verification-specific attributes](https://cloud.google.com/endpoint-verification/docs/device-information) of a device.",
-  ).optional(),
   hostname: z.string().describe("Host name of the device.").optional(),
   lastSyncTime: z.string().describe(
     "Most recent time when device synced with this service.",
@@ -386,151 +243,8 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  androidSpecificAttributes: z.object({
-    ctsProfileMatch: z.boolean().describe(
-      "Whether the device passes Android CTS compliance.",
-    ).optional(),
-    enabledUnknownSources: z.boolean().describe(
-      "Whether applications from unknown sources can be installed on device.",
-    ).optional(),
-    hasPotentiallyHarmfulApps: z.boolean().describe(
-      "Whether any potentially harmful apps were detected on the device.",
-    ).optional(),
-    ownerProfileAccount: z.boolean().describe(
-      "Whether this account is on an owner/primary profile. For phones, only true for owner profiles. Android 4+ devices can have secondary or restricted user profiles.",
-    ).optional(),
-    ownershipPrivilege: z.enum([
-      "OWNERSHIP_PRIVILEGE_UNSPECIFIED",
-      "DEVICE_ADMINISTRATOR",
-      "PROFILE_OWNER",
-      "DEVICE_OWNER",
-    ]).describe("Ownership privileges on device.").optional(),
-    supportsWorkProfile: z.boolean().describe(
-      'Whether device supports Android work profiles. If false, this service will not block access to corp data even if an administrator turns on the "Enforce Work Profile" policy.',
-    ).optional(),
-    verifiedBoot: z.boolean().describe(
-      "Whether Android verified boot status is GREEN.",
-    ).optional(),
-    verifyAppsEnabled: z.boolean().describe(
-      "Whether Google Play Protect Verify Apps is enabled.",
-    ).optional(),
-  }).describe(
-    "Resource representing the Android specific attributes of a Device.",
-  ).optional(),
   assetTag: z.string().describe("Asset tag of the device.").optional(),
   deviceId: z.string().describe("Unique identifier for the device.").optional(),
-  endpointVerificationSpecificAttributes: z.object({
-    additionalSignals: z.record(z.string(), z.string()).describe(
-      "[Additional signals](https://cloud.google.com/endpoint-verification/docs/device-information) reported by Endpoint Verification. It includes the following attributes: * Non-configurable attributes: hotfixes, av_installed, av_enabled, windows_domain_name, is_os_native_firewall_enabled, and is_secure_boot_enabled. * [Configurable attributes](https://cloud.google.com/endpoint-verification/docs/collect-config-attributes): file, folder, and binary attributes; registry entries; and properties in a plist.",
-    ).optional(),
-    browserAttributes: z.array(z.object({
-      chromeBrowserInfo: z.object({
-        browserManagementState: z.enum([
-          "UNSPECIFIED",
-          "UNMANAGED",
-          "MANAGED_BY_OTHER_DOMAIN",
-          "PROFILE_MANAGED",
-          "BROWSER_MANAGED",
-        ]).describe("Output only. Browser's management state.").optional(),
-        browserVersion: z.string().describe(
-          "Version of the request initiating browser. E.g. `91.0.4442.4`.",
-        ).optional(),
-        isBuiltInDnsClientEnabled: z.boolean().describe(
-          "Current state of [built-in DNS client](https://chromeenterprise.google/policies/#BuiltInDnsClientEnabled).",
-        ).optional(),
-        isBulkDataEntryAnalysisEnabled: z.boolean().describe(
-          "Current state of [bulk data analysis](https://chromeenterprise.google/policies/#OnBulkDataEntryEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isChromeCleanupEnabled: z.boolean().describe(
-          "Deprecated: This field is not used for Chrome version 118 and later. Current state of [Chrome Cleanup](https://chromeenterprise.google/policies/#ChromeCleanupEnabled).",
-        ).optional(),
-        isChromeRemoteDesktopAppBlocked: z.boolean().describe(
-          "Current state of [Chrome Remote Desktop app](https://chromeenterprise.google/policies/#URLBlocklist).",
-        ).optional(),
-        isFileDownloadAnalysisEnabled: z.boolean().describe(
-          "Current state of [file download analysis](https://chromeenterprise.google/policies/#OnFileDownloadedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isFileUploadAnalysisEnabled: z.boolean().describe(
-          "Current state of [file upload analysis](https://chromeenterprise.google/policies/#OnFileAttachedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isRealtimeUrlCheckEnabled: z.boolean().describe(
-          "Current state of [real-time URL check](https://chromeenterprise.google/policies/#EnterpriseRealTimeUrlCheckMode). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isSecurityEventAnalysisEnabled: z.boolean().describe(
-          "Current state of [security event analysis](https://chromeenterprise.google/policies/#OnSecurityEventEnterpriseConnector). Set to true if provider list from Chrome is non-empty.",
-        ).optional(),
-        isSiteIsolationEnabled: z.boolean().describe(
-          "Current state of [site isolation](https://chromeenterprise.google/policies/?policy=IsolateOrigins).",
-        ).optional(),
-        isThirdPartyBlockingEnabled: z.boolean().describe(
-          "Current state of [third-party blocking](https://chromeenterprise.google/policies/#ThirdPartyBlockingEnabled).",
-        ).optional(),
-        passwordProtectionWarningTrigger: z.enum([
-          "PASSWORD_PROTECTION_TRIGGER_UNSPECIFIED",
-          "PROTECTION_OFF",
-          "PASSWORD_REUSE",
-          "PHISHING_REUSE",
-        ]).describe(
-          "Current state of [password protection trigger](https://chromeenterprise.google/policies/#PasswordProtectionWarningTrigger).",
-        ).optional(),
-        safeBrowsingProtectionLevel: z.enum([
-          "SAFE_BROWSING_LEVEL_UNSPECIFIED",
-          "DISABLED",
-          "STANDARD",
-          "ENHANCED",
-        ]).describe(
-          "Current state of [Safe Browsing protection level](https://chromeenterprise.google/policies/#SafeBrowsingProtectionLevel).",
-        ).optional(),
-      }).describe(
-        "Browser-specific fields reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).",
-      ).optional(),
-      chromeProfileId: z.string().describe(
-        "Chrome profile ID that is exposed by the Chrome API. It is unique for each device.",
-      ).optional(),
-      lastProfileSyncTime: z.string().describe(
-        "Timestamp in milliseconds since the Unix epoch when the profile/gcm id was last synced.",
-      ).optional(),
-    })).describe(
-      "Details of browser profiles reported by Endpoint Verification.",
-    ).optional(),
-    certificateAttributes: z.array(z.object({
-      certificateTemplate: z.object({
-        id: z.string().describe(
-          'The template id of the template. Example: "1.3.6.1.4.1.311.21.8.15608621.11768144.5720724.16068415.6889630.81.2472537.7784047".',
-        ).optional(),
-        majorVersion: z.number().int().describe(
-          "The Major version of the template. Example: 100.",
-        ).optional(),
-        minorVersion: z.number().int().describe(
-          "The minor version of the template. Example: 12.",
-        ).optional(),
-      }).describe("CertificateTemplate (v3 Extension in X.509).").optional(),
-      fingerprint: z.string().describe("The encoded certificate fingerprint.")
-        .optional(),
-      issuer: z.string().describe("The name of the issuer of this certificate.")
-        .optional(),
-      serialNumber: z.string().describe(
-        'Serial number of the certificate, Example: "123456789".',
-      ).optional(),
-      subject: z.string().describe("The subject name of this certificate.")
-        .optional(),
-      thumbprint: z.string().describe("The certificate thumbprint.").optional(),
-      validationState: z.enum([
-        "CERTIFICATE_VALIDATION_STATE_UNSPECIFIED",
-        "VALIDATION_SUCCESSFUL",
-        "VALIDATION_FAILED",
-      ]).describe("Output only. Validation state of this certificate.")
-        .optional(),
-      validityExpirationTime: z.string().describe(
-        "Certificate not valid at or after this timestamp.",
-      ).optional(),
-      validityStartTime: z.string().describe(
-        "Certificate not valid before this timestamp.",
-      ).optional(),
-    })).describe("Details of certificates.").optional(),
-  }).describe(
-    "Resource representing the [Endpoint Verification-specific attributes](https://cloud.google.com/endpoint-verification/docs/device-information) of a device.",
-  ).optional(),
   hostname: z.string().describe("Host name of the device.").optional(),
   lastSyncTime: z.string().describe(
     "Most recent time when device synced with this service.",
@@ -569,7 +283,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Devices. Registered at `@swamp/gcp/cloudidentity/devices`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/devices",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -671,6 +385,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: androidSpecificAttributes, endpointVerificationSpecificAttributes",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          androidSpecificAttributes: _androidSpecificAttributes,
+          endpointVerificationSpecificAttributes:
+            _endpointVerificationSpecificAttributes,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -693,15 +421,8 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["androidSpecificAttributes"] !== undefined) {
-          body["androidSpecificAttributes"] = g["androidSpecificAttributes"];
-        }
         if (g["assetTag"] !== undefined) body["assetTag"] = g["assetTag"];
         if (g["deviceId"] !== undefined) body["deviceId"] = g["deviceId"];
-        if (g["endpointVerificationSpecificAttributes"] !== undefined) {
-          body["endpointVerificationSpecificAttributes"] =
-            g["endpointVerificationSpecificAttributes"];
-        }
         if (g["hostname"] !== undefined) body["hostname"] = g["hostname"];
         if (g["lastSyncTime"] !== undefined) {
           body["lastSyncTime"] = g["lastSyncTime"];
@@ -723,12 +444,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

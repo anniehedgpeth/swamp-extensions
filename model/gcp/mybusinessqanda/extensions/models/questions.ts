@@ -138,17 +138,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  author: z.object({
-    displayName: z.string().describe("The display name of the user").optional(),
-    profilePhotoUri: z.string().describe("The profile photo URI of the user.")
-      .optional(),
-    type: z.enum([
-      "AUTHOR_TYPE_UNSPECIFIED",
-      "REGULAR_USER",
-      "LOCAL_GUIDE",
-      "MERCHANT",
-    ]).describe("The type of user the author is.").optional(),
-  }).describe("Represents the author of a question or answer").optional(),
   name: z.string().describe(
     "Immutable. The unique name for the question. locations/*/questions/* This field will be ignored if set during question creation.",
   ).optional(),
@@ -193,17 +182,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  author: z.object({
-    displayName: z.string().describe("The display name of the user").optional(),
-    profilePhotoUri: z.string().describe("The profile photo URI of the user.")
-      .optional(),
-    type: z.enum([
-      "AUTHOR_TYPE_UNSPECIFIED",
-      "REGULAR_USER",
-      "LOCAL_GUIDE",
-      "MERCHANT",
-    ]).describe("The type of user the author is.").optional(),
-  }).describe("Represents the author of a question or answer").optional(),
   name: z.string().describe(
     "Immutable. The unique name for the question. locations/*/questions/* This field will be ignored if set during question creation.",
   ).optional(),
@@ -238,7 +216,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud My Business Q&A Questions. Registered at `@swamp/gcp/mybusinessqanda/questions`. */
 export const model = {
   type: "@swamp/gcp/mybusinessqanda/questions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -335,6 +313,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: author",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { author: _author, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -357,7 +343,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["author"] !== undefined) body["author"] = g["author"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["text"] !== undefined) body["text"] = g["text"];
         const result = await createResource(
@@ -449,7 +434,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         params["name"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["author"] !== undefined) body["author"] = g["author"];
         if (g["text"] !== undefined) body["text"] = g["text"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

@@ -133,16 +133,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  encryptionConfig: z.object({
-    kmsKeyName: z.string().describe(
-      "Name of the CMEK key in KMS (input parameter).",
-    ).optional(),
-    kmsKeyNameVersion: z.string().describe(
-      "Output only. Full name and version of the CMEK key currently in use to encrypt Looker data. Format: `projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}/cryptoKeyVersions/{version}`. Empty if CMEK is not configured in this instance.",
-    ).optional(),
-    kmsKeyState: z.enum(["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"])
-      .describe("Output only. Status of the CMEK key.").optional(),
-  }).describe("Encryption configuration (i.e. CMEK).").optional(),
   name: z.string().describe(
     "Immutable. The relative resource name of the backup, in the following form: `projects/{project_number}/locations/{location_id}/instances/{instance_id}/backups/{backup}`",
   ).optional(),
@@ -173,16 +163,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  encryptionConfig: z.object({
-    kmsKeyName: z.string().describe(
-      "Name of the CMEK key in KMS (input parameter).",
-    ).optional(),
-    kmsKeyNameVersion: z.string().describe(
-      "Output only. Full name and version of the CMEK key currently in use to encrypt Looker data. Format: `projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}/cryptoKeyVersions/{version}`. Empty if CMEK is not configured in this instance.",
-    ).optional(),
-    kmsKeyState: z.enum(["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"])
-      .describe("Output only. Status of the CMEK key.").optional(),
-  }).describe("Encryption configuration (i.e. CMEK).").optional(),
   name: z.string().describe(
     "Immutable. The relative resource name of the backup, in the following form: `projects/{project_number}/locations/{location_id}/instances/{instance_id}/backups/{backup}`",
   ).optional(),
@@ -217,7 +197,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Looker (Google Cloud core) Instances.Backups. Registered at `@swamp/gcp/looker/instances-backups`. */
 export const model = {
   type: "@swamp/gcp/looker/instances-backups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -324,6 +304,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: encryptionConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { encryptionConfig: _encryptionConfig, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -350,9 +338,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["encryptionConfig"] !== undefined) {
-          body["encryptionConfig"] = g["encryptionConfig"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(

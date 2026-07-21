@@ -185,9 +185,9 @@ const GlobalArgsSchema = z.object({
         "Optional. The resource name of the Model Armor template for sanitizing user prompts. Format: `projects/{project}/locations/{location}/templates/{template_id}` If not specified, no sanitization will be applied to the user prompt.",
       ).optional(),
     }).describe(
-      "Configuration for customer defined Model Armor templates to be used for sanitizing user prompts and assistant responses.",
+      "Optional. Model Armor configuration to be used for sanitizing user prompts and assistant responses.",
     ).optional(),
-  }).describe("Customer-defined policy for the assistant.").optional(),
+  }).describe("Optional. Customer policy for the assistant.").optional(),
   defaultWebGroundingToggleOff: z.boolean().describe(
     "Optional. This field controls the default web grounding toggle for end users if `web_grounding_type` is set to `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`. By default, this field is set to false. If `web_grounding_type` is `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`, end users will have web grounding enabled by default on UI. If true, grounding toggle will be disabled by default on UI. End users can still enable web grounding in the UI if web grounding is enabled.",
   ).optional(),
@@ -227,10 +227,11 @@ const GlobalArgsSchema = z.object({
         "Optional. Additional system instruction that will be added to the default system instruction.",
       ).optional(),
     }).describe(
-      "System instruction, also known as the prompt preamble for LLM calls.",
+      "System instruction, also known as the prompt preamble for LLM calls. See also https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/system-instructions",
     ).optional(),
-  }).describe("Configuration for the generation of the assistant response.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for the generation of the assistant response.",
+  ).optional(),
   name: z.string().describe(
     "Immutable. Resource name of the assistant. Format: `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/assistants/{assistant}` It must be a UTF-8 encoded string with a length limit of 1024 characters.",
   ).optional(),
@@ -318,9 +319,9 @@ const InputsSchema = z.object({
         "Optional. The resource name of the Model Armor template for sanitizing user prompts. Format: `projects/{project}/locations/{location}/templates/{template_id}` If not specified, no sanitization will be applied to the user prompt.",
       ).optional(),
     }).describe(
-      "Configuration for customer defined Model Armor templates to be used for sanitizing user prompts and assistant responses.",
+      "Optional. Model Armor configuration to be used for sanitizing user prompts and assistant responses.",
     ).optional(),
-  }).describe("Customer-defined policy for the assistant.").optional(),
+  }).describe("Optional. Customer policy for the assistant.").optional(),
   defaultWebGroundingToggleOff: z.boolean().describe(
     "Optional. This field controls the default web grounding toggle for end users if `web_grounding_type` is set to `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`. By default, this field is set to false. If `web_grounding_type` is `WEB_GROUNDING_TYPE_GOOGLE_SEARCH` or `WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH`, end users will have web grounding enabled by default on UI. If true, grounding toggle will be disabled by default on UI. End users can still enable web grounding in the UI if web grounding is enabled.",
   ).optional(),
@@ -360,10 +361,11 @@ const InputsSchema = z.object({
         "Optional. Additional system instruction that will be added to the default system instruction.",
       ).optional(),
     }).describe(
-      "System instruction, also known as the prompt preamble for LLM calls.",
+      "System instruction, also known as the prompt preamble for LLM calls. See also https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/system-instructions",
     ).optional(),
-  }).describe("Configuration for the generation of the assistant response.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for the generation of the assistant response.",
+  ).optional(),
   name: z.string().describe(
     "Immutable. Resource name of the assistant. Format: `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/assistants/{assistant}` It must be a UTF-8 encoded string with a length limit of 1024 characters.",
   ).optional(),
@@ -407,7 +409,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.Assistants. Registered at `@swamp/gcp/discoveryengine/collections-engines-assistants`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-assistants",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -536,6 +538,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

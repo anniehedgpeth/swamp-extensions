@@ -226,7 +226,8 @@ const GlobalArgsSchema = z.object({
           syncWaitSecs: z.string().describe(
             "Optional. Period in seconds between consecutive syncs. Default: 15.",
           ).optional(),
-        }).describe("Git repo configuration for a single cluster.").optional(),
+        }).describe("Optional. Git repo configuration for the cluster.")
+          .optional(),
         metricsGcpServiceAccountEmail: z.string().describe(
           "Optional. The Email of the Google Cloud Service Account (GSA) used for exporting Config Sync metrics to Cloud Monitoring and Cloud Monarch when Workload Identity is enabled. The GSA should have the Monitoring Metric Writer (roles/monitoring.metricWriter) IAM role. The Kubernetes ServiceAccount `default` in the namespace `config-management-monitoring` should be bound to the GSA. Deprecated: If Workload Identity Federation for GKE is enabled, Google Cloud Service Account is no longer needed for exporting Config Sync metrics: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/monitor-config-sync-cloud-monitoring#custom-monitoring.",
         ).optional(),
@@ -246,7 +247,8 @@ const GlobalArgsSchema = z.object({
           syncWaitSecs: z.string().describe(
             "Optional. Period in seconds between consecutive syncs. Default: 15.",
           ).optional(),
-        }).describe("OCI repo configuration for a single cluster").optional(),
+        }).describe("Optional. OCI repo configuration for the cluster")
+          .optional(),
         preventDrift: z.boolean().describe(
           "Optional. Set to true to enable the Config Sync admission webhook to prevent drifts. If set to false, disables the Config Sync admission webhook and does not prevent drifts. Defaults to false. See https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/how-to/prevent-config-drift for details.",
         ).optional(),
@@ -256,7 +258,8 @@ const GlobalArgsSchema = z.object({
         stopSyncing: z.boolean().describe(
           "Optional. Set to true to stop syncing configs for a single cluster. Default to false.",
         ).optional(),
-      }).describe("Configuration for Config Sync").optional(),
+      }).describe("Optional. Config Sync configuration for the cluster.")
+        .optional(),
       hierarchyController: z.object({
         enableHierarchicalResourceQuota: z.boolean().describe(
           "Whether hierarchical resource quota is enabled in this cluster.",
@@ -267,7 +270,9 @@ const GlobalArgsSchema = z.object({
         enabled: z.boolean().describe(
           "Whether Hierarchy Controller is enabled in this cluster.",
         ).optional(),
-      }).describe("Configuration for Hierarchy Controller").optional(),
+      }).describe(
+        "Optional. Hierarchy Controller configuration for the cluster. Deprecated: Configuring Hierarchy Controller through the configmanagement feature is no longer recommended. Use https://github.com/kubernetes-sigs/hierarchical-namespaces instead.",
+      ).optional(),
       management: z.enum([
         "MANAGEMENT_UNSPECIFIED",
         "MANAGEMENT_AUTOMATIC",
@@ -292,9 +297,8 @@ const GlobalArgsSchema = z.object({
           backends: z.array(z.unknown()).describe(
             "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
           ).optional(),
-        }).describe(
-          'PolicyControllerMonitoring specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-        ).optional(),
+        }).describe("Monitoring specifies the configuration of monitoring.")
+          .optional(),
         mutationEnabled: z.boolean().describe(
           "Enable or disable mutation in policy controller. If true, mutation CRDs, webhook and controller deployment will be deployed to the cluster.",
         ).optional(),
@@ -307,13 +311,13 @@ const GlobalArgsSchema = z.object({
         updateTime: z.string().describe(
           "Output only. Last time this membership spec was updated.",
         ).optional(),
-      }).describe("Configuration for Policy Controller").optional(),
+      }).describe(
+        "Optional. Policy Controller configuration for the cluster. Deprecated: Configuring Policy Controller through the configmanagement feature is no longer recommended. Use the policycontroller feature instead.",
+      ).optional(),
       version: z.string().describe(
         "Optional. Version of Config Sync to install. Defaults to the latest supported Config Sync version if the config_sync field is enabled. See supported versions at https://cloud.google.com/kubernetes-engine/config-sync/docs/get-support-config-sync#version_support_policy.",
       ).optional(),
-    }).describe(
-      "**Anthos Config Management**: Configuration for a single cluster. Intended to parallel the ConfigManagement CR.",
-    ).optional(),
+    }).describe("Config Management-specific spec.").optional(),
     identityservice: z.object({
       authMethods: z.array(z.object({
         azureadConfig: z.object({
@@ -338,27 +342,26 @@ const GlobalArgsSchema = z.object({
           userClaim: z.unknown().describe(
             "Optional. Claim in the AzureAD ID Token that holds the user details.",
           ).optional(),
-        }).describe("Configuration for the AzureAD Auth flow.").optional(),
+        }).describe("AzureAD specific Configuration.").optional(),
         googleConfig: z.object({
           disable: z.unknown().describe(
             "Disable automatic configuration of Google Plugin on supported platforms.",
           ).optional(),
-        }).describe("Configuration for the Google Plugin Auth flow.")
-          .optional(),
+        }).describe("GoogleConfig specific configuration.").optional(),
         ldapConfig: z.object({
           group: z.unknown().describe(
-            "Contains the properties for locating and authenticating groups in the directory.",
+            "Optional. Contains the properties for locating and authenticating groups in the directory.",
           ).optional(),
           server: z.unknown().describe(
-            "Server settings for the external LDAP server.",
+            "Required. Server settings for the external LDAP server.",
           ).optional(),
           serviceAccount: z.unknown().describe(
-            "Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.",
+            "Required. Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.",
           ).optional(),
           user: z.unknown().describe(
-            "Defines where users exist in the LDAP directory.",
+            "Required. Defines where users exist in the LDAP directory.",
           ).optional(),
-        }).describe("Configuration for the LDAP Auth flow.").optional(),
+        }).describe("LDAP specific configuration.").optional(),
         name: z.string().describe("Identifier for auth config.").optional(),
         oidcConfig: z.object({
           certificateAuthorityData: z.unknown().describe(
@@ -398,7 +401,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           userPrefix: z.unknown().describe("Prefix to prepend to user name.")
             .optional(),
-        }).describe("Configuration for OIDC Auth flow.").optional(),
+        }).describe("OIDC specific configuration.").optional(),
         proxy: z.string().describe(
           "Proxy server address to use for auth method.",
         ).optional(),
@@ -427,7 +430,7 @@ const GlobalArgsSchema = z.object({
           userPrefix: z.unknown().describe(
             "Optional. Prefix to prepend to user name.",
           ).optional(),
-        }).describe("Configuration for the SAML Auth flow.").optional(),
+        }).describe("SAML specific configuration.").optional(),
       })).describe("A member may support multiple auth methods.").optional(),
       identityServiceOptions: z.object({
         diagnosticInterface: z.object({
@@ -442,11 +445,9 @@ const GlobalArgsSchema = z.object({
         sessionDuration: z.string().describe(
           "Determines the lifespan of STS tokens issued by Anthos Identity Service.",
         ).optional(),
-      }).describe("Holds non-protocol-related configuration options.")
+      }).describe("Optional. non-protocol-related configuration options.")
         .optional(),
-    }).describe(
-      "**Anthos Identity Service**: Configuration for a single Membership.",
-    ).optional(),
+    }).describe("Identity Service-specific spec.").optional(),
     mesh: z.object({
       configApi: z.enum([
         "CONFIG_API_UNSPECIFIED",
@@ -469,9 +470,7 @@ const GlobalArgsSchema = z.object({
         "MANAGEMENT_NOT_INSTALLED",
       ]).describe("Optional. Enables automatic Service Mesh management.")
         .optional(),
-    }).describe(
-      "**Service Mesh**: Spec for a single Membership for the servicemesh feature",
-    ).optional(),
+    }).describe("Anthos Service Mesh-specific spec").optional(),
     policycontroller: z.object({
       policyControllerHubConfig: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -484,7 +483,7 @@ const GlobalArgsSchema = z.object({
           z.string(),
           z.object({
             containerResources: z.unknown().describe(
-              "ResourceRequirements describes the compute resource requirements.",
+              "Container resource requirements.",
             ).optional(),
             podAffinity: z.unknown().describe("Pod affinity configuration.")
               .optional(),
@@ -518,9 +517,8 @@ const GlobalArgsSchema = z.object({
           backends: z.array(z.unknown()).describe(
             "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
           ).optional(),
-        }).describe(
-          'MonitoringConfig specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-        ).optional(),
+        }).describe("Monitoring specifies the configuration of monitoring.")
+          .optional(),
         mutationEnabled: z.boolean().describe(
           "Enables the ability to mutate resources using Policy Controller.",
         ).optional(),
@@ -532,23 +530,20 @@ const GlobalArgsSchema = z.object({
             installation: z.unknown().describe(
               "Configures the manner in which the template library is installed on the cluster.",
             ).optional(),
-          }).describe(
-            "The config specifying which default library templates to install.",
-          ).optional(),
-        }).describe(
-          "PolicyContentSpec defines the user's desired content configuration on the cluster.",
-        ).optional(),
+          }).describe("Configures the installation of the Template Library.")
+            .optional(),
+        }).describe("Specifies the desired policy content on the cluster")
+          .optional(),
         referentialRulesEnabled: z.boolean().describe(
           "Enables the ability to use Constraint Templates that reference to objects other than the object currently being evaluated.",
         ).optional(),
-      }).describe("Configuration for Policy Controller").optional(),
+      }).describe("Policy Controller configuration for the cluster.")
+        .optional(),
       version: z.string().describe("Version of Policy Controller installed.")
         .optional(),
-    }).describe(
-      "**Policy Controller**: Configuration for a single cluster. Intended to parallel the PolicyController CR.",
-    ).optional(),
+    }).describe("Policy Controller spec.").optional(),
   }).describe(
-    "CommonFleetDefaultMemberConfigSpec contains default configuration information for memberships of a fleet",
+    "Optional. Feature configuration applicable to all memberships of the fleet.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels for this Feature.")
     .optional(),
@@ -591,7 +586,7 @@ const GlobalArgsSchema = z.object({
             syncWaitSecs: z.unknown().describe(
               "Optional. Period in seconds between consecutive syncs. Default: 15.",
             ).optional(),
-          }).describe("Git repo configuration for a single cluster.")
+          }).describe("Optional. Git repo configuration for the cluster.")
             .optional(),
           metricsGcpServiceAccountEmail: z.string().describe(
             "Optional. The Email of the Google Cloud Service Account (GSA) used for exporting Config Sync metrics to Cloud Monitoring and Cloud Monarch when Workload Identity is enabled. The GSA should have the Monitoring Metric Writer (roles/monitoring.metricWriter) IAM role. The Kubernetes ServiceAccount `default` in the namespace `config-management-monitoring` should be bound to the GSA. Deprecated: If Workload Identity Federation for GKE is enabled, Google Cloud Service Account is no longer needed for exporting Config Sync metrics: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/monitor-config-sync-cloud-monitoring#custom-monitoring.",
@@ -612,7 +607,8 @@ const GlobalArgsSchema = z.object({
             syncWaitSecs: z.unknown().describe(
               "Optional. Period in seconds between consecutive syncs. Default: 15.",
             ).optional(),
-          }).describe("OCI repo configuration for a single cluster").optional(),
+          }).describe("Optional. OCI repo configuration for the cluster")
+            .optional(),
           preventDrift: z.boolean().describe(
             "Optional. Set to true to enable the Config Sync admission webhook to prevent drifts. If set to false, disables the Config Sync admission webhook and does not prevent drifts. Defaults to false. See https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/how-to/prevent-config-drift for details.",
           ).optional(),
@@ -622,7 +618,8 @@ const GlobalArgsSchema = z.object({
           stopSyncing: z.boolean().describe(
             "Optional. Set to true to stop syncing configs for a single cluster. Default to false.",
           ).optional(),
-        }).describe("Configuration for Config Sync").optional(),
+        }).describe("Optional. Config Sync configuration for the cluster.")
+          .optional(),
         hierarchyController: z.object({
           enableHierarchicalResourceQuota: z.boolean().describe(
             "Whether hierarchical resource quota is enabled in this cluster.",
@@ -633,7 +630,9 @@ const GlobalArgsSchema = z.object({
           enabled: z.boolean().describe(
             "Whether Hierarchy Controller is enabled in this cluster.",
           ).optional(),
-        }).describe("Configuration for Hierarchy Controller").optional(),
+        }).describe(
+          "Optional. Hierarchy Controller configuration for the cluster. Deprecated: Configuring Hierarchy Controller through the configmanagement feature is no longer recommended. Use https://github.com/kubernetes-sigs/hierarchical-namespaces instead.",
+        ).optional(),
         management: z.enum([
           "MANAGEMENT_UNSPECIFIED",
           "MANAGEMENT_AUTOMATIC",
@@ -658,9 +657,8 @@ const GlobalArgsSchema = z.object({
             backends: z.unknown().describe(
               "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
             ).optional(),
-          }).describe(
-            'PolicyControllerMonitoring specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-          ).optional(),
+          }).describe("Monitoring specifies the configuration of monitoring.")
+            .optional(),
           mutationEnabled: z.boolean().describe(
             "Enable or disable mutation in policy controller. If true, mutation CRDs, webhook and controller deployment will be deployed to the cluster.",
           ).optional(),
@@ -673,36 +671,33 @@ const GlobalArgsSchema = z.object({
           updateTime: z.string().describe(
             "Output only. Last time this membership spec was updated.",
           ).optional(),
-        }).describe("Configuration for Policy Controller").optional(),
+        }).describe(
+          "Optional. Policy Controller configuration for the cluster. Deprecated: Configuring Policy Controller through the configmanagement feature is no longer recommended. Use the policycontroller feature instead.",
+        ).optional(),
         version: z.string().describe(
           "Optional. Version of Config Sync to install. Defaults to the latest supported Config Sync version if the config_sync field is enabled. See supported versions at https://cloud.google.com/kubernetes-engine/config-sync/docs/get-support-config-sync#version_support_policy.",
         ).optional(),
-      }).describe(
-        "**Anthos Config Management**: Configuration for a single cluster. Intended to parallel the ConfigManagement CR.",
-      ).optional(),
+      }).describe("Config Management-specific spec.").optional(),
       fleetobservability: z.object({}).describe(
-        "**FleetObservability**: The membership-specific input for FleetObservability feature.",
+        "Fleet observability membership spec",
       ).optional(),
       identityservice: z.object({
         authMethods: z.array(z.object({
-          azureadConfig: z.unknown().describe(
-            "Configuration for the AzureAD Auth flow.",
-          ).optional(),
+          azureadConfig: z.unknown().describe("AzureAD specific Configuration.")
+            .optional(),
           googleConfig: z.unknown().describe(
-            "Configuration for the Google Plugin Auth flow.",
+            "GoogleConfig specific configuration.",
           ).optional(),
-          ldapConfig: z.unknown().describe(
-            "Configuration for the LDAP Auth flow.",
-          ).optional(),
+          ldapConfig: z.unknown().describe("LDAP specific configuration.")
+            .optional(),
           name: z.unknown().describe("Identifier for auth config.").optional(),
-          oidcConfig: z.unknown().describe("Configuration for OIDC Auth flow.")
+          oidcConfig: z.unknown().describe("OIDC specific configuration.")
             .optional(),
           proxy: z.unknown().describe(
             "Proxy server address to use for auth method.",
           ).optional(),
-          samlConfig: z.unknown().describe(
-            "Configuration for the SAML Auth flow.",
-          ).optional(),
+          samlConfig: z.unknown().describe("SAML specific configuration.")
+            .optional(),
         })).describe("A member may support multiple auth methods.").optional(),
         identityServiceOptions: z.object({
           diagnosticInterface: z.object({
@@ -717,11 +712,9 @@ const GlobalArgsSchema = z.object({
           sessionDuration: z.string().describe(
             "Determines the lifespan of STS tokens issued by Anthos Identity Service.",
           ).optional(),
-        }).describe("Holds non-protocol-related configuration options.")
+        }).describe("Optional. non-protocol-related configuration options.")
           .optional(),
-      }).describe(
-        "**Anthos Identity Service**: Configuration for a single Membership.",
-      ).optional(),
+      }).describe("Identity Service-specific spec.").optional(),
       mesh: z.object({
         configApi: z.enum([
           "CONFIG_API_UNSPECIFIED",
@@ -744,14 +737,12 @@ const GlobalArgsSchema = z.object({
           "MANAGEMENT_NOT_INSTALLED",
         ]).describe("Optional. Enables automatic Service Mesh management.")
           .optional(),
-      }).describe(
-        "**Service Mesh**: Spec for a single Membership for the servicemesh feature",
-      ).optional(),
+      }).describe("Anthos Service Mesh-specific spec").optional(),
       origin: z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "FLEET", "FLEET_OUT_OF_SYNC", "USER"])
           .describe("Type specifies which type of origin is set.").optional(),
       }).describe(
-        "Origin defines where this MembershipFeatureSpec originated from.",
+        "Whether this per-Membership spec was inherited from a fleet-level default. This field can be updated by users by either overriding a Membership config (updated to USER implicitly) or setting to FLEET explicitly.",
       ).optional(),
       policycontroller: z.object({
         policyControllerHubConfig: z.object({
@@ -783,9 +774,8 @@ const GlobalArgsSchema = z.object({
             backends: z.unknown().describe(
               "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
             ).optional(),
-          }).describe(
-            'MonitoringConfig specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-          ).optional(),
+          }).describe("Monitoring specifies the configuration of monitoring.")
+            .optional(),
           mutationEnabled: z.boolean().describe(
             "Enables the ability to mutate resources using Policy Controller.",
           ).optional(),
@@ -794,44 +784,28 @@ const GlobalArgsSchema = z.object({
               "map of bundle name to BundleInstallSpec. The bundle name maps to the `bundleName` key in the `policycontroller.gke.io/constraintData` annotation on a constraint.",
             ).optional(),
             templateLibrary: z.unknown().describe(
-              "The config specifying which default library templates to install.",
+              "Configures the installation of the Template Library.",
             ).optional(),
-          }).describe(
-            "PolicyContentSpec defines the user's desired content configuration on the cluster.",
-          ).optional(),
+          }).describe("Specifies the desired policy content on the cluster")
+            .optional(),
           referentialRulesEnabled: z.boolean().describe(
             "Enables the ability to use Constraint Templates that reference to objects other than the object currently being evaluated.",
           ).optional(),
-        }).describe("Configuration for Policy Controller").optional(),
+        }).describe("Policy Controller configuration for the cluster.")
+          .optional(),
         version: z.string().describe("Version of Policy Controller installed.")
           .optional(),
-      }).describe(
-        "**Policy Controller**: Configuration for a single cluster. Intended to parallel the PolicyController CR.",
-      ).optional(),
+      }).describe("Policy Controller spec.").optional(),
     }),
   ).describe(
     "Optional. Membership-specific configuration for this Feature. If this Feature does not support any per-Membership configuration, this field may be unused. The keys indicate which Membership the configuration is for, in the form: `projects/{p}/locations/{l}/memberships/{m}` Where {p} is the project, {l} is a valid location and {m} is a valid Membership in this project at that location. {p} WILL match the Feature's project. {p} will always be returned as the project number, but the project ID is also accepted during input. If the same Membership is specified in the map twice (using the project ID form, and the project number form), exactly ONE of the entries will be saved, with no guarantees as to which. For this reason, it is recommended the same format be used for all entries when mutating a Feature.",
-  ).optional(),
-  resourceState: z.object({
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "ENABLING",
-      "ACTIVE",
-      "DISABLING",
-      "UPDATING",
-      "SERVICE_UPDATING",
-    ]).describe("The current state of the Feature resource in the Hub API.")
-      .optional(),
-  }).describe(
-    'FeatureResourceState describes the state of a Feature *resource* in the GkeHub API. See `FeatureState` for the "running state" of the Feature in the Fleet and across Memberships.',
   ).optional(),
   scopeSpecs: z.record(z.string(), z.object({})).describe(
     "Optional. Scope-specific configuration for this Feature. If this Feature does not support any per-Scope configuration, this field may be unused. The keys indicate which Scope the configuration is for, in the form: `projects/{p}/locations/global/scopes/{s}` Where {p} is the project, {s} is a valid Scope in this project. {p} WILL match the Feature's project. {p} will always be returned as the project number, but the project ID is also accepted during input. If the same Scope is specified in the map twice (using the project ID form, and the project number form), exactly ONE of the entries will be saved, with no guarantees as to which. For this reason, it is recommended the same format be used for all entries when mutating a Feature.",
   ).optional(),
   spec: z.object({
-    appdevexperience: z.object({}).describe(
-      "Spec for App Dev Experience Feature.",
-    ).optional(),
+    appdevexperience: z.object({}).describe("Appdevexperience specific spec.")
+      .optional(),
     clusterupgrade: z.object({
       gkeUpgradeOverrides: z.array(z.object({
         postConditions: z.object({
@@ -839,7 +813,7 @@ const GlobalArgsSchema = z.object({
             'Required. Amount of time to "soak" after a rollout has been finished before marking it COMPLETE. Cannot exceed 30 days. Required.',
           ).optional(),
         }).describe(
-          "Post conditional checks after an upgrade has been applied on all eligible clusters.",
+          "Required. Post conditions to override for the specified upgrade (name + version). Required.",
         ).optional(),
         upgrade: z.object({
           name: z.unknown().describe(
@@ -848,9 +822,8 @@ const GlobalArgsSchema = z.object({
           version: z.unknown().describe(
             'Version of the upgrade, e.g., "1.22.1-gke.100". It should be a valid version. It must not exceet 99 characters.',
           ).optional(),
-        }).describe(
-          "GKEUpgrade represents a GKE provided upgrade, e.g., control plane upgrade.",
-        ).optional(),
+        }).describe("Required. Which upgrade to override. Required.")
+          .optional(),
       })).describe(
         "Allow users to override some properties of each GKE upgrade.",
       ).optional(),
@@ -859,19 +832,17 @@ const GlobalArgsSchema = z.object({
           'Required. Amount of time to "soak" after a rollout has been finished before marking it COMPLETE. Cannot exceed 30 days. Required.',
         ).optional(),
       }).describe(
-        "Post conditional checks after an upgrade has been applied on all eligible clusters.",
+        "Required. Post conditions to evaluate to mark an upgrade COMPLETE. Required.",
       ).optional(),
       upstreamFleets: z.array(z.string()).describe(
         "This fleet consumes upgrades that have COMPLETE status code in the upstream fleets. See UpgradeStatus.Code for code definitions. The fleet name should be either fleet project number or id. This is defined as repeated for future proof reasons. Initial implementation will enforce at most one upstream fleet.",
       ).optional(),
-    }).describe(
-      "**ClusterUpgrade**: The configuration for the fleet-level ClusterUpgrade feature.",
-    ).optional(),
+    }).describe("ClusterUpgrade (fleet-based) feature spec.").optional(),
     dataplanev2: z.object({
       enableEncryption: z.boolean().describe(
         "Enable dataplane-v2 based encryption for multiple clusters.",
       ).optional(),
-    }).describe("**Dataplane V2**: Spec").optional(),
+    }).describe("DataplaneV2 feature spec.").optional(),
     fleetobservability: z.object({
       loggingConfig: z.object({
         defaultConfig: z.object({
@@ -879,21 +850,19 @@ const GlobalArgsSchema = z.object({
             "mode configures the logs routing mode.",
           ).optional(),
         }).describe(
-          "RoutingConfig configures the behaviour of fleet logging feature.",
+          "Specified if applying the default routing config to logs not specified in other configs.",
         ).optional(),
         fleetScopeLogsConfig: z.object({
           mode: z.enum(["MODE_UNSPECIFIED", "COPY", "MOVE"]).describe(
             "mode configures the logs routing mode.",
           ).optional(),
         }).describe(
-          "RoutingConfig configures the behaviour of fleet logging feature.",
+          "Specified if applying the routing config to all logs for all fleet scopes.",
         ).optional(),
       }).describe(
-        "LoggingConfig defines the configuration for different types of logs.",
+        "Specified if fleet logging feature is enabled for the entire fleet. If UNSPECIFIED, fleet logging feature is disabled for the entire fleet.",
       ).optional(),
-    }).describe(
-      "**Fleet Observability**: The Hub-wide input for the FleetObservability feature.",
-    ).optional(),
+    }).describe("FleetObservability feature spec.").optional(),
     mesh: z.object({
       modernizationCompatibility: z.enum([
         "MODERNIZATION_COMPATIBILITY_UNSPECIFIED",
@@ -902,186 +871,24 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Specifies modernization compatibility for the fleet.",
       ).optional(),
-    }).describe(
-      "**Service Mesh**: Spec for the fleet for the servicemesh feature",
-    ).optional(),
+    }).describe("Servicemesh feature spec.").optional(),
     multiclusteringress: z.object({
       configMembership: z.string().describe(
         "Fully-qualified Membership name which hosts the MultiClusterIngress CRD. Example: `projects/foo-proj/locations/global/memberships/bar`",
       ).optional(),
-    }).describe(
-      "**Multi-cluster Ingress**: The configuration for the MultiClusterIngress feature.",
-    ).optional(),
+    }).describe("Multicluster Ingress-specific spec.").optional(),
     rbacrolebindingactuation: z.object({
       allowedCustomRoles: z.array(z.string()).describe(
         "The list of allowed custom roles (ClusterRoles). If a ClusterRole is not part of this list, it cannot be used in a Scope RBACRoleBinding. If a ClusterRole in this list is in use, it cannot be removed from the list.",
       ).optional(),
-    }).describe(
-      "**RBAC RoleBinding Actuation**: The Hub-wide input for the RBACRoleBindingActuation feature.",
-    ).optional(),
+    }).describe("RBAC Role Binding Actuation feature spec").optional(),
     workloadidentity: z.object({
       scopeTenancyPool: z.string().describe(
         "Pool to be used for Workload Identity. This pool in trust-domain mode is used with Fleet Tenancy, so that sameness can be enforced. ex: projects/example/locations/global/workloadidentitypools/custompool",
       ).optional(),
-    }).describe("**WorkloadIdentity**: Global feature specification.")
-      .optional(),
-  }).describe("CommonFeatureSpec contains Fleet-wide configuration information")
-    .optional(),
-  state: z.object({
-    appdevexperience: z.object({
-      networkingInstallSucceeded: z.object({
-        code: z.enum(["CODE_UNSPECIFIED", "OK", "FAILED", "UNKNOWN"]).describe(
-          "Code specifies AppDevExperienceFeature's subcomponent ready state.",
-        ).optional(),
-        description: z.string().describe(
-          "Description is populated if Code is Failed, explaining why it has failed.",
-        ).optional(),
-      }).describe("Status specifies state for the subcomponent.").optional(),
-    }).describe("State for App Dev Exp Feature.").optional(),
-    clusterupgrade: z.object({
-      downstreamFleets: z.array(z.string()).describe(
-        "This fleets whose upstream_fleets contain the current fleet. The fleet name should be either fleet project number or id.",
-      ).optional(),
-      gkeState: z.object({
-        conditions: z.array(z.object({
-          reason: z.unknown().describe(
-            "Reason why the feature is in this status.",
-          ).optional(),
-          status: z.unknown().describe(
-            "Status of the condition, one of True, False, Unknown.",
-          ).optional(),
-          type: z.unknown().describe(
-            'Type of the condition, for example, "ready".',
-          ).optional(),
-          updateTime: z.unknown().describe(
-            "Last timestamp the condition was updated.",
-          ).optional(),
-        })).describe("Current conditions of the feature.").optional(),
-        upgradeState: z.array(z.object({
-          stats: z.unknown().describe(
-            "Number of GKE clusters in each status code.",
-          ).optional(),
-          status: z.unknown().describe(
-            "UpgradeStatus provides status information for each upgrade.",
-          ).optional(),
-          upgrade: z.unknown().describe(
-            "GKEUpgrade represents a GKE provided upgrade, e.g., control plane upgrade.",
-          ).optional(),
-        })).describe("Upgrade state. It will eventually replace `state`.")
-          .optional(),
-      }).describe(
-        "GKEUpgradeFeatureState contains feature states for GKE clusters in the scope.",
-      ).optional(),
-      ignored: z.record(
-        z.string(),
-        z.object({
-          ignoredTime: z.string().describe(
-            "Time when the membership was first set to ignored.",
-          ).optional(),
-          reason: z.string().describe("Reason why the membership is ignored.")
-            .optional(),
-        }),
-      ).describe(
-        "A list of memberships ignored by the feature. For example, manually upgraded clusters can be ignored if they are newer than the default versions of its release channel. The membership resource is in the format: `projects/{p}/locations/{l}/membership/{m}`.",
-      ).optional(),
-    }).describe(
-      "**ClusterUpgrade**: The state for the fleet-level ClusterUpgrade feature.",
-    ).optional(),
-    fleetobservability: z.object({
-      logging: z.object({
-        defaultLog: z.object({
-          code: z.enum(["CODE_UNSPECIFIED", "OK", "ERROR"]).describe(
-            "The high-level, machine-readable status of this Feature.",
-          ).optional(),
-          errors: z.array(z.unknown()).describe(
-            "Errors after reconciling the monitoring and logging feature if the code is not OK.",
-          ).optional(),
-        }).describe("Base state for fleet observability feature.").optional(),
-        scopeLog: z.object({
-          code: z.enum(["CODE_UNSPECIFIED", "OK", "ERROR"]).describe(
-            "The high-level, machine-readable status of this Feature.",
-          ).optional(),
-          errors: z.array(z.unknown()).describe(
-            "Errors after reconciling the monitoring and logging feature if the code is not OK.",
-          ).optional(),
-        }).describe("Base state for fleet observability feature.").optional(),
-      }).describe("Feature state for logging feature.").optional(),
-      monitoring: z.object({
-        state: z.object({
-          code: z.enum(["CODE_UNSPECIFIED", "OK", "ERROR"]).describe(
-            "The high-level, machine-readable status of this Feature.",
-          ).optional(),
-          errors: z.array(z.unknown()).describe(
-            "Errors after reconciling the monitoring and logging feature if the code is not OK.",
-          ).optional(),
-        }).describe("Base state for fleet observability feature.").optional(),
-      }).describe("Feature state for monitoring feature.").optional(),
-    }).describe(
-      "**FleetObservability**: Hub-wide Feature for FleetObservability feature. state.",
-    ).optional(),
-    rbacrolebindingactuation: z.object({}).describe(
-      "**RBAC RoleBinding Actuation**: An empty state left as an example Hub-wide Feature state.",
-    ).optional(),
-    state: z.object({
-      code: z.enum(["CODE_UNSPECIFIED", "OK", "WARNING", "ERROR"]).describe(
-        "The high-level, machine-readable status of this Feature.",
-      ).optional(),
-      description: z.string().describe(
-        "A human-readable description of the current status.",
-      ).optional(),
-      updateTime: z.string().describe(
-        "The time this status and any related Feature-specific details were updated.",
-      ).optional(),
-    }).describe(
-      "FeatureState describes the high-level state of a Feature. It may be used to describe a Feature's state at the environ-level, or per-membershop, depending on the context.",
-    ).optional(),
-    workloadidentity: z.object({
-      namespaceStateDetails: z.record(
-        z.string(),
-        z.object({
-          code: z.enum([
-            "NAMESPACE_STATE_UNSPECIFIED",
-            "NAMESPACE_STATE_OK",
-            "NAMESPACE_STATE_ERROR",
-          ]).describe("The state of the IAM namespace.").optional(),
-          description: z.string().describe(
-            "A human-readable description of the current state or returned error.",
-          ).optional(),
-        }),
-      ).describe("The state of the IAM namespaces for the fleet.").optional(),
-      namespaceStates: z.record(
-        z.string(),
-        z.enum([
-          "NAMESPACE_STATE_UNSPECIFIED",
-          "NAMESPACE_STATE_OK",
-          "NAMESPACE_STATE_ERROR",
-        ]),
-      ).describe(
-        "Deprecated, this field will be erased after code is changed to use the new field.",
-      ).optional(),
-      scopeTenancyWorkloadIdentityPool: z.string().describe(
-        "The full name of the scope-tenancy pool for the fleet.",
-      ).optional(),
-      workloadIdentityPool: z.string().describe(
-        "The full name of the svc.id.goog pool for the fleet.",
-      ).optional(),
-      workloadIdentityPoolStateDetails: z.record(
-        z.string(),
-        z.object({
-          code: z.enum([
-            "WORKLOAD_IDENTITY_POOL_STATE_UNSPECIFIED",
-            "WORKLOAD_IDENTITY_POOL_STATE_OK",
-            "WORKLOAD_IDENTITY_POOL_STATE_ERROR",
-          ]).describe("The state of the Workload Identity Pool.").optional(),
-          description: z.string().describe(
-            "A human-readable description of the current state or returned error.",
-          ).optional(),
-        }),
-      ).describe("The state of the Workload Identity Pools for the fleet.")
-        .optional(),
-    }).describe("**WorkloadIdentity**: Global feature state.").optional(),
+    }).describe("Workload Identity feature spec.").optional(),
   }).describe(
-    "CommonFeatureState contains Fleet-wide Feature status information.",
+    "Optional. Fleet-wide Feature configuration. If this Feature does not support any Fleet-wide configuration, this field may be unused.",
   ).optional(),
   featureId: z.string().describe("The ID of the feature to create.").optional(),
   requestId: z.string().describe(
@@ -1400,7 +1207,8 @@ const InputsSchema = z.object({
           syncWaitSecs: z.string().describe(
             "Optional. Period in seconds between consecutive syncs. Default: 15.",
           ).optional(),
-        }).describe("Git repo configuration for a single cluster.").optional(),
+        }).describe("Optional. Git repo configuration for the cluster.")
+          .optional(),
         metricsGcpServiceAccountEmail: z.string().describe(
           "Optional. The Email of the Google Cloud Service Account (GSA) used for exporting Config Sync metrics to Cloud Monitoring and Cloud Monarch when Workload Identity is enabled. The GSA should have the Monitoring Metric Writer (roles/monitoring.metricWriter) IAM role. The Kubernetes ServiceAccount `default` in the namespace `config-management-monitoring` should be bound to the GSA. Deprecated: If Workload Identity Federation for GKE is enabled, Google Cloud Service Account is no longer needed for exporting Config Sync metrics: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/monitor-config-sync-cloud-monitoring#custom-monitoring.",
         ).optional(),
@@ -1420,7 +1228,8 @@ const InputsSchema = z.object({
           syncWaitSecs: z.string().describe(
             "Optional. Period in seconds between consecutive syncs. Default: 15.",
           ).optional(),
-        }).describe("OCI repo configuration for a single cluster").optional(),
+        }).describe("Optional. OCI repo configuration for the cluster")
+          .optional(),
         preventDrift: z.boolean().describe(
           "Optional. Set to true to enable the Config Sync admission webhook to prevent drifts. If set to false, disables the Config Sync admission webhook and does not prevent drifts. Defaults to false. See https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/how-to/prevent-config-drift for details.",
         ).optional(),
@@ -1430,7 +1239,8 @@ const InputsSchema = z.object({
         stopSyncing: z.boolean().describe(
           "Optional. Set to true to stop syncing configs for a single cluster. Default to false.",
         ).optional(),
-      }).describe("Configuration for Config Sync").optional(),
+      }).describe("Optional. Config Sync configuration for the cluster.")
+        .optional(),
       hierarchyController: z.object({
         enableHierarchicalResourceQuota: z.boolean().describe(
           "Whether hierarchical resource quota is enabled in this cluster.",
@@ -1441,7 +1251,9 @@ const InputsSchema = z.object({
         enabled: z.boolean().describe(
           "Whether Hierarchy Controller is enabled in this cluster.",
         ).optional(),
-      }).describe("Configuration for Hierarchy Controller").optional(),
+      }).describe(
+        "Optional. Hierarchy Controller configuration for the cluster. Deprecated: Configuring Hierarchy Controller through the configmanagement feature is no longer recommended. Use https://github.com/kubernetes-sigs/hierarchical-namespaces instead.",
+      ).optional(),
       management: z.enum([
         "MANAGEMENT_UNSPECIFIED",
         "MANAGEMENT_AUTOMATIC",
@@ -1466,9 +1278,8 @@ const InputsSchema = z.object({
           backends: z.array(z.unknown()).describe(
             "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
           ).optional(),
-        }).describe(
-          'PolicyControllerMonitoring specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-        ).optional(),
+        }).describe("Monitoring specifies the configuration of monitoring.")
+          .optional(),
         mutationEnabled: z.boolean().describe(
           "Enable or disable mutation in policy controller. If true, mutation CRDs, webhook and controller deployment will be deployed to the cluster.",
         ).optional(),
@@ -1481,13 +1292,13 @@ const InputsSchema = z.object({
         updateTime: z.string().describe(
           "Output only. Last time this membership spec was updated.",
         ).optional(),
-      }).describe("Configuration for Policy Controller").optional(),
+      }).describe(
+        "Optional. Policy Controller configuration for the cluster. Deprecated: Configuring Policy Controller through the configmanagement feature is no longer recommended. Use the policycontroller feature instead.",
+      ).optional(),
       version: z.string().describe(
         "Optional. Version of Config Sync to install. Defaults to the latest supported Config Sync version if the config_sync field is enabled. See supported versions at https://cloud.google.com/kubernetes-engine/config-sync/docs/get-support-config-sync#version_support_policy.",
       ).optional(),
-    }).describe(
-      "**Anthos Config Management**: Configuration for a single cluster. Intended to parallel the ConfigManagement CR.",
-    ).optional(),
+    }).describe("Config Management-specific spec.").optional(),
     identityservice: z.object({
       authMethods: z.array(z.object({
         azureadConfig: z.object({
@@ -1512,27 +1323,26 @@ const InputsSchema = z.object({
           userClaim: z.unknown().describe(
             "Optional. Claim in the AzureAD ID Token that holds the user details.",
           ).optional(),
-        }).describe("Configuration for the AzureAD Auth flow.").optional(),
+        }).describe("AzureAD specific Configuration.").optional(),
         googleConfig: z.object({
           disable: z.unknown().describe(
             "Disable automatic configuration of Google Plugin on supported platforms.",
           ).optional(),
-        }).describe("Configuration for the Google Plugin Auth flow.")
-          .optional(),
+        }).describe("GoogleConfig specific configuration.").optional(),
         ldapConfig: z.object({
           group: z.unknown().describe(
-            "Contains the properties for locating and authenticating groups in the directory.",
+            "Optional. Contains the properties for locating and authenticating groups in the directory.",
           ).optional(),
           server: z.unknown().describe(
-            "Server settings for the external LDAP server.",
+            "Required. Server settings for the external LDAP server.",
           ).optional(),
           serviceAccount: z.unknown().describe(
-            "Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.",
+            "Required. Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.",
           ).optional(),
           user: z.unknown().describe(
-            "Defines where users exist in the LDAP directory.",
+            "Required. Defines where users exist in the LDAP directory.",
           ).optional(),
-        }).describe("Configuration for the LDAP Auth flow.").optional(),
+        }).describe("LDAP specific configuration.").optional(),
         name: z.string().describe("Identifier for auth config.").optional(),
         oidcConfig: z.object({
           certificateAuthorityData: z.unknown().describe(
@@ -1572,7 +1382,7 @@ const InputsSchema = z.object({
           ).optional(),
           userPrefix: z.unknown().describe("Prefix to prepend to user name.")
             .optional(),
-        }).describe("Configuration for OIDC Auth flow.").optional(),
+        }).describe("OIDC specific configuration.").optional(),
         proxy: z.string().describe(
           "Proxy server address to use for auth method.",
         ).optional(),
@@ -1601,7 +1411,7 @@ const InputsSchema = z.object({
           userPrefix: z.unknown().describe(
             "Optional. Prefix to prepend to user name.",
           ).optional(),
-        }).describe("Configuration for the SAML Auth flow.").optional(),
+        }).describe("SAML specific configuration.").optional(),
       })).describe("A member may support multiple auth methods.").optional(),
       identityServiceOptions: z.object({
         diagnosticInterface: z.object({
@@ -1616,11 +1426,9 @@ const InputsSchema = z.object({
         sessionDuration: z.string().describe(
           "Determines the lifespan of STS tokens issued by Anthos Identity Service.",
         ).optional(),
-      }).describe("Holds non-protocol-related configuration options.")
+      }).describe("Optional. non-protocol-related configuration options.")
         .optional(),
-    }).describe(
-      "**Anthos Identity Service**: Configuration for a single Membership.",
-    ).optional(),
+    }).describe("Identity Service-specific spec.").optional(),
     mesh: z.object({
       configApi: z.enum([
         "CONFIG_API_UNSPECIFIED",
@@ -1643,9 +1451,7 @@ const InputsSchema = z.object({
         "MANAGEMENT_NOT_INSTALLED",
       ]).describe("Optional. Enables automatic Service Mesh management.")
         .optional(),
-    }).describe(
-      "**Service Mesh**: Spec for a single Membership for the servicemesh feature",
-    ).optional(),
+    }).describe("Anthos Service Mesh-specific spec").optional(),
     policycontroller: z.object({
       policyControllerHubConfig: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -1658,7 +1464,7 @@ const InputsSchema = z.object({
           z.string(),
           z.object({
             containerResources: z.unknown().describe(
-              "ResourceRequirements describes the compute resource requirements.",
+              "Container resource requirements.",
             ).optional(),
             podAffinity: z.unknown().describe("Pod affinity configuration.")
               .optional(),
@@ -1692,9 +1498,8 @@ const InputsSchema = z.object({
           backends: z.array(z.unknown()).describe(
             "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
           ).optional(),
-        }).describe(
-          'MonitoringConfig specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-        ).optional(),
+        }).describe("Monitoring specifies the configuration of monitoring.")
+          .optional(),
         mutationEnabled: z.boolean().describe(
           "Enables the ability to mutate resources using Policy Controller.",
         ).optional(),
@@ -1706,23 +1511,20 @@ const InputsSchema = z.object({
             installation: z.unknown().describe(
               "Configures the manner in which the template library is installed on the cluster.",
             ).optional(),
-          }).describe(
-            "The config specifying which default library templates to install.",
-          ).optional(),
-        }).describe(
-          "PolicyContentSpec defines the user's desired content configuration on the cluster.",
-        ).optional(),
+          }).describe("Configures the installation of the Template Library.")
+            .optional(),
+        }).describe("Specifies the desired policy content on the cluster")
+          .optional(),
         referentialRulesEnabled: z.boolean().describe(
           "Enables the ability to use Constraint Templates that reference to objects other than the object currently being evaluated.",
         ).optional(),
-      }).describe("Configuration for Policy Controller").optional(),
+      }).describe("Policy Controller configuration for the cluster.")
+        .optional(),
       version: z.string().describe("Version of Policy Controller installed.")
         .optional(),
-    }).describe(
-      "**Policy Controller**: Configuration for a single cluster. Intended to parallel the PolicyController CR.",
-    ).optional(),
+    }).describe("Policy Controller spec.").optional(),
   }).describe(
-    "CommonFleetDefaultMemberConfigSpec contains default configuration information for memberships of a fleet",
+    "Optional. Feature configuration applicable to all memberships of the fleet.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels for this Feature.")
     .optional(),
@@ -1765,7 +1567,7 @@ const InputsSchema = z.object({
             syncWaitSecs: z.unknown().describe(
               "Optional. Period in seconds between consecutive syncs. Default: 15.",
             ).optional(),
-          }).describe("Git repo configuration for a single cluster.")
+          }).describe("Optional. Git repo configuration for the cluster.")
             .optional(),
           metricsGcpServiceAccountEmail: z.string().describe(
             "Optional. The Email of the Google Cloud Service Account (GSA) used for exporting Config Sync metrics to Cloud Monitoring and Cloud Monarch when Workload Identity is enabled. The GSA should have the Monitoring Metric Writer (roles/monitoring.metricWriter) IAM role. The Kubernetes ServiceAccount `default` in the namespace `config-management-monitoring` should be bound to the GSA. Deprecated: If Workload Identity Federation for GKE is enabled, Google Cloud Service Account is no longer needed for exporting Config Sync metrics: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/monitor-config-sync-cloud-monitoring#custom-monitoring.",
@@ -1786,7 +1588,8 @@ const InputsSchema = z.object({
             syncWaitSecs: z.unknown().describe(
               "Optional. Period in seconds between consecutive syncs. Default: 15.",
             ).optional(),
-          }).describe("OCI repo configuration for a single cluster").optional(),
+          }).describe("Optional. OCI repo configuration for the cluster")
+            .optional(),
           preventDrift: z.boolean().describe(
             "Optional. Set to true to enable the Config Sync admission webhook to prevent drifts. If set to false, disables the Config Sync admission webhook and does not prevent drifts. Defaults to false. See https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/how-to/prevent-config-drift for details.",
           ).optional(),
@@ -1796,7 +1599,8 @@ const InputsSchema = z.object({
           stopSyncing: z.boolean().describe(
             "Optional. Set to true to stop syncing configs for a single cluster. Default to false.",
           ).optional(),
-        }).describe("Configuration for Config Sync").optional(),
+        }).describe("Optional. Config Sync configuration for the cluster.")
+          .optional(),
         hierarchyController: z.object({
           enableHierarchicalResourceQuota: z.boolean().describe(
             "Whether hierarchical resource quota is enabled in this cluster.",
@@ -1807,7 +1611,9 @@ const InputsSchema = z.object({
           enabled: z.boolean().describe(
             "Whether Hierarchy Controller is enabled in this cluster.",
           ).optional(),
-        }).describe("Configuration for Hierarchy Controller").optional(),
+        }).describe(
+          "Optional. Hierarchy Controller configuration for the cluster. Deprecated: Configuring Hierarchy Controller through the configmanagement feature is no longer recommended. Use https://github.com/kubernetes-sigs/hierarchical-namespaces instead.",
+        ).optional(),
         management: z.enum([
           "MANAGEMENT_UNSPECIFIED",
           "MANAGEMENT_AUTOMATIC",
@@ -1832,9 +1638,8 @@ const InputsSchema = z.object({
             backends: z.unknown().describe(
               "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
             ).optional(),
-          }).describe(
-            'PolicyControllerMonitoring specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-          ).optional(),
+          }).describe("Monitoring specifies the configuration of monitoring.")
+            .optional(),
           mutationEnabled: z.boolean().describe(
             "Enable or disable mutation in policy controller. If true, mutation CRDs, webhook and controller deployment will be deployed to the cluster.",
           ).optional(),
@@ -1847,36 +1652,33 @@ const InputsSchema = z.object({
           updateTime: z.string().describe(
             "Output only. Last time this membership spec was updated.",
           ).optional(),
-        }).describe("Configuration for Policy Controller").optional(),
+        }).describe(
+          "Optional. Policy Controller configuration for the cluster. Deprecated: Configuring Policy Controller through the configmanagement feature is no longer recommended. Use the policycontroller feature instead.",
+        ).optional(),
         version: z.string().describe(
           "Optional. Version of Config Sync to install. Defaults to the latest supported Config Sync version if the config_sync field is enabled. See supported versions at https://cloud.google.com/kubernetes-engine/config-sync/docs/get-support-config-sync#version_support_policy.",
         ).optional(),
-      }).describe(
-        "**Anthos Config Management**: Configuration for a single cluster. Intended to parallel the ConfigManagement CR.",
-      ).optional(),
+      }).describe("Config Management-specific spec.").optional(),
       fleetobservability: z.object({}).describe(
-        "**FleetObservability**: The membership-specific input for FleetObservability feature.",
+        "Fleet observability membership spec",
       ).optional(),
       identityservice: z.object({
         authMethods: z.array(z.object({
-          azureadConfig: z.unknown().describe(
-            "Configuration for the AzureAD Auth flow.",
-          ).optional(),
+          azureadConfig: z.unknown().describe("AzureAD specific Configuration.")
+            .optional(),
           googleConfig: z.unknown().describe(
-            "Configuration for the Google Plugin Auth flow.",
+            "GoogleConfig specific configuration.",
           ).optional(),
-          ldapConfig: z.unknown().describe(
-            "Configuration for the LDAP Auth flow.",
-          ).optional(),
+          ldapConfig: z.unknown().describe("LDAP specific configuration.")
+            .optional(),
           name: z.unknown().describe("Identifier for auth config.").optional(),
-          oidcConfig: z.unknown().describe("Configuration for OIDC Auth flow.")
+          oidcConfig: z.unknown().describe("OIDC specific configuration.")
             .optional(),
           proxy: z.unknown().describe(
             "Proxy server address to use for auth method.",
           ).optional(),
-          samlConfig: z.unknown().describe(
-            "Configuration for the SAML Auth flow.",
-          ).optional(),
+          samlConfig: z.unknown().describe("SAML specific configuration.")
+            .optional(),
         })).describe("A member may support multiple auth methods.").optional(),
         identityServiceOptions: z.object({
           diagnosticInterface: z.object({
@@ -1891,11 +1693,9 @@ const InputsSchema = z.object({
           sessionDuration: z.string().describe(
             "Determines the lifespan of STS tokens issued by Anthos Identity Service.",
           ).optional(),
-        }).describe("Holds non-protocol-related configuration options.")
+        }).describe("Optional. non-protocol-related configuration options.")
           .optional(),
-      }).describe(
-        "**Anthos Identity Service**: Configuration for a single Membership.",
-      ).optional(),
+      }).describe("Identity Service-specific spec.").optional(),
       mesh: z.object({
         configApi: z.enum([
           "CONFIG_API_UNSPECIFIED",
@@ -1918,14 +1718,12 @@ const InputsSchema = z.object({
           "MANAGEMENT_NOT_INSTALLED",
         ]).describe("Optional. Enables automatic Service Mesh management.")
           .optional(),
-      }).describe(
-        "**Service Mesh**: Spec for a single Membership for the servicemesh feature",
-      ).optional(),
+      }).describe("Anthos Service Mesh-specific spec").optional(),
       origin: z.object({
         type: z.enum(["TYPE_UNSPECIFIED", "FLEET", "FLEET_OUT_OF_SYNC", "USER"])
           .describe("Type specifies which type of origin is set.").optional(),
       }).describe(
-        "Origin defines where this MembershipFeatureSpec originated from.",
+        "Whether this per-Membership spec was inherited from a fleet-level default. This field can be updated by users by either overriding a Membership config (updated to USER implicitly) or setting to FLEET explicitly.",
       ).optional(),
       policycontroller: z.object({
         policyControllerHubConfig: z.object({
@@ -1957,9 +1755,8 @@ const InputsSchema = z.object({
             backends: z.unknown().describe(
               "Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.",
             ).optional(),
-          }).describe(
-            'MonitoringConfig specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]',
-          ).optional(),
+          }).describe("Monitoring specifies the configuration of monitoring.")
+            .optional(),
           mutationEnabled: z.boolean().describe(
             "Enables the ability to mutate resources using Policy Controller.",
           ).optional(),
@@ -1968,44 +1765,28 @@ const InputsSchema = z.object({
               "map of bundle name to BundleInstallSpec. The bundle name maps to the `bundleName` key in the `policycontroller.gke.io/constraintData` annotation on a constraint.",
             ).optional(),
             templateLibrary: z.unknown().describe(
-              "The config specifying which default library templates to install.",
+              "Configures the installation of the Template Library.",
             ).optional(),
-          }).describe(
-            "PolicyContentSpec defines the user's desired content configuration on the cluster.",
-          ).optional(),
+          }).describe("Specifies the desired policy content on the cluster")
+            .optional(),
           referentialRulesEnabled: z.boolean().describe(
             "Enables the ability to use Constraint Templates that reference to objects other than the object currently being evaluated.",
           ).optional(),
-        }).describe("Configuration for Policy Controller").optional(),
+        }).describe("Policy Controller configuration for the cluster.")
+          .optional(),
         version: z.string().describe("Version of Policy Controller installed.")
           .optional(),
-      }).describe(
-        "**Policy Controller**: Configuration for a single cluster. Intended to parallel the PolicyController CR.",
-      ).optional(),
+      }).describe("Policy Controller spec.").optional(),
     }),
   ).describe(
     "Optional. Membership-specific configuration for this Feature. If this Feature does not support any per-Membership configuration, this field may be unused. The keys indicate which Membership the configuration is for, in the form: `projects/{p}/locations/{l}/memberships/{m}` Where {p} is the project, {l} is a valid location and {m} is a valid Membership in this project at that location. {p} WILL match the Feature's project. {p} will always be returned as the project number, but the project ID is also accepted during input. If the same Membership is specified in the map twice (using the project ID form, and the project number form), exactly ONE of the entries will be saved, with no guarantees as to which. For this reason, it is recommended the same format be used for all entries when mutating a Feature.",
-  ).optional(),
-  resourceState: z.object({
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "ENABLING",
-      "ACTIVE",
-      "DISABLING",
-      "UPDATING",
-      "SERVICE_UPDATING",
-    ]).describe("The current state of the Feature resource in the Hub API.")
-      .optional(),
-  }).describe(
-    'FeatureResourceState describes the state of a Feature *resource* in the GkeHub API. See `FeatureState` for the "running state" of the Feature in the Fleet and across Memberships.',
   ).optional(),
   scopeSpecs: z.record(z.string(), z.object({})).describe(
     "Optional. Scope-specific configuration for this Feature. If this Feature does not support any per-Scope configuration, this field may be unused. The keys indicate which Scope the configuration is for, in the form: `projects/{p}/locations/global/scopes/{s}` Where {p} is the project, {s} is a valid Scope in this project. {p} WILL match the Feature's project. {p} will always be returned as the project number, but the project ID is also accepted during input. If the same Scope is specified in the map twice (using the project ID form, and the project number form), exactly ONE of the entries will be saved, with no guarantees as to which. For this reason, it is recommended the same format be used for all entries when mutating a Feature.",
   ).optional(),
   spec: z.object({
-    appdevexperience: z.object({}).describe(
-      "Spec for App Dev Experience Feature.",
-    ).optional(),
+    appdevexperience: z.object({}).describe("Appdevexperience specific spec.")
+      .optional(),
     clusterupgrade: z.object({
       gkeUpgradeOverrides: z.array(z.object({
         postConditions: z.object({
@@ -2013,7 +1794,7 @@ const InputsSchema = z.object({
             'Required. Amount of time to "soak" after a rollout has been finished before marking it COMPLETE. Cannot exceed 30 days. Required.',
           ).optional(),
         }).describe(
-          "Post conditional checks after an upgrade has been applied on all eligible clusters.",
+          "Required. Post conditions to override for the specified upgrade (name + version). Required.",
         ).optional(),
         upgrade: z.object({
           name: z.unknown().describe(
@@ -2022,9 +1803,8 @@ const InputsSchema = z.object({
           version: z.unknown().describe(
             'Version of the upgrade, e.g., "1.22.1-gke.100". It should be a valid version. It must not exceet 99 characters.',
           ).optional(),
-        }).describe(
-          "GKEUpgrade represents a GKE provided upgrade, e.g., control plane upgrade.",
-        ).optional(),
+        }).describe("Required. Which upgrade to override. Required.")
+          .optional(),
       })).describe(
         "Allow users to override some properties of each GKE upgrade.",
       ).optional(),
@@ -2033,19 +1813,17 @@ const InputsSchema = z.object({
           'Required. Amount of time to "soak" after a rollout has been finished before marking it COMPLETE. Cannot exceed 30 days. Required.',
         ).optional(),
       }).describe(
-        "Post conditional checks after an upgrade has been applied on all eligible clusters.",
+        "Required. Post conditions to evaluate to mark an upgrade COMPLETE. Required.",
       ).optional(),
       upstreamFleets: z.array(z.string()).describe(
         "This fleet consumes upgrades that have COMPLETE status code in the upstream fleets. See UpgradeStatus.Code for code definitions. The fleet name should be either fleet project number or id. This is defined as repeated for future proof reasons. Initial implementation will enforce at most one upstream fleet.",
       ).optional(),
-    }).describe(
-      "**ClusterUpgrade**: The configuration for the fleet-level ClusterUpgrade feature.",
-    ).optional(),
+    }).describe("ClusterUpgrade (fleet-based) feature spec.").optional(),
     dataplanev2: z.object({
       enableEncryption: z.boolean().describe(
         "Enable dataplane-v2 based encryption for multiple clusters.",
       ).optional(),
-    }).describe("**Dataplane V2**: Spec").optional(),
+    }).describe("DataplaneV2 feature spec.").optional(),
     fleetobservability: z.object({
       loggingConfig: z.object({
         defaultConfig: z.object({
@@ -2053,21 +1831,19 @@ const InputsSchema = z.object({
             "mode configures the logs routing mode.",
           ).optional(),
         }).describe(
-          "RoutingConfig configures the behaviour of fleet logging feature.",
+          "Specified if applying the default routing config to logs not specified in other configs.",
         ).optional(),
         fleetScopeLogsConfig: z.object({
           mode: z.enum(["MODE_UNSPECIFIED", "COPY", "MOVE"]).describe(
             "mode configures the logs routing mode.",
           ).optional(),
         }).describe(
-          "RoutingConfig configures the behaviour of fleet logging feature.",
+          "Specified if applying the routing config to all logs for all fleet scopes.",
         ).optional(),
       }).describe(
-        "LoggingConfig defines the configuration for different types of logs.",
+        "Specified if fleet logging feature is enabled for the entire fleet. If UNSPECIFIED, fleet logging feature is disabled for the entire fleet.",
       ).optional(),
-    }).describe(
-      "**Fleet Observability**: The Hub-wide input for the FleetObservability feature.",
-    ).optional(),
+    }).describe("FleetObservability feature spec.").optional(),
     mesh: z.object({
       modernizationCompatibility: z.enum([
         "MODERNIZATION_COMPATIBILITY_UNSPECIFIED",
@@ -2076,186 +1852,24 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Specifies modernization compatibility for the fleet.",
       ).optional(),
-    }).describe(
-      "**Service Mesh**: Spec for the fleet for the servicemesh feature",
-    ).optional(),
+    }).describe("Servicemesh feature spec.").optional(),
     multiclusteringress: z.object({
       configMembership: z.string().describe(
         "Fully-qualified Membership name which hosts the MultiClusterIngress CRD. Example: `projects/foo-proj/locations/global/memberships/bar`",
       ).optional(),
-    }).describe(
-      "**Multi-cluster Ingress**: The configuration for the MultiClusterIngress feature.",
-    ).optional(),
+    }).describe("Multicluster Ingress-specific spec.").optional(),
     rbacrolebindingactuation: z.object({
       allowedCustomRoles: z.array(z.string()).describe(
         "The list of allowed custom roles (ClusterRoles). If a ClusterRole is not part of this list, it cannot be used in a Scope RBACRoleBinding. If a ClusterRole in this list is in use, it cannot be removed from the list.",
       ).optional(),
-    }).describe(
-      "**RBAC RoleBinding Actuation**: The Hub-wide input for the RBACRoleBindingActuation feature.",
-    ).optional(),
+    }).describe("RBAC Role Binding Actuation feature spec").optional(),
     workloadidentity: z.object({
       scopeTenancyPool: z.string().describe(
         "Pool to be used for Workload Identity. This pool in trust-domain mode is used with Fleet Tenancy, so that sameness can be enforced. ex: projects/example/locations/global/workloadidentitypools/custompool",
       ).optional(),
-    }).describe("**WorkloadIdentity**: Global feature specification.")
-      .optional(),
-  }).describe("CommonFeatureSpec contains Fleet-wide configuration information")
-    .optional(),
-  state: z.object({
-    appdevexperience: z.object({
-      networkingInstallSucceeded: z.object({
-        code: z.enum(["CODE_UNSPECIFIED", "OK", "FAILED", "UNKNOWN"]).describe(
-          "Code specifies AppDevExperienceFeature's subcomponent ready state.",
-        ).optional(),
-        description: z.string().describe(
-          "Description is populated if Code is Failed, explaining why it has failed.",
-        ).optional(),
-      }).describe("Status specifies state for the subcomponent.").optional(),
-    }).describe("State for App Dev Exp Feature.").optional(),
-    clusterupgrade: z.object({
-      downstreamFleets: z.array(z.string()).describe(
-        "This fleets whose upstream_fleets contain the current fleet. The fleet name should be either fleet project number or id.",
-      ).optional(),
-      gkeState: z.object({
-        conditions: z.array(z.object({
-          reason: z.unknown().describe(
-            "Reason why the feature is in this status.",
-          ).optional(),
-          status: z.unknown().describe(
-            "Status of the condition, one of True, False, Unknown.",
-          ).optional(),
-          type: z.unknown().describe(
-            'Type of the condition, for example, "ready".',
-          ).optional(),
-          updateTime: z.unknown().describe(
-            "Last timestamp the condition was updated.",
-          ).optional(),
-        })).describe("Current conditions of the feature.").optional(),
-        upgradeState: z.array(z.object({
-          stats: z.unknown().describe(
-            "Number of GKE clusters in each status code.",
-          ).optional(),
-          status: z.unknown().describe(
-            "UpgradeStatus provides status information for each upgrade.",
-          ).optional(),
-          upgrade: z.unknown().describe(
-            "GKEUpgrade represents a GKE provided upgrade, e.g., control plane upgrade.",
-          ).optional(),
-        })).describe("Upgrade state. It will eventually replace `state`.")
-          .optional(),
-      }).describe(
-        "GKEUpgradeFeatureState contains feature states for GKE clusters in the scope.",
-      ).optional(),
-      ignored: z.record(
-        z.string(),
-        z.object({
-          ignoredTime: z.string().describe(
-            "Time when the membership was first set to ignored.",
-          ).optional(),
-          reason: z.string().describe("Reason why the membership is ignored.")
-            .optional(),
-        }),
-      ).describe(
-        "A list of memberships ignored by the feature. For example, manually upgraded clusters can be ignored if they are newer than the default versions of its release channel. The membership resource is in the format: `projects/{p}/locations/{l}/membership/{m}`.",
-      ).optional(),
-    }).describe(
-      "**ClusterUpgrade**: The state for the fleet-level ClusterUpgrade feature.",
-    ).optional(),
-    fleetobservability: z.object({
-      logging: z.object({
-        defaultLog: z.object({
-          code: z.enum(["CODE_UNSPECIFIED", "OK", "ERROR"]).describe(
-            "The high-level, machine-readable status of this Feature.",
-          ).optional(),
-          errors: z.array(z.unknown()).describe(
-            "Errors after reconciling the monitoring and logging feature if the code is not OK.",
-          ).optional(),
-        }).describe("Base state for fleet observability feature.").optional(),
-        scopeLog: z.object({
-          code: z.enum(["CODE_UNSPECIFIED", "OK", "ERROR"]).describe(
-            "The high-level, machine-readable status of this Feature.",
-          ).optional(),
-          errors: z.array(z.unknown()).describe(
-            "Errors after reconciling the monitoring and logging feature if the code is not OK.",
-          ).optional(),
-        }).describe("Base state for fleet observability feature.").optional(),
-      }).describe("Feature state for logging feature.").optional(),
-      monitoring: z.object({
-        state: z.object({
-          code: z.enum(["CODE_UNSPECIFIED", "OK", "ERROR"]).describe(
-            "The high-level, machine-readable status of this Feature.",
-          ).optional(),
-          errors: z.array(z.unknown()).describe(
-            "Errors after reconciling the monitoring and logging feature if the code is not OK.",
-          ).optional(),
-        }).describe("Base state for fleet observability feature.").optional(),
-      }).describe("Feature state for monitoring feature.").optional(),
-    }).describe(
-      "**FleetObservability**: Hub-wide Feature for FleetObservability feature. state.",
-    ).optional(),
-    rbacrolebindingactuation: z.object({}).describe(
-      "**RBAC RoleBinding Actuation**: An empty state left as an example Hub-wide Feature state.",
-    ).optional(),
-    state: z.object({
-      code: z.enum(["CODE_UNSPECIFIED", "OK", "WARNING", "ERROR"]).describe(
-        "The high-level, machine-readable status of this Feature.",
-      ).optional(),
-      description: z.string().describe(
-        "A human-readable description of the current status.",
-      ).optional(),
-      updateTime: z.string().describe(
-        "The time this status and any related Feature-specific details were updated.",
-      ).optional(),
-    }).describe(
-      "FeatureState describes the high-level state of a Feature. It may be used to describe a Feature's state at the environ-level, or per-membershop, depending on the context.",
-    ).optional(),
-    workloadidentity: z.object({
-      namespaceStateDetails: z.record(
-        z.string(),
-        z.object({
-          code: z.enum([
-            "NAMESPACE_STATE_UNSPECIFIED",
-            "NAMESPACE_STATE_OK",
-            "NAMESPACE_STATE_ERROR",
-          ]).describe("The state of the IAM namespace.").optional(),
-          description: z.string().describe(
-            "A human-readable description of the current state or returned error.",
-          ).optional(),
-        }),
-      ).describe("The state of the IAM namespaces for the fleet.").optional(),
-      namespaceStates: z.record(
-        z.string(),
-        z.enum([
-          "NAMESPACE_STATE_UNSPECIFIED",
-          "NAMESPACE_STATE_OK",
-          "NAMESPACE_STATE_ERROR",
-        ]),
-      ).describe(
-        "Deprecated, this field will be erased after code is changed to use the new field.",
-      ).optional(),
-      scopeTenancyWorkloadIdentityPool: z.string().describe(
-        "The full name of the scope-tenancy pool for the fleet.",
-      ).optional(),
-      workloadIdentityPool: z.string().describe(
-        "The full name of the svc.id.goog pool for the fleet.",
-      ).optional(),
-      workloadIdentityPoolStateDetails: z.record(
-        z.string(),
-        z.object({
-          code: z.enum([
-            "WORKLOAD_IDENTITY_POOL_STATE_UNSPECIFIED",
-            "WORKLOAD_IDENTITY_POOL_STATE_OK",
-            "WORKLOAD_IDENTITY_POOL_STATE_ERROR",
-          ]).describe("The state of the Workload Identity Pool.").optional(),
-          description: z.string().describe(
-            "A human-readable description of the current state or returned error.",
-          ).optional(),
-        }),
-      ).describe("The state of the Workload Identity Pools for the fleet.")
-        .optional(),
-    }).describe("**WorkloadIdentity**: Global feature state.").optional(),
+    }).describe("Workload Identity feature spec.").optional(),
   }).describe(
-    "CommonFeatureState contains Fleet-wide Feature status information.",
+    "Optional. Fleet-wide Feature configuration. If this Feature does not support any Fleet-wide configuration, this field may be unused.",
   ).optional(),
   featureId: z.string().describe("The ID of the feature to create.").optional(),
   requestId: z.string().describe(
@@ -2289,7 +1903,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Features. Registered at `@swamp/gcp/gkehub/features`. */
 export const model = {
   type: "@swamp/gcp/gkehub/features",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: resourceState, state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { resourceState: _resourceState, state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -2321,12 +1945,8 @@ export const model = {
         if (g["membershipSpecs"] !== undefined) {
           body["membershipSpecs"] = g["membershipSpecs"];
         }
-        if (g["resourceState"] !== undefined) {
-          body["resourceState"] = g["resourceState"];
-        }
         if (g["scopeSpecs"] !== undefined) body["scopeSpecs"] = g["scopeSpecs"];
         if (g["spec"] !== undefined) body["spec"] = g["spec"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["featureId"] !== undefined) {
           params["featureId"] = String(g["featureId"]);
         }
@@ -2346,16 +1966,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -2447,12 +2058,8 @@ export const model = {
         if (g["membershipSpecs"] !== undefined) {
           body["membershipSpecs"] = g["membershipSpecs"];
         }
-        if (g["resourceState"] !== undefined) {
-          body["resourceState"] = g["resourceState"];
-        }
         if (g["scopeSpecs"] !== undefined) body["scopeSpecs"] = g["scopeSpecs"];
         if (g["spec"] !== undefined) body["spec"] = g["spec"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

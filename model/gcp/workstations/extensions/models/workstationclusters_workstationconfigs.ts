@@ -210,7 +210,9 @@ const GlobalArgsSchema = z.object({
     workingDir: z.string().describe(
       "Optional. If set, overrides the default DIR specified by the image.",
     ).optional(),
-  }).describe("A Docker container.").optional(),
+  }).describe(
+    "Optional. Container that runs upon startup for each workstation using this workstation configuration.",
+  ).optional(),
   disableTcpConnections: z.boolean().describe(
     "Optional. Disables support for plain TCP connections in the workstation. By default the service supports TCP connections through a websocket relay. Setting this option to true disables that relay, which prevents the usage of services that require plain TCP connections, such as SSH. When enabled, all communication must occur over HTTPS or WSS.",
   ).optional(),
@@ -228,7 +230,7 @@ const GlobalArgsSchema = z.object({
       "Immutable. The service account to use with the specified KMS key. We recommend that you use a separate service account and follow KMS best practices. For more information, see [Separation of duties](https://cloud.google.com/kms/docs/separation-of-duties) and `gcloud kms keys add-iam-policy-binding` [`--member`](https://cloud.google.com/sdk/gcloud/reference/kms/keys/add-iam-policy-binding#--member).",
     ).optional(),
   }).describe(
-    "A customer-managed encryption key (CMEK) for the Compute Engine resources of the associated workstation configuration. Specify the name of your Cloud KMS encryption key and the default service account. We recommend that you use a separate service account and follow [Cloud KMS best practices](https://cloud.google.com/kms/docs/separation-of-duties).",
+    "Immutable. Encrypts resources of this workstation configuration using a customer-managed encryption key (CMEK). If specified, the boot disk of the Compute Engine instance and the persistent disk are encrypted using this encryption key. If this field is not set, the disks are encrypted using a generated key. Customer-managed encryption keys do not protect disk metadata. If the customer-managed encryption key is rotated, when the workstation instance is stopped, the system attempts to recreate the persistent disk with the new version of the key. Be sure to keep older versions of the key until the persistent disk is recreated. Otherwise, data on the persistent disk might be lost. If the encryption key is revoked, the workstation session automatically stops within 7 hours. Immutable after the workstation configuration is created.",
   ).optional(),
   ephemeralDirectories: z.array(z.object({
     gcePd: z.object({
@@ -245,7 +247,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Name of the snapshot to use as the source for the disk. Must be empty if source_image is set. Must be empty if read_only is false. Updating source_snapshot will update content in the ephemeral directory after the workstation is restarted. Only file systems supported by Container-Optimized OS (COS) are explicitly supported. For a list of supported file systems, see [the filesystems available in Container-Optimized OS](https://cloud.google.com/container-optimized-os/docs/concepts/supported-filesystems). This field is mutable.",
       ).optional(),
     }).describe(
-      "An EphemeralDirectory is backed by a Compute Engine persistent disk.",
+      "An EphemeralDirectory backed by a Compute Engine persistent disk.",
     ).optional(),
     mountPath: z.string().describe(
       "Required. Location of this directory in the running workstation.",
@@ -297,8 +299,9 @@ const GlobalArgsSchema = z.object({
         enableConfidentialCompute: z.boolean().describe(
           "Optional. Whether the instance has confidential compute enabled.",
         ).optional(),
-      }).describe("A set of Compute Engine Confidential VM instance options.")
-        .optional(),
+      }).describe(
+        "Optional. A set of Compute Engine Confidential VM instance options.",
+      ).optional(),
       disablePublicIpAddresses: z.boolean().describe(
         "Optional. When set to true, disables public IP addresses for VMs. If you disable public IP addresses, you must set up Private Google Access or Cloud NAT on your network. If you use Private Google Access and you use `private.googleapis.com` or `restricted.googleapis.com` for Container Registry and Artifact Registry, make sure that you set up DNS records for domains `*.gcr.io` and `*.pkg.dev`. Defaults to false (VMs have public IP addresses).",
       ).optional(),
@@ -336,8 +339,9 @@ const GlobalArgsSchema = z.object({
         enableVtpm: z.boolean().describe(
           "Optional. Whether the instance has the vTPM enabled.",
         ).optional(),
-      }).describe("A set of Compute Engine Shielded instance options.")
-        .optional(),
+      }).describe(
+        "Optional. A set of Compute Engine Shielded instance options.",
+      ).optional(),
       startupScriptUri: z.string().describe(
         "Optional. Link to the startup script stored in Cloud Storage. This script will be run on the host workstation VM when the VM is created. The URI must be of the form gs://{bucket-name}/{object-name}. If specifying a startup script, the service account must have [Permission to access the bucket and script file in Cloud Storage](https://cloud.google.com/storage/docs/access-control/iam-permissions). Otherwise, the script must be publicly accessible. Note that the service regularly updates the OS version of the host VM, and it is the responsibility of the user to ensure the script stays compatible with the OS version.",
       ).optional(),
@@ -347,8 +351,8 @@ const GlobalArgsSchema = z.object({
       vmTags: z.record(z.string(), z.string()).describe(
         "Optional. Resource manager tags to be bound to this instance. Tag keys and values have the same definition as [resource manager tags](https://cloud.google.com/resource-manager/docs/tags/tags-overview). Keys must be in the format `tagKeys/{tag_key_id}`, and values are in the format `tagValues/456`.",
       ).optional(),
-    }).describe("A runtime using a Compute Engine instance.").optional(),
-  }).describe("Runtime host for a workstation.").optional(),
+    }).describe("Specifies a Compute Engine instance as the host.").optional(),
+  }).describe("Optional. Runtime host for the workstation.").optional(),
   idleTimeout: z.string().describe(
     'Optional. Number of seconds to wait before automatically stopping a workstation after it last received user traffic. A value of `"0s"` indicates that Cloud Workstations VMs created with this configuration should never time out due to idleness. Provide [duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#duration) terminated by `s` for seconds—for example, `"7200s"` (2 hours). The default is `"1200s"` (20 minutes).',
   ).optional(),
@@ -380,7 +384,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Name of the snapshot to use as the source for the disk. If set, size_gb must be empty. Must be formatted as ext4 file system with no partitions.",
       ).optional(),
     }).describe(
-      "A Persistent Directory backed by a Compute Engine [Hyperdisk Balanced High Availability Disk](https://cloud.google.com/compute/docs/disks/hd-types/hyperdisk-balanced-ha). This is a high-availability block storage solution that offers a balance between performance and cost for most general-purpose workloads.",
+      "A PersistentDirectory backed by a Compute Engine hyperdisk high availability disk.",
     ).optional(),
     gcePd: z.object({
       archiveTimeout: z.string().describe(
@@ -406,7 +410,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Name of the snapshot to use as the source for the disk. If set, size_gb and fs_type must be empty. Must be formatted as ext4 file system with no partitions.",
       ).optional(),
     }).describe(
-      "A Persistent Directory backed by a Compute Engine regional persistent disk. The persistent_directories field is repeated, but it may contain only one entry. It creates a [persistent disk](https://cloud.google.com/compute/docs/disks/persistent-disks) that mounts to the workstation VM at `/home` when the session starts and detaches when the session ends. If this field is empty, workstations created with this configuration do not have a persistent home directory.",
+      "A PersistentDirectory backed by a Compute Engine persistent disk.",
     ).optional(),
     mountPath: z.string().describe(
       "Optional. Location of this directory in the running workstation.",
@@ -590,7 +594,9 @@ const InputsSchema = z.object({
     workingDir: z.string().describe(
       "Optional. If set, overrides the default DIR specified by the image.",
     ).optional(),
-  }).describe("A Docker container.").optional(),
+  }).describe(
+    "Optional. Container that runs upon startup for each workstation using this workstation configuration.",
+  ).optional(),
   disableTcpConnections: z.boolean().describe(
     "Optional. Disables support for plain TCP connections in the workstation. By default the service supports TCP connections through a websocket relay. Setting this option to true disables that relay, which prevents the usage of services that require plain TCP connections, such as SSH. When enabled, all communication must occur over HTTPS or WSS.",
   ).optional(),
@@ -608,7 +614,7 @@ const InputsSchema = z.object({
       "Immutable. The service account to use with the specified KMS key. We recommend that you use a separate service account and follow KMS best practices. For more information, see [Separation of duties](https://cloud.google.com/kms/docs/separation-of-duties) and `gcloud kms keys add-iam-policy-binding` [`--member`](https://cloud.google.com/sdk/gcloud/reference/kms/keys/add-iam-policy-binding#--member).",
     ).optional(),
   }).describe(
-    "A customer-managed encryption key (CMEK) for the Compute Engine resources of the associated workstation configuration. Specify the name of your Cloud KMS encryption key and the default service account. We recommend that you use a separate service account and follow [Cloud KMS best practices](https://cloud.google.com/kms/docs/separation-of-duties).",
+    "Immutable. Encrypts resources of this workstation configuration using a customer-managed encryption key (CMEK). If specified, the boot disk of the Compute Engine instance and the persistent disk are encrypted using this encryption key. If this field is not set, the disks are encrypted using a generated key. Customer-managed encryption keys do not protect disk metadata. If the customer-managed encryption key is rotated, when the workstation instance is stopped, the system attempts to recreate the persistent disk with the new version of the key. Be sure to keep older versions of the key until the persistent disk is recreated. Otherwise, data on the persistent disk might be lost. If the encryption key is revoked, the workstation session automatically stops within 7 hours. Immutable after the workstation configuration is created.",
   ).optional(),
   ephemeralDirectories: z.array(z.object({
     gcePd: z.object({
@@ -625,7 +631,7 @@ const InputsSchema = z.object({
         "Optional. Name of the snapshot to use as the source for the disk. Must be empty if source_image is set. Must be empty if read_only is false. Updating source_snapshot will update content in the ephemeral directory after the workstation is restarted. Only file systems supported by Container-Optimized OS (COS) are explicitly supported. For a list of supported file systems, see [the filesystems available in Container-Optimized OS](https://cloud.google.com/container-optimized-os/docs/concepts/supported-filesystems). This field is mutable.",
       ).optional(),
     }).describe(
-      "An EphemeralDirectory is backed by a Compute Engine persistent disk.",
+      "An EphemeralDirectory backed by a Compute Engine persistent disk.",
     ).optional(),
     mountPath: z.string().describe(
       "Required. Location of this directory in the running workstation.",
@@ -677,8 +683,9 @@ const InputsSchema = z.object({
         enableConfidentialCompute: z.boolean().describe(
           "Optional. Whether the instance has confidential compute enabled.",
         ).optional(),
-      }).describe("A set of Compute Engine Confidential VM instance options.")
-        .optional(),
+      }).describe(
+        "Optional. A set of Compute Engine Confidential VM instance options.",
+      ).optional(),
       disablePublicIpAddresses: z.boolean().describe(
         "Optional. When set to true, disables public IP addresses for VMs. If you disable public IP addresses, you must set up Private Google Access or Cloud NAT on your network. If you use Private Google Access and you use `private.googleapis.com` or `restricted.googleapis.com` for Container Registry and Artifact Registry, make sure that you set up DNS records for domains `*.gcr.io` and `*.pkg.dev`. Defaults to false (VMs have public IP addresses).",
       ).optional(),
@@ -716,8 +723,9 @@ const InputsSchema = z.object({
         enableVtpm: z.boolean().describe(
           "Optional. Whether the instance has the vTPM enabled.",
         ).optional(),
-      }).describe("A set of Compute Engine Shielded instance options.")
-        .optional(),
+      }).describe(
+        "Optional. A set of Compute Engine Shielded instance options.",
+      ).optional(),
       startupScriptUri: z.string().describe(
         "Optional. Link to the startup script stored in Cloud Storage. This script will be run on the host workstation VM when the VM is created. The URI must be of the form gs://{bucket-name}/{object-name}. If specifying a startup script, the service account must have [Permission to access the bucket and script file in Cloud Storage](https://cloud.google.com/storage/docs/access-control/iam-permissions). Otherwise, the script must be publicly accessible. Note that the service regularly updates the OS version of the host VM, and it is the responsibility of the user to ensure the script stays compatible with the OS version.",
       ).optional(),
@@ -727,8 +735,8 @@ const InputsSchema = z.object({
       vmTags: z.record(z.string(), z.string()).describe(
         "Optional. Resource manager tags to be bound to this instance. Tag keys and values have the same definition as [resource manager tags](https://cloud.google.com/resource-manager/docs/tags/tags-overview). Keys must be in the format `tagKeys/{tag_key_id}`, and values are in the format `tagValues/456`.",
       ).optional(),
-    }).describe("A runtime using a Compute Engine instance.").optional(),
-  }).describe("Runtime host for a workstation.").optional(),
+    }).describe("Specifies a Compute Engine instance as the host.").optional(),
+  }).describe("Optional. Runtime host for the workstation.").optional(),
   idleTimeout: z.string().describe(
     'Optional. Number of seconds to wait before automatically stopping a workstation after it last received user traffic. A value of `"0s"` indicates that Cloud Workstations VMs created with this configuration should never time out due to idleness. Provide [duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#duration) terminated by `s` for seconds—for example, `"7200s"` (2 hours). The default is `"1200s"` (20 minutes).',
   ).optional(),
@@ -760,7 +768,7 @@ const InputsSchema = z.object({
         "Optional. Name of the snapshot to use as the source for the disk. If set, size_gb must be empty. Must be formatted as ext4 file system with no partitions.",
       ).optional(),
     }).describe(
-      "A Persistent Directory backed by a Compute Engine [Hyperdisk Balanced High Availability Disk](https://cloud.google.com/compute/docs/disks/hd-types/hyperdisk-balanced-ha). This is a high-availability block storage solution that offers a balance between performance and cost for most general-purpose workloads.",
+      "A PersistentDirectory backed by a Compute Engine hyperdisk high availability disk.",
     ).optional(),
     gcePd: z.object({
       archiveTimeout: z.string().describe(
@@ -786,7 +794,7 @@ const InputsSchema = z.object({
         "Optional. Name of the snapshot to use as the source for the disk. If set, size_gb and fs_type must be empty. Must be formatted as ext4 file system with no partitions.",
       ).optional(),
     }).describe(
-      "A Persistent Directory backed by a Compute Engine regional persistent disk. The persistent_directories field is repeated, but it may contain only one entry. It creates a [persistent disk](https://cloud.google.com/compute/docs/disks/persistent-disks) that mounts to the workstation VM at `/home` when the session starts and detaches when the session ends. If this field is empty, workstations created with this configuration do not have a persistent home directory.",
+      "A PersistentDirectory backed by a Compute Engine persistent disk.",
     ).optional(),
     mountPath: z.string().describe(
       "Optional. Location of this directory in the running workstation.",
@@ -843,7 +851,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workstations WorkstationClusters.WorkstationConfigs. Registered at `@swamp/gcp/workstations/workstationclusters-workstationconfigs`. */
 export const model = {
   type: "@swamp/gcp/workstations/workstationclusters-workstationconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -992,6 +1000,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1187,9 +1200,6 @@ export const model = {
         }
         if (g["enableAuditAgent"] !== undefined) {
           body["enableAuditAgent"] = g["enableAuditAgent"];
-        }
-        if (g["encryptionKey"] !== undefined) {
-          body["encryptionKey"] = g["encryptionKey"];
         }
         if (g["ephemeralDirectories"] !== undefined) {
           body["ephemeralDirectories"] = g["ephemeralDirectories"];

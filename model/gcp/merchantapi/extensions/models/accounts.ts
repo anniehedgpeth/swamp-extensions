@@ -158,7 +158,7 @@ const GlobalArgsSchema = z.object({
       'Optional. IANA Time Zone Database version number. For example "2019a".',
     ).optional(),
   }).describe(
-    "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+    "Required. The time zone of the account. On writes, `time_zone` sets both the `reporting_time_zone` and the `display_time_zone`. For reads, `time_zone` always returns the `display_time_zone`. If `display_time_zone` doesn't exist for your account, `time_zone` is empty. The `version` field is not supported, won't be set in responses and will be silently ignored if specified in requests.",
   ).optional(),
 });
 
@@ -207,7 +207,7 @@ const InputsSchema = z.object({
       'Optional. IANA Time Zone Database version number. For example "2019a".',
     ).optional(),
   }).describe(
-    "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+    "Required. The time zone of the account. On writes, `time_zone` sets both the `reporting_time_zone` and the `display_time_zone`. For reads, `time_zone` always returns the `display_time_zone`. If `display_time_zone` doesn't exist for your account, `time_zone` is empty. The `version` field is not supported, won't be set in responses and will be silently ignored if specified in requests.",
   ).optional(),
 });
 
@@ -234,7 +234,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts. Registered at `@swamp/gcp/merchantapi/accounts`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

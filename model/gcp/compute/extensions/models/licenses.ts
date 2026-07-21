@@ -197,7 +197,7 @@ const GlobalArgsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "If set, this license will be unable to be removed or replaced once attached to a disk until the minimum_retention period has passed.",
   ).optional(),
   multiTenantOnly: z.boolean().describe(
     "If true, this license can only be used on VMs on multi tenant nodes.",
@@ -213,7 +213,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the license. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional license params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   removableFromDisk: z.boolean().describe(
     "If true, this license can be removed from a disk's set of licenses, with no replacement license needed.",
   ).optional(),
@@ -227,7 +229,7 @@ const GlobalArgsSchema = z.object({
     minMemoryMb: z.number().int().describe(
       "[Input Only] Deprecated. This field no longer reflects the minimum memory required to use the Instance.",
     ).optional(),
-  }).optional(),
+  }).describe("[Input Only] Deprecated.").optional(),
   soleTenantOnly: z.boolean().describe(
     "If true, this license can only be used on VMs on sole tenant nodes.",
   ).optional(),
@@ -299,7 +301,7 @@ const InputsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "If set, this license will be unable to be removed or replaced once attached to a disk until the minimum_retention period has passed.",
   ).optional(),
   multiTenantOnly: z.boolean().describe(
     "If true, this license can only be used on VMs on multi tenant nodes.",
@@ -315,7 +317,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the license. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional license params.").optional(),
+  }).describe(
+    "Input only. Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   removableFromDisk: z.boolean().describe(
     "If true, this license can be removed from a disk's set of licenses, with no replacement license needed.",
   ).optional(),
@@ -329,7 +333,7 @@ const InputsSchema = z.object({
     minMemoryMb: z.number().int().describe(
       "[Input Only] Deprecated. This field no longer reflects the minimum memory required to use the Instance.",
     ).optional(),
-  }).optional(),
+  }).describe("[Input Only] Deprecated.").optional(),
   soleTenantOnly: z.boolean().describe(
     "If true, this license can only be used on VMs on sole tenant nodes.",
   ).optional(),
@@ -364,7 +368,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Licenses. Registered at `@swamp/gcp/compute/licenses`. */
 export const model = {
   type: "@swamp/gcp/compute/licenses",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -508,6 +512,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

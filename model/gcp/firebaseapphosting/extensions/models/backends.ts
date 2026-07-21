@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If `repository` is provided, the directory relative to the root of the repository to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the `package.json` or `apphosting.yaml` file.",
     ).optional(),
   }).describe(
-    "The connection to an external source repository to watch for event-driven updates to the backend.",
+    "Optional. If specified, the connection to an external source repository to watch for event-driven updates to the backend.",
   ).optional(),
   displayName: z.string().describe(
     "Optional. Human-readable name. 63 character limit.",
@@ -290,7 +290,7 @@ const InputsSchema = z.object({
       "Optional. If `repository` is provided, the directory relative to the root of the repository to use as the root for the deployed web app. Defaults to use the root of the repository if not provided. If deploying a [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this should be the directory that contains the `package.json` or `apphosting.yaml` file.",
     ).optional(),
   }).describe(
-    "The connection to an external source repository to watch for event-driven updates to the backend.",
+    "Optional. If specified, the connection to an external source repository to watch for event-driven updates to the backend.",
   ).optional(),
   displayName: z.string().describe(
     "Optional. Human-readable name. 63 character limit.",
@@ -351,7 +351,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Hosting Backends. Registered at `@swamp/gcp/firebaseapphosting/backends`. */
 export const model = {
   type: "@swamp/gcp/firebaseapphosting/backends",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -455,6 +455,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

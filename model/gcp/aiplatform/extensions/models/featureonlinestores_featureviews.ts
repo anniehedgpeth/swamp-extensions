@@ -168,13 +168,8 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "Required. The BigQuery view URI that will be materialized on each sync trigger based on FeatureView.SyncConfig.",
     ).optional(),
-  }).optional(),
-  bigtableMetadata: z.object({
-    readAppProfile: z.string().describe(
-      "Output only. The Bigtable App Profile to use for reading from Bigtable.",
-    ).optional(),
   }).describe(
-    "Metadata for the Cloud Bigtable that supports directly interacting Bigtable instances.",
+    "Optional. Configures how data is supposed to be extracted from a BigQuery source to be loaded onto the FeatureOnlineStore.",
   ).optional(),
   featureRegistrySource: z.object({
     featureGroups: z.array(z.object({
@@ -191,11 +186,11 @@ const GlobalArgsSchema = z.object({
       "Optional. The project number of the parent project of the Feature Groups.",
     ).optional(),
   }).describe(
-    "A Feature Registry source for features that need to be synced to Online Store.",
+    "Optional. Configures the features from a Feature Registry source that need to be loaded onto the FeatureOnlineStore.",
   ).optional(),
   indexConfig: z.object({
     bruteForceConfig: z.object({}).describe(
-      "Configuration options for using brute force search.",
+      "Optional. Configuration options for using brute force search, which simply implements the standard linear search in the database for each query. It is primarily meant for benchmarking and to generate the ground truth for approximate search.",
     ).optional(),
     crowdingColumn: z.string().describe(
       "Optional. Column of crowding. This column contains crowding attribute which is a constraint on a neighbor list produced by FeatureOnlineStoreService.SearchNearestEntities to diversify search results. If NearestNeighborQuery.per_crowding_attribute_neighbor_count is set to K in SearchNearestEntitiesRequest, it's guaranteed that no more than K entities of the same crowding attribute are returned in the response.",
@@ -221,8 +216,12 @@ const GlobalArgsSchema = z.object({
       leafNodeEmbeddingCount: z.string().describe(
         "Optional. Number of embeddings on each leaf node. The default value is 1000 if not set.",
       ).optional(),
-    }).describe("Configuration options for the tree-AH algorithm.").optional(),
-  }).describe("Configuration for vector indexing.").optional(),
+    }).describe(
+      "Optional. Configuration options for the tree-AH algorithm (Shallow tree + Asymmetric Hashing). Please refer to this paper for more details: https://arxiv.org/abs/1908.10396",
+    ).optional(),
+  }).describe(
+    "Optional. Configuration for index preparation for vector search. It contains the required configurations to create an index from source data, so that approximate nearest neighbor (a.k.a ANN) algorithms search can be performed during online serving.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. The labels with user-defined metadata to organize your FeatureViews. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information on and examples of labels. No more than 64 user labels can be associated with one FeatureOnlineStore(System labels are excluded)." System reserved label keys are prefixed with "aiplatform.googleapis.com/" and are immutable.',
   ).optional(),
@@ -238,10 +237,10 @@ const GlobalArgsSchema = z.object({
         "Immutable. The minimum number of replicas that will be always deployed on. If traffic against it increases, it may dynamically be deployed onto more replicas up to max_replica_count, and as traffic decreases, some of these extra replicas may be freed. If the requested value is too large, the deployment will error.",
       ).optional(),
     }).describe(
-      "A description of resources that to large degree are decided by Agent Platform, and require only a modest additional configuration. Each Model supporting these resources documents its specific guidelines.",
+      "Optional. A description of resources that the FeatureView uses, which to large degree are decided by Vertex AI, and optionally allows only a modest additional configuration. If min_replica_count is not set, the default value is 2. If max_replica_count is not set, the default value is 6. The max allowed replica count is 1000.",
     ).optional(),
   }).describe(
-    "Configuration for FeatureViews created in Optimized FeatureOnlineStore.",
+    "Optional. Configuration for FeatureView created under Optimized FeatureOnlineStore.",
   ).optional(),
   serviceAgentType: z.enum([
     "SERVICE_AGENT_TYPE_UNSPECIFIED",
@@ -257,7 +256,9 @@ const GlobalArgsSchema = z.object({
     cron: z.string().describe(
       'Cron schedule (https://en.wikipedia.org/wiki/Cron) to launch scheduled runs. To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, "CRON_TZ=America/New_York 1 * * * *", or "TZ=America/New_York 1 * * * *".',
     ).optional(),
-  }).describe("Configuration for Sync. Only one option is set.").optional(),
+  }).describe(
+    "Configures when data is to be synced/updated for this FeatureView. At the end of the sync the latest featureValues for each entityId of this FeatureView are made ready for online serving.",
+  ).optional(),
   vertexRagSource: z.object({
     ragCorpusId: z.string().describe(
       "Optional. The RAG corpus id corresponding to this FeatureView.",
@@ -266,7 +267,7 @@ const GlobalArgsSchema = z.object({
       "Required. The BigQuery view/table URI that will be materialized on each manual sync trigger. The table/view is expected to have the following columns and types at least: - `corpus_id` (STRING, NULLABLE/REQUIRED) - `file_id` (STRING, NULLABLE/REQUIRED) - `chunk_id` (STRING, NULLABLE/REQUIRED) - `chunk_data_type` (STRING, NULLABLE/REQUIRED) - `chunk_data` (STRING, NULLABLE/REQUIRED) - `embeddings` (FLOAT, REPEATED) - `file_original_uri` (STRING, NULLABLE/REQUIRED)",
     ).optional(),
   }).describe(
-    "A Vertex Rag source for features that need to be synced to Online Store.",
+    "Optional. The Vertex RAG Source that the FeatureView is linked to.",
   ).optional(),
   featureViewId: z.string().describe(
     "Required. The ID to use for the FeatureView, which will become the final component of the FeatureView's resource name. This value may be up to 60 characters, and valid characters are `[a-z0-9_]`. The first character cannot be a number. The value must be unique within a FeatureOnlineStore.",
@@ -347,13 +348,8 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "Required. The BigQuery view URI that will be materialized on each sync trigger based on FeatureView.SyncConfig.",
     ).optional(),
-  }).optional(),
-  bigtableMetadata: z.object({
-    readAppProfile: z.string().describe(
-      "Output only. The Bigtable App Profile to use for reading from Bigtable.",
-    ).optional(),
   }).describe(
-    "Metadata for the Cloud Bigtable that supports directly interacting Bigtable instances.",
+    "Optional. Configures how data is supposed to be extracted from a BigQuery source to be loaded onto the FeatureOnlineStore.",
   ).optional(),
   featureRegistrySource: z.object({
     featureGroups: z.array(z.object({
@@ -370,11 +366,11 @@ const InputsSchema = z.object({
       "Optional. The project number of the parent project of the Feature Groups.",
     ).optional(),
   }).describe(
-    "A Feature Registry source for features that need to be synced to Online Store.",
+    "Optional. Configures the features from a Feature Registry source that need to be loaded onto the FeatureOnlineStore.",
   ).optional(),
   indexConfig: z.object({
     bruteForceConfig: z.object({}).describe(
-      "Configuration options for using brute force search.",
+      "Optional. Configuration options for using brute force search, which simply implements the standard linear search in the database for each query. It is primarily meant for benchmarking and to generate the ground truth for approximate search.",
     ).optional(),
     crowdingColumn: z.string().describe(
       "Optional. Column of crowding. This column contains crowding attribute which is a constraint on a neighbor list produced by FeatureOnlineStoreService.SearchNearestEntities to diversify search results. If NearestNeighborQuery.per_crowding_attribute_neighbor_count is set to K in SearchNearestEntitiesRequest, it's guaranteed that no more than K entities of the same crowding attribute are returned in the response.",
@@ -400,8 +396,12 @@ const InputsSchema = z.object({
       leafNodeEmbeddingCount: z.string().describe(
         "Optional. Number of embeddings on each leaf node. The default value is 1000 if not set.",
       ).optional(),
-    }).describe("Configuration options for the tree-AH algorithm.").optional(),
-  }).describe("Configuration for vector indexing.").optional(),
+    }).describe(
+      "Optional. Configuration options for the tree-AH algorithm (Shallow tree + Asymmetric Hashing). Please refer to this paper for more details: https://arxiv.org/abs/1908.10396",
+    ).optional(),
+  }).describe(
+    "Optional. Configuration for index preparation for vector search. It contains the required configurations to create an index from source data, so that approximate nearest neighbor (a.k.a ANN) algorithms search can be performed during online serving.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. The labels with user-defined metadata to organize your FeatureViews. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information on and examples of labels. No more than 64 user labels can be associated with one FeatureOnlineStore(System labels are excluded)." System reserved label keys are prefixed with "aiplatform.googleapis.com/" and are immutable.',
   ).optional(),
@@ -417,10 +417,10 @@ const InputsSchema = z.object({
         "Immutable. The minimum number of replicas that will be always deployed on. If traffic against it increases, it may dynamically be deployed onto more replicas up to max_replica_count, and as traffic decreases, some of these extra replicas may be freed. If the requested value is too large, the deployment will error.",
       ).optional(),
     }).describe(
-      "A description of resources that to large degree are decided by Agent Platform, and require only a modest additional configuration. Each Model supporting these resources documents its specific guidelines.",
+      "Optional. A description of resources that the FeatureView uses, which to large degree are decided by Vertex AI, and optionally allows only a modest additional configuration. If min_replica_count is not set, the default value is 2. If max_replica_count is not set, the default value is 6. The max allowed replica count is 1000.",
     ).optional(),
   }).describe(
-    "Configuration for FeatureViews created in Optimized FeatureOnlineStore.",
+    "Optional. Configuration for FeatureView created under Optimized FeatureOnlineStore.",
   ).optional(),
   serviceAgentType: z.enum([
     "SERVICE_AGENT_TYPE_UNSPECIFIED",
@@ -436,7 +436,9 @@ const InputsSchema = z.object({
     cron: z.string().describe(
       'Cron schedule (https://en.wikipedia.org/wiki/Cron) to launch scheduled runs. To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, "CRON_TZ=America/New_York 1 * * * *", or "TZ=America/New_York 1 * * * *".',
     ).optional(),
-  }).describe("Configuration for Sync. Only one option is set.").optional(),
+  }).describe(
+    "Configures when data is to be synced/updated for this FeatureView. At the end of the sync the latest featureValues for each entityId of this FeatureView are made ready for online serving.",
+  ).optional(),
   vertexRagSource: z.object({
     ragCorpusId: z.string().describe(
       "Optional. The RAG corpus id corresponding to this FeatureView.",
@@ -445,7 +447,7 @@ const InputsSchema = z.object({
       "Required. The BigQuery view/table URI that will be materialized on each manual sync trigger. The table/view is expected to have the following columns and types at least: - `corpus_id` (STRING, NULLABLE/REQUIRED) - `file_id` (STRING, NULLABLE/REQUIRED) - `chunk_id` (STRING, NULLABLE/REQUIRED) - `chunk_data_type` (STRING, NULLABLE/REQUIRED) - `chunk_data` (STRING, NULLABLE/REQUIRED) - `embeddings` (FLOAT, REPEATED) - `file_original_uri` (STRING, NULLABLE/REQUIRED)",
     ).optional(),
   }).describe(
-    "A Vertex Rag source for features that need to be synced to Online Store.",
+    "Optional. The Vertex RAG Source that the FeatureView is linked to.",
   ).optional(),
   featureViewId: z.string().describe(
     "Required. The ID to use for the FeatureView, which will become the final component of the FeatureView's resource name. This value may be up to 60 characters, and valid characters are `[a-z0-9_]`. The first character cannot be a number. The value must be unique within a FeatureOnlineStore.",
@@ -484,7 +486,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform FeatureOnlineStores.FeatureViews. Registered at `@swamp/gcp/aiplatform/featureonlinestores-featureviews`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/featureonlinestores-featureviews",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -621,6 +623,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: bigtableMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { bigtableMetadata: _bigtableMetadata, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -646,9 +656,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["bigQuerySource"] !== undefined) {
           body["bigQuerySource"] = g["bigQuerySource"];
-        }
-        if (g["bigtableMetadata"] !== undefined) {
-          body["bigtableMetadata"] = g["bigtableMetadata"];
         }
         if (g["featureRegistrySource"] !== undefined) {
           body["featureRegistrySource"] = g["featureRegistrySource"];
@@ -780,9 +787,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["bigQuerySource"] !== undefined) {
           body["bigQuerySource"] = g["bigQuerySource"];
-        }
-        if (g["bigtableMetadata"] !== undefined) {
-          body["bigtableMetadata"] = g["bigtableMetadata"];
         }
         if (g["featureRegistrySource"] !== undefined) {
           body["featureRegistrySource"] = g["featureRegistrySource"];

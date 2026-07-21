@@ -169,13 +169,16 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions) name.",
       ).optional(),
-    }).describe("Wrapper for the App Engine service version attributes.")
-      .optional(),
+    }).describe(
+      "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions). Applicable only to source endpoint.",
+    ).optional(),
     cloudFunction: z.object({
       uri: z.string().describe(
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
-    }).describe("Wrapper for Cloud Function attributes.").optional(),
+    }).describe(
+      "A [Cloud Function](https://cloud.google.com/functions). Applicable only to source endpoint.",
+    ).optional(),
     cloudRunJob: z.string().describe(
       "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
     ).optional(),
@@ -186,7 +189,9 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
       ).optional(),
-    }).describe("Wrapper for Cloud Run revision attributes.").optional(),
+    }).describe(
+      "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
+    ).optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
     ).optional(),
@@ -259,511 +264,20 @@ const GlobalArgsSchema = z.object({
     redisInstance: z.string().describe(
       "A [Redis Instance](https://cloud.google.com/memorystore/docs/redis) URI. Applicable only to destination endpoint.",
     ).optional(),
-  }).describe("Source or destination of the Connectivity Test.").optional(),
+  }).describe(
+    "Required. Destination specification of the Connectivity Test. You can use a combination of destination IP address, URI of a supported endpoint, project ID, or VPC network to identify the destination location. Reachability analysis proceeds even if the destination location is ambiguous. However, the test result might include endpoints or use a destination that you don't intend to test.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Resource labels to represent user-provided metadata.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Unique name of the resource using the form: `projects/{project_id}/locations/global/connectivityTests/{test_id}`",
   ).optional(),
-  probingDetails: z.object({
-    abortCause: z.enum([
-      "PROBING_ABORT_CAUSE_UNSPECIFIED",
-      "PERMISSION_DENIED",
-      "NO_SOURCE_LOCATION",
-    ]).describe("The reason probing was aborted.").optional(),
-    destinationEgressLocation: z.object({
-      metropolitanArea: z.string().describe("Name of the metropolitan area.")
-        .optional(),
-    }).describe(
-      "Representation of a network edge location as per https://cloud.google.com/vpc/docs/edge-locations.",
-    ).optional(),
-    edgeResponses: z.array(z.object({
-      destinationEgressLocation: z.object({
-        metropolitanArea: z.string().describe("Name of the metropolitan area.")
-          .optional(),
-      }).describe(
-        "Representation of a network edge location as per https://cloud.google.com/vpc/docs/edge-locations.",
-      ).optional(),
-      destinationRouter: z.string().describe(
-        "Router name in the format '{router}.{metroshard}'. For example: pf01.aaa01, pr02.aaa01.",
-      ).optional(),
-      probingLatency: z.object({
-        latencyPercentiles: z.array(z.unknown()).describe(
-          "Representative latency percentiles.",
-        ).optional(),
-      }).describe("Describes measured latency distribution.").optional(),
-      result: z.enum([
-        "PROBING_RESULT_UNSPECIFIED",
-        "REACHABLE",
-        "UNREACHABLE",
-        "REACHABILITY_INCONSISTENT",
-        "UNDETERMINED",
-      ]).describe(
-        "The overall result of active probing for this egress device.",
-      ).optional(),
-      sentProbeCount: z.number().int().describe("Number of probes sent.")
-        .optional(),
-      successfulProbeCount: z.number().int().describe(
-        "Number of probes that reached the destination.",
-      ).optional(),
-    })).describe("Probing results for all edge devices.").optional(),
-    endpointInfo: z.object({
-      destinationIp: z.string().describe("Destination IP address.").optional(),
-      destinationNetworkUri: z.string().describe(
-        "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
-      ).optional(),
-      destinationPort: z.number().int().describe(
-        "Destination port. Only valid when protocol is TCP or UDP.",
-      ).optional(),
-      protocol: z.string().describe(
-        'IP protocol in string format, for example: "TCP", "UDP", "ICMP".',
-      ).optional(),
-      sourceAgentUri: z.string().describe(
-        "URI of the source telemetry agent this packet originates from.",
-      ).optional(),
-      sourceIp: z.string().describe("Source IP address.").optional(),
-      sourceNetworkUri: z.string().describe(
-        "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
-      ).optional(),
-      sourcePort: z.number().int().describe(
-        "Source port. Only valid when protocol is TCP or UDP.",
-      ).optional(),
-    }).describe(
-      "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-    ).optional(),
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    probedAllDevices: z.boolean().describe(
-      "Whether all relevant edge devices were probed.",
-    ).optional(),
-    probingLatency: z.object({
-      latencyPercentiles: z.array(z.object({
-        latencyMicros: z.string().describe(
-          "percent-th percentile of latency observed, in microseconds. Fraction of percent/100 of samples have latency lower or equal to the value of this field.",
-        ).optional(),
-        percent: z.number().int().describe(
-          "Percentage of samples this data point applies to.",
-        ).optional(),
-      })).describe("Representative latency percentiles.").optional(),
-    }).describe("Describes measured latency distribution.").optional(),
-    result: z.enum([
-      "PROBING_RESULT_UNSPECIFIED",
-      "REACHABLE",
-      "UNREACHABLE",
-      "REACHABILITY_INCONSISTENT",
-      "UNDETERMINED",
-    ]).describe("The overall result of active probing.").optional(),
-    sentProbeCount: z.number().int().describe("Number of probes sent.")
-      .optional(),
-    successfulProbeCount: z.number().int().describe(
-      "Number of probes that reached the destination.",
-    ).optional(),
-    verifyTime: z.string().describe(
-      "The time that reachability was assessed through active probing.",
-    ).optional(),
-  }).describe("Results of active probing from the last run of the test.")
-    .optional(),
   protocol: z.string().describe(
     'IP Protocol of the test. When not provided, "TCP" is assumed.',
   ).optional(),
-  reachabilityDetails: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    result: z.enum([
-      "RESULT_UNSPECIFIED",
-      "REACHABLE",
-      "UNREACHABLE",
-      "AMBIGUOUS",
-      "UNDETERMINED",
-    ]).describe("The overall result of the test's configuration analysis.")
-      .optional(),
-    traces: z.array(z.object({
-      endpointInfo: z.object({
-        destinationIp: z.string().describe("Destination IP address.")
-          .optional(),
-        destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        destinationPort: z.number().int().describe(
-          "Destination port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-        protocol: z.string().describe(
-          'IP protocol in string format, for example: "TCP", "UDP", "ICMP".',
-        ).optional(),
-        sourceAgentUri: z.string().describe(
-          "URI of the source telemetry agent this packet originates from.",
-        ).optional(),
-        sourceIp: z.string().describe("Source IP address.").optional(),
-        sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        sourcePort: z.number().int().describe(
-          "Source port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-      }).describe(
-        "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-      ).optional(),
-      forwardTraceId: z.number().int().describe(
-        "ID of trace. For forward traces, this ID is unique for each trace. For return traces, it matches ID of associated forward trace. A single forward trace can be associated with none, one or more than one return trace.",
-      ).optional(),
-      steps: z.array(z.object({
-        abort: z.unknown().describe(
-          'Details of the final state "abort" and associated resource.',
-        ).optional(),
-        appEngineVersion: z.unknown().describe(
-          "For display only. Metadata associated with an App Engine version.",
-        ).optional(),
-        causesDrop: z.unknown().describe(
-          "This is a step that leads to the final state Drop.",
-        ).optional(),
-        cloudFunction: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Function.",
-        ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
-        cloudRunRevision: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run revision.",
-        ).optional(),
-        cloudSqlInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        deliver: z.unknown().describe(
-          'Details of the final state "deliver" and associated resource.',
-        ).optional(),
-        description: z.unknown().describe(
-          "A description of the step. Usually this is a summary of the state.",
-        ).optional(),
-        directVpcEgressConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        drop: z.unknown().describe(
-          'Details of the final state "drop" and associated resource.',
-        ).optional(),
-        endpoint: z.unknown().describe(
-          "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-        ).optional(),
-        firewall: z.unknown().describe(
-          "For display only. Metadata associated with a VPC firewall rule, an implied VPC firewall rule, or a firewall policy rule.",
-        ).optional(),
-        forward: z.unknown().describe(
-          'Details of the final state "forward" and associated resource.',
-        ).optional(),
-        forwardingRule: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine forwarding rule.",
-        ).optional(),
-        gkeMaster: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) cluster master.",
-        ).optional(),
-        gkeNetworkPolicy: z.unknown().describe(
-          "For display only. Metadata associated with a GKE Network Policy.",
-        ).optional(),
-        gkeNetworkPolicySkipped: z.unknown().describe(
-          "For display only. Contains information about why GKE Network Policy evaluation was skipped.",
-        ).optional(),
-        gkePod: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) Pod.",
-        ).optional(),
-        googleService: z.unknown().describe(
-          "For display only. Details of a Google Service sending packets to a VPC network. Although the source IP might be a publicly routable address, some Google Services use special routes within Google production infrastructure to reach Compute Engine Instances. https://cloud.google.com/vpc/docs/routes#special_return_paths",
-        ).optional(),
-        hybridSubnet: z.unknown().describe(
-          "For display only. Metadata associated with a hybrid subnet.",
-        ).optional(),
-        instance: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine instance.",
-        ).optional(),
-        interconnectAttachment: z.unknown().describe(
-          "For display only. Metadata associated with an Interconnect attachment.",
-        ).optional(),
-        ipMasqueradingSkipped: z.unknown().describe(
-          "For display only. Contains information about why IP masquerading was skipped for the packet.",
-        ).optional(),
-        loadBalancer: z.unknown().describe(
-          "For display only. Metadata associated with a load balancer.",
-        ).optional(),
-        loadBalancerBackendInfo: z.unknown().describe(
-          "For display only. Metadata associated with the load balancer backend.",
-        ).optional(),
-        nat: z.unknown().describe(
-          "For display only. Metadata associated with NAT.",
-        ).optional(),
-        network: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine network.",
-        ).optional(),
-        ngfwPacketInspection: z.unknown().describe(
-          "For display only. Metadata associated with a layer 7 packet inspection by the firewall.",
-        ).optional(),
-        projectId: z.unknown().describe(
-          "Project ID that contains the configuration this step is validating.",
-        ).optional(),
-        proxyConnection: z.unknown().describe(
-          "For display only. Metadata associated with ProxyConnection.",
-        ).optional(),
-        redisCluster: z.unknown().describe(
-          "For display only. Metadata associated with a Redis Cluster.",
-        ).optional(),
-        redisInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Redis Instance.",
-        ).optional(),
-        route: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine route.",
-        ).optional(),
-        serverlessExternalConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless public connection.",
-        ).optional(),
-        serverlessNeg: z.unknown().describe(
-          "For display only. Metadata associated with the serverless network endpoint group backend.",
-        ).optional(),
-        state: z.unknown().describe(
-          "Each step is in one of the pre-defined states.",
-        ).optional(),
-        storageBucket: z.unknown().describe(
-          "For display only. Metadata associated with Storage Bucket.",
-        ).optional(),
-        vpcConnector: z.unknown().describe(
-          "For display only. Metadata associated with a VPC connector.",
-        ).optional(),
-        vpnGateway: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN gateway.",
-        ).optional(),
-        vpnTunnel: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN tunnel.",
-        ).optional(),
-      })).describe(
-        "A trace of a test contains multiple steps from the initial state to the final state (delivered, dropped, forwarded, or aborted). The steps are ordered by the processing sequence within the simulated network state machine. It is critical to preserve the order of the steps and avoid reordering or sorting them.",
-      ).optional(),
-    })).describe(
-      "Result may contain a list of traces if a test has multiple possible paths in the network, such as when destination endpoint is a load balancer with multiple backends.",
-    ).optional(),
-    verifyTime: z.string().describe("The time of the configuration analysis.")
-      .optional(),
-  }).describe(
-    "Results of the configuration analysis from the last run of the test.",
-  ).optional(),
   relatedProjects: z.array(z.string()).describe(
     "Other projects that may be relevant for reachability analysis. This is applicable to scenarios where a test can cross project boundaries.",
-  ).optional(),
-  returnReachabilityDetails: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    result: z.enum([
-      "RESULT_UNSPECIFIED",
-      "REACHABLE",
-      "UNREACHABLE",
-      "AMBIGUOUS",
-      "UNDETERMINED",
-    ]).describe("The overall result of the test's configuration analysis.")
-      .optional(),
-    traces: z.array(z.object({
-      endpointInfo: z.object({
-        destinationIp: z.string().describe("Destination IP address.")
-          .optional(),
-        destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        destinationPort: z.number().int().describe(
-          "Destination port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-        protocol: z.string().describe(
-          'IP protocol in string format, for example: "TCP", "UDP", "ICMP".',
-        ).optional(),
-        sourceAgentUri: z.string().describe(
-          "URI of the source telemetry agent this packet originates from.",
-        ).optional(),
-        sourceIp: z.string().describe("Source IP address.").optional(),
-        sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        sourcePort: z.number().int().describe(
-          "Source port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-      }).describe(
-        "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-      ).optional(),
-      forwardTraceId: z.number().int().describe(
-        "ID of trace. For forward traces, this ID is unique for each trace. For return traces, it matches ID of associated forward trace. A single forward trace can be associated with none, one or more than one return trace.",
-      ).optional(),
-      steps: z.array(z.object({
-        abort: z.unknown().describe(
-          'Details of the final state "abort" and associated resource.',
-        ).optional(),
-        appEngineVersion: z.unknown().describe(
-          "For display only. Metadata associated with an App Engine version.",
-        ).optional(),
-        causesDrop: z.unknown().describe(
-          "This is a step that leads to the final state Drop.",
-        ).optional(),
-        cloudFunction: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Function.",
-        ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
-        cloudRunRevision: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run revision.",
-        ).optional(),
-        cloudSqlInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        deliver: z.unknown().describe(
-          'Details of the final state "deliver" and associated resource.',
-        ).optional(),
-        description: z.unknown().describe(
-          "A description of the step. Usually this is a summary of the state.",
-        ).optional(),
-        directVpcEgressConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        drop: z.unknown().describe(
-          'Details of the final state "drop" and associated resource.',
-        ).optional(),
-        endpoint: z.unknown().describe(
-          "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-        ).optional(),
-        firewall: z.unknown().describe(
-          "For display only. Metadata associated with a VPC firewall rule, an implied VPC firewall rule, or a firewall policy rule.",
-        ).optional(),
-        forward: z.unknown().describe(
-          'Details of the final state "forward" and associated resource.',
-        ).optional(),
-        forwardingRule: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine forwarding rule.",
-        ).optional(),
-        gkeMaster: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) cluster master.",
-        ).optional(),
-        gkeNetworkPolicy: z.unknown().describe(
-          "For display only. Metadata associated with a GKE Network Policy.",
-        ).optional(),
-        gkeNetworkPolicySkipped: z.unknown().describe(
-          "For display only. Contains information about why GKE Network Policy evaluation was skipped.",
-        ).optional(),
-        gkePod: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) Pod.",
-        ).optional(),
-        googleService: z.unknown().describe(
-          "For display only. Details of a Google Service sending packets to a VPC network. Although the source IP might be a publicly routable address, some Google Services use special routes within Google production infrastructure to reach Compute Engine Instances. https://cloud.google.com/vpc/docs/routes#special_return_paths",
-        ).optional(),
-        hybridSubnet: z.unknown().describe(
-          "For display only. Metadata associated with a hybrid subnet.",
-        ).optional(),
-        instance: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine instance.",
-        ).optional(),
-        interconnectAttachment: z.unknown().describe(
-          "For display only. Metadata associated with an Interconnect attachment.",
-        ).optional(),
-        ipMasqueradingSkipped: z.unknown().describe(
-          "For display only. Contains information about why IP masquerading was skipped for the packet.",
-        ).optional(),
-        loadBalancer: z.unknown().describe(
-          "For display only. Metadata associated with a load balancer.",
-        ).optional(),
-        loadBalancerBackendInfo: z.unknown().describe(
-          "For display only. Metadata associated with the load balancer backend.",
-        ).optional(),
-        nat: z.unknown().describe(
-          "For display only. Metadata associated with NAT.",
-        ).optional(),
-        network: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine network.",
-        ).optional(),
-        ngfwPacketInspection: z.unknown().describe(
-          "For display only. Metadata associated with a layer 7 packet inspection by the firewall.",
-        ).optional(),
-        projectId: z.unknown().describe(
-          "Project ID that contains the configuration this step is validating.",
-        ).optional(),
-        proxyConnection: z.unknown().describe(
-          "For display only. Metadata associated with ProxyConnection.",
-        ).optional(),
-        redisCluster: z.unknown().describe(
-          "For display only. Metadata associated with a Redis Cluster.",
-        ).optional(),
-        redisInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Redis Instance.",
-        ).optional(),
-        route: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine route.",
-        ).optional(),
-        serverlessExternalConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless public connection.",
-        ).optional(),
-        serverlessNeg: z.unknown().describe(
-          "For display only. Metadata associated with the serverless network endpoint group backend.",
-        ).optional(),
-        state: z.unknown().describe(
-          "Each step is in one of the pre-defined states.",
-        ).optional(),
-        storageBucket: z.unknown().describe(
-          "For display only. Metadata associated with Storage Bucket.",
-        ).optional(),
-        vpcConnector: z.unknown().describe(
-          "For display only. Metadata associated with a VPC connector.",
-        ).optional(),
-        vpnGateway: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN gateway.",
-        ).optional(),
-        vpnTunnel: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN tunnel.",
-        ).optional(),
-      })).describe(
-        "A trace of a test contains multiple steps from the initial state to the final state (delivered, dropped, forwarded, or aborted). The steps are ordered by the processing sequence within the simulated network state machine. It is critical to preserve the order of the steps and avoid reordering or sorting them.",
-      ).optional(),
-    })).describe(
-      "Result may contain a list of traces if a test has multiple possible paths in the network, such as when destination endpoint is a load balancer with multiple backends.",
-    ).optional(),
-    verifyTime: z.string().describe("The time of the configuration analysis.")
-      .optional(),
-  }).describe(
-    "Results of the configuration analysis from the last run of the test.",
   ).optional(),
   roundTrip: z.boolean().describe(
     "Whether run analysis for the return path from destination to source. Default value is false.",
@@ -773,13 +287,16 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions) name.",
       ).optional(),
-    }).describe("Wrapper for the App Engine service version attributes.")
-      .optional(),
+    }).describe(
+      "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions). Applicable only to source endpoint.",
+    ).optional(),
     cloudFunction: z.object({
       uri: z.string().describe(
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
-    }).describe("Wrapper for Cloud Function attributes.").optional(),
+    }).describe(
+      "A [Cloud Function](https://cloud.google.com/functions). Applicable only to source endpoint.",
+    ).optional(),
     cloudRunJob: z.string().describe(
       "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
     ).optional(),
@@ -790,7 +307,9 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
       ).optional(),
-    }).describe("Wrapper for Cloud Run revision attributes.").optional(),
+    }).describe(
+      "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
+    ).optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
     ).optional(),
@@ -863,7 +382,9 @@ const GlobalArgsSchema = z.object({
     redisInstance: z.string().describe(
       "A [Redis Instance](https://cloud.google.com/memorystore/docs/redis) URI. Applicable only to destination endpoint.",
     ).optional(),
-  }).describe("Source or destination of the Connectivity Test.").optional(),
+  }).describe(
+    "Required. Source specification of the Connectivity Test. You can use a combination of source IP address, URI of a supported endpoint, project ID, or VPC network to identify the source location. Reachability analysis might proceed even if the source location is ambiguous. However, the test result might include endpoints or use a source that you don't intend to test.",
+  ).optional(),
   testId: z.string().describe(
     "Required. The logical name of the Connectivity Test in your project with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-40 characters. * Must end with a number or a letter. * Must be unique within the customer project",
   ).optional(),
@@ -1144,13 +665,16 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions) name.",
       ).optional(),
-    }).describe("Wrapper for the App Engine service version attributes.")
-      .optional(),
+    }).describe(
+      "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions). Applicable only to source endpoint.",
+    ).optional(),
     cloudFunction: z.object({
       uri: z.string().describe(
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
-    }).describe("Wrapper for Cloud Function attributes.").optional(),
+    }).describe(
+      "A [Cloud Function](https://cloud.google.com/functions). Applicable only to source endpoint.",
+    ).optional(),
     cloudRunJob: z.string().describe(
       "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
     ).optional(),
@@ -1161,7 +685,9 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
       ).optional(),
-    }).describe("Wrapper for Cloud Run revision attributes.").optional(),
+    }).describe(
+      "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
+    ).optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
     ).optional(),
@@ -1234,511 +760,20 @@ const InputsSchema = z.object({
     redisInstance: z.string().describe(
       "A [Redis Instance](https://cloud.google.com/memorystore/docs/redis) URI. Applicable only to destination endpoint.",
     ).optional(),
-  }).describe("Source or destination of the Connectivity Test.").optional(),
+  }).describe(
+    "Required. Destination specification of the Connectivity Test. You can use a combination of destination IP address, URI of a supported endpoint, project ID, or VPC network to identify the destination location. Reachability analysis proceeds even if the destination location is ambiguous. However, the test result might include endpoints or use a destination that you don't intend to test.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Resource labels to represent user-provided metadata.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Unique name of the resource using the form: `projects/{project_id}/locations/global/connectivityTests/{test_id}`",
   ).optional(),
-  probingDetails: z.object({
-    abortCause: z.enum([
-      "PROBING_ABORT_CAUSE_UNSPECIFIED",
-      "PERMISSION_DENIED",
-      "NO_SOURCE_LOCATION",
-    ]).describe("The reason probing was aborted.").optional(),
-    destinationEgressLocation: z.object({
-      metropolitanArea: z.string().describe("Name of the metropolitan area.")
-        .optional(),
-    }).describe(
-      "Representation of a network edge location as per https://cloud.google.com/vpc/docs/edge-locations.",
-    ).optional(),
-    edgeResponses: z.array(z.object({
-      destinationEgressLocation: z.object({
-        metropolitanArea: z.string().describe("Name of the metropolitan area.")
-          .optional(),
-      }).describe(
-        "Representation of a network edge location as per https://cloud.google.com/vpc/docs/edge-locations.",
-      ).optional(),
-      destinationRouter: z.string().describe(
-        "Router name in the format '{router}.{metroshard}'. For example: pf01.aaa01, pr02.aaa01.",
-      ).optional(),
-      probingLatency: z.object({
-        latencyPercentiles: z.array(z.unknown()).describe(
-          "Representative latency percentiles.",
-        ).optional(),
-      }).describe("Describes measured latency distribution.").optional(),
-      result: z.enum([
-        "PROBING_RESULT_UNSPECIFIED",
-        "REACHABLE",
-        "UNREACHABLE",
-        "REACHABILITY_INCONSISTENT",
-        "UNDETERMINED",
-      ]).describe(
-        "The overall result of active probing for this egress device.",
-      ).optional(),
-      sentProbeCount: z.number().int().describe("Number of probes sent.")
-        .optional(),
-      successfulProbeCount: z.number().int().describe(
-        "Number of probes that reached the destination.",
-      ).optional(),
-    })).describe("Probing results for all edge devices.").optional(),
-    endpointInfo: z.object({
-      destinationIp: z.string().describe("Destination IP address.").optional(),
-      destinationNetworkUri: z.string().describe(
-        "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
-      ).optional(),
-      destinationPort: z.number().int().describe(
-        "Destination port. Only valid when protocol is TCP or UDP.",
-      ).optional(),
-      protocol: z.string().describe(
-        'IP protocol in string format, for example: "TCP", "UDP", "ICMP".',
-      ).optional(),
-      sourceAgentUri: z.string().describe(
-        "URI of the source telemetry agent this packet originates from.",
-      ).optional(),
-      sourceIp: z.string().describe("Source IP address.").optional(),
-      sourceNetworkUri: z.string().describe(
-        "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
-      ).optional(),
-      sourcePort: z.number().int().describe(
-        "Source port. Only valid when protocol is TCP or UDP.",
-      ).optional(),
-    }).describe(
-      "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-    ).optional(),
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    probedAllDevices: z.boolean().describe(
-      "Whether all relevant edge devices were probed.",
-    ).optional(),
-    probingLatency: z.object({
-      latencyPercentiles: z.array(z.object({
-        latencyMicros: z.string().describe(
-          "percent-th percentile of latency observed, in microseconds. Fraction of percent/100 of samples have latency lower or equal to the value of this field.",
-        ).optional(),
-        percent: z.number().int().describe(
-          "Percentage of samples this data point applies to.",
-        ).optional(),
-      })).describe("Representative latency percentiles.").optional(),
-    }).describe("Describes measured latency distribution.").optional(),
-    result: z.enum([
-      "PROBING_RESULT_UNSPECIFIED",
-      "REACHABLE",
-      "UNREACHABLE",
-      "REACHABILITY_INCONSISTENT",
-      "UNDETERMINED",
-    ]).describe("The overall result of active probing.").optional(),
-    sentProbeCount: z.number().int().describe("Number of probes sent.")
-      .optional(),
-    successfulProbeCount: z.number().int().describe(
-      "Number of probes that reached the destination.",
-    ).optional(),
-    verifyTime: z.string().describe(
-      "The time that reachability was assessed through active probing.",
-    ).optional(),
-  }).describe("Results of active probing from the last run of the test.")
-    .optional(),
   protocol: z.string().describe(
     'IP Protocol of the test. When not provided, "TCP" is assumed.',
   ).optional(),
-  reachabilityDetails: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    result: z.enum([
-      "RESULT_UNSPECIFIED",
-      "REACHABLE",
-      "UNREACHABLE",
-      "AMBIGUOUS",
-      "UNDETERMINED",
-    ]).describe("The overall result of the test's configuration analysis.")
-      .optional(),
-    traces: z.array(z.object({
-      endpointInfo: z.object({
-        destinationIp: z.string().describe("Destination IP address.")
-          .optional(),
-        destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        destinationPort: z.number().int().describe(
-          "Destination port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-        protocol: z.string().describe(
-          'IP protocol in string format, for example: "TCP", "UDP", "ICMP".',
-        ).optional(),
-        sourceAgentUri: z.string().describe(
-          "URI of the source telemetry agent this packet originates from.",
-        ).optional(),
-        sourceIp: z.string().describe("Source IP address.").optional(),
-        sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        sourcePort: z.number().int().describe(
-          "Source port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-      }).describe(
-        "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-      ).optional(),
-      forwardTraceId: z.number().int().describe(
-        "ID of trace. For forward traces, this ID is unique for each trace. For return traces, it matches ID of associated forward trace. A single forward trace can be associated with none, one or more than one return trace.",
-      ).optional(),
-      steps: z.array(z.object({
-        abort: z.unknown().describe(
-          'Details of the final state "abort" and associated resource.',
-        ).optional(),
-        appEngineVersion: z.unknown().describe(
-          "For display only. Metadata associated with an App Engine version.",
-        ).optional(),
-        causesDrop: z.unknown().describe(
-          "This is a step that leads to the final state Drop.",
-        ).optional(),
-        cloudFunction: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Function.",
-        ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
-        cloudRunRevision: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run revision.",
-        ).optional(),
-        cloudSqlInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        deliver: z.unknown().describe(
-          'Details of the final state "deliver" and associated resource.',
-        ).optional(),
-        description: z.unknown().describe(
-          "A description of the step. Usually this is a summary of the state.",
-        ).optional(),
-        directVpcEgressConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        drop: z.unknown().describe(
-          'Details of the final state "drop" and associated resource.',
-        ).optional(),
-        endpoint: z.unknown().describe(
-          "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-        ).optional(),
-        firewall: z.unknown().describe(
-          "For display only. Metadata associated with a VPC firewall rule, an implied VPC firewall rule, or a firewall policy rule.",
-        ).optional(),
-        forward: z.unknown().describe(
-          'Details of the final state "forward" and associated resource.',
-        ).optional(),
-        forwardingRule: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine forwarding rule.",
-        ).optional(),
-        gkeMaster: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) cluster master.",
-        ).optional(),
-        gkeNetworkPolicy: z.unknown().describe(
-          "For display only. Metadata associated with a GKE Network Policy.",
-        ).optional(),
-        gkeNetworkPolicySkipped: z.unknown().describe(
-          "For display only. Contains information about why GKE Network Policy evaluation was skipped.",
-        ).optional(),
-        gkePod: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) Pod.",
-        ).optional(),
-        googleService: z.unknown().describe(
-          "For display only. Details of a Google Service sending packets to a VPC network. Although the source IP might be a publicly routable address, some Google Services use special routes within Google production infrastructure to reach Compute Engine Instances. https://cloud.google.com/vpc/docs/routes#special_return_paths",
-        ).optional(),
-        hybridSubnet: z.unknown().describe(
-          "For display only. Metadata associated with a hybrid subnet.",
-        ).optional(),
-        instance: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine instance.",
-        ).optional(),
-        interconnectAttachment: z.unknown().describe(
-          "For display only. Metadata associated with an Interconnect attachment.",
-        ).optional(),
-        ipMasqueradingSkipped: z.unknown().describe(
-          "For display only. Contains information about why IP masquerading was skipped for the packet.",
-        ).optional(),
-        loadBalancer: z.unknown().describe(
-          "For display only. Metadata associated with a load balancer.",
-        ).optional(),
-        loadBalancerBackendInfo: z.unknown().describe(
-          "For display only. Metadata associated with the load balancer backend.",
-        ).optional(),
-        nat: z.unknown().describe(
-          "For display only. Metadata associated with NAT.",
-        ).optional(),
-        network: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine network.",
-        ).optional(),
-        ngfwPacketInspection: z.unknown().describe(
-          "For display only. Metadata associated with a layer 7 packet inspection by the firewall.",
-        ).optional(),
-        projectId: z.unknown().describe(
-          "Project ID that contains the configuration this step is validating.",
-        ).optional(),
-        proxyConnection: z.unknown().describe(
-          "For display only. Metadata associated with ProxyConnection.",
-        ).optional(),
-        redisCluster: z.unknown().describe(
-          "For display only. Metadata associated with a Redis Cluster.",
-        ).optional(),
-        redisInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Redis Instance.",
-        ).optional(),
-        route: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine route.",
-        ).optional(),
-        serverlessExternalConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless public connection.",
-        ).optional(),
-        serverlessNeg: z.unknown().describe(
-          "For display only. Metadata associated with the serverless network endpoint group backend.",
-        ).optional(),
-        state: z.unknown().describe(
-          "Each step is in one of the pre-defined states.",
-        ).optional(),
-        storageBucket: z.unknown().describe(
-          "For display only. Metadata associated with Storage Bucket.",
-        ).optional(),
-        vpcConnector: z.unknown().describe(
-          "For display only. Metadata associated with a VPC connector.",
-        ).optional(),
-        vpnGateway: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN gateway.",
-        ).optional(),
-        vpnTunnel: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN tunnel.",
-        ).optional(),
-      })).describe(
-        "A trace of a test contains multiple steps from the initial state to the final state (delivered, dropped, forwarded, or aborted). The steps are ordered by the processing sequence within the simulated network state machine. It is critical to preserve the order of the steps and avoid reordering or sorting them.",
-      ).optional(),
-    })).describe(
-      "Result may contain a list of traces if a test has multiple possible paths in the network, such as when destination endpoint is a load balancer with multiple backends.",
-    ).optional(),
-    verifyTime: z.string().describe("The time of the configuration analysis.")
-      .optional(),
-  }).describe(
-    "Results of the configuration analysis from the last run of the test.",
-  ).optional(),
   relatedProjects: z.array(z.string()).describe(
     "Other projects that may be relevant for reachability analysis. This is applicable to scenarios where a test can cross project boundaries.",
-  ).optional(),
-  returnReachabilityDetails: z.object({
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    result: z.enum([
-      "RESULT_UNSPECIFIED",
-      "REACHABLE",
-      "UNREACHABLE",
-      "AMBIGUOUS",
-      "UNDETERMINED",
-    ]).describe("The overall result of the test's configuration analysis.")
-      .optional(),
-    traces: z.array(z.object({
-      endpointInfo: z.object({
-        destinationIp: z.string().describe("Destination IP address.")
-          .optional(),
-        destinationNetworkUri: z.string().describe(
-          "URI of the network where this packet is sent to. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        destinationPort: z.number().int().describe(
-          "Destination port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-        protocol: z.string().describe(
-          'IP protocol in string format, for example: "TCP", "UDP", "ICMP".',
-        ).optional(),
-        sourceAgentUri: z.string().describe(
-          "URI of the source telemetry agent this packet originates from.",
-        ).optional(),
-        sourceIp: z.string().describe("Source IP address.").optional(),
-        sourceNetworkUri: z.string().describe(
-          "URI of the network where this packet originates from. Format: `projects/{project_id}/global/networks/{network_id}`",
-        ).optional(),
-        sourcePort: z.number().int().describe(
-          "Source port. Only valid when protocol is TCP or UDP.",
-        ).optional(),
-      }).describe(
-        "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-      ).optional(),
-      forwardTraceId: z.number().int().describe(
-        "ID of trace. For forward traces, this ID is unique for each trace. For return traces, it matches ID of associated forward trace. A single forward trace can be associated with none, one or more than one return trace.",
-      ).optional(),
-      steps: z.array(z.object({
-        abort: z.unknown().describe(
-          'Details of the final state "abort" and associated resource.',
-        ).optional(),
-        appEngineVersion: z.unknown().describe(
-          "For display only. Metadata associated with an App Engine version.",
-        ).optional(),
-        causesDrop: z.unknown().describe(
-          "This is a step that leads to the final state Drop.",
-        ).optional(),
-        cloudFunction: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Function.",
-        ).optional(),
-        cloudRunJob: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run job.",
-        ).optional(),
-        cloudRunRevision: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Run revision.",
-        ).optional(),
-        cloudSqlInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud SQL instance.",
-        ).optional(),
-        datastreamPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        deliver: z.unknown().describe(
-          'Details of the final state "deliver" and associated resource.',
-        ).optional(),
-        description: z.unknown().describe(
-          "A description of the step. Usually this is a summary of the state.",
-        ).optional(),
-        directVpcEgressConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless direct VPC egress connection.",
-        ).optional(),
-        dmsPrivateConnection: z.unknown().describe(
-          "For display only. Metadata associated with a Private Connection.",
-        ).optional(),
-        drop: z.unknown().describe(
-          'Details of the final state "drop" and associated resource.',
-        ).optional(),
-        endpoint: z.unknown().describe(
-          "For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.",
-        ).optional(),
-        firewall: z.unknown().describe(
-          "For display only. Metadata associated with a VPC firewall rule, an implied VPC firewall rule, or a firewall policy rule.",
-        ).optional(),
-        forward: z.unknown().describe(
-          'Details of the final state "forward" and associated resource.',
-        ).optional(),
-        forwardingRule: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine forwarding rule.",
-        ).optional(),
-        gkeMaster: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) cluster master.",
-        ).optional(),
-        gkeNetworkPolicy: z.unknown().describe(
-          "For display only. Metadata associated with a GKE Network Policy.",
-        ).optional(),
-        gkeNetworkPolicySkipped: z.unknown().describe(
-          "For display only. Contains information about why GKE Network Policy evaluation was skipped.",
-        ).optional(),
-        gkePod: z.unknown().describe(
-          "For display only. Metadata associated with a Google Kubernetes Engine (GKE) Pod.",
-        ).optional(),
-        googleService: z.unknown().describe(
-          "For display only. Details of a Google Service sending packets to a VPC network. Although the source IP might be a publicly routable address, some Google Services use special routes within Google production infrastructure to reach Compute Engine Instances. https://cloud.google.com/vpc/docs/routes#special_return_paths",
-        ).optional(),
-        hybridSubnet: z.unknown().describe(
-          "For display only. Metadata associated with a hybrid subnet.",
-        ).optional(),
-        instance: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine instance.",
-        ).optional(),
-        interconnectAttachment: z.unknown().describe(
-          "For display only. Metadata associated with an Interconnect attachment.",
-        ).optional(),
-        ipMasqueradingSkipped: z.unknown().describe(
-          "For display only. Contains information about why IP masquerading was skipped for the packet.",
-        ).optional(),
-        loadBalancer: z.unknown().describe(
-          "For display only. Metadata associated with a load balancer.",
-        ).optional(),
-        loadBalancerBackendInfo: z.unknown().describe(
-          "For display only. Metadata associated with the load balancer backend.",
-        ).optional(),
-        nat: z.unknown().describe(
-          "For display only. Metadata associated with NAT.",
-        ).optional(),
-        network: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine network.",
-        ).optional(),
-        ngfwPacketInspection: z.unknown().describe(
-          "For display only. Metadata associated with a layer 7 packet inspection by the firewall.",
-        ).optional(),
-        projectId: z.unknown().describe(
-          "Project ID that contains the configuration this step is validating.",
-        ).optional(),
-        proxyConnection: z.unknown().describe(
-          "For display only. Metadata associated with ProxyConnection.",
-        ).optional(),
-        redisCluster: z.unknown().describe(
-          "For display only. Metadata associated with a Redis Cluster.",
-        ).optional(),
-        redisInstance: z.unknown().describe(
-          "For display only. Metadata associated with a Cloud Redis Instance.",
-        ).optional(),
-        route: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine route.",
-        ).optional(),
-        serverlessExternalConnection: z.unknown().describe(
-          "For display only. Metadata associated with a serverless public connection.",
-        ).optional(),
-        serverlessNeg: z.unknown().describe(
-          "For display only. Metadata associated with the serverless network endpoint group backend.",
-        ).optional(),
-        state: z.unknown().describe(
-          "Each step is in one of the pre-defined states.",
-        ).optional(),
-        storageBucket: z.unknown().describe(
-          "For display only. Metadata associated with Storage Bucket.",
-        ).optional(),
-        vpcConnector: z.unknown().describe(
-          "For display only. Metadata associated with a VPC connector.",
-        ).optional(),
-        vpnGateway: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN gateway.",
-        ).optional(),
-        vpnTunnel: z.unknown().describe(
-          "For display only. Metadata associated with a Compute Engine VPN tunnel.",
-        ).optional(),
-      })).describe(
-        "A trace of a test contains multiple steps from the initial state to the final state (delivered, dropped, forwarded, or aborted). The steps are ordered by the processing sequence within the simulated network state machine. It is critical to preserve the order of the steps and avoid reordering or sorting them.",
-      ).optional(),
-    })).describe(
-      "Result may contain a list of traces if a test has multiple possible paths in the network, such as when destination endpoint is a load balancer with multiple backends.",
-    ).optional(),
-    verifyTime: z.string().describe("The time of the configuration analysis.")
-      .optional(),
-  }).describe(
-    "Results of the configuration analysis from the last run of the test.",
   ).optional(),
   roundTrip: z.boolean().describe(
     "Whether run analysis for the return path from destination to source. Default value is false.",
@@ -1748,13 +783,16 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions) name.",
       ).optional(),
-    }).describe("Wrapper for the App Engine service version attributes.")
-      .optional(),
+    }).describe(
+      "An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions). Applicable only to source endpoint.",
+    ).optional(),
     cloudFunction: z.object({
       uri: z.string().describe(
         "A [Cloud Function](https://cloud.google.com/functions) name.",
       ).optional(),
-    }).describe("Wrapper for Cloud Function attributes.").optional(),
+    }).describe(
+      "A [Cloud Function](https://cloud.google.com/functions). Applicable only to source endpoint.",
+    ).optional(),
     cloudRunJob: z.string().describe(
       "A [Cloud Run](https://cloud.google.com/run) [job](https://docs.cloud.google.com/run/docs/reference/rest/v2/projects.locations.jobs#Job) URI. Applicable only to source endpoint. The format is: projects/{project}/locations/{location}/jobs/{job}",
     ).optional(),
@@ -1765,7 +803,9 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
       ).optional(),
-    }).describe("Wrapper for Cloud Run revision attributes.").optional(),
+    }).describe(
+      "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
+    ).optional(),
     cloudSqlInstance: z.string().describe(
       "A [Cloud SQL](https://cloud.google.com/sql) instance URI.",
     ).optional(),
@@ -1838,7 +878,9 @@ const InputsSchema = z.object({
     redisInstance: z.string().describe(
       "A [Redis Instance](https://cloud.google.com/memorystore/docs/redis) URI. Applicable only to destination endpoint.",
     ).optional(),
-  }).describe("Source or destination of the Connectivity Test.").optional(),
+  }).describe(
+    "Required. Source specification of the Connectivity Test. You can use a combination of source IP address, URI of a supported endpoint, project ID, or VPC network to identify the source location. Reachability analysis might proceed even if the source location is ambiguous. However, the test result might include endpoints or use a source that you don't intend to test.",
+  ).optional(),
   testId: z.string().describe(
     "Required. The logical name of the Connectivity Test in your project with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-40 characters. * Must end with a number or a letter. * Must be unique within the customer project",
   ).optional(),
@@ -1873,7 +915,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Management Global.ConnectivityTests. Registered at `@swamp/gcp/networkmanagement/global-connectivitytests`. */
 export const model = {
   type: "@swamp/gcp/networkmanagement/global-connectivitytests",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2025,6 +1067,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: probingDetails, reachabilityDetails, returnReachabilityDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          probingDetails: _probingDetails,
+          reachabilityDetails: _reachabilityDetails,
+          returnReachabilityDetails: _returnReachabilityDetails,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2058,18 +1114,9 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["probingDetails"] !== undefined) {
-          body["probingDetails"] = g["probingDetails"];
-        }
         if (g["protocol"] !== undefined) body["protocol"] = g["protocol"];
-        if (g["reachabilityDetails"] !== undefined) {
-          body["reachabilityDetails"] = g["reachabilityDetails"];
-        }
         if (g["relatedProjects"] !== undefined) {
           body["relatedProjects"] = g["relatedProjects"];
-        }
-        if (g["returnReachabilityDetails"] !== undefined) {
-          body["returnReachabilityDetails"] = g["returnReachabilityDetails"];
         }
         if (g["roundTrip"] !== undefined) body["roundTrip"] = g["roundTrip"];
         if (g["source"] !== undefined) body["source"] = g["source"];
@@ -2188,18 +1235,9 @@ export const model = {
           body["destination"] = g["destination"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["probingDetails"] !== undefined) {
-          body["probingDetails"] = g["probingDetails"];
-        }
         if (g["protocol"] !== undefined) body["protocol"] = g["protocol"];
-        if (g["reachabilityDetails"] !== undefined) {
-          body["reachabilityDetails"] = g["reachabilityDetails"];
-        }
         if (g["relatedProjects"] !== undefined) {
           body["relatedProjects"] = g["relatedProjects"];
-        }
-        if (g["returnReachabilityDetails"] !== undefined) {
-          body["returnReachabilityDetails"] = g["returnReachabilityDetails"];
         }
         if (g["roundTrip"] !== undefined) body["roundTrip"] = g["roundTrip"];
         if (g["source"] !== undefined) body["source"] = g["source"];

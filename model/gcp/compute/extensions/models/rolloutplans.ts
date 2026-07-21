@@ -186,15 +186,15 @@ const GlobalArgsSchema = z.object({
       maxConcurrentResourcesPerLocation: z.string().describe(
         "Optional. Maximum number of resources to be orchestrated per location in parallel.",
       ).optional(),
-    }).describe(
-      "Options to control the pace of orchestration of a wave. These options are required only if the resource being rolled out follows the Orchestrated pattern.",
-    ).optional(),
+    }).describe("Optional. The orchestration options for this wave.")
+      .optional(),
     selectors: z.array(z.object({
       locationSelector: z.object({
         includedLocations: z.unknown().describe(
           'Optional. Example: "us-central1-a"',
         ).optional(),
-      }).describe("Roll out to resources by location.").optional(),
+      }).describe("Optional. Roll out to resources by Cloud locations.")
+        .optional(),
       resourceHierarchySelector: z.object({
         includedFolders: z.unknown().describe(
           'Optional. Format: "folders/{folder_id}"',
@@ -206,7 +206,7 @@ const GlobalArgsSchema = z.object({
           'Optional. Format: "projects/{project_id}"',
         ).optional(),
       }).describe(
-        "Roll out to resources by Cloud Resource Manager resource hierarchy nodes such as projects, folders, orgs.",
+        "Optional. Roll out to resources by Cloud Resource Manager resource hierarchy.",
       ).optional(),
     })).describe(
       "Required. The selectors for this wave. There is a logical AND between each selector defined in a wave, so a resource must satisfy the criteria of *all* the specified selectors to be in scope for the wave.",
@@ -216,12 +216,12 @@ const GlobalArgsSchema = z.object({
         waitDuration: z.string().describe(
           "Optional. The duration that the system waits in between waves. This wait starts after all changes in the wave are rolled out.",
         ).optional(),
-      }).describe('Metadata required if type = "time".').optional(),
+      }).describe('Optional. Metadata required if type = "time".').optional(),
       type: z.string().describe(
         'Required. The type of the validation. If a type of validation is associated with a metadata object, the appropriate metadata field mapping to the validation type must be provided in the validation message. Possible values are in quotes below alongside an explanation: "manual": The system waits for an end-user approval API before progressing to the next wave. "time": The system waits for a user specified duration before progressing to the next wave. TimeBasedValidation must be provided.',
       ).optional(),
     }).describe(
-      "The validation to be performed before progressing to the next wave.",
+      "Required. The validation to be performed at the end of this wave.",
     ).optional(),
   })).describe("Required. The waves included in this rollout plan.").optional(),
   requestId: z.string().describe(
@@ -312,15 +312,15 @@ const InputsSchema = z.object({
       maxConcurrentResourcesPerLocation: z.string().describe(
         "Optional. Maximum number of resources to be orchestrated per location in parallel.",
       ).optional(),
-    }).describe(
-      "Options to control the pace of orchestration of a wave. These options are required only if the resource being rolled out follows the Orchestrated pattern.",
-    ).optional(),
+    }).describe("Optional. The orchestration options for this wave.")
+      .optional(),
     selectors: z.array(z.object({
       locationSelector: z.object({
         includedLocations: z.unknown().describe(
           'Optional. Example: "us-central1-a"',
         ).optional(),
-      }).describe("Roll out to resources by location.").optional(),
+      }).describe("Optional. Roll out to resources by Cloud locations.")
+        .optional(),
       resourceHierarchySelector: z.object({
         includedFolders: z.unknown().describe(
           'Optional. Format: "folders/{folder_id}"',
@@ -332,7 +332,7 @@ const InputsSchema = z.object({
           'Optional. Format: "projects/{project_id}"',
         ).optional(),
       }).describe(
-        "Roll out to resources by Cloud Resource Manager resource hierarchy nodes such as projects, folders, orgs.",
+        "Optional. Roll out to resources by Cloud Resource Manager resource hierarchy.",
       ).optional(),
     })).describe(
       "Required. The selectors for this wave. There is a logical AND between each selector defined in a wave, so a resource must satisfy the criteria of *all* the specified selectors to be in scope for the wave.",
@@ -342,12 +342,12 @@ const InputsSchema = z.object({
         waitDuration: z.string().describe(
           "Optional. The duration that the system waits in between waves. This wait starts after all changes in the wave are rolled out.",
         ).optional(),
-      }).describe('Metadata required if type = "time".').optional(),
+      }).describe('Optional. Metadata required if type = "time".').optional(),
       type: z.string().describe(
         'Required. The type of the validation. If a type of validation is associated with a metadata object, the appropriate metadata field mapping to the validation type must be provided in the validation message. Possible values are in quotes below alongside an explanation: "manual": The system waits for an end-user approval API before progressing to the next wave. "time": The system waits for a user specified duration before progressing to the next wave. TimeBasedValidation must be provided.',
       ).optional(),
     }).describe(
-      "The validation to be performed before progressing to the next wave.",
+      "Required. The validation to be performed at the end of this wave.",
     ).optional(),
   })).describe("Required. The waves included in this rollout plan.").optional(),
   requestId: z.string().describe(
@@ -378,7 +378,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RolloutPlans. Registered at `@swamp/gcp/compute/rolloutplans`. */
 export const model = {
   type: "@swamp/gcp/compute/rolloutplans",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

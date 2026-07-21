@@ -159,9 +159,7 @@ const GlobalArgsSchema = z.object({
       guestOsFeatures: z.array(z.string()).describe(
         "Optional. A list of guest OS features to apply to the imported image. These features are flags that are used by Compute Engine to enable certain capabilities for virtual machine instances that are created from the image. This field does not change the OS of the image; it only marks the image with the specified features. The user must ensure that the OS is compatible with the features. For a list of available features, see https://cloud.google.com/compute/docs/images/create-custom#guest-os-features.",
       ).optional(),
-    }).describe(
-      "Used when the image import is not using OS adaptation process.",
-    ).optional(),
+    }).describe("Optional. Use to skip OS adaptation process.").optional(),
     description: z.string().describe(
       "Optional. An optional description of the image.",
     ).optional(),
@@ -169,9 +167,7 @@ const GlobalArgsSchema = z.object({
       kmsKey: z.string().describe(
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
-    }).describe(
-      "Encryption message describes the details of the applied encryption.",
-    ).optional(),
+    }).describe("Immutable. The encryption to apply to the image.").optional(),
     familyName: z.string().describe(
       "Optional. The name of the image family to which the new image belongs.",
     ).optional(),
@@ -208,7 +204,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Choose which type of license to apply to the imported image.",
       ).optional(),
-    }).describe("Parameters affecting the OS adaptation process.").optional(),
+    }).describe(
+      "Optional. Use to set the parameters relevant for the OS adaptation process.",
+    ).optional(),
     singleRegionStorage: z.boolean().describe(
       "Optional. Set to true to set the image storageLocations to the single region of the import job. When false, the closest multi-region is selected.",
     ).optional(),
@@ -216,14 +214,14 @@ const GlobalArgsSchema = z.object({
       "Required. Reference to the TargetProject resource that represents the target project in which the imported image will be created.",
     ).optional(),
   }).describe(
-    "The target details of the image resource that will be created by the import job.",
+    "Immutable. Target details for importing a disk image, will be used by ImageImportJob.",
   ).optional(),
   encryption: z.object({
     kmsKey: z.string().describe(
       "Required. The name of the encryption key that is stored in Google Cloud KMS.",
     ).optional(),
   }).describe(
-    "Encryption message describes the details of the applied encryption.",
+    "Immutable. The encryption details used by the image import process during the image adaptation for Compute Engine.",
   ).optional(),
   machineImageTargetDefaults: z.object({
     additionalLicenses: z.array(z.string()).describe(
@@ -237,7 +235,7 @@ const GlobalArgsSchema = z.object({
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
     }).describe(
-      "Encryption message describes the details of the applied encryption.",
+      "Immutable. The encryption to apply to the machine image. If the Image Import resource has an encryption, this field must be set to the same encryption key.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Optional. The labels to apply to the instance created by the machine image.",
@@ -250,7 +248,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The machine type to create the MachineImage with. If empty, the service will choose a relevant machine type based on the information from the source image. For more information about machine types, please refer to https://cloud.google.com/compute/docs/machine-resource.",
       ).optional(),
     }).describe(
-      "Parameters overriding decisions based on the source machine image configurations.",
+      "Optional. Parameters overriding decisions based on the source machine image configurations.",
     ).optional(),
     networkInterfaces: z.array(z.object({
       externalIp: z.string().describe(
@@ -302,7 +300,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Choose which type of license to apply to the imported image.",
       ).optional(),
-    }).describe("Parameters affecting the OS adaptation process.").optional(),
+    }).describe(
+      "Optional. Use to set the parameters relevant for the OS adaptation process.",
+    ).optional(),
     serviceAccount: z.object({
       email: z.string().describe(
         "Required. The email address of the service account.",
@@ -311,7 +311,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The list of scopes to be made available for this service account.",
       ).optional(),
     }).describe(
-      "Service account to assign to the instance created by the machine image.",
+      "Optional. The service account to assign to the instance created by the machine image.",
     ).optional(),
     shieldedInstanceConfig: z.object({
       enableIntegrityMonitoring: z.boolean().describe(
@@ -323,12 +323,12 @@ const GlobalArgsSchema = z.object({
       secureBoot: z.enum(["SECURE_BOOT_UNSPECIFIED", "TRUE", "FALSE"]).describe(
         "Optional. Defines whether the instance created by the machine image has Secure Boot enabled. This can be set to true only if the image boot option is EFI.",
       ).optional(),
-    }).describe("Shielded instance configuration.").optional(),
+    }).describe("Optional. Shielded instance configuration.").optional(),
     singleRegionStorage: z.boolean().describe(
       "Optional. Set to true to set the machine image storageLocations to the single region of the import job. When false, the closest multi-region is selected.",
     ).optional(),
     skipOsAdaptation: z.object({}).describe(
-      "Mentions that the machine image import is not using OS adaptation process.",
+      "Optional. Use to skip OS adaptation process.",
     ).optional(),
     tags: z.array(z.string()).describe(
       "Optional. The tags to apply to the instance created by the machine image.",
@@ -337,7 +337,7 @@ const GlobalArgsSchema = z.object({
       "Required. Reference to the TargetProject resource that represents the target project in which the imported machine image will be created.",
     ).optional(),
   }).describe(
-    "The target details of the machine image resource that will be created by the image import job.",
+    "Immutable. Target details for importing a machine image, will be used by ImageImportJob.",
   ).optional(),
   imageImportId: z.string().describe(
     "Required. The image import identifier. This value maximum length is 63 characters, and valid characters are /a-z-/. It must start with an english letter and must not end with a hyphen.",
@@ -536,9 +536,7 @@ const InputsSchema = z.object({
       guestOsFeatures: z.array(z.string()).describe(
         "Optional. A list of guest OS features to apply to the imported image. These features are flags that are used by Compute Engine to enable certain capabilities for virtual machine instances that are created from the image. This field does not change the OS of the image; it only marks the image with the specified features. The user must ensure that the OS is compatible with the features. For a list of available features, see https://cloud.google.com/compute/docs/images/create-custom#guest-os-features.",
       ).optional(),
-    }).describe(
-      "Used when the image import is not using OS adaptation process.",
-    ).optional(),
+    }).describe("Optional. Use to skip OS adaptation process.").optional(),
     description: z.string().describe(
       "Optional. An optional description of the image.",
     ).optional(),
@@ -546,9 +544,7 @@ const InputsSchema = z.object({
       kmsKey: z.string().describe(
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
-    }).describe(
-      "Encryption message describes the details of the applied encryption.",
-    ).optional(),
+    }).describe("Immutable. The encryption to apply to the image.").optional(),
     familyName: z.string().describe(
       "Optional. The name of the image family to which the new image belongs.",
     ).optional(),
@@ -585,7 +581,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Choose which type of license to apply to the imported image.",
       ).optional(),
-    }).describe("Parameters affecting the OS adaptation process.").optional(),
+    }).describe(
+      "Optional. Use to set the parameters relevant for the OS adaptation process.",
+    ).optional(),
     singleRegionStorage: z.boolean().describe(
       "Optional. Set to true to set the image storageLocations to the single region of the import job. When false, the closest multi-region is selected.",
     ).optional(),
@@ -593,14 +591,14 @@ const InputsSchema = z.object({
       "Required. Reference to the TargetProject resource that represents the target project in which the imported image will be created.",
     ).optional(),
   }).describe(
-    "The target details of the image resource that will be created by the import job.",
+    "Immutable. Target details for importing a disk image, will be used by ImageImportJob.",
   ).optional(),
   encryption: z.object({
     kmsKey: z.string().describe(
       "Required. The name of the encryption key that is stored in Google Cloud KMS.",
     ).optional(),
   }).describe(
-    "Encryption message describes the details of the applied encryption.",
+    "Immutable. The encryption details used by the image import process during the image adaptation for Compute Engine.",
   ).optional(),
   machineImageTargetDefaults: z.object({
     additionalLicenses: z.array(z.string()).describe(
@@ -614,7 +612,7 @@ const InputsSchema = z.object({
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
     }).describe(
-      "Encryption message describes the details of the applied encryption.",
+      "Immutable. The encryption to apply to the machine image. If the Image Import resource has an encryption, this field must be set to the same encryption key.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Optional. The labels to apply to the instance created by the machine image.",
@@ -627,7 +625,7 @@ const InputsSchema = z.object({
         "Optional. The machine type to create the MachineImage with. If empty, the service will choose a relevant machine type based on the information from the source image. For more information about machine types, please refer to https://cloud.google.com/compute/docs/machine-resource.",
       ).optional(),
     }).describe(
-      "Parameters overriding decisions based on the source machine image configurations.",
+      "Optional. Parameters overriding decisions based on the source machine image configurations.",
     ).optional(),
     networkInterfaces: z.array(z.object({
       externalIp: z.string().describe(
@@ -679,7 +677,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Choose which type of license to apply to the imported image.",
       ).optional(),
-    }).describe("Parameters affecting the OS adaptation process.").optional(),
+    }).describe(
+      "Optional. Use to set the parameters relevant for the OS adaptation process.",
+    ).optional(),
     serviceAccount: z.object({
       email: z.string().describe(
         "Required. The email address of the service account.",
@@ -688,7 +688,7 @@ const InputsSchema = z.object({
         "Optional. The list of scopes to be made available for this service account.",
       ).optional(),
     }).describe(
-      "Service account to assign to the instance created by the machine image.",
+      "Optional. The service account to assign to the instance created by the machine image.",
     ).optional(),
     shieldedInstanceConfig: z.object({
       enableIntegrityMonitoring: z.boolean().describe(
@@ -700,12 +700,12 @@ const InputsSchema = z.object({
       secureBoot: z.enum(["SECURE_BOOT_UNSPECIFIED", "TRUE", "FALSE"]).describe(
         "Optional. Defines whether the instance created by the machine image has Secure Boot enabled. This can be set to true only if the image boot option is EFI.",
       ).optional(),
-    }).describe("Shielded instance configuration.").optional(),
+    }).describe("Optional. Shielded instance configuration.").optional(),
     singleRegionStorage: z.boolean().describe(
       "Optional. Set to true to set the machine image storageLocations to the single region of the import job. When false, the closest multi-region is selected.",
     ).optional(),
     skipOsAdaptation: z.object({}).describe(
-      "Mentions that the machine image import is not using OS adaptation process.",
+      "Optional. Use to skip OS adaptation process.",
     ).optional(),
     tags: z.array(z.string()).describe(
       "Optional. The tags to apply to the instance created by the machine image.",
@@ -714,7 +714,7 @@ const InputsSchema = z.object({
       "Required. Reference to the TargetProject resource that represents the target project in which the imported machine image will be created.",
     ).optional(),
   }).describe(
-    "The target details of the machine image resource that will be created by the image import job.",
+    "Immutable. Target details for importing a machine image, will be used by ImageImportJob.",
   ).optional(),
   imageImportId: z.string().describe(
     "Required. The image import identifier. This value maximum length is 63 characters, and valid characters are /a-z-/. It must start with an english letter and must not end with a hyphen.",
@@ -750,7 +750,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration ImageImports. Registered at `@swamp/gcp/vmmigration/imageimports`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/imageimports",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -857,6 +857,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -911,16 +916,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

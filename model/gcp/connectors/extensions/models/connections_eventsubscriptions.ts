@@ -167,9 +167,8 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("Optional. Value of Header.").optional(),
       })).describe("Optional. List of Header to be added to the Endpoint.")
         .optional(),
-    }).describe(
-      "Endpoint message includes details of the Destination endpoint.",
-    ).optional(),
+    }).describe("OPTION 1: Hit an endpoint when we receive an event.")
+      .optional(),
     pubsub: z.object({
       attributes: z.record(z.string(), z.string()).describe(
         "Optional. Pub/Sub message attributes to be added to the Pub/Sub message.",
@@ -184,7 +183,7 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -193,8 +192,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. Configuration for configuring the trigger")
@@ -205,18 +203,15 @@ const GlobalArgsSchema = z.object({
       topicId: z.string().describe(
         "Required. The topic id of the Pub/Sub topic.",
       ).optional(),
-    }).describe(
-      "Pub/Sub message includes details of the Destination Pub/Sub topic.",
-    ).optional(),
+    }).describe("OPTION 3: Write the event to Pub/Sub topic.").optional(),
     serviceAccount: z.string().describe(
       "Optional. Service account needed for runtime plane to trigger IP workflow.",
     ).optional(),
     type: z.enum(["TYPE_UNSPECIFIED", "ENDPOINT", "GCS", "PUBSUB"]).describe(
       "Optional. type of the destination",
     ).optional(),
-  }).describe(
-    "Message for EventSubscription Destination to act on receiving an event",
-  ).optional(),
+  }).describe("Optional. The destination to hit when we receive an event")
+    .optional(),
   eventTypeId: z.string().describe(
     "Optional. Event type id of the event of current EventSubscription.",
   ).optional(),
@@ -230,7 +225,7 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "QUEUE", "TOPIC"]).describe(
       "Optional. Type of the JMS Source. i.e. Queue or Topic",
     ).optional(),
-  }).describe("JMS message denotes the source of the event").optional(),
+  }).describe("Optional. JMS is the source for the event listener.").optional(),
   name: z.string().describe(
     "Required. Identifier. Resource name of the EventSubscription. Format: projects/{project}/locations/{location}/connections/{connection}/eventSubscriptions/{event_subscription}",
   ).optional(),
@@ -247,7 +242,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Output only. State of Event Subscription resource.")
       .optional(),
   }).describe(
-    "EventSubscription Status denotes the status of the EventSubscription resource.",
+    "Optional. Status indicates the status of the event subscription resource",
   ).optional(),
   subscriber: z.string().describe(
     "Optional. name of the Subscriber for the current EventSubscription.",
@@ -264,7 +259,7 @@ const GlobalArgsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
         .describe("Optional. Specifies the type of the encryption key.")
         .optional(),
-    }).describe("Encryption Key value.").optional(),
+    }).describe("Optional. Value is a Encryption Key.").optional(),
     intValue: z.string().describe("Optional. Value is an integer").optional(),
     key: z.string().describe("Optional. Key of the config variable.")
       .optional(),
@@ -272,8 +267,7 @@ const GlobalArgsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Value is a secret.").optional(),
     stringValue: z.string().describe("Optional. Value is a string.").optional(),
   })).describe("Optional. Configuration for configuring the trigger")
     .optional(),
@@ -364,9 +358,8 @@ const InputsSchema = z.object({
         value: z.string().describe("Optional. Value of Header.").optional(),
       })).describe("Optional. List of Header to be added to the Endpoint.")
         .optional(),
-    }).describe(
-      "Endpoint message includes details of the Destination endpoint.",
-    ).optional(),
+    }).describe("OPTION 1: Hit an endpoint when we receive an event.")
+      .optional(),
     pubsub: z.object({
       attributes: z.record(z.string(), z.string()).describe(
         "Optional. Pub/Sub message attributes to be added to the Pub/Sub message.",
@@ -381,7 +374,7 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Optional. Specifies the type of the encryption key.",
           ).optional(),
-        }).describe("Encryption Key value.").optional(),
+        }).describe("Optional. Value is a Encryption Key.").optional(),
         intValue: z.string().describe("Optional. Value is an integer")
           .optional(),
         key: z.string().describe("Optional. Key of the config variable.")
@@ -390,8 +383,7 @@ const InputsSchema = z.object({
           secretVersion: z.unknown().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe("Secret provides a reference to entries in Secret Manager.")
-          .optional(),
+        }).describe("Optional. Value is a secret.").optional(),
         stringValue: z.string().describe("Optional. Value is a string.")
           .optional(),
       })).describe("Optional. Configuration for configuring the trigger")
@@ -402,18 +394,15 @@ const InputsSchema = z.object({
       topicId: z.string().describe(
         "Required. The topic id of the Pub/Sub topic.",
       ).optional(),
-    }).describe(
-      "Pub/Sub message includes details of the Destination Pub/Sub topic.",
-    ).optional(),
+    }).describe("OPTION 3: Write the event to Pub/Sub topic.").optional(),
     serviceAccount: z.string().describe(
       "Optional. Service account needed for runtime plane to trigger IP workflow.",
     ).optional(),
     type: z.enum(["TYPE_UNSPECIFIED", "ENDPOINT", "GCS", "PUBSUB"]).describe(
       "Optional. type of the destination",
     ).optional(),
-  }).describe(
-    "Message for EventSubscription Destination to act on receiving an event",
-  ).optional(),
+  }).describe("Optional. The destination to hit when we receive an event")
+    .optional(),
   eventTypeId: z.string().describe(
     "Optional. Event type id of the event of current EventSubscription.",
   ).optional(),
@@ -427,7 +416,7 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "QUEUE", "TOPIC"]).describe(
       "Optional. Type of the JMS Source. i.e. Queue or Topic",
     ).optional(),
-  }).describe("JMS message denotes the source of the event").optional(),
+  }).describe("Optional. JMS is the source for the event listener.").optional(),
   name: z.string().describe(
     "Required. Identifier. Resource name of the EventSubscription. Format: projects/{project}/locations/{location}/connections/{connection}/eventSubscriptions/{event_subscription}",
   ).optional(),
@@ -444,7 +433,7 @@ const InputsSchema = z.object({
     ]).describe("Output only. State of Event Subscription resource.")
       .optional(),
   }).describe(
-    "EventSubscription Status denotes the status of the EventSubscription resource.",
+    "Optional. Status indicates the status of the event subscription resource",
   ).optional(),
   subscriber: z.string().describe(
     "Optional. name of the Subscriber for the current EventSubscription.",
@@ -461,7 +450,7 @@ const InputsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "GOOGLE_MANAGED", "CUSTOMER_MANAGED"])
         .describe("Optional. Specifies the type of the encryption key.")
         .optional(),
-    }).describe("Encryption Key value.").optional(),
+    }).describe("Optional. Value is a Encryption Key.").optional(),
     intValue: z.string().describe("Optional. Value is an integer").optional(),
     key: z.string().describe("Optional. Key of the config variable.")
       .optional(),
@@ -469,8 +458,7 @@ const InputsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Secret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Optional. Value is a secret.").optional(),
     stringValue: z.string().describe("Optional. Value is a string.").optional(),
   })).describe("Optional. Configuration for configuring the trigger")
     .optional(),
@@ -508,7 +496,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Connections.EventSubscriptions. Registered at `@swamp/gcp/connectors/connections-eventsubscriptions`. */
 export const model = {
   type: "@swamp/gcp/connectors/connections-eventsubscriptions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

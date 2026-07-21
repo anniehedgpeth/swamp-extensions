@@ -161,16 +161,15 @@ const GlobalArgsSchema = z.object({
       schemes: z.array(z.string()).describe(
         "Supported authentication schemes - e.g. Basic, Bearer, etc",
       ).optional(),
-    }).describe("Defines authentication details, used for push notifications.")
-      .optional(),
+    }).describe(
+      "Information about the authentication to sent with the notification",
+    ).optional(),
     id: z.string().describe(
       "A unique identifier (e.g. UUID) for this push notification.",
     ).optional(),
     token: z.string().describe("Token unique for this task/session").optional(),
     url: z.string().describe("Url to send the notification too").optional(),
-  }).describe(
-    "Configuration for setting up push notifications for task updates.",
-  ).optional(),
+  }).describe("The push notification configuration details.").optional(),
   tenant: z.string().describe(
     "Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.",
   ),
@@ -213,16 +212,15 @@ const InputsSchema = z.object({
       schemes: z.array(z.string()).describe(
         "Supported authentication schemes - e.g. Basic, Bearer, etc",
       ).optional(),
-    }).describe("Defines authentication details, used for push notifications.")
-      .optional(),
+    }).describe(
+      "Information about the authentication to sent with the notification",
+    ).optional(),
     id: z.string().describe(
       "A unique identifier (e.g. UUID) for this push notification.",
     ).optional(),
     token: z.string().describe("Token unique for this task/session").optional(),
     url: z.string().describe("Url to send the notification too").optional(),
-  }).describe(
-    "Configuration for setting up push notifications for task updates.",
-  ).optional(),
+  }).describe("The push notification configuration details.").optional(),
   tenant: z.string().describe(
     "Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.",
   ).optional(),
@@ -260,7 +258,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/discoveryengine/collections-engines-assistants-agents-a2a-v1-tasks-pushnotificationconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -364,6 +362,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

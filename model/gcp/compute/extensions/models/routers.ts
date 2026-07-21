@@ -225,7 +225,7 @@ const GlobalArgsSchema = z.object({
     keepaliveInterval: z.number().int().describe(
       "The interval in seconds between BGP keepalive messages that are sent to the peer. Hold time is three times the interval at which keepalive messages are sent, and the hold time is the maximum number of seconds allowed to elapse between successive keepalive messages that BGP receives from a peer. BGP will use the smaller of either the local hold time value or the peer's hold time value as the hold time for the BGP connection between the two peers. If set, this value must be between 20 and 60. The default is 20.",
     ).optional(),
-  }).optional(),
+  }).describe("BGP information specific to this router.").optional(),
   bgpPeers: z.array(z.object({
     advertiseMode: z.enum(["CUSTOM", "DEFAULT"]).describe(
       "User-specified flag to indicate which mode to use for advertisement.",
@@ -260,7 +260,7 @@ const GlobalArgsSchema = z.object({
         .describe(
           "The BFD session initialization mode for this BGP peer. If set to ACTIVE, the Cloud Router will initiate the BFD session for this BGP peer. If set to PASSIVE, the Cloud Router will wait for the peer router to initiate the BFD session for this BGP peer. If set to DISABLED, BFD is disabled for this BGP peer. The default is DISABLED.",
         ).optional(),
-    }).optional(),
+    }).describe("BFD configuration for the BGP peering.").optional(),
     customLearnedIpRanges: z.array(z.object({
       range: z.string().describe(
         "The custom learned route IP address range. Must be a valid CIDR-formatted prefix. If an IP address is provided without a subnet mask, it is interpreted as, for IPv4, a `/32` singular IP address range, and, for IPv6, `/128`.",
@@ -418,7 +418,7 @@ const GlobalArgsSchema = z.object({
       filter: z.enum(["ALL", "ERRORS_ONLY", "TRANSLATIONS_ONLY"]).describe(
         "Specify the desired filtering of logs on this NAT. If unspecified, logs are exported for all connections handled by this NAT. This option can take one of the following values: - ERRORS_ONLY: Export logs only for connection failures. - TRANSLATIONS_ONLY: Export logs only for successful connections. - ALL: Export logs for all connections, successful and unsuccessful.",
       ).optional(),
-    }).describe("Configuration of logging on a NAT.").optional(),
+    }).describe("Configure logging on this NAT.").optional(),
     maxPortsPerVm: z.number().int().describe(
       "Maximum number of ports allocated to a VM from this NAT config when Dynamic Port Allocation is enabled. If Dynamic Port Allocation is not enabled, this field has no effect. If Dynamic Port Allocation is enabled, and this field is set, it must be set to a power of two greater than minPortsPerVm, or 64 if minPortsPerVm is not set. If Dynamic Port Allocation is enabled and this field is not set, a maximum of 65536 ports will be allocated to a VM from this NAT config.",
     ).optional(),
@@ -456,7 +456,9 @@ const GlobalArgsSchema = z.object({
         sourceNatDrainRanges: z.unknown().describe(
           "A list of URLs of subnetworks representing source ranges to be drained. This is only supported on patch/update, and these subnetworks must have previously been used as active ranges in this NAT Rule. This field is used for private NAT.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The action to be enforced for traffic that matches this rule.",
+      ).optional(),
       description: z.string().describe("An optional description of this rule.")
         .optional(),
       match: z.string().describe(
@@ -518,7 +520,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid. * Inconsistent format is not supported. For instance: {"tagKeys/333": "tagValues/444", "123/env": "prod"} is invalid.',
     ).optional(),
-  }).describe("Additional router parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   region: z.string().describe(
     "[Output Only] URI of the region where the router resides. You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
@@ -682,7 +686,7 @@ const InputsSchema = z.object({
     keepaliveInterval: z.number().int().describe(
       "The interval in seconds between BGP keepalive messages that are sent to the peer. Hold time is three times the interval at which keepalive messages are sent, and the hold time is the maximum number of seconds allowed to elapse between successive keepalive messages that BGP receives from a peer. BGP will use the smaller of either the local hold time value or the peer's hold time value as the hold time for the BGP connection between the two peers. If set, this value must be between 20 and 60. The default is 20.",
     ).optional(),
-  }).optional(),
+  }).describe("BGP information specific to this router.").optional(),
   bgpPeers: z.array(z.object({
     advertiseMode: z.enum(["CUSTOM", "DEFAULT"]).describe(
       "User-specified flag to indicate which mode to use for advertisement.",
@@ -717,7 +721,7 @@ const InputsSchema = z.object({
         .describe(
           "The BFD session initialization mode for this BGP peer. If set to ACTIVE, the Cloud Router will initiate the BFD session for this BGP peer. If set to PASSIVE, the Cloud Router will wait for the peer router to initiate the BFD session for this BGP peer. If set to DISABLED, BFD is disabled for this BGP peer. The default is DISABLED.",
         ).optional(),
-    }).optional(),
+    }).describe("BFD configuration for the BGP peering.").optional(),
     customLearnedIpRanges: z.array(z.object({
       range: z.string().describe(
         "The custom learned route IP address range. Must be a valid CIDR-formatted prefix. If an IP address is provided without a subnet mask, it is interpreted as, for IPv4, a `/32` singular IP address range, and, for IPv6, `/128`.",
@@ -875,7 +879,7 @@ const InputsSchema = z.object({
       filter: z.enum(["ALL", "ERRORS_ONLY", "TRANSLATIONS_ONLY"]).describe(
         "Specify the desired filtering of logs on this NAT. If unspecified, logs are exported for all connections handled by this NAT. This option can take one of the following values: - ERRORS_ONLY: Export logs only for connection failures. - TRANSLATIONS_ONLY: Export logs only for successful connections. - ALL: Export logs for all connections, successful and unsuccessful.",
       ).optional(),
-    }).describe("Configuration of logging on a NAT.").optional(),
+    }).describe("Configure logging on this NAT.").optional(),
     maxPortsPerVm: z.number().int().describe(
       "Maximum number of ports allocated to a VM from this NAT config when Dynamic Port Allocation is enabled. If Dynamic Port Allocation is not enabled, this field has no effect. If Dynamic Port Allocation is enabled, and this field is set, it must be set to a power of two greater than minPortsPerVm, or 64 if minPortsPerVm is not set. If Dynamic Port Allocation is enabled and this field is not set, a maximum of 65536 ports will be allocated to a VM from this NAT config.",
     ).optional(),
@@ -913,7 +917,9 @@ const InputsSchema = z.object({
         sourceNatDrainRanges: z.unknown().describe(
           "A list of URLs of subnetworks representing source ranges to be drained. This is only supported on patch/update, and these subnetworks must have previously been used as active ranges in this NAT Rule. This field is used for private NAT.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The action to be enforced for traffic that matches this rule.",
+      ).optional(),
       description: z.string().describe("An optional description of this rule.")
         .optional(),
       match: z.string().describe(
@@ -975,7 +981,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid. * Inconsistent format is not supported. For instance: {"tagKeys/333": "tagValues/444", "123/env": "prod"} is invalid.',
     ).optional(),
-  }).describe("Additional router parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   region: z.string().describe(
     "[Output Only] URI of the region where the router resides. You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
@@ -1007,7 +1015,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Routers. Registered at `@swamp/gcp/compute/routers`. */
 export const model = {
   type: "@swamp/gcp/compute/routers",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1135,6 +1143,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: nccGateway",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

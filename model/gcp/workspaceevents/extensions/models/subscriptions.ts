@@ -182,8 +182,9 @@ const GlobalArgsSchema = z.object({
     includeDescendants: z.boolean().describe(
       "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
     ).optional(),
-  }).describe("Additional supported options for serving Drive events.")
-    .optional(),
+  }).describe(
+    "Optional. Features that are supported only for subscriptions on Drive resources.",
+  ).optional(),
   expireTime: z.string().describe(
     "Non-empty default. The timestamp in UTC when the subscription expires. Always displayed on output, regardless of what was used on input.",
   ).optional(),
@@ -194,8 +195,9 @@ const GlobalArgsSchema = z.object({
     pubsubTopic: z.string().describe(
       "Immutable. The Pub/Sub topic that receives events for the subscription. Format: `projects/{project}/topics/{topic}` You must create the topic in the same Google Cloud project where you create this subscription. Note: The Google Workspace Events API uses [ordering keys](https://cloud.google.com/pubsub/docs/ordering) for the benefit of sequential events. If the Cloud Pub/Sub topic has a [message storage policy](https://cloud.google.com/pubsub/docs/resource-location-restriction#exceptions) configured to exclude the nearest Google Cloud region, publishing events with ordering keys will fail. When the topic receives events, the events are encoded as Pub/Sub messages. For details, see the [Google Cloud Pub/Sub Protocol Binding for CloudEvents](https://github.com/googleapis/google-cloudevents/blob/main/docs/spec/pubsub.md).",
     ).optional(),
-  }).describe("The endpoint where the subscription delivers events.")
-    .optional(),
+  }).describe(
+    "Required. Immutable. The endpoint where the subscription delivers events, such as a Pub/Sub topic.",
+  ).optional(),
   payloadOptions: z.object({
     fieldMask: z.string().describe(
       "Optional. If `include_resource` is set to `true`, the list of fields to include in the event payload. Separate fields with a comma. For example, to include a Google Chat message's sender and create time, enter `message.sender,message.createTime`. If omitted, the payload includes all fields for the resource. If you specify a field that doesn't exist for the resource, the system ignores the field.",
@@ -204,7 +206,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Whether the event payload includes data about the resource that changed. For example, for an event where a Google Chat message was created, whether the payload contains data about the [`Message`](https://developers.google.com/chat/api/reference/rest/v1/spaces.messages) resource. If false, the event payload only includes the name of the changed resource.",
     ).optional(),
   }).describe(
-    "Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.",
+    "Optional. Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.",
   ).optional(),
   targetResource: z.string().describe(
     "Required. Immutable. The Google Workspace resource that's monitored for events, formatted as the [full resource name](https://google.aip.dev/122#full-resource-names). To learn about target resources and the events that they support, see [Supported Google Workspace events](https://developers.google.com/workspace/events#supported-events). A user can only authorize your app to create one subscription for a given target resource. If your app tries to create another subscription with the same user credentials, the request returns an `ALREADY_EXISTS` error.",
@@ -253,8 +255,9 @@ const InputsSchema = z.object({
     includeDescendants: z.boolean().describe(
       "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
     ).optional(),
-  }).describe("Additional supported options for serving Drive events.")
-    .optional(),
+  }).describe(
+    "Optional. Features that are supported only for subscriptions on Drive resources.",
+  ).optional(),
   expireTime: z.string().describe(
     "Non-empty default. The timestamp in UTC when the subscription expires. Always displayed on output, regardless of what was used on input.",
   ).optional(),
@@ -265,8 +268,9 @@ const InputsSchema = z.object({
     pubsubTopic: z.string().describe(
       "Immutable. The Pub/Sub topic that receives events for the subscription. Format: `projects/{project}/topics/{topic}` You must create the topic in the same Google Cloud project where you create this subscription. Note: The Google Workspace Events API uses [ordering keys](https://cloud.google.com/pubsub/docs/ordering) for the benefit of sequential events. If the Cloud Pub/Sub topic has a [message storage policy](https://cloud.google.com/pubsub/docs/resource-location-restriction#exceptions) configured to exclude the nearest Google Cloud region, publishing events with ordering keys will fail. When the topic receives events, the events are encoded as Pub/Sub messages. For details, see the [Google Cloud Pub/Sub Protocol Binding for CloudEvents](https://github.com/googleapis/google-cloudevents/blob/main/docs/spec/pubsub.md).",
     ).optional(),
-  }).describe("The endpoint where the subscription delivers events.")
-    .optional(),
+  }).describe(
+    "Required. Immutable. The endpoint where the subscription delivers events, such as a Pub/Sub topic.",
+  ).optional(),
   payloadOptions: z.object({
     fieldMask: z.string().describe(
       "Optional. If `include_resource` is set to `true`, the list of fields to include in the event payload. Separate fields with a comma. For example, to include a Google Chat message's sender and create time, enter `message.sender,message.createTime`. If omitted, the payload includes all fields for the resource. If you specify a field that doesn't exist for the resource, the system ignores the field.",
@@ -275,7 +279,7 @@ const InputsSchema = z.object({
       "Optional. Whether the event payload includes data about the resource that changed. For example, for an event where a Google Chat message was created, whether the payload contains data about the [`Message`](https://developers.google.com/chat/api/reference/rest/v1/spaces.messages) resource. If false, the event payload only includes the name of the changed resource.",
     ).optional(),
   }).describe(
-    "Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.",
+    "Optional. Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.",
   ).optional(),
   targetResource: z.string().describe(
     "Required. Immutable. The Google Workspace resource that's monitored for events, formatted as the [full resource name](https://google.aip.dev/122#full-resource-names). To learn about target resources and the events that they support, see [Supported Google Workspace events](https://developers.google.com/workspace/events#supported-events). A user can only authorize your app to create one subscription for a given target resource. If your app tries to create another subscription with the same user credentials, the request returns an `ALREADY_EXISTS` error.",
@@ -308,7 +312,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Events Subscriptions. Registered at `@swamp/gcp/workspaceevents/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/workspaceevents/subscriptions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -457,6 +461,11 @@ export const model = {
       description: "Added: driveOptions",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -600,9 +609,6 @@ export const model = {
           body["driveOptions"] = g["driveOptions"];
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
-        if (g["notificationEndpoint"] !== undefined) {
-          body["notificationEndpoint"] = g["notificationEndpoint"];
-        }
         if (g["payloadOptions"] !== undefined) {
           body["payloadOptions"] = g["payloadOptions"];
         }

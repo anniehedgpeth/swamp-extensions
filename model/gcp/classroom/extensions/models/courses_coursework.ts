@@ -210,8 +210,12 @@ const GlobalArgsSchema = z.object({
       id: z.string().describe("Drive API resource ID.").optional(),
       title: z.string().describe("Title of the Drive folder. Read-only.")
         .optional(),
-    }).describe("Representation of a Google Drive folder.").optional(),
-  }).describe("Additional details for assignments.").optional(),
+    }).describe(
+      "Drive folder where attachments from student submissions are placed. This is only populated for course teachers and administrators.",
+    ).optional(),
+  }).describe(
+    "Assignment details. This is populated only when `work_type` is `ASSIGNMENT`. Read-only.",
+  ).optional(),
   associatedWithDeveloper: z.boolean().describe(
     "Whether this course work item is associated with the Developer Console project making the request. See CreateCourseWork for more details. Read-only.",
   ).optional(),
@@ -237,7 +241,7 @@ const GlobalArgsSchema = z.object({
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
   }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+    "Optional date, in UTC, that submissions for this course work are due. This must be specified if `due_time` is specified.",
   ).optional(),
   dueTime: z.object({
     hours: z.number().int().describe(
@@ -253,7 +257,7 @@ const GlobalArgsSchema = z.object({
       "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
     ).optional(),
   }).describe(
-    "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+    "Optional time of day, in UTC, that submissions for this course work are due. This must be specified if `due_date` is specified.",
   ).optional(),
   gradeCategory: z.object({
     defaultGradeDenominator: z.number().int().describe(
@@ -265,7 +269,7 @@ const GlobalArgsSchema = z.object({
       "The weight of the category average as part of overall average. A weight of 12.34% is represented as 123400 (100% is 1,000,000). The last two digits should always be zero since we use two decimal precision. Only applicable when grade calculation type is WEIGHTED_CATEGORIES.",
     ).optional(),
   }).describe(
-    "Details for a grade category in a course. Coursework may have zero or one grade category, and the category may be used in computing the overall grade. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.",
+    "The category that this coursework's grade contributes to. Present only when a category has been chosen for the coursework. May be used in calculating the overall grade. Read-only.",
   ).optional(),
   gradingPeriodId: z.string().describe(
     'Identifier of the grading period associated with the coursework. * At creation, if unspecified, the grading period ID will be set based on the `dueDate` (or `scheduledTime` if no `dueDate` is set). * To indicate no association to any grading period, set this field to an empty string (""). * If specified, it must match an existing grading period ID in the course.',
@@ -278,7 +282,7 @@ const GlobalArgsSchema = z.object({
       "Identifiers for the students that have access to the coursework/announcement.",
     ).optional(),
   }).describe(
-    "Assignee details about a coursework/announcement. This field is set if and only if `assigneeMode` is `INDIVIDUAL_STUDENTS`.",
+    "Identifiers of students with access to the coursework. This field is set only if `assigneeMode` is `INDIVIDUAL_STUDENTS`. If the `assigneeMode` is `INDIVIDUAL_STUDENTS`, then only students specified in this field are assigned the coursework.",
   ).optional(),
   materials: z.array(z.object({
     driveFile: z.object({
@@ -292,12 +296,11 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the Drive item. Read-only.")
           .optional(),
-      }).describe("Representation of a Google Drive file.").optional(),
+      }).describe("Drive file details.").optional(),
       shareMode: z.enum(["UNKNOWN_SHARE_MODE", "VIEW", "EDIT", "STUDENT_COPY"])
         .describe("Mechanism by which students access the Drive item.")
         .optional(),
-    }).describe("Drive file that is used as material for course work.")
-      .optional(),
+    }).describe("Google Drive file material.").optional(),
     form: z.object({
       formUrl: z.string().describe("URL of the form.").optional(),
       responseUrl: z.string().describe(
@@ -307,13 +310,13 @@ const GlobalArgsSchema = z.object({
         "URL of a thumbnail image of the Form. Read-only.",
       ).optional(),
       title: z.string().describe("Title of the Form. Read-only.").optional(),
-    }).describe("Google Forms item.").optional(),
+    }).describe("Google Forms material. Read-only.").optional(),
     gem: z.object({
       id: z.string().describe("Gems resource id.").optional(),
       title: z.string().describe("Title of the Gem.").optional(),
       url: z.string().describe("URL that can be used to access the Gem.")
         .optional(),
-    }).describe("Gemini Gem link.").optional(),
+    }).describe("Gemini Gem material. Read-only.").optional(),
     link: z.object({
       thumbnailUrl: z.string().describe(
         "URL of a thumbnail image of the target URL. Read-only.",
@@ -323,13 +326,15 @@ const GlobalArgsSchema = z.object({
       url: z.string().describe(
         "URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.",
       ).optional(),
-    }).describe("URL item.").optional(),
+    }).describe(
+      "Link material. On creation, this is upgraded to a more appropriate type if possible, and this is reflected in the response.",
+    ).optional(),
     notebook: z.object({
       id: z.string().describe("Notebook resource id.").optional(),
       title: z.string().describe("Title of the Notebook.").optional(),
       url: z.string().describe("URL that can be used to access the Notebook.")
         .optional(),
-    }).describe("NotebookLM Notebook link.").optional(),
+    }).describe("NotebookLM Notebook material. Read-only.").optional(),
     youtubeVideo: z.object({
       alternateLink: z.string().describe(
         "URL that can be used to view the YouTube video. Read-only.",
@@ -340,7 +345,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       title: z.string().describe("Title of the YouTube video. Read-only.")
         .optional(),
-    }).describe("YouTube video item.").optional(),
+    }).describe("YouTube video material.").optional(),
   })).describe(
     "Additional materials. CourseWork must have no more than 20 material items.",
   ).optional(),
@@ -349,7 +354,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   multipleChoiceQuestion: z.object({
     choices: z.array(z.string()).describe("Possible choices.").optional(),
-  }).describe("Additional details for multiple-choice questions.").optional(),
+  }).describe(
+    "Multiple choice question details. For read operations, this field is populated only when `work_type` is `MULTIPLE_CHOICE_QUESTION`. For write operations, this field must be specified when creating course work with a `work_type` of `MULTIPLE_CHOICE_QUESTION`, and it must not be set otherwise.",
+  ).optional(),
   scheduledTime: z.string().describe(
     "Optional timestamp when this course work is scheduled to be published.",
   ).optional(),
@@ -500,8 +507,12 @@ const InputsSchema = z.object({
       id: z.string().describe("Drive API resource ID.").optional(),
       title: z.string().describe("Title of the Drive folder. Read-only.")
         .optional(),
-    }).describe("Representation of a Google Drive folder.").optional(),
-  }).describe("Additional details for assignments.").optional(),
+    }).describe(
+      "Drive folder where attachments from student submissions are placed. This is only populated for course teachers and administrators.",
+    ).optional(),
+  }).describe(
+    "Assignment details. This is populated only when `work_type` is `ASSIGNMENT`. Read-only.",
+  ).optional(),
   associatedWithDeveloper: z.boolean().describe(
     "Whether this course work item is associated with the Developer Console project making the request. See CreateCourseWork for more details. Read-only.",
   ).optional(),
@@ -527,7 +538,7 @@ const InputsSchema = z.object({
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
   }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+    "Optional date, in UTC, that submissions for this course work are due. This must be specified if `due_time` is specified.",
   ).optional(),
   dueTime: z.object({
     hours: z.number().int().describe(
@@ -543,7 +554,7 @@ const InputsSchema = z.object({
       "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
     ).optional(),
   }).describe(
-    "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+    "Optional time of day, in UTC, that submissions for this course work are due. This must be specified if `due_date` is specified.",
   ).optional(),
   gradeCategory: z.object({
     defaultGradeDenominator: z.number().int().describe(
@@ -555,7 +566,7 @@ const InputsSchema = z.object({
       "The weight of the category average as part of overall average. A weight of 12.34% is represented as 123400 (100% is 1,000,000). The last two digits should always be zero since we use two decimal precision. Only applicable when grade calculation type is WEIGHTED_CATEGORIES.",
     ).optional(),
   }).describe(
-    "Details for a grade category in a course. Coursework may have zero or one grade category, and the category may be used in computing the overall grade. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.",
+    "The category that this coursework's grade contributes to. Present only when a category has been chosen for the coursework. May be used in calculating the overall grade. Read-only.",
   ).optional(),
   gradingPeriodId: z.string().describe(
     'Identifier of the grading period associated with the coursework. * At creation, if unspecified, the grading period ID will be set based on the `dueDate` (or `scheduledTime` if no `dueDate` is set). * To indicate no association to any grading period, set this field to an empty string (""). * If specified, it must match an existing grading period ID in the course.',
@@ -568,7 +579,7 @@ const InputsSchema = z.object({
       "Identifiers for the students that have access to the coursework/announcement.",
     ).optional(),
   }).describe(
-    "Assignee details about a coursework/announcement. This field is set if and only if `assigneeMode` is `INDIVIDUAL_STUDENTS`.",
+    "Identifiers of students with access to the coursework. This field is set only if `assigneeMode` is `INDIVIDUAL_STUDENTS`. If the `assigneeMode` is `INDIVIDUAL_STUDENTS`, then only students specified in this field are assigned the coursework.",
   ).optional(),
   materials: z.array(z.object({
     driveFile: z.object({
@@ -582,12 +593,11 @@ const InputsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the Drive item. Read-only.")
           .optional(),
-      }).describe("Representation of a Google Drive file.").optional(),
+      }).describe("Drive file details.").optional(),
       shareMode: z.enum(["UNKNOWN_SHARE_MODE", "VIEW", "EDIT", "STUDENT_COPY"])
         .describe("Mechanism by which students access the Drive item.")
         .optional(),
-    }).describe("Drive file that is used as material for course work.")
-      .optional(),
+    }).describe("Google Drive file material.").optional(),
     form: z.object({
       formUrl: z.string().describe("URL of the form.").optional(),
       responseUrl: z.string().describe(
@@ -597,13 +607,13 @@ const InputsSchema = z.object({
         "URL of a thumbnail image of the Form. Read-only.",
       ).optional(),
       title: z.string().describe("Title of the Form. Read-only.").optional(),
-    }).describe("Google Forms item.").optional(),
+    }).describe("Google Forms material. Read-only.").optional(),
     gem: z.object({
       id: z.string().describe("Gems resource id.").optional(),
       title: z.string().describe("Title of the Gem.").optional(),
       url: z.string().describe("URL that can be used to access the Gem.")
         .optional(),
-    }).describe("Gemini Gem link.").optional(),
+    }).describe("Gemini Gem material. Read-only.").optional(),
     link: z.object({
       thumbnailUrl: z.string().describe(
         "URL of a thumbnail image of the target URL. Read-only.",
@@ -613,13 +623,15 @@ const InputsSchema = z.object({
       url: z.string().describe(
         "URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.",
       ).optional(),
-    }).describe("URL item.").optional(),
+    }).describe(
+      "Link material. On creation, this is upgraded to a more appropriate type if possible, and this is reflected in the response.",
+    ).optional(),
     notebook: z.object({
       id: z.string().describe("Notebook resource id.").optional(),
       title: z.string().describe("Title of the Notebook.").optional(),
       url: z.string().describe("URL that can be used to access the Notebook.")
         .optional(),
-    }).describe("NotebookLM Notebook link.").optional(),
+    }).describe("NotebookLM Notebook material. Read-only.").optional(),
     youtubeVideo: z.object({
       alternateLink: z.string().describe(
         "URL that can be used to view the YouTube video. Read-only.",
@@ -630,7 +642,7 @@ const InputsSchema = z.object({
       ).optional(),
       title: z.string().describe("Title of the YouTube video. Read-only.")
         .optional(),
-    }).describe("YouTube video item.").optional(),
+    }).describe("YouTube video material.").optional(),
   })).describe(
     "Additional materials. CourseWork must have no more than 20 material items.",
   ).optional(),
@@ -639,7 +651,9 @@ const InputsSchema = z.object({
   ).optional(),
   multipleChoiceQuestion: z.object({
     choices: z.array(z.string()).describe("Possible choices.").optional(),
-  }).describe("Additional details for multiple-choice questions.").optional(),
+  }).describe(
+    "Multiple choice question details. For read operations, this field is populated only when `work_type` is `MULTIPLE_CHOICE_QUESTION`. For write operations, this field must be specified when creating course work with a `work_type` of `MULTIPLE_CHOICE_QUESTION`, and it must not be set otherwise.",
+  ).optional(),
   scheduledTime: z.string().describe(
     "Optional timestamp when this course work is scheduled to be published.",
   ).optional(),
@@ -700,7 +714,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.CourseWork. Registered at `@swamp/gcp/classroom/courses-coursework`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-coursework",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -789,6 +803,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

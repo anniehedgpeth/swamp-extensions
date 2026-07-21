@@ -208,11 +208,12 @@ const GlobalArgsSchema = z.object({
       "The organizational unit's immutable ID as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).",
     ).optional(),
   }).describe(
-    "The organizational unit covered by a hold. This structure is immutable.",
+    "If set, the hold applies to all members of the organizational unit and **accounts** must be empty. This property is mutable. For Groups holds, set **accounts**.",
   ).optional(),
   query: z.object({
-    calendarQuery: z.object({}).describe("Options for Calendar holds.")
-      .optional(),
+    calendarQuery: z.object({}).describe(
+      "Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.",
+    ).optional(),
     driveQuery: z.object({
       includeSharedDriveFiles: z.boolean().describe(
         "To include files in shared drives in the hold, set to **true**.",
@@ -220,8 +221,12 @@ const GlobalArgsSchema = z.object({
       includeTeamDriveFiles: z.boolean().describe(
         "To include files in Team Drives in the hold, set to **true**.",
       ).optional(),
-    }).describe("Options for Drive holds.").optional(),
-    geminiQuery: z.object({}).describe("Options for Gemini holds.").optional(),
+    }).describe(
+      "Service-specific options for Drive holds. If set, **CorpusType** must be **DRIVE**.",
+    ).optional(),
+    geminiQuery: z.object({}).describe(
+      "Service-specific options for Gemini holds. If set, **CorpusType** must be **GEMINI**.",
+    ).optional(),
     groupsQuery: z.object({
       endTime: z.string().describe(
         "The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
@@ -232,12 +237,16 @@ const GlobalArgsSchema = z.object({
       terms: z.string().describe(
         "The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.",
       ).optional(),
-    }).describe("Query options for group holds.").optional(),
+    }).describe(
+      "Service-specific options for Groups holds. If set, **CorpusType** must be **GROUPS**.",
+    ).optional(),
     hangoutsChatQuery: z.object({
       includeRooms: z.boolean().describe(
         "To include messages in Chat spaces the user was a member of, set to **true**.",
       ).optional(),
-    }).describe("Options for Chat holds.").optional(),
+    }).describe(
+      "Service-specific options for Chat holds. If set, **CorpusType** must be **HANGOUTS_CHAT**.",
+    ).optional(),
     mailQuery: z.object({
       endTime: z.string().describe(
         "The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
@@ -248,7 +257,9 @@ const GlobalArgsSchema = z.object({
       terms: z.string().describe(
         "The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.",
       ).optional(),
-    }).describe("Query options for Gmail holds.").optional(),
+    }).describe(
+      "Service-specific options for Gmail holds. If set, **CorpusType** must be **MAIL**.",
+    ).optional(),
     voiceQuery: z.object({
       coveredData: z.array(
         z.enum([
@@ -260,8 +271,12 @@ const GlobalArgsSchema = z.object({
       ).describe(
         "A list of data types covered by the hold. Should be non-empty. Order does not matter and duplicates are ignored.",
       ).optional(),
-    }).describe("Options for Voice holds.").optional(),
-  }).describe("Service-specific options for holds.").optional(),
+    }).describe(
+      "Service-specific options for Voice holds. If set, **CorpusType** must be **VOICE**.",
+    ).optional(),
+  }).describe(
+    "Service-specific options. If set, **CorpusQuery** must match **CorpusType**.",
+  ).optional(),
   updateTime: z.string().describe("The last time this hold was modified.")
     .optional(),
   matterId: z.string().describe("The matter ID."),
@@ -357,11 +372,12 @@ const InputsSchema = z.object({
       "The organizational unit's immutable ID as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).",
     ).optional(),
   }).describe(
-    "The organizational unit covered by a hold. This structure is immutable.",
+    "If set, the hold applies to all members of the organizational unit and **accounts** must be empty. This property is mutable. For Groups holds, set **accounts**.",
   ).optional(),
   query: z.object({
-    calendarQuery: z.object({}).describe("Options for Calendar holds.")
-      .optional(),
+    calendarQuery: z.object({}).describe(
+      "Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.",
+    ).optional(),
     driveQuery: z.object({
       includeSharedDriveFiles: z.boolean().describe(
         "To include files in shared drives in the hold, set to **true**.",
@@ -369,8 +385,12 @@ const InputsSchema = z.object({
       includeTeamDriveFiles: z.boolean().describe(
         "To include files in Team Drives in the hold, set to **true**.",
       ).optional(),
-    }).describe("Options for Drive holds.").optional(),
-    geminiQuery: z.object({}).describe("Options for Gemini holds.").optional(),
+    }).describe(
+      "Service-specific options for Drive holds. If set, **CorpusType** must be **DRIVE**.",
+    ).optional(),
+    geminiQuery: z.object({}).describe(
+      "Service-specific options for Gemini holds. If set, **CorpusType** must be **GEMINI**.",
+    ).optional(),
     groupsQuery: z.object({
       endTime: z.string().describe(
         "The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
@@ -381,12 +401,16 @@ const InputsSchema = z.object({
       terms: z.string().describe(
         "The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.",
       ).optional(),
-    }).describe("Query options for group holds.").optional(),
+    }).describe(
+      "Service-specific options for Groups holds. If set, **CorpusType** must be **GROUPS**.",
+    ).optional(),
     hangoutsChatQuery: z.object({
       includeRooms: z.boolean().describe(
         "To include messages in Chat spaces the user was a member of, set to **true**.",
       ).optional(),
-    }).describe("Options for Chat holds.").optional(),
+    }).describe(
+      "Service-specific options for Chat holds. If set, **CorpusType** must be **HANGOUTS_CHAT**.",
+    ).optional(),
     mailQuery: z.object({
       endTime: z.string().describe(
         "The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
@@ -397,7 +421,9 @@ const InputsSchema = z.object({
       terms: z.string().describe(
         "The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.",
       ).optional(),
-    }).describe("Query options for Gmail holds.").optional(),
+    }).describe(
+      "Service-specific options for Gmail holds. If set, **CorpusType** must be **MAIL**.",
+    ).optional(),
     voiceQuery: z.object({
       coveredData: z.array(
         z.enum([
@@ -409,8 +435,12 @@ const InputsSchema = z.object({
       ).describe(
         "A list of data types covered by the hold. Should be non-empty. Order does not matter and duplicates are ignored.",
       ).optional(),
-    }).describe("Options for Voice holds.").optional(),
-  }).describe("Service-specific options for holds.").optional(),
+    }).describe(
+      "Service-specific options for Voice holds. If set, **CorpusType** must be **VOICE**.",
+    ).optional(),
+  }).describe(
+    "Service-specific options. If set, **CorpusQuery** must match **CorpusType**.",
+  ).optional(),
   updateTime: z.string().describe("The last time this hold was modified.")
     .optional(),
   matterId: z.string().describe("The matter ID.").optional(),
@@ -439,7 +469,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Vault Matters.Holds. Registered at `@swamp/gcp/vault/matters-holds`. */
 export const model = {
   type: "@swamp/gcp/vault/matters-holds",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -538,6 +568,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -670,6 +705,7 @@ export const model = {
         if (g["accounts"] !== undefined) body["accounts"] = g["accounts"];
         if (g["corpus"] !== undefined) body["corpus"] = g["corpus"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["orgUnit"] !== undefined) body["orgUnit"] = g["orgUnit"];
         if (g["query"] !== undefined) body["query"] = g["query"];
         if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         for (const key of Object.keys(existing)) {

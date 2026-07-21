@@ -190,14 +190,14 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         database: z.string().describe("The database name.").optional(),
       })).describe("MongoDB databases in the cluster.").optional(),
-    }).describe("MongoDB Cluster structure.").optional(),
+    }).describe("MongoDB data source objects to avoid backfilling").optional(),
     mysqlExcludedObjects: z.object({
       mysqlDatabases: z.array(z.object({
         database: z.string().describe("The database name.").optional(),
         mysqlTables: z.array(z.unknown()).describe("Tables in the database.")
           .optional(),
       })).describe("Mysql databases on the server").optional(),
-    }).describe("MySQL database structure").optional(),
+    }).describe("MySQL data source objects to avoid backfilling.").optional(),
     oracleExcludedObjects: z.object({
       oracleSchemas: z.array(z.object({
         oracleTables: z.array(z.unknown()).describe("Tables in the schema.")
@@ -205,14 +205,15 @@ const GlobalArgsSchema = z.object({
         schema: z.string().describe("The schema name.").optional(),
       })).describe("Oracle schemas/databases in the database server.")
         .optional(),
-    }).describe("Oracle database structure.").optional(),
+    }).describe("Oracle data source objects to avoid backfilling.").optional(),
     postgresqlExcludedObjects: z.object({
       postgresqlSchemas: z.array(z.object({
         postgresqlTables: z.array(z.unknown()).describe("Tables in the schema.")
           .optional(),
         schema: z.string().describe("The schema name.").optional(),
       })).describe("PostgreSQL schemas in the database server.").optional(),
-    }).describe("PostgreSQL database structure.").optional(),
+    }).describe("PostgreSQL data source objects to avoid backfilling.")
+      .optional(),
     saasExcludedObjects: z.object({
       objects: z.array(z.object({
         objectName: z.string().describe("Required. The object name.")
@@ -221,7 +222,9 @@ const GlobalArgsSchema = z.object({
           "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
         ).optional(),
       })).describe("Optional. Source objects in the catalog.").optional(),
-    }).describe("Source catalog.").optional(),
+    }).describe(
+      "Source catalog data source objects to avoid backfilling. This is mainly used to represent SaaS applications objects.",
+    ).optional(),
     salesforceExcludedObjects: z.object({
       objects: z.array(z.object({
         fields: z.array(z.unknown()).describe(
@@ -229,7 +232,8 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         objectName: z.string().describe("The object name.").optional(),
       })).describe("Salesforce objects in the database server.").optional(),
-    }).describe("Salesforce organization structure.").optional(),
+    }).describe("Salesforce data source objects to avoid backfilling")
+      .optional(),
     spannerExcludedObjects: z.object({
       schemas: z.array(z.object({
         schema: z.string().describe("Required. The schema name.").optional(),
@@ -237,28 +241,27 @@ const GlobalArgsSchema = z.object({
           "Optional. Spanner tables in the schema.",
         ).optional(),
       })).describe("Optional. Spanner schemas in the database.").optional(),
-    }).describe("Spanner database structure.").optional(),
+    }).describe("Spanner data source objects to avoid backfilling.").optional(),
     sqlServerExcludedObjects: z.object({
       schemas: z.array(z.object({
         schema: z.string().describe("The schema name.").optional(),
         tables: z.array(z.unknown()).describe("Tables in the schema.")
           .optional(),
       })).describe("SQLServer schemas in the database server.").optional(),
-    }).describe("SQLServer database structure.").optional(),
+    }).describe("SQLServer data source objects to avoid backfilling")
+      .optional(),
   }).describe(
-    "Backfill strategy to automatically backfill the Stream's objects. Specific objects can be excluded.",
+    "Automatically backfill objects included in the stream source configuration. Specific objects can be excluded.",
   ).optional(),
   backfillNone: z.object({}).describe(
-    "Backfill strategy to disable automatic backfill for the Stream's objects.",
+    "Do not automatically backfill any objects.",
   ).optional(),
   customerManagedEncryptionKey: z.string().describe(
     "Immutable. A reference to a KMS encryption key. If provided, it will be used to encrypt the data. If left blank, data will be encrypted using an internal Stream-specific encryption key provisioned through KMS.",
   ).optional(),
   destinationConfig: z.object({
     bigqueryDestinationConfig: z.object({
-      appendOnly: z.object({}).describe(
-        "AppendOnly mode defines that all changes to a table will be written to the destination table.",
-      ).optional(),
+      appendOnly: z.object({}).describe("Append only mode").optional(),
       blmtConfig: z.object({
         bucket: z.string().describe("Required. The Cloud Storage bucket name.")
           .optional(),
@@ -274,19 +277,17 @@ const GlobalArgsSchema = z.object({
         tableFormat: z.enum(["TABLE_FORMAT_UNSPECIFIED", "ICEBERG"]).describe(
           "Required. The table format.",
         ).optional(),
-      }).describe("The configuration for BLMT.").optional(),
+      }).describe("Optional. Big Lake Managed Tables (BLMT) configuration.")
+        .optional(),
       dataFreshness: z.string().describe(
         "The guaranteed data freshness (in seconds) when querying tables created by the stream. Editing this field will only affect new tables created in the future, but existing tables will not be impacted. Lower values mean that queries will return fresher data, but may result in higher cost.",
       ).optional(),
-      merge: z.object({}).describe(
-        "Merge mode defines that all changes to a table will be merged at the destination table.",
-      ).optional(),
+      merge: z.object({}).describe("The standard mode").optional(),
       singleTargetDataset: z.object({
         datasetId: z.string().describe(
           "The dataset ID of the target dataset. DatasetIds allowed characters: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#datasetreference.",
         ).optional(),
-      }).describe("A single target dataset to which all data will be streamed.")
-        .optional(),
+      }).describe("Single destination dataset.").optional(),
       sourceHierarchyDatasets: z.object({
         datasetTemplate: z.object({
           datasetIdPrefix: z.string().describe(
@@ -298,15 +299,13 @@ const GlobalArgsSchema = z.object({
           location: z.string().describe(
             "Required. The geographic location where the dataset should reside. See https://cloud.google.com/bigquery/docs/locations for supported locations.",
           ).optional(),
-        }).describe("Dataset template used for dynamic dataset creation.")
+        }).describe("The dataset template to use for dynamic dataset creation.")
           .optional(),
         projectId: z.string().describe(
           "Optional. The project id of the BigQuery dataset. If not specified, the project will be inferred from the stream resource.",
         ).optional(),
-      }).describe(
-        "Destination datasets are created so that hierarchy of the destination data objects matches the source hierarchy.",
-      ).optional(),
-    }).describe("BigQuery destination configuration").optional(),
+      }).describe("Source hierarchy datasets.").optional(),
+    }).describe("BigQuery destination configuration.").optional(),
     destinationConnectionProfile: z.string().describe(
       "Required. Destination connection profile resource. Format: `projects/{project}/locations/{location}/connectionProfiles/{name}`",
     ).optional(),
@@ -334,8 +333,11 @@ const GlobalArgsSchema = z.object({
       path: z.string().describe(
         "Path inside the Cloud Storage bucket to write data to.",
       ).optional(),
-    }).describe("Google Cloud Storage destination configuration").optional(),
-  }).describe("The configuration of the stream destination.").optional(),
+    }).describe(
+      "A configuration for how data should be loaded to Cloud Storage.",
+    ).optional(),
+  }).describe("Required. Destination connection profile configuration.")
+    .optional(),
   displayName: z.string().describe("Required. Display name.").optional(),
   labels: z.record(z.string(), z.string()).describe("Labels.").optional(),
   ruleSets: z.array(z.object({
@@ -344,21 +346,21 @@ const GlobalArgsSchema = z.object({
         columns: z.unknown().describe(
           "Required. Column names to set as clustering columns.",
         ).optional(),
-      }).describe("BigQuery clustering configuration.").optional(),
+      }).describe("BigQuery clustering rule.").optional(),
       bigqueryPartitioning: z.object({
         ingestionTimePartition: z.unknown().describe(
-          "Ingestion time partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#ingestion_time",
+          "Ingestion time partitioning.",
         ).optional(),
         integerRangePartition: z.unknown().describe(
-          "Integer range partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#integer_range",
+          "Integer range partitioning.",
         ).optional(),
         requirePartitionFilter: z.unknown().describe(
           "Optional. If true, queries over the table require a partition filter.",
         ).optional(),
         timeUnitPartition: z.unknown().describe(
-          "Time unit column partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#date_timestamp_partitioned_tables",
+          "Time unit column partitioning.",
         ).optional(),
-      }).describe("BigQuery partitioning configuration.").optional(),
+      }).describe("BigQuery partitioning rule.").optional(),
     })).describe("Required. List of customization rules to apply.").optional(),
     objectFilter: z.object({
       sourceObjectIdentifier: z.object({
@@ -393,9 +395,9 @@ const GlobalArgsSchema = z.object({
           schema: z.unknown().describe("Required. The schema name.").optional(),
           table: z.unknown().describe("Required. The table name.").optional(),
         }).describe("SQLServer data source object identifier.").optional(),
-      }).describe("Represents an identifier of an object in the data source.")
-        .optional(),
-    }).describe("Object filter to apply the rules to.").optional(),
+      }).describe("Specific source object identifier.").optional(),
+    }).describe("Required. Object filter to apply the customization rules to.")
+      .optional(),
   })).describe("Optional. Rule sets to apply to the stream.").optional(),
   sourceConfig: z.object({
     dataverseSourceConfig: z.object({
@@ -407,7 +409,8 @@ const GlobalArgsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         objects: z.array(z.object({
           objectName: z.unknown().describe("Required. The object name.")
@@ -416,12 +419,12 @@ const GlobalArgsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe("Configuration for syncing data from a Dataverse source.")
-      .optional(),
+    }).describe("Dataverse data source configuration.").optional(),
     mongodbSourceConfig: z.object({
       excludeObjects: z.object({
         databases: z.array(z.object({
@@ -429,22 +432,23 @@ const GlobalArgsSchema = z.object({
             .optional(),
           database: z.unknown().describe("The database name.").optional(),
         })).describe("MongoDB databases in the cluster.").optional(),
-      }).describe("MongoDB Cluster structure.").optional(),
+      }).describe("The MongoDB collections to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         databases: z.array(z.object({
           collections: z.unknown().describe("Collections in the database.")
             .optional(),
           database: z.unknown().describe("The database name.").optional(),
         })).describe("MongoDB databases in the cluster.").optional(),
-      }).describe("MongoDB Cluster structure.").optional(),
+      }).describe("The MongoDB collections to include in the stream.")
+        .optional(),
       jsonMode: z.enum(["MONGODB_JSON_MODE_UNSPECIFIED", "STRICT", "CANONICAL"])
         .describe("Optional. MongoDB JSON mode to use for the stream.")
         .optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Optional. Maximum number of concurrent backfill tasks. The number should be non-negative and less than or equal to 50. If not set (or set to 0), the system's default value is used",
       ).optional(),
-    }).describe("Configuration for syncing data from a MongoDB source.")
-      .optional(),
+    }).describe("MongoDB data source configuration.").optional(),
     mysqlSourceConfig: z.object({
       binaryLogPosition: z.object({}).describe(
         "Use Binary log position based replication.",
@@ -455,7 +459,7 @@ const GlobalArgsSchema = z.object({
           mysqlTables: z.unknown().describe("Tables in the database.")
             .optional(),
         })).describe("Mysql databases on the server").optional(),
-      }).describe("MySQL database structure").optional(),
+      }).describe("The MySQL objects to exclude from the stream.").optional(),
       gtid: z.object({}).describe("Use GTID based replication.").optional(),
       includeObjects: z.object({
         mysqlDatabases: z.array(z.object({
@@ -463,15 +467,14 @@ const GlobalArgsSchema = z.object({
           mysqlTables: z.unknown().describe("Tables in the database.")
             .optional(),
         })).describe("Mysql databases on the server").optional(),
-      }).describe("MySQL database structure").optional(),
+      }).describe("The MySQL objects to retrieve from the source.").optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system's default value will be used.",
       ).optional(),
       maxConcurrentCdcTasks: z.number().int().describe(
         "Maximum number of concurrent CDC tasks. The number should be non negative. If not set (or set to 0), the system's default value will be used.",
       ).optional(),
-    }).describe("Configuration for syncing data from a MySQL source.")
-      .optional(),
+    }).describe("MySQL data source configuration.").optional(),
     oracleSourceConfig: z.object({
       binaryLogParser: z.object({
         logFileDirectories: z.object({
@@ -481,17 +484,12 @@ const GlobalArgsSchema = z.object({
           onlineLogDirectory: z.string().describe(
             "Required. Oracle directory for online logs.",
           ).optional(),
-        }).describe(
-          "Configuration to specify the Oracle directories to access the log files.",
-        ).optional(),
-        oracleAsmLogFileAccess: z.object({}).describe(
-          "Configuration to use Oracle ASM to access the log files.",
-        ).optional(),
-      }).describe("Configuration to use Binary Log Parser CDC technique.")
+        }).describe("Use Oracle directories.").optional(),
+        oracleAsmLogFileAccess: z.object({}).describe("Use Oracle ASM.")
+          .optional(),
+      }).describe("Use Binary Log Parser.").optional(),
+      dropLargeObjects: z.object({}).describe("Drop large object values.")
         .optional(),
-      dropLargeObjects: z.object({}).describe(
-        "Configuration to drop large object values.",
-      ).optional(),
       excludeObjects: z.object({
         oracleSchemas: z.array(z.object({
           oracleTables: z.unknown().describe("Tables in the schema.")
@@ -499,7 +497,7 @@ const GlobalArgsSchema = z.object({
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("Oracle schemas/databases in the database server.")
           .optional(),
-      }).describe("Oracle database structure.").optional(),
+      }).describe("The Oracle objects to exclude from the stream.").optional(),
       includeObjects: z.object({
         oracleSchemas: z.array(z.object({
           oracleTables: z.unknown().describe("Tables in the schema.")
@@ -507,21 +505,17 @@ const GlobalArgsSchema = z.object({
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("Oracle schemas/databases in the database server.")
           .optional(),
-      }).describe("Oracle database structure.").optional(),
-      logMiner: z.object({}).describe(
-        "Configuration to use LogMiner CDC method.",
-      ).optional(),
+      }).describe("The Oracle objects to include in the stream.").optional(),
+      logMiner: z.object({}).describe("Use LogMiner.").optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Maximum number of concurrent backfill tasks. The number should be non-negative. If not set (or set to 0), the system's default value is used.",
       ).optional(),
       maxConcurrentCdcTasks: z.number().int().describe(
         "Maximum number of concurrent CDC tasks. The number should be non-negative. If not set (or set to 0), the system's default value is used.",
       ).optional(),
-      streamLargeObjects: z.object({}).describe(
-        "Configuration to stream large object values.",
-      ).optional(),
-    }).describe("Configuration for syncing data from an Oracle source.")
-      .optional(),
+      streamLargeObjects: z.object({}).describe("Stream large object values.")
+        .optional(),
+    }).describe("Oracle data source configuration.").optional(),
     postgresqlSourceConfig: z.object({
       excludeObjects: z.object({
         postgresqlSchemas: z.array(z.object({
@@ -529,14 +523,16 @@ const GlobalArgsSchema = z.object({
             .optional(),
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("PostgreSQL schemas in the database server.").optional(),
-      }).describe("PostgreSQL database structure.").optional(),
+      }).describe("The PostgreSQL objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         postgresqlSchemas: z.array(z.object({
           postgresqlTables: z.unknown().describe("Tables in the schema.")
             .optional(),
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("PostgreSQL schemas in the database server.").optional(),
-      }).describe("PostgreSQL database structure.").optional(),
+      }).describe("The PostgreSQL objects to include in the stream.")
+        .optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system's default value will be used.",
       ).optional(),
@@ -546,8 +542,7 @@ const GlobalArgsSchema = z.object({
       replicationSlot: z.string().describe(
         "Required. Immutable. The name of the logical replication slot that's configured with the pgoutput plugin.",
       ).optional(),
-    }).describe("Configuration for syncing data from a PostgreSQL source.")
-      .optional(),
+    }).describe("PostgreSQL data source configuration.").optional(),
     salesforceMarketingCloudSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -557,7 +552,8 @@ const GlobalArgsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
       fullRefreshPollingInterval: z.string().describe(
         "Required. Specifies the polling interval for a full refresh of objects that do not support incremental sync. If not set, a default value of 24 hours is used. The duration must be between 1 and 24 hours, inclusive.",
       ).optional(),
@@ -569,13 +565,13 @@ const GlobalArgsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe(
-      "Configuration for syncing data from a Salesforce Marketing Cloud source.",
-    ).optional(),
+    }).describe("Salesforce Marketing Cloud data source configuration.")
+      .optional(),
     salesforceSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -584,7 +580,8 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           objectName: z.unknown().describe("The object name.").optional(),
         })).describe("Salesforce objects in the database server.").optional(),
-      }).describe("Salesforce organization structure.").optional(),
+      }).describe("The Salesforce objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         objects: z.array(z.object({
           fields: z.unknown().describe(
@@ -592,12 +589,12 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           objectName: z.unknown().describe("The object name.").optional(),
         })).describe("Salesforce objects in the database server.").optional(),
-      }).describe("Salesforce organization structure.").optional(),
+      }).describe("The Salesforce objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Salesforce objects polling interval. The interval at which new changes will be polled for each object. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe("Configuration for syncing data from a Salesforce source.")
-      .optional(),
+    }).describe("Salesforce data source configuration.").optional(),
     serviceNowSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -607,7 +604,8 @@ const GlobalArgsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         objects: z.array(z.object({
           objectName: z.unknown().describe("Required. The object name.")
@@ -616,12 +614,12 @@ const GlobalArgsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe("Configuration for syncing data from a ServiceNow source.")
-      .optional(),
+    }).describe("ServiceNow data source configuration.").optional(),
     sourceConnectionProfile: z.string().describe(
       "Required. Source connection profile resource. Format: `projects/{project}/locations/{location}/connectionProfiles/{name}`",
     ).optional(),
@@ -639,7 +637,9 @@ const GlobalArgsSchema = z.object({
             "Optional. Spanner tables in the schema.",
           ).optional(),
         })).describe("Optional. Spanner schemas in the database.").optional(),
-      }).describe("Spanner database structure.").optional(),
+      }).describe(
+        "Optional. The Spanner objects to avoid retrieving. If some objects are both included and excluded, an error will be thrown.",
+      ).optional(),
       fgacRole: z.string().describe(
         "Optional. The FGAC role to use for the stream.",
       ).optional(),
@@ -650,7 +650,9 @@ const GlobalArgsSchema = z.object({
             "Optional. Spanner tables in the schema.",
           ).optional(),
         })).describe("Optional. Spanner schemas in the database.").optional(),
-      }).describe("Spanner database structure.").optional(),
+      }).describe(
+        "Optional. The Spanner objects to retrieve from the data source. If some objects are both included and excluded, an error will be thrown.",
+      ).optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Optional. Maximum number of concurrent backfill tasks.",
       ).optional(),
@@ -664,24 +666,24 @@ const GlobalArgsSchema = z.object({
         "HIGH",
       ]).describe("Optional. The RPC priority to use for the stream.")
         .optional(),
-    }).describe("Configuration for syncing data from a Spanner source.")
-      .optional(),
+    }).describe("Spanner data source configuration.").optional(),
     sqlServerSourceConfig: z.object({
       changeTables: z.object({}).describe(
-        "Configuration to use Change Tables CDC read method.",
+        "CDC reader reads from change tables.",
       ).optional(),
       excludeObjects: z.object({
         schemas: z.array(z.object({
           schema: z.unknown().describe("The schema name.").optional(),
           tables: z.unknown().describe("Tables in the schema.").optional(),
         })).describe("SQLServer schemas in the database server.").optional(),
-      }).describe("SQLServer database structure.").optional(),
+      }).describe("The SQLServer objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         schemas: z.array(z.object({
           schema: z.unknown().describe("The schema name.").optional(),
           tables: z.unknown().describe("Tables in the schema.").optional(),
         })).describe("SQLServer schemas in the database server.").optional(),
-      }).describe("SQLServer database structure.").optional(),
+      }).describe("The SQLServer objects to include in the stream.").optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Max concurrent backfill tasks.",
       ).optional(),
@@ -689,11 +691,10 @@ const GlobalArgsSchema = z.object({
         "Max concurrent CDC tasks.",
       ).optional(),
       transactionLogs: z.object({}).describe(
-        "Configuration to use Transaction Logs CDC read method.",
+        "CDC reader reads from transaction logs.",
       ).optional(),
-    }).describe("Configuration for syncing data from a SQLServer source.")
-      .optional(),
-  }).describe("The configuration of the stream source.").optional(),
+    }).describe("SQLServer data source configuration.").optional(),
+  }).describe("Required. Source connection profile configuration.").optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "NOT_STARTED",
@@ -1063,14 +1064,14 @@ const InputsSchema = z.object({
         ).optional(),
         database: z.string().describe("The database name.").optional(),
       })).describe("MongoDB databases in the cluster.").optional(),
-    }).describe("MongoDB Cluster structure.").optional(),
+    }).describe("MongoDB data source objects to avoid backfilling").optional(),
     mysqlExcludedObjects: z.object({
       mysqlDatabases: z.array(z.object({
         database: z.string().describe("The database name.").optional(),
         mysqlTables: z.array(z.unknown()).describe("Tables in the database.")
           .optional(),
       })).describe("Mysql databases on the server").optional(),
-    }).describe("MySQL database structure").optional(),
+    }).describe("MySQL data source objects to avoid backfilling.").optional(),
     oracleExcludedObjects: z.object({
       oracleSchemas: z.array(z.object({
         oracleTables: z.array(z.unknown()).describe("Tables in the schema.")
@@ -1078,14 +1079,15 @@ const InputsSchema = z.object({
         schema: z.string().describe("The schema name.").optional(),
       })).describe("Oracle schemas/databases in the database server.")
         .optional(),
-    }).describe("Oracle database structure.").optional(),
+    }).describe("Oracle data source objects to avoid backfilling.").optional(),
     postgresqlExcludedObjects: z.object({
       postgresqlSchemas: z.array(z.object({
         postgresqlTables: z.array(z.unknown()).describe("Tables in the schema.")
           .optional(),
         schema: z.string().describe("The schema name.").optional(),
       })).describe("PostgreSQL schemas in the database server.").optional(),
-    }).describe("PostgreSQL database structure.").optional(),
+    }).describe("PostgreSQL data source objects to avoid backfilling.")
+      .optional(),
     saasExcludedObjects: z.object({
       objects: z.array(z.object({
         objectName: z.string().describe("Required. The object name.")
@@ -1094,7 +1096,9 @@ const InputsSchema = z.object({
           "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
         ).optional(),
       })).describe("Optional. Source objects in the catalog.").optional(),
-    }).describe("Source catalog.").optional(),
+    }).describe(
+      "Source catalog data source objects to avoid backfilling. This is mainly used to represent SaaS applications objects.",
+    ).optional(),
     salesforceExcludedObjects: z.object({
       objects: z.array(z.object({
         fields: z.array(z.unknown()).describe(
@@ -1102,7 +1106,8 @@ const InputsSchema = z.object({
         ).optional(),
         objectName: z.string().describe("The object name.").optional(),
       })).describe("Salesforce objects in the database server.").optional(),
-    }).describe("Salesforce organization structure.").optional(),
+    }).describe("Salesforce data source objects to avoid backfilling")
+      .optional(),
     spannerExcludedObjects: z.object({
       schemas: z.array(z.object({
         schema: z.string().describe("Required. The schema name.").optional(),
@@ -1110,28 +1115,27 @@ const InputsSchema = z.object({
           "Optional. Spanner tables in the schema.",
         ).optional(),
       })).describe("Optional. Spanner schemas in the database.").optional(),
-    }).describe("Spanner database structure.").optional(),
+    }).describe("Spanner data source objects to avoid backfilling.").optional(),
     sqlServerExcludedObjects: z.object({
       schemas: z.array(z.object({
         schema: z.string().describe("The schema name.").optional(),
         tables: z.array(z.unknown()).describe("Tables in the schema.")
           .optional(),
       })).describe("SQLServer schemas in the database server.").optional(),
-    }).describe("SQLServer database structure.").optional(),
+    }).describe("SQLServer data source objects to avoid backfilling")
+      .optional(),
   }).describe(
-    "Backfill strategy to automatically backfill the Stream's objects. Specific objects can be excluded.",
+    "Automatically backfill objects included in the stream source configuration. Specific objects can be excluded.",
   ).optional(),
   backfillNone: z.object({}).describe(
-    "Backfill strategy to disable automatic backfill for the Stream's objects.",
+    "Do not automatically backfill any objects.",
   ).optional(),
   customerManagedEncryptionKey: z.string().describe(
     "Immutable. A reference to a KMS encryption key. If provided, it will be used to encrypt the data. If left blank, data will be encrypted using an internal Stream-specific encryption key provisioned through KMS.",
   ).optional(),
   destinationConfig: z.object({
     bigqueryDestinationConfig: z.object({
-      appendOnly: z.object({}).describe(
-        "AppendOnly mode defines that all changes to a table will be written to the destination table.",
-      ).optional(),
+      appendOnly: z.object({}).describe("Append only mode").optional(),
       blmtConfig: z.object({
         bucket: z.string().describe("Required. The Cloud Storage bucket name.")
           .optional(),
@@ -1147,19 +1151,17 @@ const InputsSchema = z.object({
         tableFormat: z.enum(["TABLE_FORMAT_UNSPECIFIED", "ICEBERG"]).describe(
           "Required. The table format.",
         ).optional(),
-      }).describe("The configuration for BLMT.").optional(),
+      }).describe("Optional. Big Lake Managed Tables (BLMT) configuration.")
+        .optional(),
       dataFreshness: z.string().describe(
         "The guaranteed data freshness (in seconds) when querying tables created by the stream. Editing this field will only affect new tables created in the future, but existing tables will not be impacted. Lower values mean that queries will return fresher data, but may result in higher cost.",
       ).optional(),
-      merge: z.object({}).describe(
-        "Merge mode defines that all changes to a table will be merged at the destination table.",
-      ).optional(),
+      merge: z.object({}).describe("The standard mode").optional(),
       singleTargetDataset: z.object({
         datasetId: z.string().describe(
           "The dataset ID of the target dataset. DatasetIds allowed characters: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#datasetreference.",
         ).optional(),
-      }).describe("A single target dataset to which all data will be streamed.")
-        .optional(),
+      }).describe("Single destination dataset.").optional(),
       sourceHierarchyDatasets: z.object({
         datasetTemplate: z.object({
           datasetIdPrefix: z.string().describe(
@@ -1171,15 +1173,13 @@ const InputsSchema = z.object({
           location: z.string().describe(
             "Required. The geographic location where the dataset should reside. See https://cloud.google.com/bigquery/docs/locations for supported locations.",
           ).optional(),
-        }).describe("Dataset template used for dynamic dataset creation.")
+        }).describe("The dataset template to use for dynamic dataset creation.")
           .optional(),
         projectId: z.string().describe(
           "Optional. The project id of the BigQuery dataset. If not specified, the project will be inferred from the stream resource.",
         ).optional(),
-      }).describe(
-        "Destination datasets are created so that hierarchy of the destination data objects matches the source hierarchy.",
-      ).optional(),
-    }).describe("BigQuery destination configuration").optional(),
+      }).describe("Source hierarchy datasets.").optional(),
+    }).describe("BigQuery destination configuration.").optional(),
     destinationConnectionProfile: z.string().describe(
       "Required. Destination connection profile resource. Format: `projects/{project}/locations/{location}/connectionProfiles/{name}`",
     ).optional(),
@@ -1207,8 +1207,11 @@ const InputsSchema = z.object({
       path: z.string().describe(
         "Path inside the Cloud Storage bucket to write data to.",
       ).optional(),
-    }).describe("Google Cloud Storage destination configuration").optional(),
-  }).describe("The configuration of the stream destination.").optional(),
+    }).describe(
+      "A configuration for how data should be loaded to Cloud Storage.",
+    ).optional(),
+  }).describe("Required. Destination connection profile configuration.")
+    .optional(),
   displayName: z.string().describe("Required. Display name.").optional(),
   labels: z.record(z.string(), z.string()).describe("Labels.").optional(),
   ruleSets: z.array(z.object({
@@ -1217,21 +1220,21 @@ const InputsSchema = z.object({
         columns: z.unknown().describe(
           "Required. Column names to set as clustering columns.",
         ).optional(),
-      }).describe("BigQuery clustering configuration.").optional(),
+      }).describe("BigQuery clustering rule.").optional(),
       bigqueryPartitioning: z.object({
         ingestionTimePartition: z.unknown().describe(
-          "Ingestion time partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#ingestion_time",
+          "Ingestion time partitioning.",
         ).optional(),
         integerRangePartition: z.unknown().describe(
-          "Integer range partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#integer_range",
+          "Integer range partitioning.",
         ).optional(),
         requirePartitionFilter: z.unknown().describe(
           "Optional. If true, queries over the table require a partition filter.",
         ).optional(),
         timeUnitPartition: z.unknown().describe(
-          "Time unit column partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#date_timestamp_partitioned_tables",
+          "Time unit column partitioning.",
         ).optional(),
-      }).describe("BigQuery partitioning configuration.").optional(),
+      }).describe("BigQuery partitioning rule.").optional(),
     })).describe("Required. List of customization rules to apply.").optional(),
     objectFilter: z.object({
       sourceObjectIdentifier: z.object({
@@ -1266,9 +1269,9 @@ const InputsSchema = z.object({
           schema: z.unknown().describe("Required. The schema name.").optional(),
           table: z.unknown().describe("Required. The table name.").optional(),
         }).describe("SQLServer data source object identifier.").optional(),
-      }).describe("Represents an identifier of an object in the data source.")
-        .optional(),
-    }).describe("Object filter to apply the rules to.").optional(),
+      }).describe("Specific source object identifier.").optional(),
+    }).describe("Required. Object filter to apply the customization rules to.")
+      .optional(),
   })).describe("Optional. Rule sets to apply to the stream.").optional(),
   sourceConfig: z.object({
     dataverseSourceConfig: z.object({
@@ -1280,7 +1283,8 @@ const InputsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         objects: z.array(z.object({
           objectName: z.unknown().describe("Required. The object name.")
@@ -1289,12 +1293,12 @@ const InputsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe("Configuration for syncing data from a Dataverse source.")
-      .optional(),
+    }).describe("Dataverse data source configuration.").optional(),
     mongodbSourceConfig: z.object({
       excludeObjects: z.object({
         databases: z.array(z.object({
@@ -1302,22 +1306,23 @@ const InputsSchema = z.object({
             .optional(),
           database: z.unknown().describe("The database name.").optional(),
         })).describe("MongoDB databases in the cluster.").optional(),
-      }).describe("MongoDB Cluster structure.").optional(),
+      }).describe("The MongoDB collections to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         databases: z.array(z.object({
           collections: z.unknown().describe("Collections in the database.")
             .optional(),
           database: z.unknown().describe("The database name.").optional(),
         })).describe("MongoDB databases in the cluster.").optional(),
-      }).describe("MongoDB Cluster structure.").optional(),
+      }).describe("The MongoDB collections to include in the stream.")
+        .optional(),
       jsonMode: z.enum(["MONGODB_JSON_MODE_UNSPECIFIED", "STRICT", "CANONICAL"])
         .describe("Optional. MongoDB JSON mode to use for the stream.")
         .optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Optional. Maximum number of concurrent backfill tasks. The number should be non-negative and less than or equal to 50. If not set (or set to 0), the system's default value is used",
       ).optional(),
-    }).describe("Configuration for syncing data from a MongoDB source.")
-      .optional(),
+    }).describe("MongoDB data source configuration.").optional(),
     mysqlSourceConfig: z.object({
       binaryLogPosition: z.object({}).describe(
         "Use Binary log position based replication.",
@@ -1328,7 +1333,7 @@ const InputsSchema = z.object({
           mysqlTables: z.unknown().describe("Tables in the database.")
             .optional(),
         })).describe("Mysql databases on the server").optional(),
-      }).describe("MySQL database structure").optional(),
+      }).describe("The MySQL objects to exclude from the stream.").optional(),
       gtid: z.object({}).describe("Use GTID based replication.").optional(),
       includeObjects: z.object({
         mysqlDatabases: z.array(z.object({
@@ -1336,15 +1341,14 @@ const InputsSchema = z.object({
           mysqlTables: z.unknown().describe("Tables in the database.")
             .optional(),
         })).describe("Mysql databases on the server").optional(),
-      }).describe("MySQL database structure").optional(),
+      }).describe("The MySQL objects to retrieve from the source.").optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system's default value will be used.",
       ).optional(),
       maxConcurrentCdcTasks: z.number().int().describe(
         "Maximum number of concurrent CDC tasks. The number should be non negative. If not set (or set to 0), the system's default value will be used.",
       ).optional(),
-    }).describe("Configuration for syncing data from a MySQL source.")
-      .optional(),
+    }).describe("MySQL data source configuration.").optional(),
     oracleSourceConfig: z.object({
       binaryLogParser: z.object({
         logFileDirectories: z.object({
@@ -1354,17 +1358,12 @@ const InputsSchema = z.object({
           onlineLogDirectory: z.string().describe(
             "Required. Oracle directory for online logs.",
           ).optional(),
-        }).describe(
-          "Configuration to specify the Oracle directories to access the log files.",
-        ).optional(),
-        oracleAsmLogFileAccess: z.object({}).describe(
-          "Configuration to use Oracle ASM to access the log files.",
-        ).optional(),
-      }).describe("Configuration to use Binary Log Parser CDC technique.")
+        }).describe("Use Oracle directories.").optional(),
+        oracleAsmLogFileAccess: z.object({}).describe("Use Oracle ASM.")
+          .optional(),
+      }).describe("Use Binary Log Parser.").optional(),
+      dropLargeObjects: z.object({}).describe("Drop large object values.")
         .optional(),
-      dropLargeObjects: z.object({}).describe(
-        "Configuration to drop large object values.",
-      ).optional(),
       excludeObjects: z.object({
         oracleSchemas: z.array(z.object({
           oracleTables: z.unknown().describe("Tables in the schema.")
@@ -1372,7 +1371,7 @@ const InputsSchema = z.object({
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("Oracle schemas/databases in the database server.")
           .optional(),
-      }).describe("Oracle database structure.").optional(),
+      }).describe("The Oracle objects to exclude from the stream.").optional(),
       includeObjects: z.object({
         oracleSchemas: z.array(z.object({
           oracleTables: z.unknown().describe("Tables in the schema.")
@@ -1380,21 +1379,17 @@ const InputsSchema = z.object({
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("Oracle schemas/databases in the database server.")
           .optional(),
-      }).describe("Oracle database structure.").optional(),
-      logMiner: z.object({}).describe(
-        "Configuration to use LogMiner CDC method.",
-      ).optional(),
+      }).describe("The Oracle objects to include in the stream.").optional(),
+      logMiner: z.object({}).describe("Use LogMiner.").optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Maximum number of concurrent backfill tasks. The number should be non-negative. If not set (or set to 0), the system's default value is used.",
       ).optional(),
       maxConcurrentCdcTasks: z.number().int().describe(
         "Maximum number of concurrent CDC tasks. The number should be non-negative. If not set (or set to 0), the system's default value is used.",
       ).optional(),
-      streamLargeObjects: z.object({}).describe(
-        "Configuration to stream large object values.",
-      ).optional(),
-    }).describe("Configuration for syncing data from an Oracle source.")
-      .optional(),
+      streamLargeObjects: z.object({}).describe("Stream large object values.")
+        .optional(),
+    }).describe("Oracle data source configuration.").optional(),
     postgresqlSourceConfig: z.object({
       excludeObjects: z.object({
         postgresqlSchemas: z.array(z.object({
@@ -1402,14 +1397,16 @@ const InputsSchema = z.object({
             .optional(),
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("PostgreSQL schemas in the database server.").optional(),
-      }).describe("PostgreSQL database structure.").optional(),
+      }).describe("The PostgreSQL objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         postgresqlSchemas: z.array(z.object({
           postgresqlTables: z.unknown().describe("Tables in the schema.")
             .optional(),
           schema: z.unknown().describe("The schema name.").optional(),
         })).describe("PostgreSQL schemas in the database server.").optional(),
-      }).describe("PostgreSQL database structure.").optional(),
+      }).describe("The PostgreSQL objects to include in the stream.")
+        .optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system's default value will be used.",
       ).optional(),
@@ -1419,8 +1416,7 @@ const InputsSchema = z.object({
       replicationSlot: z.string().describe(
         "Required. Immutable. The name of the logical replication slot that's configured with the pgoutput plugin.",
       ).optional(),
-    }).describe("Configuration for syncing data from a PostgreSQL source.")
-      .optional(),
+    }).describe("PostgreSQL data source configuration.").optional(),
     salesforceMarketingCloudSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -1430,7 +1426,8 @@ const InputsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
       fullRefreshPollingInterval: z.string().describe(
         "Required. Specifies the polling interval for a full refresh of objects that do not support incremental sync. If not set, a default value of 24 hours is used. The duration must be between 1 and 24 hours, inclusive.",
       ).optional(),
@@ -1442,13 +1439,13 @@ const InputsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe(
-      "Configuration for syncing data from a Salesforce Marketing Cloud source.",
-    ).optional(),
+    }).describe("Salesforce Marketing Cloud data source configuration.")
+      .optional(),
     salesforceSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -1457,7 +1454,8 @@ const InputsSchema = z.object({
           ).optional(),
           objectName: z.unknown().describe("The object name.").optional(),
         })).describe("Salesforce objects in the database server.").optional(),
-      }).describe("Salesforce organization structure.").optional(),
+      }).describe("The Salesforce objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         objects: z.array(z.object({
           fields: z.unknown().describe(
@@ -1465,12 +1463,12 @@ const InputsSchema = z.object({
           ).optional(),
           objectName: z.unknown().describe("The object name.").optional(),
         })).describe("Salesforce objects in the database server.").optional(),
-      }).describe("Salesforce organization structure.").optional(),
+      }).describe("The Salesforce objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Salesforce objects polling interval. The interval at which new changes will be polled for each object. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe("Configuration for syncing data from a Salesforce source.")
-      .optional(),
+    }).describe("Salesforce data source configuration.").optional(),
     serviceNowSourceConfig: z.object({
       excludeObjects: z.object({
         objects: z.array(z.object({
@@ -1480,7 +1478,8 @@ const InputsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         objects: z.array(z.object({
           objectName: z.unknown().describe("Required. The object name.")
@@ -1489,12 +1488,12 @@ const InputsSchema = z.object({
             "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
           ).optional(),
         })).describe("Optional. Source objects in the catalog.").optional(),
-      }).describe("Source catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
       pollingInterval: z.string().describe(
         "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
       ).optional(),
-    }).describe("Configuration for syncing data from a ServiceNow source.")
-      .optional(),
+    }).describe("ServiceNow data source configuration.").optional(),
     sourceConnectionProfile: z.string().describe(
       "Required. Source connection profile resource. Format: `projects/{project}/locations/{location}/connectionProfiles/{name}`",
     ).optional(),
@@ -1512,7 +1511,9 @@ const InputsSchema = z.object({
             "Optional. Spanner tables in the schema.",
           ).optional(),
         })).describe("Optional. Spanner schemas in the database.").optional(),
-      }).describe("Spanner database structure.").optional(),
+      }).describe(
+        "Optional. The Spanner objects to avoid retrieving. If some objects are both included and excluded, an error will be thrown.",
+      ).optional(),
       fgacRole: z.string().describe(
         "Optional. The FGAC role to use for the stream.",
       ).optional(),
@@ -1523,7 +1524,9 @@ const InputsSchema = z.object({
             "Optional. Spanner tables in the schema.",
           ).optional(),
         })).describe("Optional. Spanner schemas in the database.").optional(),
-      }).describe("Spanner database structure.").optional(),
+      }).describe(
+        "Optional. The Spanner objects to retrieve from the data source. If some objects are both included and excluded, an error will be thrown.",
+      ).optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Optional. Maximum number of concurrent backfill tasks.",
       ).optional(),
@@ -1537,24 +1540,24 @@ const InputsSchema = z.object({
         "HIGH",
       ]).describe("Optional. The RPC priority to use for the stream.")
         .optional(),
-    }).describe("Configuration for syncing data from a Spanner source.")
-      .optional(),
+    }).describe("Spanner data source configuration.").optional(),
     sqlServerSourceConfig: z.object({
       changeTables: z.object({}).describe(
-        "Configuration to use Change Tables CDC read method.",
+        "CDC reader reads from change tables.",
       ).optional(),
       excludeObjects: z.object({
         schemas: z.array(z.object({
           schema: z.unknown().describe("The schema name.").optional(),
           tables: z.unknown().describe("Tables in the schema.").optional(),
         })).describe("SQLServer schemas in the database server.").optional(),
-      }).describe("SQLServer database structure.").optional(),
+      }).describe("The SQLServer objects to exclude from the stream.")
+        .optional(),
       includeObjects: z.object({
         schemas: z.array(z.object({
           schema: z.unknown().describe("The schema name.").optional(),
           tables: z.unknown().describe("Tables in the schema.").optional(),
         })).describe("SQLServer schemas in the database server.").optional(),
-      }).describe("SQLServer database structure.").optional(),
+      }).describe("The SQLServer objects to include in the stream.").optional(),
       maxConcurrentBackfillTasks: z.number().int().describe(
         "Max concurrent backfill tasks.",
       ).optional(),
@@ -1562,11 +1565,10 @@ const InputsSchema = z.object({
         "Max concurrent CDC tasks.",
       ).optional(),
       transactionLogs: z.object({}).describe(
-        "Configuration to use Transaction Logs CDC read method.",
+        "CDC reader reads from transaction logs.",
       ).optional(),
-    }).describe("Configuration for syncing data from a SQLServer source.")
-      .optional(),
-  }).describe("The configuration of the stream source.").optional(),
+    }).describe("SQLServer data source configuration.").optional(),
+  }).describe("Required. Source connection profile configuration.").optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "NOT_STARTED",
@@ -1613,7 +1615,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream Streams. Registered at `@swamp/gcp/datastream/streams`. */
 export const model = {
   type: "@swamp/gcp/datastream/streams",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1732,6 +1734,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

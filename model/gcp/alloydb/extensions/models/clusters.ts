@@ -206,7 +206,7 @@ const GlobalArgsSchema = z.object({
         "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
       ).optional(),
     }).describe(
-      "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
+      "Optional. The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster's encryption config.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Labels to apply to backups created using this configuration.",
@@ -218,13 +218,11 @@ const GlobalArgsSchema = z.object({
       count: z.number().int().describe("The number of backups to retain.")
         .optional(),
     }).describe(
-      "A quantity based policy specifies that a certain number of the most recent successful backups should be retained.",
+      "Quantity-based Backup retention policy to retain recent backups.",
     ).optional(),
     timeBasedRetention: z.object({
       retentionPeriod: z.string().describe("The retention period.").optional(),
-    }).describe(
-      "A time based retention policy specifies that all backups within a certain time period should be retained.",
-    ).optional(),
+    }).describe("Time-based Backup retention policy.").optional(),
     weeklySchedule: z.object({
       daysOfWeek: z.array(
         z.enum([
@@ -256,99 +254,10 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "The times during the day to start a backup. The start times are assumed to be in UTC and to be an exact hour (e.g., 04:00:00). If no start times are provided, a single fixed start time is chosen arbitrarily.",
       ).optional(),
-    }).describe(
-      'A weekly schedule starts a backup at prescribed start times within a day, for the specified days of the week. The weekly schedule message is flexible and can be used to create many types of schedules. For example, to have a daily backup that starts at 22:00, configure the `start_times` field to have one element "22:00" and the `days_of_week` field to have all seven days of the week.',
-    ).optional(),
+    }).describe("Weekly schedule for the Backup.").optional(),
   }).describe(
-    "Message describing the user-specified automated backup policy. All fields in the automated backup policy are optional. Defaults for each field are provided if they are not set.",
+    "The automated backup policy for this cluster. If no policy is provided then the default policy will be used. If backups are supported for the cluster, the default policy takes one backup a day, has a backup window of 1 hour, and retains backups for 14 days. For more information on the defaults, consult the documentation for the message type.",
   ).optional(),
-  backupSource: z.object({
-    backupName: z.string().describe(
-      "Required. The name of the backup resource with the format: * projects/{project}/locations/{region}/backups/{backup_id}",
-    ).optional(),
-    backupUid: z.string().describe(
-      "Output only. The system-generated UID of the backup which was used to create this resource. The UID is generated when the backup is created, and it is retained until the backup is deleted.",
-    ).optional(),
-  }).describe("Message describing a BackupSource.").optional(),
-  backupdrBackupSource: z.object({
-    backup: z.string().describe(
-      "Required. The name of the backup resource with the format: * projects/{project}/locations/{location}/backupVaults/{backupvault_id}/dataSources/{datasource_id}/backups/{backup_id}",
-    ).optional(),
-  }).describe("Message describing a BackupDrBackupSource.").optional(),
-  backupdrInfo: z.object({
-    currentWindow: z.object({
-      automatedBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether automated backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      backupPlanAssociation: z.string().describe(
-        "The BackupPlanAssociation resource that was used to enable BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviousRecoveryWindowDays: z.number().int().describe(
-        "The retention set for the continuous backup that was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabledTime: z.string().describe(
-        "The time when continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      dataSource: z.string().describe(
-        "The DataSource resource that represents the cluster in BackupDR.",
-      ).optional(),
-      disabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was disabled. This field will be empty if this BackupDR window is the `current_window`.",
-      ).optional(),
-      enabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was enabled.",
-      ).optional(),
-      logRetentionPeriod: z.string().describe(
-        "The retention period for logs generated by BackupDR for this cluster.",
-      ).optional(),
-    }).describe(
-      "Information about a single window when BackupDR was enabled for this cluster.",
-    ).optional(),
-    previousWindows: z.array(z.object({
-      automatedBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether automated backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      backupPlanAssociation: z.string().describe(
-        "The BackupPlanAssociation resource that was used to enable BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviousRecoveryWindowDays: z.number().int().describe(
-        "The retention set for the continuous backup that was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabledTime: z.string().describe(
-        "The time when continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      dataSource: z.string().describe(
-        "The DataSource resource that represents the cluster in BackupDR.",
-      ).optional(),
-      disabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was disabled. This field will be empty if this BackupDR window is the `current_window`.",
-      ).optional(),
-      enabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was enabled.",
-      ).optional(),
-      logRetentionPeriod: z.string().describe(
-        "The retention period for logs generated by BackupDR for this cluster.",
-      ).optional(),
-    })).describe(
-      "Windows during which BackupDR was enabled for this cluster, along with associated configuration for that window. These are used to determine points-in-time for which restores can be performed. The windows are ordered with the most recent window last. Windows are mutally exclusive. Windows which closed more than 1 year ago will be removed from this list.",
-    ).optional(),
-  }).describe("Information about BackupDR protection for this cluster.")
-    .optional(),
-  cloudsqlBackupRunSource: z.object({
-    backupRunId: z.string().describe("Required. The CloudSQL backup run ID.")
-      .optional(),
-    instanceId: z.string().describe("Required. The CloudSQL instance ID.")
-      .optional(),
-    project: z.string().describe(
-      "The project ID of the source CloudSQL instance. This should be the same as the AlloyDB cluster's project.",
-    ).optional(),
-  }).describe("The source CloudSQL backup resource.").optional(),
   continuousBackupConfig: z.object({
     enabled: z.boolean().describe("Whether ContinuousBackup is enabled.")
       .optional(),
@@ -357,50 +266,13 @@ const GlobalArgsSchema = z.object({
         "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
       ).optional(),
     }).describe(
-      "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
+      "The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster's encryption config.",
     ).optional(),
     recoveryWindowDays: z.number().int().describe(
       "The number of days that are eligible to restore from using PITR. To support the entire recovery window, backups and logs are retained for one day more than the recovery window. If not set, defaults to 14 days.",
     ).optional(),
-  }).describe(
-    "ContinuousBackupConfig describes the continuous backups recovery configurations of a cluster.",
-  ).optional(),
-  continuousBackupInfo: z.object({
-    earliestRestorableTime: z.string().describe(
-      'Output only. The earliest restorable time that can be restored to. If continuous backups and recovery was recently enabled, the earliest restorable time is the creation time of the earliest eligible backup within this cluster\'s continuous backup recovery window. After a cluster has had continuous backups enabled for the duration of its recovery window, the earliest restorable time becomes "now minus the recovery window". For example, assuming a point in time recovery is attempted at 04/16/2025 3:23:00PM with a 14d recovery window, the earliest restorable time would be 04/02/2025 3:23:00PM. This field is only visible if the CLUSTER_VIEW_CONTINUOUS_BACKUP cluster view is provided.',
-    ).optional(),
-    enabledTime: z.string().describe(
-      "Output only. When ContinuousBackup was most recently enabled. Set to null if ContinuousBackup is not enabled.",
-    ).optional(),
-    encryptionInfo: z.object({
-      encryptionType: z.enum([
-        "TYPE_UNSPECIFIED",
-        "GOOGLE_DEFAULT_ENCRYPTION",
-        "CUSTOMER_MANAGED_ENCRYPTION",
-      ]).describe("Output only. Type of encryption.").optional(),
-      kmsKeyVersions: z.array(z.string()).describe(
-        "Output only. Cloud KMS key versions that are being used to protect the database or the backup.",
-      ).optional(),
-    }).describe(
-      "EncryptionInfo describes the encryption information of a cluster or a backup.",
-    ).optional(),
-    schedule: z.array(
-      z.enum([
-        "DAY_OF_WEEK_UNSPECIFIED",
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-        "SUNDAY",
-      ]),
-    ).describe(
-      "Output only. Days of the week on which a continuous backup is taken.",
-    ).optional(),
-  }).describe(
-    "ContinuousBackupInfo describes the continuous backup properties of a cluster.",
-  ).optional(),
+  }).describe("Optional. Continuous backup configuration for this cluster.")
+    .optional(),
   databaseVersion: z.enum([
     "DATABASE_VERSION_UNSPECIFIED",
     "POSTGRES_13",
@@ -416,7 +288,7 @@ const GlobalArgsSchema = z.object({
     enabled: z.boolean().describe(
       'Dataplex is enabled by default for resources such as clusters and instances. This flag controls the integration of AlloyDB PG resources (like databases, schemas, and tables) with Dataplex."',
     ).optional(),
-  }).describe("Configuration for Dataplex integration.").optional(),
+  }).describe("Optional. Configuration for Dataplex integration.").optional(),
   displayName: z.string().describe(
     "User-settable and human-readable display name for the Cluster.",
   ).optional(),
@@ -425,36 +297,17 @@ const GlobalArgsSchema = z.object({
       "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
     ).optional(),
   }).describe(
-    "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
-  ).optional(),
-  encryptionInfo: z.object({
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. Type of encryption.").optional(),
-    kmsKeyVersions: z.array(z.string()).describe(
-      "Output only. Cloud KMS key versions that are being used to protect the database or the backup.",
-    ).optional(),
-  }).describe(
-    "EncryptionInfo describes the encryption information of a cluster or a backup.",
+    "Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.",
   ).optional(),
   initialUser: z.object({
     password: z.string().describe("The initial password for the user.")
       .optional(),
     user: z.string().describe("The database username.").optional(),
   }).describe(
-    "The username/password for a database user. Used for specifying initial users at cluster creation time.",
+    "Input only. Initial user to setup during cluster creation. Required. If used in `RestoreCluster` this is ignored.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels as key value pairs")
     .optional(),
-  maintenanceSchedule: z.object({
-    startTime: z.string().describe(
-      "Output only. The scheduled start time for the maintenance.",
-    ).optional(),
-  }).describe(
-    "MaintenanceSchedule stores the maintenance schedule generated from the MaintenanceUpdatePolicy, once a maintenance rollout is triggered, if MaintenanceWindow is set, and if there is no conflicting DenyPeriod. The schedule is cleared once the update takes place. This field cannot be manually changed; modify the MaintenanceUpdatePolicy instead.",
-  ).optional(),
   maintenanceUpdatePolicy: z.object({
     denyMaintenancePeriods: z.array(z.object({
       endDate: z.object({
@@ -468,7 +321,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Deny period end date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -481,7 +334,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Deny period start date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring",
       ).optional(),
       time: z.object({
         hours: z.number().int().describe(
@@ -497,7 +350,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Time in UTC when the deny period starts on start_date and ends on end_date. This can be: * Full time OR * All zeros for 00:00:00 UTC",
       ).optional(),
     })).describe("Periods to deny maintenance. Currently limited to 1.")
       .optional(),
@@ -528,32 +381,20 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Preferred time to start the maintenance operation on the specified day. Maintenance will start within 1 hour of this time.",
       ).optional(),
     })).describe(
       "Preferred windows to perform maintenance. Currently limited to 1.",
     ).optional(),
-  }).describe("MaintenanceUpdatePolicy defines the policy for system updates.")
-    .optional(),
+  }).describe(
+    "Optional. The maintenance update policy determines when to allow or deny updates.",
+  ).optional(),
   maintenanceVersionSelectionPolicy: z.enum([
     "MAINTENANCE_VERSION_SELECTION_POLICY_UNSPECIFIED",
     "MAINTENANCE_VERSION_SELECTION_POLICY_LATEST",
     "MAINTENANCE_VERSION_SELECTION_POLICY_DEFAULT",
   ]).describe(
     "Input only. Policy to use to automatically select the maintenance version to which to update the cluster's instances.",
-  ).optional(),
-  migrationSource: z.object({
-    hostPort: z.string().describe(
-      "Output only. The host and port of the on-premises instance in host:port format",
-    ).optional(),
-    referenceId: z.string().describe(
-      "Output only. Place holder for the external source identifier(e.g DMS job name) that created the cluster.",
-    ).optional(),
-    sourceType: z.enum(["MIGRATION_SOURCE_TYPE_UNSPECIFIED", "DMS"]).describe(
-      "Output only. Type of migration source.",
-    ).optional(),
-  }).describe(
-    "Subset of the source instance configuration that is available when reading the cluster resource.",
   ).optional(),
   networkConfig: z.object({
     allocatedIpRange: z.string().describe(
@@ -563,13 +404,6 @@ const GlobalArgsSchema = z.object({
       "Optional. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: `projects/{project_number}/global/networks/{network_id}`. This is required to create a cluster.",
     ).optional(),
   }).describe("Metadata related to network configuration.").optional(),
-  primaryConfig: z.object({
-    secondaryClusterNames: z.array(z.string()).describe(
-      "Output only. Names of the clusters that are replicating from this cluster.",
-    ).optional(),
-  }).describe(
-    "Configuration for the primary cluster. It has the list of clusters that are replicating from this cluster. This should be set if and only if the cluster is of type PRIMARY.",
-  ).optional(),
   pscConfig: z.object({
     pscEnabled: z.boolean().describe(
       "Optional. Create an instance that allows connections from Private Service Connect endpoints to the instance.",
@@ -578,15 +412,14 @@ const GlobalArgsSchema = z.object({
       "Output only. The project number that needs to be allowlisted on the network attachment to enable outbound connectivity.",
     ).optional(),
   }).describe(
-    "PscConfig contains PSC related configuration at a cluster level.",
+    "Optional. The configuration for Private Service Connect (PSC) for the cluster.",
   ).optional(),
   secondaryConfig: z.object({
     primaryClusterName: z.string().describe(
       "The name of the primary cluster name with the format: * projects/{project}/locations/{region}/clusters/{cluster_id}",
     ).optional(),
-  }).describe(
-    "Configuration information for the secondary cluster. This should be set if and only if the cluster is of type SECONDARY.",
-  ).optional(),
+  }).describe("Cross Region replication config specific to SECONDARY cluster.")
+    .optional(),
   sslConfig: z.object({
     caSource: z.enum(["CA_SOURCE_UNSPECIFIED", "CA_SOURCE_MANAGED"]).describe(
       "Optional. Certificate Authority (CA) source. Only CA_SOURCE_MANAGED is supported currently, and is the default value.",
@@ -601,7 +434,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. SSL mode. Specifies client-server SSL/TLS connection behavior.",
     ).optional(),
-  }).describe("SSL configuration.").optional(),
+  }).describe("SSL configuration for this AlloyDB cluster.").optional(),
   subscriptionType: z.enum([
     "SUBSCRIPTION_TYPE_UNSPECIFIED",
     "STANDARD",
@@ -609,18 +442,6 @@ const GlobalArgsSchema = z.object({
   ]).describe("Optional. Subscription type of the cluster.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: ` "123/environment": "production", "123/costCenter": "marketing" `',
-  ).optional(),
-  trialMetadata: z.object({
-    endTime: z.string().describe("End time of the trial cluster.").optional(),
-    graceEndTime: z.string().describe("grace end time of the cluster.")
-      .optional(),
-    startTime: z.string().describe("start time of the trial cluster.")
-      .optional(),
-    upgradeTime: z.string().describe(
-      "Upgrade time of trial cluster to Standard cluster.",
-    ).optional(),
-  }).describe(
-    "Contains information and all metadata related to TRIAL clusters.",
   ).optional(),
   clusterId: z.string().describe("Required. ID of the requesting object.")
     .optional(),
@@ -827,7 +648,7 @@ const InputsSchema = z.object({
         "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
       ).optional(),
     }).describe(
-      "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
+      "Optional. The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster's encryption config.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Labels to apply to backups created using this configuration.",
@@ -839,13 +660,11 @@ const InputsSchema = z.object({
       count: z.number().int().describe("The number of backups to retain.")
         .optional(),
     }).describe(
-      "A quantity based policy specifies that a certain number of the most recent successful backups should be retained.",
+      "Quantity-based Backup retention policy to retain recent backups.",
     ).optional(),
     timeBasedRetention: z.object({
       retentionPeriod: z.string().describe("The retention period.").optional(),
-    }).describe(
-      "A time based retention policy specifies that all backups within a certain time period should be retained.",
-    ).optional(),
+    }).describe("Time-based Backup retention policy.").optional(),
     weeklySchedule: z.object({
       daysOfWeek: z.array(
         z.enum([
@@ -877,99 +696,10 @@ const InputsSchema = z.object({
       })).describe(
         "The times during the day to start a backup. The start times are assumed to be in UTC and to be an exact hour (e.g., 04:00:00). If no start times are provided, a single fixed start time is chosen arbitrarily.",
       ).optional(),
-    }).describe(
-      'A weekly schedule starts a backup at prescribed start times within a day, for the specified days of the week. The weekly schedule message is flexible and can be used to create many types of schedules. For example, to have a daily backup that starts at 22:00, configure the `start_times` field to have one element "22:00" and the `days_of_week` field to have all seven days of the week.',
-    ).optional(),
+    }).describe("Weekly schedule for the Backup.").optional(),
   }).describe(
-    "Message describing the user-specified automated backup policy. All fields in the automated backup policy are optional. Defaults for each field are provided if they are not set.",
+    "The automated backup policy for this cluster. If no policy is provided then the default policy will be used. If backups are supported for the cluster, the default policy takes one backup a day, has a backup window of 1 hour, and retains backups for 14 days. For more information on the defaults, consult the documentation for the message type.",
   ).optional(),
-  backupSource: z.object({
-    backupName: z.string().describe(
-      "Required. The name of the backup resource with the format: * projects/{project}/locations/{region}/backups/{backup_id}",
-    ).optional(),
-    backupUid: z.string().describe(
-      "Output only. The system-generated UID of the backup which was used to create this resource. The UID is generated when the backup is created, and it is retained until the backup is deleted.",
-    ).optional(),
-  }).describe("Message describing a BackupSource.").optional(),
-  backupdrBackupSource: z.object({
-    backup: z.string().describe(
-      "Required. The name of the backup resource with the format: * projects/{project}/locations/{location}/backupVaults/{backupvault_id}/dataSources/{datasource_id}/backups/{backup_id}",
-    ).optional(),
-  }).describe("Message describing a BackupDrBackupSource.").optional(),
-  backupdrInfo: z.object({
-    currentWindow: z.object({
-      automatedBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether automated backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      backupPlanAssociation: z.string().describe(
-        "The BackupPlanAssociation resource that was used to enable BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviousRecoveryWindowDays: z.number().int().describe(
-        "The retention set for the continuous backup that was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabledTime: z.string().describe(
-        "The time when continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      dataSource: z.string().describe(
-        "The DataSource resource that represents the cluster in BackupDR.",
-      ).optional(),
-      disabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was disabled. This field will be empty if this BackupDR window is the `current_window`.",
-      ).optional(),
-      enabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was enabled.",
-      ).optional(),
-      logRetentionPeriod: z.string().describe(
-        "The retention period for logs generated by BackupDR for this cluster.",
-      ).optional(),
-    }).describe(
-      "Information about a single window when BackupDR was enabled for this cluster.",
-    ).optional(),
-    previousWindows: z.array(z.object({
-      automatedBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether automated backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      backupPlanAssociation: z.string().describe(
-        "The BackupPlanAssociation resource that was used to enable BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviousRecoveryWindowDays: z.number().int().describe(
-        "The retention set for the continuous backup that was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabled: z.boolean().describe(
-        "Whether continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      continuousBackupPreviouslyEnabledTime: z.string().describe(
-        "The time when continuous backup was previously enabled prior to enabling BackupDR protection for this cluster.",
-      ).optional(),
-      dataSource: z.string().describe(
-        "The DataSource resource that represents the cluster in BackupDR.",
-      ).optional(),
-      disabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was disabled. This field will be empty if this BackupDR window is the `current_window`.",
-      ).optional(),
-      enabledTime: z.string().describe(
-        "Time when the BackupDR protection for this cluster was enabled.",
-      ).optional(),
-      logRetentionPeriod: z.string().describe(
-        "The retention period for logs generated by BackupDR for this cluster.",
-      ).optional(),
-    })).describe(
-      "Windows during which BackupDR was enabled for this cluster, along with associated configuration for that window. These are used to determine points-in-time for which restores can be performed. The windows are ordered with the most recent window last. Windows are mutally exclusive. Windows which closed more than 1 year ago will be removed from this list.",
-    ).optional(),
-  }).describe("Information about BackupDR protection for this cluster.")
-    .optional(),
-  cloudsqlBackupRunSource: z.object({
-    backupRunId: z.string().describe("Required. The CloudSQL backup run ID.")
-      .optional(),
-    instanceId: z.string().describe("Required. The CloudSQL instance ID.")
-      .optional(),
-    project: z.string().describe(
-      "The project ID of the source CloudSQL instance. This should be the same as the AlloyDB cluster's project.",
-    ).optional(),
-  }).describe("The source CloudSQL backup resource.").optional(),
   continuousBackupConfig: z.object({
     enabled: z.boolean().describe("Whether ContinuousBackup is enabled.")
       .optional(),
@@ -978,50 +708,13 @@ const InputsSchema = z.object({
         "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
       ).optional(),
     }).describe(
-      "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
+      "The encryption config can be specified to encrypt the backups with a customer-managed encryption key (CMEK). When this field is not specified, the backup will use the cluster's encryption config.",
     ).optional(),
     recoveryWindowDays: z.number().int().describe(
       "The number of days that are eligible to restore from using PITR. To support the entire recovery window, backups and logs are retained for one day more than the recovery window. If not set, defaults to 14 days.",
     ).optional(),
-  }).describe(
-    "ContinuousBackupConfig describes the continuous backups recovery configurations of a cluster.",
-  ).optional(),
-  continuousBackupInfo: z.object({
-    earliestRestorableTime: z.string().describe(
-      'Output only. The earliest restorable time that can be restored to. If continuous backups and recovery was recently enabled, the earliest restorable time is the creation time of the earliest eligible backup within this cluster\'s continuous backup recovery window. After a cluster has had continuous backups enabled for the duration of its recovery window, the earliest restorable time becomes "now minus the recovery window". For example, assuming a point in time recovery is attempted at 04/16/2025 3:23:00PM with a 14d recovery window, the earliest restorable time would be 04/02/2025 3:23:00PM. This field is only visible if the CLUSTER_VIEW_CONTINUOUS_BACKUP cluster view is provided.',
-    ).optional(),
-    enabledTime: z.string().describe(
-      "Output only. When ContinuousBackup was most recently enabled. Set to null if ContinuousBackup is not enabled.",
-    ).optional(),
-    encryptionInfo: z.object({
-      encryptionType: z.enum([
-        "TYPE_UNSPECIFIED",
-        "GOOGLE_DEFAULT_ENCRYPTION",
-        "CUSTOMER_MANAGED_ENCRYPTION",
-      ]).describe("Output only. Type of encryption.").optional(),
-      kmsKeyVersions: z.array(z.string()).describe(
-        "Output only. Cloud KMS key versions that are being used to protect the database or the backup.",
-      ).optional(),
-    }).describe(
-      "EncryptionInfo describes the encryption information of a cluster or a backup.",
-    ).optional(),
-    schedule: z.array(
-      z.enum([
-        "DAY_OF_WEEK_UNSPECIFIED",
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-        "SUNDAY",
-      ]),
-    ).describe(
-      "Output only. Days of the week on which a continuous backup is taken.",
-    ).optional(),
-  }).describe(
-    "ContinuousBackupInfo describes the continuous backup properties of a cluster.",
-  ).optional(),
+  }).describe("Optional. Continuous backup configuration for this cluster.")
+    .optional(),
   databaseVersion: z.enum([
     "DATABASE_VERSION_UNSPECIFIED",
     "POSTGRES_13",
@@ -1037,7 +730,7 @@ const InputsSchema = z.object({
     enabled: z.boolean().describe(
       'Dataplex is enabled by default for resources such as clusters and instances. This flag controls the integration of AlloyDB PG resources (like databases, schemas, and tables) with Dataplex."',
     ).optional(),
-  }).describe("Configuration for Dataplex integration.").optional(),
+  }).describe("Optional. Configuration for Dataplex integration.").optional(),
   displayName: z.string().describe(
     "User-settable and human-readable display name for the Cluster.",
   ).optional(),
@@ -1046,36 +739,17 @@ const InputsSchema = z.object({
       "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
     ).optional(),
   }).describe(
-    "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
-  ).optional(),
-  encryptionInfo: z.object({
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. Type of encryption.").optional(),
-    kmsKeyVersions: z.array(z.string()).describe(
-      "Output only. Cloud KMS key versions that are being used to protect the database or the backup.",
-    ).optional(),
-  }).describe(
-    "EncryptionInfo describes the encryption information of a cluster or a backup.",
+    "Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.",
   ).optional(),
   initialUser: z.object({
     password: z.string().describe("The initial password for the user.")
       .optional(),
     user: z.string().describe("The database username.").optional(),
   }).describe(
-    "The username/password for a database user. Used for specifying initial users at cluster creation time.",
+    "Input only. Initial user to setup during cluster creation. Required. If used in `RestoreCluster` this is ignored.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels as key value pairs")
     .optional(),
-  maintenanceSchedule: z.object({
-    startTime: z.string().describe(
-      "Output only. The scheduled start time for the maintenance.",
-    ).optional(),
-  }).describe(
-    "MaintenanceSchedule stores the maintenance schedule generated from the MaintenanceUpdatePolicy, once a maintenance rollout is triggered, if MaintenanceWindow is set, and if there is no conflicting DenyPeriod. The schedule is cleared once the update takes place. This field cannot be manually changed; modify the MaintenanceUpdatePolicy instead.",
-  ).optional(),
   maintenanceUpdatePolicy: z.object({
     denyMaintenancePeriods: z.array(z.object({
       endDate: z.object({
@@ -1089,7 +763,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Deny period end date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -1102,7 +776,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Deny period start date. This can be: * A full date, with non-zero year, month and day values OR * A month and day value, with a zero year for recurring",
       ).optional(),
       time: z.object({
         hours: z.number().int().describe(
@@ -1118,7 +792,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Time in UTC when the deny period starts on start_date and ends on end_date. This can be: * Full time OR * All zeros for 00:00:00 UTC",
       ).optional(),
     })).describe("Periods to deny maintenance. Currently limited to 1.")
       .optional(),
@@ -1149,32 +823,20 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Preferred time to start the maintenance operation on the specified day. Maintenance will start within 1 hour of this time.",
       ).optional(),
     })).describe(
       "Preferred windows to perform maintenance. Currently limited to 1.",
     ).optional(),
-  }).describe("MaintenanceUpdatePolicy defines the policy for system updates.")
-    .optional(),
+  }).describe(
+    "Optional. The maintenance update policy determines when to allow or deny updates.",
+  ).optional(),
   maintenanceVersionSelectionPolicy: z.enum([
     "MAINTENANCE_VERSION_SELECTION_POLICY_UNSPECIFIED",
     "MAINTENANCE_VERSION_SELECTION_POLICY_LATEST",
     "MAINTENANCE_VERSION_SELECTION_POLICY_DEFAULT",
   ]).describe(
     "Input only. Policy to use to automatically select the maintenance version to which to update the cluster's instances.",
-  ).optional(),
-  migrationSource: z.object({
-    hostPort: z.string().describe(
-      "Output only. The host and port of the on-premises instance in host:port format",
-    ).optional(),
-    referenceId: z.string().describe(
-      "Output only. Place holder for the external source identifier(e.g DMS job name) that created the cluster.",
-    ).optional(),
-    sourceType: z.enum(["MIGRATION_SOURCE_TYPE_UNSPECIFIED", "DMS"]).describe(
-      "Output only. Type of migration source.",
-    ).optional(),
-  }).describe(
-    "Subset of the source instance configuration that is available when reading the cluster resource.",
   ).optional(),
   networkConfig: z.object({
     allocatedIpRange: z.string().describe(
@@ -1184,13 +846,6 @@ const InputsSchema = z.object({
       "Optional. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: `projects/{project_number}/global/networks/{network_id}`. This is required to create a cluster.",
     ).optional(),
   }).describe("Metadata related to network configuration.").optional(),
-  primaryConfig: z.object({
-    secondaryClusterNames: z.array(z.string()).describe(
-      "Output only. Names of the clusters that are replicating from this cluster.",
-    ).optional(),
-  }).describe(
-    "Configuration for the primary cluster. It has the list of clusters that are replicating from this cluster. This should be set if and only if the cluster is of type PRIMARY.",
-  ).optional(),
   pscConfig: z.object({
     pscEnabled: z.boolean().describe(
       "Optional. Create an instance that allows connections from Private Service Connect endpoints to the instance.",
@@ -1199,15 +854,14 @@ const InputsSchema = z.object({
       "Output only. The project number that needs to be allowlisted on the network attachment to enable outbound connectivity.",
     ).optional(),
   }).describe(
-    "PscConfig contains PSC related configuration at a cluster level.",
+    "Optional. The configuration for Private Service Connect (PSC) for the cluster.",
   ).optional(),
   secondaryConfig: z.object({
     primaryClusterName: z.string().describe(
       "The name of the primary cluster name with the format: * projects/{project}/locations/{region}/clusters/{cluster_id}",
     ).optional(),
-  }).describe(
-    "Configuration information for the secondary cluster. This should be set if and only if the cluster is of type SECONDARY.",
-  ).optional(),
+  }).describe("Cross Region replication config specific to SECONDARY cluster.")
+    .optional(),
   sslConfig: z.object({
     caSource: z.enum(["CA_SOURCE_UNSPECIFIED", "CA_SOURCE_MANAGED"]).describe(
       "Optional. Certificate Authority (CA) source. Only CA_SOURCE_MANAGED is supported currently, and is the default value.",
@@ -1222,7 +876,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. SSL mode. Specifies client-server SSL/TLS connection behavior.",
     ).optional(),
-  }).describe("SSL configuration.").optional(),
+  }).describe("SSL configuration for this AlloyDB cluster.").optional(),
   subscriptionType: z.enum([
     "SUBSCRIPTION_TYPE_UNSPECIFIED",
     "STANDARD",
@@ -1230,18 +884,6 @@ const InputsSchema = z.object({
   ]).describe("Optional. Subscription type of the cluster.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: ` "123/environment": "production", "123/costCenter": "marketing" `',
-  ).optional(),
-  trialMetadata: z.object({
-    endTime: z.string().describe("End time of the trial cluster.").optional(),
-    graceEndTime: z.string().describe("grace end time of the cluster.")
-      .optional(),
-    startTime: z.string().describe("start time of the trial cluster.")
-      .optional(),
-    upgradeTime: z.string().describe(
-      "Upgrade time of trial cluster to Standard cluster.",
-    ).optional(),
-  }).describe(
-    "Contains information and all metadata related to TRIAL clusters.",
   ).optional(),
   clusterId: z.string().describe("Required. ID of the requesting object.")
     .optional(),
@@ -1276,7 +918,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB Clusters. Registered at `@swamp/gcp/alloydb/clusters`. */
 export const model = {
   type: "@swamp/gcp/alloydb/clusters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1383,6 +1025,27 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: backupSource, backupdrBackupSource, backupdrInfo, cloudsqlBackupRunSource, continuousBackupInfo, encryptionInfo, maintenanceSchedule, migrationSource, primaryConfig, trialMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          backupSource: _backupSource,
+          backupdrBackupSource: _backupdrBackupSource,
+          backupdrInfo: _backupdrInfo,
+          cloudsqlBackupRunSource: _cloudsqlBackupRunSource,
+          continuousBackupInfo: _continuousBackupInfo,
+          encryptionInfo: _encryptionInfo,
+          maintenanceSchedule: _maintenanceSchedule,
+          migrationSource: _migrationSource,
+          primaryConfig: _primaryConfig,
+          trialMetadata: _trialMetadata,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1418,23 +1081,8 @@ export const model = {
         if (g["automatedBackupPolicy"] !== undefined) {
           body["automatedBackupPolicy"] = g["automatedBackupPolicy"];
         }
-        if (g["backupSource"] !== undefined) {
-          body["backupSource"] = g["backupSource"];
-        }
-        if (g["backupdrBackupSource"] !== undefined) {
-          body["backupdrBackupSource"] = g["backupdrBackupSource"];
-        }
-        if (g["backupdrInfo"] !== undefined) {
-          body["backupdrInfo"] = g["backupdrInfo"];
-        }
-        if (g["cloudsqlBackupRunSource"] !== undefined) {
-          body["cloudsqlBackupRunSource"] = g["cloudsqlBackupRunSource"];
-        }
         if (g["continuousBackupConfig"] !== undefined) {
           body["continuousBackupConfig"] = g["continuousBackupConfig"];
-        }
-        if (g["continuousBackupInfo"] !== undefined) {
-          body["continuousBackupInfo"] = g["continuousBackupInfo"];
         }
         if (g["databaseVersion"] !== undefined) {
           body["databaseVersion"] = g["databaseVersion"];
@@ -1448,16 +1096,10 @@ export const model = {
         if (g["encryptionConfig"] !== undefined) {
           body["encryptionConfig"] = g["encryptionConfig"];
         }
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["initialUser"] !== undefined) {
           body["initialUser"] = g["initialUser"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
-        }
         if (g["maintenanceUpdatePolicy"] !== undefined) {
           body["maintenanceUpdatePolicy"] = g["maintenanceUpdatePolicy"];
         }
@@ -1465,14 +1107,8 @@ export const model = {
           body["maintenanceVersionSelectionPolicy"] =
             g["maintenanceVersionSelectionPolicy"];
         }
-        if (g["migrationSource"] !== undefined) {
-          body["migrationSource"] = g["migrationSource"];
-        }
         if (g["networkConfig"] !== undefined) {
           body["networkConfig"] = g["networkConfig"];
-        }
-        if (g["primaryConfig"] !== undefined) {
-          body["primaryConfig"] = g["primaryConfig"];
         }
         if (g["pscConfig"] !== undefined) body["pscConfig"] = g["pscConfig"];
         if (g["secondaryConfig"] !== undefined) {
@@ -1483,9 +1119,6 @@ export const model = {
           body["subscriptionType"] = g["subscriptionType"];
         }
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
-        if (g["trialMetadata"] !== undefined) {
-          body["trialMetadata"] = g["trialMetadata"];
-        }
         if (g["clusterId"] !== undefined) {
           params["clusterId"] = String(g["clusterId"]);
         }
@@ -1617,23 +1250,8 @@ export const model = {
         if (g["automatedBackupPolicy"] !== undefined) {
           body["automatedBackupPolicy"] = g["automatedBackupPolicy"];
         }
-        if (g["backupSource"] !== undefined) {
-          body["backupSource"] = g["backupSource"];
-        }
-        if (g["backupdrBackupSource"] !== undefined) {
-          body["backupdrBackupSource"] = g["backupdrBackupSource"];
-        }
-        if (g["backupdrInfo"] !== undefined) {
-          body["backupdrInfo"] = g["backupdrInfo"];
-        }
-        if (g["cloudsqlBackupRunSource"] !== undefined) {
-          body["cloudsqlBackupRunSource"] = g["cloudsqlBackupRunSource"];
-        }
         if (g["continuousBackupConfig"] !== undefined) {
           body["continuousBackupConfig"] = g["continuousBackupConfig"];
-        }
-        if (g["continuousBackupInfo"] !== undefined) {
-          body["continuousBackupInfo"] = g["continuousBackupInfo"];
         }
         if (g["databaseVersion"] !== undefined) {
           body["databaseVersion"] = g["databaseVersion"];
@@ -1647,16 +1265,10 @@ export const model = {
         if (g["encryptionConfig"] !== undefined) {
           body["encryptionConfig"] = g["encryptionConfig"];
         }
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["initialUser"] !== undefined) {
           body["initialUser"] = g["initialUser"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
-        }
         if (g["maintenanceUpdatePolicy"] !== undefined) {
           body["maintenanceUpdatePolicy"] = g["maintenanceUpdatePolicy"];
         }
@@ -1664,14 +1276,8 @@ export const model = {
           body["maintenanceVersionSelectionPolicy"] =
             g["maintenanceVersionSelectionPolicy"];
         }
-        if (g["migrationSource"] !== undefined) {
-          body["migrationSource"] = g["migrationSource"];
-        }
         if (g["networkConfig"] !== undefined) {
           body["networkConfig"] = g["networkConfig"];
-        }
-        if (g["primaryConfig"] !== undefined) {
-          body["primaryConfig"] = g["primaryConfig"];
         }
         if (g["pscConfig"] !== undefined) body["pscConfig"] = g["pscConfig"];
         if (g["secondaryConfig"] !== undefined) {
@@ -1680,9 +1286,6 @@ export const model = {
         if (g["sslConfig"] !== undefined) body["sslConfig"] = g["sslConfig"];
         if (g["subscriptionType"] !== undefined) {
           body["subscriptionType"] = g["subscriptionType"];
-        }
-        if (g["trialMetadata"] !== undefined) {
-          body["trialMetadata"] = g["trialMetadata"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

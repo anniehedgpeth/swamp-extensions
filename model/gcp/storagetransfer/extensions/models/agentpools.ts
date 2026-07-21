@@ -154,7 +154,9 @@ const GlobalArgsSchema = z.object({
     limitMbps: z.string().describe(
       "Bandwidth rate in megabytes per second, distributed across all the agents in the pool.",
     ).optional(),
-  }).describe("Specifies a bandwidth limit for an agent pool.").optional(),
+  }).describe(
+    "Specifies the bandwidth limit details. If this field is unspecified, the default value is set as 'No Limit'.",
+  ).optional(),
   displayName: z.string().describe(
     "Specifies the client-specified AgentPool description.",
   ).optional(),
@@ -186,7 +188,9 @@ const InputsSchema = z.object({
     limitMbps: z.string().describe(
       "Bandwidth rate in megabytes per second, distributed across all the agents in the pool.",
     ).optional(),
-  }).describe("Specifies a bandwidth limit for an agent pool.").optional(),
+  }).describe(
+    "Specifies the bandwidth limit details. If this field is unspecified, the default value is set as 'No Limit'.",
+  ).optional(),
   displayName: z.string().describe(
     "Specifies the client-specified AgentPool description.",
   ).optional(),
@@ -221,7 +225,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage Transfer AgentPools. Registered at `@swamp/gcp/storagetransfer/agentpools`. */
 export const model = {
   type: "@swamp/gcp/storagetransfer/agentpools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -325,6 +329,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -207,7 +207,7 @@ const GlobalArgsSchema = z.object({
         "Output only. Total storage size needed for Exascale in GBs.",
       ).optional(),
     }).describe(
-      "Details of the Exascale configuration for the Exadata Infrastructure.",
+      "Output only. The Exascale configuration for the Exadata Infrastructure.",
     ).optional(),
     maintenanceWindow: z.object({
       customActionTimeoutMins: z.number().int().describe(
@@ -271,9 +271,7 @@ const GlobalArgsSchema = z.object({
       weeksOfMonth: z.array(z.number().int()).describe(
         "Optional. Weeks during the month when maintenance should be performed. Weeks start on the 1st, 8th, 15th, and 22nd days of the month, and have a duration of 7 days. Weeks start and end based on calendar dates, not days of the week.",
       ).optional(),
-    }).describe(
-      "Maintenance window as defined by Oracle. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/MaintenanceWindow",
-    ).optional(),
+    }).describe("Optional. Maintenance window for repair.").optional(),
     maxCpuCount: z.number().int().describe(
       "Output only. The total number of CPU cores available.",
     ).optional(),
@@ -337,7 +335,7 @@ const GlobalArgsSchema = z.object({
     totalStorageSizeGb: z.number().int().describe(
       "Optional. The total storage allocated to the Exadata Infrastructure resource, in gigabytes (GB).",
     ).optional(),
-  }).describe("Various properties of Exadata Infrastructure.").optional(),
+  }).describe("Optional. Various properties of the infra.").optional(),
   cloudExadataInfrastructureId: z.string().describe(
     "Required. The ID of the Exadata Infrastructure to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -472,7 +470,7 @@ const InputsSchema = z.object({
         "Output only. Total storage size needed for Exascale in GBs.",
       ).optional(),
     }).describe(
-      "Details of the Exascale configuration for the Exadata Infrastructure.",
+      "Output only. The Exascale configuration for the Exadata Infrastructure.",
     ).optional(),
     maintenanceWindow: z.object({
       customActionTimeoutMins: z.number().int().describe(
@@ -536,9 +534,7 @@ const InputsSchema = z.object({
       weeksOfMonth: z.array(z.number().int()).describe(
         "Optional. Weeks during the month when maintenance should be performed. Weeks start on the 1st, 8th, 15th, and 22nd days of the month, and have a duration of 7 days. Weeks start and end based on calendar dates, not days of the week.",
       ).optional(),
-    }).describe(
-      "Maintenance window as defined by Oracle. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/MaintenanceWindow",
-    ).optional(),
+    }).describe("Optional. Maintenance window for repair.").optional(),
     maxCpuCount: z.number().int().describe(
       "Output only. The total number of CPU cores available.",
     ).optional(),
@@ -602,7 +598,7 @@ const InputsSchema = z.object({
     totalStorageSizeGb: z.number().int().describe(
       "Optional. The total storage allocated to the Exadata Infrastructure resource, in gigabytes (GB).",
     ).optional(),
-  }).describe("Various properties of Exadata Infrastructure.").optional(),
+  }).describe("Optional. Various properties of the infra.").optional(),
   cloudExadataInfrastructureId: z.string().describe(
     "Required. The ID of the Exadata Infrastructure to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -637,7 +633,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud CloudExadataInfrastructures. Registered at `@swamp/gcp/oracledatabase/cloudexadatainfrastructures`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/cloudexadatainfrastructures",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -751,6 +747,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

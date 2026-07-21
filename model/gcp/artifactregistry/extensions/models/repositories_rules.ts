@@ -169,7 +169,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
     ).optional(),
   }).describe(
-    'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+    "Optional. A CEL expression for conditions that must be met in order for the rule to apply. If not provided, the rule matches all objects.",
   ).optional(),
   name: z.string().describe(
     "The name of the rule, for example: `projects/p1/locations/us-central1/repositories/repo1/rules/rule1`.",
@@ -225,7 +225,7 @@ const InputsSchema = z.object({
       "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
     ).optional(),
   }).describe(
-    'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+    "Optional. A CEL expression for conditions that must be met in order for the rule to apply. If not provided, the rule matches all objects.",
   ).optional(),
   name: z.string().describe(
     "The name of the rule, for example: `projects/p1/locations/us-central1/repositories/repo1/rules/rule1`.",
@@ -267,7 +267,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Artifact Registry Repositories.Rules. Registered at `@swamp/gcp/artifactregistry/repositories-rules`. */
 export const model = {
   type: "@swamp/gcp/artifactregistry/repositories-rules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -371,6 +371,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

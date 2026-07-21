@@ -149,10 +149,12 @@ const GlobalArgsSchema = z.object({
         topicName: z.string().describe(
           "Required. A fully qualified Pub/Sub topic name to publish the events to. This topic must be owned by the calling project and already exist in Pub/Sub.",
         ).optional(),
-      }).describe("A Pub/Sub topic.").optional(),
-    }).describe("The target for notification delivery.").optional(),
+      }).describe(
+        "A Pub/Sub topic. To receive notifications, the topic must grant publish privileges to the Forms service account `serviceAccount:forms-notifications@system.gserviceaccount.com`. Only the project that owns a topic may create a watch with it. Pub/Sub delivery guarantees should be considered.",
+      ).optional(),
+    }).describe("Required. Where to send the notification.").optional(),
   }).describe(
-    "A watch for events for a form. When the designated event happens, a notification will be published to the specified target. The notification's attributes will include a `formId` key that has the ID of the watched form and an `eventType` key that has the string of the type. Messages are sent with at-least-once delivery and are only dropped in extraordinary circumstances. Typically all notifications should be reliably delivered within a few seconds; however, in some situations notifications may be delayed. A watch expires seven days after it is created unless it is renewed with watches.renew",
+    "Required. The watch object. No ID should be set on this object; use `watch_id` instead.",
   ).optional(),
   watchId: z.string().describe(
     "The ID to use for the watch. If specified, the ID must not already be in use. If not specified, an ID is generated. This value should be 4-63 characters, and valid characters are /a-z-/.",
@@ -210,10 +212,12 @@ const InputsSchema = z.object({
         topicName: z.string().describe(
           "Required. A fully qualified Pub/Sub topic name to publish the events to. This topic must be owned by the calling project and already exist in Pub/Sub.",
         ).optional(),
-      }).describe("A Pub/Sub topic.").optional(),
-    }).describe("The target for notification delivery.").optional(),
+      }).describe(
+        "A Pub/Sub topic. To receive notifications, the topic must grant publish privileges to the Forms service account `serviceAccount:forms-notifications@system.gserviceaccount.com`. Only the project that owns a topic may create a watch with it. Pub/Sub delivery guarantees should be considered.",
+      ).optional(),
+    }).describe("Required. Where to send the notification.").optional(),
   }).describe(
-    "A watch for events for a form. When the designated event happens, a notification will be published to the specified target. The notification's attributes will include a `formId` key that has the ID of the watched form and an `eventType` key that has the string of the type. Messages are sent with at-least-once delivery and are only dropped in extraordinary circumstances. Typically all notifications should be reliably delivered within a few seconds; however, in some situations notifications may be delayed. A watch expires seven days after it is created unless it is renewed with watches.renew",
+    "Required. The watch object. No ID should be set on this object; use `watch_id` instead.",
   ).optional(),
   watchId: z.string().describe(
     "The ID to use for the watch. If specified, the ID must not already be in use. If not specified, an ID is generated. This value should be 4-63 characters, and valid characters are /a-z-/.",
@@ -244,7 +248,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Forms Forms.Watches. Registered at `@swamp/gcp/forms/forms-watches`. */
 export const model = {
   type: "@swamp/gcp/forms/forms-watches",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -336,6 +340,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -378,12 +387,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "formId": String(g["formId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

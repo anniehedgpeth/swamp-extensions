@@ -136,7 +136,7 @@ const GlobalArgsSchema = z.object({
     region: z.string().describe(
       "Name of the region. An example of a region value is `NY` for the state of New York.",
     ).optional(),
-  }).optional(),
+  }).describe("The customer's postal address information.").optional(),
 });
 
 const StateSchema = z.object({
@@ -215,7 +215,7 @@ const InputsSchema = z.object({
     region: z.string().describe(
       "Name of the region. An example of a region value is `NY` for the state of New York.",
     ).optional(),
-  }).optional(),
+  }).describe("The customer's postal address information.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -241,7 +241,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Customers. Registered at `@swamp/gcp/admin/customers`. */
 export const model = {
   type: "@swamp/gcp/admin/customers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

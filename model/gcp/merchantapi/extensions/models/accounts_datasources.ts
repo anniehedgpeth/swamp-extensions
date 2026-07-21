@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. The hour of the day when the data source file should be fetched. Minutes and seconds are not supported and will be ignored.",
       ).optional(),
       timeZone: z.string().describe(
         'Optional. [Time zone](https://cldr.unicode.org) used for schedule. UTC by default. For example, "America/Los_Angeles".',
@@ -211,7 +211,9 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Optional. An optional user name for fetch_uri. Used for [submitting data sources through SFTP](https://support.google.com/merchants/answer/13813117).",
       ).optional(),
-    }).describe("Fetch details to deliver the data source.").optional(),
+    }).describe(
+      "Optional. Fetch details to deliver the data source. It contains settings for `FETCH` and `GOOGLE_SHEETS` file input types. The required fields vary based on the frequency of fetching.",
+    ).optional(),
     fileInputType: z.enum([
       "FILE_INPUT_TYPE_UNSPECIFIED",
       "UPLOAD",
@@ -222,7 +224,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The file name of the data source. Required for `UPLOAD` file input type.",
     ).optional(),
   }).describe(
-    "The data specific for file data sources. This field is empty for other data source inputs.",
+    "Optional. The field is used only when data is managed through a file.",
   ).optional(),
   localInventoryDataSource: z.object({
     contentLanguage: z.string().describe(
@@ -232,10 +234,10 @@ const GlobalArgsSchema = z.object({
       "Required. Immutable. The feed label of the offers to which the local inventory is provided. Must be less than or equal to 20 uppercase letters (A-Z), numbers (0-9), and dashes (-).",
     ).optional(),
   }).describe(
-    "The local inventory data source type is only available for file inputs and can't be used to create API local inventory data sources.",
+    "The [local inventory](https://support.google.com/merchants/answer/7023001) data source.",
   ).optional(),
   merchantReviewDataSource: z.object({}).describe(
-    "The merchant review data source.",
+    "The [merchant review](https://support.google.com/merchants/answer/7045996) data source.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The name of the data source. Format: `accounts/{account}/dataSources/{datasource}`",
@@ -261,7 +263,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The list of data sources linked in the [default rule](https://support.google.com/merchants/answer/7450276). This list is ordered by the default rule priority of joining the data. It might include none or multiple references to `self` and supplemental data sources. The list must not be empty. To link the data source to the default rule, you need to add a new reference to this list (in sequential order). To unlink the data source from the default rule, you need to remove the given reference from this list. Changing the order of this list will result in changing the priority of data sources in the default rule. For example, providing the following list: [`1001`, `self`] will take attribute values from supplemental data source `1001`, and fallback to `self` if the attribute is not set in `1001`. Warning: The update (patch) and create call replaces the entire default rule setup. It doesn't work as an addition or append. If `self` is missing from the list of `take_from_data_sources`, the API will ignore attributes from the primary data source itself.",
       ).optional(),
-    }).describe("Default rule management of the data source.").optional(),
+    }).describe(
+      "Optional. Default rule management of the data source. If set, the linked data sources will be replaced. Warning: The update (patch) and create call replaces the entire default rule setup. It doesn't work as an addition or append. If `self` is missing from the list of `take_from_data_sources`, the API will ignore attributes from the primary data source itself.",
+    ).optional(),
     destinations: z.array(z.object({
       destination: z.enum([
         "DESTINATION_ENUM_UNSPECIFIED",
@@ -292,10 +296,11 @@ const GlobalArgsSchema = z.object({
     legacyLocal: z.boolean().describe(
       "Optional. Immutable. Determines whether the products of this data source are **only** targeting local destinations. Legacy local products are prefixed with `local~` in the product resource ID. For example, `accounts/123/products/local~en~US~sku123`.",
     ).optional(),
-  }).describe("The primary data source for local and online products.")
-    .optional(),
+  }).describe(
+    "The [primary data source](https://support.google.com/merchants/answer/7439058) for local and online products.",
+  ).optional(),
   productReviewDataSource: z.object({}).describe(
-    "The product review data source.",
+    "The [product review](https://support.google.com/merchants/answer/7045996) data source.",
   ).optional(),
   promotionDataSource: z.object({
     contentLanguage: z.string().describe(
@@ -304,7 +309,9 @@ const GlobalArgsSchema = z.object({
     targetCountry: z.string().describe(
       "Required. Immutable. The target country used as part of the unique identifier. Represented as a [CLDR territory code](https://github.com/unicode-org/cldr/blob/latest/common/main/en.xml). Promotions are only available in selected [countries](https://support.google.com/merchants/answer/4588460).",
     ).optional(),
-  }).describe("The promotion data source.").optional(),
+  }).describe(
+    "The [promotion](https://support.google.com/merchants/answer/2906014) data source.",
+  ).optional(),
   regionalInventoryDataSource: z.object({
     contentLanguage: z.string().describe(
       "Required. Immutable. The two-letter ISO 639-1 language of the items to which the regional inventory is provided.",
@@ -312,7 +319,9 @@ const GlobalArgsSchema = z.object({
     feedLabel: z.string().describe(
       "Required. Immutable. The feed label of the offers to which the regional inventory is provided. Must be less than or equal to 20 uppercase letters (A-Z), numbers (0-9), and dashes (-).",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The [regional inventory](https://support.google.com/merchants/answer/7439058) data source.",
+  ).optional(),
   supplementalProductDataSource: z.object({
     contentLanguage: z.string().describe(
       "Optional. Immutable. The two-letter ISO 639-1 language of the items in the data source. `feedLabel` and `contentLanguage` must be either both set or unset. The fields can only be unset for data sources without file input. If set, the data source will only accept products matching this combination. If unset, the data source will accept produts without that restriction.",
@@ -334,7 +343,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The (unordered and deduplicated) list of all primary data sources linked to this data source in either default or custom rules. Supplemental data source cannot be deleted before all links are removed.",
     ).optional(),
   }).describe(
-    "The [supplemental data source](https://developers.google.com/merchant/api/guides/data-sources/api-sources#link-supplemental-data-source) for local and online products. After creation,you should make sure to link the supplemental product data source into one or more primary product data sources.",
+    "The [supplemental data source](https://support.google.com/merchants/answer/7439058) for local and online products.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -465,7 +474,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. The hour of the day when the data source file should be fetched. Minutes and seconds are not supported and will be ignored.",
       ).optional(),
       timeZone: z.string().describe(
         'Optional. [Time zone](https://cldr.unicode.org) used for schedule. UTC by default. For example, "America/Los_Angeles".',
@@ -473,7 +482,9 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Optional. An optional user name for fetch_uri. Used for [submitting data sources through SFTP](https://support.google.com/merchants/answer/13813117).",
       ).optional(),
-    }).describe("Fetch details to deliver the data source.").optional(),
+    }).describe(
+      "Optional. Fetch details to deliver the data source. It contains settings for `FETCH` and `GOOGLE_SHEETS` file input types. The required fields vary based on the frequency of fetching.",
+    ).optional(),
     fileInputType: z.enum([
       "FILE_INPUT_TYPE_UNSPECIFIED",
       "UPLOAD",
@@ -484,7 +495,7 @@ const InputsSchema = z.object({
       "Optional. The file name of the data source. Required for `UPLOAD` file input type.",
     ).optional(),
   }).describe(
-    "The data specific for file data sources. This field is empty for other data source inputs.",
+    "Optional. The field is used only when data is managed through a file.",
   ).optional(),
   localInventoryDataSource: z.object({
     contentLanguage: z.string().describe(
@@ -494,10 +505,10 @@ const InputsSchema = z.object({
       "Required. Immutable. The feed label of the offers to which the local inventory is provided. Must be less than or equal to 20 uppercase letters (A-Z), numbers (0-9), and dashes (-).",
     ).optional(),
   }).describe(
-    "The local inventory data source type is only available for file inputs and can't be used to create API local inventory data sources.",
+    "The [local inventory](https://support.google.com/merchants/answer/7023001) data source.",
   ).optional(),
   merchantReviewDataSource: z.object({}).describe(
-    "The merchant review data source.",
+    "The [merchant review](https://support.google.com/merchants/answer/7045996) data source.",
   ).optional(),
   name: z.string().describe(
     "Required. Identifier. The name of the data source. Format: `accounts/{account}/dataSources/{datasource}`",
@@ -523,7 +534,9 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The list of data sources linked in the [default rule](https://support.google.com/merchants/answer/7450276). This list is ordered by the default rule priority of joining the data. It might include none or multiple references to `self` and supplemental data sources. The list must not be empty. To link the data source to the default rule, you need to add a new reference to this list (in sequential order). To unlink the data source from the default rule, you need to remove the given reference from this list. Changing the order of this list will result in changing the priority of data sources in the default rule. For example, providing the following list: [`1001`, `self`] will take attribute values from supplemental data source `1001`, and fallback to `self` if the attribute is not set in `1001`. Warning: The update (patch) and create call replaces the entire default rule setup. It doesn't work as an addition or append. If `self` is missing from the list of `take_from_data_sources`, the API will ignore attributes from the primary data source itself.",
       ).optional(),
-    }).describe("Default rule management of the data source.").optional(),
+    }).describe(
+      "Optional. Default rule management of the data source. If set, the linked data sources will be replaced. Warning: The update (patch) and create call replaces the entire default rule setup. It doesn't work as an addition or append. If `self` is missing from the list of `take_from_data_sources`, the API will ignore attributes from the primary data source itself.",
+    ).optional(),
     destinations: z.array(z.object({
       destination: z.enum([
         "DESTINATION_ENUM_UNSPECIFIED",
@@ -554,10 +567,11 @@ const InputsSchema = z.object({
     legacyLocal: z.boolean().describe(
       "Optional. Immutable. Determines whether the products of this data source are **only** targeting local destinations. Legacy local products are prefixed with `local~` in the product resource ID. For example, `accounts/123/products/local~en~US~sku123`.",
     ).optional(),
-  }).describe("The primary data source for local and online products.")
-    .optional(),
+  }).describe(
+    "The [primary data source](https://support.google.com/merchants/answer/7439058) for local and online products.",
+  ).optional(),
   productReviewDataSource: z.object({}).describe(
-    "The product review data source.",
+    "The [product review](https://support.google.com/merchants/answer/7045996) data source.",
   ).optional(),
   promotionDataSource: z.object({
     contentLanguage: z.string().describe(
@@ -566,7 +580,9 @@ const InputsSchema = z.object({
     targetCountry: z.string().describe(
       "Required. Immutable. The target country used as part of the unique identifier. Represented as a [CLDR territory code](https://github.com/unicode-org/cldr/blob/latest/common/main/en.xml). Promotions are only available in selected [countries](https://support.google.com/merchants/answer/4588460).",
     ).optional(),
-  }).describe("The promotion data source.").optional(),
+  }).describe(
+    "The [promotion](https://support.google.com/merchants/answer/2906014) data source.",
+  ).optional(),
   regionalInventoryDataSource: z.object({
     contentLanguage: z.string().describe(
       "Required. Immutable. The two-letter ISO 639-1 language of the items to which the regional inventory is provided.",
@@ -574,7 +590,9 @@ const InputsSchema = z.object({
     feedLabel: z.string().describe(
       "Required. Immutable. The feed label of the offers to which the regional inventory is provided. Must be less than or equal to 20 uppercase letters (A-Z), numbers (0-9), and dashes (-).",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The [regional inventory](https://support.google.com/merchants/answer/7439058) data source.",
+  ).optional(),
   supplementalProductDataSource: z.object({
     contentLanguage: z.string().describe(
       "Optional. Immutable. The two-letter ISO 639-1 language of the items in the data source. `feedLabel` and `contentLanguage` must be either both set or unset. The fields can only be unset for data sources without file input. If set, the data source will only accept products matching this combination. If unset, the data source will accept produts without that restriction.",
@@ -596,7 +614,7 @@ const InputsSchema = z.object({
       "Output only. The (unordered and deduplicated) list of all primary data sources linked to this data source in either default or custom rules. Supplemental data source cannot be deleted before all links are removed.",
     ).optional(),
   }).describe(
-    "The [supplemental data source](https://developers.google.com/merchant/api/guides/data-sources/api-sources#link-supplemental-data-source) for local and online products. After creation,you should make sure to link the supplemental product data source into one or more primary product data sources.",
+    "The [supplemental data source](https://support.google.com/merchants/answer/7439058) for local and online products.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -626,7 +644,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.DataSources. Registered at `@swamp/gcp/merchantapi/accounts-datasources`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-datasources",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

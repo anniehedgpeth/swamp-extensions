@@ -199,7 +199,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     videoGameRating: z.enum(["anyone", "m15Plus", "m16Plus", "m17Plus"])
       .describe("Video game rating, if any.").optional(),
-  }).optional(),
+  }).describe(
+    "Age restriction details related to a video. This data can only be retrieved by the video owner.",
+  ).optional(),
   brandPartner: z.object({
     channelHandle: z.string().describe(
       'Required. Channel handle, must begin with "@"',
@@ -1055,7 +1057,7 @@ const GlobalArgsSchema = z.object({
         "A rating that YouTube uses to identify age-restricted content.",
       ).optional(),
     }).describe(
-      "Ratings schemes. The country-specific ratings are mostly for movies and shows. LINT.IfChange",
+      "Specifies the ratings that the video received under various rating schemes.",
     ).optional(),
     countryRestriction: z.object({
       allowed: z.boolean().describe(
@@ -1064,7 +1066,9 @@ const GlobalArgsSchema = z.object({
       exception: z.array(z.string()).describe(
         "A list of region codes that identify countries where the default policy do not apply.",
       ).optional(),
-    }).describe("Rights management policy for YouTube resources.").optional(),
+    }).describe(
+      "The countryRestriction object contains information about the countries where a video is (or is not) viewable.",
+    ).optional(),
     definition: z.enum(["sd", "hd"]).describe(
       "The value of definition indicates whether the video is available in high definition or only in standard definition.",
     ).optional(),
@@ -1090,8 +1094,12 @@ const GlobalArgsSchema = z.object({
       blocked: z.array(z.string()).describe(
         "A list of region codes that identify countries where the video is blocked. If this property is present and a country is not listed in its value, then the video is viewable in that country. If this property is present and contains an empty list, the video is viewable in all countries.",
       ).optional(),
-    }).describe("DEPRECATED Region restriction of the video.").optional(),
-  }).describe("Details about the content of a YouTube Video.").optional(),
+    }).describe(
+      "The regionRestriction object contains information about the countries where a video is (or is not) viewable. The object will contain either the contentDetails.regionRestriction.allowed property or the contentDetails.regionRestriction.blocked property.",
+    ).optional(),
+  }).describe(
+    "The contentDetails object contains information about the video content, including the length of the video and its aspect ratio.",
+  ).optional(),
   fileDetails: z.object({
     audioStreams: z.array(z.object({
       bitrateBps: z.string().describe(
@@ -1171,7 +1179,7 @@ const GlobalArgsSchema = z.object({
       "A list of video streams contained in the uploaded video file. Each item in the list contains detailed metadata about a video stream.",
     ).optional(),
   }).describe(
-    "Describes original video file properties, including technical details about audio and video streams, but also metadata information like content length, digitization time, or geotagging information.",
+    "The fileDetails object encapsulates information about the video file that was uploaded to YouTube, including the file's resolution, duration, audio and video codecs, stream bitrates, and more. This data can only be retrieved by the video owner.",
   ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the video.",
@@ -1195,7 +1203,9 @@ const GlobalArgsSchema = z.object({
     scheduledStartTime: z.string().describe(
       "The time that the broadcast is scheduled to begin.",
     ).optional(),
-  }).describe("Details about the live streaming metadata.").optional(),
+  }).describe(
+    "The liveStreamingDetails object contains metadata about a live video broadcast. The object will only be present in a video resource if the video is an upcoming, live, or completed live broadcast.",
+  ).optional(),
   localizations: z.record(
     z.string(),
     z.object({
@@ -1216,8 +1226,12 @@ const GlobalArgsSchema = z.object({
       exception: z.array(z.string()).describe(
         "A list of region codes that identify countries where the default policy do not apply.",
       ).optional(),
-    }).describe("Rights management policy for YouTube resources.").optional(),
-  }).describe("Details about monetization of a YouTube Video.").optional(),
+    }).describe(
+      "The value of access indicates whether the video can be monetized or not.",
+    ).optional(),
+  }).describe(
+    "The monetizationDetails object encapsulates information about the monetization status of the video.",
+  ).optional(),
   paidProductPlacementDetails: z.object({
     hasPaidProductPlacement: z.boolean().describe(
       "This boolean represents whether the video contains Paid Product Placement, Studio equivalent: https://screenshot.googleplex.com/4Me79DE6AfT2ktp.png",
@@ -1231,7 +1245,9 @@ const GlobalArgsSchema = z.object({
       "An  tag that embeds a player that will play the video.",
     ).optional(),
     embedWidth: z.string().describe("The embed width").optional(),
-  }).describe("Player to be used for a video playback.").optional(),
+  }).describe(
+    "The player object contains information that you would use to play the video in an embedded player.",
+  ).optional(),
   processingDetails: z.object({
     editorSuggestionsAvailability: z.string().describe(
       "This value indicates whether video editing suggestions, which might improve video quality or the playback experience, are available for the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.",
@@ -1260,8 +1276,9 @@ const GlobalArgsSchema = z.object({
       timeLeftMs: z.string().describe(
         "An estimate of the amount of time, in millseconds, that YouTube needs to finish processing the video.",
       ).optional(),
-    }).describe("Video processing progress and completion time estimate.")
-      .optional(),
+    }).describe(
+      "The processingProgress object contains information about the progress YouTube has made in processing the video. The values are really only relevant if the video's processing status is processing.",
+    ).optional(),
     processingStatus: z.enum([
       "processing",
       "succeeded",
@@ -1277,10 +1294,10 @@ const GlobalArgsSchema = z.object({
       "This value indicates whether thumbnail images have been generated for the video.",
     ).optional(),
   }).describe(
-    "Describes processing status and progress and availability of some other Video resource parts.",
+    "The processingDetails object encapsulates information about YouTube's progress in processing the uploaded video file. The properties in the object identify the current processing status and an estimate of the time remaining until YouTube finishes processing the video. This part also indicates whether different types of data or content, such as file details or thumbnail images, are available for the video. The processingProgress object is designed to be polled so that the video uploaded can track the progress that YouTube has made in processing the uploaded video file. This data can only be retrieved by the video owner.",
   ).optional(),
   projectDetails: z.object({}).describe(
-    "DEPRECATED. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677",
+    "The projectDetails object contains information about the project specific video metadata. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677",
   ).optional(),
   recordingDetails: z.object({
     location: z.object({
@@ -1289,14 +1306,17 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       latitude: z.number().describe("Latitude in degrees.").optional(),
       longitude: z.number().describe("Longitude in degrees.").optional(),
-    }).describe("Geographical coordinates of a point, in WGS84.").optional(),
+    }).describe("The geolocation information associated with the video.")
+      .optional(),
     locationDescription: z.string().describe(
       "The text description of the location where the video was recorded.",
     ).optional(),
     recordingDate: z.string().describe(
       "The date and time when the video was recorded.",
     ).optional(),
-  }).describe("Recording information associated with the video.").optional(),
+  }).describe(
+    "The recordingDetails object encapsulates information about the location, date and address where the video was recorded.",
+  ).optional(),
   snippet: z.object({
     categoryId: z.string().describe(
       "The YouTube video category associated with the video.",
@@ -1326,8 +1346,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       title: z.string().describe("Localized version of the video's title.")
         .optional(),
-    }).describe("Localized versions of certain video properties (e.g. title).")
-      .optional(),
+    }).describe(
+      "Localized snippet selected with the hl parameter. If no such localization exists, this field is populated with the default snippet. (Read-only)",
+    ).optional(),
     publishedAt: z.string().describe(
       "The date and time when the video was uploaded.",
     ).optional(),
@@ -1343,8 +1364,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -1353,8 +1373,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -1363,7 +1382,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -1373,8 +1392,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -1383,15 +1401,15 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe(
       "The video's title. @mutable youtube.videos.insert youtube.videos.update",
     ).optional(),
   }).describe(
-    "Basic details about a video, including title, description, uploader, thumbnails and category.",
+    "The snippet object contains basic details about the video, such as its title, description, and category.",
   ).optional(),
   statistics: z.object({
     commentCount: z.string().describe("The number of comments for the video.")
@@ -1408,9 +1426,8 @@ const GlobalArgsSchema = z.object({
     viewCount: z.string().describe(
       "The number of times the video has been viewed.",
     ).optional(),
-  }).describe(
-    "Statistics about the video, such as the number of times the video was viewed or liked.",
-  ).optional(),
+  }).describe("The statistics object contains statistics about the video.")
+    .optional(),
   status: z.object({
     containsSyntheticMedia: z.boolean().describe(
       "Indicates if the video contains altered or synthetic media.",
@@ -1464,7 +1481,7 @@ const GlobalArgsSchema = z.object({
       "deleted",
     ]).describe("The status of the uploaded video.").optional(),
   }).describe(
-    "Basic details about a video category, such as its localized title. Next Id: 19",
+    "The status object contains information about the video's uploading, processing, and privacy statuses.",
   ).optional(),
   suggestions: z.object({
     editorSuggestions: z.array(
@@ -1530,7 +1547,7 @@ const GlobalArgsSchema = z.object({
       "A list of keyword tags that could be added to the video's metadata to increase the likelihood that users will locate your video when searching or browsing on YouTube.",
     ).optional(),
   }).describe(
-    "Specifies suggestions on how to improve video content, including encoding hints, tag suggestions, and editor suggestions.",
+    "The suggestions object encapsulates suggestions that identify opportunities to improve the video quality or the metadata for the uploaded video. This data can only be retrieved by the video owner.",
   ).optional(),
   topicDetails: z.object({
     relevantTopicIds: z.array(z.string()).describe(
@@ -1542,7 +1559,9 @@ const GlobalArgsSchema = z.object({
     topicIds: z.array(z.string()).describe(
       "A list of Freebase topic IDs that are centrally associated with the video. These are topics that are centrally featured in the video, and it can be said that the video is mainly about each of these. You can retrieve information about each topic using the Freebase Topic API.",
     ).optional(),
-  }).describe("Freebase topic information related to the video.").optional(),
+  }).describe(
+    "The topicDetails object encapsulates information about Freebase topics associated with the video.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Note that not all parts contain properties that can be set when inserting or updating a video. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
   ),
@@ -1834,7 +1853,9 @@ const InputsSchema = z.object({
     ).optional(),
     videoGameRating: z.enum(["anyone", "m15Plus", "m16Plus", "m17Plus"])
       .describe("Video game rating, if any.").optional(),
-  }).optional(),
+  }).describe(
+    "Age restriction details related to a video. This data can only be retrieved by the video owner.",
+  ).optional(),
   brandPartner: z.object({
     channelHandle: z.string().describe(
       'Required. Channel handle, must begin with "@"',
@@ -2690,7 +2711,7 @@ const InputsSchema = z.object({
         "A rating that YouTube uses to identify age-restricted content.",
       ).optional(),
     }).describe(
-      "Ratings schemes. The country-specific ratings are mostly for movies and shows. LINT.IfChange",
+      "Specifies the ratings that the video received under various rating schemes.",
     ).optional(),
     countryRestriction: z.object({
       allowed: z.boolean().describe(
@@ -2699,7 +2720,9 @@ const InputsSchema = z.object({
       exception: z.array(z.string()).describe(
         "A list of region codes that identify countries where the default policy do not apply.",
       ).optional(),
-    }).describe("Rights management policy for YouTube resources.").optional(),
+    }).describe(
+      "The countryRestriction object contains information about the countries where a video is (or is not) viewable.",
+    ).optional(),
     definition: z.enum(["sd", "hd"]).describe(
       "The value of definition indicates whether the video is available in high definition or only in standard definition.",
     ).optional(),
@@ -2725,8 +2748,12 @@ const InputsSchema = z.object({
       blocked: z.array(z.string()).describe(
         "A list of region codes that identify countries where the video is blocked. If this property is present and a country is not listed in its value, then the video is viewable in that country. If this property is present and contains an empty list, the video is viewable in all countries.",
       ).optional(),
-    }).describe("DEPRECATED Region restriction of the video.").optional(),
-  }).describe("Details about the content of a YouTube Video.").optional(),
+    }).describe(
+      "The regionRestriction object contains information about the countries where a video is (or is not) viewable. The object will contain either the contentDetails.regionRestriction.allowed property or the contentDetails.regionRestriction.blocked property.",
+    ).optional(),
+  }).describe(
+    "The contentDetails object contains information about the video content, including the length of the video and its aspect ratio.",
+  ).optional(),
   fileDetails: z.object({
     audioStreams: z.array(z.object({
       bitrateBps: z.string().describe(
@@ -2806,7 +2833,7 @@ const InputsSchema = z.object({
       "A list of video streams contained in the uploaded video file. Each item in the list contains detailed metadata about a video stream.",
     ).optional(),
   }).describe(
-    "Describes original video file properties, including technical details about audio and video streams, but also metadata information like content length, digitization time, or geotagging information.",
+    "The fileDetails object encapsulates information about the video file that was uploaded to YouTube, including the file's resolution, duration, audio and video codecs, stream bitrates, and more. This data can only be retrieved by the video owner.",
   ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the video.",
@@ -2830,7 +2857,9 @@ const InputsSchema = z.object({
     scheduledStartTime: z.string().describe(
       "The time that the broadcast is scheduled to begin.",
     ).optional(),
-  }).describe("Details about the live streaming metadata.").optional(),
+  }).describe(
+    "The liveStreamingDetails object contains metadata about a live video broadcast. The object will only be present in a video resource if the video is an upcoming, live, or completed live broadcast.",
+  ).optional(),
   localizations: z.record(
     z.string(),
     z.object({
@@ -2851,8 +2880,12 @@ const InputsSchema = z.object({
       exception: z.array(z.string()).describe(
         "A list of region codes that identify countries where the default policy do not apply.",
       ).optional(),
-    }).describe("Rights management policy for YouTube resources.").optional(),
-  }).describe("Details about monetization of a YouTube Video.").optional(),
+    }).describe(
+      "The value of access indicates whether the video can be monetized or not.",
+    ).optional(),
+  }).describe(
+    "The monetizationDetails object encapsulates information about the monetization status of the video.",
+  ).optional(),
   paidProductPlacementDetails: z.object({
     hasPaidProductPlacement: z.boolean().describe(
       "This boolean represents whether the video contains Paid Product Placement, Studio equivalent: https://screenshot.googleplex.com/4Me79DE6AfT2ktp.png",
@@ -2866,7 +2899,9 @@ const InputsSchema = z.object({
       "An  tag that embeds a player that will play the video.",
     ).optional(),
     embedWidth: z.string().describe("The embed width").optional(),
-  }).describe("Player to be used for a video playback.").optional(),
+  }).describe(
+    "The player object contains information that you would use to play the video in an embedded player.",
+  ).optional(),
   processingDetails: z.object({
     editorSuggestionsAvailability: z.string().describe(
       "This value indicates whether video editing suggestions, which might improve video quality or the playback experience, are available for the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.",
@@ -2895,8 +2930,9 @@ const InputsSchema = z.object({
       timeLeftMs: z.string().describe(
         "An estimate of the amount of time, in millseconds, that YouTube needs to finish processing the video.",
       ).optional(),
-    }).describe("Video processing progress and completion time estimate.")
-      .optional(),
+    }).describe(
+      "The processingProgress object contains information about the progress YouTube has made in processing the video. The values are really only relevant if the video's processing status is processing.",
+    ).optional(),
     processingStatus: z.enum([
       "processing",
       "succeeded",
@@ -2912,10 +2948,10 @@ const InputsSchema = z.object({
       "This value indicates whether thumbnail images have been generated for the video.",
     ).optional(),
   }).describe(
-    "Describes processing status and progress and availability of some other Video resource parts.",
+    "The processingDetails object encapsulates information about YouTube's progress in processing the uploaded video file. The properties in the object identify the current processing status and an estimate of the time remaining until YouTube finishes processing the video. This part also indicates whether different types of data or content, such as file details or thumbnail images, are available for the video. The processingProgress object is designed to be polled so that the video uploaded can track the progress that YouTube has made in processing the uploaded video file. This data can only be retrieved by the video owner.",
   ).optional(),
   projectDetails: z.object({}).describe(
-    "DEPRECATED. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677",
+    "The projectDetails object contains information about the project specific video metadata. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677",
   ).optional(),
   recordingDetails: z.object({
     location: z.object({
@@ -2924,14 +2960,17 @@ const InputsSchema = z.object({
       ).optional(),
       latitude: z.number().describe("Latitude in degrees.").optional(),
       longitude: z.number().describe("Longitude in degrees.").optional(),
-    }).describe("Geographical coordinates of a point, in WGS84.").optional(),
+    }).describe("The geolocation information associated with the video.")
+      .optional(),
     locationDescription: z.string().describe(
       "The text description of the location where the video was recorded.",
     ).optional(),
     recordingDate: z.string().describe(
       "The date and time when the video was recorded.",
     ).optional(),
-  }).describe("Recording information associated with the video.").optional(),
+  }).describe(
+    "The recordingDetails object encapsulates information about the location, date and address where the video was recorded.",
+  ).optional(),
   snippet: z.object({
     categoryId: z.string().describe(
       "The YouTube video category associated with the video.",
@@ -2961,8 +3000,9 @@ const InputsSchema = z.object({
       ).optional(),
       title: z.string().describe("Localized version of the video's title.")
         .optional(),
-    }).describe("Localized versions of certain video properties (e.g. title).")
-      .optional(),
+    }).describe(
+      "Localized snippet selected with the hl parameter. If no such localization exists, this field is populated with the default snippet. (Read-only)",
+    ).optional(),
     publishedAt: z.string().describe(
       "The date and time when the video was uploaded.",
     ).optional(),
@@ -2978,8 +3018,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -2988,8 +3027,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -2998,7 +3036,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -3008,8 +3046,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -3018,15 +3055,15 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe(
       "The video's title. @mutable youtube.videos.insert youtube.videos.update",
     ).optional(),
   }).describe(
-    "Basic details about a video, including title, description, uploader, thumbnails and category.",
+    "The snippet object contains basic details about the video, such as its title, description, and category.",
   ).optional(),
   statistics: z.object({
     commentCount: z.string().describe("The number of comments for the video.")
@@ -3043,9 +3080,8 @@ const InputsSchema = z.object({
     viewCount: z.string().describe(
       "The number of times the video has been viewed.",
     ).optional(),
-  }).describe(
-    "Statistics about the video, such as the number of times the video was viewed or liked.",
-  ).optional(),
+  }).describe("The statistics object contains statistics about the video.")
+    .optional(),
   status: z.object({
     containsSyntheticMedia: z.boolean().describe(
       "Indicates if the video contains altered or synthetic media.",
@@ -3099,7 +3135,7 @@ const InputsSchema = z.object({
       "deleted",
     ]).describe("The status of the uploaded video.").optional(),
   }).describe(
-    "Basic details about a video category, such as its localized title. Next Id: 19",
+    "The status object contains information about the video's uploading, processing, and privacy statuses.",
   ).optional(),
   suggestions: z.object({
     editorSuggestions: z.array(
@@ -3165,7 +3201,7 @@ const InputsSchema = z.object({
       "A list of keyword tags that could be added to the video's metadata to increase the likelihood that users will locate your video when searching or browsing on YouTube.",
     ).optional(),
   }).describe(
-    "Specifies suggestions on how to improve video content, including encoding hints, tag suggestions, and editor suggestions.",
+    "The suggestions object encapsulates suggestions that identify opportunities to improve the video quality or the metadata for the uploaded video. This data can only be retrieved by the video owner.",
   ).optional(),
   topicDetails: z.object({
     relevantTopicIds: z.array(z.string()).describe(
@@ -3177,7 +3213,9 @@ const InputsSchema = z.object({
     topicIds: z.array(z.string()).describe(
       "A list of Freebase topic IDs that are centrally associated with the video. These are topics that are centrally featured in the video, and it can be said that the video is mainly about each of these. You can retrieve information about each topic using the Freebase Topic API.",
     ).optional(),
-  }).describe("Freebase topic information related to the video.").optional(),
+  }).describe(
+    "The topicDetails object encapsulates information about Freebase topics associated with the video.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Note that not all parts contain properties that can be set when inserting or updating a video. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
   ).optional(),
@@ -3220,7 +3258,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Videos. Registered at `@swamp/gcp/youtube/videos`. */
 export const model = {
   type: "@swamp/gcp/youtube/videos",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3340,6 +3378,11 @@ export const model = {
       description: "Added: brandPartner",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3431,12 +3474,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

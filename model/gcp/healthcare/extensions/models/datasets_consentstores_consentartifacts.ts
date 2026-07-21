@@ -158,7 +158,7 @@ const GlobalArgsSchema = z.object({
       rawBytes: z.string().describe(
         "Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.",
       ).optional(),
-    }).describe("Raw bytes representing consent artifact content.").optional(),
+    }).describe("Optional. An image of the user's signature.").optional(),
     metadata: z.record(z.string(), z.string()).describe(
       "Optional. Metadata associated with the user's signature. For example, the user's name or the user's title.",
     ).optional(),
@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
       .optional(),
     userId: z.string().describe("Required. User's UUID provided by the client.")
       .optional(),
-  }).describe("User signature.").optional(),
+  }).describe("Optional. A signature from a guardian.").optional(),
   metadata: z.record(z.string(), z.string()).describe(
     "Optional. Metadata associated with the Consent artifact. For example, the consent locale or user agent version.",
   ).optional(),
@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
       rawBytes: z.string().describe(
         "Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.",
       ).optional(),
-    }).describe("Raw bytes representing consent artifact content.").optional(),
+    }).describe("Optional. An image of the user's signature.").optional(),
     metadata: z.record(z.string(), z.string()).describe(
       "Optional. Metadata associated with the user's signature. For example, the user's name or the user's title.",
     ).optional(),
@@ -191,7 +191,7 @@ const GlobalArgsSchema = z.object({
       .optional(),
     userId: z.string().describe("Required. User's UUID provided by the client.")
       .optional(),
-  }).describe("User signature.").optional(),
+  }).describe("Optional. User's signature.").optional(),
   witnessSignature: z.object({
     image: z.object({
       gcsUri: z.string().describe(
@@ -200,7 +200,7 @@ const GlobalArgsSchema = z.object({
       rawBytes: z.string().describe(
         "Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.",
       ).optional(),
-    }).describe("Raw bytes representing consent artifact content.").optional(),
+    }).describe("Optional. An image of the user's signature.").optional(),
     metadata: z.record(z.string(), z.string()).describe(
       "Optional. Metadata associated with the user's signature. For example, the user's name or the user's title.",
     ).optional(),
@@ -208,7 +208,7 @@ const GlobalArgsSchema = z.object({
       .optional(),
     userId: z.string().describe("Required. User's UUID provided by the client.")
       .optional(),
-  }).describe("User signature.").optional(),
+  }).describe("Optional. A signature from a witness.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -283,7 +283,7 @@ const InputsSchema = z.object({
       rawBytes: z.string().describe(
         "Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.",
       ).optional(),
-    }).describe("Raw bytes representing consent artifact content.").optional(),
+    }).describe("Optional. An image of the user's signature.").optional(),
     metadata: z.record(z.string(), z.string()).describe(
       "Optional. Metadata associated with the user's signature. For example, the user's name or the user's title.",
     ).optional(),
@@ -291,7 +291,7 @@ const InputsSchema = z.object({
       .optional(),
     userId: z.string().describe("Required. User's UUID provided by the client.")
       .optional(),
-  }).describe("User signature.").optional(),
+  }).describe("Optional. A signature from a guardian.").optional(),
   metadata: z.record(z.string(), z.string()).describe(
     "Optional. Metadata associated with the Consent artifact. For example, the consent locale or user agent version.",
   ).optional(),
@@ -308,7 +308,7 @@ const InputsSchema = z.object({
       rawBytes: z.string().describe(
         "Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.",
       ).optional(),
-    }).describe("Raw bytes representing consent artifact content.").optional(),
+    }).describe("Optional. An image of the user's signature.").optional(),
     metadata: z.record(z.string(), z.string()).describe(
       "Optional. Metadata associated with the user's signature. For example, the user's name or the user's title.",
     ).optional(),
@@ -316,7 +316,7 @@ const InputsSchema = z.object({
       .optional(),
     userId: z.string().describe("Required. User's UUID provided by the client.")
       .optional(),
-  }).describe("User signature.").optional(),
+  }).describe("Optional. User's signature.").optional(),
   witnessSignature: z.object({
     image: z.object({
       gcsUri: z.string().describe(
@@ -325,7 +325,7 @@ const InputsSchema = z.object({
       rawBytes: z.string().describe(
         "Consent artifact content represented as a stream of bytes. This field is populated when returned in GetConsentArtifact response, but not included in CreateConsentArtifact and ListConsentArtifact response.",
       ).optional(),
-    }).describe("Raw bytes representing consent artifact content.").optional(),
+    }).describe("Optional. An image of the user's signature.").optional(),
     metadata: z.record(z.string(), z.string()).describe(
       "Optional. Metadata associated with the user's signature. For example, the user's name or the user's title.",
     ).optional(),
@@ -333,7 +333,7 @@ const InputsSchema = z.object({
       .optional(),
     userId: z.string().describe("Required. User's UUID provided by the client.")
       .optional(),
-  }).describe("User signature.").optional(),
+  }).describe("Optional. A signature from a witness.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -365,7 +365,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Healthcare Datasets.ConsentStores.ConsentArtifacts. Registered at `@swamp/gcp/healthcare/datasets-consentstores-consentartifacts`. */
 export const model = {
   type: "@swamp/gcp/healthcare/datasets-consentstores-consentartifacts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -469,6 +469,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

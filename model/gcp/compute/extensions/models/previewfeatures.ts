@@ -160,8 +160,8 @@ const GlobalArgsSchema = z.object({
         "ROLLOUT_PLAN_TWO_DAY_ROLLOUT",
         "ROLLOUT_PLAN_UNSPECIFIED",
       ]).describe("Predefined rollout plan.").optional(),
-    }).describe("Represents the input for the rollout operation.").optional(),
-  }).describe("Represents the rollout operation").optional(),
+    }).describe("Input only. The input for the rollout operation.").optional(),
+  }).describe("Rollout operation of the feature.").optional(),
   selfLink: z.string().describe(
     "Output only. [Output Only] Server-defined URL for the resource.",
   ).optional(),
@@ -187,10 +187,10 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Output only. The last date when a feature transitioned between ReleaseStatuses.",
       ).optional(),
     }).describe("[Output Only] The release status of the feature.").optional(),
-  }).describe("[Output Only] The status of the feature.").optional(),
+  }).describe("Output only. [Output only] Status of the feature.").optional(),
 });
 
 const StateSchema = z.object({
@@ -257,8 +257,8 @@ const InputsSchema = z.object({
         "ROLLOUT_PLAN_TWO_DAY_ROLLOUT",
         "ROLLOUT_PLAN_UNSPECIFIED",
       ]).describe("Predefined rollout plan.").optional(),
-    }).describe("Represents the input for the rollout operation.").optional(),
-  }).describe("Represents the rollout operation").optional(),
+    }).describe("Input only. The input for the rollout operation.").optional(),
+  }).describe("Rollout operation of the feature.").optional(),
   selfLink: z.string().describe(
     "Output only. [Output Only] Server-defined URL for the resource.",
   ).optional(),
@@ -284,10 +284,10 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Output only. The last date when a feature transitioned between ReleaseStatuses.",
       ).optional(),
     }).describe("[Output Only] The release status of the feature.").optional(),
-  }).describe("[Output Only] The status of the feature.").optional(),
+  }).describe("Output only. [Output only] Status of the feature.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -313,7 +313,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine PreviewFeatures. Registered at `@swamp/gcp/compute/previewfeatures`. */
 export const model = {
   type: "@swamp/gcp/compute/previewfeatures",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -412,6 +412,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

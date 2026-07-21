@@ -183,14 +183,14 @@ const GlobalArgsSchema = z.object({
       "Optional. Output only. A map of AWS volume tags.",
     ).optional(),
     volumeId: z.string().describe("Required. AWS volume ID.").optional(),
-  }).describe("Represents the source AWS Disk details.").optional(),
+  }).describe("Details of the unattached AWS source disk.").optional(),
   targetDetails: z.object({
     encryption: z.object({
       kmsKey: z.string().describe(
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
     }).describe(
-      "Encryption message describes the details of the applied encryption.",
+      "Optional. The encryption to apply to the disk. If the DiskMigrationJob parent Source resource has an encryption, this field must be set to the same encryption key.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Optional. A map of labels to associate with the disk.",
@@ -213,11 +213,12 @@ const GlobalArgsSchema = z.object({
       zone: z.string().describe(
         "Required. The Compute Engine zone in which to create the disk. Should be of the form: projects/{target-project}/locations/{zone}",
       ).optional(),
-    }).describe("Compute Engine disk target details.").optional(),
+    }).describe("Required. The target disk.").optional(),
     targetProject: z.string().describe(
       "Required. The name of the resource of type TargetProject which represents the Compute Engine project in which to create the disk. Should be of the form: projects/{project}/locations/global/targetProjects/{target-project}",
     ).optional(),
-  }).describe("Details of the target disk in Compute Engine.").optional(),
+  }).describe("Required. Details of the target Disk in Compute Engine.")
+    .optional(),
   diskMigrationJobId: z.string().describe(
     "Required. The DiskMigrationJob identifier. The maximum length of this value is 63 characters. Valid characters are lower case Latin letters, digits and hyphen. It must start with a Latin letter and must not end with a hyphen.",
   ).optional(),
@@ -294,14 +295,14 @@ const InputsSchema = z.object({
       "Optional. Output only. A map of AWS volume tags.",
     ).optional(),
     volumeId: z.string().describe("Required. AWS volume ID.").optional(),
-  }).describe("Represents the source AWS Disk details.").optional(),
+  }).describe("Details of the unattached AWS source disk.").optional(),
   targetDetails: z.object({
     encryption: z.object({
       kmsKey: z.string().describe(
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
     }).describe(
-      "Encryption message describes the details of the applied encryption.",
+      "Optional. The encryption to apply to the disk. If the DiskMigrationJob parent Source resource has an encryption, this field must be set to the same encryption key.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Optional. A map of labels to associate with the disk.",
@@ -324,11 +325,12 @@ const InputsSchema = z.object({
       zone: z.string().describe(
         "Required. The Compute Engine zone in which to create the disk. Should be of the form: projects/{target-project}/locations/{zone}",
       ).optional(),
-    }).describe("Compute Engine disk target details.").optional(),
+    }).describe("Required. The target disk.").optional(),
     targetProject: z.string().describe(
       "Required. The name of the resource of type TargetProject which represents the Compute Engine project in which to create the disk. Should be of the form: projects/{project}/locations/global/targetProjects/{target-project}",
     ).optional(),
-  }).describe("Details of the target disk in Compute Engine.").optional(),
+  }).describe("Required. Details of the target Disk in Compute Engine.")
+    .optional(),
   diskMigrationJobId: z.string().describe(
     "Required. The DiskMigrationJob identifier. The maximum length of this value is 63 characters. Valid characters are lower case Latin letters, digits and hyphen. It must start with a Latin letter and must not end with a hyphen.",
   ).optional(),
@@ -366,7 +368,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources.DiskMigrationJobs. Registered at `@swamp/gcp/vmmigration/sources-diskmigrationjobs`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources-diskmigrationjobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -473,6 +475,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -531,14 +538,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

@@ -207,29 +207,7 @@ const GlobalArgsSchema = z.object({
       "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
     ).optional(),
   }).describe(
-    "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
-  ).optional(),
-  encryptionInfo: z.object({
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. Type of encryption.").optional(),
-    kmsKeyVersions: z.array(z.string()).describe(
-      "Output only. Cloud KMS key versions that are being used to protect the database or the backup.",
-    ).optional(),
-  }).describe(
-    "EncryptionInfo describes the encryption information of a cluster or a backup.",
-  ).optional(),
-  expiryQuantity: z.object({
-    retentionCount: z.number().int().describe(
-      "Output only. The backup's position among its backups with the same source cluster and type, by descending chronological order create time(i.e. newest first).",
-    ).optional(),
-    totalRetentionCount: z.number().int().describe(
-      "Output only. The length of the quantity-based queue, specified by the backup's retention policy.",
-    ).optional(),
-  }).describe(
-    "A backup's position in a quantity-based retention queue, of backups with the same source cluster and type, with length, retention, specified by the backup's retention policy. Once the position is greater than the retention, the backup is eligible to be garbage collected. Example: 5 backups from the same source cluster and type with a quantity-based retention of 3 and denoted by backup_id (position, retention). Safe: backup_5 (1, 3), backup_4, (2, 3), backup_3 (3, 3). Awaiting garbage collection: backup_2 (4, 3), backup_1 (5, 3)",
+    "Optional. The encryption config can be specified to encrypt the backup with a customer-managed encryption key (CMEK). When this field is not specified, the backup will then use default encryption scheme to protect the user data.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels as key value pairs")
     .optional(),
@@ -308,29 +286,7 @@ const InputsSchema = z.object({
       "The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
     ).optional(),
   }).describe(
-    "EncryptionConfig describes the encryption config of a cluster or a backup that is encrypted with a CMEK (customer-managed encryption key).",
-  ).optional(),
-  encryptionInfo: z.object({
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. Type of encryption.").optional(),
-    kmsKeyVersions: z.array(z.string()).describe(
-      "Output only. Cloud KMS key versions that are being used to protect the database or the backup.",
-    ).optional(),
-  }).describe(
-    "EncryptionInfo describes the encryption information of a cluster or a backup.",
-  ).optional(),
-  expiryQuantity: z.object({
-    retentionCount: z.number().int().describe(
-      "Output only. The backup's position among its backups with the same source cluster and type, by descending chronological order create time(i.e. newest first).",
-    ).optional(),
-    totalRetentionCount: z.number().int().describe(
-      "Output only. The length of the quantity-based queue, specified by the backup's retention policy.",
-    ).optional(),
-  }).describe(
-    "A backup's position in a quantity-based retention queue, of backups with the same source cluster and type, with length, retention, specified by the backup's retention policy. Once the position is greater than the retention, the backup is eligible to be garbage collected. Example: 5 backups from the same source cluster and type with a quantity-based retention of 3 and denoted by backup_id (position, retention). Safe: backup_5 (1, 3), backup_4, (2, 3), backup_3 (3, 3). Awaiting garbage collection: backup_2 (4, 3), backup_1 (5, 3)",
+    "Optional. The encryption config can be specified to encrypt the backup with a customer-managed encryption key (CMEK). When this field is not specified, the backup will then use default encryption scheme to protect the user data.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels as key value pairs")
     .optional(),
@@ -373,7 +329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB Backups. Registered at `@swamp/gcp/alloydb/backups`. */
 export const model = {
   type: "@swamp/gcp/alloydb/backups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -480,6 +436,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: encryptionInfo, expiryQuantity",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          encryptionInfo: _encryptionInfo,
+          expiryQuantity: _expiryQuantity,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -522,12 +490,6 @@ export const model = {
         }
         if (g["encryptionConfig"] !== undefined) {
           body["encryptionConfig"] = g["encryptionConfig"];
-        }
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
-        if (g["expiryQuantity"] !== undefined) {
-          body["expiryQuantity"] = g["expiryQuantity"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
@@ -671,12 +633,6 @@ export const model = {
         }
         if (g["encryptionConfig"] !== undefined) {
           body["encryptionConfig"] = g["encryptionConfig"];
-        }
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
-        if (g["expiryQuantity"] !== undefined) {
-          body["expiryQuantity"] = g["expiryQuantity"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["type"] !== undefined) body["type"] = g["type"];

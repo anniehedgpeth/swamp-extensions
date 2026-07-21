@@ -187,7 +187,7 @@ const GlobalArgsSchema = z.object({
           "Sources that this EgressPolicy authorizes access from. If this field is not empty, then `source_restriction` must be set to `SOURCE_RESTRICTION_ENABLED`.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.",
+        "Defines conditions on the source of a request causing this EgressPolicy to apply.",
       ).optional(),
       egressTo: z.object({
         externalResources: z.array(z.unknown()).describe(
@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding EgressFrom. are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the `resources` specified. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed. The request must match `operations` AND `resources` fields in order to be allowed egress out of the perimeter.",
+        "Defines the conditions on the ApiOperation and destination resources that cause this EgressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the egress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -228,7 +228,7 @@ const GlobalArgsSchema = z.object({
           "Sources that this IngressPolicy authorizes access from.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in `sources` AND identity related fields in order to match.",
+        "Defines the conditions on the source of a request causing this IngressPolicy to apply.",
       ).optional(),
       ingressTo: z.object({
         operations: z.array(z.unknown()).describe(
@@ -241,7 +241,7 @@ const GlobalArgsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding IngressFrom are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the target resource of the request. The request must satisfy what is defined in `operations` AND `resources` in order to match.",
+        "Defines the conditions on the ApiOperation and request destination that cause this IngressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the ingress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -280,11 +280,9 @@ const GlobalArgsSchema = z.object({
         ]),
       ).describe("Defines the enforcement scopes of service patterns.")
         .optional(),
-    }).describe(
-      "Specifies how APIs are allowed to communicate within the Service Perimeter.",
-    ).optional(),
+    }).describe("Configuration for APIs allowed within Perimeter.").optional(),
   }).describe(
-    "`ServicePerimeterConfig` specifies a set of Google Cloud resources that describe specific Service Perimeter configuration.",
+    'Proposed (or dry run) ServicePerimeter configuration. This configuration allows to specify and test ServicePerimeter configuration without enforcing actual access restrictions. Only allowed to be set when the "use_explicit_dry_run_spec" flag is set.',
   ).optional(),
   status: z.object({
     accessLevels: z.array(z.string()).describe(
@@ -314,7 +312,7 @@ const GlobalArgsSchema = z.object({
           "Sources that this EgressPolicy authorizes access from. If this field is not empty, then `source_restriction` must be set to `SOURCE_RESTRICTION_ENABLED`.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.",
+        "Defines conditions on the source of a request causing this EgressPolicy to apply.",
       ).optional(),
       egressTo: z.object({
         externalResources: z.array(z.unknown()).describe(
@@ -330,7 +328,7 @@ const GlobalArgsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding EgressFrom. are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the `resources` specified. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed. The request must match `operations` AND `resources` fields in order to be allowed egress out of the perimeter.",
+        "Defines the conditions on the ApiOperation and destination resources that cause this EgressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the egress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -355,7 +353,7 @@ const GlobalArgsSchema = z.object({
           "Sources that this IngressPolicy authorizes access from.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in `sources` AND identity related fields in order to match.",
+        "Defines the conditions on the source of a request causing this IngressPolicy to apply.",
       ).optional(),
       ingressTo: z.object({
         operations: z.array(z.unknown()).describe(
@@ -368,7 +366,7 @@ const GlobalArgsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding IngressFrom are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the target resource of the request. The request must satisfy what is defined in `operations` AND `resources` in order to match.",
+        "Defines the conditions on the ApiOperation and request destination that cause this IngressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the ingress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -407,11 +405,9 @@ const GlobalArgsSchema = z.object({
         ]),
       ).describe("Defines the enforcement scopes of service patterns.")
         .optional(),
-    }).describe(
-      "Specifies how APIs are allowed to communicate within the Service Perimeter.",
-    ).optional(),
+    }).describe("Configuration for APIs allowed within Perimeter.").optional(),
   }).describe(
-    "`ServicePerimeterConfig` specifies a set of Google Cloud resources that describe specific Service Perimeter configuration.",
+    "Current ServicePerimeter configuration. Specifies sets of resources, restricted services and access levels that determine perimeter content and boundaries.",
   ).optional(),
   title: z.string().describe(
     "Human readable title. Must be unique within the Policy.",
@@ -564,7 +560,7 @@ const InputsSchema = z.object({
           "Sources that this EgressPolicy authorizes access from. If this field is not empty, then `source_restriction` must be set to `SOURCE_RESTRICTION_ENABLED`.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.",
+        "Defines conditions on the source of a request causing this EgressPolicy to apply.",
       ).optional(),
       egressTo: z.object({
         externalResources: z.array(z.unknown()).describe(
@@ -580,7 +576,7 @@ const InputsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding EgressFrom. are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the `resources` specified. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed. The request must match `operations` AND `resources` fields in order to be allowed egress out of the perimeter.",
+        "Defines the conditions on the ApiOperation and destination resources that cause this EgressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the egress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -605,7 +601,7 @@ const InputsSchema = z.object({
           "Sources that this IngressPolicy authorizes access from.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in `sources` AND identity related fields in order to match.",
+        "Defines the conditions on the source of a request causing this IngressPolicy to apply.",
       ).optional(),
       ingressTo: z.object({
         operations: z.array(z.unknown()).describe(
@@ -618,7 +614,7 @@ const InputsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding IngressFrom are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the target resource of the request. The request must satisfy what is defined in `operations` AND `resources` in order to match.",
+        "Defines the conditions on the ApiOperation and request destination that cause this IngressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the ingress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -657,11 +653,9 @@ const InputsSchema = z.object({
         ]),
       ).describe("Defines the enforcement scopes of service patterns.")
         .optional(),
-    }).describe(
-      "Specifies how APIs are allowed to communicate within the Service Perimeter.",
-    ).optional(),
+    }).describe("Configuration for APIs allowed within Perimeter.").optional(),
   }).describe(
-    "`ServicePerimeterConfig` specifies a set of Google Cloud resources that describe specific Service Perimeter configuration.",
+    'Proposed (or dry run) ServicePerimeter configuration. This configuration allows to specify and test ServicePerimeter configuration without enforcing actual access restrictions. Only allowed to be set when the "use_explicit_dry_run_spec" flag is set.',
   ).optional(),
   status: z.object({
     accessLevels: z.array(z.string()).describe(
@@ -691,7 +685,7 @@ const InputsSchema = z.object({
           "Sources that this EgressPolicy authorizes access from. If this field is not empty, then `source_restriction` must be set to `SOURCE_RESTRICTION_ENABLED`.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.",
+        "Defines conditions on the source of a request causing this EgressPolicy to apply.",
       ).optional(),
       egressTo: z.object({
         externalResources: z.array(z.unknown()).describe(
@@ -707,7 +701,7 @@ const InputsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding EgressFrom. are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an EgressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the `resources` specified. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed. The request must match `operations` AND `resources` fields in order to be allowed egress out of the perimeter.",
+        "Defines the conditions on the ApiOperation and destination resources that cause this EgressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the egress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -732,7 +726,7 @@ const InputsSchema = z.object({
           "Sources that this IngressPolicy authorizes access from.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in `sources` AND identity related fields in order to match.",
+        "Defines the conditions on the source of a request causing this IngressPolicy to apply.",
       ).optional(),
       ingressTo: z.object({
         operations: z.array(z.unknown()).describe(
@@ -745,7 +739,7 @@ const InputsSchema = z.object({
           "IAM roles that represent the set of operations that the sources specified in the corresponding IngressFrom are allowed to perform in this ServicePerimeter.",
         ).optional(),
       }).describe(
-        "Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the target resource of the request. The request must satisfy what is defined in `operations` AND `resources` in order to match.",
+        "Defines the conditions on the ApiOperation and request destination that cause this IngressPolicy to apply.",
       ).optional(),
       title: z.string().describe(
         "Optional. Human-readable title for the ingress rule. The title must be unique within the perimeter and can not exceed 100 characters. Within the access policy, the combined length of all rule titles must not exceed 240,000 characters.",
@@ -784,11 +778,9 @@ const InputsSchema = z.object({
         ]),
       ).describe("Defines the enforcement scopes of service patterns.")
         .optional(),
-    }).describe(
-      "Specifies how APIs are allowed to communicate within the Service Perimeter.",
-    ).optional(),
+    }).describe("Configuration for APIs allowed within Perimeter.").optional(),
   }).describe(
-    "`ServicePerimeterConfig` specifies a set of Google Cloud resources that describe specific Service Perimeter configuration.",
+    "Current ServicePerimeter configuration. Specifies sets of resources, restricted services and access levels that determine perimeter content and boundaries.",
   ).optional(),
   title: z.string().describe(
     "Human readable title. Must be unique within the Policy.",
@@ -824,7 +816,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager AccessPolicies.ServicePerimeters. Registered at `@swamp/gcp/accesscontextmanager/accesspolicies-serviceperimeters`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/accesspolicies-serviceperimeters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -973,6 +965,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

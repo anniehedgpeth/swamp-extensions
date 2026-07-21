@@ -167,16 +167,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  assetStatus: z.object({
-    activeAssets: z.number().int().describe("Number of active assets.")
-      .optional(),
-    securityPolicyApplyingAssets: z.number().int().describe(
-      "Number of assets that are in process of updating the security policy on attached resources.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
-  }).describe("Aggregated status of the underlying assets of a lake or zone.")
-    .optional(),
   description: z.string().describe("Optional. Description of the lake.")
     .optional(),
   displayName: z.string().describe("Optional. User friendly display name.")
@@ -189,22 +179,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A relative reference to the Dataproc Metastore (https://cloud.google.com/dataproc-metastore/docs) service associated with the lake: projects/{project_id}/locations/{location_id}/services/{service_id}",
     ).optional(),
   }).describe(
-    "Settings to manage association of Dataproc Metastore with a lake.",
-  ).optional(),
-  metastoreStatus: z.object({
-    endpoint: z.string().describe(
-      "The URI of the endpoint used to access the Metastore service.",
-    ).optional(),
-    message: z.string().describe(
-      "Additional information about the current status.",
-    ).optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "NONE", "READY", "UPDATING", "ERROR"])
-      .describe("Current state of association.").optional(),
-    updateTime: z.string().describe(
-      "Last update time of the metastore status of the lake.",
-    ).optional(),
-  }).describe(
-    "Status of Lake and Dataproc Metastore service instance association.",
+    "Optional. Settings to manage lake and Dataproc Metastore service instance association.",
   ).optional(),
   lakeId: z.string().describe(
     "Required. Lake identifier. This ID will be used to generate names such as database and dataset names when publishing metadata to Hive Metastore and BigQuery. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must end with a number or a letter. * Must be between 1-63 characters. * Must be unique within the customer project / location.",
@@ -248,16 +223,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  assetStatus: z.object({
-    activeAssets: z.number().int().describe("Number of active assets.")
-      .optional(),
-    securityPolicyApplyingAssets: z.number().int().describe(
-      "Number of assets that are in process of updating the security policy on attached resources.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
-  }).describe("Aggregated status of the underlying assets of a lake or zone.")
-    .optional(),
   description: z.string().describe("Optional. Description of the lake.")
     .optional(),
   displayName: z.string().describe("Optional. User friendly display name.")
@@ -270,22 +235,7 @@ const InputsSchema = z.object({
       "Optional. A relative reference to the Dataproc Metastore (https://cloud.google.com/dataproc-metastore/docs) service associated with the lake: projects/{project_id}/locations/{location_id}/services/{service_id}",
     ).optional(),
   }).describe(
-    "Settings to manage association of Dataproc Metastore with a lake.",
-  ).optional(),
-  metastoreStatus: z.object({
-    endpoint: z.string().describe(
-      "The URI of the endpoint used to access the Metastore service.",
-    ).optional(),
-    message: z.string().describe(
-      "Additional information about the current status.",
-    ).optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "NONE", "READY", "UPDATING", "ERROR"])
-      .describe("Current state of association.").optional(),
-    updateTime: z.string().describe(
-      "Last update time of the metastore status of the lake.",
-    ).optional(),
-  }).describe(
-    "Status of Lake and Dataproc Metastore service instance association.",
+    "Optional. Settings to manage lake and Dataproc Metastore service instance association.",
   ).optional(),
   lakeId: z.string().describe(
     "Required. Lake identifier. This ID will be used to generate names such as database and dataset names when publishing metadata to Hive Metastore and BigQuery. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must end with a number or a letter. * Must be between 1-63 characters. * Must be unique within the customer project / location.",
@@ -318,7 +268,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Lakes. Registered at `@swamp/gcp/dataplex/lakes`. */
 export const model = {
   type: "@swamp/gcp/dataplex/lakes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -425,6 +375,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: assetStatus, metastoreStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          assetStatus: _assetStatus,
+          metastoreStatus: _metastoreStatus,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -454,9 +416,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["assetStatus"] !== undefined) {
-          body["assetStatus"] = g["assetStatus"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -465,9 +424,6 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["metastore"] !== undefined) body["metastore"] = g["metastore"];
-        if (g["metastoreStatus"] !== undefined) {
-          body["metastoreStatus"] = g["metastoreStatus"];
-        }
         if (g["lakeId"] !== undefined) params["lakeId"] = String(g["lakeId"]);
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -588,9 +544,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["assetStatus"] !== undefined) {
-          body["assetStatus"] = g["assetStatus"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -599,9 +552,6 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["metastore"] !== undefined) body["metastore"] = g["metastore"];
-        if (g["metastoreStatus"] !== undefined) {
-          body["metastoreStatus"] = g["metastoreStatus"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

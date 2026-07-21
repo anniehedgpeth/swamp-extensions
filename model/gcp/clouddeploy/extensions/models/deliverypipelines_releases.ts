@@ -145,254 +145,6 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Optional. List of artifacts to pass through to Skaffold command.",
   ).optional(),
-  condition: z.object({
-    dockerVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    helmVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    kptVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    kubectlVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    kustomizeVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    releaseReadyCondition: z.object({
-      status: z.boolean().describe(
-        "True if the Release is in a valid state. Otherwise at least one condition in `ReleaseCondition` is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Release.",
-      ).optional(),
-    }).describe(
-      "ReleaseReadyCondition contains information around the status of the Release. If a release is not ready, you cannot create a rollout with the release.",
-    ).optional(),
-    skaffoldSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "The time at which this release's version of Skaffold will enter maintenance mode.",
-      ).optional(),
-      skaffoldSupportState: z.enum([
-        "SKAFFOLD_SUPPORT_STATE_UNSPECIFIED",
-        "SKAFFOLD_SUPPORT_STATE_SUPPORTED",
-        "SKAFFOLD_SUPPORT_STATE_MAINTENANCE_MODE",
-        "SKAFFOLD_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "The Skaffold support state for this release's version of Skaffold.",
-      ).optional(),
-      status: z.boolean().describe(
-        "True if the version of Skaffold used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "The time at which this release's version of Skaffold will no longer be supported.",
-      ).optional(),
-    }).describe(
-      "SkaffoldSupportedCondition contains information about when support for the release's version of Skaffold ends.",
-    ).optional(),
-    skaffoldVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-  }).describe("ReleaseCondition contains all conditions relevant to a Release.")
-    .optional(),
-  deliveryPipelineSnapshot: z.object({
-    annotations: z.record(z.string(), z.string()).describe(
-      "Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy.",
-    ).optional(),
-    condition: z.object({
-      pipelineReadyCondition: z.object({
-        status: z.boolean().describe(
-          "True if the Pipeline is in a valid state. Otherwise at least one condition in `PipelineCondition` is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Pipeline.",
-        ).optional(),
-        updateTime: z.string().describe("Last time the condition was updated.")
-          .optional(),
-      }).describe(
-        "PipelineReadyCondition contains information around the status of the Pipeline.",
-      ).optional(),
-      targetsPresentCondition: z.object({
-        missingTargets: z.array(z.string()).describe(
-          "The list of Target names that do not exist. For example, `projects/{project_id}/locations/{location_name}/targets/{target_name}`.",
-        ).optional(),
-        status: z.boolean().describe(
-          "True if there aren't any missing Targets.",
-        ).optional(),
-        updateTime: z.string().describe("Last time the condition was updated.")
-          .optional(),
-      }).describe(
-        "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-      ).optional(),
-      targetsTypeCondition: z.object({
-        errorDetails: z.string().describe("Human readable error message.")
-          .optional(),
-        status: z.boolean().describe(
-          "True if the targets are all a comparable type. For example this is true if all targets are GKE clusters. This is false if some targets are Cloud Run targets and others are GKE clusters.",
-        ).optional(),
-      }).describe(
-        "TargetsTypeCondition contains information on whether the Targets defined in the Delivery Pipeline are of the same type.",
-      ).optional(),
-    }).describe(
-      "PipelineCondition contains all conditions relevant to a Delivery Pipeline.",
-    ).optional(),
-    createTime: z.string().describe(
-      "Output only. Time at which the pipeline was created.",
-    ).optional(),
-    description: z.string().describe(
-      "Optional. Description of the `DeliveryPipeline`. Max length is 255 characters.",
-    ).optional(),
-    etag: z.string().describe(
-      "This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.",
-    ).optional(),
-    labels: z.record(z.string(), z.string()).describe(
-      "Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
-    ).optional(),
-    name: z.string().describe(
-      "Identifier. Name of the `DeliveryPipeline`. Format is `projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}`. The `deliveryPipeline` component must match `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`",
-    ).optional(),
-    serialPipeline: z.object({
-      stages: z.array(z.object({
-        deployParameters: z.array(z.unknown()).describe(
-          "Optional. The deploy parameters to use for the target in this stage.",
-        ).optional(),
-        profiles: z.array(z.unknown()).describe(
-          "Optional. Skaffold profiles to use when rendering the manifest for this stage's `Target`.",
-        ).optional(),
-        strategy: z.object({
-          canary: z.unknown().describe(
-            "Canary represents the canary deployment strategy.",
-          ).optional(),
-          standard: z.unknown().describe(
-            "Standard represents the standard deployment strategy.",
-          ).optional(),
-        }).describe("Strategy contains deployment strategy information.")
-          .optional(),
-        targetId: z.string().describe(
-          "Optional. The target_id to which this stage points. This field refers exclusively to the last segment of a target name. For example, this field would just be `my-target` (rather than `projects/project/locations/location/targets/my-target`). The location of the `Target` is inferred to be the same as the location of the `DeliveryPipeline` that contains this `Stage`.",
-        ).optional(),
-      })).describe(
-        "Optional. Each stage specifies configuration for a `Target`. The ordering of this list defines the promotion flow.",
-      ).optional(),
-    }).describe(
-      "SerialPipeline defines a sequential set of stages for a `DeliveryPipeline`.",
-    ).optional(),
-    suspended: z.boolean().describe(
-      "Optional. When suspended, no new releases or rollouts can be created, but in-progress ones will complete.",
-    ).optional(),
-    uid: z.string().describe(
-      "Output only. Unique identifier of the `DeliveryPipeline`.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Output only. Most recent time at which the pipeline was updated.",
-    ).optional(),
-  }).describe(
-    "A `DeliveryPipeline` resource in the Cloud Deploy API. A `DeliveryPipeline` defines a pipeline through which a Skaffold configuration can progress.",
-  ).optional(),
   deployParameters: z.record(z.string(), z.string()).describe(
     "Optional. The deploy parameters to use for all targets in this release.",
   ).optional(),
@@ -433,7 +185,9 @@ const GlobalArgsSchema = z.object({
     skaffold: z.string().describe(
       "Optional. The Skaffold version to use for Cloud Deploy operations.",
     ).optional(),
-  }).describe("Details of ToolVersions for the release.").optional(),
+  }).describe(
+    "Optional. The tool versions to use for this release and all subsequent operations involving this release. If unset, tool versions are frozen when the release is created.",
+  ).optional(),
   overrideDeployPolicy: z.string().describe(
     "Optional. Deploy policies to override. Format is `projects/{project}/locations/{location}/deployPolicies/{deployPolicy}`.",
   ).optional(),
@@ -673,254 +427,6 @@ const InputsSchema = z.object({
   })).describe(
     "Optional. List of artifacts to pass through to Skaffold command.",
   ).optional(),
-  condition: z.object({
-    dockerVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    helmVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    kptVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    kubectlVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    kustomizeVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-    releaseReadyCondition: z.object({
-      status: z.boolean().describe(
-        "True if the Release is in a valid state. Otherwise at least one condition in `ReleaseCondition` is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Release.",
-      ).optional(),
-    }).describe(
-      "ReleaseReadyCondition contains information around the status of the Release. If a release is not ready, you cannot create a rollout with the release.",
-    ).optional(),
-    skaffoldSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "The time at which this release's version of Skaffold will enter maintenance mode.",
-      ).optional(),
-      skaffoldSupportState: z.enum([
-        "SKAFFOLD_SUPPORT_STATE_UNSPECIFIED",
-        "SKAFFOLD_SUPPORT_STATE_SUPPORTED",
-        "SKAFFOLD_SUPPORT_STATE_MAINTENANCE_MODE",
-        "SKAFFOLD_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "The Skaffold support state for this release's version of Skaffold.",
-      ).optional(),
-      status: z.boolean().describe(
-        "True if the version of Skaffold used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "The time at which this release's version of Skaffold will no longer be supported.",
-      ).optional(),
-    }).describe(
-      "SkaffoldSupportedCondition contains information about when support for the release's version of Skaffold ends.",
-    ).optional(),
-    skaffoldVersionSupportedCondition: z.object({
-      maintenanceModeTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will enter maintenance mode.",
-      ).optional(),
-      status: z.boolean().describe(
-        "Output only. True if the version of Tool used by this release is supported.",
-      ).optional(),
-      supportExpirationTime: z.string().describe(
-        "Output only. The time at which this release's version of the tool will no longer be supported.",
-      ).optional(),
-      toolVersionSupportState: z.enum([
-        "TOOL_VERSION_SUPPORT_STATE_UNSPECIFIED",
-        "TOOL_VERSION_SUPPORT_STATE_SUPPORTED",
-        "TOOL_VERSION_SUPPORT_STATE_MAINTENANCE_MODE",
-        "TOOL_VERSION_SUPPORT_STATE_UNSUPPORTED",
-      ]).describe(
-        "Output only. The tool support state for this release's version of the tool.",
-      ).optional(),
-    }).describe(
-      "ToolVersionSupportedCondition contains information about when support for the release's version of a tool ends.",
-    ).optional(),
-  }).describe("ReleaseCondition contains all conditions relevant to a Release.")
-    .optional(),
-  deliveryPipelineSnapshot: z.object({
-    annotations: z.record(z.string(), z.string()).describe(
-      "Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy.",
-    ).optional(),
-    condition: z.object({
-      pipelineReadyCondition: z.object({
-        status: z.boolean().describe(
-          "True if the Pipeline is in a valid state. Otherwise at least one condition in `PipelineCondition` is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Pipeline.",
-        ).optional(),
-        updateTime: z.string().describe("Last time the condition was updated.")
-          .optional(),
-      }).describe(
-        "PipelineReadyCondition contains information around the status of the Pipeline.",
-      ).optional(),
-      targetsPresentCondition: z.object({
-        missingTargets: z.array(z.string()).describe(
-          "The list of Target names that do not exist. For example, `projects/{project_id}/locations/{location_name}/targets/{target_name}`.",
-        ).optional(),
-        status: z.boolean().describe(
-          "True if there aren't any missing Targets.",
-        ).optional(),
-        updateTime: z.string().describe("Last time the condition was updated.")
-          .optional(),
-      }).describe(
-        "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-      ).optional(),
-      targetsTypeCondition: z.object({
-        errorDetails: z.string().describe("Human readable error message.")
-          .optional(),
-        status: z.boolean().describe(
-          "True if the targets are all a comparable type. For example this is true if all targets are GKE clusters. This is false if some targets are Cloud Run targets and others are GKE clusters.",
-        ).optional(),
-      }).describe(
-        "TargetsTypeCondition contains information on whether the Targets defined in the Delivery Pipeline are of the same type.",
-      ).optional(),
-    }).describe(
-      "PipelineCondition contains all conditions relevant to a Delivery Pipeline.",
-    ).optional(),
-    createTime: z.string().describe(
-      "Output only. Time at which the pipeline was created.",
-    ).optional(),
-    description: z.string().describe(
-      "Optional. Description of the `DeliveryPipeline`. Max length is 255 characters.",
-    ).optional(),
-    etag: z.string().describe(
-      "This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.",
-    ).optional(),
-    labels: z.record(z.string(), z.string()).describe(
-      "Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
-    ).optional(),
-    name: z.string().describe(
-      "Identifier. Name of the `DeliveryPipeline`. Format is `projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}`. The `deliveryPipeline` component must match `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`",
-    ).optional(),
-    serialPipeline: z.object({
-      stages: z.array(z.object({
-        deployParameters: z.array(z.unknown()).describe(
-          "Optional. The deploy parameters to use for the target in this stage.",
-        ).optional(),
-        profiles: z.array(z.unknown()).describe(
-          "Optional. Skaffold profiles to use when rendering the manifest for this stage's `Target`.",
-        ).optional(),
-        strategy: z.object({
-          canary: z.unknown().describe(
-            "Canary represents the canary deployment strategy.",
-          ).optional(),
-          standard: z.unknown().describe(
-            "Standard represents the standard deployment strategy.",
-          ).optional(),
-        }).describe("Strategy contains deployment strategy information.")
-          .optional(),
-        targetId: z.string().describe(
-          "Optional. The target_id to which this stage points. This field refers exclusively to the last segment of a target name. For example, this field would just be `my-target` (rather than `projects/project/locations/location/targets/my-target`). The location of the `Target` is inferred to be the same as the location of the `DeliveryPipeline` that contains this `Stage`.",
-        ).optional(),
-      })).describe(
-        "Optional. Each stage specifies configuration for a `Target`. The ordering of this list defines the promotion flow.",
-      ).optional(),
-    }).describe(
-      "SerialPipeline defines a sequential set of stages for a `DeliveryPipeline`.",
-    ).optional(),
-    suspended: z.boolean().describe(
-      "Optional. When suspended, no new releases or rollouts can be created, but in-progress ones will complete.",
-    ).optional(),
-    uid: z.string().describe(
-      "Output only. Unique identifier of the `DeliveryPipeline`.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Output only. Most recent time at which the pipeline was updated.",
-    ).optional(),
-  }).describe(
-    "A `DeliveryPipeline` resource in the Cloud Deploy API. A `DeliveryPipeline` defines a pipeline through which a Skaffold configuration can progress.",
-  ).optional(),
   deployParameters: z.record(z.string(), z.string()).describe(
     "Optional. The deploy parameters to use for all targets in this release.",
   ).optional(),
@@ -961,7 +467,9 @@ const InputsSchema = z.object({
     skaffold: z.string().describe(
       "Optional. The Skaffold version to use for Cloud Deploy operations.",
     ).optional(),
-  }).describe("Details of ToolVersions for the release.").optional(),
+  }).describe(
+    "Optional. The tool versions to use for this release and all subsequent operations involving this release. If unset, tool versions are frozen when the release is created.",
+  ).optional(),
   overrideDeployPolicy: z.string().describe(
     "Optional. Deploy policies to override. Format is `projects/{project}/locations/{location}/deployPolicies/{deployPolicy}`.",
   ).optional(),
@@ -1000,7 +508,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy DeliveryPipelines.Releases. Registered at `@swamp/gcp/clouddeploy/deliverypipelines-releases`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/deliverypipelines-releases",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1137,6 +645,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: condition, deliveryPipelineSnapshot",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          condition: _condition,
+          deliveryPipelineSnapshot: _deliveryPipelineSnapshot,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1165,10 +685,6 @@ export const model = {
         }
         if (g["buildArtifacts"] !== undefined) {
           body["buildArtifacts"] = g["buildArtifacts"];
-        }
-        if (g["condition"] !== undefined) body["condition"] = g["condition"];
-        if (g["deliveryPipelineSnapshot"] !== undefined) {
-          body["deliveryPipelineSnapshot"] = g["deliveryPipelineSnapshot"];
         }
         if (g["deployParameters"] !== undefined) {
           body["deployParameters"] = g["deployParameters"];

@@ -204,7 +204,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -217,9 +217,11 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
-    }).describe("A date range.").optional(),
+    }).describe(
+      "Required. The date range for the campaign budget. Linked budget segments may have a different date range. They are resolved relative to the parent advertiser's time zone. Both `start_date` and `end_date` must be before the year 2037.",
+    ).optional(),
     displayName: z.string().describe(
       "Required. The display name of the budget. Must be UTF-8 encoded with a maximum size of 240 bytes.",
     ).optional(),
@@ -243,7 +245,7 @@ const GlobalArgsSchema = z.object({
         prismaProductCode: z.string().describe("The Prisma product code.")
           .optional(),
       }).describe(
-        "Google Payments Center supports searching and filtering on the component fields of this code.",
+        "Required. Relevant client, product, and estimate codes from the Mediaocean Prisma tool.",
       ).optional(),
       prismaType: z.enum([
         "PRISMA_TYPE_UNSPECIFIED",
@@ -257,7 +259,9 @@ const GlobalArgsSchema = z.object({
       supplier: z.string().describe(
         "Required. The entity allocated this budget (DSP, site, etc.).",
       ).optional(),
-    }).describe("Settings specific to the Mediaocean Prisma tool.").optional(),
+    }).describe(
+      "Additional metadata for use by the Mediaocean Prisma tool. Required for Mediaocean budgets. Only applicable to prisma_enabled advertisers.",
+    ).optional(),
   })).describe(
     "The list of budgets available to this campaign. If this field is not set, the campaign uses an unlimited budget.",
   ).optional(),
@@ -274,7 +278,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -287,15 +291,16 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
-    }).describe("A date range.").optional(),
+    }).describe(
+      "Required. The dates that the campaign is expected to run. They are resolved relative to the parent advertiser's time zone. * The dates specified here will not affect serving. They are used to generate alerts and warnings. For example, if the flight date of any child insertion order is outside the range of these dates, the user interface will show a warning. * `start_date` is required and must be the current date or later. * `end_date` is optional. If specified, it must be the `start_date` or later. * Any specified date must be before the year 2037.",
+    ).optional(),
     plannedSpendAmountMicros: z.string().describe(
       "The amount the campaign is expected to spend for its given planned_dates. This will not limit serving, but will be used for tracking spend in the DV360 UI. The amount is in micros. Must be greater than or equal to 0. For example, 500000000 represents 500 standard units of the currency.",
     ).optional(),
-  }).describe(
-    "Settings that track the planned spend and duration of a campaign.",
-  ).optional(),
+  }).describe("Required. The planned spend and duration of the campaign.")
+    .optional(),
   campaignGoal: z.object({
     campaignGoalType: z.enum([
       "CAMPAIGN_GOAL_TYPE_UNSPECIFIED",
@@ -332,9 +337,10 @@ const GlobalArgsSchema = z.object({
         "PERFORMANCE_GOAL_TYPE_VIDEO_COMPLETION_RATE",
         "PERFORMANCE_GOAL_TYPE_OTHER",
       ]).describe("Required. The type of the performance goal.").optional(),
-    }).describe("Settings that control the performance goal of a campaign.")
-      .optional(),
-  }).describe("Settings that control the goal of a campaign.").optional(),
+    }).describe(
+      "Required. The performance goal of the campaign. Acceptable values for performance_goal_type are: * `PERFORMANCE_GOAL_TYPE_CPM` * `PERFORMANCE_GOAL_TYPE_CPC` * `PERFORMANCE_GOAL_TYPE_CPA` * `PERFORMANCE_GOAL_TYPE_CPIAVC` * `PERFORMANCE_GOAL_TYPE_CTR` * `PERFORMANCE_GOAL_TYPE_VIEWABILITY` * `PERFORMANCE_GOAL_TYPE_OTHER`",
+    ).optional(),
+  }).describe("Required. The goal of the campaign.").optional(),
   displayName: z.string().describe(
     "Required. The display name of the campaign. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -373,7 +379,7 @@ const GlobalArgsSchema = z.object({
       "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
     ).optional(),
   }).describe(
-    "Settings that control the number of times a user may be shown with the same ad during a given time period.",
+    "Required. The frequency cap setting of the campaign. *Warning*: On **February 28, 2025**, frequency cap time periods greater than 30 days will no longer be accepted. [Read more about this announced change](/display-video/api/deprecations#features.lifetime_frequency_cap)",
   ).optional(),
 });
 
@@ -484,7 +490,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -497,9 +503,11 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
-    }).describe("A date range.").optional(),
+    }).describe(
+      "Required. The date range for the campaign budget. Linked budget segments may have a different date range. They are resolved relative to the parent advertiser's time zone. Both `start_date` and `end_date` must be before the year 2037.",
+    ).optional(),
     displayName: z.string().describe(
       "Required. The display name of the budget. Must be UTF-8 encoded with a maximum size of 240 bytes.",
     ).optional(),
@@ -523,7 +531,7 @@ const InputsSchema = z.object({
         prismaProductCode: z.string().describe("The Prisma product code.")
           .optional(),
       }).describe(
-        "Google Payments Center supports searching and filtering on the component fields of this code.",
+        "Required. Relevant client, product, and estimate codes from the Mediaocean Prisma tool.",
       ).optional(),
       prismaType: z.enum([
         "PRISMA_TYPE_UNSPECIFIED",
@@ -537,7 +545,9 @@ const InputsSchema = z.object({
       supplier: z.string().describe(
         "Required. The entity allocated this budget (DSP, site, etc.).",
       ).optional(),
-    }).describe("Settings specific to the Mediaocean Prisma tool.").optional(),
+    }).describe(
+      "Additional metadata for use by the Mediaocean Prisma tool. Required for Mediaocean budgets. Only applicable to prisma_enabled advertisers.",
+    ).optional(),
   })).describe(
     "The list of budgets available to this campaign. If this field is not set, the campaign uses an unlimited budget.",
   ).optional(),
@@ -554,7 +564,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -567,15 +577,16 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
-    }).describe("A date range.").optional(),
+    }).describe(
+      "Required. The dates that the campaign is expected to run. They are resolved relative to the parent advertiser's time zone. * The dates specified here will not affect serving. They are used to generate alerts and warnings. For example, if the flight date of any child insertion order is outside the range of these dates, the user interface will show a warning. * `start_date` is required and must be the current date or later. * `end_date` is optional. If specified, it must be the `start_date` or later. * Any specified date must be before the year 2037.",
+    ).optional(),
     plannedSpendAmountMicros: z.string().describe(
       "The amount the campaign is expected to spend for its given planned_dates. This will not limit serving, but will be used for tracking spend in the DV360 UI. The amount is in micros. Must be greater than or equal to 0. For example, 500000000 represents 500 standard units of the currency.",
     ).optional(),
-  }).describe(
-    "Settings that track the planned spend and duration of a campaign.",
-  ).optional(),
+  }).describe("Required. The planned spend and duration of the campaign.")
+    .optional(),
   campaignGoal: z.object({
     campaignGoalType: z.enum([
       "CAMPAIGN_GOAL_TYPE_UNSPECIFIED",
@@ -612,9 +623,10 @@ const InputsSchema = z.object({
         "PERFORMANCE_GOAL_TYPE_VIDEO_COMPLETION_RATE",
         "PERFORMANCE_GOAL_TYPE_OTHER",
       ]).describe("Required. The type of the performance goal.").optional(),
-    }).describe("Settings that control the performance goal of a campaign.")
-      .optional(),
-  }).describe("Settings that control the goal of a campaign.").optional(),
+    }).describe(
+      "Required. The performance goal of the campaign. Acceptable values for performance_goal_type are: * `PERFORMANCE_GOAL_TYPE_CPM` * `PERFORMANCE_GOAL_TYPE_CPC` * `PERFORMANCE_GOAL_TYPE_CPA` * `PERFORMANCE_GOAL_TYPE_CPIAVC` * `PERFORMANCE_GOAL_TYPE_CTR` * `PERFORMANCE_GOAL_TYPE_VIEWABILITY` * `PERFORMANCE_GOAL_TYPE_OTHER`",
+    ).optional(),
+  }).describe("Required. The goal of the campaign.").optional(),
   displayName: z.string().describe(
     "Required. The display name of the campaign. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -653,7 +665,7 @@ const InputsSchema = z.object({
       "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
     ).optional(),
   }).describe(
-    "Settings that control the number of times a user may be shown with the same ad during a given time period.",
+    "Required. The frequency cap setting of the campaign. *Warning*: On **February 28, 2025**, frequency cap time periods greater than 30 days will no longer be accepted. [Read more about this announced change](/display-video/api/deprecations#features.lifetime_frequency_cap)",
   ).optional(),
 });
 
@@ -680,7 +692,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Campaigns. Registered at `@swamp/gcp/displayvideo/advertisers-campaigns`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-campaigns",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -769,6 +781,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

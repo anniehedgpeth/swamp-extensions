@@ -169,11 +169,10 @@ const GlobalArgsSchema = z.object({
         "Required. The endpoint URI should be a valid REST URI for triggering an Application Integration. Format: `https://integrations.googleapis.com/v1/{name=projects/*/locations/*/integrations/*}:execute` or `https://{location}-integrations.googleapis.com/v1/{name=projects/*/locations/*/integrations/*}:execute`",
       ).optional(),
     }).describe(
-      "The details of the Application Integration endpoint to be triggered for curation.",
+      "Required. The details of the Application Integration endpoint to be triggered for curation.",
     ).optional(),
-  }).describe(
-    "The endpoint to be triggered for curation. The endpoint will be invoked with a request payload containing ApiMetadata. Response should contain curated data in the form of ApiMetadata.",
-  ).optional(),
+  }).describe("Required. The endpoint to be triggered for curation.")
+    .optional(),
   name: z.string().describe(
     "Identifier. The name of the curation. Format: `projects/{project}/locations/{location}/curations/{curation}`",
   ).optional(),
@@ -227,11 +226,10 @@ const InputsSchema = z.object({
         "Required. The endpoint URI should be a valid REST URI for triggering an Application Integration. Format: `https://integrations.googleapis.com/v1/{name=projects/*/locations/*/integrations/*}:execute` or `https://{location}-integrations.googleapis.com/v1/{name=projects/*/locations/*/integrations/*}:execute`",
       ).optional(),
     }).describe(
-      "The details of the Application Integration endpoint to be triggered for curation.",
+      "Required. The details of the Application Integration endpoint to be triggered for curation.",
     ).optional(),
-  }).describe(
-    "The endpoint to be triggered for curation. The endpoint will be invoked with a request payload containing ApiMetadata. Response should contain curated data in the form of ApiMetadata.",
-  ).optional(),
+  }).describe("Required. The endpoint to be triggered for curation.")
+    .optional(),
   name: z.string().describe(
     "Identifier. The name of the curation. Format: `projects/{project}/locations/{location}/curations/{curation}`",
   ).optional(),
@@ -266,7 +264,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Curations. Registered at `@swamp/gcp/apihub/curations`. */
 export const model = {
   type: "@swamp/gcp/apihub/curations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -370,6 +368,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

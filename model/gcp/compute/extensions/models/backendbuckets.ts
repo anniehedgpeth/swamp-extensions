@@ -190,9 +190,7 @@ const GlobalArgsSchema = z.object({
       queryStringWhitelist: z.array(z.string()).describe(
         "Names of query string parameters to include in cache keys. Default parameters are always included. '&' and '=' will be percent encoded and not treated as delimiters.",
       ).optional(),
-    }).describe(
-      "Message containing what to include in the cache key for a request for Cloud CDN.",
-    ).optional(),
+    }).describe("The CacheKeyPolicy for this CdnPolicy.").optional(),
     cacheMode: z.enum([
       "CACHE_ALL_STATIC",
       "FORCE_CACHE_ALL",
@@ -235,9 +233,7 @@ const GlobalArgsSchema = z.object({
     signedUrlKeyNames: z.array(z.string()).describe(
       "[Output Only] Names of the keys for signing request URLs.",
     ).optional(),
-  }).describe(
-    "Message containing Cloud CDN configuration for a backend bucket.",
-  ).optional(),
+  }).describe("Cloud CDN configuration for this BackendBucket.").optional(),
   compressionMode: z.enum(["AUTOMATIC", "DISABLED"]).describe(
     "Compress text responses using Brotli or gzip compression, based on the client's Accept-Encoding header.",
   ).optional(),
@@ -262,7 +258,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional Backend Bucket parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -335,9 +333,7 @@ const InputsSchema = z.object({
       queryStringWhitelist: z.array(z.string()).describe(
         "Names of query string parameters to include in cache keys. Default parameters are always included. '&' and '=' will be percent encoded and not treated as delimiters.",
       ).optional(),
-    }).describe(
-      "Message containing what to include in the cache key for a request for Cloud CDN.",
-    ).optional(),
+    }).describe("The CacheKeyPolicy for this CdnPolicy.").optional(),
     cacheMode: z.enum([
       "CACHE_ALL_STATIC",
       "FORCE_CACHE_ALL",
@@ -380,9 +376,7 @@ const InputsSchema = z.object({
     signedUrlKeyNames: z.array(z.string()).describe(
       "[Output Only] Names of the keys for signing request URLs.",
     ).optional(),
-  }).describe(
-    "Message containing Cloud CDN configuration for a backend bucket.",
-  ).optional(),
+  }).describe("Cloud CDN configuration for this BackendBucket.").optional(),
   compressionMode: z.enum(["AUTOMATIC", "DISABLED"]).describe(
     "Compress text responses using Brotli or gzip compression, based on the client's Accept-Encoding header.",
   ).optional(),
@@ -407,7 +401,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional Backend Bucket parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -436,7 +432,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine BackendBuckets. Registered at `@swamp/gcp/compute/backendbuckets`. */
 export const model = {
   type: "@swamp/gcp/compute/backendbuckets",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -590,6 +586,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

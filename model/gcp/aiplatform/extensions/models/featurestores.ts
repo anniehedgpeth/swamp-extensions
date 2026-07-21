@@ -172,7 +172,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Optional. Customer-managed encryption key spec for data storage. If set, both of the online and offline data storage will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. The labels with user-defined metadata to organize your Featurestore. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information on and examples of labels. No more than 64 user labels can be associated with one Featurestore(System labels are excluded)." System reserved label keys are prefixed with "aiplatform.googleapis.com/" and are immutable.',
@@ -192,10 +192,10 @@ const GlobalArgsSchema = z.object({
         "Required. The minimum number of nodes to scale down to. Must be greater than or equal to 1.",
       ).optional(),
     }).describe(
-      "Online serving scaling configuration. If min_node_count and max_node_count are set to the same value, the cluster will be configured with the fixed number of node (no auto-scaling).",
+      "Online serving scaling configuration. Only one of `fixed_node_count` and `scaling` can be set. Setting one will reset the other.",
     ).optional(),
   }).describe(
-    "OnlineServingConfig specifies the details for provisioning online serving resources.",
+    "Optional. Config for online storage resources. The field should not co-exist with the field of `OnlineStoreReplicationConfig`. If both of it and OnlineStoreReplicationConfig are unset, the feature store will not have an online store and cannot be used for online serving.",
   ).optional(),
   onlineStorageTtlDays: z.number().int().describe(
     "Optional. TTL in days for feature values that will be stored in online serving storage. The Feature Store online storage periodically removes obsolete feature values older than `online_storage_ttl_days` since the feature generation time. Note that `online_storage_ttl_days` should be less than or equal to `offline_storage_ttl_days` for each EntityType under a featurestore. If not set, default to 4000 days",
@@ -244,7 +244,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Optional. Customer-managed encryption key spec for data storage. If set, both of the online and offline data storage will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. The labels with user-defined metadata to organize your Featurestore. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information on and examples of labels. No more than 64 user labels can be associated with one Featurestore(System labels are excluded)." System reserved label keys are prefixed with "aiplatform.googleapis.com/" and are immutable.',
@@ -264,10 +264,10 @@ const InputsSchema = z.object({
         "Required. The minimum number of nodes to scale down to. Must be greater than or equal to 1.",
       ).optional(),
     }).describe(
-      "Online serving scaling configuration. If min_node_count and max_node_count are set to the same value, the cluster will be configured with the fixed number of node (no auto-scaling).",
+      "Online serving scaling configuration. Only one of `fixed_node_count` and `scaling` can be set. Setting one will reset the other.",
     ).optional(),
   }).describe(
-    "OnlineServingConfig specifies the details for provisioning online serving resources.",
+    "Optional. Config for online storage resources. The field should not co-exist with the field of `OnlineStoreReplicationConfig`. If both of it and OnlineStoreReplicationConfig are unset, the feature store will not have an online store and cannot be used for online serving.",
   ).optional(),
   onlineStorageTtlDays: z.number().int().describe(
     "Optional. TTL in days for feature values that will be stored in online serving storage. The Feature Store online storage periodically removes obsolete feature values older than `online_storage_ttl_days` since the feature generation time. Note that `online_storage_ttl_days` should be less than or equal to `offline_storage_ttl_days` for each EntityType under a featurestore. If not set, default to 4000 days",
@@ -303,7 +303,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Featurestores. Registered at `@swamp/gcp/aiplatform/featurestores`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/featurestores",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -435,6 +435,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -486,16 +491,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

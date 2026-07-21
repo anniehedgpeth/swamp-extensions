@@ -102,32 +102,30 @@ const GlobalArgsSchema = z.object({
     isRemoteInAppUpdateRequested: z.boolean().describe(
       "Required. Set to true if Remote In-App Update action type is needed.",
     ).optional(),
-  }).describe("Object representation for Remote in-app update action type.")
-    .optional(),
+  }).describe(
+    "Action type is remote in-app update. As a consequence of this action, a downloadable recovery module is also created for testing purposes.",
+  ).optional(),
   targeting: z.object({
     allUsers: z.object({
       isAllUsersRequested: z.boolean().describe(
         "Required. Set to true if all set of users are needed.",
       ).optional(),
-    }).describe("Object representation to describe all set of users.")
-      .optional(),
+    }).describe("All users are targeted.").optional(),
     androidSdks: z.object({
       sdkLevels: z.array(z.string()).describe(
         "Android api levels of devices targeted by recovery action. See https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels for different api levels in android.",
       ).optional(),
-    }).describe(
-      "Android api level targeting data for app recovery action targeting.",
-    ).optional(),
+    }).describe("Targeting is based on android api levels of devices.")
+      .optional(),
     regions: z.object({
       regionCode: z.array(z.string()).describe(
         "Regions targeted by the recovery action. Region codes are ISO 3166 Alpha-2 country codes. For example, US stands for United States of America. See https://www.iso.org/iso-3166-country-codes.html for the complete list of country codes.",
       ).optional(),
-    }).describe("Region targeting data for app recovery action targeting.")
-      .optional(),
+    }).describe("Targeting is based on the user account region.").optional(),
     versionList: z.object({
       versionCodes: z.array(z.string()).describe("List of app version codes.")
         .optional(),
-    }).describe("Data format for a list of app versions.").optional(),
+    }).describe("Target version codes as a list.").optional(),
     versionRange: z.object({
       versionCodeEnd: z.string().describe(
         "Highest app version in the range, inclusive.",
@@ -135,10 +133,9 @@ const GlobalArgsSchema = z.object({
       versionCodeStart: z.string().describe(
         "Lowest app version in the range, inclusive.",
       ).optional(),
-    }).describe("Data format for a continuous range of app versions.")
-      .optional(),
+    }).describe("Target version codes as a range.").optional(),
   }).describe(
-    "Targeting details for a recovery action such as regions, android sdk levels, app versions etc.",
+    "Specifies targeting criteria for the recovery action such as regions, android sdk versions, app versions etc.",
   ).optional(),
   packageName: z.string().describe(
     "Required. Package name of the app on which recovery action is performed.",
@@ -191,32 +188,30 @@ const InputsSchema = z.object({
     isRemoteInAppUpdateRequested: z.boolean().describe(
       "Required. Set to true if Remote In-App Update action type is needed.",
     ).optional(),
-  }).describe("Object representation for Remote in-app update action type.")
-    .optional(),
+  }).describe(
+    "Action type is remote in-app update. As a consequence of this action, a downloadable recovery module is also created for testing purposes.",
+  ).optional(),
   targeting: z.object({
     allUsers: z.object({
       isAllUsersRequested: z.boolean().describe(
         "Required. Set to true if all set of users are needed.",
       ).optional(),
-    }).describe("Object representation to describe all set of users.")
-      .optional(),
+    }).describe("All users are targeted.").optional(),
     androidSdks: z.object({
       sdkLevels: z.array(z.string()).describe(
         "Android api levels of devices targeted by recovery action. See https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels for different api levels in android.",
       ).optional(),
-    }).describe(
-      "Android api level targeting data for app recovery action targeting.",
-    ).optional(),
+    }).describe("Targeting is based on android api levels of devices.")
+      .optional(),
     regions: z.object({
       regionCode: z.array(z.string()).describe(
         "Regions targeted by the recovery action. Region codes are ISO 3166 Alpha-2 country codes. For example, US stands for United States of America. See https://www.iso.org/iso-3166-country-codes.html for the complete list of country codes.",
       ).optional(),
-    }).describe("Region targeting data for app recovery action targeting.")
-      .optional(),
+    }).describe("Targeting is based on the user account region.").optional(),
     versionList: z.object({
       versionCodes: z.array(z.string()).describe("List of app version codes.")
         .optional(),
-    }).describe("Data format for a list of app versions.").optional(),
+    }).describe("Target version codes as a list.").optional(),
     versionRange: z.object({
       versionCodeEnd: z.string().describe(
         "Highest app version in the range, inclusive.",
@@ -224,10 +219,9 @@ const InputsSchema = z.object({
       versionCodeStart: z.string().describe(
         "Lowest app version in the range, inclusive.",
       ).optional(),
-    }).describe("Data format for a continuous range of app versions.")
-      .optional(),
+    }).describe("Target version codes as a range.").optional(),
   }).describe(
-    "Targeting details for a recovery action such as regions, android sdk levels, app versions etc.",
+    "Specifies targeting criteria for the recovery action such as regions, android sdk versions, app versions etc.",
   ).optional(),
   packageName: z.string().describe(
     "Required. Package name of the app on which recovery action is performed.",
@@ -257,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Apprecovery. Registered at `@swamp/gcp/androidpublisher/apprecovery`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/apprecovery",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -344,6 +338,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -379,12 +378,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "packageName": String(g["packageName"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

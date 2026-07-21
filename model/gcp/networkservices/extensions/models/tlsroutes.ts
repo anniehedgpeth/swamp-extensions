@@ -186,7 +186,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.",
       ).optional(),
     }).describe(
-      "The specifications for routing traffic and applying associated policies.",
+      "Required. The detailed rule defining how to route matched traffic.",
     ).optional(),
     matches: z.array(z.object({
       alpn: z.array(z.unknown()).describe(
@@ -275,7 +275,7 @@ const InputsSchema = z.object({
         "Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.",
       ).optional(),
     }).describe(
-      "The specifications for routing traffic and applying associated policies.",
+      "Required. The detailed rule defining how to route matched traffic.",
     ).optional(),
     matches: z.array(z.object({
       alpn: z.array(z.unknown()).describe(
@@ -324,7 +324,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services TlsRoutes. Registered at `@swamp/gcp/networkservices/tlsroutes`. */
 export const model = {
   type: "@swamp/gcp/networkservices/tlsroutes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -433,6 +433,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

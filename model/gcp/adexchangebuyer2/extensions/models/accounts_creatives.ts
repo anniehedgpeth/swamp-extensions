@@ -154,14 +154,6 @@ const GlobalArgsSchema = z.object({
   adChoicesDestinationUrl: z.string().describe(
     "The link to AdChoices destination page.",
   ).optional(),
-  adTechnologyProviders: z.object({
-    detectedProviderIds: z.array(z.string()).describe(
-      "The detected ad technology provider IDs for this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/providers.csv for mapping of provider ID to provided name, a privacy policy URL, and a list of domains which can be attributed to the provider. If the creative contains provider IDs that are outside of those listed in the `BidRequest.adslot.consented_providers_settings.consented_providers` field on the (Google bid protocol)[https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto] and the `BidRequest.user.ext.consented_providers_settings.consented_providers` field on the (OpenRTB protocol)[https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto], and a bid is submitted with that creative for an impression that will serve to an EEA user, the bid will be filtered before the auction.",
-    ).optional(),
-    hasUnidentifiedProvider: z.boolean().describe(
-      "Whether the creative contains an unidentified ad technology provider. If true for a given creative, any bid submitted with that creative for an impression that will serve to an EEA user will be filtered before the auction.",
-    ).optional(),
-  }).describe("Detected ad technology provider information.").optional(),
   advertiserName: z.string().describe(
     "The name of the company being advertised in the creative.",
   ).optional(),
@@ -229,7 +221,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     width: z.number().int().describe("The width of the HTML snippet in pixels.")
       .optional(),
-  }).describe("HTML content for a creative.").optional(),
+  }).describe("An HTML creative.").optional(),
   impressionTrackingUrls: z.array(z.string()).describe(
     "The set of URLs to be called to record an impression.",
   ).optional(),
@@ -241,9 +233,7 @@ const GlobalArgsSchema = z.object({
       height: z.number().int().describe("Image height in pixels.").optional(),
       url: z.string().describe("The URL of the image.").optional(),
       width: z.number().int().describe("Image width in pixels.").optional(),
-    }).describe(
-      "An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.",
-    ).optional(),
+    }).describe("The app icon, for app download ads.").optional(),
     body: z.string().describe("A long description of the ad.").optional(),
     callToAction: z.string().describe(
       "A label for the button that the user is supposed to click.",
@@ -258,16 +248,12 @@ const GlobalArgsSchema = z.object({
       height: z.number().int().describe("Image height in pixels.").optional(),
       url: z.string().describe("The URL of the image.").optional(),
       width: z.number().int().describe("Image width in pixels.").optional(),
-    }).describe(
-      "An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.",
-    ).optional(),
+    }).describe("A large image.").optional(),
     logo: z.object({
       height: z.number().int().describe("Image height in pixels.").optional(),
       url: z.string().describe("The URL of the image.").optional(),
       width: z.number().int().describe("Image width in pixels.").optional(),
-    }).describe(
-      "An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.",
-    ).optional(),
+    }).describe("A smaller image, for the advertiser's logo.").optional(),
     priceDisplayText: z.string().describe(
       "The price of the promoted app including currency info.",
     ).optional(),
@@ -279,7 +265,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     videoUrl: z.string().describe("The URL to fetch a native video ad.")
       .optional(),
-  }).describe("Native content for a creative.").optional(),
+  }).describe("A native creative.").optional(),
   restrictedCategories: z.array(z.enum(["NO_RESTRICTED_CATEGORIES", "ALCOHOL"]))
     .describe(
       "All restricted categories for the ads that may be shown from this creative.",
@@ -292,7 +278,7 @@ const GlobalArgsSchema = z.object({
     videoVastXml: z.string().describe(
       "The contents of a VAST document for a video ad. This document should conform to the VAST 2.0 or 3.0 standard.",
     ).optional(),
-  }).describe("Video content for a creative.").optional(),
+  }).describe("A video creative.").optional(),
   duplicateIdMode: z.string().describe(
     "Indicates if multiple creatives can share an ID or not. Default is NO_DUPLICATES (one ID per creative).",
   ).optional(),
@@ -426,14 +412,6 @@ const InputsSchema = z.object({
   adChoicesDestinationUrl: z.string().describe(
     "The link to AdChoices destination page.",
   ).optional(),
-  adTechnologyProviders: z.object({
-    detectedProviderIds: z.array(z.string()).describe(
-      "The detected ad technology provider IDs for this creative. See https://storage.googleapis.com/adx-rtb-dictionaries/providers.csv for mapping of provider ID to provided name, a privacy policy URL, and a list of domains which can be attributed to the provider. If the creative contains provider IDs that are outside of those listed in the `BidRequest.adslot.consented_providers_settings.consented_providers` field on the (Google bid protocol)[https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto] and the `BidRequest.user.ext.consented_providers_settings.consented_providers` field on the (OpenRTB protocol)[https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto], and a bid is submitted with that creative for an impression that will serve to an EEA user, the bid will be filtered before the auction.",
-    ).optional(),
-    hasUnidentifiedProvider: z.boolean().describe(
-      "Whether the creative contains an unidentified ad technology provider. If true for a given creative, any bid submitted with that creative for an impression that will serve to an EEA user will be filtered before the auction.",
-    ).optional(),
-  }).describe("Detected ad technology provider information.").optional(),
   advertiserName: z.string().describe(
     "The name of the company being advertised in the creative.",
   ).optional(),
@@ -501,7 +479,7 @@ const InputsSchema = z.object({
     ).optional(),
     width: z.number().int().describe("The width of the HTML snippet in pixels.")
       .optional(),
-  }).describe("HTML content for a creative.").optional(),
+  }).describe("An HTML creative.").optional(),
   impressionTrackingUrls: z.array(z.string()).describe(
     "The set of URLs to be called to record an impression.",
   ).optional(),
@@ -513,9 +491,7 @@ const InputsSchema = z.object({
       height: z.number().int().describe("Image height in pixels.").optional(),
       url: z.string().describe("The URL of the image.").optional(),
       width: z.number().int().describe("Image width in pixels.").optional(),
-    }).describe(
-      "An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.",
-    ).optional(),
+    }).describe("The app icon, for app download ads.").optional(),
     body: z.string().describe("A long description of the ad.").optional(),
     callToAction: z.string().describe(
       "A label for the button that the user is supposed to click.",
@@ -530,16 +506,12 @@ const InputsSchema = z.object({
       height: z.number().int().describe("Image height in pixels.").optional(),
       url: z.string().describe("The URL of the image.").optional(),
       width: z.number().int().describe("Image width in pixels.").optional(),
-    }).describe(
-      "An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.",
-    ).optional(),
+    }).describe("A large image.").optional(),
     logo: z.object({
       height: z.number().int().describe("Image height in pixels.").optional(),
       url: z.string().describe("The URL of the image.").optional(),
       width: z.number().int().describe("Image width in pixels.").optional(),
-    }).describe(
-      "An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.",
-    ).optional(),
+    }).describe("A smaller image, for the advertiser's logo.").optional(),
     priceDisplayText: z.string().describe(
       "The price of the promoted app including currency info.",
     ).optional(),
@@ -551,7 +523,7 @@ const InputsSchema = z.object({
     ).optional(),
     videoUrl: z.string().describe("The URL to fetch a native video ad.")
       .optional(),
-  }).describe("Native content for a creative.").optional(),
+  }).describe("A native creative.").optional(),
   restrictedCategories: z.array(z.enum(["NO_RESTRICTED_CATEGORIES", "ALCOHOL"]))
     .describe(
       "All restricted categories for the ads that may be shown from this creative.",
@@ -564,7 +536,7 @@ const InputsSchema = z.object({
     videoVastXml: z.string().describe(
       "The contents of a VAST document for a video ad. This document should conform to the VAST 2.0 or 3.0 standard.",
     ).optional(),
-  }).describe("Video content for a creative.").optional(),
+  }).describe("A video creative.").optional(),
   duplicateIdMode: z.string().describe(
     "Indicates if multiple creatives can share an ID or not. Default is NO_DUPLICATES (one ID per creative).",
   ).optional(),
@@ -593,7 +565,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.Creatives. Registered at `@swamp/gcp/adexchangebuyer2/accounts-creatives`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-creatives",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -690,6 +662,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: adTechnologyProviders",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { adTechnologyProviders: _adTechnologyProviders, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -716,9 +696,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["adChoicesDestinationUrl"] !== undefined) {
           body["adChoicesDestinationUrl"] = g["adChoicesDestinationUrl"];
-        }
-        if (g["adTechnologyProviders"] !== undefined) {
-          body["adTechnologyProviders"] = g["adTechnologyProviders"];
         }
         if (g["advertiserName"] !== undefined) {
           body["advertiserName"] = g["advertiserName"];
@@ -753,12 +730,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "accountId": String(g["accountId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -842,9 +814,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["adChoicesDestinationUrl"] !== undefined) {
           body["adChoicesDestinationUrl"] = g["adChoicesDestinationUrl"];
-        }
-        if (g["adTechnologyProviders"] !== undefined) {
-          body["adTechnologyProviders"] = g["adTechnologyProviders"];
         }
         if (g["advertiserName"] !== undefined) {
           body["advertiserName"] = g["advertiserName"];

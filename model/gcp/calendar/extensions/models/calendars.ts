@@ -142,7 +142,9 @@ const GlobalArgsSchema = z.object({
     allowedConferenceSolutionTypes: z.array(z.string()).describe(
       'The types of conference solutions that are supported for this calendar. The possible values are: - "eventHangout" - "eventNamedHangout" - "hangoutsMeet" Optional.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Conferencing properties for this calendar, for example what types of conferences are allowed.",
+  ).optional(),
   dataOwner: z.string().describe(
     "The email of the owner of the calendar. Set only for secondary calendars. Read-only.",
   ).optional(),
@@ -165,7 +167,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Event labels defined on this calendar. If this is present when updating the calendar, it will replace the existing event labels. Extend the list to add a new event label, and remove entities from the list to delete a label from calendar. Each calendar can have a maximum of 200 labels.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Label properties defined on this calendar. If specified, overwrites the existing label properties. If not specified, the label properties remain unchanged.",
+  ).optional(),
   location: z.string().describe(
     "Geographic location of the calendar as free-form text. Optional.",
   ).optional(),
@@ -212,7 +216,9 @@ const InputsSchema = z.object({
     allowedConferenceSolutionTypes: z.array(z.string()).describe(
       'The types of conference solutions that are supported for this calendar. The possible values are: - "eventHangout" - "eventNamedHangout" - "hangoutsMeet" Optional.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Conferencing properties for this calendar, for example what types of conferences are allowed.",
+  ).optional(),
   dataOwner: z.string().describe(
     "The email of the owner of the calendar. Set only for secondary calendars. Read-only.",
   ).optional(),
@@ -235,7 +241,9 @@ const InputsSchema = z.object({
     })).describe(
       "Event labels defined on this calendar. If this is present when updating the calendar, it will replace the existing event labels. Extend the list to add a new event label, and remove entities from the list to delete a label from calendar. Each calendar can have a maximum of 200 labels.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Label properties defined on this calendar. If specified, overwrites the existing label properties. If not specified, the label properties remain unchanged.",
+  ).optional(),
   location: z.string().describe(
     "Geographic location of the calendar as free-form text. Optional.",
   ).optional(),
@@ -268,7 +276,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Calendars. Registered at `@swamp/gcp/calendar/calendars`. */
 export const model = {
   type: "@swamp/gcp/calendar/calendars",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -376,6 +384,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: labelProperties",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

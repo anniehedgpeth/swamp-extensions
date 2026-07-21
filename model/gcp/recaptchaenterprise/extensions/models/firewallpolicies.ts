@@ -151,16 +151,16 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   actions: z.array(z.object({
     allow: z.object({}).describe(
-      "An allow action continues processing a request unimpeded.",
+      "The user request did not match any policy and should be allowed access to the requested resource.",
     ).optional(),
     block: z.object({}).describe(
-      "A block action serves an HTTP error code a prevents the request from hitting the backend.",
+      "This action denies access to a given page. The user gets an HTTP error code.",
     ).optional(),
     includeRecaptchaScript: z.object({}).describe(
-      "An include reCAPTCHA script action involves injecting reCAPTCHA JavaScript code into the HTML returned by the site backend. This reCAPTCHA script is tasked with collecting user signals on the requested web page, issuing tokens as a cookie within the site domain, and enabling their utilization in subsequent page requests.",
+      "This action injects reCAPTCHA JavaScript code into the HTML page returned by the site backend.",
     ).optional(),
     redirect: z.object({}).describe(
-      "A redirect action returns a 307 (temporary redirect) response, pointing the user to a reCAPTCHA interstitial page to attach a token.",
+      "This action redirects the request to a reCAPTCHA interstitial to attach a token.",
     ).optional(),
     setHeader: z.object({
       key: z.string().describe(
@@ -170,14 +170,14 @@ const GlobalArgsSchema = z.object({
         "Optional. The header value to set in the request to the backend server.",
       ).optional(),
     }).describe(
-      "A set header action sets a header and forwards the request to the backend. This can be used to trigger custom protection implemented on the backend.",
+      "This action sets a custom header but allow the request to continue to the customer backend.",
     ).optional(),
     substitute: z.object({
       path: z.string().describe(
         'Optional. The address to redirect to. The target is a relative path in the current host. Example: "/blog/404.html".',
       ).optional(),
     }).describe(
-      "A substitute action transparently serves a different page than the one requested.",
+      "This action transparently serves a different page to an offending user.",
     ).optional(),
   })).describe(
     "Optional. The actions that the caller should take regarding user access. There should be at most one terminal action. A terminal action is any action that forces a response, such as `AllowAction`, `BlockAction` or `SubstituteAction`. Zero or more non-terminal actions such as `SetHeader` might be specified. A single policy can contain up to 16 actions.",
@@ -228,16 +228,16 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   actions: z.array(z.object({
     allow: z.object({}).describe(
-      "An allow action continues processing a request unimpeded.",
+      "The user request did not match any policy and should be allowed access to the requested resource.",
     ).optional(),
     block: z.object({}).describe(
-      "A block action serves an HTTP error code a prevents the request from hitting the backend.",
+      "This action denies access to a given page. The user gets an HTTP error code.",
     ).optional(),
     includeRecaptchaScript: z.object({}).describe(
-      "An include reCAPTCHA script action involves injecting reCAPTCHA JavaScript code into the HTML returned by the site backend. This reCAPTCHA script is tasked with collecting user signals on the requested web page, issuing tokens as a cookie within the site domain, and enabling their utilization in subsequent page requests.",
+      "This action injects reCAPTCHA JavaScript code into the HTML page returned by the site backend.",
     ).optional(),
     redirect: z.object({}).describe(
-      "A redirect action returns a 307 (temporary redirect) response, pointing the user to a reCAPTCHA interstitial page to attach a token.",
+      "This action redirects the request to a reCAPTCHA interstitial to attach a token.",
     ).optional(),
     setHeader: z.object({
       key: z.string().describe(
@@ -247,14 +247,14 @@ const InputsSchema = z.object({
         "Optional. The header value to set in the request to the backend server.",
       ).optional(),
     }).describe(
-      "A set header action sets a header and forwards the request to the backend. This can be used to trigger custom protection implemented on the backend.",
+      "This action sets a custom header but allow the request to continue to the customer backend.",
     ).optional(),
     substitute: z.object({
       path: z.string().describe(
         'Optional. The address to redirect to. The target is a relative path in the current host. Example: "/blog/404.html".',
       ).optional(),
     }).describe(
-      "A substitute action transparently serves a different page than the one requested.",
+      "This action transparently serves a different page to an offending user.",
     ).optional(),
   })).describe(
     "Optional. The actions that the caller should take regarding user access. There should be at most one terminal action. A terminal action is any action that forces a response, such as `AllowAction`, `BlockAction` or `SubstituteAction`. Zero or more non-terminal actions such as `SetHeader` might be specified. A single policy can contain up to 16 actions.",
@@ -299,7 +299,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud reCAPTCHA Enterprise Firewallpolicies. Registered at `@swamp/gcp/recaptchaenterprise/firewallpolicies`. */
 export const model = {
   type: "@swamp/gcp/recaptchaenterprise/firewallpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -403,6 +403,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

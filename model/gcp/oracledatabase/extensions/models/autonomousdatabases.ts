@@ -215,7 +215,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The Oracle REST Data Services (ORDS) version.",
       ).optional(),
     }).describe(
-      "Oracle APEX Application Development. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseApex",
+      "Output only. The details for the Oracle APEX Application Development.",
     ).optional(),
     arePrimaryAllowlistedIpsUsed: z.boolean().describe(
       "Output only. This field indicates the status of Data Guard and Access control for the Autonomous Database. The field's value is null if Data Guard is disabled or Access Control is disabled. The field's value is TRUE if both Data Guard and Access Control are enabled, and the Autonomous Database is using primary IP access control list (ACL) for standby. The field's value is FALSE if both Data Guard and Access Control are enabled, and the Autonomous Database is using a different IP access control list (ACL) for standby compared to primary.",
@@ -247,7 +247,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The database service provides a lower level of resources to each SQL statement.",
         ).optional(),
       }).describe(
-        "A list of all connection strings that can be used to connect to the Autonomous Database.",
+        "Output only. Returns all connection strings that can be used to connect to the Autonomous Database.",
       ).optional(),
       dedicated: z.string().describe(
         "Output only. The database service provides the least level of resources to each SQL statement, but supports the most number of concurrent SQL statements.",
@@ -308,7 +308,7 @@ const GlobalArgsSchema = z.object({
         "Output only. A list of connection string profiles to allow clients to group, filter, and select values based on the structured metadata.",
       ).optional(),
     }).describe(
-      "The connection string used to connect to the Autonomous Database. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionStrings",
+      "Output only. The connection strings used to connect to an Autonomous Database.",
     ).optional(),
     connectionUrls: z.object({
       apexUri: z.string().describe(
@@ -336,7 +336,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The URL of the Oracle SQL Developer Web for the Autonomous Database.",
       ).optional(),
     }).describe(
-      "The URLs for accessing Oracle Application Express (APEX) and SQL Developer Web with a browser from a Compute instance. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionUrls",
+      "Output only. The Oracle Connection URLs for an Autonomous Database.",
     ).optional(),
     cpuCoreCount: z.number().int().describe(
       "Optional. Immutable. The number of CPU cores to be made available to the database.",
@@ -402,8 +402,9 @@ const GlobalArgsSchema = z.object({
         "GOOGLE_MANAGED",
         "ORACLE_MANAGED",
       ]).describe("Optional. The provider of the encryption key.").optional(),
-    }).describe("The encryption key used to encrypt the Autonomous Database.")
-      .optional(),
+    }).describe(
+      "Optional. The encryption key used to encrypt the Autonomous Database. Updating this field will add a new entry in the `encryption_key_history_entries` field with the former version.",
+    ).optional(),
     encryptionKeyHistoryEntries: z.array(z.object({
       activationTime: z.string().describe(
         "Output only. The date and time when the encryption key was activated on the Autonomous Database..",
@@ -417,8 +418,9 @@ const GlobalArgsSchema = z.object({
           "GOOGLE_MANAGED",
           "ORACLE_MANAGED",
         ]).describe("Optional. The provider of the encryption key.").optional(),
-      }).describe("The encryption key used to encrypt the Autonomous Database.")
-        .optional(),
+      }).describe(
+        "Output only. The encryption key used to encrypt the Autonomous Database.",
+      ).optional(),
     })).describe(
       "Output only. The history of the encryption keys used to encrypt the Autonomous Database.",
     ).optional(),
@@ -501,7 +503,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The current lifecycle state of the Autonomous Database.",
       ).optional(),
     }).describe(
-      "Autonomous Data Guard standby database details. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseStandbySummary",
+      "Output only. The details of the Autonomous Data Guard standby database.",
     ).optional(),
     maintenanceBeginTime: z.string().describe(
       "Output only. The date and time when maintenance will begin.",
@@ -618,9 +620,7 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Output only. Auto start time.").optional(),
       stopTime: z.object({
         hours: z.number().int().describe(
           'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -634,9 +634,7 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Output only. Auto stop time.").optional(),
     })).describe(
       "Output only. The list and details of the scheduled operations of the Autonomous Database.",
     ).optional(),
@@ -687,7 +685,8 @@ const GlobalArgsSchema = z.object({
     vaultId: z.string().describe(
       "Optional. Immutable. The ID of the Oracle Cloud Infrastructure vault.",
     ).optional(),
-  }).describe("The properties of an Autonomous Database.").optional(),
+  }).describe("Optional. The properties of the Autonomous Database.")
+    .optional(),
   sourceConfig: z.object({
     autoRefreshFrequencySeconds: z.number().int().describe(
       "Optional. The frequency in seconds a refreshable clone is refreshed after auto-refresh is enabled.",
@@ -730,8 +729,9 @@ const GlobalArgsSchema = z.object({
     useLatestAvailableBackup: z.boolean().describe(
       "Optional. Clone from latest available backup timestamp. This field is only applicable in case of BACKUP_FROM_TIMESTAMP source type.",
     ).optional(),
-  }).describe("The source configuration for the standby Autonomous Database.")
-    .optional(),
+  }).describe(
+    "Optional. Immutable. The source Autonomous Database configuration for the standby Autonomous Database. The source Autonomous Database is configured while creating the Peer Autonomous Database and can't be updated after creation.",
+  ).optional(),
   autonomousDatabaseId: z.string().describe(
     "Required. The ID of the Autonomous Database to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -960,7 +960,7 @@ const InputsSchema = z.object({
         "Output only. The Oracle REST Data Services (ORDS) version.",
       ).optional(),
     }).describe(
-      "Oracle APEX Application Development. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseApex",
+      "Output only. The details for the Oracle APEX Application Development.",
     ).optional(),
     arePrimaryAllowlistedIpsUsed: z.boolean().describe(
       "Output only. This field indicates the status of Data Guard and Access control for the Autonomous Database. The field's value is null if Data Guard is disabled or Access Control is disabled. The field's value is TRUE if both Data Guard and Access Control are enabled, and the Autonomous Database is using primary IP access control list (ACL) for standby. The field's value is FALSE if both Data Guard and Access Control are enabled, and the Autonomous Database is using a different IP access control list (ACL) for standby compared to primary.",
@@ -992,7 +992,7 @@ const InputsSchema = z.object({
           "Output only. The database service provides a lower level of resources to each SQL statement.",
         ).optional(),
       }).describe(
-        "A list of all connection strings that can be used to connect to the Autonomous Database.",
+        "Output only. Returns all connection strings that can be used to connect to the Autonomous Database.",
       ).optional(),
       dedicated: z.string().describe(
         "Output only. The database service provides the least level of resources to each SQL statement, but supports the most number of concurrent SQL statements.",
@@ -1053,7 +1053,7 @@ const InputsSchema = z.object({
         "Output only. A list of connection string profiles to allow clients to group, filter, and select values based on the structured metadata.",
       ).optional(),
     }).describe(
-      "The connection string used to connect to the Autonomous Database. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionStrings",
+      "Output only. The connection strings used to connect to an Autonomous Database.",
     ).optional(),
     connectionUrls: z.object({
       apexUri: z.string().describe(
@@ -1081,7 +1081,7 @@ const InputsSchema = z.object({
         "Output only. The URL of the Oracle SQL Developer Web for the Autonomous Database.",
       ).optional(),
     }).describe(
-      "The URLs for accessing Oracle Application Express (APEX) and SQL Developer Web with a browser from a Compute instance. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionUrls",
+      "Output only. The Oracle Connection URLs for an Autonomous Database.",
     ).optional(),
     cpuCoreCount: z.number().int().describe(
       "Optional. Immutable. The number of CPU cores to be made available to the database.",
@@ -1147,8 +1147,9 @@ const InputsSchema = z.object({
         "GOOGLE_MANAGED",
         "ORACLE_MANAGED",
       ]).describe("Optional. The provider of the encryption key.").optional(),
-    }).describe("The encryption key used to encrypt the Autonomous Database.")
-      .optional(),
+    }).describe(
+      "Optional. The encryption key used to encrypt the Autonomous Database. Updating this field will add a new entry in the `encryption_key_history_entries` field with the former version.",
+    ).optional(),
     encryptionKeyHistoryEntries: z.array(z.object({
       activationTime: z.string().describe(
         "Output only. The date and time when the encryption key was activated on the Autonomous Database..",
@@ -1162,8 +1163,9 @@ const InputsSchema = z.object({
           "GOOGLE_MANAGED",
           "ORACLE_MANAGED",
         ]).describe("Optional. The provider of the encryption key.").optional(),
-      }).describe("The encryption key used to encrypt the Autonomous Database.")
-        .optional(),
+      }).describe(
+        "Output only. The encryption key used to encrypt the Autonomous Database.",
+      ).optional(),
     })).describe(
       "Output only. The history of the encryption keys used to encrypt the Autonomous Database.",
     ).optional(),
@@ -1246,7 +1248,7 @@ const InputsSchema = z.object({
         "Output only. The current lifecycle state of the Autonomous Database.",
       ).optional(),
     }).describe(
-      "Autonomous Data Guard standby database details. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseStandbySummary",
+      "Output only. The details of the Autonomous Data Guard standby database.",
     ).optional(),
     maintenanceBeginTime: z.string().describe(
       "Output only. The date and time when maintenance will begin.",
@@ -1363,9 +1365,7 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Output only. Auto start time.").optional(),
       stopTime: z.object({
         hours: z.number().int().describe(
           'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -1379,9 +1379,7 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Output only. Auto stop time.").optional(),
     })).describe(
       "Output only. The list and details of the scheduled operations of the Autonomous Database.",
     ).optional(),
@@ -1432,7 +1430,8 @@ const InputsSchema = z.object({
     vaultId: z.string().describe(
       "Optional. Immutable. The ID of the Oracle Cloud Infrastructure vault.",
     ).optional(),
-  }).describe("The properties of an Autonomous Database.").optional(),
+  }).describe("Optional. The properties of the Autonomous Database.")
+    .optional(),
   sourceConfig: z.object({
     autoRefreshFrequencySeconds: z.number().int().describe(
       "Optional. The frequency in seconds a refreshable clone is refreshed after auto-refresh is enabled.",
@@ -1475,8 +1474,9 @@ const InputsSchema = z.object({
     useLatestAvailableBackup: z.boolean().describe(
       "Optional. Clone from latest available backup timestamp. This field is only applicable in case of BACKUP_FROM_TIMESTAMP source type.",
     ).optional(),
-  }).describe("The source configuration for the standby Autonomous Database.")
-    .optional(),
+  }).describe(
+    "Optional. Immutable. The source Autonomous Database configuration for the standby Autonomous Database. The source Autonomous Database is configured while creating the Peer Autonomous Database and can't be updated after creation.",
+  ).optional(),
   autonomousDatabaseId: z.string().describe(
     "Required. The ID of the Autonomous Database to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -1511,7 +1511,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud AutonomousDatabases. Registered at `@swamp/gcp/oracledatabase/autonomousdatabases`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/autonomousdatabases",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1677,6 +1677,11 @@ export const model = {
       description: "Added: adminPasswordSecretVersion",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1836,9 +1841,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["properties"] !== undefined) body["properties"] = g["properties"];
-        if (g["sourceConfig"] !== undefined) {
-          body["sourceConfig"] = g["sourceConfig"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

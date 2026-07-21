@@ -178,8 +178,7 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       'Required. Engine version, for example "12.c.1".',
     ).optional(),
-  }).describe("The type and version of a source or destination database.")
-    .optional(),
+  }).describe("Required. The destination engine details.").optional(),
   destinationProvider: z.enum([
     "DATABASE_PROVIDER_UNSPECIFIED",
     "CLOUDSQL",
@@ -209,8 +208,7 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       'Required. Engine version, for example "12.c.1".',
     ).optional(),
-  }).describe("The type and version of a source or destination database.")
-    .optional(),
+  }).describe("Required. The source engine details.").optional(),
   sourceProvider: z.enum([
     "DATABASE_PROVIDER_UNSPECIFIED",
     "CLOUDSQL",
@@ -269,8 +267,7 @@ const InputsSchema = z.object({
     version: z.string().describe(
       'Required. Engine version, for example "12.c.1".',
     ).optional(),
-  }).describe("The type and version of a source or destination database.")
-    .optional(),
+  }).describe("Required. The destination engine details.").optional(),
   destinationProvider: z.enum([
     "DATABASE_PROVIDER_UNSPECIFIED",
     "CLOUDSQL",
@@ -300,8 +297,7 @@ const InputsSchema = z.object({
     version: z.string().describe(
       'Required. Engine version, for example "12.c.1".',
     ).optional(),
-  }).describe("The type and version of a source or destination database.")
-    .optional(),
+  }).describe("Required. The source engine details.").optional(),
   sourceProvider: z.enum([
     "DATABASE_PROVIDER_UNSPECIFIED",
     "CLOUDSQL",
@@ -344,7 +340,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration ConversionWorkspaces. Registered at `@swamp/gcp/datamigration/conversionworkspaces`. */
 export const model = {
   type: "@swamp/gcp/datamigration/conversionworkspaces",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -448,6 +444,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

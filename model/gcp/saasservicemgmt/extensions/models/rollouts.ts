@@ -196,10 +196,10 @@ const GlobalArgsSchema = z.object({
         "Required. If true, the rollout will retry failed operations when resumed. This is applicable only the current state of the Rollout is PAUSED and the requested action is RUN.",
       ).optional(),
     }).describe(
-      "Parameters for the RUN action controlling the behavior of the rollout when it is resumed from a PAUSED state.",
+      "Optional. Parameters for the RUN action. It is an error to specify this if the RolloutAction is not set to RUN. By default, the rollout will retry failed operations when resumed.",
     ).optional(),
   }).describe(
-    "RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.",
+    "Optional. Requested change to the execution of this rollout. Default RolloutControl.action is ROLLOUT_ACTION_RUN meaning the rollout will be executed to completion while progressing through all natural Rollout States (such as RUNNING -> SUCCEEDED or RUNNING -> FAILED). Requests can only be made when the Rollout is in a non-terminal state.",
   ).optional(),
   flagRelease: z.string().describe(
     'Optional. Immutable. Name of the FlagRelease to be rolled out to the target Units. Release and FlagRelease are mutually exclusive. Note: `release` comment needs to be adjusted to mention that "Release and FlagRelease are mutually exclusive" when visibility restriction will be lifted.',
@@ -218,22 +218,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   rolloutOrchestrationStrategy: z.string().describe(
     'Optional. The strategy used for executing this Rollout. This strategy will override whatever strategy is specified in the RolloutKind. If not specified on creation, the strategy from RolloutKind will be used. There are two supported values strategies which are used to control - "Google.Cloud.Simple.AllAtOnce" - "Google.Cloud.Simple.OneLocationAtATime" A rollout with one of these simple strategies will rollout across all locations defined in the targeted UnitKind\'s Saas Locations.',
-  ).optional(),
-  stats: z.object({
-    estimatedTotalUnitCount: z.string().describe(
-      "Optional. Output only. Estimated number of units based. The estimation is computed upon creation of the rollout.",
-    ).optional(),
-    operationsByState: z.array(z.object({
-      count: z.number().int().describe(
-        "Required. Number of records in the group.",
-      ).optional(),
-      group: z.string().describe("Required. Group by which to aggregate.")
-        .optional(),
-    })).describe(
-      'Optional. Output only. Unordered list. A breakdown of the progress of operations triggered by the rollout. Provides a count of Operations by their state. This can be used to determine the number of units which have been updated, or are scheduled to be updated. There will be at most one entry per group. Possible values for operation groups are: - "SCHEDULED" - "PENDING" - "RUNNING" - "SUCCEEDED" - "FAILED" - "CANCELLED"',
-    ).optional(),
-  }).describe(
-    "RolloutStats contains information about the progress of a rollout.",
   ).optional(),
   unitFilter: z.string().describe(
     "Optional. CEL(https://github.com/google/cel-spec) formatted filter string against Unit. The filter will be applied to determine the eligible unit population. This filter can only reduce, but not expand the scope of the rollout. If not provided, the unit_filter from the RolloutKind will be used.",
@@ -309,10 +293,10 @@ const InputsSchema = z.object({
         "Required. If true, the rollout will retry failed operations when resumed. This is applicable only the current state of the Rollout is PAUSED and the requested action is RUN.",
       ).optional(),
     }).describe(
-      "Parameters for the RUN action controlling the behavior of the rollout when it is resumed from a PAUSED state.",
+      "Optional. Parameters for the RUN action. It is an error to specify this if the RolloutAction is not set to RUN. By default, the rollout will retry failed operations when resumed.",
     ).optional(),
   }).describe(
-    "RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.",
+    "Optional. Requested change to the execution of this rollout. Default RolloutControl.action is ROLLOUT_ACTION_RUN meaning the rollout will be executed to completion while progressing through all natural Rollout States (such as RUNNING -> SUCCEEDED or RUNNING -> FAILED). Requests can only be made when the Rollout is in a non-terminal state.",
   ).optional(),
   flagRelease: z.string().describe(
     'Optional. Immutable. Name of the FlagRelease to be rolled out to the target Units. Release and FlagRelease are mutually exclusive. Note: `release` comment needs to be adjusted to mention that "Release and FlagRelease are mutually exclusive" when visibility restriction will be lifted.',
@@ -331,22 +315,6 @@ const InputsSchema = z.object({
   ).optional(),
   rolloutOrchestrationStrategy: z.string().describe(
     'Optional. The strategy used for executing this Rollout. This strategy will override whatever strategy is specified in the RolloutKind. If not specified on creation, the strategy from RolloutKind will be used. There are two supported values strategies which are used to control - "Google.Cloud.Simple.AllAtOnce" - "Google.Cloud.Simple.OneLocationAtATime" A rollout with one of these simple strategies will rollout across all locations defined in the targeted UnitKind\'s Saas Locations.',
-  ).optional(),
-  stats: z.object({
-    estimatedTotalUnitCount: z.string().describe(
-      "Optional. Output only. Estimated number of units based. The estimation is computed upon creation of the rollout.",
-    ).optional(),
-    operationsByState: z.array(z.object({
-      count: z.number().int().describe(
-        "Required. Number of records in the group.",
-      ).optional(),
-      group: z.string().describe("Required. Group by which to aggregate.")
-        .optional(),
-    })).describe(
-      'Optional. Output only. Unordered list. A breakdown of the progress of operations triggered by the rollout. Provides a count of Operations by their state. This can be used to determine the number of units which have been updated, or are scheduled to be updated. There will be at most one entry per group. Possible values for operation groups are: - "SCHEDULED" - "PENDING" - "RUNNING" - "SUCCEEDED" - "FAILED" - "CANCELLED"',
-    ).optional(),
-  }).describe(
-    "RolloutStats contains information about the progress of a rollout.",
   ).optional(),
   unitFilter: z.string().describe(
     "Optional. CEL(https://github.com/google/cel-spec) formatted filter string against Unit. The filter will be applied to determine the eligible unit population. This filter can only reduce, but not expand the scope of the rollout. If not provided, the unit_filter from the RolloutKind will be used.",
@@ -384,7 +352,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Lifecycle Manager Rollouts. Registered at `@swamp/gcp/saasservicemgmt/rollouts`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/rollouts",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -528,6 +496,14 @@ export const model = {
       description: "Added: flagRelease",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: stats",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { stats: _stats, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -569,7 +545,6 @@ export const model = {
           body["rolloutOrchestrationStrategy"] =
             g["rolloutOrchestrationStrategy"];
         }
-        if (g["stats"] !== undefined) body["stats"] = g["stats"];
         if (g["unitFilter"] !== undefined) body["unitFilter"] = g["unitFilter"];
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);
@@ -688,7 +663,6 @@ export const model = {
         }
         if (g["control"] !== undefined) body["control"] = g["control"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["stats"] !== undefined) body["stats"] = g["stats"];
         if (g["unitFilter"] !== undefined) body["unitFilter"] = g["unitFilter"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

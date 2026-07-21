@@ -181,7 +181,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Volume gain (in dB) of the normal native volume supported by ambient noise, in the range [-96.0, 16.0]. If unset, or set to a value of 0.0 (dB), will play at normal native signal amplitude. A value of -6.0 (dB) will play at approximately half the amplitude of the normal native signal amplitude. A value of +6.0 (dB) will play at approximately twice the amplitude of the normal native signal amplitude. We strongly recommend not to exceed +10 (dB) as there's usually no effective increase in loudness for any value greater than that.",
       ).optional(),
     }).describe(
-      "Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.",
+      "Optional. Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.",
     ).optional(),
     bargeInConfig: z.object({
       bargeInAwareness: z.boolean().describe(
@@ -191,7 +191,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
       ).optional(),
     }).describe(
-      "Configuration for how the user barge-in activities should be handled.",
+      "Optional. Configures the agent behavior for the user barge-in activities.",
     ).optional(),
     inactivityTimeout: z.string().describe(
       "Optional. The duration of user inactivity (no speech or interaction) before the agent prompts the user for reengagement. If not set, the agent will not prompt the user for reengagement.",
@@ -218,9 +218,8 @@ const GlobalArgsSchema = z.object({
     ).describe(
       'Optional. Configuration of how the agent response should be synthesized, mapping from the language code to SynthesizeSpeechConfig. If the configuration for the specified language code is not found, the configuration for the root language code will be used. For example, if the map contains "en-us" and "en", and the specified language code is "en-gb", then "en" configuration will be used. Note: Language code is case-insensitive.',
     ).optional(),
-  }).describe(
-    "Configuration for how the input and output audio should be processed and delivered.",
-  ).optional(),
+  }).describe("Optional. Audio processing configuration of the app.")
+    .optional(),
   clientCertificateSettings: z.object({
     passphrase: z.string().describe(
       "Optional. The name of the SecretManager secret version resource storing the passphrase to decrypt the private key. Should be left unset if the private key is not encrypted. Format: `projects/{project}/secrets/{secret}/versions/{version}`",
@@ -231,7 +230,8 @@ const GlobalArgsSchema = z.object({
     tlsCertificate: z.string().describe(
       "Required. The TLS certificate encoded in PEM format. This string must include the begin header and end footer lines.",
     ).optional(),
-  }).describe("Settings for custom client certificates.").optional(),
+  }).describe("Optional. The default client certificate settings for the app.")
+    .optional(),
   dataStoreSettings: z.object({
     engines: z.array(z.object({
       name: z.string().describe(
@@ -243,7 +243,7 @@ const GlobalArgsSchema = z.object({
         "ENGINE_TYPE_CHAT",
       ]).describe("Output only. The type of the engine.").optional(),
     })).describe("Output only. The engines for the app.").optional(),
-  }).describe("Data store related settings for the app.").optional(),
+  }).describe("Optional. The data store settings for the app.").optional(),
   defaultChannelProfile: z.object({
     channelType: z.enum([
       "UNKNOWN",
@@ -277,7 +277,8 @@ const GlobalArgsSchema = z.object({
       thumbnailUrl: z.string().describe(
         "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
+    }).describe("Optional. Configuration specific to Instagram deployments.")
+      .optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -285,7 +286,8 @@ const GlobalArgsSchema = z.object({
       persona: z.enum(["UNKNOWN", "CONCISE", "CHATTY"]).describe(
         "Optional. The persona of the channel.",
       ).optional(),
-    }).describe("Represents the persona property of a channel.").optional(),
+    }).describe("Optional. The persona property of the channel profile.")
+      .optional(),
     profileId: z.string().describe(
       "Optional. The unique identifier of the channel profile.",
     ).optional(),
@@ -310,14 +312,15 @@ const GlobalArgsSchema = z.object({
         enableRecaptcha: z.boolean().describe(
           "Optional. Indicates whether reCAPTCHA verification for the web widget is enabled.",
         ).optional(),
-      }).describe("Security settings for the web widget.").optional(),
+      }).describe("Optional. The security settings of the web widget.")
+        .optional(),
       theme: z.enum(["THEME_UNSPECIFIED", "LIGHT", "DARK"]).describe(
         "Optional. The theme of the web widget.",
       ).optional(),
       webWidgetTitle: z.string().describe(
         "Optional. The title of the web widget.",
       ).optional(),
-    }).describe("Message for configuration for the web widget.").optional(),
+    }).describe("Optional. The configuration for the web widget.").optional(),
     whatsappConfig: z.object({
       description: z.string().describe(
         "Output only. The description of the Meta business page or profile.",
@@ -335,10 +338,10 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
-  }).describe(
-    "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
-  ).optional(),
+    }).describe("Optional. Configuration specific to WhatsApp deployments.")
+      .optional(),
+  }).describe("Optional. The default channel profile used by the app.")
+    .optional(),
   description: z.string().describe(
     "Optional. Human-readable description of the app.",
   ).optional(),
@@ -350,7 +353,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Whether to escalate the session in EndSession. If session is escalated, metadata in EndSession will contain `session_escalated = true`. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/deploy/google-telephony-platform#transfer_a_call_to_a_human_agent for details.",
       ).optional(),
     }).describe(
-      "Configuration for ending the session in case of system errors (e.g. LLM errors).",
+      "Optional. Configuration for ending the session in case of system errors (e.g. LLM errors).",
     ).optional(),
     errorHandlingStrategy: z.enum([
       "ERROR_HANDLING_STRATEGY_UNSPECIFIED",
@@ -365,16 +368,17 @@ const GlobalArgsSchema = z.object({
       maxFallbackAttempts: z.number().int().describe(
         "Optional. The maximum number of fallback attempts to make before the agent emitting EndSession Signal.",
       ).optional(),
-    }).describe("Configuration for handling fallback responses.").optional(),
-  }).describe("Settings to describe how errors should be handled in the app.")
-    .optional(),
+    }).describe("Optional. Configuration for handling fallback responses.")
+      .optional(),
+  }).describe("Optional. Error handling settings of the app.").optional(),
   evaluationMetricsThresholds: z.object({
     goldenEvaluationMetricsThresholds: z.object({
       expectationLevelMetricsThresholds: z.object({
         toolInvocationParameterCorrectnessThreshold: z.number().describe(
           "Optional. The success threshold for individual tool invocation parameter correctness. Must be a float between 0 and 1. Default is 1.0.",
         ).optional(),
-      }).describe("Expectation level metrics thresholds.").optional(),
+      }).describe("Optional. The expectation level metrics thresholds.")
+        .optional(),
       toolMatchingSettings: z.object({
         extraToolCallBehavior: z.enum([
           "EXTRA_TOOL_CALL_BEHAVIOR_UNSPECIFIED",
@@ -383,7 +387,9 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. Behavior for extra tool calls. Defaults to FAIL.",
         ).optional(),
-      }).describe("Settings for matching tool calls.").optional(),
+      }).describe(
+        "Optional. The tool matching settings. An extra tool call is a tool call that is present in the execution but does not match any tool call in the golden expectation.",
+      ).optional(),
       turnLevelMetricsThresholds: z.object({
         overallToolInvocationCorrectnessThreshold: z.number().describe(
           "Optional. The success threshold for overall tool invocation correctness. Must be a float between 0 and 1. Default is 1.0.",
@@ -398,8 +404,9 @@ const GlobalArgsSchema = z.object({
         semanticSimilaritySuccessThreshold: z.number().int().describe(
           "Optional. The success threshold for semantic similarity. Must be an integer between 0 and 4. Default is >= 3.",
         ).optional(),
-      }).describe("Turn level metrics thresholds.").optional(),
-    }).describe("Settings for golden evaluations.").optional(),
+      }).describe("Optional. The turn level metrics thresholds.").optional(),
+    }).describe("Optional. The golden evaluation metrics thresholds.")
+      .optional(),
     goldenHallucinationMetricBehavior: z.enum([
       "HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED",
       "DISABLED",
@@ -421,7 +428,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. The hallucination metric behavior for scenario evaluations.",
     ).optional(),
-  }).describe("Threshold settings for metrics in an Evaluation.").optional(),
+  }).describe("Optional. The evaluation thresholds for the app.").optional(),
   globalInstruction: z.string().describe(
     "Optional. Instructions for all the agents in the app. You can use this instruction to set up a stable identity or personality across all the agents.",
   ).optional(),
@@ -441,7 +448,7 @@ const GlobalArgsSchema = z.object({
     supportedLanguageCodes: z.array(z.string()).describe(
       "Optional. List of languages codes supported by the app, in addition to the `default_language_code`.",
     ).optional(),
-  }).describe("Language settings of the app.").optional(),
+  }).describe("Optional. Language settings of the app.").optional(),
   locked: z.boolean().describe(
     "Optional. Indicates whether the app is locked for changes. If the app is locked, modifications to the app resources will be rejected.",
   ).optional(),
@@ -454,7 +461,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
       ).optional(),
     }).describe(
-      "Configuration for how the audio interactions should be recorded.",
+      "Optional. Configuration for how audio interactions should be recorded. The audio is subject to redaction as configured in RedactionConfig.",
     ).optional(),
     bigqueryExportSettings: z.object({
       dataset: z.string().describe(
@@ -467,14 +474,15 @@ const GlobalArgsSchema = z.object({
         "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
       ).optional(),
     }).describe(
-      "Settings to describe the BigQuery export behaviors for the app.",
+      "Optional. Configures the BigQuery export behaviors for the app. The conversation data is subject to redaction as configured in RedactionConfig.",
     ).optional(),
     cloudLoggingSettings: z.object({
       enableCloudLogging: z.boolean().describe(
         "Optional. Whether to enable Cloud Logging for the sessions.",
       ).optional(),
-    }).describe("Settings to describe the Cloud Logging behaviors for the app.")
-      .optional(),
+    }).describe(
+      "Optional. Settings to describe the Cloud Logging behaviors for the app.",
+    ).optional(),
     conversationLoggingSettings: z.object({
       disableConversationLogging: z.boolean().describe(
         "Optional. Whether to disable conversation logging for the sessions.",
@@ -483,7 +491,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Controls the retention window for the conversation. If not set, the conversation will be retained for 365 days.",
       ).optional(),
     }).describe(
-      "Settings to describe the conversation logging behaviors for the app.",
+      "Optional. Settings to describe the conversation logging behaviors for the app.",
     ).optional(),
     evaluationAudioRecordingConfig: z.object({
       gcsBucket: z.string().describe(
@@ -493,14 +501,14 @@ const GlobalArgsSchema = z.object({
         "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
       ).optional(),
     }).describe(
-      "Configuration for how the audio interactions should be recorded.",
+      "Optional. Configuration for how audio interactions should be recorded for the evaluation. By default, audio recording is not enabled for evaluation sessions.",
     ).optional(),
     metricAnalysisSettings: z.object({
       llmMetricsOptedOut: z.boolean().describe(
         "Optional. Whether to collect conversation data for llm analysis metrics. If true, conversation data will not be collected for llm analysis metrics; otherwise, conversation data will be collected.",
       ).optional(),
     }).describe(
-      "Settings to describe the conversation data collection behaviors for LLM analysis metrics pipeline.",
+      "Optional. Settings to describe the conversation data collection behaviors for the LLM analysis pipeline for the app.",
     ).optional(),
     redactionConfig: z.object({
       deidentifyTemplate: z.string().describe(
@@ -513,7 +521,7 @@ const GlobalArgsSchema = z.object({
         "Optional. [DLP](https://cloud.google.com/dlp/docs) inspect template name to configure detection of sensitive data types. Format: `projects/{project}/locations/{location}/inspectTemplates/{inspect_template}`",
       ).optional(),
     }).describe(
-      "Configuration to instruct how sensitive data should be handled.",
+      "Optional. Configuration for how sensitive data should be redacted.",
     ).optional(),
     unredactedAudioRecordingConfig: z.object({
       gcsBucket: z.string().describe(
@@ -523,7 +531,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
       ).optional(),
     }).describe(
-      "Configuration for how the audio interactions should be recorded.",
+      "Optional. Configures an additional recording of unredacted audio. This can be used to maintain a raw audio copy when audio redaction is enabled, typically for auditing or monitoring purposes.",
     ).optional(),
     unredactedBigqueryExportSettings: z.object({
       dataset: z.string().describe(
@@ -536,10 +544,9 @@ const GlobalArgsSchema = z.object({
         "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
       ).optional(),
     }).describe(
-      "Settings to describe the BigQuery export behaviors for the app.",
+      "Optional. Configures the BigQuery export behaviors for the app. The unredacted conversation data will be exported to BigQuery tables if it is enabled.",
     ).optional(),
-  }).describe("Settings to describe the logging behaviors for the app.")
-    .optional(),
+  }).describe("Optional. Logging settings of the app.").optional(),
   metadata: z.record(z.string(), z.string()).describe(
     "Optional. Metadata about the app. This field can be used to store additional information relevant to the app's details or intended usages.",
   ).optional(),
@@ -551,7 +558,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
     ).optional(),
   }).describe(
-    "Model settings contains various configurations for the LLM model.",
+    "Optional. The default LLM model settings for the app. Individual resources (e.g. agents, guardrails) can override these configurations as needed.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The unique identifier of the app. Format: `projects/{project}/locations/{location}/apps/{app}`",
@@ -566,7 +573,7 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       "Optional. The time zone of the app from the [time zone database](https://www.iana.org/time-zones), e.g., America/Los_Angeles, Europe/Paris.",
     ).optional(),
-  }).describe("TimeZone settings of the app.").optional(),
+  }).describe("Optional. TimeZone settings of the app.").optional(),
   toolExecutionMode: z.enum([
     "TOOL_EXECUTION_MODE_UNSPECIFIED",
     "PARALLEL",
@@ -641,14 +648,13 @@ const GlobalArgsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
-      .optional(),
+    }).describe("Required. The schema of the variable.").optional(),
   })).describe("Optional. The declarations of the variables.").optional(),
   vpcScSettings: z.object({
     allowedOrigins: z.array(z.string()).describe(
       'Optional. The allowed HTTP(s) origins that OpenAPI tools in the App are able to directly call when VPC Service Controls are enabled. These strings must match the origin exactly, including the port if specified. For example, "https://example.com" or "https://example.com:443". This list does not yet apply to Python tools that may make direct HTTP calls.',
     ).optional(),
-  }).describe("VPC-SC settings for the app.").optional(),
+  }).describe("Optional. VPC-SC settings for the app.").optional(),
   appId: z.string().describe(
     "Optional. The ID to use for the app, which will become the final component of the app's resource name. If not provided, a unique ID will be automatically assigned for the app.",
   ).optional(),
@@ -895,7 +901,7 @@ const InputsSchema = z.object({
         "Optional. Volume gain (in dB) of the normal native volume supported by ambient noise, in the range [-96.0, 16.0]. If unset, or set to a value of 0.0 (dB), will play at normal native signal amplitude. A value of -6.0 (dB) will play at approximately half the amplitude of the normal native signal amplitude. A value of +6.0 (dB) will play at approximately twice the amplitude of the normal native signal amplitude. We strongly recommend not to exceed +10 (dB) as there's usually no effective increase in loudness for any value greater than that.",
       ).optional(),
     }).describe(
-      "Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.",
+      "Optional. Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.",
     ).optional(),
     bargeInConfig: z.object({
       bargeInAwareness: z.boolean().describe(
@@ -905,7 +911,7 @@ const InputsSchema = z.object({
         "Optional. Deprecated: `disable_barge_in` is deprecated in favor of `disable_barge_in_control` in ChannelProfile. Disables user barge-in while the agent is speaking. If true, user input during agent response playback will be ignored.",
       ).optional(),
     }).describe(
-      "Configuration for how the user barge-in activities should be handled.",
+      "Optional. Configures the agent behavior for the user barge-in activities.",
     ).optional(),
     inactivityTimeout: z.string().describe(
       "Optional. The duration of user inactivity (no speech or interaction) before the agent prompts the user for reengagement. If not set, the agent will not prompt the user for reengagement.",
@@ -932,9 +938,8 @@ const InputsSchema = z.object({
     ).describe(
       'Optional. Configuration of how the agent response should be synthesized, mapping from the language code to SynthesizeSpeechConfig. If the configuration for the specified language code is not found, the configuration for the root language code will be used. For example, if the map contains "en-us" and "en", and the specified language code is "en-gb", then "en" configuration will be used. Note: Language code is case-insensitive.',
     ).optional(),
-  }).describe(
-    "Configuration for how the input and output audio should be processed and delivered.",
-  ).optional(),
+  }).describe("Optional. Audio processing configuration of the app.")
+    .optional(),
   clientCertificateSettings: z.object({
     passphrase: z.string().describe(
       "Optional. The name of the SecretManager secret version resource storing the passphrase to decrypt the private key. Should be left unset if the private key is not encrypted. Format: `projects/{project}/secrets/{secret}/versions/{version}`",
@@ -945,7 +950,8 @@ const InputsSchema = z.object({
     tlsCertificate: z.string().describe(
       "Required. The TLS certificate encoded in PEM format. This string must include the begin header and end footer lines.",
     ).optional(),
-  }).describe("Settings for custom client certificates.").optional(),
+  }).describe("Optional. The default client certificate settings for the app.")
+    .optional(),
   dataStoreSettings: z.object({
     engines: z.array(z.object({
       name: z.string().describe(
@@ -957,7 +963,7 @@ const InputsSchema = z.object({
         "ENGINE_TYPE_CHAT",
       ]).describe("Output only. The type of the engine.").optional(),
     })).describe("Output only. The engines for the app.").optional(),
-  }).describe("Data store related settings for the app.").optional(),
+  }).describe("Optional. The data store settings for the app.").optional(),
   defaultChannelProfile: z.object({
     channelType: z.enum([
       "UNKNOWN",
@@ -991,7 +997,8 @@ const InputsSchema = z.object({
       thumbnailUrl: z.string().describe(
         "Output only. The fetched Meta business profile thumbnail URL.",
       ).optional(),
-    }).describe("Configuration specific to Instagram deployments.").optional(),
+    }).describe("Optional. Configuration specific to Instagram deployments.")
+      .optional(),
     noiseSuppressionLevel: z.string().describe(
       'Optional. The noise suppression level of the channel profile. Available values are "low", "moderate", "high", "very_high".',
     ).optional(),
@@ -999,7 +1006,8 @@ const InputsSchema = z.object({
       persona: z.enum(["UNKNOWN", "CONCISE", "CHATTY"]).describe(
         "Optional. The persona of the channel.",
       ).optional(),
-    }).describe("Represents the persona property of a channel.").optional(),
+    }).describe("Optional. The persona property of the channel profile.")
+      .optional(),
     profileId: z.string().describe(
       "Optional. The unique identifier of the channel profile.",
     ).optional(),
@@ -1024,14 +1032,15 @@ const InputsSchema = z.object({
         enableRecaptcha: z.boolean().describe(
           "Optional. Indicates whether reCAPTCHA verification for the web widget is enabled.",
         ).optional(),
-      }).describe("Security settings for the web widget.").optional(),
+      }).describe("Optional. The security settings of the web widget.")
+        .optional(),
       theme: z.enum(["THEME_UNSPECIFIED", "LIGHT", "DARK"]).describe(
         "Optional. The theme of the web widget.",
       ).optional(),
       webWidgetTitle: z.string().describe(
         "Optional. The title of the web widget.",
       ).optional(),
-    }).describe("Message for configuration for the web widget.").optional(),
+    }).describe("Optional. The configuration for the web widget.").optional(),
     whatsappConfig: z.object({
       description: z.string().describe(
         "Output only. The description of the Meta business page or profile.",
@@ -1049,10 +1058,10 @@ const InputsSchema = z.object({
       ).optional(),
       wabaId: z.string().describe("Required. The WhatsApp Business Account ID.")
         .optional(),
-    }).describe("Configuration specific to WhatsApp deployments.").optional(),
-  }).describe(
-    "A ChannelProfile configures the agent's behavior for a specific communication channel, such as web UI or telephony.",
-  ).optional(),
+    }).describe("Optional. Configuration specific to WhatsApp deployments.")
+      .optional(),
+  }).describe("Optional. The default channel profile used by the app.")
+    .optional(),
   description: z.string().describe(
     "Optional. Human-readable description of the app.",
   ).optional(),
@@ -1064,7 +1073,7 @@ const InputsSchema = z.object({
         "Optional. Whether to escalate the session in EndSession. If session is escalated, metadata in EndSession will contain `session_escalated = true`. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/deploy/google-telephony-platform#transfer_a_call_to_a_human_agent for details.",
       ).optional(),
     }).describe(
-      "Configuration for ending the session in case of system errors (e.g. LLM errors).",
+      "Optional. Configuration for ending the session in case of system errors (e.g. LLM errors).",
     ).optional(),
     errorHandlingStrategy: z.enum([
       "ERROR_HANDLING_STRATEGY_UNSPECIFIED",
@@ -1079,16 +1088,17 @@ const InputsSchema = z.object({
       maxFallbackAttempts: z.number().int().describe(
         "Optional. The maximum number of fallback attempts to make before the agent emitting EndSession Signal.",
       ).optional(),
-    }).describe("Configuration for handling fallback responses.").optional(),
-  }).describe("Settings to describe how errors should be handled in the app.")
-    .optional(),
+    }).describe("Optional. Configuration for handling fallback responses.")
+      .optional(),
+  }).describe("Optional. Error handling settings of the app.").optional(),
   evaluationMetricsThresholds: z.object({
     goldenEvaluationMetricsThresholds: z.object({
       expectationLevelMetricsThresholds: z.object({
         toolInvocationParameterCorrectnessThreshold: z.number().describe(
           "Optional. The success threshold for individual tool invocation parameter correctness. Must be a float between 0 and 1. Default is 1.0.",
         ).optional(),
-      }).describe("Expectation level metrics thresholds.").optional(),
+      }).describe("Optional. The expectation level metrics thresholds.")
+        .optional(),
       toolMatchingSettings: z.object({
         extraToolCallBehavior: z.enum([
           "EXTRA_TOOL_CALL_BEHAVIOR_UNSPECIFIED",
@@ -1097,7 +1107,9 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. Behavior for extra tool calls. Defaults to FAIL.",
         ).optional(),
-      }).describe("Settings for matching tool calls.").optional(),
+      }).describe(
+        "Optional. The tool matching settings. An extra tool call is a tool call that is present in the execution but does not match any tool call in the golden expectation.",
+      ).optional(),
       turnLevelMetricsThresholds: z.object({
         overallToolInvocationCorrectnessThreshold: z.number().describe(
           "Optional. The success threshold for overall tool invocation correctness. Must be a float between 0 and 1. Default is 1.0.",
@@ -1112,8 +1124,9 @@ const InputsSchema = z.object({
         semanticSimilaritySuccessThreshold: z.number().int().describe(
           "Optional. The success threshold for semantic similarity. Must be an integer between 0 and 4. Default is >= 3.",
         ).optional(),
-      }).describe("Turn level metrics thresholds.").optional(),
-    }).describe("Settings for golden evaluations.").optional(),
+      }).describe("Optional. The turn level metrics thresholds.").optional(),
+    }).describe("Optional. The golden evaluation metrics thresholds.")
+      .optional(),
     goldenHallucinationMetricBehavior: z.enum([
       "HALLUCINATION_METRIC_BEHAVIOR_UNSPECIFIED",
       "DISABLED",
@@ -1135,7 +1148,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. The hallucination metric behavior for scenario evaluations.",
     ).optional(),
-  }).describe("Threshold settings for metrics in an Evaluation.").optional(),
+  }).describe("Optional. The evaluation thresholds for the app.").optional(),
   globalInstruction: z.string().describe(
     "Optional. Instructions for all the agents in the app. You can use this instruction to set up a stable identity or personality across all the agents.",
   ).optional(),
@@ -1155,7 +1168,7 @@ const InputsSchema = z.object({
     supportedLanguageCodes: z.array(z.string()).describe(
       "Optional. List of languages codes supported by the app, in addition to the `default_language_code`.",
     ).optional(),
-  }).describe("Language settings of the app.").optional(),
+  }).describe("Optional. Language settings of the app.").optional(),
   locked: z.boolean().describe(
     "Optional. Indicates whether the app is locked for changes. If the app is locked, modifications to the app resources will be rejected.",
   ).optional(),
@@ -1168,7 +1181,7 @@ const InputsSchema = z.object({
         "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
       ).optional(),
     }).describe(
-      "Configuration for how the audio interactions should be recorded.",
+      "Optional. Configuration for how audio interactions should be recorded. The audio is subject to redaction as configured in RedactionConfig.",
     ).optional(),
     bigqueryExportSettings: z.object({
       dataset: z.string().describe(
@@ -1181,14 +1194,15 @@ const InputsSchema = z.object({
         "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
       ).optional(),
     }).describe(
-      "Settings to describe the BigQuery export behaviors for the app.",
+      "Optional. Configures the BigQuery export behaviors for the app. The conversation data is subject to redaction as configured in RedactionConfig.",
     ).optional(),
     cloudLoggingSettings: z.object({
       enableCloudLogging: z.boolean().describe(
         "Optional. Whether to enable Cloud Logging for the sessions.",
       ).optional(),
-    }).describe("Settings to describe the Cloud Logging behaviors for the app.")
-      .optional(),
+    }).describe(
+      "Optional. Settings to describe the Cloud Logging behaviors for the app.",
+    ).optional(),
     conversationLoggingSettings: z.object({
       disableConversationLogging: z.boolean().describe(
         "Optional. Whether to disable conversation logging for the sessions.",
@@ -1197,7 +1211,7 @@ const InputsSchema = z.object({
         "Optional. Controls the retention window for the conversation. If not set, the conversation will be retained for 365 days.",
       ).optional(),
     }).describe(
-      "Settings to describe the conversation logging behaviors for the app.",
+      "Optional. Settings to describe the conversation logging behaviors for the app.",
     ).optional(),
     evaluationAudioRecordingConfig: z.object({
       gcsBucket: z.string().describe(
@@ -1207,14 +1221,14 @@ const InputsSchema = z.object({
         "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
       ).optional(),
     }).describe(
-      "Configuration for how the audio interactions should be recorded.",
+      "Optional. Configuration for how audio interactions should be recorded for the evaluation. By default, audio recording is not enabled for evaluation sessions.",
     ).optional(),
     metricAnalysisSettings: z.object({
       llmMetricsOptedOut: z.boolean().describe(
         "Optional. Whether to collect conversation data for llm analysis metrics. If true, conversation data will not be collected for llm analysis metrics; otherwise, conversation data will be collected.",
       ).optional(),
     }).describe(
-      "Settings to describe the conversation data collection behaviors for LLM analysis metrics pipeline.",
+      "Optional. Settings to describe the conversation data collection behaviors for the LLM analysis pipeline for the app.",
     ).optional(),
     redactionConfig: z.object({
       deidentifyTemplate: z.string().describe(
@@ -1227,7 +1241,7 @@ const InputsSchema = z.object({
         "Optional. [DLP](https://cloud.google.com/dlp/docs) inspect template name to configure detection of sensitive data types. Format: `projects/{project}/locations/{location}/inspectTemplates/{inspect_template}`",
       ).optional(),
     }).describe(
-      "Configuration to instruct how sensitive data should be handled.",
+      "Optional. Configuration for how sensitive data should be redacted.",
     ).optional(),
     unredactedAudioRecordingConfig: z.object({
       gcsBucket: z.string().describe(
@@ -1237,7 +1251,7 @@ const InputsSchema = z.object({
         "Optional. The Cloud Storage path prefix for audio recordings. This prefix can include the following placeholders, which will be dynamically substituted at serving time: - $project: project ID - $location: app location - $app: app ID - $date: session date in YYYY-MM-DD format - $session: session ID If the path prefix is not specified, the default prefix `$project/$location/$app/$date/$session/` will be used.",
       ).optional(),
     }).describe(
-      "Configuration for how the audio interactions should be recorded.",
+      "Optional. Configures an additional recording of unredacted audio. This can be used to maintain a raw audio copy when audio redaction is enabled, typically for auditing or monitoring purposes.",
     ).optional(),
     unredactedBigqueryExportSettings: z.object({
       dataset: z.string().describe(
@@ -1250,10 +1264,9 @@ const InputsSchema = z.object({
         "Optional. The **project ID** of the BigQuery dataset to export the data to. Note: If the BigQuery dataset is in a different project from the app, you should grant `roles/bigquery.admin` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
       ).optional(),
     }).describe(
-      "Settings to describe the BigQuery export behaviors for the app.",
+      "Optional. Configures the BigQuery export behaviors for the app. The unredacted conversation data will be exported to BigQuery tables if it is enabled.",
     ).optional(),
-  }).describe("Settings to describe the logging behaviors for the app.")
-    .optional(),
+  }).describe("Optional. Logging settings of the app.").optional(),
   metadata: z.record(z.string(), z.string()).describe(
     "Optional. Metadata about the app. This field can be used to store additional information relevant to the app's details or intended usages.",
   ).optional(),
@@ -1265,7 +1278,7 @@ const InputsSchema = z.object({
       "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
     ).optional(),
   }).describe(
-    "Model settings contains various configurations for the LLM model.",
+    "Optional. The default LLM model settings for the app. Individual resources (e.g. agents, guardrails) can override these configurations as needed.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The unique identifier of the app. Format: `projects/{project}/locations/{location}/apps/{app}`",
@@ -1280,7 +1293,7 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       "Optional. The time zone of the app from the [time zone database](https://www.iana.org/time-zones), e.g., America/Los_Angeles, Europe/Paris.",
     ).optional(),
-  }).describe("TimeZone settings of the app.").optional(),
+  }).describe("Optional. TimeZone settings of the app.").optional(),
   toolExecutionMode: z.enum([
     "TOOL_EXECUTION_MODE_UNSPECIFIED",
     "PARALLEL",
@@ -1355,14 +1368,13 @@ const InputsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
-      .optional(),
+    }).describe("Required. The schema of the variable.").optional(),
   })).describe("Optional. The declarations of the variables.").optional(),
   vpcScSettings: z.object({
     allowedOrigins: z.array(z.string()).describe(
       'Optional. The allowed HTTP(s) origins that OpenAPI tools in the App are able to directly call when VPC Service Controls are enabled. These strings must match the origin exactly, including the port if specified. For example, "https://example.com" or "https://example.com:443". This list does not yet apply to Python tools that may make direct HTTP calls.',
     ).optional(),
-  }).describe("VPC-SC settings for the app.").optional(),
+  }).describe("Optional. VPC-SC settings for the app.").optional(),
   appId: z.string().describe(
     "Optional. The ID to use for the app, which will become the final component of the app's resource name. If not provided, a unique ID will be automatically assigned for the app.",
   ).optional(),
@@ -1394,7 +1406,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps. Registered at `@swamp/gcp/ces/apps`. */
 export const model = {
   type: "@swamp/gcp/ces/apps",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1571,6 +1583,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: vpcScSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

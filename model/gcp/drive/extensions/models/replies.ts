@@ -206,26 +206,6 @@ const GlobalArgsSchema = z.object({
   action: z.string().describe(
     "The action the reply performed to the parent comment. The supported values are: * `resolve` * `reopen`",
   ).optional(),
-  author: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   content: z.string().describe(
     "The plain text content of the reply. This field is used for setting the content, while `htmlContent` should be displayed. This field is required by the `create` method if no `action` value is specified.",
   ).optional(),
@@ -271,26 +251,6 @@ const InputsSchema = z.object({
   action: z.string().describe(
     "The action the reply performed to the parent comment. The supported values are: * `resolve` * `reopen`",
   ).optional(),
-  author: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   content: z.string().describe(
     "The plain text content of the reply. This field is used for setting the content, while `htmlContent` should be displayed. This field is required by the `create` method if no `action` value is specified.",
   ).optional(),
@@ -327,7 +287,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Replies. Registered at `@swamp/gcp/drive/replies`. */
 export const model = {
   type: "@swamp/gcp/drive/replies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -424,6 +384,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: author",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { author: _author, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -451,7 +419,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["action"] !== undefined) body["action"] = g["action"];
-        if (g["author"] !== undefined) body["author"] = g["author"];
         if (g["content"] !== undefined) body["content"] = g["content"];
         if (g["createdTime"] !== undefined) {
           body["createdTime"] = g["createdTime"];
@@ -467,15 +434,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "fileId": String(g["fileId"] ?? ""),
-              "commentId": String(g["commentId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -563,7 +522,6 @@ export const model = {
         params["replyId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["action"] !== undefined) body["action"] = g["action"];
-        if (g["author"] !== undefined) body["author"] = g["author"];
         if (g["content"] !== undefined) body["content"] = g["content"];
         if (g["createdTime"] !== undefined) {
           body["createdTime"] = g["createdTime"];

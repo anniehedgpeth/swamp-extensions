@@ -247,7 +247,7 @@ const GlobalArgsSchema = z.object({
         "The URI of the resource or system that manages the backend.",
       ).optional(),
     }).describe(
-      "A message containing information about the resource or system that manages the backend.",
+      "Information about the resource or system that manages the backend.",
     ).optional(),
     preference: z.enum(["DEFAULT", "PREFERENCE_UNSPECIFIED", "PREFERRED"])
       .describe(
@@ -287,9 +287,7 @@ const GlobalArgsSchema = z.object({
       queryStringWhitelist: z.array(z.string()).describe(
         "Names of query string parameters to include in cache keys. All other parameters will be excluded. Either specify query_string_whitelist or query_string_blacklist, not both. '&' and '=' will be percent encoded and not treated as delimiters.",
       ).optional(),
-    }).describe(
-      "Message containing what to include in the cache key for a request for Cloud CDN.",
-    ).optional(),
+    }).describe("The CacheKeyPolicy for this CdnPolicy.").optional(),
     cacheMode: z.enum([
       "CACHE_ALL_STATIC",
       "FORCE_CACHE_ALL",
@@ -333,7 +331,7 @@ const GlobalArgsSchema = z.object({
       "[Output Only] Names of the keys for signing request URLs.",
     ).optional(),
   }).describe(
-    "Message containing Cloud CDN configuration for a backend service.",
+    "Cloud CDN configuration for this BackendService. Only available for specified load balancer types.",
   ).optional(),
   circuitBreakers: z.object({
     maxConnections: z.number().int().describe(
@@ -361,7 +359,7 @@ const GlobalArgsSchema = z.object({
     drainingTimeoutSec: z.number().int().describe(
       "Configures a duration timeout for existing requests on a removed backend instance. For supported load balancers and protocols, as described inEnabling connection draining.",
     ).optional(),
-  }).describe("Message containing connection draining configuration.")
+  }).describe("connectionDraining cannot be specified with haPolicy.")
     .optional(),
   connectionTrackingPolicy: z.object({
     connectionPersistenceOnUnhealthyBackends: z.enum([
@@ -384,8 +382,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Specifies the key used for connection tracking. There are two options: - PER_CONNECTION: This is the default mode. The Connection Tracking is performed as per the Connection Key (default Hash Method) for the specific protocol. - PER_SESSION: The Connection Tracking is performed as per the configured Session Affinity. It matches the configured Session Affinity. For more details, see [Tracking Mode for Network Load Balancing](https://cloud.google.com/load-balancing/docs/network/networklb-backend-service#tracking-mode) and [Tracking Mode for Internal TCP/UDP Load Balancing](https://cloud.google.com/load-balancing/docs/internal#tracking-mode).",
     ).optional(),
-  }).describe("Connection Tracking configuration for this BackendService.")
-    .optional(),
+  }).describe(
+    "Connection Tracking configuration for this BackendService. Connection tracking policy settings are only available for external passthrough Network Load Balancers and internal passthrough Network Load Balancers. connectionTrackingPolicy cannot be specified with haPolicy.",
+  ).optional(),
   consistentHash: z.object({
     httpCookie: z.object({
       name: z.string().describe("Name of the cookie.").optional(),
@@ -397,11 +396,9 @@ const GlobalArgsSchema = z.object({
         seconds: z.string().describe(
           "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
-      }).describe(
-        'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
-      ).optional(),
+      }).describe("Lifetime of the cookie.").optional(),
     }).describe(
-      "The information about the HTTP Cookie on which the hash function is based for load balancing policies that use a consistent hash.",
+      "Hash is based on HTTP Cookie. This field describes a HTTP cookie that will be used as the hash key for the consistent hash load balancer. If the cookie is not present, it will be generated. This field is applicable if the sessionAffinity is set to HTTP_COOKIE. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.",
     ).optional(),
     httpHeaderName: z.string().describe(
       "The hash based on the value of the specified header field. This field is applicable if the sessionAffinity is set toHEADER_FIELD.",
@@ -410,7 +407,7 @@ const GlobalArgsSchema = z.object({
       "The minimum number of virtual nodes to use for the hash ring. Defaults to 1024. Larger ring sizes result in more granular load distributions. If the number of hosts in the load balancing pool is larger than the ring size, each host will be assigned a single virtual node.",
     ).optional(),
   }).describe(
-    "This message defines settings for a consistent hash style load balancer.",
+    "Consistent Hash-based load balancing can be used to provide soft session affinity based on HTTP headers, cookies or other properties. This load balancing policy is applicable only for HTTP connections. The affinity to a particular destination host will be lost when one or more hosts are added/removed from the destination service. This field specifies parameters that control consistent hashing. This field is only applicable whenlocalityLbPolicy is set to MAGLEV orRING_HASH. This field is applicable to either: - A regional backend service with the service protocol set to HTTP, HTTPS, HTTP2 or H2C, and load_balancing_scheme set to INTERNAL_MANAGED. - A global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.",
   ).optional(),
   customMetrics: z.array(z.object({
     dryRun: z.boolean().describe(
@@ -455,7 +452,7 @@ const GlobalArgsSchema = z.object({
       "The value of the field must be in the range[0, 1]. If the value is 0, the load balancer performs a failover when the number of healthy primary VMs equals zero. For all other values, the load balancer performs a failover when the total number of healthy primary VMs is less than this ratio. For load balancers that have configurable failover: [Internal TCP/UDP Load Balancing](https://cloud.google.com/load-balancing/docs/internal/failover-overview) and [external TCP/UDP Load Balancing](https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview).",
     ).optional(),
   }).describe(
-    "For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/internal/failover-overview) and [external passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview). On failover or failback, this field indicates whether connection draining will be honored. Google Cloud has a fixed connection draining timeout of 10 minutes. A setting of true terminates existing TCP connections to the active pool during failover and failback, immediately draining traffic. A setting of false allows existing TCP connections to persist, even on VMs no longer in the active pool, for up to the duration of the connection draining timeout (10 minutes).",
+    "Requires at least one backend instance group to be defined as a backup (failover) backend. For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/internal/failover-overview) and [external passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview). failoverPolicy cannot be specified with haPolicy.",
   ).optional(),
   fingerprint: z.string().describe(
     "Fingerprint of this resource. A hash of the contents stored in this object. This field is used in optimistic locking. This field will be ignored when inserting a BackendService. An up-to-date fingerprint must be provided in order to update the BackendService, otherwise the request will fail with error 412 conditionNotMet. To see the latest fingerprint, make a get() request to retrieve a BackendService.",
@@ -472,9 +469,15 @@ const GlobalArgsSchema = z.object({
         instance: z.string().describe(
           "The name of the VM instance of the leader network endpoint. The instance must already be attached to the NEG specified in the haPolicy.leader.backendGroup. The name must be 1-63 characters long, and comply with RFC1035. Authorization requires the following IAM permission on the specified resource instance: compute.instances.use",
         ).optional(),
-      }).optional(),
-    }).optional(),
-  }).optional(),
+      }).describe(
+        "The network endpoint within the leader.backendGroup that is designated as the leader. This network endpoint cannot be detached from the NEG specified in the haPolicy.leader.backendGroup until the leader is updated with another network endpoint, or the leader is removed from the haPolicy.",
+      ).optional(),
+    }).describe(
+      "Selects one of the network endpoints attached to the backend NEGs of this service as the active endpoint (the leader) that receives all traffic. When the leader changes, there is no connection draining to persist existing connections on the old leader. You are responsible for selecting a suitable endpoint as the leader. For example, preferring a healthy endpoint over unhealthy ones. Note that this service does not track backend endpoint health, and selects the configured leader unconditionally.",
+    ).optional(),
+  }).describe(
+    "Configures self-managed High Availability (HA) for External and Internal Protocol Forwarding. The backends of this regional backend service must only specify zonal network endpoint groups (NEGs) of type GCE_VM_IP. When haPolicy is set for an Internal Passthrough Network Load Balancer, the regional backend service must set the network field. All zonal NEGs must belong to the same network. However, individual NEGs can belong to different subnetworks of that network. When haPolicy is specified, the set of attached network endpoints across all backends comprise an High Availability domain from which one endpoint is selected as the active endpoint (the leader) that receives all traffic. haPolicy can be added only at backend service creation time. Once set up, it cannot be deleted. Note that haPolicy is not for load balancing, and therefore cannot be specified with sessionAffinity, connectionTrackingPolicy, and failoverPolicy. haPolicy requires customers to be responsible for tracking backend endpoint health and electing a leader among the healthy endpoints. Therefore, haPolicy cannot be specified with healthChecks. haPolicy can only be specified for External Passthrough Network Load Balancers and Internal Passthrough Network Load Balancers.",
+  ).optional(),
   healthChecks: z.array(z.string()).describe(
     "The list of URLs to the healthChecks, httpHealthChecks (legacy), or httpsHealthChecks (legacy) resource for health checking this backend service. Not all backend services support legacy health checks. See Load balancer guide. Currently, at most one health check can be specified for each backend service. Backend services with instance group or zonal NEG backends must have a health check unless haPolicy is specified. Backend services with internet or serverless NEG backends must not have a health check. healthChecks[] cannot be specified with haPolicy.",
   ).optional(),
@@ -491,7 +494,9 @@ const GlobalArgsSchema = z.object({
     oauth2ClientSecretSha256: z.string().describe(
       "Output only. [Output Only] SHA256 hash value for the field oauth2_client_secret above.",
     ).optional(),
-  }).describe("Identity-Aware Proxy").optional(),
+  }).describe(
+    "The configurations for Identity-Aware Proxy on this resource. Not available for internal passthrough Network Load Balancers and external passthrough Network Load Balancers.",
+  ).optional(),
   ipAddressSelectionPolicy: z.enum([
     "IPV4_ONLY",
     "IPV6_ONLY",
@@ -585,7 +590,7 @@ const GlobalArgsSchema = z.object({
       "This field can only be specified if logging is enabled for this backend service. The value of the field must be in [0, 1]. This configures the sampling rate of requests to the load balancer where 1.0 means all logged requests are reported and 0.0 means no logged requests are reported. The default value is 1.0.",
     ).optional(),
   }).describe(
-    "The available logging options for the load balancer traffic served by this backend service.",
+    "This field denotes the logging options for the load balancer traffic served by this backend service. If logging is enabled, logs will be exported to Stackdriver.",
   ).optional(),
   maxStreamDuration: z.object({
     nanos: z.number().int().describe(
@@ -595,7 +600,7 @@ const GlobalArgsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "Specifies the default maximum duration (timeout) for streams to this service. Duration is computed from the beginning of the stream until the response has been completely processed, including all retries. A stream that does not complete in this duration is closed. If not specified, there will be no timeout limit, i.e. the maximum duration is infinite. This value can be overridden in the PathMatcher configuration of the UrlMap that references this backend service. This field is only allowed when the loadBalancingScheme of the backend service is INTERNAL_SELF_MANAGED.",
   ).optional(),
   metadatas: z.record(z.string(), z.string()).describe(
     "Deployment metadata associated with the resource to be set by a GKE hub controller and read by the backend RCTH",
@@ -619,14 +624,18 @@ const GlobalArgsSchema = z.object({
       spilloverRatio: z.number().describe(
         "The value of the field must be in [0, 1]. When the ratio of the count of healthy backend endpoints in a zone to the count of backend endpoints in that same zone is equal to or above this threshold, the load balancer distributes new connections to all healthy endpoints in the local zone only. When the ratio of the count of healthy backend endpoints in a zone to the count of backend endpoints in that same zone is below this threshold, the load balancer distributes all new connections to all healthy endpoints across all zones.",
       ).optional(),
-    }).optional(),
-  }).optional(),
+    }).describe(
+      "When configured, new connections are load balanced across healthy backend endpoints in the local zone.",
+    ).optional(),
+  }).describe(
+    "Configures traffic steering properties of internal passthrough Network Load Balancers. networkPassThroughLbTrafficPolicy cannot be specified with haPolicy.",
+  ).optional(),
   orchestrationInfo: z.object({
     resourceUri: z.string().describe(
       "The resource URI of the resource or system that manages the backend service.",
     ).optional(),
   }).describe(
-    "A message containing information about the resource or system that manages the backend service.",
+    "Information about the resource or system that manages the backend service.",
   ).optional(),
   outlierDetection: z.object({
     baseEjectionTime: z.object({
@@ -637,7 +646,7 @@ const GlobalArgsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "The base time that a backend endpoint is ejected for. Defaults to 30000ms or 30s. After a backend endpoint is returned back to the load balancing pool, it can be ejected again in another ejection analysis. Thus, the total ejection time is equal to the base ejection time multiplied by the number of times the backend endpoint has been ejected. Defaults to 30000ms or 30s.",
     ).optional(),
     consecutiveErrors: z.number().int().describe(
       "Number of consecutive errors before a backend endpoint is ejected from the load balancing pool. When the backend endpoint is accessed over HTTP, a 5xx return code qualifies as an error. Defaults to 5.",
@@ -662,7 +671,7 @@ const GlobalArgsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Time interval between ejection analysis sweeps. This can result in both new ejections and backend endpoints being returned to service. The interval is equal to the number of seconds as defined in outlierDetection.interval.seconds plus the number of nanoseconds as defined in outlierDetection.interval.nanos. Defaults to 1 second.",
     ).optional(),
     maxEjectionPercent: z.number().int().describe(
       "Maximum percentage of backend endpoints in the load balancing pool for the backend service that can be ejected if the ejection conditions are met. Defaults to 50%.",
@@ -677,13 +686,15 @@ const GlobalArgsSchema = z.object({
       "This factor is used to determine the ejection threshold for success rate outlier ejection. The ejection threshold is the difference between the mean success rate, and the product of this factor and the standard deviation of the mean success rate: mean - (stdev * successRateStdevFactor). This factor is divided by a thousand to get a double. That is, if the desired factor is 1.9, the runtime value should be 1900. Defaults to 1900. Not supported when the backend service uses Serverless NEG.",
     ).optional(),
   }).describe(
-    "Settings controlling the eviction of unhealthy hosts from the load balancing pool for the backend service.",
+    "Settings controlling the ejection of unhealthy backend endpoints from the load balancing pool of each individual proxy instance that processes the traffic for the given backend service. If not set, this feature is considered disabled. Results of the outlier detection algorithm (ejection of endpoints from the load balancing pool and returning them back to the pool) are executed independently by each proxy instance of the load balancer. In most cases, more than one proxy instance handles the traffic received by a backend service. Thus, it is possible that an unhealthy endpoint is detected and ejected by only some of the proxies, and while this happens, other proxies may continue to send requests to the same unhealthy endpoint until they detect and eject the unhealthy endpoint. Applicable backend endpoints can be: - VM instances in an Instance Group - Endpoints in a Zonal NEG (GCE_VM_IP, GCE_VM_IP_PORT) - Endpoints in a Hybrid Connectivity NEG (NON_GCP_PRIVATE_IP_PORT) - Serverless NEGs, that resolve to Cloud Run, App Engine, or Cloud Functions Services - Private Service Connect NEGs, that resolve to Google-managed regional API endpoints or managed services published using Private Service Connect Applicable backend service types can be: - A global backend service with the loadBalancingScheme set to INTERNAL_SELF_MANAGED or EXTERNAL_MANAGED. - A regional backend service with the service protocol set to HTTP, HTTPS, HTTP2 or H2C, and loadBalancingScheme set to INTERNAL_MANAGED or EXTERNAL_MANAGED. Not supported for Serverless NEGs. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.",
   ).optional(),
   params: z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional Backend Service parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   portName: z.string().describe(
     "A named port on a backend instance group representing the port for communication to the backend VMs in that group. The named port must be [defined on each backend instance group](https://cloud.google.com/load-balancing/docs/backend-service#named_ports). This parameter has no meaning if the backends are NEGs. For internal passthrough Network Load Balancers and external passthrough Network Load Balancers, omit port_name.",
   ).optional(),
@@ -715,7 +726,7 @@ const GlobalArgsSchema = z.object({
         'The name of the cloud region of your origin. This is a free-form field with the name of the region your cloud uses to host your origin. For example, "us-east-1" for AWS or "us-ashburn-1" for OCI.',
       ).optional(),
     }).describe(
-      "Contains the configurations necessary to generate a signature for access to private storage buckets that support Signature Version 4 for authentication. The service name for generating the authentication header will always default to 's3'.",
+      "The configuration needed to generate a signature for access to private storage buckets that support AWS's Signature Version 4 for authentication. Allowed only for INTERNET_IP_PORT and INTERNET_FQDN_PORT NEG backends.",
     ).optional(),
     clientTlsPolicy: z.string().describe(
       "Optional. A URL referring to a networksecurity.ClientTlsPolicy resource that describes how clients should authenticate with this service's backends. clientTlsPolicy only applies to a globalBackendService with the loadBalancingScheme set to INTERNAL_SELF_MANAGED. If left blank, communications are not encrypted.",
@@ -724,7 +735,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A list of Subject Alternative Names (SANs) that the client verifies during a mutual TLS handshake with an server/endpoint for thisBackendService. When the server presents its X.509 certificate to the client, the client inspects the certificate'ssubjectAltName field. If the field contains one of the specified values, the communication continues. Otherwise, it fails. This additional check enables the client to verify that the server is authorized to run the requested service. Note that the contents of the server certificate's subjectAltName field are configured by the Public Key Infrastructure which provisions server identities. Only applies to a global BackendService withloadBalancingScheme set to INTERNAL_SELF_MANAGED. Only applies when BackendService has an attachedclientTlsPolicy with clientCertificate (mTLS mode).",
     ).optional(),
   }).describe(
-    "The authentication and authorization settings for a BackendService.",
+    "This field specifies the security settings that apply to this backend service. This field is applicable to a global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.",
   ).optional(),
   serviceBindings: z.array(z.string()).describe(
     "URLs of networkservices.ServiceBinding resources. Can only be set if load balancing scheme is INTERNAL_SELF_MANAGED. If set, lists of backends and health checks must be both empty.",
@@ -755,15 +766,13 @@ const GlobalArgsSchema = z.object({
       seconds: z.string().describe(
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
-    }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
-    ).optional(),
-  }).describe("The HTTP cookie used for stateful session affinity.").optional(),
+    }).describe("Lifetime of the cookie.").optional(),
+  }).describe(
+    "Describes the HTTP cookie used for stateful session affinity. This field is applicable and required if the sessionAffinity is set toSTRONG_COOKIE_AFFINITY.",
+  ).optional(),
   subsetting: z.object({
     policy: z.enum(["CONSISTENT_HASH_SUBSETTING", "NONE"]).optional(),
-  }).describe(
-    "Subsetting configuration for this BackendService. Currently this is applicable only for Internal TCP/UDP load balancing, Internal HTTP(S) load balancing and Traffic Director.",
-  ).optional(),
+  }).describe("subsetting cannot be specified with haPolicy.").optional(),
   timeoutSec: z.number().int().describe(
     "The backend service timeout has a different meaning depending on the type of load balancer. For more information see, Backend service settings. The default is 30 seconds. The full range of timeout values allowed goes from 1 through 2,147,483,647 seconds. This value can be overridden in the PathMatcher configuration of the UrlMap that references this backend service. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. Instead, use maxStreamDuration.",
   ).optional(),
@@ -783,7 +792,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "A list of Subject Alternative Names (SANs) that the Load Balancer verifies during a TLS handshake with the backend. When the server presents its X.509 certificate to the Load Balancer, the Load Balancer inspects the certificate's SAN field, and requires that at least one SAN match one of the subjectAltNames in the list. This field is limited to 5 entries. When both sni and subjectAltNames[] are specified, the load balancer matches the backend certificate's SAN only to subjectAltNames[].",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Configuration for Backend Authenticated TLS and mTLS. May only be specified when the backend protocol is SSL, HTTPS or HTTP2.",
+  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -1096,7 +1107,7 @@ const InputsSchema = z.object({
         "The URI of the resource or system that manages the backend.",
       ).optional(),
     }).describe(
-      "A message containing information about the resource or system that manages the backend.",
+      "Information about the resource or system that manages the backend.",
     ).optional(),
     preference: z.enum(["DEFAULT", "PREFERENCE_UNSPECIFIED", "PREFERRED"])
       .describe(
@@ -1136,9 +1147,7 @@ const InputsSchema = z.object({
       queryStringWhitelist: z.array(z.string()).describe(
         "Names of query string parameters to include in cache keys. All other parameters will be excluded. Either specify query_string_whitelist or query_string_blacklist, not both. '&' and '=' will be percent encoded and not treated as delimiters.",
       ).optional(),
-    }).describe(
-      "Message containing what to include in the cache key for a request for Cloud CDN.",
-    ).optional(),
+    }).describe("The CacheKeyPolicy for this CdnPolicy.").optional(),
     cacheMode: z.enum([
       "CACHE_ALL_STATIC",
       "FORCE_CACHE_ALL",
@@ -1182,7 +1191,7 @@ const InputsSchema = z.object({
       "[Output Only] Names of the keys for signing request URLs.",
     ).optional(),
   }).describe(
-    "Message containing Cloud CDN configuration for a backend service.",
+    "Cloud CDN configuration for this BackendService. Only available for specified load balancer types.",
   ).optional(),
   circuitBreakers: z.object({
     maxConnections: z.number().int().describe(
@@ -1210,7 +1219,7 @@ const InputsSchema = z.object({
     drainingTimeoutSec: z.number().int().describe(
       "Configures a duration timeout for existing requests on a removed backend instance. For supported load balancers and protocols, as described inEnabling connection draining.",
     ).optional(),
-  }).describe("Message containing connection draining configuration.")
+  }).describe("connectionDraining cannot be specified with haPolicy.")
     .optional(),
   connectionTrackingPolicy: z.object({
     connectionPersistenceOnUnhealthyBackends: z.enum([
@@ -1233,8 +1242,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Specifies the key used for connection tracking. There are two options: - PER_CONNECTION: This is the default mode. The Connection Tracking is performed as per the Connection Key (default Hash Method) for the specific protocol. - PER_SESSION: The Connection Tracking is performed as per the configured Session Affinity. It matches the configured Session Affinity. For more details, see [Tracking Mode for Network Load Balancing](https://cloud.google.com/load-balancing/docs/network/networklb-backend-service#tracking-mode) and [Tracking Mode for Internal TCP/UDP Load Balancing](https://cloud.google.com/load-balancing/docs/internal#tracking-mode).",
     ).optional(),
-  }).describe("Connection Tracking configuration for this BackendService.")
-    .optional(),
+  }).describe(
+    "Connection Tracking configuration for this BackendService. Connection tracking policy settings are only available for external passthrough Network Load Balancers and internal passthrough Network Load Balancers. connectionTrackingPolicy cannot be specified with haPolicy.",
+  ).optional(),
   consistentHash: z.object({
     httpCookie: z.object({
       name: z.string().describe("Name of the cookie.").optional(),
@@ -1246,11 +1256,9 @@ const InputsSchema = z.object({
         seconds: z.string().describe(
           "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
-      }).describe(
-        'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
-      ).optional(),
+      }).describe("Lifetime of the cookie.").optional(),
     }).describe(
-      "The information about the HTTP Cookie on which the hash function is based for load balancing policies that use a consistent hash.",
+      "Hash is based on HTTP Cookie. This field describes a HTTP cookie that will be used as the hash key for the consistent hash load balancer. If the cookie is not present, it will be generated. This field is applicable if the sessionAffinity is set to HTTP_COOKIE. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.",
     ).optional(),
     httpHeaderName: z.string().describe(
       "The hash based on the value of the specified header field. This field is applicable if the sessionAffinity is set toHEADER_FIELD.",
@@ -1259,7 +1267,7 @@ const InputsSchema = z.object({
       "The minimum number of virtual nodes to use for the hash ring. Defaults to 1024. Larger ring sizes result in more granular load distributions. If the number of hosts in the load balancing pool is larger than the ring size, each host will be assigned a single virtual node.",
     ).optional(),
   }).describe(
-    "This message defines settings for a consistent hash style load balancer.",
+    "Consistent Hash-based load balancing can be used to provide soft session affinity based on HTTP headers, cookies or other properties. This load balancing policy is applicable only for HTTP connections. The affinity to a particular destination host will be lost when one or more hosts are added/removed from the destination service. This field specifies parameters that control consistent hashing. This field is only applicable whenlocalityLbPolicy is set to MAGLEV orRING_HASH. This field is applicable to either: - A regional backend service with the service protocol set to HTTP, HTTPS, HTTP2 or H2C, and load_balancing_scheme set to INTERNAL_MANAGED. - A global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.",
   ).optional(),
   customMetrics: z.array(z.object({
     dryRun: z.boolean().describe(
@@ -1304,7 +1312,7 @@ const InputsSchema = z.object({
       "The value of the field must be in the range[0, 1]. If the value is 0, the load balancer performs a failover when the number of healthy primary VMs equals zero. For all other values, the load balancer performs a failover when the total number of healthy primary VMs is less than this ratio. For load balancers that have configurable failover: [Internal TCP/UDP Load Balancing](https://cloud.google.com/load-balancing/docs/internal/failover-overview) and [external TCP/UDP Load Balancing](https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview).",
     ).optional(),
   }).describe(
-    "For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/internal/failover-overview) and [external passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview). On failover or failback, this field indicates whether connection draining will be honored. Google Cloud has a fixed connection draining timeout of 10 minutes. A setting of true terminates existing TCP connections to the active pool during failover and failback, immediately draining traffic. A setting of false allows existing TCP connections to persist, even on VMs no longer in the active pool, for up to the duration of the connection draining timeout (10 minutes).",
+    "Requires at least one backend instance group to be defined as a backup (failover) backend. For load balancers that have configurable failover: [Internal passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/internal/failover-overview) and [external passthrough Network Load Balancers](https://cloud.google.com/load-balancing/docs/network/networklb-failover-overview). failoverPolicy cannot be specified with haPolicy.",
   ).optional(),
   fingerprint: z.string().describe(
     "Fingerprint of this resource. A hash of the contents stored in this object. This field is used in optimistic locking. This field will be ignored when inserting a BackendService. An up-to-date fingerprint must be provided in order to update the BackendService, otherwise the request will fail with error 412 conditionNotMet. To see the latest fingerprint, make a get() request to retrieve a BackendService.",
@@ -1321,9 +1329,15 @@ const InputsSchema = z.object({
         instance: z.string().describe(
           "The name of the VM instance of the leader network endpoint. The instance must already be attached to the NEG specified in the haPolicy.leader.backendGroup. The name must be 1-63 characters long, and comply with RFC1035. Authorization requires the following IAM permission on the specified resource instance: compute.instances.use",
         ).optional(),
-      }).optional(),
-    }).optional(),
-  }).optional(),
+      }).describe(
+        "The network endpoint within the leader.backendGroup that is designated as the leader. This network endpoint cannot be detached from the NEG specified in the haPolicy.leader.backendGroup until the leader is updated with another network endpoint, or the leader is removed from the haPolicy.",
+      ).optional(),
+    }).describe(
+      "Selects one of the network endpoints attached to the backend NEGs of this service as the active endpoint (the leader) that receives all traffic. When the leader changes, there is no connection draining to persist existing connections on the old leader. You are responsible for selecting a suitable endpoint as the leader. For example, preferring a healthy endpoint over unhealthy ones. Note that this service does not track backend endpoint health, and selects the configured leader unconditionally.",
+    ).optional(),
+  }).describe(
+    "Configures self-managed High Availability (HA) for External and Internal Protocol Forwarding. The backends of this regional backend service must only specify zonal network endpoint groups (NEGs) of type GCE_VM_IP. When haPolicy is set for an Internal Passthrough Network Load Balancer, the regional backend service must set the network field. All zonal NEGs must belong to the same network. However, individual NEGs can belong to different subnetworks of that network. When haPolicy is specified, the set of attached network endpoints across all backends comprise an High Availability domain from which one endpoint is selected as the active endpoint (the leader) that receives all traffic. haPolicy can be added only at backend service creation time. Once set up, it cannot be deleted. Note that haPolicy is not for load balancing, and therefore cannot be specified with sessionAffinity, connectionTrackingPolicy, and failoverPolicy. haPolicy requires customers to be responsible for tracking backend endpoint health and electing a leader among the healthy endpoints. Therefore, haPolicy cannot be specified with healthChecks. haPolicy can only be specified for External Passthrough Network Load Balancers and Internal Passthrough Network Load Balancers.",
+  ).optional(),
   healthChecks: z.array(z.string()).describe(
     "The list of URLs to the healthChecks, httpHealthChecks (legacy), or httpsHealthChecks (legacy) resource for health checking this backend service. Not all backend services support legacy health checks. See Load balancer guide. Currently, at most one health check can be specified for each backend service. Backend services with instance group or zonal NEG backends must have a health check unless haPolicy is specified. Backend services with internet or serverless NEG backends must not have a health check. healthChecks[] cannot be specified with haPolicy.",
   ).optional(),
@@ -1340,7 +1354,9 @@ const InputsSchema = z.object({
     oauth2ClientSecretSha256: z.string().describe(
       "Output only. [Output Only] SHA256 hash value for the field oauth2_client_secret above.",
     ).optional(),
-  }).describe("Identity-Aware Proxy").optional(),
+  }).describe(
+    "The configurations for Identity-Aware Proxy on this resource. Not available for internal passthrough Network Load Balancers and external passthrough Network Load Balancers.",
+  ).optional(),
   ipAddressSelectionPolicy: z.enum([
     "IPV4_ONLY",
     "IPV6_ONLY",
@@ -1434,7 +1450,7 @@ const InputsSchema = z.object({
       "This field can only be specified if logging is enabled for this backend service. The value of the field must be in [0, 1]. This configures the sampling rate of requests to the load balancer where 1.0 means all logged requests are reported and 0.0 means no logged requests are reported. The default value is 1.0.",
     ).optional(),
   }).describe(
-    "The available logging options for the load balancer traffic served by this backend service.",
+    "This field denotes the logging options for the load balancer traffic served by this backend service. If logging is enabled, logs will be exported to Stackdriver.",
   ).optional(),
   maxStreamDuration: z.object({
     nanos: z.number().int().describe(
@@ -1444,7 +1460,7 @@ const InputsSchema = z.object({
       "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
     ).optional(),
   }).describe(
-    'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+    "Specifies the default maximum duration (timeout) for streams to this service. Duration is computed from the beginning of the stream until the response has been completely processed, including all retries. A stream that does not complete in this duration is closed. If not specified, there will be no timeout limit, i.e. the maximum duration is infinite. This value can be overridden in the PathMatcher configuration of the UrlMap that references this backend service. This field is only allowed when the loadBalancingScheme of the backend service is INTERNAL_SELF_MANAGED.",
   ).optional(),
   metadatas: z.record(z.string(), z.string()).describe(
     "Deployment metadata associated with the resource to be set by a GKE hub controller and read by the backend RCTH",
@@ -1468,14 +1484,18 @@ const InputsSchema = z.object({
       spilloverRatio: z.number().describe(
         "The value of the field must be in [0, 1]. When the ratio of the count of healthy backend endpoints in a zone to the count of backend endpoints in that same zone is equal to or above this threshold, the load balancer distributes new connections to all healthy endpoints in the local zone only. When the ratio of the count of healthy backend endpoints in a zone to the count of backend endpoints in that same zone is below this threshold, the load balancer distributes all new connections to all healthy endpoints across all zones.",
       ).optional(),
-    }).optional(),
-  }).optional(),
+    }).describe(
+      "When configured, new connections are load balanced across healthy backend endpoints in the local zone.",
+    ).optional(),
+  }).describe(
+    "Configures traffic steering properties of internal passthrough Network Load Balancers. networkPassThroughLbTrafficPolicy cannot be specified with haPolicy.",
+  ).optional(),
   orchestrationInfo: z.object({
     resourceUri: z.string().describe(
       "The resource URI of the resource or system that manages the backend service.",
     ).optional(),
   }).describe(
-    "A message containing information about the resource or system that manages the backend service.",
+    "Information about the resource or system that manages the backend service.",
   ).optional(),
   outlierDetection: z.object({
     baseEjectionTime: z.object({
@@ -1486,7 +1506,7 @@ const InputsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "The base time that a backend endpoint is ejected for. Defaults to 30000ms or 30s. After a backend endpoint is returned back to the load balancing pool, it can be ejected again in another ejection analysis. Thus, the total ejection time is equal to the base ejection time multiplied by the number of times the backend endpoint has been ejected. Defaults to 30000ms or 30s.",
     ).optional(),
     consecutiveErrors: z.number().int().describe(
       "Number of consecutive errors before a backend endpoint is ejected from the load balancing pool. When the backend endpoint is accessed over HTTP, a 5xx return code qualifies as an error. Defaults to 5.",
@@ -1511,7 +1531,7 @@ const InputsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Time interval between ejection analysis sweeps. This can result in both new ejections and backend endpoints being returned to service. The interval is equal to the number of seconds as defined in outlierDetection.interval.seconds plus the number of nanoseconds as defined in outlierDetection.interval.nanos. Defaults to 1 second.",
     ).optional(),
     maxEjectionPercent: z.number().int().describe(
       "Maximum percentage of backend endpoints in the load balancing pool for the backend service that can be ejected if the ejection conditions are met. Defaults to 50%.",
@@ -1526,13 +1546,15 @@ const InputsSchema = z.object({
       "This factor is used to determine the ejection threshold for success rate outlier ejection. The ejection threshold is the difference between the mean success rate, and the product of this factor and the standard deviation of the mean success rate: mean - (stdev * successRateStdevFactor). This factor is divided by a thousand to get a double. That is, if the desired factor is 1.9, the runtime value should be 1900. Defaults to 1900. Not supported when the backend service uses Serverless NEG.",
     ).optional(),
   }).describe(
-    "Settings controlling the eviction of unhealthy hosts from the load balancing pool for the backend service.",
+    "Settings controlling the ejection of unhealthy backend endpoints from the load balancing pool of each individual proxy instance that processes the traffic for the given backend service. If not set, this feature is considered disabled. Results of the outlier detection algorithm (ejection of endpoints from the load balancing pool and returning them back to the pool) are executed independently by each proxy instance of the load balancer. In most cases, more than one proxy instance handles the traffic received by a backend service. Thus, it is possible that an unhealthy endpoint is detected and ejected by only some of the proxies, and while this happens, other proxies may continue to send requests to the same unhealthy endpoint until they detect and eject the unhealthy endpoint. Applicable backend endpoints can be: - VM instances in an Instance Group - Endpoints in a Zonal NEG (GCE_VM_IP, GCE_VM_IP_PORT) - Endpoints in a Hybrid Connectivity NEG (NON_GCP_PRIVATE_IP_PORT) - Serverless NEGs, that resolve to Cloud Run, App Engine, or Cloud Functions Services - Private Service Connect NEGs, that resolve to Google-managed regional API endpoints or managed services published using Private Service Connect Applicable backend service types can be: - A global backend service with the loadBalancingScheme set to INTERNAL_SELF_MANAGED or EXTERNAL_MANAGED. - A regional backend service with the service protocol set to HTTP, HTTPS, HTTP2 or H2C, and loadBalancingScheme set to INTERNAL_MANAGED or EXTERNAL_MANAGED. Not supported for Serverless NEGs. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true.",
   ).optional(),
   params: z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional Backend Service parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   portName: z.string().describe(
     "A named port on a backend instance group representing the port for communication to the backend VMs in that group. The named port must be [defined on each backend instance group](https://cloud.google.com/load-balancing/docs/backend-service#named_ports). This parameter has no meaning if the backends are NEGs. For internal passthrough Network Load Balancers and external passthrough Network Load Balancers, omit port_name.",
   ).optional(),
@@ -1564,7 +1586,7 @@ const InputsSchema = z.object({
         'The name of the cloud region of your origin. This is a free-form field with the name of the region your cloud uses to host your origin. For example, "us-east-1" for AWS or "us-ashburn-1" for OCI.',
       ).optional(),
     }).describe(
-      "Contains the configurations necessary to generate a signature for access to private storage buckets that support Signature Version 4 for authentication. The service name for generating the authentication header will always default to 's3'.",
+      "The configuration needed to generate a signature for access to private storage buckets that support AWS's Signature Version 4 for authentication. Allowed only for INTERNET_IP_PORT and INTERNET_FQDN_PORT NEG backends.",
     ).optional(),
     clientTlsPolicy: z.string().describe(
       "Optional. A URL referring to a networksecurity.ClientTlsPolicy resource that describes how clients should authenticate with this service's backends. clientTlsPolicy only applies to a globalBackendService with the loadBalancingScheme set to INTERNAL_SELF_MANAGED. If left blank, communications are not encrypted.",
@@ -1573,7 +1595,7 @@ const InputsSchema = z.object({
       "Optional. A list of Subject Alternative Names (SANs) that the client verifies during a mutual TLS handshake with an server/endpoint for thisBackendService. When the server presents its X.509 certificate to the client, the client inspects the certificate'ssubjectAltName field. If the field contains one of the specified values, the communication continues. Otherwise, it fails. This additional check enables the client to verify that the server is authorized to run the requested service. Note that the contents of the server certificate's subjectAltName field are configured by the Public Key Infrastructure which provisions server identities. Only applies to a global BackendService withloadBalancingScheme set to INTERNAL_SELF_MANAGED. Only applies when BackendService has an attachedclientTlsPolicy with clientCertificate (mTLS mode).",
     ).optional(),
   }).describe(
-    "The authentication and authorization settings for a BackendService.",
+    "This field specifies the security settings that apply to this backend service. This field is applicable to a global backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.",
   ).optional(),
   serviceBindings: z.array(z.string()).describe(
     "URLs of networkservices.ServiceBinding resources. Can only be set if load balancing scheme is INTERNAL_SELF_MANAGED. If set, lists of backends and health checks must be both empty.",
@@ -1604,15 +1626,13 @@ const InputsSchema = z.object({
       seconds: z.string().describe(
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
-    }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
-    ).optional(),
-  }).describe("The HTTP cookie used for stateful session affinity.").optional(),
+    }).describe("Lifetime of the cookie.").optional(),
+  }).describe(
+    "Describes the HTTP cookie used for stateful session affinity. This field is applicable and required if the sessionAffinity is set toSTRONG_COOKIE_AFFINITY.",
+  ).optional(),
   subsetting: z.object({
     policy: z.enum(["CONSISTENT_HASH_SUBSETTING", "NONE"]).optional(),
-  }).describe(
-    "Subsetting configuration for this BackendService. Currently this is applicable only for Internal TCP/UDP load balancing, Internal HTTP(S) load balancing and Traffic Director.",
-  ).optional(),
+  }).describe("subsetting cannot be specified with haPolicy.").optional(),
   timeoutSec: z.number().int().describe(
     "The backend service timeout has a different meaning depending on the type of load balancer. For more information see, Backend service settings. The default is 30 seconds. The full range of timeout values allowed goes from 1 through 2,147,483,647 seconds. This value can be overridden in the PathMatcher configuration of the UrlMap that references this backend service. Not supported when the backend service is referenced by a URL map that is bound to target gRPC proxy that has validateForProxyless field set to true. Instead, use maxStreamDuration.",
   ).optional(),
@@ -1632,7 +1652,9 @@ const InputsSchema = z.object({
     })).describe(
       "A list of Subject Alternative Names (SANs) that the Load Balancer verifies during a TLS handshake with the backend. When the server presents its X.509 certificate to the Load Balancer, the Load Balancer inspects the certificate's SAN field, and requires that at least one SAN match one of the subjectAltNames in the list. This field is limited to 5 entries. When both sni and subjectAltNames[] are specified, the load balancer matches the backend certificate's SAN only to subjectAltNames[].",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Configuration for Backend Authenticated TLS and mTLS. May only be specified when the backend protocol is SSL, HTTPS or HTTP2.",
+  ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -1661,7 +1683,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine BackendServices. Registered at `@swamp/gcp/compute/backendservices`. */
 export const model = {
   type: "@swamp/gcp/compute/backendservices",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1820,6 +1842,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

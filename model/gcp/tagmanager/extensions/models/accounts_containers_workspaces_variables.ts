@@ -194,7 +194,8 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe("The value to convert if a variable value is false.")
+      .optional(),
     convertNullToValue: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -223,7 +224,7 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe("The value to convert if a variable value is null.").optional(),
     convertToBoolean: z.boolean().describe(
       "The option to convert a variable value to a boolean.",
     ).optional(),
@@ -262,7 +263,7 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe("The value to convert if a variable value is true.").optional(),
     convertUndefinedToValue: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -291,8 +292,9 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
-  }).optional(),
+    }).describe("The value to convert if a variable value is undefined.")
+      .optional(),
+  }).describe("Option to convert a variable value to other value.").optional(),
   name: z.string().describe("Variable display name.").optional(),
   notes: z.string().describe(
     "User notes on how to apply this variable in the container.",
@@ -460,7 +462,8 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe("The value to convert if a variable value is false.")
+      .optional(),
     convertNullToValue: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -489,7 +492,7 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe("The value to convert if a variable value is null.").optional(),
     convertToBoolean: z.boolean().describe(
       "The option to convert a variable value to a boolean.",
     ).optional(),
@@ -528,7 +531,7 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
+    }).describe("The value to convert if a variable value is true.").optional(),
     convertUndefinedToValue: z.object({
       isWeakReference: z.boolean().describe(
         "Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.",
@@ -557,8 +560,9 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
-  }).optional(),
+    }).describe("The value to convert if a variable value is undefined.")
+      .optional(),
+  }).describe("Option to convert a variable value to other value.").optional(),
   name: z.string().describe("Variable display name.").optional(),
   notes: z.string().describe(
     "User notes on how to apply this variable in the container.",
@@ -636,7 +640,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Workspaces.Variables. Registered at `@swamp/gcp/tagmanager/accounts-containers-workspaces-variables`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-workspaces-variables",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -755,6 +759,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

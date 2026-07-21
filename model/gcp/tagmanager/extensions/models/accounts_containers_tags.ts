@@ -260,7 +260,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag's priority can be a positive or negative value. The default value is 0.",
+  ).optional(),
   scheduleEndMs: z.string().describe(
     "The end timestamp in milliseconds to schedule a tag.",
   ).optional(),
@@ -404,7 +406,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag's priority can be a positive or negative value. The default value is 0.",
+  ).optional(),
   scheduleEndMs: z.string().describe(
     "The end timestamp in milliseconds to schedule a tag.",
   ).optional(),
@@ -455,7 +459,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Tags. Registered at `@swamp/gcp/tagmanager/accounts-containers-tags`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-tags",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

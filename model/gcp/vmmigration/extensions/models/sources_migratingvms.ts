@@ -173,82 +173,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  awsSourceVmDetails: z.object({
-    architecture: z.enum([
-      "VM_ARCHITECTURE_UNSPECIFIED",
-      "VM_ARCHITECTURE_X86_FAMILY",
-      "VM_ARCHITECTURE_ARM64",
-    ]).describe("Output only. The VM architecture.").optional(),
-    committedStorageBytes: z.string().describe(
-      "Output only. The total size of the disks being migrated in bytes.",
-    ).optional(),
-    disks: z.array(z.object({
-      diskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the disk.",
-      ).optional(),
-      sizeGb: z.string().describe("Output only. Size in GB.").optional(),
-      volumeId: z.string().describe("Output only. AWS volume ID.").optional(),
-    })).describe("Output only. The disks attached to the source VM.")
-      .optional(),
-    firmware: z.enum(["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]).describe(
-      "Output only. The firmware type of the source VM.",
-    ).optional(),
-    vmCapabilitiesInfo: z.object({
-      lastOsCapabilitiesUpdateTime: z.string().describe(
-        "Output only. The last time OS capabilities list was updated.",
-      ).optional(),
-      osCapabilities: z.array(
-        z.enum([
-          "OS_CAPABILITY_UNSPECIFIED",
-          "OS_CAPABILITY_NVME_STORAGE_ACCESS",
-          "OS_CAPABILITY_GVNIC_NETWORK_INTERFACE",
-          "OS_CAPABILITY_IDPF_NETWORK_INTERFACE",
-        ]),
-      ).describe(
-        "Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.",
-      ).optional(),
-    }).describe(
-      "Migrating VM source information about the VM capabilities needed for some Compute Engine features.",
-    ).optional(),
-  }).describe("Represent the source AWS VM details.").optional(),
-  azureSourceVmDetails: z.object({
-    architecture: z.enum([
-      "VM_ARCHITECTURE_UNSPECIFIED",
-      "VM_ARCHITECTURE_X86_FAMILY",
-      "VM_ARCHITECTURE_ARM64",
-    ]).describe("Output only. The VM architecture.").optional(),
-    committedStorageBytes: z.string().describe(
-      "Output only. The total size of the disks being migrated in bytes.",
-    ).optional(),
-    disks: z.array(z.object({
-      diskId: z.string().describe("Output only. Azure disk ID.").optional(),
-      diskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the disk.",
-      ).optional(),
-      sizeGb: z.string().describe("Output only. Size in GB.").optional(),
-    })).describe("Output only. The disks attached to the source VM.")
-      .optional(),
-    firmware: z.enum(["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]).describe(
-      "Output only. The firmware type of the source VM.",
-    ).optional(),
-    vmCapabilitiesInfo: z.object({
-      lastOsCapabilitiesUpdateTime: z.string().describe(
-        "Output only. The last time OS capabilities list was updated.",
-      ).optional(),
-      osCapabilities: z.array(
-        z.enum([
-          "OS_CAPABILITY_UNSPECIFIED",
-          "OS_CAPABILITY_NVME_STORAGE_ACCESS",
-          "OS_CAPABILITY_GVNIC_NETWORK_INTERFACE",
-          "OS_CAPABILITY_IDPF_NETWORK_INTERFACE",
-        ]),
-      ).describe(
-        "Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.",
-      ).optional(),
-    }).describe(
-      "Migrating VM source information about the VM capabilities needed for some Compute Engine features.",
-    ).optional(),
-  }).describe("Represent the source Azure VM details.").optional(),
   computeEngineDisksTargetDefaults: z.object({
     disks: z.array(z.object({
       additionalLabels: z.record(z.string(), z.string()).describe(
@@ -269,9 +193,7 @@ const GlobalArgsSchema = z.object({
         kmsKey: z.string().describe(
           "Required. The name of the encryption key that is stored in Google Cloud KMS.",
         ).optional(),
-      }).describe(
-        "Encryption message describes the details of the applied encryption.",
-      ).optional(),
+      }).describe("Optional. The encryption to apply to the disk.").optional(),
       sourceDiskNumber: z.number().int().describe(
         "Required. The ordinal number of the source VM disk.",
       ).optional(),
@@ -279,10 +201,12 @@ const GlobalArgsSchema = z.object({
         deviceName: z.string().describe(
           "Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.",
         ).optional(),
-      }).describe("Details for attachment of the disk to a VM.").optional(),
+      }).describe(
+        "Optional. Details for attachment of the disk to a VM. Used when the disk is set to be attached to a target VM.",
+      ).optional(),
     })).describe("The details of each Persistent Disk to create.").optional(),
     disksTargetDefaults: z.object({}).describe(
-      "Details for a disk only migration.",
+      "Details of the disk only migration target.",
     ).optional(),
     targetProject: z.string().describe(
       "The full path of the resource of type TargetProject which represents the Compute Engine project in which to create the Persistent Disks.",
@@ -311,19 +235,14 @@ const GlobalArgsSchema = z.object({
           kmsKey: z.string().describe(
             "Required. The name of the encryption key that is stored in Google Cloud KMS.",
           ).optional(),
-        }).describe(
-          "Encryption message describes the details of the applied encryption.",
-        ).optional(),
+        }).describe("Optional. The encryption to apply to the boot disk.")
+          .optional(),
         image: z.object({
           sourceImage: z.string().describe(
             "Required. The Image resource used when creating the disk.",
           ).optional(),
-        }).describe(
-          "Contains details about the image source used to create the disk.",
-        ).optional(),
-      }).describe(
-        "BootDiskDefaults hold information about the boot disk of a VM.",
-      ).optional(),
+        }).describe("The image to use when creating the disk.").optional(),
+      }).describe("Optional. Details of the boot disk of the VM.").optional(),
       computeScheduling: z.object({
         minNodeCpus: z.number().int().describe(
           "The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. Ignored if no node_affinites are configured.",
@@ -356,7 +275,7 @@ const GlobalArgsSchema = z.object({
           "Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to `automaticRestart` field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart.",
         ).optional(),
       }).describe(
-        "Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.",
+        "Optional. Compute instance scheduling information (if empty default is used).",
       ).optional(),
       enableIntegrityMonitoring: z.boolean().describe(
         "Optional. Defines whether the instance has integrity monitoring enabled.",
@@ -368,9 +287,7 @@ const GlobalArgsSchema = z.object({
         kmsKey: z.string().describe(
           "Required. The name of the encryption key that is stored in Google Cloud KMS.",
         ).optional(),
-      }).describe(
-        "Encryption message describes the details of the applied encryption.",
-      ).optional(),
+      }).describe("Optional. The encryption to apply to the VM.").optional(),
       hostname: z.string().describe(
         "Optional. The hostname to assign to the VM.",
       ).optional(),
@@ -418,15 +335,12 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       vmName: z.string().describe("Required. The name of the VM to create.")
         .optional(),
-    }).describe(
-      "Details for creation of a VM that migrated data disks will be attached to.",
-    ).optional(),
+    }).describe("Details of the VM migration target.").optional(),
     zone: z.string().describe(
       "The zone in which to create the Persistent Disks.",
     ).optional(),
-  }).describe(
-    "ComputeEngineDisksTargetDefaults is a collection of details for creating Persistent Disks in a target Compute Engine project.",
-  ).optional(),
+  }).describe("Details of the target Persistent Disks in Compute Engine.")
+    .optional(),
   computeEngineTargetDefaults: z.object({
     adaptationModifiers: z.array(z.object({
       modifier: z.string().describe("Optional. The modifier name.").optional(),
@@ -447,7 +361,7 @@ const GlobalArgsSchema = z.object({
         "The license type that was used in OS adaptation.",
       ).optional(),
     }).describe(
-      "AppliedLicense holds the license data returned by adaptation module report.",
+      "Output only. The OS license returned from the adaptation module report.",
     ).optional(),
     bootConversion: z.enum([
       "BOOT_CONVERSION_UNSPECIFIED",
@@ -493,7 +407,7 @@ const GlobalArgsSchema = z.object({
         "Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to `automaticRestart` field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart.",
       ).optional(),
     }).describe(
-      "Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.",
+      "Compute instance scheduling information (if empty default is used).",
     ).optional(),
     diskReplicaZones: z.array(z.string()).describe(
       "Optional. Additional replica zones of the target regional disks. If this list is not empty a regional disk will be created. The first supported zone would be the one stated in the zone field. The rest are taken from this list. Please refer to the [regional disk creation API](https://cloud.google.com/compute/docs/regions-zones/global-regional-zonal-resources) for further details about regional vs zonal disks. If not specified, a zonal disk will be created in the same zone the VM is created.",
@@ -525,9 +439,7 @@ const GlobalArgsSchema = z.object({
         kmsKey: z.string().describe(
           "Required. The name of the encryption key that is stored in Google Cloud KMS.",
         ).optional(),
-      }).describe(
-        "Encryption message describes the details of the applied encryption.",
-      ).optional(),
+      }).describe("Optional. The encryption to apply to the disk.").optional(),
       sourceDiskNumber: z.number().int().describe(
         "Required. The ordinal number of the source VM disk.",
       ).optional(),
@@ -535,7 +447,9 @@ const GlobalArgsSchema = z.object({
         deviceName: z.string().describe(
           "Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.",
         ).optional(),
-      }).describe("Details for attachment of the disk to a VM.").optional(),
+      }).describe(
+        "Optional. Details for attachment of the disk to a VM. Used when the disk is set to be attached to a target VM.",
+      ).optional(),
     })).describe("Optional. The details of each disk to create.").optional(),
     enableIntegrityMonitoring: z.boolean().describe(
       "Optional. Defines whether the instance has integrity monitoring enabled. This can be set to true only if the VM boot option is EFI, and vTPM is enabled.",
@@ -547,9 +461,8 @@ const GlobalArgsSchema = z.object({
       kmsKey: z.string().describe(
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
-    }).describe(
-      "Encryption message describes the details of the applied encryption.",
-    ).optional(),
+    }).describe("Optional. Immutable. The encryption to apply to the VM disks.")
+      .optional(),
     hostname: z.string().describe("The hostname to assign to the VM.")
       .optional(),
     labels: z.record(z.string(), z.string()).describe(
@@ -606,257 +519,15 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     vmName: z.string().describe("The name of the VM to create.").optional(),
     zone: z.string().describe("The zone in which to create the VM.").optional(),
-  }).describe(
-    "ComputeEngineTargetDefaults is a collection of details for creating a VM in a target Compute Engine project.",
-  ).optional(),
-  currentSyncInfo: z.object({
-    cycleNumber: z.number().int().describe("The cycle's ordinal number.")
-      .optional(),
-    endTime: z.string().describe("The time the replication cycle has ended.")
-      .optional(),
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    name: z.string().describe("The identifier of the ReplicationCycle.")
-      .optional(),
-    progressPercent: z.number().int().describe(
-      "The current progress in percentage of this cycle. Was replaced by 'steps' field, which breaks down the cycle progression more accurately.",
-    ).optional(),
-    startTime: z.string().describe(
-      "The time the replication cycle has started.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "RUNNING",
-      "PAUSED",
-      "FAILED",
-      "SUCCEEDED",
-    ]).describe("State of the ReplicationCycle.").optional(),
-    steps: z.array(z.object({
-      endTime: z.string().describe("The time the cycle step has ended.")
-        .optional(),
-      initializingReplication: z.object({}).describe(
-        "InitializingReplicationStep contains specific step details.",
-      ).optional(),
-      postProcessing: z.object({}).describe(
-        "PostProcessingStep contains specific step details.",
-      ).optional(),
-      replicating: z.object({
-        lastThirtyMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 30 minutes in bytes per second.",
-        ).optional(),
-        lastTwoMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 2 minutes in bytes per second.",
-        ).optional(),
-        replicatedBytes: z.string().describe("Replicated bytes in the step.")
-          .optional(),
-        totalBytes: z.string().describe(
-          "Total bytes to be handled in the step.",
-        ).optional(),
-      }).describe("ReplicatingStep contains specific step details.").optional(),
-      startTime: z.string().describe("The time the cycle step has started.")
-        .optional(),
-    })).describe("The cycle's steps list representing its progress.")
-      .optional(),
-    totalPauseDuration: z.string().describe(
-      "The accumulated duration the replication cycle was paused.",
-    ).optional(),
-    warnings: z.array(z.object({
-      actionItem: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      code: z.enum(["WARNING_CODE_UNSPECIFIED", "ADAPTATION_WARNING"]).describe(
-        "The warning code.",
-      ).optional(),
-      helpLinks: z.array(z.object({
-        description: z.unknown().describe("Describes what the link offers.")
-          .optional(),
-        url: z.unknown().describe("The URL of the link.").optional(),
-      })).describe(
-        "Output only. URL(s) pointing to additional information on handling the current warning.",
-      ).optional(),
-      warningMessage: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      warningTime: z.string().describe("The time the warning occurred.")
-        .optional(),
-    })).describe("Output only. Warnings that occurred during the cycle.")
-      .optional(),
-  }).describe(
-    "ReplicationCycle contains information about the current replication cycle status.",
-  ).optional(),
-  cutoverForecast: z.object({
-    estimatedCutoverJobDuration: z.string().describe(
-      "Output only. Estimation of the CutoverJob duration.",
-    ).optional(),
-  }).describe(
-    "CutoverForecast holds information about future CutoverJobs of a MigratingVm.",
-  ).optional(),
+  }).describe("Details of the target VM in Compute Engine.").optional(),
   description: z.string().describe(
     "The description attached to the migrating VM by the user.",
   ).optional(),
   displayName: z.string().describe(
     "The display name attached to the MigratingVm by the user.",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
-  expiration: z.object({
-    expireTime: z.string().describe(
-      "Output only. Timestamp of when this resource is considered expired.",
-    ).optional(),
-    extendable: z.boolean().describe(
-      "Output only. Describes whether the expiration can be extended.",
-    ).optional(),
-    extensionCount: z.number().int().describe(
-      "Output only. The number of times expiration was extended.",
-    ).optional(),
-  }).describe(
-    "Expiration holds information about the expiration of a MigratingVm.",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels of the migrating VM.",
-  ).optional(),
-  lastReplicationCycle: z.object({
-    cycleNumber: z.number().int().describe("The cycle's ordinal number.")
-      .optional(),
-    endTime: z.string().describe("The time the replication cycle has ended.")
-      .optional(),
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    name: z.string().describe("The identifier of the ReplicationCycle.")
-      .optional(),
-    progressPercent: z.number().int().describe(
-      "The current progress in percentage of this cycle. Was replaced by 'steps' field, which breaks down the cycle progression more accurately.",
-    ).optional(),
-    startTime: z.string().describe(
-      "The time the replication cycle has started.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "RUNNING",
-      "PAUSED",
-      "FAILED",
-      "SUCCEEDED",
-    ]).describe("State of the ReplicationCycle.").optional(),
-    steps: z.array(z.object({
-      endTime: z.string().describe("The time the cycle step has ended.")
-        .optional(),
-      initializingReplication: z.object({}).describe(
-        "InitializingReplicationStep contains specific step details.",
-      ).optional(),
-      postProcessing: z.object({}).describe(
-        "PostProcessingStep contains specific step details.",
-      ).optional(),
-      replicating: z.object({
-        lastThirtyMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 30 minutes in bytes per second.",
-        ).optional(),
-        lastTwoMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 2 minutes in bytes per second.",
-        ).optional(),
-        replicatedBytes: z.string().describe("Replicated bytes in the step.")
-          .optional(),
-        totalBytes: z.string().describe(
-          "Total bytes to be handled in the step.",
-        ).optional(),
-      }).describe("ReplicatingStep contains specific step details.").optional(),
-      startTime: z.string().describe("The time the cycle step has started.")
-        .optional(),
-    })).describe("The cycle's steps list representing its progress.")
-      .optional(),
-    totalPauseDuration: z.string().describe(
-      "The accumulated duration the replication cycle was paused.",
-    ).optional(),
-    warnings: z.array(z.object({
-      actionItem: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      code: z.enum(["WARNING_CODE_UNSPECIFIED", "ADAPTATION_WARNING"]).describe(
-        "The warning code.",
-      ).optional(),
-      helpLinks: z.array(z.object({
-        description: z.unknown().describe("Describes what the link offers.")
-          .optional(),
-        url: z.unknown().describe("The URL of the link.").optional(),
-      })).describe(
-        "Output only. URL(s) pointing to additional information on handling the current warning.",
-      ).optional(),
-      warningMessage: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      warningTime: z.string().describe("The time the warning occurred.")
-        .optional(),
-    })).describe("Output only. Warnings that occurred during the cycle.")
-      .optional(),
-  }).describe(
-    "ReplicationCycle contains information about the current replication cycle status.",
-  ).optional(),
-  lastSync: z.object({
-    lastSyncTime: z.string().describe(
-      "The most updated snapshot created time in the source that finished replication.",
-    ).optional(),
-  }).describe(
-    "ReplicationSync contain information about the last replica sync to the cloud.",
   ).optional(),
   policy: z.object({
     idleDuration: z.string().describe(
@@ -865,48 +536,10 @@ const GlobalArgsSchema = z.object({
     skipOsAdaptation: z.boolean().describe(
       "A flag to indicate whether to skip OS adaptation during the replication sync. OS adaptation is a process where the VM's operating system undergoes changes and adaptations to fully function on Compute Engine.",
     ).optional(),
-  }).describe("A policy for scheduling replications.").optional(),
+  }).describe("The replication schedule policy.").optional(),
   sourceVmId: z.string().describe(
     "The unique ID of the VM in the source. The VM's name in vSphere can be changed, so this is not the VM's name but rather its moRef id. This id is of the form vm-.",
   ).optional(),
-  vmwareSourceVmDetails: z.object({
-    architecture: z.enum([
-      "VM_ARCHITECTURE_UNSPECIFIED",
-      "VM_ARCHITECTURE_X86_FAMILY",
-      "VM_ARCHITECTURE_ARM64",
-    ]).describe("Output only. The VM architecture.").optional(),
-    committedStorageBytes: z.string().describe(
-      "Output only. The total size of the disks being migrated in bytes.",
-    ).optional(),
-    disks: z.array(z.object({
-      diskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the disk.",
-      ).optional(),
-      label: z.string().describe("Output only. The disk label.").optional(),
-      sizeGb: z.string().describe("Output only. Size in GB.").optional(),
-    })).describe("Output only. The disks attached to the source VM.")
-      .optional(),
-    firmware: z.enum(["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]).describe(
-      "Output only. The firmware type of the source VM.",
-    ).optional(),
-    vmCapabilitiesInfo: z.object({
-      lastOsCapabilitiesUpdateTime: z.string().describe(
-        "Output only. The last time OS capabilities list was updated.",
-      ).optional(),
-      osCapabilities: z.array(
-        z.enum([
-          "OS_CAPABILITY_UNSPECIFIED",
-          "OS_CAPABILITY_NVME_STORAGE_ACCESS",
-          "OS_CAPABILITY_GVNIC_NETWORK_INTERFACE",
-          "OS_CAPABILITY_IDPF_NETWORK_INTERFACE",
-        ]),
-      ).describe(
-        "Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.",
-      ).optional(),
-    }).describe(
-      "Migrating VM source information about the VM capabilities needed for some Compute Engine features.",
-    ).optional(),
-  }).describe("Represent the source Vmware VM details.").optional(),
   migratingVmId: z.string().describe("Required. The migratingVm identifier.")
     .optional(),
   requestId: z.string().describe(
@@ -1387,82 +1020,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  awsSourceVmDetails: z.object({
-    architecture: z.enum([
-      "VM_ARCHITECTURE_UNSPECIFIED",
-      "VM_ARCHITECTURE_X86_FAMILY",
-      "VM_ARCHITECTURE_ARM64",
-    ]).describe("Output only. The VM architecture.").optional(),
-    committedStorageBytes: z.string().describe(
-      "Output only. The total size of the disks being migrated in bytes.",
-    ).optional(),
-    disks: z.array(z.object({
-      diskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the disk.",
-      ).optional(),
-      sizeGb: z.string().describe("Output only. Size in GB.").optional(),
-      volumeId: z.string().describe("Output only. AWS volume ID.").optional(),
-    })).describe("Output only. The disks attached to the source VM.")
-      .optional(),
-    firmware: z.enum(["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]).describe(
-      "Output only. The firmware type of the source VM.",
-    ).optional(),
-    vmCapabilitiesInfo: z.object({
-      lastOsCapabilitiesUpdateTime: z.string().describe(
-        "Output only. The last time OS capabilities list was updated.",
-      ).optional(),
-      osCapabilities: z.array(
-        z.enum([
-          "OS_CAPABILITY_UNSPECIFIED",
-          "OS_CAPABILITY_NVME_STORAGE_ACCESS",
-          "OS_CAPABILITY_GVNIC_NETWORK_INTERFACE",
-          "OS_CAPABILITY_IDPF_NETWORK_INTERFACE",
-        ]),
-      ).describe(
-        "Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.",
-      ).optional(),
-    }).describe(
-      "Migrating VM source information about the VM capabilities needed for some Compute Engine features.",
-    ).optional(),
-  }).describe("Represent the source AWS VM details.").optional(),
-  azureSourceVmDetails: z.object({
-    architecture: z.enum([
-      "VM_ARCHITECTURE_UNSPECIFIED",
-      "VM_ARCHITECTURE_X86_FAMILY",
-      "VM_ARCHITECTURE_ARM64",
-    ]).describe("Output only. The VM architecture.").optional(),
-    committedStorageBytes: z.string().describe(
-      "Output only. The total size of the disks being migrated in bytes.",
-    ).optional(),
-    disks: z.array(z.object({
-      diskId: z.string().describe("Output only. Azure disk ID.").optional(),
-      diskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the disk.",
-      ).optional(),
-      sizeGb: z.string().describe("Output only. Size in GB.").optional(),
-    })).describe("Output only. The disks attached to the source VM.")
-      .optional(),
-    firmware: z.enum(["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]).describe(
-      "Output only. The firmware type of the source VM.",
-    ).optional(),
-    vmCapabilitiesInfo: z.object({
-      lastOsCapabilitiesUpdateTime: z.string().describe(
-        "Output only. The last time OS capabilities list was updated.",
-      ).optional(),
-      osCapabilities: z.array(
-        z.enum([
-          "OS_CAPABILITY_UNSPECIFIED",
-          "OS_CAPABILITY_NVME_STORAGE_ACCESS",
-          "OS_CAPABILITY_GVNIC_NETWORK_INTERFACE",
-          "OS_CAPABILITY_IDPF_NETWORK_INTERFACE",
-        ]),
-      ).describe(
-        "Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.",
-      ).optional(),
-    }).describe(
-      "Migrating VM source information about the VM capabilities needed for some Compute Engine features.",
-    ).optional(),
-  }).describe("Represent the source Azure VM details.").optional(),
   computeEngineDisksTargetDefaults: z.object({
     disks: z.array(z.object({
       additionalLabels: z.record(z.string(), z.string()).describe(
@@ -1483,9 +1040,7 @@ const InputsSchema = z.object({
         kmsKey: z.string().describe(
           "Required. The name of the encryption key that is stored in Google Cloud KMS.",
         ).optional(),
-      }).describe(
-        "Encryption message describes the details of the applied encryption.",
-      ).optional(),
+      }).describe("Optional. The encryption to apply to the disk.").optional(),
       sourceDiskNumber: z.number().int().describe(
         "Required. The ordinal number of the source VM disk.",
       ).optional(),
@@ -1493,10 +1048,12 @@ const InputsSchema = z.object({
         deviceName: z.string().describe(
           "Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.",
         ).optional(),
-      }).describe("Details for attachment of the disk to a VM.").optional(),
+      }).describe(
+        "Optional. Details for attachment of the disk to a VM. Used when the disk is set to be attached to a target VM.",
+      ).optional(),
     })).describe("The details of each Persistent Disk to create.").optional(),
     disksTargetDefaults: z.object({}).describe(
-      "Details for a disk only migration.",
+      "Details of the disk only migration target.",
     ).optional(),
     targetProject: z.string().describe(
       "The full path of the resource of type TargetProject which represents the Compute Engine project in which to create the Persistent Disks.",
@@ -1525,19 +1082,14 @@ const InputsSchema = z.object({
           kmsKey: z.string().describe(
             "Required. The name of the encryption key that is stored in Google Cloud KMS.",
           ).optional(),
-        }).describe(
-          "Encryption message describes the details of the applied encryption.",
-        ).optional(),
+        }).describe("Optional. The encryption to apply to the boot disk.")
+          .optional(),
         image: z.object({
           sourceImage: z.string().describe(
             "Required. The Image resource used when creating the disk.",
           ).optional(),
-        }).describe(
-          "Contains details about the image source used to create the disk.",
-        ).optional(),
-      }).describe(
-        "BootDiskDefaults hold information about the boot disk of a VM.",
-      ).optional(),
+        }).describe("The image to use when creating the disk.").optional(),
+      }).describe("Optional. Details of the boot disk of the VM.").optional(),
       computeScheduling: z.object({
         minNodeCpus: z.number().int().describe(
           "The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. Ignored if no node_affinites are configured.",
@@ -1570,7 +1122,7 @@ const InputsSchema = z.object({
           "Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to `automaticRestart` field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart.",
         ).optional(),
       }).describe(
-        "Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.",
+        "Optional. Compute instance scheduling information (if empty default is used).",
       ).optional(),
       enableIntegrityMonitoring: z.boolean().describe(
         "Optional. Defines whether the instance has integrity monitoring enabled.",
@@ -1582,9 +1134,7 @@ const InputsSchema = z.object({
         kmsKey: z.string().describe(
           "Required. The name of the encryption key that is stored in Google Cloud KMS.",
         ).optional(),
-      }).describe(
-        "Encryption message describes the details of the applied encryption.",
-      ).optional(),
+      }).describe("Optional. The encryption to apply to the VM.").optional(),
       hostname: z.string().describe(
         "Optional. The hostname to assign to the VM.",
       ).optional(),
@@ -1632,15 +1182,12 @@ const InputsSchema = z.object({
       ).optional(),
       vmName: z.string().describe("Required. The name of the VM to create.")
         .optional(),
-    }).describe(
-      "Details for creation of a VM that migrated data disks will be attached to.",
-    ).optional(),
+    }).describe("Details of the VM migration target.").optional(),
     zone: z.string().describe(
       "The zone in which to create the Persistent Disks.",
     ).optional(),
-  }).describe(
-    "ComputeEngineDisksTargetDefaults is a collection of details for creating Persistent Disks in a target Compute Engine project.",
-  ).optional(),
+  }).describe("Details of the target Persistent Disks in Compute Engine.")
+    .optional(),
   computeEngineTargetDefaults: z.object({
     adaptationModifiers: z.array(z.object({
       modifier: z.string().describe("Optional. The modifier name.").optional(),
@@ -1661,7 +1208,7 @@ const InputsSchema = z.object({
         "The license type that was used in OS adaptation.",
       ).optional(),
     }).describe(
-      "AppliedLicense holds the license data returned by adaptation module report.",
+      "Output only. The OS license returned from the adaptation module report.",
     ).optional(),
     bootConversion: z.enum([
       "BOOT_CONVERSION_UNSPECIFIED",
@@ -1707,7 +1254,7 @@ const InputsSchema = z.object({
         "Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to `automaticRestart` field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart.",
       ).optional(),
     }).describe(
-      "Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.",
+      "Compute instance scheduling information (if empty default is used).",
     ).optional(),
     diskReplicaZones: z.array(z.string()).describe(
       "Optional. Additional replica zones of the target regional disks. If this list is not empty a regional disk will be created. The first supported zone would be the one stated in the zone field. The rest are taken from this list. Please refer to the [regional disk creation API](https://cloud.google.com/compute/docs/regions-zones/global-regional-zonal-resources) for further details about regional vs zonal disks. If not specified, a zonal disk will be created in the same zone the VM is created.",
@@ -1739,9 +1286,7 @@ const InputsSchema = z.object({
         kmsKey: z.string().describe(
           "Required. The name of the encryption key that is stored in Google Cloud KMS.",
         ).optional(),
-      }).describe(
-        "Encryption message describes the details of the applied encryption.",
-      ).optional(),
+      }).describe("Optional. The encryption to apply to the disk.").optional(),
       sourceDiskNumber: z.number().int().describe(
         "Required. The ordinal number of the source VM disk.",
       ).optional(),
@@ -1749,7 +1294,9 @@ const InputsSchema = z.object({
         deviceName: z.string().describe(
           "Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.",
         ).optional(),
-      }).describe("Details for attachment of the disk to a VM.").optional(),
+      }).describe(
+        "Optional. Details for attachment of the disk to a VM. Used when the disk is set to be attached to a target VM.",
+      ).optional(),
     })).describe("Optional. The details of each disk to create.").optional(),
     enableIntegrityMonitoring: z.boolean().describe(
       "Optional. Defines whether the instance has integrity monitoring enabled. This can be set to true only if the VM boot option is EFI, and vTPM is enabled.",
@@ -1761,9 +1308,8 @@ const InputsSchema = z.object({
       kmsKey: z.string().describe(
         "Required. The name of the encryption key that is stored in Google Cloud KMS.",
       ).optional(),
-    }).describe(
-      "Encryption message describes the details of the applied encryption.",
-    ).optional(),
+    }).describe("Optional. Immutable. The encryption to apply to the VM disks.")
+      .optional(),
     hostname: z.string().describe("The hostname to assign to the VM.")
       .optional(),
     labels: z.record(z.string(), z.string()).describe(
@@ -1820,257 +1366,15 @@ const InputsSchema = z.object({
     ).optional(),
     vmName: z.string().describe("The name of the VM to create.").optional(),
     zone: z.string().describe("The zone in which to create the VM.").optional(),
-  }).describe(
-    "ComputeEngineTargetDefaults is a collection of details for creating a VM in a target Compute Engine project.",
-  ).optional(),
-  currentSyncInfo: z.object({
-    cycleNumber: z.number().int().describe("The cycle's ordinal number.")
-      .optional(),
-    endTime: z.string().describe("The time the replication cycle has ended.")
-      .optional(),
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    name: z.string().describe("The identifier of the ReplicationCycle.")
-      .optional(),
-    progressPercent: z.number().int().describe(
-      "The current progress in percentage of this cycle. Was replaced by 'steps' field, which breaks down the cycle progression more accurately.",
-    ).optional(),
-    startTime: z.string().describe(
-      "The time the replication cycle has started.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "RUNNING",
-      "PAUSED",
-      "FAILED",
-      "SUCCEEDED",
-    ]).describe("State of the ReplicationCycle.").optional(),
-    steps: z.array(z.object({
-      endTime: z.string().describe("The time the cycle step has ended.")
-        .optional(),
-      initializingReplication: z.object({}).describe(
-        "InitializingReplicationStep contains specific step details.",
-      ).optional(),
-      postProcessing: z.object({}).describe(
-        "PostProcessingStep contains specific step details.",
-      ).optional(),
-      replicating: z.object({
-        lastThirtyMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 30 minutes in bytes per second.",
-        ).optional(),
-        lastTwoMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 2 minutes in bytes per second.",
-        ).optional(),
-        replicatedBytes: z.string().describe("Replicated bytes in the step.")
-          .optional(),
-        totalBytes: z.string().describe(
-          "Total bytes to be handled in the step.",
-        ).optional(),
-      }).describe("ReplicatingStep contains specific step details.").optional(),
-      startTime: z.string().describe("The time the cycle step has started.")
-        .optional(),
-    })).describe("The cycle's steps list representing its progress.")
-      .optional(),
-    totalPauseDuration: z.string().describe(
-      "The accumulated duration the replication cycle was paused.",
-    ).optional(),
-    warnings: z.array(z.object({
-      actionItem: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      code: z.enum(["WARNING_CODE_UNSPECIFIED", "ADAPTATION_WARNING"]).describe(
-        "The warning code.",
-      ).optional(),
-      helpLinks: z.array(z.object({
-        description: z.unknown().describe("Describes what the link offers.")
-          .optional(),
-        url: z.unknown().describe("The URL of the link.").optional(),
-      })).describe(
-        "Output only. URL(s) pointing to additional information on handling the current warning.",
-      ).optional(),
-      warningMessage: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      warningTime: z.string().describe("The time the warning occurred.")
-        .optional(),
-    })).describe("Output only. Warnings that occurred during the cycle.")
-      .optional(),
-  }).describe(
-    "ReplicationCycle contains information about the current replication cycle status.",
-  ).optional(),
-  cutoverForecast: z.object({
-    estimatedCutoverJobDuration: z.string().describe(
-      "Output only. Estimation of the CutoverJob duration.",
-    ).optional(),
-  }).describe(
-    "CutoverForecast holds information about future CutoverJobs of a MigratingVm.",
-  ).optional(),
+  }).describe("Details of the target VM in Compute Engine.").optional(),
   description: z.string().describe(
     "The description attached to the migrating VM by the user.",
   ).optional(),
   displayName: z.string().describe(
     "The display name attached to the MigratingVm by the user.",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
-  expiration: z.object({
-    expireTime: z.string().describe(
-      "Output only. Timestamp of when this resource is considered expired.",
-    ).optional(),
-    extendable: z.boolean().describe(
-      "Output only. Describes whether the expiration can be extended.",
-    ).optional(),
-    extensionCount: z.number().int().describe(
-      "Output only. The number of times expiration was extended.",
-    ).optional(),
-  }).describe(
-    "Expiration holds information about the expiration of a MigratingVm.",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels of the migrating VM.",
-  ).optional(),
-  lastReplicationCycle: z.object({
-    cycleNumber: z.number().int().describe("The cycle's ordinal number.")
-      .optional(),
-    endTime: z.string().describe("The time the replication cycle has ended.")
-      .optional(),
-    error: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    name: z.string().describe("The identifier of the ReplicationCycle.")
-      .optional(),
-    progressPercent: z.number().int().describe(
-      "The current progress in percentage of this cycle. Was replaced by 'steps' field, which breaks down the cycle progression more accurately.",
-    ).optional(),
-    startTime: z.string().describe(
-      "The time the replication cycle has started.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "RUNNING",
-      "PAUSED",
-      "FAILED",
-      "SUCCEEDED",
-    ]).describe("State of the ReplicationCycle.").optional(),
-    steps: z.array(z.object({
-      endTime: z.string().describe("The time the cycle step has ended.")
-        .optional(),
-      initializingReplication: z.object({}).describe(
-        "InitializingReplicationStep contains specific step details.",
-      ).optional(),
-      postProcessing: z.object({}).describe(
-        "PostProcessingStep contains specific step details.",
-      ).optional(),
-      replicating: z.object({
-        lastThirtyMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 30 minutes in bytes per second.",
-        ).optional(),
-        lastTwoMinutesAverageBytesPerSecond: z.string().describe(
-          "The source disks replication rate for the last 2 minutes in bytes per second.",
-        ).optional(),
-        replicatedBytes: z.string().describe("Replicated bytes in the step.")
-          .optional(),
-        totalBytes: z.string().describe(
-          "Total bytes to be handled in the step.",
-        ).optional(),
-      }).describe("ReplicatingStep contains specific step details.").optional(),
-      startTime: z.string().describe("The time the cycle step has started.")
-        .optional(),
-    })).describe("The cycle's steps list representing its progress.")
-      .optional(),
-    totalPauseDuration: z.string().describe(
-      "The accumulated duration the replication cycle was paused.",
-    ).optional(),
-    warnings: z.array(z.object({
-      actionItem: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      code: z.enum(["WARNING_CODE_UNSPECIFIED", "ADAPTATION_WARNING"]).describe(
-        "The warning code.",
-      ).optional(),
-      helpLinks: z.array(z.object({
-        description: z.unknown().describe("Describes what the link offers.")
-          .optional(),
-        url: z.unknown().describe("The URL of the link.").optional(),
-      })).describe(
-        "Output only. URL(s) pointing to additional information on handling the current warning.",
-      ).optional(),
-      warningMessage: z.object({
-        locale: z.string().describe(
-          'The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"',
-        ).optional(),
-        message: z.string().describe(
-          "The localized error message in the above locale.",
-        ).optional(),
-      }).describe(
-        "Provides a localized error message that is safe to return to the user which can be attached to an RPC error.",
-      ).optional(),
-      warningTime: z.string().describe("The time the warning occurred.")
-        .optional(),
-    })).describe("Output only. Warnings that occurred during the cycle.")
-      .optional(),
-  }).describe(
-    "ReplicationCycle contains information about the current replication cycle status.",
-  ).optional(),
-  lastSync: z.object({
-    lastSyncTime: z.string().describe(
-      "The most updated snapshot created time in the source that finished replication.",
-    ).optional(),
-  }).describe(
-    "ReplicationSync contain information about the last replica sync to the cloud.",
   ).optional(),
   policy: z.object({
     idleDuration: z.string().describe(
@@ -2079,48 +1383,10 @@ const InputsSchema = z.object({
     skipOsAdaptation: z.boolean().describe(
       "A flag to indicate whether to skip OS adaptation during the replication sync. OS adaptation is a process where the VM's operating system undergoes changes and adaptations to fully function on Compute Engine.",
     ).optional(),
-  }).describe("A policy for scheduling replications.").optional(),
+  }).describe("The replication schedule policy.").optional(),
   sourceVmId: z.string().describe(
     "The unique ID of the VM in the source. The VM's name in vSphere can be changed, so this is not the VM's name but rather its moRef id. This id is of the form vm-.",
   ).optional(),
-  vmwareSourceVmDetails: z.object({
-    architecture: z.enum([
-      "VM_ARCHITECTURE_UNSPECIFIED",
-      "VM_ARCHITECTURE_X86_FAMILY",
-      "VM_ARCHITECTURE_ARM64",
-    ]).describe("Output only. The VM architecture.").optional(),
-    committedStorageBytes: z.string().describe(
-      "Output only. The total size of the disks being migrated in bytes.",
-    ).optional(),
-    disks: z.array(z.object({
-      diskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the disk.",
-      ).optional(),
-      label: z.string().describe("Output only. The disk label.").optional(),
-      sizeGb: z.string().describe("Output only. Size in GB.").optional(),
-    })).describe("Output only. The disks attached to the source VM.")
-      .optional(),
-    firmware: z.enum(["FIRMWARE_UNSPECIFIED", "EFI", "BIOS"]).describe(
-      "Output only. The firmware type of the source VM.",
-    ).optional(),
-    vmCapabilitiesInfo: z.object({
-      lastOsCapabilitiesUpdateTime: z.string().describe(
-        "Output only. The last time OS capabilities list was updated.",
-      ).optional(),
-      osCapabilities: z.array(
-        z.enum([
-          "OS_CAPABILITY_UNSPECIFIED",
-          "OS_CAPABILITY_NVME_STORAGE_ACCESS",
-          "OS_CAPABILITY_GVNIC_NETWORK_INTERFACE",
-          "OS_CAPABILITY_IDPF_NETWORK_INTERFACE",
-        ]),
-      ).describe(
-        "Output only. Unordered list. List of certain VM OS capabilities needed for some Compute Engine features.",
-      ).optional(),
-    }).describe(
-      "Migrating VM source information about the VM capabilities needed for some Compute Engine features.",
-    ).optional(),
-  }).describe("Represent the source Vmware VM details.").optional(),
   migratingVmId: z.string().describe("Required. The migratingVm identifier.")
     .optional(),
   requestId: z.string().describe(
@@ -2157,7 +1423,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources.MigratingVms. Registered at `@swamp/gcp/vmmigration/sources-migratingvms`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources-migratingvms",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2279,6 +1545,26 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: awsSourceVmDetails, azureSourceVmDetails, currentSyncInfo, cutoverForecast, error, expiration, lastReplicationCycle, lastSync, vmwareSourceVmDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          awsSourceVmDetails: _awsSourceVmDetails,
+          azureSourceVmDetails: _azureSourceVmDetails,
+          currentSyncInfo: _currentSyncInfo,
+          cutoverForecast: _cutoverForecast,
+          error: _error,
+          expiration: _expiration,
+          lastReplicationCycle: _lastReplicationCycle,
+          lastSync: _lastSync,
+          vmwareSourceVmDetails: _vmwareSourceVmDetails,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2306,12 +1592,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["awsSourceVmDetails"] !== undefined) {
-          body["awsSourceVmDetails"] = g["awsSourceVmDetails"];
-        }
-        if (g["azureSourceVmDetails"] !== undefined) {
-          body["azureSourceVmDetails"] = g["azureSourceVmDetails"];
-        }
         if (g["computeEngineDisksTargetDefaults"] !== undefined) {
           body["computeEngineDisksTargetDefaults"] =
             g["computeEngineDisksTargetDefaults"];
@@ -2320,30 +1600,15 @@ export const model = {
           body["computeEngineTargetDefaults"] =
             g["computeEngineTargetDefaults"];
         }
-        if (g["currentSyncInfo"] !== undefined) {
-          body["currentSyncInfo"] = g["currentSyncInfo"];
-        }
-        if (g["cutoverForecast"] !== undefined) {
-          body["cutoverForecast"] = g["cutoverForecast"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
-        if (g["expiration"] !== undefined) body["expiration"] = g["expiration"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["lastReplicationCycle"] !== undefined) {
-          body["lastReplicationCycle"] = g["lastReplicationCycle"];
-        }
-        if (g["lastSync"] !== undefined) body["lastSync"] = g["lastSync"];
         if (g["policy"] !== undefined) body["policy"] = g["policy"];
         if (g["sourceVmId"] !== undefined) body["sourceVmId"] = g["sourceVmId"];
-        if (g["vmwareSourceVmDetails"] !== undefined) {
-          body["vmwareSourceVmDetails"] = g["vmwareSourceVmDetails"];
-        }
         if (g["migratingVmId"] !== undefined) {
           params["migratingVmId"] = String(g["migratingVmId"]);
         }
@@ -2467,12 +1732,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["awsSourceVmDetails"] !== undefined) {
-          body["awsSourceVmDetails"] = g["awsSourceVmDetails"];
-        }
-        if (g["azureSourceVmDetails"] !== undefined) {
-          body["azureSourceVmDetails"] = g["azureSourceVmDetails"];
-        }
         if (g["computeEngineDisksTargetDefaults"] !== undefined) {
           body["computeEngineDisksTargetDefaults"] =
             g["computeEngineDisksTargetDefaults"];
@@ -2481,30 +1740,15 @@ export const model = {
           body["computeEngineTargetDefaults"] =
             g["computeEngineTargetDefaults"];
         }
-        if (g["currentSyncInfo"] !== undefined) {
-          body["currentSyncInfo"] = g["currentSyncInfo"];
-        }
-        if (g["cutoverForecast"] !== undefined) {
-          body["cutoverForecast"] = g["cutoverForecast"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
-        if (g["expiration"] !== undefined) body["expiration"] = g["expiration"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["lastReplicationCycle"] !== undefined) {
-          body["lastReplicationCycle"] = g["lastReplicationCycle"];
-        }
-        if (g["lastSync"] !== undefined) body["lastSync"] = g["lastSync"];
         if (g["policy"] !== undefined) body["policy"] = g["policy"];
         if (g["sourceVmId"] !== undefined) body["sourceVmId"] = g["sourceVmId"];
-        if (g["vmwareSourceVmDetails"] !== undefined) {
-          body["vmwareSourceVmDetails"] = g["vmwareSourceVmDetails"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

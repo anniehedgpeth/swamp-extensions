@@ -191,9 +191,7 @@ const GlobalArgsSchema = z.object({
     uid: z.string().describe(
       "Output only. System-assigned unique identifier for the PhraseSet. This field is not used.",
     ).optional(),
-  }).describe(
-    'Provides "hints" to the speech recognizer to favor specific words and phrases in the results.',
-  ).optional(),
+  }).describe("Required. The phrase set to create.").optional(),
   phraseSetId: z.string().describe(
     "Required. The ID to use for the phrase set, which will become the final component of the phrase set's resource name. This value should restrict to letters, numbers, and hyphens, with the first character a letter, the last a letter or a number, and be 4-63 characters.",
   ).optional(),
@@ -310,9 +308,7 @@ const InputsSchema = z.object({
     uid: z.string().describe(
       "Output only. System-assigned unique identifier for the PhraseSet. This field is not used.",
     ).optional(),
-  }).describe(
-    'Provides "hints" to the speech recognizer to favor specific words and phrases in the results.',
-  ).optional(),
+  }).describe("Required. The phrase set to create.").optional(),
   phraseSetId: z.string().describe(
     "Required. The ID to use for the phrase set, which will become the final component of the phrase set's resource name. This value should restrict to letters, numbers, and hyphens, with the first character a letter, the last a letter or a number, and be 4-63 characters.",
   ).optional(),
@@ -384,7 +380,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Speech-to-Text PhraseSets. Registered at `@swamp/gcp/speech/phrasesets`. */
 export const model = {
   type: "@swamp/gcp/speech/phrasesets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -493,6 +489,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

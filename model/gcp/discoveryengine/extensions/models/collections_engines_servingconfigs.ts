@@ -183,8 +183,10 @@ const GlobalArgsSchema = z.object({
       topP: z.number().describe(
         "Optional. The top-p value to be used for the user defined classifier.",
       ).optional(),
-    }).describe("The specification for user defined classifier.").optional(),
-  }).describe("The specification for answer generation.").optional(),
+    }).describe(
+      "Optional. The specification for user specified classifier spec.",
+    ).optional(),
+  }).describe("Optional. The specification for answer generation.").optional(),
   boostControlIds: z.array(z.string()).describe(
     "Boost controls to use in serving path. All triggered boost controls will be applied. Boost controls must be in the same data store as the serving config. Maximum of 20 boost controls.",
   ).optional(),
@@ -229,7 +231,7 @@ const GlobalArgsSchema = z.object({
           "Specifies whether to return the confidence score from the extractive segments in each search result. This feature is available only for new or allowlisted data stores. To allowlist your data store, contact your Customer Engineer. The default value is `false`.",
         ).optional(),
       }).describe(
-        "A specification for configuring the extractive content in a search response.",
+        "If there is no extractive_content_spec provided, there will be no extractive answer in the search response.",
       ).optional(),
       searchResultMode: z.enum([
         "SEARCH_RESULT_MODE_UNSPECIFIED",
@@ -249,7 +251,7 @@ const GlobalArgsSchema = z.object({
           'If `true`, then return snippet. If no snippet can be generated, we return "No snippet is available for this page." A `snippet_status` with `SUCCESS` or `NO_SNIPPET_AVAILABLE` will also be returned.',
         ).optional(),
       }).describe(
-        "A specification for configuring snippets in a search response.",
+        "If `snippetSpec` is not specified, snippets are not included in the search response.",
       ).optional(),
       summarySpec: z.object({
         ignoreAdversarialQuery: z.boolean().describe(
@@ -274,13 +276,16 @@ const GlobalArgsSchema = z.object({
           preamble: z.string().describe(
             "Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.",
           ).optional(),
-        }).describe("Specification of the prompt to use with the model.")
-          .optional(),
+        }).describe(
+          "If specified, the spec will be used to modify the prompt provided to the LLM.",
+        ).optional(),
         modelSpec: z.object({
           version: z.string().describe(
             "The model version used to generate the summary. Supported values are: * `stable`: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * `preview`: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).",
           ).optional(),
-        }).describe("Specification of the model.").optional(),
+        }).describe(
+          "If specified, the spec will be used to modify the model specification provided to the LLM.",
+        ).optional(),
         summaryResultCount: z.number().int().describe(
           "The number of top results to generate the summary from. If the number of results returned is less than `summaryResultCount`, the summary is generated from all of the results. At most 10 results for documents mode, or 50 for chunks mode, can be used to generate a summary. The chunks mode is used when SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.",
         ).optional(),
@@ -288,14 +293,12 @@ const GlobalArgsSchema = z.object({
           "If true, answer will be generated from most relevant chunks from top search results. This feature will improve summary quality. Note that with this feature enabled, not all top search results will be referenced and included in the reference list, so the citation source index only points to the search results listed in the reference list.",
         ).optional(),
       }).describe(
-        "A specification for configuring a summary returned in a search response.",
+        "If `summarySpec` is not specified, summaries are not included in the search response.",
       ).optional(),
     }).describe(
-      "A specification for configuring the behavior of content search.",
+      "Specifies the expected behavior of content search. Only valid for content-search enabled data store.",
     ).optional(),
-  }).describe(
-    "Specifies the configurations needed for Generic Discovery.Currently we support: * `content_search_spec`: configuration for generic content search.",
-  ).optional(),
+  }).describe("The GenericConfig of the serving configuration.").optional(),
   ignoreControlIds: z.array(z.string()).describe(
     "Condition ignore specifications. If multiple ignore conditions match, all matching ignore controls in the list will execute. Order does not matter. Maximum number of specifications is 100.",
   ).optional(),
@@ -315,9 +318,7 @@ const GlobalArgsSchema = z.object({
     demotionEventType: z.string().describe(
       "Specifies the event type used for demoting recommendation result. Currently supported values: * `view-item`: Item viewed. * `media-play`: Start/resume watching a video, playing a song, etc. * `media-complete`: Finished or stopped midway through a video, song, etc. If unset, watch history demotion will not be applied. Content freshness demotion will still be applied.",
     ).optional(),
-  }).describe(
-    "Specifies the configurations needed for Media Discovery. Currently we support: * `demote_content_watched`: Threshold for watched content demotion. Customers can specify if using watched content demotion or use viewed detail page. Using the content watched demotion, customers need to specify the watched minutes or percentage exceeds the threshold, the content will be demoted in the recommendation result. * `promote_fresh_content`: cutoff days for fresh content promotion. Customers can specify if using content freshness promotion. If the content was published within the cutoff days, the content will be promoted in the recommendation result. Can only be set if SolutionType is SOLUTION_TYPE_RECOMMENDATION.",
-  ).optional(),
+  }).describe("The MediaConfig of the serving configuration.").optional(),
   modelId: z.string().describe(
     "The id of the model to use at serving time. Currently only RecommendationModels are supported. Can be changed but only to a compatible model (e.g. others-you-may-like CTR to others-you-may-like CVR). Required when SolutionType is SOLUTION_TYPE_RECOMMENDATION.",
   ).optional(),
@@ -472,8 +473,10 @@ const InputsSchema = z.object({
       topP: z.number().describe(
         "Optional. The top-p value to be used for the user defined classifier.",
       ).optional(),
-    }).describe("The specification for user defined classifier.").optional(),
-  }).describe("The specification for answer generation.").optional(),
+    }).describe(
+      "Optional. The specification for user specified classifier spec.",
+    ).optional(),
+  }).describe("Optional. The specification for answer generation.").optional(),
   boostControlIds: z.array(z.string()).describe(
     "Boost controls to use in serving path. All triggered boost controls will be applied. Boost controls must be in the same data store as the serving config. Maximum of 20 boost controls.",
   ).optional(),
@@ -518,7 +521,7 @@ const InputsSchema = z.object({
           "Specifies whether to return the confidence score from the extractive segments in each search result. This feature is available only for new or allowlisted data stores. To allowlist your data store, contact your Customer Engineer. The default value is `false`.",
         ).optional(),
       }).describe(
-        "A specification for configuring the extractive content in a search response.",
+        "If there is no extractive_content_spec provided, there will be no extractive answer in the search response.",
       ).optional(),
       searchResultMode: z.enum([
         "SEARCH_RESULT_MODE_UNSPECIFIED",
@@ -538,7 +541,7 @@ const InputsSchema = z.object({
           'If `true`, then return snippet. If no snippet can be generated, we return "No snippet is available for this page." A `snippet_status` with `SUCCESS` or `NO_SNIPPET_AVAILABLE` will also be returned.',
         ).optional(),
       }).describe(
-        "A specification for configuring snippets in a search response.",
+        "If `snippetSpec` is not specified, snippets are not included in the search response.",
       ).optional(),
       summarySpec: z.object({
         ignoreAdversarialQuery: z.boolean().describe(
@@ -563,13 +566,16 @@ const InputsSchema = z.object({
           preamble: z.string().describe(
             "Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.",
           ).optional(),
-        }).describe("Specification of the prompt to use with the model.")
-          .optional(),
+        }).describe(
+          "If specified, the spec will be used to modify the prompt provided to the LLM.",
+        ).optional(),
         modelSpec: z.object({
           version: z.string().describe(
             "The model version used to generate the summary. Supported values are: * `stable`: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * `preview`: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).",
           ).optional(),
-        }).describe("Specification of the model.").optional(),
+        }).describe(
+          "If specified, the spec will be used to modify the model specification provided to the LLM.",
+        ).optional(),
         summaryResultCount: z.number().int().describe(
           "The number of top results to generate the summary from. If the number of results returned is less than `summaryResultCount`, the summary is generated from all of the results. At most 10 results for documents mode, or 50 for chunks mode, can be used to generate a summary. The chunks mode is used when SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.",
         ).optional(),
@@ -577,14 +583,12 @@ const InputsSchema = z.object({
           "If true, answer will be generated from most relevant chunks from top search results. This feature will improve summary quality. Note that with this feature enabled, not all top search results will be referenced and included in the reference list, so the citation source index only points to the search results listed in the reference list.",
         ).optional(),
       }).describe(
-        "A specification for configuring a summary returned in a search response.",
+        "If `summarySpec` is not specified, summaries are not included in the search response.",
       ).optional(),
     }).describe(
-      "A specification for configuring the behavior of content search.",
+      "Specifies the expected behavior of content search. Only valid for content-search enabled data store.",
     ).optional(),
-  }).describe(
-    "Specifies the configurations needed for Generic Discovery.Currently we support: * `content_search_spec`: configuration for generic content search.",
-  ).optional(),
+  }).describe("The GenericConfig of the serving configuration.").optional(),
   ignoreControlIds: z.array(z.string()).describe(
     "Condition ignore specifications. If multiple ignore conditions match, all matching ignore controls in the list will execute. Order does not matter. Maximum number of specifications is 100.",
   ).optional(),
@@ -604,9 +608,7 @@ const InputsSchema = z.object({
     demotionEventType: z.string().describe(
       "Specifies the event type used for demoting recommendation result. Currently supported values: * `view-item`: Item viewed. * `media-play`: Start/resume watching a video, playing a song, etc. * `media-complete`: Finished or stopped midway through a video, song, etc. If unset, watch history demotion will not be applied. Content freshness demotion will still be applied.",
     ).optional(),
-  }).describe(
-    "Specifies the configurations needed for Media Discovery. Currently we support: * `demote_content_watched`: Threshold for watched content demotion. Customers can specify if using watched content demotion or use viewed detail page. Using the content watched demotion, customers need to specify the watched minutes or percentage exceeds the threshold, the content will be demoted in the recommendation result. * `promote_fresh_content`: cutoff days for fresh content promotion. Customers can specify if using content freshness promotion. If the content was published within the cutoff days, the content will be promoted in the recommendation result. Can only be set if SolutionType is SOLUTION_TYPE_RECOMMENDATION.",
-  ).optional(),
+  }).describe("The MediaConfig of the serving configuration.").optional(),
   modelId: z.string().describe(
     "The id of the model to use at serving time. Currently only RecommendationModels are supported. Can be changed but only to a compatible model (e.g. others-you-may-like CTR to others-you-may-like CVR). Required when SolutionType is SOLUTION_TYPE_RECOMMENDATION.",
   ).optional(),
@@ -675,7 +677,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.ServingConfigs. Registered at `@swamp/gcp/discoveryengine/collections-engines-servingconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-servingconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -804,6 +806,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

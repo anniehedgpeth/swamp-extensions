@@ -166,43 +166,6 @@ const GlobalArgsSchema = z.object({
   channelPartnerId: z.string().describe(
     "Cloud Identity ID of the customer's channel partner. Populated only if a channel partner exists for this customer.",
   ).optional(),
-  cloudIdentityInfo: z.object({
-    adminConsoleUri: z.string().describe(
-      "Output only. URI of Customer's Admin console dashboard.",
-    ).optional(),
-    alternateEmail: z.string().describe("The alternate email.").optional(),
-    customerType: z.enum(["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"])
-      .describe(
-        "CustomerType indicates verification type needed for using services.",
-      ).optional(),
-    eduData: z.object({
-      instituteSize: z.enum([
-        "INSTITUTE_SIZE_UNSPECIFIED",
-        "SIZE_1_100",
-        "SIZE_101_500",
-        "SIZE_501_1000",
-        "SIZE_1001_2000",
-        "SIZE_2001_5000",
-        "SIZE_5001_10000",
-        "SIZE_10001_OR_MORE",
-      ]).describe("Size of the institute.").optional(),
-      instituteType: z.enum(["INSTITUTE_TYPE_UNSPECIFIED", "K12", "UNIVERSITY"])
-        .describe("Designated institute type of customer.").optional(),
-      website: z.string().describe(
-        "Web address for the edu customer's institution.",
-      ).optional(),
-    }).describe("Required Edu Attributes").optional(),
-    isDomainVerified: z.boolean().describe(
-      "Output only. Whether the domain is verified. This field is not returned for a Customer's cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK's Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.",
-    ).optional(),
-    languageCode: z.string().describe("Language code.").optional(),
-    phoneNumber: z.string().describe(
-      "Phone number associated with the Cloud Identity.",
-    ).optional(),
-    primaryDomain: z.string().describe("Output only. The primary domain name.")
-      .optional(),
-  }).describe("Cloud Identity information for the Cloud Channel Customer.")
-    .optional(),
   correlationId: z.string().describe(
     "Optional. External CRM ID for the customer. Populated only if a CRM ID exists for this customer.",
   ).optional(),
@@ -257,7 +220,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
     ).optional(),
   }).describe(
-    "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+    "Required. The organization address for the customer. To enforce US laws and embargoes, we require a region, postal code, and address lines. You must provide valid addresses for every customer. To set the customer's language, use the Customer-level language code.",
   ).optional(),
   primaryContactInfo: z.object({
     displayName: z.string().describe(
@@ -277,7 +240,7 @@ const GlobalArgsSchema = z.object({
     title: z.string().describe(
       "Optional. The customer account contact's job title.",
     ).optional(),
-  }).describe("Contact information for a customer account.").optional(),
+  }).describe("Primary contact info.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -346,43 +309,6 @@ const InputsSchema = z.object({
   channelPartnerId: z.string().describe(
     "Cloud Identity ID of the customer's channel partner. Populated only if a channel partner exists for this customer.",
   ).optional(),
-  cloudIdentityInfo: z.object({
-    adminConsoleUri: z.string().describe(
-      "Output only. URI of Customer's Admin console dashboard.",
-    ).optional(),
-    alternateEmail: z.string().describe("The alternate email.").optional(),
-    customerType: z.enum(["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"])
-      .describe(
-        "CustomerType indicates verification type needed for using services.",
-      ).optional(),
-    eduData: z.object({
-      instituteSize: z.enum([
-        "INSTITUTE_SIZE_UNSPECIFIED",
-        "SIZE_1_100",
-        "SIZE_101_500",
-        "SIZE_501_1000",
-        "SIZE_1001_2000",
-        "SIZE_2001_5000",
-        "SIZE_5001_10000",
-        "SIZE_10001_OR_MORE",
-      ]).describe("Size of the institute.").optional(),
-      instituteType: z.enum(["INSTITUTE_TYPE_UNSPECIFIED", "K12", "UNIVERSITY"])
-        .describe("Designated institute type of customer.").optional(),
-      website: z.string().describe(
-        "Web address for the edu customer's institution.",
-      ).optional(),
-    }).describe("Required Edu Attributes").optional(),
-    isDomainVerified: z.boolean().describe(
-      "Output only. Whether the domain is verified. This field is not returned for a Customer's cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK's Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.",
-    ).optional(),
-    languageCode: z.string().describe("Language code.").optional(),
-    phoneNumber: z.string().describe(
-      "Phone number associated with the Cloud Identity.",
-    ).optional(),
-    primaryDomain: z.string().describe("Output only. The primary domain name.")
-      .optional(),
-  }).describe("Cloud Identity information for the Cloud Channel Customer.")
-    .optional(),
   correlationId: z.string().describe(
     "Optional. External CRM ID for the customer. Populated only if a CRM ID exists for this customer.",
   ).optional(),
@@ -437,7 +363,7 @@ const InputsSchema = z.object({
       "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
     ).optional(),
   }).describe(
-    "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+    "Required. The organization address for the customer. To enforce US laws and embargoes, we require a region, postal code, and address lines. You must provide valid addresses for every customer. To set the customer's language, use the Customer-level language code.",
   ).optional(),
   primaryContactInfo: z.object({
     displayName: z.string().describe(
@@ -457,7 +383,7 @@ const InputsSchema = z.object({
     title: z.string().describe(
       "Optional. The customer account contact's job title.",
     ).optional(),
-  }).describe("Contact information for a customer account.").optional(),
+  }).describe("Primary contact info.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -486,7 +412,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Channel Accounts.Customers. Registered at `@swamp/gcp/cloudchannel/accounts-customers`. */
 export const model = {
   type: "@swamp/gcp/cloudchannel/accounts-customers",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -593,6 +519,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cloudIdentityInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { cloudIdentityInfo: _cloudIdentityInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -621,9 +555,6 @@ export const model = {
         }
         if (g["channelPartnerId"] !== undefined) {
           body["channelPartnerId"] = g["channelPartnerId"];
-        }
-        if (g["cloudIdentityInfo"] !== undefined) {
-          body["cloudIdentityInfo"] = g["cloudIdentityInfo"];
         }
         if (g["correlationId"] !== undefined) {
           body["correlationId"] = g["correlationId"];
@@ -657,14 +588,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -754,9 +678,6 @@ export const model = {
         }
         if (g["channelPartnerId"] !== undefined) {
           body["channelPartnerId"] = g["channelPartnerId"];
-        }
-        if (g["cloudIdentityInfo"] !== undefined) {
-          body["cloudIdentityInfo"] = g["cloudIdentityInfo"];
         }
         if (g["correlationId"] !== undefined) {
           body["correlationId"] = g["correlationId"];

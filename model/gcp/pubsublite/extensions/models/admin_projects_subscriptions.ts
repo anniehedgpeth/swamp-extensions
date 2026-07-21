@@ -161,7 +161,8 @@ const GlobalArgsSchema = z.object({
       "DELIVER_IMMEDIATELY",
       "DELIVER_AFTER_STORED",
     ]).describe("The DeliveryRequirement for this subscription.").optional(),
-  }).describe("The settings for a subscription's message delivery.").optional(),
+  }).describe("The settings for this subscription's message delivery.")
+    .optional(),
   exportConfig: z.object({
     currentState: z.enum([
       "STATE_UNSPECIFIED",
@@ -188,9 +189,11 @@ const GlobalArgsSchema = z.object({
       topic: z.string().describe(
         "The name of the Pub/Sub topic. Structured like: projects/{project_number}/topics/{topic_id}. The topic may be changed.",
       ).optional(),
-    }).describe("Configuration for exporting to a Pub/Sub topic.").optional(),
+    }).describe(
+      "Messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a Pub/Sub topic.",
+    ).optional(),
   }).describe(
-    "Configuration for a Pub/Sub Lite subscription that writes messages to a destination. User subscriber clients must not connect to this subscription.",
+    "If present, messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a destination.",
   ).optional(),
   name: z.string().describe(
     "The name of the subscription. Structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}",
@@ -238,7 +241,8 @@ const InputsSchema = z.object({
       "DELIVER_IMMEDIATELY",
       "DELIVER_AFTER_STORED",
     ]).describe("The DeliveryRequirement for this subscription.").optional(),
-  }).describe("The settings for a subscription's message delivery.").optional(),
+  }).describe("The settings for this subscription's message delivery.")
+    .optional(),
   exportConfig: z.object({
     currentState: z.enum([
       "STATE_UNSPECIFIED",
@@ -265,9 +269,11 @@ const InputsSchema = z.object({
       topic: z.string().describe(
         "The name of the Pub/Sub topic. Structured like: projects/{project_number}/topics/{topic_id}. The topic may be changed.",
       ).optional(),
-    }).describe("Configuration for exporting to a Pub/Sub topic.").optional(),
+    }).describe(
+      "Messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a Pub/Sub topic.",
+    ).optional(),
   }).describe(
-    "Configuration for a Pub/Sub Lite subscription that writes messages to a destination. User subscriber clients must not connect to this subscription.",
+    "If present, messages are automatically written from the Pub/Sub Lite topic associated with this subscription to a destination.",
   ).optional(),
   name: z.string().describe(
     "The name of the subscription. Structured like: projects/{project_number}/locations/{location}/subscriptions/{subscription_id}",
@@ -309,7 +315,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Lite Admin.Projects.Subscriptions. Registered at `@swamp/gcp/pubsublite/admin-projects-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/pubsublite/admin-projects-subscriptions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -408,6 +414,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

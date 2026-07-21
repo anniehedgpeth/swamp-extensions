@@ -164,12 +164,14 @@ const GlobalArgsSchema = z.object({
     srcRange: z.string().describe(
       'Optional. The source IP range of outgoing packets that this policy-based route applies to. Default is "0.0.0.0/0" if protocol version is IPv4 and "::/0" if protocol version is IPv6.',
     ).optional(),
-  }).describe("Filter matches L4 traffic.").optional(),
+  }).describe("Required. The filter to match L4 traffic.").optional(),
   interconnectAttachment: z.object({
     region: z.string().describe(
       "Optional. Cloud region to install this policy-based route on interconnect attachment. Use `all` to install it on all interconnect attachments.",
     ).optional(),
-  }).describe("InterconnectAttachment that this route applies to.").optional(),
+  }).describe(
+    "Optional. The interconnect attachments that this policy-based route applies to.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe("User-defined labels.")
     .optional(),
   name: z.string().describe(
@@ -192,7 +194,7 @@ const GlobalArgsSchema = z.object({
     tags: z.array(z.string()).describe(
       "Optional. A list of VM instance tags that this policy-based route applies to. VM instances that have ANY of tags specified here installs this PBR.",
     ).optional(),
-  }).describe("VM instances that this policy-based route applies to.")
+  }).describe("Optional. VM instances that this policy-based route applies to.")
     .optional(),
   policyBasedRouteId: z.string().describe(
     "Required. Unique id for the policy-based route to create. Provided by the client when the resource is created. The name must comply with https://google.aip.dev/122#resource-id-segments. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([a-z0-9-]*[a-z0-9])?. The first character must be a lowercase letter, and all following characters (except for the last character) must be a dash, lowercase letter, or digit. The last character must be a lowercase letter or digit.",
@@ -263,12 +265,14 @@ const InputsSchema = z.object({
     srcRange: z.string().describe(
       'Optional. The source IP range of outgoing packets that this policy-based route applies to. Default is "0.0.0.0/0" if protocol version is IPv4 and "::/0" if protocol version is IPv6.',
     ).optional(),
-  }).describe("Filter matches L4 traffic.").optional(),
+  }).describe("Required. The filter to match L4 traffic.").optional(),
   interconnectAttachment: z.object({
     region: z.string().describe(
       "Optional. Cloud region to install this policy-based route on interconnect attachment. Use `all` to install it on all interconnect attachments.",
     ).optional(),
-  }).describe("InterconnectAttachment that this route applies to.").optional(),
+  }).describe(
+    "Optional. The interconnect attachments that this policy-based route applies to.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe("User-defined labels.")
     .optional(),
   name: z.string().describe(
@@ -291,7 +295,7 @@ const InputsSchema = z.object({
     tags: z.array(z.string()).describe(
       "Optional. A list of VM instance tags that this policy-based route applies to. VM instances that have ANY of tags specified here installs this PBR.",
     ).optional(),
-  }).describe("VM instances that this policy-based route applies to.")
+  }).describe("Optional. VM instances that this policy-based route applies to.")
     .optional(),
   policyBasedRouteId: z.string().describe(
     "Required. Unique id for the policy-based route to create. Provided by the client when the resource is created. The name must comply with https://google.aip.dev/122#resource-id-segments. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([a-z0-9-]*[a-z0-9])?. The first character must be a lowercase letter, and all following characters (except for the last character) must be a dash, lowercase letter, or digit. The last character must be a lowercase letter or digit.",
@@ -330,7 +334,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity Global.PolicyBasedRoutes. Registered at `@swamp/gcp/networkconnectivity/global-policybasedroutes`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/global-policybasedroutes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -434,6 +438,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

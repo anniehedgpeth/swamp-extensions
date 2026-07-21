@@ -174,7 +174,9 @@ const GlobalArgsSchema = z.object({
       value: z.number().describe(
         "Specify a threshold value that can trigger the alert. 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
       ).optional(),
-    }).describe("The config for Featurestore Monitoring threshold.").optional(),
+    }).describe(
+      "Threshold for categorical features of anomaly detection. This is shared by all types of Featurestore Monitoring for categorical features (i.e. Features with type (Feature.ValueType) BOOL or STRING).",
+    ).optional(),
     importFeaturesAnalysis: z.object({
       anomalyDetectionBaseline: z.enum([
         "BASELINE_UNSPECIFIED",
@@ -189,13 +191,15 @@ const GlobalArgsSchema = z.object({
           "Whether to enable / disable / inherite default hebavior for import features analysis.",
         ).optional(),
     }).describe(
-      "Configuration of the Featurestore's ImportFeature Analysis Based Monitoring. This type of analysis generates statistics for values of each Feature imported by every ImportFeatureValues operation.",
+      "The config for ImportFeatures Analysis Based Feature Monitoring.",
     ).optional(),
     numericalThresholdConfig: z.object({
       value: z.number().describe(
         "Specify a threshold value that can trigger the alert. 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
       ).optional(),
-    }).describe("The config for Featurestore Monitoring threshold.").optional(),
+    }).describe(
+      "Threshold for numerical features of anomaly detection. This is shared by all objectives of Featurestore Monitoring for numerical features (i.e. Features with type (Feature.ValueType) DOUBLE or INT64).",
+    ).optional(),
     snapshotAnalysis: z.object({
       disabled: z.boolean().describe(
         "The monitoring schedule for snapshot analysis. For EntityType-level config: unset / disabled = true indicates disabled by default for Features under it; otherwise by default enable snapshot analysis monitoring with monitoring_interval for Features under it. Feature-level config: disabled = true indicates disabled regardless of the EntityType-level config; unset monitoring_interval indicates going with EntityType-level config; otherwise run snapshot analysis monitoring with monitoring_interval regardless of the EntityType-level config. Explicitly Disable the snapshot analysis based monitoring.",
@@ -206,11 +210,11 @@ const GlobalArgsSchema = z.object({
       stalenessDays: z.number().int().describe(
         "Customized export features time window for snapshot analysis. Unit is one day. Default value is 3 weeks. Minimum value is 1 day. Maximum value is 4000 days.",
       ).optional(),
-    }).describe(
-      "Configuration of the Featurestore's Snapshot Analysis Based Monitoring. This type of analysis generates statistics for each Feature based on a snapshot of the latest feature value of each entities every monitoring_interval.",
-    ).optional(),
-  }).describe("Configuration of how features in Featurestore are monitored.")
-    .optional(),
+    }).describe("The config for Snapshot Analysis Based Feature Monitoring.")
+      .optional(),
+  }).describe(
+    "Optional. The default monitoring configuration for all Features with value type (Feature.ValueType) BOOL, STRING, DOUBLE or INT64 under this EntityType. If this is populated with [FeaturestoreMonitoringConfig.monitoring_interval] specified, snapshot analysis monitoring is enabled. Otherwise, snapshot analysis monitoring is disabled.",
+  ).optional(),
   name: z.string().describe(
     "Immutable. Name of the EntityType. Format: `projects/{project}/locations/{location}/featurestores/{featurestore}/entityTypes/{entity_type}` The last part entity_type is assigned by the client. The entity_type can be up to 64 characters long and can consist only of ASCII Latin letters A-Z and a-z and underscore(_), and ASCII digits 0-9 starting with a letter. The value will be unique given a featurestore.",
   ).optional(),
@@ -274,7 +278,9 @@ const InputsSchema = z.object({
       value: z.number().describe(
         "Specify a threshold value that can trigger the alert. 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
       ).optional(),
-    }).describe("The config for Featurestore Monitoring threshold.").optional(),
+    }).describe(
+      "Threshold for categorical features of anomaly detection. This is shared by all types of Featurestore Monitoring for categorical features (i.e. Features with type (Feature.ValueType) BOOL or STRING).",
+    ).optional(),
     importFeaturesAnalysis: z.object({
       anomalyDetectionBaseline: z.enum([
         "BASELINE_UNSPECIFIED",
@@ -289,13 +295,15 @@ const InputsSchema = z.object({
           "Whether to enable / disable / inherite default hebavior for import features analysis.",
         ).optional(),
     }).describe(
-      "Configuration of the Featurestore's ImportFeature Analysis Based Monitoring. This type of analysis generates statistics for values of each Feature imported by every ImportFeatureValues operation.",
+      "The config for ImportFeatures Analysis Based Feature Monitoring.",
     ).optional(),
     numericalThresholdConfig: z.object({
       value: z.number().describe(
         "Specify a threshold value that can trigger the alert. 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
       ).optional(),
-    }).describe("The config for Featurestore Monitoring threshold.").optional(),
+    }).describe(
+      "Threshold for numerical features of anomaly detection. This is shared by all objectives of Featurestore Monitoring for numerical features (i.e. Features with type (Feature.ValueType) DOUBLE or INT64).",
+    ).optional(),
     snapshotAnalysis: z.object({
       disabled: z.boolean().describe(
         "The monitoring schedule for snapshot analysis. For EntityType-level config: unset / disabled = true indicates disabled by default for Features under it; otherwise by default enable snapshot analysis monitoring with monitoring_interval for Features under it. Feature-level config: disabled = true indicates disabled regardless of the EntityType-level config; unset monitoring_interval indicates going with EntityType-level config; otherwise run snapshot analysis monitoring with monitoring_interval regardless of the EntityType-level config. Explicitly Disable the snapshot analysis based monitoring.",
@@ -306,11 +314,11 @@ const InputsSchema = z.object({
       stalenessDays: z.number().int().describe(
         "Customized export features time window for snapshot analysis. Unit is one day. Default value is 3 weeks. Minimum value is 1 day. Maximum value is 4000 days.",
       ).optional(),
-    }).describe(
-      "Configuration of the Featurestore's Snapshot Analysis Based Monitoring. This type of analysis generates statistics for each Feature based on a snapshot of the latest feature value of each entities every monitoring_interval.",
-    ).optional(),
-  }).describe("Configuration of how features in Featurestore are monitored.")
-    .optional(),
+    }).describe("The config for Snapshot Analysis Based Feature Monitoring.")
+      .optional(),
+  }).describe(
+    "Optional. The default monitoring configuration for all Features with value type (Feature.ValueType) BOOL, STRING, DOUBLE or INT64 under this EntityType. If this is populated with [FeaturestoreMonitoringConfig.monitoring_interval] specified, snapshot analysis monitoring is enabled. Otherwise, snapshot analysis monitoring is disabled.",
+  ).optional(),
   name: z.string().describe(
     "Immutable. Name of the EntityType. Format: `projects/{project}/locations/{location}/featurestores/{featurestore}/entityTypes/{entity_type}` The last part entity_type is assigned by the client. The entity_type can be up to 64 characters long and can consist only of ASCII Latin letters A-Z and a-z and underscore(_), and ASCII digits 0-9 starting with a letter. The value will be unique given a featurestore.",
   ).optional(),
@@ -351,7 +359,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Featurestores.EntityTypes. Registered at `@swamp/gcp/aiplatform/featurestores-entitytypes`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/featurestores-entitytypes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -480,6 +488,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -220,7 +220,7 @@ const GlobalArgsSchema = z.object({
       "Grade categories that are available for coursework in the course.",
     ).optional(),
   }).describe(
-    "The gradebook settings for a course. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.",
+    "The gradebook settings that specify how a student's overall grade for the course will be calculated and who it will be displayed to. Read-only.",
   ).optional(),
   guardiansEnabled: z.boolean().describe(
     "Whether or not guardian notifications are enabled for this course. Read-only.",
@@ -252,7 +252,9 @@ const GlobalArgsSchema = z.object({
     id: z.string().describe("Drive API resource ID.").optional(),
     title: z.string().describe("Title of the Drive folder. Read-only.")
       .optional(),
-  }).describe("Representation of a Google Drive folder.").optional(),
+  }).describe(
+    "Information about a Drive Folder that is shared with all teachers of the course. This field will only be set for teachers of the course and domain administrators. Read-only.",
+  ).optional(),
   teacherGroupEmail: z.string().describe(
     "The email address of a Google group containing all teachers of the course. This group does not accept email and can only be used for permissions. Read-only.",
   ).optional(),
@@ -388,7 +390,7 @@ const InputsSchema = z.object({
       "Grade categories that are available for coursework in the course.",
     ).optional(),
   }).describe(
-    "The gradebook settings for a course. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.",
+    "The gradebook settings that specify how a student's overall grade for the course will be calculated and who it will be displayed to. Read-only.",
   ).optional(),
   guardiansEnabled: z.boolean().describe(
     "Whether or not guardian notifications are enabled for this course. Read-only.",
@@ -420,7 +422,9 @@ const InputsSchema = z.object({
     id: z.string().describe("Drive API resource ID.").optional(),
     title: z.string().describe("Title of the Drive folder. Read-only.")
       .optional(),
-  }).describe("Representation of a Google Drive folder.").optional(),
+  }).describe(
+    "Information about a Drive Folder that is shared with all teachers of the course. This field will only be set for teachers of the course and domain administrators. Read-only.",
+  ).optional(),
   teacherGroupEmail: z.string().describe(
     "The email address of a Google group containing all teachers of the course. This group does not accept email and can only be used for permissions. Read-only.",
   ).optional(),
@@ -452,7 +456,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses. Registered at `@swamp/gcp/classroom/courses`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -594,6 +598,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: levels",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

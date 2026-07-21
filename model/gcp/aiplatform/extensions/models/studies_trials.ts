@@ -133,25 +133,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  finalMeasurement: z.object({
-    elapsedDuration: z.string().describe(
-      "Output only. Time that the Trial has been running at the point of this Measurement.",
-    ).optional(),
-    metrics: z.array(z.object({
-      metricId: z.string().describe(
-        "Output only. The ID of the Metric. The Metric should be defined in StudySpec's Metrics.",
-      ).optional(),
-      value: z.number().describe("Output only. The value for this metric.")
-        .optional(),
-    })).describe(
-      "Output only. A list of metrics got by evaluating the objective functions using suggested Parameter values.",
-    ).optional(),
-    stepCount: z.string().describe(
-      "Output only. The number of steps the machine learning model has been trained for. Must be non-negative.",
-    ).optional(),
-  }).describe(
-    "A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.",
-  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -200,25 +181,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  finalMeasurement: z.object({
-    elapsedDuration: z.string().describe(
-      "Output only. Time that the Trial has been running at the point of this Measurement.",
-    ).optional(),
-    metrics: z.array(z.object({
-      metricId: z.string().describe(
-        "Output only. The ID of the Metric. The Metric should be defined in StudySpec's Metrics.",
-      ).optional(),
-      value: z.number().describe("Output only. The value for this metric.")
-        .optional(),
-    })).describe(
-      "Output only. A list of metrics got by evaluating the objective functions using suggested Parameter values.",
-    ).optional(),
-    stepCount: z.string().describe(
-      "Output only. The number of steps the machine learning model has been trained for. Must be non-negative.",
-    ).optional(),
-  }).describe(
-    "A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.",
-  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -250,7 +212,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Studies.Trials. Registered at `@swamp/gcp/aiplatform/studies-trials`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/studies-trials",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -377,6 +339,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: finalMeasurement",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { finalMeasurement: _finalMeasurement, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -404,9 +374,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["finalMeasurement"] !== undefined) {
-          body["finalMeasurement"] = g["finalMeasurement"];
-        }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -426,14 +393,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

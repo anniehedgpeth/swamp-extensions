@@ -198,19 +198,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   })).describe("Optional. Directories to persist across workstation sessions.")
     .optional(),
-  runtimeHost: z.object({
-    gceInstanceHost: z.object({
-      id: z.string().describe(
-        "Optional. Output only. The ID of the Compute Engine instance.",
-      ).optional(),
-      name: z.string().describe(
-        "Optional. Output only. The name of the Compute Engine instance.",
-      ).optional(),
-      zone: z.string().describe(
-        "Optional. Output only. The zone of the Compute Engine instance.",
-      ).optional(),
-    }).describe("The Compute Engine instance host.").optional(),
-  }).describe("Runtime host for the workstation.").optional(),
   sourceWorkstation: z.string().describe(
     "Optional. The source workstation from which this workstation's persistent directories were cloned on creation.",
   ).optional(),
@@ -284,19 +271,6 @@ const InputsSchema = z.object({
     ).optional(),
   })).describe("Optional. Directories to persist across workstation sessions.")
     .optional(),
-  runtimeHost: z.object({
-    gceInstanceHost: z.object({
-      id: z.string().describe(
-        "Optional. Output only. The ID of the Compute Engine instance.",
-      ).optional(),
-      name: z.string().describe(
-        "Optional. Output only. The name of the Compute Engine instance.",
-      ).optional(),
-      zone: z.string().describe(
-        "Optional. Output only. The zone of the Compute Engine instance.",
-      ).optional(),
-    }).describe("The Compute Engine instance host.").optional(),
-  }).describe("Runtime host for the workstation.").optional(),
   sourceWorkstation: z.string().describe(
     "Optional. The source workstation from which this workstation's persistent directories were cloned on creation.",
   ).optional(),
@@ -334,7 +308,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/workstations/workstationclusters-workstationconfigs-workstations",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -454,6 +428,14 @@ export const model = {
       description: "Added: persistentDirectories",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: runtimeHost",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { runtimeHost: _runtimeHost, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -488,9 +470,6 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["persistentDirectories"] !== undefined) {
           body["persistentDirectories"] = g["persistentDirectories"];
-        }
-        if (g["runtimeHost"] !== undefined) {
-          body["runtimeHost"] = g["runtimeHost"];
         }
         if (g["sourceWorkstation"] !== undefined) {
           body["sourceWorkstation"] = g["sourceWorkstation"];
@@ -612,9 +591,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["persistentDirectories"] !== undefined) {
           body["persistentDirectories"] = g["persistentDirectories"];
-        }
-        if (g["runtimeHost"] !== undefined) {
-          body["runtimeHost"] = g["runtimeHost"];
         }
         if (g["sourceWorkstation"] !== undefined) {
           body["sourceWorkstation"] = g["sourceWorkstation"];

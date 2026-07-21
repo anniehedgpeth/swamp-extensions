@@ -226,7 +226,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   archived: z.boolean().describe(
     "Whether this ad is archived. When true, active must be false.",
   ).optional(),
@@ -254,7 +256,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   clickThroughUrl: z.object({
     computedClickThroughUrl: z.string().describe(
       "Read-only convenience field representing the actual URL that will be used for this click-through. The URL is computed as follows: - If defaultLandingPage is enabled then the campaign's default landing page URL is assigned to this field. - If defaultLandingPage is not enabled and a landingPageId is specified then that landing page's URL is assigned to this field. - If neither of the above cases apply, then the customClickThroughUrl is assigned to this field.",
@@ -268,7 +272,9 @@ const GlobalArgsSchema = z.object({
     landingPageId: z.string().describe(
       "ID of the landing page for the click-through URL. Applicable if the defaultLandingPage field is set to false.",
     ).optional(),
-  }).describe("Click-through URL").optional(),
+  }).describe(
+    "Click-through URL for this ad. This is a required field on insertion. Applicable when type is AD_SERVING_CLICK_TRACKER.",
+  ).optional(),
   clickThroughUrlSuffixProperties: z.object({
     clickThroughUrlSuffix: z.string().describe(
       "Click-through URL suffix to apply to all ads in this entity's scope. Must be less than 128 characters long.",
@@ -276,7 +282,9 @@ const GlobalArgsSchema = z.object({
     overrideInheritedSuffix: z.boolean().describe(
       "Whether this entity should override the inherited click-through URL suffix with its own defined value.",
     ).optional(),
-  }).describe("Click Through URL Suffix settings.").optional(),
+  }).describe(
+    "Click-through URL suffix properties for this ad. Applies to the URL in the ad or (if overriding ad properties) the URL in the creative.",
+  ).optional(),
   comments: z.string().describe("Comments for this ad.").optional(),
   compatibility: z.enum([
     "DISPLAY",
@@ -293,12 +301,15 @@ const GlobalArgsSchema = z.object({
       keyword: z.string().describe("The keyword that can be targeted by ads.")
         .optional(),
     })).describe("Contextual keywords that this ad targets").optional(),
-  }).describe("Contextual Keyword Targeting.").optional(),
+  }).describe("Optional. Contextual keyword targeting information for this ad.")
+    .optional(),
   createInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this ad. This is a read-only field.",
+  ).optional(),
   creativeGroupAssignments: z.array(z.object({
     creativeGroupId: z.string().describe(
       "ID of the creative group to be assigned.",
@@ -330,9 +341,11 @@ const GlobalArgsSchema = z.object({
         landingPageId: z.string().describe(
           "ID of the landing page for the click-through URL. Applicable if the defaultLandingPage field is set to false.",
         ).optional(),
-      }).describe("Click-through URL").optional(),
+      }).describe("Click-through URL of the creative assignment.").optional(),
       companionCreativeOverrides: z.array(z.object({
-        clickThroughUrl: z.unknown().describe("Click-through URL").optional(),
+        clickThroughUrl: z.unknown().describe(
+          "Click-through URL of this companion click-through override.",
+        ).optional(),
         creativeId: z.unknown().describe(
           "ID of the creative for this companion click-through override.",
         ).optional(),
@@ -373,10 +386,14 @@ const GlobalArgsSchema = z.object({
           "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
         ).optional(),
         value: z.string().describe("The value of the dimension.").optional(),
-      }).describe("Represents a DimensionValue resource.").optional(),
+      }).describe(
+        "Dimension value for the ID of the creative. This is a read-only, auto-generated field.",
+      ).optional(),
       endTime: z.string().optional(),
       richMediaExitOverrides: z.array(z.object({
-        clickThroughUrl: z.unknown().describe("Click-through URL").optional(),
+        clickThroughUrl: z.unknown().describe(
+          "Click-through URL of this rich media exit override. Applicable if the enabled field is set to true.",
+        ).optional(),
         enabled: z.unknown().describe(
           "Whether to use the clickThroughUrl. If false, the creative-level exit will be used.",
         ).optional(),
@@ -414,7 +431,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Strategy for calculating weights. Used with CREATIVE_ROTATION_TYPE_RANDOM.",
     ).optional(),
-  }).describe("Creative Rotation.").optional(),
+  }).describe(
+    "Creative rotation for this ad. Applicable when type is AD_SERVING_DEFAULT_AD, AD_SERVING_STANDARD_AD, or AD_SERVING_TRACKING. When type is AD_SERVING_DEFAULT_AD, this field should have exactly one creativeAssignment.",
+  ).optional(),
   dayPartTargeting: z.object({
     daysOfWeek: z.array(
       z.enum([
@@ -435,7 +454,9 @@ const GlobalArgsSchema = z.object({
     userLocalTime: z.boolean().describe(
       "Whether or not to use the user's local time. If false, the America/New York time zone applies.",
     ).optional(),
-  }).describe("Day Part Targeting.").optional(),
+  }).describe(
+    "Time and day targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   defaultClickThroughEventTagProperties: z.object({
     defaultClickThroughEventTagId: z.string().describe(
       "ID of the click-through event tag to apply to all ads in this entity's scope.",
@@ -443,9 +464,8 @@ const GlobalArgsSchema = z.object({
     overrideInheritedEventTag: z.boolean().describe(
       "Whether this entity should override the inherited default click-through event tag with its own defined value.",
     ).optional(),
-  }).describe(
-    "Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign's setting further.",
-  ).optional(),
+  }).describe("Default click-through event tag properties for this ad.")
+    .optional(),
   deliverySchedule: z.object({
     frequencyCap: z.object({
       duration: z.string().describe(
@@ -454,7 +474,9 @@ const GlobalArgsSchema = z.object({
       impressions: z.string().describe(
         "Number of times an individual user can be served the ad within the specified duration. Acceptable values are 1 to 15, inclusive.",
       ).optional(),
-    }).describe("Frequency Cap.").optional(),
+    }).describe(
+      "Limit on the number of times an individual user can be served the ad within a specified period of time.",
+    ).optional(),
     hardCutoff: z.boolean().describe(
       "Whether or not hard cutoff is enabled. If true, the ad will not serve after the end date and time. Otherwise the ad will continue to be served until it has reached its delivery goals.",
     ).optional(),
@@ -481,7 +503,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Serving priority of an ad, with respect to other ads. The lower the priority number, the greater the priority with which it is served.",
     ).optional(),
-  }).describe("Delivery Schedule.").optional(),
+  }).describe(
+    "Delivery schedule information for this ad. Applicable when type is AD_SERVING_STANDARD_AD or AD_SERVING_TRACKING. This field along with subfields priority and impressionRatio are required on insertion when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   dynamicClickTracker: z.boolean().describe(
     "Whether this ad is a dynamic click tracker. Applicable when type is AD_SERVING_CLICK_TRACKER. This is a required field on insert, and is read-only after insert.",
   ).optional(),
@@ -611,7 +635,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Regions to be targeted. For each region only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a region, do not target or exclude the country of the region.",
     ).optional(),
-  }).describe("Geographical Targeting.").optional(),
+  }).describe(
+    "Geographical targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   id: z.string().describe(
     "ID of this ad. This is a read-only, auto-generated field.",
   ).optional(),
@@ -633,12 +659,16 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this ad. This is a read-only, auto-generated field.",
+  ).optional(),
   keyValueTargetingExpression: z.object({
     expression: z.string().describe(
       "Keyword expression being targeted by the ad.",
     ).optional(),
-  }).describe("Key Value Targeting Expression.").optional(),
+  }).describe(
+    "Key-value targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   languageTargeting: z.object({
     languages: z.array(z.object({
       id: z.string().describe(
@@ -654,12 +684,16 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Languages that this ad targets. For each language only languageId is required. The other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Language Targeting.").optional(),
+  }).describe(
+    "Language targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this ad. This is a read-only field.",
+  ).optional(),
   name: z.string().describe(
     "Name of this ad. This is a required field and must be less than 256 characters long.",
   ).optional(),
@@ -690,7 +724,9 @@ const GlobalArgsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "Dimension value for the ID of the placement. This is a read-only, auto-generated field.",
+    ).optional(),
     sslRequired: z.boolean().describe(
       "Whether the placement to be assigned requires SSL. This is a read-only field that is auto-generated when the ad is inserted or updated.",
     ).optional(),
@@ -699,7 +735,9 @@ const GlobalArgsSchema = z.object({
     expression: z.string().describe(
       "Expression describing which lists are being targeted by the ad.",
     ).optional(),
-  }).describe("Remarketing List Targeting Expression.").optional(),
+  }).describe(
+    "Remarketing list targeting expression for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   size: z.object({
     height: z.number().int().describe(
       "Height of this size. Acceptable values are 0 to 32767, inclusive.",
@@ -716,9 +754,8 @@ const GlobalArgsSchema = z.object({
     width: z.number().int().describe(
       "Width of this size. Acceptable values are 0 to 32767, inclusive.",
     ).optional(),
-  }).describe(
-    "Represents the dimensions of ads, placements, creatives, or creative assets.",
-  ).optional(),
+  }).describe("Size of this ad. Applicable when type is AD_SERVING_DEFAULT_AD.")
+    .optional(),
   sslCompliant: z.boolean().describe(
     "Whether this ad is ssl compliant. This is a read-only field that is auto-generated when the ad is inserted or updated.",
   ).optional(),
@@ -805,9 +842,8 @@ const GlobalArgsSchema = z.object({
           "Whether this operating system is for mobile.",
         ).optional(),
         name: z.string().describe("Name of this operating system.").optional(),
-      }).describe(
-        "Contains information about an operating system that can be targeted by ads.",
-      ).optional(),
+      }).describe("Operating system of this operating system version.")
+        .optional(),
     })).describe(
       "Operating system versions that this ad targets. To target all versions, use operatingSystems. For each operating system version, only id is required. The other fields are populated automatically when the ad is inserted or updated. If targeting an operating system version, do not set targeting for the corresponding operating system in operatingSystems.",
     ).optional(),
@@ -837,7 +873,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Platform types that this ad targets. For example, desktop, mobile, or tablet. For each platform type, only id is required, and the other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Technology Targeting.").optional(),
+  }).describe(
+    "Technology platform targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   type: z.enum([
     "AD_SERVING_STANDARD_AD",
     "AD_SERVING_DEFAULT_AD",
@@ -1149,7 +1187,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   archived: z.boolean().describe(
     "Whether this ad is archived. When true, active must be false.",
   ).optional(),
@@ -1177,7 +1217,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   clickThroughUrl: z.object({
     computedClickThroughUrl: z.string().describe(
       "Read-only convenience field representing the actual URL that will be used for this click-through. The URL is computed as follows: - If defaultLandingPage is enabled then the campaign's default landing page URL is assigned to this field. - If defaultLandingPage is not enabled and a landingPageId is specified then that landing page's URL is assigned to this field. - If neither of the above cases apply, then the customClickThroughUrl is assigned to this field.",
@@ -1191,7 +1233,9 @@ const InputsSchema = z.object({
     landingPageId: z.string().describe(
       "ID of the landing page for the click-through URL. Applicable if the defaultLandingPage field is set to false.",
     ).optional(),
-  }).describe("Click-through URL").optional(),
+  }).describe(
+    "Click-through URL for this ad. This is a required field on insertion. Applicable when type is AD_SERVING_CLICK_TRACKER.",
+  ).optional(),
   clickThroughUrlSuffixProperties: z.object({
     clickThroughUrlSuffix: z.string().describe(
       "Click-through URL suffix to apply to all ads in this entity's scope. Must be less than 128 characters long.",
@@ -1199,7 +1243,9 @@ const InputsSchema = z.object({
     overrideInheritedSuffix: z.boolean().describe(
       "Whether this entity should override the inherited click-through URL suffix with its own defined value.",
     ).optional(),
-  }).describe("Click Through URL Suffix settings.").optional(),
+  }).describe(
+    "Click-through URL suffix properties for this ad. Applies to the URL in the ad or (if overriding ad properties) the URL in the creative.",
+  ).optional(),
   comments: z.string().describe("Comments for this ad.").optional(),
   compatibility: z.enum([
     "DISPLAY",
@@ -1216,12 +1262,15 @@ const InputsSchema = z.object({
       keyword: z.string().describe("The keyword that can be targeted by ads.")
         .optional(),
     })).describe("Contextual keywords that this ad targets").optional(),
-  }).describe("Contextual Keyword Targeting.").optional(),
+  }).describe("Optional. Contextual keyword targeting information for this ad.")
+    .optional(),
   createInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this ad. This is a read-only field.",
+  ).optional(),
   creativeGroupAssignments: z.array(z.object({
     creativeGroupId: z.string().describe(
       "ID of the creative group to be assigned.",
@@ -1253,9 +1302,11 @@ const InputsSchema = z.object({
         landingPageId: z.string().describe(
           "ID of the landing page for the click-through URL. Applicable if the defaultLandingPage field is set to false.",
         ).optional(),
-      }).describe("Click-through URL").optional(),
+      }).describe("Click-through URL of the creative assignment.").optional(),
       companionCreativeOverrides: z.array(z.object({
-        clickThroughUrl: z.unknown().describe("Click-through URL").optional(),
+        clickThroughUrl: z.unknown().describe(
+          "Click-through URL of this companion click-through override.",
+        ).optional(),
         creativeId: z.unknown().describe(
           "ID of the creative for this companion click-through override.",
         ).optional(),
@@ -1296,10 +1347,14 @@ const InputsSchema = z.object({
           "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
         ).optional(),
         value: z.string().describe("The value of the dimension.").optional(),
-      }).describe("Represents a DimensionValue resource.").optional(),
+      }).describe(
+        "Dimension value for the ID of the creative. This is a read-only, auto-generated field.",
+      ).optional(),
       endTime: z.string().optional(),
       richMediaExitOverrides: z.array(z.object({
-        clickThroughUrl: z.unknown().describe("Click-through URL").optional(),
+        clickThroughUrl: z.unknown().describe(
+          "Click-through URL of this rich media exit override. Applicable if the enabled field is set to true.",
+        ).optional(),
         enabled: z.unknown().describe(
           "Whether to use the clickThroughUrl. If false, the creative-level exit will be used.",
         ).optional(),
@@ -1337,7 +1392,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Strategy for calculating weights. Used with CREATIVE_ROTATION_TYPE_RANDOM.",
     ).optional(),
-  }).describe("Creative Rotation.").optional(),
+  }).describe(
+    "Creative rotation for this ad. Applicable when type is AD_SERVING_DEFAULT_AD, AD_SERVING_STANDARD_AD, or AD_SERVING_TRACKING. When type is AD_SERVING_DEFAULT_AD, this field should have exactly one creativeAssignment.",
+  ).optional(),
   dayPartTargeting: z.object({
     daysOfWeek: z.array(
       z.enum([
@@ -1358,7 +1415,9 @@ const InputsSchema = z.object({
     userLocalTime: z.boolean().describe(
       "Whether or not to use the user's local time. If false, the America/New York time zone applies.",
     ).optional(),
-  }).describe("Day Part Targeting.").optional(),
+  }).describe(
+    "Time and day targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   defaultClickThroughEventTagProperties: z.object({
     defaultClickThroughEventTagId: z.string().describe(
       "ID of the click-through event tag to apply to all ads in this entity's scope.",
@@ -1366,9 +1425,8 @@ const InputsSchema = z.object({
     overrideInheritedEventTag: z.boolean().describe(
       "Whether this entity should override the inherited default click-through event tag with its own defined value.",
     ).optional(),
-  }).describe(
-    "Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign's setting further.",
-  ).optional(),
+  }).describe("Default click-through event tag properties for this ad.")
+    .optional(),
   deliverySchedule: z.object({
     frequencyCap: z.object({
       duration: z.string().describe(
@@ -1377,7 +1435,9 @@ const InputsSchema = z.object({
       impressions: z.string().describe(
         "Number of times an individual user can be served the ad within the specified duration. Acceptable values are 1 to 15, inclusive.",
       ).optional(),
-    }).describe("Frequency Cap.").optional(),
+    }).describe(
+      "Limit on the number of times an individual user can be served the ad within a specified period of time.",
+    ).optional(),
     hardCutoff: z.boolean().describe(
       "Whether or not hard cutoff is enabled. If true, the ad will not serve after the end date and time. Otherwise the ad will continue to be served until it has reached its delivery goals.",
     ).optional(),
@@ -1404,7 +1464,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Serving priority of an ad, with respect to other ads. The lower the priority number, the greater the priority with which it is served.",
     ).optional(),
-  }).describe("Delivery Schedule.").optional(),
+  }).describe(
+    "Delivery schedule information for this ad. Applicable when type is AD_SERVING_STANDARD_AD or AD_SERVING_TRACKING. This field along with subfields priority and impressionRatio are required on insertion when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   dynamicClickTracker: z.boolean().describe(
     "Whether this ad is a dynamic click tracker. Applicable when type is AD_SERVING_CLICK_TRACKER. This is a required field on insert, and is read-only after insert.",
   ).optional(),
@@ -1534,7 +1596,9 @@ const InputsSchema = z.object({
     })).describe(
       "Regions to be targeted. For each region only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a region, do not target or exclude the country of the region.",
     ).optional(),
-  }).describe("Geographical Targeting.").optional(),
+  }).describe(
+    "Geographical targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   id: z.string().describe(
     "ID of this ad. This is a read-only, auto-generated field.",
   ).optional(),
@@ -1556,12 +1620,16 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this ad. This is a read-only, auto-generated field.",
+  ).optional(),
   keyValueTargetingExpression: z.object({
     expression: z.string().describe(
       "Keyword expression being targeted by the ad.",
     ).optional(),
-  }).describe("Key Value Targeting Expression.").optional(),
+  }).describe(
+    "Key-value targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   languageTargeting: z.object({
     languages: z.array(z.object({
       id: z.string().describe(
@@ -1577,12 +1645,16 @@ const InputsSchema = z.object({
     })).describe(
       "Languages that this ad targets. For each language only languageId is required. The other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Language Targeting.").optional(),
+  }).describe(
+    "Language targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this ad. This is a read-only field.",
+  ).optional(),
   name: z.string().describe(
     "Name of this ad. This is a required field and must be less than 256 characters long.",
   ).optional(),
@@ -1613,7 +1685,9 @@ const InputsSchema = z.object({
         "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
       ).optional(),
       value: z.string().describe("The value of the dimension.").optional(),
-    }).describe("Represents a DimensionValue resource.").optional(),
+    }).describe(
+      "Dimension value for the ID of the placement. This is a read-only, auto-generated field.",
+    ).optional(),
     sslRequired: z.boolean().describe(
       "Whether the placement to be assigned requires SSL. This is a read-only field that is auto-generated when the ad is inserted or updated.",
     ).optional(),
@@ -1622,7 +1696,9 @@ const InputsSchema = z.object({
     expression: z.string().describe(
       "Expression describing which lists are being targeted by the ad.",
     ).optional(),
-  }).describe("Remarketing List Targeting Expression.").optional(),
+  }).describe(
+    "Remarketing list targeting expression for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   size: z.object({
     height: z.number().int().describe(
       "Height of this size. Acceptable values are 0 to 32767, inclusive.",
@@ -1639,9 +1715,8 @@ const InputsSchema = z.object({
     width: z.number().int().describe(
       "Width of this size. Acceptable values are 0 to 32767, inclusive.",
     ).optional(),
-  }).describe(
-    "Represents the dimensions of ads, placements, creatives, or creative assets.",
-  ).optional(),
+  }).describe("Size of this ad. Applicable when type is AD_SERVING_DEFAULT_AD.")
+    .optional(),
   sslCompliant: z.boolean().describe(
     "Whether this ad is ssl compliant. This is a read-only field that is auto-generated when the ad is inserted or updated.",
   ).optional(),
@@ -1728,9 +1803,8 @@ const InputsSchema = z.object({
           "Whether this operating system is for mobile.",
         ).optional(),
         name: z.string().describe("Name of this operating system.").optional(),
-      }).describe(
-        "Contains information about an operating system that can be targeted by ads.",
-      ).optional(),
+      }).describe("Operating system of this operating system version.")
+        .optional(),
     })).describe(
       "Operating system versions that this ad targets. To target all versions, use operatingSystems. For each operating system version, only id is required. The other fields are populated automatically when the ad is inserted or updated. If targeting an operating system version, do not set targeting for the corresponding operating system in operatingSystems.",
     ).optional(),
@@ -1760,7 +1834,9 @@ const InputsSchema = z.object({
     })).describe(
       "Platform types that this ad targets. For example, desktop, mobile, or tablet. For each platform type, only id is required, and the other fields are populated automatically when the ad is inserted or updated.",
     ).optional(),
-  }).describe("Technology Targeting.").optional(),
+  }).describe(
+    "Technology platform targeting information for this ad. This field must be left blank if the ad is using a targeting template. Applicable when type is AD_SERVING_STANDARD_AD.",
+  ).optional(),
   type: z.enum([
     "AD_SERVING_STANDARD_AD",
     "AD_SERVING_DEFAULT_AD",
@@ -1798,7 +1874,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Ads. Registered at `@swamp/gcp/dfareporting/ads`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/ads",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1892,6 +1968,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

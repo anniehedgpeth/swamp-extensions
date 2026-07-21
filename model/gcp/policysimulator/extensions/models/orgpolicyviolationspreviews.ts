@@ -149,9 +149,7 @@ const GlobalArgsSchema = z.object({
         updateTime: z.string().describe(
           "Output only. The last time this custom constraint was updated. This represents the last time that the `CreateCustomConstraint` or `UpdateCustomConstraint` methods were called.",
         ).optional(),
-      }).describe(
-        "A custom constraint defined by customers which can *only* be applied to the given resource types and organization. By creating a custom constraint, customers can apply policies of this custom constraint. *Creating a custom constraint itself does NOT apply any policy enforcement*.",
-      ).optional(),
+      }).describe("Optional. The new or updated custom constraint.").optional(),
       customConstraintParent: z.string().describe(
         'Optional. Resource the constraint is attached to. Example: "organization/987654"',
       ).optional(),
@@ -165,11 +163,9 @@ const GlobalArgsSchema = z.object({
             "Reference to the launch that will be used while audit logging and to control the launch. Set only in the alternate policy.",
           ).optional(),
           spec: z.unknown().describe(
-            "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
+            "Specify constraint for configurations of Google Cloud resources.",
           ).optional(),
-        }).describe(
-          "Similar to PolicySpec but with an extra 'launch' field for launch reference. The PolicySpec here is specific for dry-run.",
-        ).optional(),
+        }).describe("Deprecated.").optional(),
         dryRunSpec: z.object({
           etag: z.unknown().describe(
             "An opaque tag indicating the current version of the policySpec, used for concurrency control. This field is ignored if used in a `CreatePolicy` request. When the policy is returned from either a `GetPolicy` or a `ListPolicies` request, this entity tag (ETag) indicates the version of the current policySpec to use when executing a read-modify-write loop. When the policy is returned from a `GetEffectivePolicy` request, the ETag will be unset.",
@@ -187,13 +183,13 @@ const GlobalArgsSchema = z.object({
             "Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that policy.",
           ).optional(),
         }).describe(
-          "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
+          "Dry-run policy. Audit-only policy, can be used to monitor how the policy would have impacted the existing and future resources if it's enforced.",
         ).optional(),
         etag: z.string().describe(
           "Optional. An opaque tag indicating the current state of the policy, used for concurrency control. This entity tag (ETag) is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.",
         ).optional(),
         name: z.string().describe(
-          "Immutable. The resource name of the policy. Must be one of the following forms, where `constraint_name` is the name of the constraint that this policy configures: * `projects/{project_number}/policies/{constraint_name}` * `folders/{folder_id}/policies/{constraint_name}` * `organizations/{organization_id}/policies/{constraint_name}` For example, `projects/123/policies/compute.disableSerialPortAccess`. Note: `projects/{project_id}/policies/{constraint_name}` is also an acceptable name for API requests, but responses will return the name using the equivalent project number.",
+          "Immutable. The resource name of the policy. Must be one of the following forms, where `constraint_name` is the name of the constraint that this policy configures: * `projects/{project_number}/policies/{constraint_name}` * `folders/{folder_number}/policies/{constraint_name}` * `organizations/{organization_number}/policies/{constraint_name}` For example, `projects/123/policies/compute.disableSerialPortAccess`. Note: `projects/{project_id}/policies/{constraint_name}` is also an acceptable name for API requests, but responses will return the name using the equivalent project number.",
         ).optional(),
         spec: z.object({
           etag: z.unknown().describe(
@@ -211,37 +207,17 @@ const GlobalArgsSchema = z.object({
           updateTime: z.unknown().describe(
             "Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that policy.",
           ).optional(),
-        }).describe(
-          "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
-        ).optional(),
-      }).describe(
-        "Defines an organization policy that is used to specify constraints for configurations of Google Cloud resources.",
-      ).optional(),
+        }).describe("Basic information about the organization policy.")
+          .optional(),
+      }).describe("Optional. The new or updated OrgPolicy.").optional(),
       policyParent: z.string().describe(
         'Optional. The parent of the policy we are attaching to. Example: "projects/123456"',
       ).optional(),
     })).describe(
       "Optional. The OrgPolicy changes to preview violations for. Any existing OrgPolicies with the same name will be overridden in the simulation. That is, violations will be determined as if all policies in the overlay were created or updated.",
     ).optional(),
-  }).describe("The proposed changes to OrgPolicy.").optional(),
-  resourceCounts: z.object({
-    compliant: z.number().int().describe(
-      "Output only. Number of scanned resources with zero violations.",
-    ).optional(),
-    errors: z.number().int().describe(
-      "Output only. Number of resources that returned an error when scanned.",
-    ).optional(),
-    noncompliant: z.number().int().describe(
-      "Output only. Number of scanned resources with at least one violation.",
-    ).optional(),
-    scanned: z.number().int().describe(
-      "Output only. Number of resources checked for compliance. Must equal: unenforced + noncompliant + compliant + error",
-    ).optional(),
-    unenforced: z.number().int().describe(
-      "Output only. Number of resources where the constraint was not enforced, i.e. the Policy set `enforced: false` for that resource.",
-    ).optional(),
   }).describe(
-    "A summary of the state of all resources scanned for compliance with the changed OrgPolicy.",
+    "Required. The proposed changes we are previewing violations for.",
   ).optional(),
   orgPolicyViolationsPreviewId: z.string().describe(
     "Optional. An optional user-specified ID for the OrgPolicyViolationsPreview. If not provided, a random ID will be generated.",
@@ -340,9 +316,7 @@ const InputsSchema = z.object({
         updateTime: z.string().describe(
           "Output only. The last time this custom constraint was updated. This represents the last time that the `CreateCustomConstraint` or `UpdateCustomConstraint` methods were called.",
         ).optional(),
-      }).describe(
-        "A custom constraint defined by customers which can *only* be applied to the given resource types and organization. By creating a custom constraint, customers can apply policies of this custom constraint. *Creating a custom constraint itself does NOT apply any policy enforcement*.",
-      ).optional(),
+      }).describe("Optional. The new or updated custom constraint.").optional(),
       customConstraintParent: z.string().describe(
         'Optional. Resource the constraint is attached to. Example: "organization/987654"',
       ).optional(),
@@ -356,11 +330,9 @@ const InputsSchema = z.object({
             "Reference to the launch that will be used while audit logging and to control the launch. Set only in the alternate policy.",
           ).optional(),
           spec: z.unknown().describe(
-            "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
+            "Specify constraint for configurations of Google Cloud resources.",
           ).optional(),
-        }).describe(
-          "Similar to PolicySpec but with an extra 'launch' field for launch reference. The PolicySpec here is specific for dry-run.",
-        ).optional(),
+        }).describe("Deprecated.").optional(),
         dryRunSpec: z.object({
           etag: z.unknown().describe(
             "An opaque tag indicating the current version of the policySpec, used for concurrency control. This field is ignored if used in a `CreatePolicy` request. When the policy is returned from either a `GetPolicy` or a `ListPolicies` request, this entity tag (ETag) indicates the version of the current policySpec to use when executing a read-modify-write loop. When the policy is returned from a `GetEffectivePolicy` request, the ETag will be unset.",
@@ -378,13 +350,13 @@ const InputsSchema = z.object({
             "Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that policy.",
           ).optional(),
         }).describe(
-          "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
+          "Dry-run policy. Audit-only policy, can be used to monitor how the policy would have impacted the existing and future resources if it's enforced.",
         ).optional(),
         etag: z.string().describe(
           "Optional. An opaque tag indicating the current state of the policy, used for concurrency control. This entity tag (ETag) is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.",
         ).optional(),
         name: z.string().describe(
-          "Immutable. The resource name of the policy. Must be one of the following forms, where `constraint_name` is the name of the constraint that this policy configures: * `projects/{project_number}/policies/{constraint_name}` * `folders/{folder_id}/policies/{constraint_name}` * `organizations/{organization_id}/policies/{constraint_name}` For example, `projects/123/policies/compute.disableSerialPortAccess`. Note: `projects/{project_id}/policies/{constraint_name}` is also an acceptable name for API requests, but responses will return the name using the equivalent project number.",
+          "Immutable. The resource name of the policy. Must be one of the following forms, where `constraint_name` is the name of the constraint that this policy configures: * `projects/{project_number}/policies/{constraint_name}` * `folders/{folder_number}/policies/{constraint_name}` * `organizations/{organization_number}/policies/{constraint_name}` For example, `projects/123/policies/compute.disableSerialPortAccess`. Note: `projects/{project_id}/policies/{constraint_name}` is also an acceptable name for API requests, but responses will return the name using the equivalent project number.",
         ).optional(),
         spec: z.object({
           etag: z.unknown().describe(
@@ -402,37 +374,17 @@ const InputsSchema = z.object({
           updateTime: z.unknown().describe(
             "Output only. The time stamp this was previously updated. This represents the last time a call to `CreatePolicy` or `UpdatePolicy` was made for that policy.",
           ).optional(),
-        }).describe(
-          "Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.",
-        ).optional(),
-      }).describe(
-        "Defines an organization policy that is used to specify constraints for configurations of Google Cloud resources.",
-      ).optional(),
+        }).describe("Basic information about the organization policy.")
+          .optional(),
+      }).describe("Optional. The new or updated OrgPolicy.").optional(),
       policyParent: z.string().describe(
         'Optional. The parent of the policy we are attaching to. Example: "projects/123456"',
       ).optional(),
     })).describe(
       "Optional. The OrgPolicy changes to preview violations for. Any existing OrgPolicies with the same name will be overridden in the simulation. That is, violations will be determined as if all policies in the overlay were created or updated.",
     ).optional(),
-  }).describe("The proposed changes to OrgPolicy.").optional(),
-  resourceCounts: z.object({
-    compliant: z.number().int().describe(
-      "Output only. Number of scanned resources with zero violations.",
-    ).optional(),
-    errors: z.number().int().describe(
-      "Output only. Number of resources that returned an error when scanned.",
-    ).optional(),
-    noncompliant: z.number().int().describe(
-      "Output only. Number of scanned resources with at least one violation.",
-    ).optional(),
-    scanned: z.number().int().describe(
-      "Output only. Number of resources checked for compliance. Must equal: unenforced + noncompliant + compliant + error",
-    ).optional(),
-    unenforced: z.number().int().describe(
-      "Output only. Number of resources where the constraint was not enforced, i.e. the Policy set `enforced: false` for that resource.",
-    ).optional(),
   }).describe(
-    "A summary of the state of all resources scanned for compliance with the changed OrgPolicy.",
+    "Required. The proposed changes we are previewing violations for.",
   ).optional(),
   orgPolicyViolationsPreviewId: z.string().describe(
     "Optional. An optional user-specified ID for the OrgPolicyViolationsPreview. If not provided, a random ID will be generated.",
@@ -465,7 +417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Policy Simulator OrgPolicyViolationsPreviews. Registered at `@swamp/gcp/policysimulator/orgpolicyviolationspreviews`. */
 export const model = {
   type: "@swamp/gcp/policysimulator/orgpolicyviolationspreviews",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -597,6 +549,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: resourceCounts",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { resourceCounts: _resourceCounts, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -621,9 +581,6 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["overlay"] !== undefined) body["overlay"] = g["overlay"];
-        if (g["resourceCounts"] !== undefined) {
-          body["resourceCounts"] = g["resourceCounts"];
-        }
         if (g["orgPolicyViolationsPreviewId"] !== undefined) {
           params["orgPolicyViolationsPreviewId"] = String(
             g["orgPolicyViolationsPreviewId"],
@@ -642,14 +599,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

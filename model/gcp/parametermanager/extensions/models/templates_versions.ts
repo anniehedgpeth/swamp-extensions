@@ -179,8 +179,9 @@ const GlobalArgsSchema = z.object({
   payload: z.object({
     data: z.string().describe("Required. bytes data for storing payload.")
       .optional(),
-  }).describe("Message for storing a TemplateVersion resource's payload data")
-    .optional(),
+  }).describe(
+    "Required. Immutable. Payload content of a TemplateVersion resource.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -221,8 +222,9 @@ const InputsSchema = z.object({
   payload: z.object({
     data: z.string().describe("Required. bytes data for storing payload.")
       .optional(),
-  }).describe("Message for storing a TemplateVersion resource's payload data")
-    .optional(),
+  }).describe(
+    "Required. Immutable. Payload content of a TemplateVersion resource.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -260,7 +262,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Parameter Manager Templates.Versions. Registered at `@swamp/gcp/parametermanager/templates-versions`. */
 export const model = {
   type: "@swamp/gcp/parametermanager/templates-versions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -396,7 +405,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["disabled"] !== undefined) body["disabled"] = g["disabled"];
-        if (g["payload"] !== undefined) body["payload"] = g["payload"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

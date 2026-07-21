@@ -172,55 +172,24 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for a ModelDeploymentMonitoringJob. If set, this ModelDeploymentMonitoringJob and all sub-resources of this ModelDeploymentMonitoringJob will be secured by this key.",
   ).optional(),
   endpoint: z.string().describe(
     "Required. Endpoint resource name. Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize your ModelDeploymentMonitoringJob. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
-  latestMonitoringPipelineMetadata: z.object({
-    runTime: z.string().describe(
-      "The time that most recent monitoring pipelines that is related to this run.",
-    ).optional(),
-    status: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-  }).describe("All metadata of most recent monitoring pipelines.").optional(),
   logTtl: z.string().describe(
     "The TTL of BigQuery tables in user projects which stores logs. A day is the basic unit of the TTL and we take the ceil of TTL/86400(a day). e.g. { second: 3600} indicates ttl = 1 day.",
   ).optional(),
   loggingSamplingStrategy: z.object({
     randomSampleConfig: z.object({
       sampleRate: z.number().describe("Sample rate (0, 1]").optional(),
-    }).describe("Requests are randomly selected.").optional(),
-  }).describe(
-    "Sampling Strategy for logging, can be for both training and prediction dataset.",
-  ).optional(),
+    }).describe(
+      "Random sample config. Will support more sampling strategies later.",
+    ).optional(),
+  }).describe("Required. Sample Strategy for logging.").optional(),
   modelDeploymentMonitoringObjectiveConfigs: z.array(z.object({
     deployedModelId: z.string().describe(
       "The DeployedModel ID of the objective config.",
@@ -232,20 +201,19 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         explanationBaseline: z.object({
           bigquery: z.unknown().describe(
-            "The BigQuery location for the output content.",
+            "BigQuery location for BatchExplain output.",
           ).optional(),
           gcs: z.unknown().describe(
-            "The Google Cloud Storage location where the output is to be written to.",
+            "Cloud Storage location for BatchExplain output.",
           ).optional(),
           predictionFormat: z.unknown().describe(
             "The storage format of the predictions generated BatchPrediction job.",
           ).optional(),
         }).describe(
-          "Output from BatchPredictionJob for Model Monitoring baseline dataset, which can be used to generate baseline attribution scores.",
+          "Predictions generated by the BatchPredictionJob using baseline dataset.",
         ).optional(),
-      }).describe(
-        "The config for integrating with Vertex Explainable AI. Only applicable if the Model has explanation_spec populated.",
-      ).optional(),
+      }).describe("The config for integrating with Vertex Explainable AI.")
+        .optional(),
       predictionDriftDetectionConfig: z.object({
         attributionScoreDriftThresholds: z.record(z.string(), z.unknown())
           .describe(
@@ -255,17 +223,21 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe(
             "Specify a threshold value that can trigger the alert. If this threshold config is for feature distribution distance: 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
           ).optional(),
-        }).describe("The config for feature monitoring threshold.").optional(),
+        }).describe(
+          "Drift anomaly detection threshold used by all features. When the per-feature thresholds are not set, this field can be used to specify a threshold for all features.",
+        ).optional(),
         driftThresholds: z.record(z.string(), z.unknown()).describe(
           "Key is the feature name and value is the threshold. If a feature needs to be monitored for drift, a value threshold must be configured for that feature. The threshold here is against feature distribution distance between different time windws.",
         ).optional(),
-      }).describe("The config for Prediction data drift detection.").optional(),
+      }).describe("The config for drift of prediction data.").optional(),
       trainingDataset: z.object({
         bigquerySource: z.object({
           inputUri: z.unknown().describe(
             "Required. BigQuery URI to a table, up to 2000 characters long. Accepted forms: * BigQuery path. For example: `bq://projectId.bqDatasetId.bqTableId`.",
           ).optional(),
-        }).describe("The BigQuery location for the input content.").optional(),
+        }).describe(
+          "The BigQuery table of the unmanaged Dataset used to train this Model.",
+        ).optional(),
         dataFormat: z.string().describe(
           'Data format of the dataset, only applicable if the input is from Google Cloud Storage. The possible formats are: "tf-record" The source file is a TFRecord file. "csv" The source file is a CSV file. "jsonl" The source file is a JSONL file.',
         ).optional(),
@@ -276,19 +248,22 @@ const GlobalArgsSchema = z.object({
           uris: z.unknown().describe(
             "Required. Google Cloud Storage URI(-s) to the input file(s). May contain wildcards. For more information on wildcards, see https://cloud.google.com/storage/docs/wildcards.",
           ).optional(),
-        }).describe("The Google Cloud Storage location for the input content.")
-          .optional(),
+        }).describe(
+          "The Google Cloud Storage uri of the unmanaged Dataset used to train this Model.",
+        ).optional(),
         loggingSamplingStrategy: z.object({
           randomSampleConfig: z.unknown().describe(
-            "Requests are randomly selected.",
+            "Random sample config. Will support more sampling strategies later.",
           ).optional(),
         }).describe(
-          "Sampling Strategy for logging, can be for both training and prediction dataset.",
+          "Strategy to sample data from Training Dataset. If not set, we process the whole dataset.",
         ).optional(),
         targetField: z.string().describe(
           "The target field name the model is to predict. This field will be excluded when doing Predict and (or) Explain for the training data.",
         ).optional(),
-      }).describe("Training Dataset information.").optional(),
+      }).describe(
+        "Training dataset for models. This field has to be set only if TrainingPredictionSkewDetectionConfig is specified.",
+      ).optional(),
       trainingPredictionSkewDetectionConfig: z.object({
         attributionScoreSkewThresholds: z.record(z.string(), z.unknown())
           .describe(
@@ -298,15 +273,17 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe(
             "Specify a threshold value that can trigger the alert. If this threshold config is for feature distribution distance: 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
           ).optional(),
-        }).describe("The config for feature monitoring threshold.").optional(),
+        }).describe(
+          "Skew anomaly detection threshold used by all features. When the per-feature thresholds are not set, this field can be used to specify a threshold for all features.",
+        ).optional(),
         skewThresholds: z.record(z.string(), z.unknown()).describe(
           "Key is the feature name and value is the threshold. If a feature needs to be monitored for skew, a value threshold must be configured for that feature. The threshold here is against feature distribution distance between the training and prediction feature.",
         ).optional(),
       }).describe(
-        "The config for Training & Prediction data skew detection. It specifies the training dataset sources and the skew detection parameters.",
+        "The config for skew between training data and prediction data.",
       ).optional(),
     }).describe(
-      "The objective configuration for model monitoring, including the information needed to detect anomalies for one particular model.",
+      "The objective config of for the modelmonitoring job of this deployed model.",
     ).optional(),
   })).describe(
     "Required. The config for monitoring objectives. This is a per DeployedModel config. Each DeployedModel needs to be configured separately.",
@@ -318,20 +295,21 @@ const GlobalArgsSchema = z.object({
     monitorWindow: z.string().describe(
       "The time window of the prediction data being included in each prediction dataset. This window specifies how long the data should be collected from historical model results for each run. If not set, ModelDeploymentMonitoringScheduleConfig.monitor_interval will be used. e.g. If currently the cutoff time is 2022-01-08 14:30:00 and the monitor_window is set to be 3600, then data from 2022-01-08 13:30:00 to 2022-01-08 14:30:00 will be retrieved and aggregated to calculate the monitoring statistics.",
     ).optional(),
-  }).describe("The config for scheduling monitoring job.").optional(),
+  }).describe("Required. Schedule config for running the monitoring job.")
+    .optional(),
   modelMonitoringAlertConfig: z.object({
     emailAlertConfig: z.object({
       userEmails: z.array(z.string()).describe(
         "The email addresses to send the alert.",
       ).optional(),
-    }).describe("The config for email alert.").optional(),
+    }).describe("Email alert config.").optional(),
     enableLogging: z.boolean().describe(
       "Dump the anomalies to Cloud Logging. The anomalies will be put to json payload encoded from proto ModelMonitoringStatsAnomalies. This can be further synced to Pub/Sub or any other services supported by Cloud Logging.",
     ).optional(),
     notificationChannels: z.array(z.string()).describe(
       "Resource names of the NotificationChannels to send alert. Must be of the format `projects//notificationChannels/`",
     ).optional(),
-  }).describe("The alert config for model monitoring.").optional(),
+  }).describe("Alert config for model monitoring.").optional(),
   predictInstanceSchemaUri: z.string().describe(
     "YAML schema file uri describing the format of a single instance, which are given to format this Endpoint's prediction (and explanation). If not set, we will generate predict schema from collected predict requests.",
   ).optional(),
@@ -342,9 +320,7 @@ const GlobalArgsSchema = z.object({
     outputUriPrefix: z.string().describe(
       "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
     ).optional(),
-  }).describe(
-    "The Google Cloud Storage location where the output is to be written to.",
-  ).optional(),
+  }).describe("Stats anomalies base folder path.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -473,55 +449,24 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for a ModelDeploymentMonitoringJob. If set, this ModelDeploymentMonitoringJob and all sub-resources of this ModelDeploymentMonitoringJob will be secured by this key.",
   ).optional(),
   endpoint: z.string().describe(
     "Required. Endpoint resource name. Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`",
   ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize your ModelDeploymentMonitoringJob. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
-  latestMonitoringPipelineMetadata: z.object({
-    runTime: z.string().describe(
-      "The time that most recent monitoring pipelines that is related to this run.",
-    ).optional(),
-    status: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-  }).describe("All metadata of most recent monitoring pipelines.").optional(),
   logTtl: z.string().describe(
     "The TTL of BigQuery tables in user projects which stores logs. A day is the basic unit of the TTL and we take the ceil of TTL/86400(a day). e.g. { second: 3600} indicates ttl = 1 day.",
   ).optional(),
   loggingSamplingStrategy: z.object({
     randomSampleConfig: z.object({
       sampleRate: z.number().describe("Sample rate (0, 1]").optional(),
-    }).describe("Requests are randomly selected.").optional(),
-  }).describe(
-    "Sampling Strategy for logging, can be for both training and prediction dataset.",
-  ).optional(),
+    }).describe(
+      "Random sample config. Will support more sampling strategies later.",
+    ).optional(),
+  }).describe("Required. Sample Strategy for logging.").optional(),
   modelDeploymentMonitoringObjectiveConfigs: z.array(z.object({
     deployedModelId: z.string().describe(
       "The DeployedModel ID of the objective config.",
@@ -533,20 +478,19 @@ const InputsSchema = z.object({
         ).optional(),
         explanationBaseline: z.object({
           bigquery: z.unknown().describe(
-            "The BigQuery location for the output content.",
+            "BigQuery location for BatchExplain output.",
           ).optional(),
           gcs: z.unknown().describe(
-            "The Google Cloud Storage location where the output is to be written to.",
+            "Cloud Storage location for BatchExplain output.",
           ).optional(),
           predictionFormat: z.unknown().describe(
             "The storage format of the predictions generated BatchPrediction job.",
           ).optional(),
         }).describe(
-          "Output from BatchPredictionJob for Model Monitoring baseline dataset, which can be used to generate baseline attribution scores.",
+          "Predictions generated by the BatchPredictionJob using baseline dataset.",
         ).optional(),
-      }).describe(
-        "The config for integrating with Vertex Explainable AI. Only applicable if the Model has explanation_spec populated.",
-      ).optional(),
+      }).describe("The config for integrating with Vertex Explainable AI.")
+        .optional(),
       predictionDriftDetectionConfig: z.object({
         attributionScoreDriftThresholds: z.record(z.string(), z.unknown())
           .describe(
@@ -556,17 +500,21 @@ const InputsSchema = z.object({
           value: z.unknown().describe(
             "Specify a threshold value that can trigger the alert. If this threshold config is for feature distribution distance: 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
           ).optional(),
-        }).describe("The config for feature monitoring threshold.").optional(),
+        }).describe(
+          "Drift anomaly detection threshold used by all features. When the per-feature thresholds are not set, this field can be used to specify a threshold for all features.",
+        ).optional(),
         driftThresholds: z.record(z.string(), z.unknown()).describe(
           "Key is the feature name and value is the threshold. If a feature needs to be monitored for drift, a value threshold must be configured for that feature. The threshold here is against feature distribution distance between different time windws.",
         ).optional(),
-      }).describe("The config for Prediction data drift detection.").optional(),
+      }).describe("The config for drift of prediction data.").optional(),
       trainingDataset: z.object({
         bigquerySource: z.object({
           inputUri: z.unknown().describe(
             "Required. BigQuery URI to a table, up to 2000 characters long. Accepted forms: * BigQuery path. For example: `bq://projectId.bqDatasetId.bqTableId`.",
           ).optional(),
-        }).describe("The BigQuery location for the input content.").optional(),
+        }).describe(
+          "The BigQuery table of the unmanaged Dataset used to train this Model.",
+        ).optional(),
         dataFormat: z.string().describe(
           'Data format of the dataset, only applicable if the input is from Google Cloud Storage. The possible formats are: "tf-record" The source file is a TFRecord file. "csv" The source file is a CSV file. "jsonl" The source file is a JSONL file.',
         ).optional(),
@@ -577,19 +525,22 @@ const InputsSchema = z.object({
           uris: z.unknown().describe(
             "Required. Google Cloud Storage URI(-s) to the input file(s). May contain wildcards. For more information on wildcards, see https://cloud.google.com/storage/docs/wildcards.",
           ).optional(),
-        }).describe("The Google Cloud Storage location for the input content.")
-          .optional(),
+        }).describe(
+          "The Google Cloud Storage uri of the unmanaged Dataset used to train this Model.",
+        ).optional(),
         loggingSamplingStrategy: z.object({
           randomSampleConfig: z.unknown().describe(
-            "Requests are randomly selected.",
+            "Random sample config. Will support more sampling strategies later.",
           ).optional(),
         }).describe(
-          "Sampling Strategy for logging, can be for both training and prediction dataset.",
+          "Strategy to sample data from Training Dataset. If not set, we process the whole dataset.",
         ).optional(),
         targetField: z.string().describe(
           "The target field name the model is to predict. This field will be excluded when doing Predict and (or) Explain for the training data.",
         ).optional(),
-      }).describe("Training Dataset information.").optional(),
+      }).describe(
+        "Training dataset for models. This field has to be set only if TrainingPredictionSkewDetectionConfig is specified.",
+      ).optional(),
       trainingPredictionSkewDetectionConfig: z.object({
         attributionScoreSkewThresholds: z.record(z.string(), z.unknown())
           .describe(
@@ -599,15 +550,17 @@ const InputsSchema = z.object({
           value: z.unknown().describe(
             "Specify a threshold value that can trigger the alert. If this threshold config is for feature distribution distance: 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.",
           ).optional(),
-        }).describe("The config for feature monitoring threshold.").optional(),
+        }).describe(
+          "Skew anomaly detection threshold used by all features. When the per-feature thresholds are not set, this field can be used to specify a threshold for all features.",
+        ).optional(),
         skewThresholds: z.record(z.string(), z.unknown()).describe(
           "Key is the feature name and value is the threshold. If a feature needs to be monitored for skew, a value threshold must be configured for that feature. The threshold here is against feature distribution distance between the training and prediction feature.",
         ).optional(),
       }).describe(
-        "The config for Training & Prediction data skew detection. It specifies the training dataset sources and the skew detection parameters.",
+        "The config for skew between training data and prediction data.",
       ).optional(),
     }).describe(
-      "The objective configuration for model monitoring, including the information needed to detect anomalies for one particular model.",
+      "The objective config of for the modelmonitoring job of this deployed model.",
     ).optional(),
   })).describe(
     "Required. The config for monitoring objectives. This is a per DeployedModel config. Each DeployedModel needs to be configured separately.",
@@ -619,20 +572,21 @@ const InputsSchema = z.object({
     monitorWindow: z.string().describe(
       "The time window of the prediction data being included in each prediction dataset. This window specifies how long the data should be collected from historical model results for each run. If not set, ModelDeploymentMonitoringScheduleConfig.monitor_interval will be used. e.g. If currently the cutoff time is 2022-01-08 14:30:00 and the monitor_window is set to be 3600, then data from 2022-01-08 13:30:00 to 2022-01-08 14:30:00 will be retrieved and aggregated to calculate the monitoring statistics.",
     ).optional(),
-  }).describe("The config for scheduling monitoring job.").optional(),
+  }).describe("Required. Schedule config for running the monitoring job.")
+    .optional(),
   modelMonitoringAlertConfig: z.object({
     emailAlertConfig: z.object({
       userEmails: z.array(z.string()).describe(
         "The email addresses to send the alert.",
       ).optional(),
-    }).describe("The config for email alert.").optional(),
+    }).describe("Email alert config.").optional(),
     enableLogging: z.boolean().describe(
       "Dump the anomalies to Cloud Logging. The anomalies will be put to json payload encoded from proto ModelMonitoringStatsAnomalies. This can be further synced to Pub/Sub or any other services supported by Cloud Logging.",
     ).optional(),
     notificationChannels: z.array(z.string()).describe(
       "Resource names of the NotificationChannels to send alert. Must be of the format `projects//notificationChannels/`",
     ).optional(),
-  }).describe("The alert config for model monitoring.").optional(),
+  }).describe("Alert config for model monitoring.").optional(),
   predictInstanceSchemaUri: z.string().describe(
     "YAML schema file uri describing the format of a single instance, which are given to format this Endpoint's prediction (and explanation). If not set, we will generate predict schema from collected predict requests.",
   ).optional(),
@@ -643,9 +597,7 @@ const InputsSchema = z.object({
     outputUriPrefix: z.string().describe(
       "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
     ).optional(),
-  }).describe(
-    "The Google Cloud Storage location where the output is to be written to.",
-  ).optional(),
+  }).describe("Stats anomalies base folder path.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -674,7 +626,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ModelDeploymentMonitoringJobs. Registered at `@swamp/gcp/aiplatform/modeldeploymentmonitoringjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/modeldeploymentmonitoringjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -811,6 +763,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, latestMonitoringPipelineMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          error: _error,
+          latestMonitoringPipelineMetadata: _latestMonitoringPipelineMetadata,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -850,12 +814,7 @@ export const model = {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["endpoint"] !== undefined) body["endpoint"] = g["endpoint"];
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["latestMonitoringPipelineMetadata"] !== undefined) {
-          body["latestMonitoringPipelineMetadata"] =
-            g["latestMonitoringPipelineMetadata"];
-        }
         if (g["logTtl"] !== undefined) body["logTtl"] = g["logTtl"];
         if (g["loggingSamplingStrategy"] !== undefined) {
           body["loggingSamplingStrategy"] = g["loggingSamplingStrategy"];
@@ -1004,12 +963,7 @@ export const model = {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["endpoint"] !== undefined) body["endpoint"] = g["endpoint"];
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["latestMonitoringPipelineMetadata"] !== undefined) {
-          body["latestMonitoringPipelineMetadata"] =
-            g["latestMonitoringPipelineMetadata"];
-        }
         if (g["logTtl"] !== undefined) body["logTtl"] = g["logTtl"];
         if (g["loggingSamplingStrategy"] !== undefined) {
           body["loggingSamplingStrategy"] = g["loggingSamplingStrategy"];

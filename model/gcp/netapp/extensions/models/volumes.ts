@@ -174,8 +174,7 @@ const GlobalArgsSchema = z.object({
     scheduledBackupEnabled: z.boolean().describe(
       "Optional. When set to true, scheduled backup is enabled on the volume. This field should be nil when there's no backup policy attached.",
     ).optional(),
-  }).describe("BackupConfig contains backup related config on a volume.")
-    .optional(),
+  }).describe("BackupConfig of the volume.").optional(),
   blockDevices: z.array(z.object({
     hostGroups: z.array(z.string()).describe(
       "Optional. A list of host groups that identify hosts that can mount the block volume. Format: `projects/{project_id}/locations/{location}/hostGroups/{host_group_id}` This field can be updated after the block device is created.",
@@ -208,8 +207,9 @@ const GlobalArgsSchema = z.object({
         recursion: z.boolean().describe(
           "Optional. Flag indicating whether the directories listed with the `path_list` need to be recursively pre-populated.",
         ).optional(),
-      }).describe("Pre-populate cache volume with data from the origin volume.")
-        .optional(),
+      }).describe(
+        "Optional. Pre-populate cache volume with data from the origin volume.",
+      ).optional(),
       cachePrePopulateState: z.enum([
         "CACHE_PRE_POPULATE_STATE_UNSPECIFIED",
         "NOT_NEEDED",
@@ -225,7 +225,7 @@ const GlobalArgsSchema = z.object({
       writebackEnabled: z.boolean().describe(
         "Optional. Flag indicating whether writeback is enabled for the FlexCache volume.",
       ).optional(),
-    }).describe("Configuration of the cache volume.").optional(),
+    }).describe("Optional. Configuration of the cache volume.").optional(),
     cacheState: z.enum([
       "CACHE_STATE_UNSPECIFIED",
       "PENDING_CLUSTER_PEERING",
@@ -262,20 +262,9 @@ const GlobalArgsSchema = z.object({
     stateDetails: z.string().describe(
       "Output only. Detailed description of the current cache state.",
     ).optional(),
-  }).describe("Cache Parameters for the volume.").optional(),
+  }).describe("Optional. Cache parameters for the volume.").optional(),
   capacityGib: z.string().describe("Required. Capacity in GIB of the volume")
     .optional(),
-  cloneDetails: z.object({
-    sharedSpaceGib: z.string().describe(
-      "Output only. Shared space in GiB. Determined at volume creation time based on size of source snapshot.",
-    ).optional(),
-    sourceSnapshot: z.string().describe(
-      "Output only. Specifies the full resource name of the source snapshot from which this volume was cloned. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}",
-    ).optional(),
-    sourceVolume: z.string().describe(
-      "Output only. Full name of the source volume resource. Format: projects/{project}/locations/{location}/volumes/{volume}",
-    ).optional(),
-  }).describe("Details about a clone volume.").optional(),
   description: z.string().describe("Optional. Description of the volume")
     .optional(),
   exportPolicy: z.object({
@@ -324,7 +313,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Defines how user identity squashing is applied for this export rule. This field is the preferred way to configure squashing behavior and takes precedence over `has_root_access` if both are provided.",
       ).optional(),
     })).describe("Required. List of export policy rules").optional(),
-  }).describe("Defines the export policy for the volume.").optional(),
+  }).describe("Optional. Export policy of the volume").optional(),
   hybridReplicationParameters: z.object({
     clusterLocation: z.string().describe(
       "Optional. Name of source cluster location associated with the Hybrid replication. This is a free-form field for the display purpose only.",
@@ -367,7 +356,8 @@ const GlobalArgsSchema = z.object({
       "DAILY",
     ]).describe("Optional. Replication Schedule for the replication created.")
       .optional(),
-  }).describe("The Hybrid Replication parameters for the volume.").optional(),
+  }).describe("Optional. The Hybrid Replication parameters for the volume.")
+    .optional(),
   kerberosEnabled: z.boolean().describe(
     "Optional. Flag indicating if the volume is a kerberos volume or not, export policy rules control kerberos security modes (krb5, krb5i, krb5p).",
   ).optional(),
@@ -382,7 +372,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The number of internal constituents (e.g., FlexVols) for this large volume. The minimum number of constituents is 2.",
     ).optional(),
   }).describe(
-    "Configuration for a Large Capacity Volume. A Large Capacity Volume supports sizes ranging from 4.8 TiB to 20 PiB; it is composed of multiple internal constituents, and must be created in a large capacity pool.",
+    "Optional. Large capacity config for the volume. Enables and configures large capacity for volumes in Unified pools with File protocols. Not applicable for Block protocols in Unified pools. This field and the legacy `large_capacity` boolean field are mutually exclusive.",
   ).optional(),
   multipleEndpoints: z.boolean().describe(
     "Optional. Flag indicating if the volume will have an IP address per node for volumes supporting multiple IP endpoints. Only the volume with large_capacity will be allowed to have multiple endpoints.",
@@ -399,7 +389,7 @@ const GlobalArgsSchema = z.object({
       "Full name of the snapshot resource. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}",
     ).optional(),
   }).describe(
-    "The RestoreParameters if volume is created from a snapshot or backup.",
+    "Optional. Specifies the source of the volume to be created from.",
   ).optional(),
   restrictedActions: z.array(
     z.enum(["RESTRICTED_ACTION_UNSPECIFIED", "DELETE"]),
@@ -440,8 +430,7 @@ const GlobalArgsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe("Make a snapshot every day e.g. at 04:00, 05:20, 23:50")
-      .optional(),
+    }).describe("Daily schedule policy.").optional(),
     enabled: z.boolean().describe(
       "If enabled, make snapshots automatically according to the schedules. Default is false.",
     ).optional(),
@@ -452,8 +441,7 @@ const GlobalArgsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe("Make a snapshot every hour e.g. at 04:00, 05:00, 06:00.")
-      .optional(),
+    }).describe("Hourly schedule policy.").optional(),
     monthlySchedule: z.object({
       daysOfMonth: z.string().describe(
         "Set the day or days of the month to make a snapshot (1-31). Accepts a comma separated number of days. Defaults to '1'.",
@@ -467,9 +455,7 @@ const GlobalArgsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe(
-      "Make a snapshot once a month e.g. at 2nd 04:00, 7th 05:20, 24th 23:50",
-    ).optional(),
+    }).describe("Monthly schedule policy.").optional(),
     weeklySchedule: z.object({
       day: z.string().describe(
         "Set the day or days of the week to make a snapshot. Accepts a comma separated days of the week. Defaults to 'Sunday'.",
@@ -483,10 +469,8 @@ const GlobalArgsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe(
-      "Make a snapshot every week e.g. at Monday 04:00, Wednesday 05:20, Sunday 23:50",
-    ).optional(),
-  }).describe("Snapshot Policy for a volume.").optional(),
+    }).describe("Weekly schedule policy.").optional(),
+  }).describe("Optional. SnapshotPolicy for a volume.").optional(),
   storagePool: z.string().describe("Required. StoragePool name of the volume")
     .optional(),
   throughputMibps: z.number().describe(
@@ -503,7 +487,7 @@ const GlobalArgsSchema = z.object({
       .describe(
         "Optional. Flag indicating if the volume has tiering policy enable/pause. Default is PAUSED.",
       ).optional(),
-  }).describe("Defines tiering policy for the volume.").optional(),
+  }).describe("Tiering policy for the volume.").optional(),
   unixPermissions: z.string().describe(
     "Optional. Default unix style permission (e.g. 777) the mount point will be created with. Applicable for NFS protocol types only.",
   ).optional(),
@@ -684,8 +668,7 @@ const InputsSchema = z.object({
     scheduledBackupEnabled: z.boolean().describe(
       "Optional. When set to true, scheduled backup is enabled on the volume. This field should be nil when there's no backup policy attached.",
     ).optional(),
-  }).describe("BackupConfig contains backup related config on a volume.")
-    .optional(),
+  }).describe("BackupConfig of the volume.").optional(),
   blockDevices: z.array(z.object({
     hostGroups: z.array(z.string()).describe(
       "Optional. A list of host groups that identify hosts that can mount the block volume. Format: `projects/{project_id}/locations/{location}/hostGroups/{host_group_id}` This field can be updated after the block device is created.",
@@ -718,8 +701,9 @@ const InputsSchema = z.object({
         recursion: z.boolean().describe(
           "Optional. Flag indicating whether the directories listed with the `path_list` need to be recursively pre-populated.",
         ).optional(),
-      }).describe("Pre-populate cache volume with data from the origin volume.")
-        .optional(),
+      }).describe(
+        "Optional. Pre-populate cache volume with data from the origin volume.",
+      ).optional(),
       cachePrePopulateState: z.enum([
         "CACHE_PRE_POPULATE_STATE_UNSPECIFIED",
         "NOT_NEEDED",
@@ -735,7 +719,7 @@ const InputsSchema = z.object({
       writebackEnabled: z.boolean().describe(
         "Optional. Flag indicating whether writeback is enabled for the FlexCache volume.",
       ).optional(),
-    }).describe("Configuration of the cache volume.").optional(),
+    }).describe("Optional. Configuration of the cache volume.").optional(),
     cacheState: z.enum([
       "CACHE_STATE_UNSPECIFIED",
       "PENDING_CLUSTER_PEERING",
@@ -772,20 +756,9 @@ const InputsSchema = z.object({
     stateDetails: z.string().describe(
       "Output only. Detailed description of the current cache state.",
     ).optional(),
-  }).describe("Cache Parameters for the volume.").optional(),
+  }).describe("Optional. Cache parameters for the volume.").optional(),
   capacityGib: z.string().describe("Required. Capacity in GIB of the volume")
     .optional(),
-  cloneDetails: z.object({
-    sharedSpaceGib: z.string().describe(
-      "Output only. Shared space in GiB. Determined at volume creation time based on size of source snapshot.",
-    ).optional(),
-    sourceSnapshot: z.string().describe(
-      "Output only. Specifies the full resource name of the source snapshot from which this volume was cloned. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}",
-    ).optional(),
-    sourceVolume: z.string().describe(
-      "Output only. Full name of the source volume resource. Format: projects/{project}/locations/{location}/volumes/{volume}",
-    ).optional(),
-  }).describe("Details about a clone volume.").optional(),
   description: z.string().describe("Optional. Description of the volume")
     .optional(),
   exportPolicy: z.object({
@@ -834,7 +807,7 @@ const InputsSchema = z.object({
         "Optional. Defines how user identity squashing is applied for this export rule. This field is the preferred way to configure squashing behavior and takes precedence over `has_root_access` if both are provided.",
       ).optional(),
     })).describe("Required. List of export policy rules").optional(),
-  }).describe("Defines the export policy for the volume.").optional(),
+  }).describe("Optional. Export policy of the volume").optional(),
   hybridReplicationParameters: z.object({
     clusterLocation: z.string().describe(
       "Optional. Name of source cluster location associated with the Hybrid replication. This is a free-form field for the display purpose only.",
@@ -877,7 +850,8 @@ const InputsSchema = z.object({
       "DAILY",
     ]).describe("Optional. Replication Schedule for the replication created.")
       .optional(),
-  }).describe("The Hybrid Replication parameters for the volume.").optional(),
+  }).describe("Optional. The Hybrid Replication parameters for the volume.")
+    .optional(),
   kerberosEnabled: z.boolean().describe(
     "Optional. Flag indicating if the volume is a kerberos volume or not, export policy rules control kerberos security modes (krb5, krb5i, krb5p).",
   ).optional(),
@@ -892,7 +866,7 @@ const InputsSchema = z.object({
       "Optional. The number of internal constituents (e.g., FlexVols) for this large volume. The minimum number of constituents is 2.",
     ).optional(),
   }).describe(
-    "Configuration for a Large Capacity Volume. A Large Capacity Volume supports sizes ranging from 4.8 TiB to 20 PiB; it is composed of multiple internal constituents, and must be created in a large capacity pool.",
+    "Optional. Large capacity config for the volume. Enables and configures large capacity for volumes in Unified pools with File protocols. Not applicable for Block protocols in Unified pools. This field and the legacy `large_capacity` boolean field are mutually exclusive.",
   ).optional(),
   multipleEndpoints: z.boolean().describe(
     "Optional. Flag indicating if the volume will have an IP address per node for volumes supporting multiple IP endpoints. Only the volume with large_capacity will be allowed to have multiple endpoints.",
@@ -909,7 +883,7 @@ const InputsSchema = z.object({
       "Full name of the snapshot resource. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}",
     ).optional(),
   }).describe(
-    "The RestoreParameters if volume is created from a snapshot or backup.",
+    "Optional. Specifies the source of the volume to be created from.",
   ).optional(),
   restrictedActions: z.array(
     z.enum(["RESTRICTED_ACTION_UNSPECIFIED", "DELETE"]),
@@ -950,8 +924,7 @@ const InputsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe("Make a snapshot every day e.g. at 04:00, 05:20, 23:50")
-      .optional(),
+    }).describe("Daily schedule policy.").optional(),
     enabled: z.boolean().describe(
       "If enabled, make snapshots automatically according to the schedules. Default is false.",
     ).optional(),
@@ -962,8 +935,7 @@ const InputsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe("Make a snapshot every hour e.g. at 04:00, 05:00, 06:00.")
-      .optional(),
+    }).describe("Hourly schedule policy.").optional(),
     monthlySchedule: z.object({
       daysOfMonth: z.string().describe(
         "Set the day or days of the month to make a snapshot (1-31). Accepts a comma separated number of days. Defaults to '1'.",
@@ -977,9 +949,7 @@ const InputsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe(
-      "Make a snapshot once a month e.g. at 2nd 04:00, 7th 05:20, 24th 23:50",
-    ).optional(),
+    }).describe("Monthly schedule policy.").optional(),
     weeklySchedule: z.object({
       day: z.string().describe(
         "Set the day or days of the week to make a snapshot. Accepts a comma separated days of the week. Defaults to 'Sunday'.",
@@ -993,10 +963,8 @@ const InputsSchema = z.object({
       snapshotsToKeep: z.number().describe(
         "The maximum number of Snapshots to keep for the hourly schedule",
       ).optional(),
-    }).describe(
-      "Make a snapshot every week e.g. at Monday 04:00, Wednesday 05:20, Sunday 23:50",
-    ).optional(),
-  }).describe("Snapshot Policy for a volume.").optional(),
+    }).describe("Weekly schedule policy.").optional(),
+  }).describe("Optional. SnapshotPolicy for a volume.").optional(),
   storagePool: z.string().describe("Required. StoragePool name of the volume")
     .optional(),
   throughputMibps: z.number().describe(
@@ -1013,7 +981,7 @@ const InputsSchema = z.object({
       .describe(
         "Optional. Flag indicating if the volume has tiering policy enable/pause. Default is PAUSED.",
       ).optional(),
-  }).describe("Defines tiering policy for the volume.").optional(),
+  }).describe("Tiering policy for the volume.").optional(),
   unixPermissions: z.string().describe(
     "Optional. Default unix style permission (e.g. 777) the mount point will be created with. Applicable for NFS protocol types only.",
   ).optional(),
@@ -1048,7 +1016,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp Volumes. Registered at `@swamp/gcp/netapp/volumes`. */
 export const model = {
   type: "@swamp/gcp/netapp/volumes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1198,6 +1166,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cloneDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { cloneDetails: _cloneDetails, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1237,9 +1213,6 @@ export const model = {
         }
         if (g["capacityGib"] !== undefined) {
           body["capacityGib"] = g["capacityGib"];
-        }
-        if (g["cloneDetails"] !== undefined) {
-          body["cloneDetails"] = g["cloneDetails"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
@@ -1432,9 +1405,6 @@ export const model = {
         }
         if (g["capacityGib"] !== undefined) {
           body["capacityGib"] = g["capacityGib"];
-        }
-        if (g["cloneDetails"] !== undefined) {
-          body["cloneDetails"] = g["cloneDetails"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];

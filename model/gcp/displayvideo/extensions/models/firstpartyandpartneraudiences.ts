@@ -179,7 +179,9 @@ const GlobalArgsSchema = z.object({
         "CONSENT_STATUS_GRANTED",
         "CONSENT_STATUS_DENIED",
       ]).describe("Represents consent for ad user data.").optional(),
-    }).describe("User consent status.").optional(),
+    }).describe(
+      "Input only. The consent setting for the users in contact_infos. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to `CONSENT_STATUS_DENIED`, the request will return an error.",
+    ).optional(),
     contactInfos: z.array(z.object({
       countryCode: z.string().describe(
         "Optional. Country code of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name * zip_codes",
@@ -203,7 +205,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
-    "Wrapper message for a list of contact information defining Customer Match audience members.",
+    "Input only. A list of contact information to define the initial audience members. Only applicable to audience_type `CUSTOMER_MATCH_CONTACT_INFO`",
   ).optional(),
   description: z.string().describe(
     "Optional. The user-provided description of the audience. Only applicable to first party audiences.",
@@ -229,12 +231,14 @@ const GlobalArgsSchema = z.object({
         "CONSENT_STATUS_GRANTED",
         "CONSENT_STATUS_DENIED",
       ]).describe("Represents consent for ad user data.").optional(),
-    }).describe("User consent status.").optional(),
+    }).describe(
+      "Input only. The consent setting for the users in mobile_device_ids. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to `CONSENT_STATUS_DENIED`, the request will return an error.",
+    ).optional(),
     mobileDeviceIds: z.array(z.string()).describe(
       "Optional. A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
-    "Wrapper message for a list of mobile device IDs defining Customer Match audience members.",
+    "Input only. A list of mobile device IDs to define the initial audience members. Only applicable to audience_type `CUSTOMER_MATCH_DEVICE_ID`",
   ).optional(),
   advertiserId: z.string().describe(
     "Required. The ID of the advertiser under whom the FirstPartyAndPartnerAudience will be created.",
@@ -318,7 +322,9 @@ const InputsSchema = z.object({
         "CONSENT_STATUS_GRANTED",
         "CONSENT_STATUS_DENIED",
       ]).describe("Represents consent for ad user data.").optional(),
-    }).describe("User consent status.").optional(),
+    }).describe(
+      "Input only. The consent setting for the users in contact_infos. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to `CONSENT_STATUS_DENIED`, the request will return an error.",
+    ).optional(),
     contactInfos: z.array(z.object({
       countryCode: z.string().describe(
         "Optional. Country code of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name * zip_codes",
@@ -342,7 +348,7 @@ const InputsSchema = z.object({
       "Optional. A list of ContactInfo objects defining Customer Match audience members. The size of members after splitting the contact_infos mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
-    "Wrapper message for a list of contact information defining Customer Match audience members.",
+    "Input only. A list of contact information to define the initial audience members. Only applicable to audience_type `CUSTOMER_MATCH_CONTACT_INFO`",
   ).optional(),
   description: z.string().describe(
     "Optional. The user-provided description of the audience. Only applicable to first party audiences.",
@@ -368,12 +374,14 @@ const InputsSchema = z.object({
         "CONSENT_STATUS_GRANTED",
         "CONSENT_STATUS_DENIED",
       ]).describe("Represents consent for ad user data.").optional(),
-    }).describe("User consent status.").optional(),
+    }).describe(
+      "Input only. The consent setting for the users in mobile_device_ids. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to `CONSENT_STATUS_DENIED`, the request will return an error.",
+    ).optional(),
     mobileDeviceIds: z.array(z.string()).describe(
       "Optional. A list of mobile device IDs defining Customer Match audience members. The size of mobile_device_ids mustn't be greater than 500,000.",
     ).optional(),
   }).describe(
-    "Wrapper message for a list of mobile device IDs defining Customer Match audience members.",
+    "Input only. A list of mobile device IDs to define the initial audience members. Only applicable to audience_type `CUSTOMER_MATCH_DEVICE_ID`",
   ).optional(),
   advertiserId: z.string().describe(
     "Required. The ID of the advertiser under whom the FirstPartyAndPartnerAudience will be created.",
@@ -403,7 +411,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 FirstPartyAndPartnerAudiences. Registered at `@swamp/gcp/displayvideo/firstpartyandpartneraudiences`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/firstpartyandpartneraudiences",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -512,6 +520,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -137,7 +137,9 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Identifier. The name of the schema registry instance. Structured like: `projects/{project}/locations/{location}/schemaRegistries/{schema_registry}` The instance name {schema_registry} can contain the following: * Up to 255 characters. * Letters (uppercase or lowercase), numbers, and underscores.",
     ).optional(),
-  }).describe("SchemaRegistry is a schema registry instance.").optional(),
+  }).describe(
+    "Required. The schema registry instance to create. The name field is ignored.",
+  ).optional(),
   schemaRegistryId: z.string().describe(
     "Required. The schema registry instance ID to use for this schema registry. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores (-). The maximum length is 63 characters. The ID must not start with a number.",
   ).optional(),
@@ -166,7 +168,9 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Identifier. The name of the schema registry instance. Structured like: `projects/{project}/locations/{location}/schemaRegistries/{schema_registry}` The instance name {schema_registry} can contain the following: * Up to 255 characters. * Letters (uppercase or lowercase), numbers, and underscores.",
     ).optional(),
-  }).describe("SchemaRegistry is a schema registry instance.").optional(),
+  }).describe(
+    "Required. The schema registry instance to create. The name field is ignored.",
+  ).optional(),
   schemaRegistryId: z.string().describe(
     "Required. The schema registry instance ID to use for this schema registry. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores (-). The maximum length is 63 characters. The ID must not start with a number.",
   ).optional(),
@@ -198,7 +202,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Managed Service for Apache Kafka SchemaRegistries. Registered at `@swamp/gcp/managedkafka/schemaregistries`. */
 export const model = {
   type: "@swamp/gcp/managedkafka/schemaregistries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -305,6 +309,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -348,22 +357,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? "") ||
-              buildResourceName(
-                `projects/${projectId}/locations/${
-                  String(g["location"] ?? "")
-                }`,
-                String(g["schemaRegistryId"] ?? ""),
-              ),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

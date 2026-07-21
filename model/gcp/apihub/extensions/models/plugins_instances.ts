@@ -170,10 +170,12 @@ const GlobalArgsSchema = z.object({
         curation: z.string().describe(
           "Required. The unique name of the curation resource. This will be the name of the curation resource in the format: `projects/{project}/locations/{location}/curations/{curation}`",
         ).optional(),
-      }).describe("Custom curation information for this plugin instance.")
-        .optional(),
-    }).describe("The curation information for this plugin instance.")
-      .optional(),
+      }).describe(
+        "Optional. Custom curation information for this plugin instance.",
+      ).optional(),
+    }).describe(
+      "Optional. This configuration should be provided if the plugin action is publishing data to API hub curate layer.",
+    ).optional(),
     hubInstanceAction: z.object({
       currentExecutionState: z.enum([
         "CURRENT_EXECUTION_STATE_UNSPECIFIED",
@@ -197,9 +199,11 @@ const GlobalArgsSchema = z.object({
         startTime: z.string().describe(
           "Output only. The last execution start time of the plugin instance.",
         ).optional(),
-      }).describe("The result of the last execution of the plugin instance.")
+      }).describe("Output only. The last execution of the plugin instance.")
         .optional(),
-    }).describe("The execution status for the plugin instance.").optional(),
+    }).describe(
+      "Optional. The execution information for the plugin instance action done corresponding to an API hub instance.",
+    ).optional(),
     resourceConfig: z.object({
       actionType: z.enum([
         "ACTION_TYPE_UNSPECIFIED",
@@ -210,7 +214,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The pubsub topic to publish the data to. Format is projects/{project}/topics/{topic}",
       ).optional(),
     }).describe(
-      "The configuration of resources created for a given plugin instance action.",
+      "Output only. The configuration of resources created for a given plugin instance action. Note these will be returned only in case of non-Google Cloud plugins like OPDK.",
     ).optional(),
     scheduleCronExpression: z.string().describe(
       "Optional. The schedule for this plugin instance action. This can only be set if the plugin supports API_HUB_SCHEDULE_TRIGGER mode for this action.",
@@ -247,7 +251,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         id: z.string().describe("Required. Id of the option.").optional(),
       }).describe(
-        "ConfigValueOption represents an option for a config variable of type enum or multi select.",
+        "Optional. The config variable value in case of config variable of type enum.",
       ).optional(),
       intValue: z.string().describe(
         "Optional. The config variable value in case of config variable of type integer.",
@@ -259,8 +263,9 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.number().int()).describe(
           "Optional. The config variable value of data type multi int.",
         ).optional(),
-      }).describe("The config variable value of data type multi int.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type multi integer.",
+      ).optional(),
       multiSelectValues: z.object({
         values: z.array(z.object({
           description: z.unknown().describe(
@@ -273,20 +278,23 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Optional. The config variable value of data type multi select.",
         ).optional(),
-      }).describe("The config variable value of data type multi select.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type multi select.",
+      ).optional(),
       multiStringValues: z.object({
         values: z.array(z.string()).describe(
           "Optional. The config variable value of data type multi string.",
         ).optional(),
-      }).describe("The config variable value of data type multi string.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type multi string.",
+      ).optional(),
       secretValue: z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type secret.",
+      ).optional(),
       stringValue: z.string().describe(
         "Optional. The config variable value in case of config variable of type string.",
       ).optional(),
@@ -300,8 +308,9 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Required. The name of the SecretManager secret version resource storing the API key. Format: `projects/{project}/secrets/{secrete}/versions/{version}`. The `secretmanager.versions.access` permission should be granted to the service account accessing the secret.",
+      ).optional(),
       httpElementLocation: z.enum([
         "HTTP_ELEMENT_LOCATION_UNSPECIFIED",
         "QUERY",
@@ -315,7 +324,7 @@ const GlobalArgsSchema = z.object({
       name: z.string().describe(
         'Required. The parameter name of the API key. E.g. If the API request is "https://example.com/act?api_key=", "api_key" would be the parameter name.',
       ).optional(),
-    }).describe("Config for authentication with API key.").optional(),
+    }).describe("Api Key Config.").optional(),
     authType: z.enum([
       "AUTH_TYPE_UNSPECIFIED",
       "NO_AUTH",
@@ -328,7 +337,7 @@ const GlobalArgsSchema = z.object({
       serviceAccount: z.string().describe(
         "Required. The service account to be used for authenticating request. The `iam.serviceAccounts.getAccessToken` permission should be granted on this service account to the impersonator service account.",
       ).optional(),
-    }).describe("Config for Google service account authentication.").optional(),
+    }).describe("Google Service Account.").optional(),
     oauth2ClientCredentialsConfig: z.object({
       clientId: z.string().describe("Required. The client identifier.")
         .optional(),
@@ -336,23 +345,23 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 client credentials grant authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Required. Secret version reference containing the client secret. The `secretmanager.versions.access` permission should be granted to the service account accessing the secret.",
+      ).optional(),
+    }).describe("Oauth2.0 Client Credentials.").optional(),
     userPasswordConfig: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Required. Secret version reference containing the password. The `secretmanager.versions.access` permission should be granted to the service account accessing the secret.",
+      ).optional(),
       username: z.string().describe("Required. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig represents the authentication information.")
-    .optional(),
+    }).describe("User Password.").optional(),
+  }).describe(
+    "Optional. The authentication information for this plugin instance.",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name for this plugin instance. Max length is 255 characters.",
   ).optional(),
@@ -478,10 +487,12 @@ const InputsSchema = z.object({
         curation: z.string().describe(
           "Required. The unique name of the curation resource. This will be the name of the curation resource in the format: `projects/{project}/locations/{location}/curations/{curation}`",
         ).optional(),
-      }).describe("Custom curation information for this plugin instance.")
-        .optional(),
-    }).describe("The curation information for this plugin instance.")
-      .optional(),
+      }).describe(
+        "Optional. Custom curation information for this plugin instance.",
+      ).optional(),
+    }).describe(
+      "Optional. This configuration should be provided if the plugin action is publishing data to API hub curate layer.",
+    ).optional(),
     hubInstanceAction: z.object({
       currentExecutionState: z.enum([
         "CURRENT_EXECUTION_STATE_UNSPECIFIED",
@@ -505,9 +516,11 @@ const InputsSchema = z.object({
         startTime: z.string().describe(
           "Output only. The last execution start time of the plugin instance.",
         ).optional(),
-      }).describe("The result of the last execution of the plugin instance.")
+      }).describe("Output only. The last execution of the plugin instance.")
         .optional(),
-    }).describe("The execution status for the plugin instance.").optional(),
+    }).describe(
+      "Optional. The execution information for the plugin instance action done corresponding to an API hub instance.",
+    ).optional(),
     resourceConfig: z.object({
       actionType: z.enum([
         "ACTION_TYPE_UNSPECIFIED",
@@ -518,7 +531,7 @@ const InputsSchema = z.object({
         "Output only. The pubsub topic to publish the data to. Format is projects/{project}/topics/{topic}",
       ).optional(),
     }).describe(
-      "The configuration of resources created for a given plugin instance action.",
+      "Output only. The configuration of resources created for a given plugin instance action. Note these will be returned only in case of non-Google Cloud plugins like OPDK.",
     ).optional(),
     scheduleCronExpression: z.string().describe(
       "Optional. The schedule for this plugin instance action. This can only be set if the plugin supports API_HUB_SCHEDULE_TRIGGER mode for this action.",
@@ -555,7 +568,7 @@ const InputsSchema = z.object({
         ).optional(),
         id: z.string().describe("Required. Id of the option.").optional(),
       }).describe(
-        "ConfigValueOption represents an option for a config variable of type enum or multi select.",
+        "Optional. The config variable value in case of config variable of type enum.",
       ).optional(),
       intValue: z.string().describe(
         "Optional. The config variable value in case of config variable of type integer.",
@@ -567,8 +580,9 @@ const InputsSchema = z.object({
         values: z.array(z.number().int()).describe(
           "Optional. The config variable value of data type multi int.",
         ).optional(),
-      }).describe("The config variable value of data type multi int.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type multi integer.",
+      ).optional(),
       multiSelectValues: z.object({
         values: z.array(z.object({
           description: z.unknown().describe(
@@ -581,20 +595,23 @@ const InputsSchema = z.object({
         })).describe(
           "Optional. The config variable value of data type multi select.",
         ).optional(),
-      }).describe("The config variable value of data type multi select.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type multi select.",
+      ).optional(),
       multiStringValues: z.object({
         values: z.array(z.string()).describe(
           "Optional. The config variable value of data type multi string.",
         ).optional(),
-      }).describe("The config variable value of data type multi string.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type multi string.",
+      ).optional(),
       secretValue: z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Optional. The config variable value in case of config variable of type secret.",
+      ).optional(),
       stringValue: z.string().describe(
         "Optional. The config variable value in case of config variable of type string.",
       ).optional(),
@@ -608,8 +625,9 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Required. The name of the SecretManager secret version resource storing the API key. Format: `projects/{project}/secrets/{secrete}/versions/{version}`. The `secretmanager.versions.access` permission should be granted to the service account accessing the secret.",
+      ).optional(),
       httpElementLocation: z.enum([
         "HTTP_ELEMENT_LOCATION_UNSPECIFIED",
         "QUERY",
@@ -623,7 +641,7 @@ const InputsSchema = z.object({
       name: z.string().describe(
         'Required. The parameter name of the API key. E.g. If the API request is "https://example.com/act?api_key=", "api_key" would be the parameter name.',
       ).optional(),
-    }).describe("Config for authentication with API key.").optional(),
+    }).describe("Api Key Config.").optional(),
     authType: z.enum([
       "AUTH_TYPE_UNSPECIFIED",
       "NO_AUTH",
@@ -636,7 +654,7 @@ const InputsSchema = z.object({
       serviceAccount: z.string().describe(
         "Required. The service account to be used for authenticating request. The `iam.serviceAccounts.getAccessToken` permission should be granted on this service account to the impersonator service account.",
       ).optional(),
-    }).describe("Config for Google service account authentication.").optional(),
+    }).describe("Google Service Account.").optional(),
     oauth2ClientCredentialsConfig: z.object({
       clientId: z.string().describe("Required. The client identifier.")
         .optional(),
@@ -644,23 +662,23 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 client credentials grant authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+      }).describe(
+        "Required. Secret version reference containing the client secret. The `secretmanager.versions.access` permission should be granted to the service account accessing the secret.",
+      ).optional(),
+    }).describe("Oauth2.0 Client Credentials.").optional(),
     userPasswordConfig: z.object({
       password: z.object({
         secretVersion: z.string().describe(
           "Required. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe("Secret provides a reference to entries in Secret Manager.")
-        .optional(),
+      }).describe(
+        "Required. Secret version reference containing the password. The `secretmanager.versions.access` permission should be granted to the service account accessing the secret.",
+      ).optional(),
       username: z.string().describe("Required. Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
-  }).describe("AuthConfig represents the authentication information.")
-    .optional(),
+    }).describe("User Password.").optional(),
+  }).describe(
+    "Optional. The authentication information for this plugin instance.",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name for this plugin instance. Max length is 255 characters.",
   ).optional(),
@@ -723,7 +741,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Plugins.Instances. Registered at `@swamp/gcp/apihub/plugins-instances`. */
 export const model = {
   type: "@swamp/gcp/apihub/plugins-instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -832,6 +850,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

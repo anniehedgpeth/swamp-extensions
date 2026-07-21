@@ -158,39 +158,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  bigqueryDateShardedSpec: z.object({
-    dataset: z.string().describe(
-      "Output only. The Data Catalog resource name of the dataset entry the current table belongs to. For example: `projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}`.",
-    ).optional(),
-    latestShardResource: z.string().describe(
-      "Output only. BigQuery resource name of the latest shard.",
-    ).optional(),
-    shardCount: z.string().describe("Output only. Total number of shards.")
-      .optional(),
-    tablePrefix: z.string().describe(
-      "Output only. The table name prefix of the shards. The name of any given shard is `[table_prefix]YYYYMMDD`. For example, for the `MyTable20180101` shard, the `table_prefix` is `MyTable`.",
-    ).optional(),
-  }).describe(
-    "Specification for a group of BigQuery tables with the `[prefix]YYYYMMDD` name pattern. For more information, see [Introduction to partitioned tables] (https://cloud.google.com/bigquery/docs/partitioned-tables#partitioning_versus_sharding).",
-  ).optional(),
-  bigqueryTableSpec: z.object({
-    tableSourceType: z.enum([
-      "TABLE_SOURCE_TYPE_UNSPECIFIED",
-      "BIGQUERY_VIEW",
-      "BIGQUERY_TABLE",
-      "BIGQUERY_MATERIALIZED_VIEW",
-    ]).describe("Output only. The table source type.").optional(),
-    tableSpec: z.object({
-      groupedEntry: z.string().describe(
-        "Output only. If the table is date-sharded, that is, it matches the `[prefix]YYYYMMDD` name pattern, this field is the Data Catalog resource name of the date-sharded grouped entry. For example: `projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}`. Otherwise, `grouped_entry` is empty.",
-      ).optional(),
-    }).describe("Normal BigQuery table specification.").optional(),
-    viewSpec: z.object({
-      viewQuery: z.string().describe(
-        "Output only. The query that defines the table view.",
-      ).optional(),
-    }).describe("Table view specification.").optional(),
-  }).describe("Describes a BigQuery table.").optional(),
   businessContext: z.object({
     contacts: z.object({
       people: z.array(z.object({
@@ -208,32 +175,16 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Entry overview fields for rich text descriptions of entries.")
       .optional(),
-  }).describe("Business Context of the entry.").optional(),
+  }).describe(
+    "Business Context of the entry. Not supported for BigQuery datasets",
+  ).optional(),
   cloudBigtableSystemSpec: z.object({
     instanceDisplayName: z.string().describe(
       "Display name of the Instance. This is user specified and different from the resource name.",
     ).optional(),
   }).describe(
-    "Specification that applies to all entries that are part of `CLOUD_BIGTABLE` system (user_specified_type)",
+    "Specification that applies to Cloud Bigtable system. Only settable when `integrated_system` is equal to `CLOUD_BIGTABLE`",
   ).optional(),
-  dataSource: z.object({
-    resource: z.string().describe(
-      "Full name of a resource as defined by the service. For example: `//bigquery.googleapis.com/projects/{PROJECT_ID}/locations/{LOCATION}/datasets/{DATASET_ID}/tables/{TABLE_ID}`",
-    ).optional(),
-    service: z.enum(["SERVICE_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"])
-      .describe("Service that physically stores the data.").optional(),
-    sourceEntry: z.string().describe(
-      "Output only. Data Catalog entry name, if applicable.",
-    ).optional(),
-    storageProperties: z.object({
-      filePattern: z.array(z.string()).describe(
-        "Patterns to identify a set of files for this fileset. Examples of a valid `file_pattern`: * `gs://bucket_name/dir/*`: matches all files in the `bucket_name/dir` directory * `gs://bucket_name/dir/**`: matches all files in the `bucket_name/dir` and all subdirectories recursively * `gs://bucket_name/file*`: matches files prefixed by `file` in `bucket_name` * `gs://bucket_name/??.txt`: matches files with two characters followed by `.txt` in `bucket_name` * `gs://bucket_name/[aeiou].txt`: matches files that contain a single vowel character followed by `.txt` in `bucket_name` * `gs://bucket_name/[a-m].txt`: matches files that contain `a`, `b`,... or `m` followed by `.txt` in `bucket_name` * `gs://bucket_name/a/*/b`: matches all files in `bucket_name` that match the `a/*/b` pattern, such as `a/c/b`, `a/d/b` * `gs://another_bucket/a.txt`: matches `gs://another_bucket/a.txt`",
-      ).optional(),
-      fileType: z.string().describe(
-        "File type in MIME format, for example, `text/plain`.",
-      ).optional(),
-    }).describe("Details the properties of the underlying storage.").optional(),
-  }).describe("Physical location of an entry.").optional(),
   dataSourceConnectionSpec: z.object({
     bigqueryConnectionSpec: z.object({
       cloudSql: z.object({
@@ -251,9 +202,10 @@ const GlobalArgsSchema = z.object({
       hasCredential: z.boolean().describe(
         "True if there are credentials attached to the BigQuery connection; false otherwise.",
       ).optional(),
-    }).describe("Specification for the BigQuery connection.").optional(),
+    }).describe("Output only. Fields specific to BigQuery connections.")
+      .optional(),
   }).describe(
-    "Specification that applies to a data source connection. Valid only for entries with the `DATA_SOURCE_CONNECTION` type. Only one of internal specs can be set at the time, and cannot be changed later.",
+    "Specification that applies to a data source connection. Valid only for entries with the `DATA_SOURCE_CONNECTION` type.",
   ).optional(),
   databaseTableSpec: z.object({
     databaseViewSpec: z.object({
@@ -267,7 +219,9 @@ const GlobalArgsSchema = z.object({
         "STANDARD_VIEW",
         "MATERIALIZED_VIEW",
       ]).describe("Type of this view.").optional(),
-    }).describe("Specification that applies to database view.").optional(),
+    }).describe(
+      'Spec what applies to tables that are actually views. Not set for "real" tables.',
+    ).optional(),
     dataplexTable: z.object({
       dataplexSpec: z.object({
         asset: z.string().describe(
@@ -295,9 +249,7 @@ const GlobalArgsSchema = z.object({
             text: z.unknown().describe("Thrift IDL source of the schema.")
               .optional(),
           }).describe("Schema in Thrift format.").optional(),
-        }).describe(
-          "Native schema used by a resource represented as an entry. Used by query engines for deserializing and parsing source data.",
-        ).optional(),
+        }).describe("Format of the data.").optional(),
         projectId: z.string().describe(
           "Project ID of the underlying Cloud Storage or BigQuery data. Note that this may not be the same project as the corresponding Dataplex Universal Catalog lake / zone / asset.",
         ).optional(),
@@ -331,13 +283,14 @@ const GlobalArgsSchema = z.object({
       userManaged: z.boolean().describe(
         "Indicates if the table schema is managed by the user or not.",
       ).optional(),
-    }).describe("Entry specification for a Dataplex Universal Catalog table.")
-      .optional(),
+    }).describe(
+      "Output only. Fields specific to a Dataplex Universal Catalog table and present only in the Dataplex Universal Catalog table entries.",
+    ).optional(),
     type: z.enum(["TABLE_TYPE_UNSPECIFIED", "NATIVE", "EXTERNAL"]).describe(
       "Type of this table.",
     ).optional(),
   }).describe(
-    "Specification that applies to a table resource. Valid only for entries with the `TABLE` type.",
+    "Specification that applies to a table resource. Valid only for entries with the `TABLE` or `EXPLORE` type.",
   ).optional(),
   datasetSpec: z.object({
     vertexDatasetSpec: z.object({
@@ -359,10 +312,8 @@ const GlobalArgsSchema = z.object({
         "ENTERPRISE_KNOWLEDGE_GRAPH",
         "TEXT_PROMPT",
       ]).describe("Type of the dataset.").optional(),
-    }).describe("Specification for vertex dataset resources.").optional(),
-  }).describe(
-    "Specification that applies to a dataset. Valid only for entries with the `DATASET` type.",
-  ).optional(),
+    }).describe("Vertex AI Dataset specific fields").optional(),
+  }).describe("Specification that applies to a dataset.").optional(),
   description: z.string().describe(
     "Entry description that can consist of several sentences or paragraphs that describe entry contents. The description must not contain Unicode non-characters as well as C0 and C1 control codes except tabs (HT), new lines (LF), carriage returns (CR), and page breaks (FF). The maximum size is 2000 bytes when encoded in UTF-8. Default value is an empty string.",
   ).optional(),
@@ -374,9 +325,8 @@ const GlobalArgsSchema = z.object({
       .describe(
         "Output only. Type of underlying storage for the FeatureOnlineStore.",
       ).optional(),
-  }).describe(
-    "Detail description of the source information of a Vertex Feature Online Store.",
-  ).optional(),
+  }).describe("FeatureonlineStore spec for Vertex AI Feature Store.")
+    .optional(),
   filesetSpec: z.object({
     dataplexFileset: z.object({
       dataplexSpec: z.object({
@@ -405,17 +355,16 @@ const GlobalArgsSchema = z.object({
             text: z.unknown().describe("Thrift IDL source of the schema.")
               .optional(),
           }).describe("Schema in Thrift format.").optional(),
-        }).describe(
-          "Native schema used by a resource represented as an entry. Used by query engines for deserializing and parsing source data.",
-        ).optional(),
+        }).describe("Format of the data.").optional(),
         projectId: z.string().describe(
           "Project ID of the underlying Cloud Storage or BigQuery data. Note that this may not be the same project as the corresponding Dataplex Universal Catalog lake / zone / asset.",
         ).optional(),
       }).describe("Common Dataplex Universal Catalog fields.").optional(),
-    }).describe("Entry specification for a Dataplex Universal Catalog fileset.")
-      .optional(),
+    }).describe(
+      "Fields specific to a Dataplex Universal Catalog fileset and present only in the Dataplex Universal Catalog fileset entries.",
+    ).optional(),
   }).describe(
-    "Specification that applies to a fileset. Valid only for entries with the 'FILESET' type.",
+    "Specification that applies to a fileset resource. Valid only for entries with the `FILESET` type.",
   ).optional(),
   fullyQualifiedName: z.string().describe(
     "[Fully Qualified Name (FQN)](https://cloud.google.com//data-catalog/docs/fully-qualified-names) of the resource. Set automatically for entries representing resources from synced systems. Settable only during creation, and read-only later. Can be used for search and lookup of the entries.",
@@ -439,14 +388,16 @@ const GlobalArgsSchema = z.object({
           "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
         ).optional(),
       }).describe(
-        "Timestamps associated with this resource in a particular system.",
+        "Output only. Creation, modification, and expiration timestamps of a Cloud Storage file.",
       ).optional(),
       sizeBytes: z.string().describe("Output only. File size in bytes.")
         .optional(),
     })).describe(
       "Output only. Sample files contained in this fileset, not all files contained in this fileset are represented here.",
     ).optional(),
-  }).describe("Describes a Cloud Storage fileset entry.").optional(),
+  }).describe(
+    "Specification that applies to a Cloud Storage fileset. Valid only for entries with the `FILESET` type.",
+  ).optional(),
   graphSpec: z.object({
     edgeTables: z.array(z.object({
       alias: z.string().describe(
@@ -465,9 +416,8 @@ const GlobalArgsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The destination node reference of the edge.")
+        .optional(),
       dynamicLabelColumn: z.string().describe(
         "Optional. If set, this is the input column for dynamic label in schemaless data model.",
       ).optional(),
@@ -502,9 +452,8 @@ const GlobalArgsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The source node reference of the edge.")
+        .optional(),
     })).describe("Optional. Edge tables of the graph.").optional(),
     name: z.string().describe(
       "Output only. Fully qualified graph name. e.g. `named_catalog.MyGraph`",
@@ -526,9 +475,8 @@ const GlobalArgsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The destination node reference of the edge.")
+        .optional(),
       dynamicLabelColumn: z.string().describe(
         "Optional. If set, this is the input column for dynamic label in schemaless data model.",
       ).optional(),
@@ -563,11 +511,10 @@ const GlobalArgsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The source node reference of the edge.")
+        .optional(),
     })).describe("Required. Node tables of the graph.").optional(),
-  }).describe("Specification that applies to a graph.").optional(),
+  }).describe("Spec for graph.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Cloud labels attached to the entry. In Data Catalog, you can create and modify labels attached only to custom entries. Synced entries have unmodifiable labels that come from the source system.",
   ).optional(),
@@ -591,7 +538,7 @@ const GlobalArgsSchema = z.object({
       "ID of the parent View. Empty if it does not exist.",
     ).optional(),
   }).describe(
-    "Specification that applies to entries that are part `LOOKER` system (user_specified_type)",
+    "Specification that applies to Looker sysstem. Only settable when `user_specified_system` is equal to `LOOKER`",
   ).optional(),
   modelSpec: z.object({
     vertexModelSpec: z.object({
@@ -619,22 +566,9 @@ const GlobalArgsSchema = z.object({
           "CUSTOM_TEXT_EMBEDDING",
           "MARKETPLACE",
         ]).describe("Type of the model source.").optional(),
-      }).describe(
-        "Detail description of the source information of a Vertex model.",
-      ).optional(),
+      }).describe("Source of a Vertex model.").optional(),
     }).describe("Specification for vertex model resources.").optional(),
-  }).describe(
-    "Specification that applies to a model. Valid only for entries with the `MODEL` type.",
-  ).optional(),
-  personalDetails: z.object({
-    starTime: z.string().describe(
-      "Set if the entry is starred; unset otherwise.",
-    ).optional(),
-    starred: z.boolean().describe(
-      "True if the entry is starred by the user; false otherwise.",
-    ).optional(),
-  }).describe("Entry metadata relevant only to the user and private to them.")
-    .optional(),
+  }).describe("Model specification.").optional(),
   routineSpec: z.object({
     bigqueryRoutineSpec: z.object({
       importedLibraries: z.array(z.string()).describe(
@@ -665,7 +599,7 @@ const GlobalArgsSchema = z.object({
       "PROCEDURE",
     ]).describe("The type of the routine.").optional(),
   }).describe(
-    "Specification that applies to a routine. Valid only for entries with the `ROUTINE` type.",
+    "Specification that applies to a user-defined function or procedure. Valid only for entries with the `ROUTINE` type.",
   ).optional(),
   schema: z.object({
     columns: z.array(z.object({
@@ -698,7 +632,7 @@ const GlobalArgsSchema = z.object({
           "MEASURE",
           "PARAMETER",
         ]).describe("Looker specific column type of this column.").optional(),
-      }).describe("Column info specific to Looker System.").optional(),
+      }).describe("Looker specific column info of this column.").optional(),
       mode: z.string().describe(
         "Optional. A column's mode indicates whether values in this column are required, nullable, or repeated. Only `NULLABLE`, `REQUIRED`, and `REPEATED` values are supported. Default mode is `NULLABLE`.",
       ).optional(),
@@ -708,7 +642,9 @@ const GlobalArgsSchema = z.object({
         type: z.string().describe(
           "Required. The type of a field element. See ColumnSchema.type.",
         ).optional(),
-      }).describe("Represents the type of a field element.").optional(),
+      }).describe(
+        "Optional. The subtype of the RANGE, if the type of this field is RANGE. If the type is RANGE, this field is required. Possible values for the field element type of a RANGE include: * DATE * DATETIME * TIMESTAMP",
+      ).optional(),
       subcolumns: z.array(z.record(z.string(), z.unknown())).describe(
         "Optional. Schema of sub-columns. A column can have zero or more sub-columns.",
       ).optional(),
@@ -719,7 +655,7 @@ const GlobalArgsSchema = z.object({
       "The unified GoogleSQL-like schema of columns. The overall maximum number of columns and nested columns is 10,000. The maximum nested depth is 15 levels.",
     ).optional(),
   }).describe(
-    "Represents a schema, for example, a BigQuery, GoogleSQL, or Avro schema.",
+    "Schema of the entry. An entry might not have any schema attached to it.",
   ).optional(),
   serviceSpec: z.object({
     cloudBigtableInstanceSpec: z.object({
@@ -736,24 +672,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("The list of clusters for the Instance.").optional(),
     }).describe(
-      "Specification that applies to Instance entries that are part of `CLOUD_BIGTABLE` system. (user_specified_type)",
+      "Specification that applies to Instance entries of `CLOUD_BIGTABLE` system.",
     ).optional(),
-  }).describe(
-    "Specification that applies to a Service resource. Valid only for entries with the `SERVICE` type.",
-  ).optional(),
-  sourceSystemTimestamps: z.object({
-    createTime: z.string().describe(
-      "Creation timestamp of the resource within the given system.",
-    ).optional(),
-    expireTime: z.string().describe(
-      "Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
-    ).optional(),
-  }).describe(
-    "Timestamps associated with this resource in a particular system.",
-  ).optional(),
+  }).describe("Specification that applies to a Service resource.").optional(),
   spannerTableSpec: z.object({
     foreignKeys: z.array(z.object({
       columnMappings: z.array(z.object({
@@ -777,7 +698,7 @@ const GlobalArgsSchema = z.object({
       columns: z.array(z.string()).describe(
         "Output only. Column names of the primary key.",
       ).optional(),
-    }).describe("Specification of a Spanner primary key.").optional(),
+    }).describe("Output only. The primary key of the table.").optional(),
   }).describe("Specification of a Spanner table.").optional(),
   sqlDatabaseSystemSpec: z.object({
     databaseVersion: z.string().describe("Version of the database engine.")
@@ -789,7 +710,7 @@ const GlobalArgsSchema = z.object({
       "SQL Database Engine. enum SqlEngine { UNDEFINED = 0; MY_SQL = 1; POSTGRE_SQL = 2; SQL_SERVER = 3; } Engine of the enclosing database instance.",
     ).optional(),
   }).describe(
-    "Specification that applies to entries that are part `SQL_DATABASE` system (user_specified_type)",
+    "Specification that applies to a relational database system. Only settable when `user_specified_system` is equal to `SQL_DATABASE`",
   ).optional(),
   type: z.enum([
     "ENTRY_TYPE_UNSPECIFIED",
@@ -849,9 +770,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       'Output only. BigQuery usage statistics over each of the predefined time ranges. Supported time ranges are `{"24H", "7D", "30D"}`.',
     ).optional(),
-  }).describe(
-    "The set of all usage signals that Data Catalog stores. Note: Usually, these signals are updated daily. In rare cases, an update may fail but will be performed again on the next day.",
-  ).optional(),
+  }).describe("Resource usage statistics.").optional(),
   userSpecifiedSystem: z.string().describe(
     "Indicates the entry's source system that Data Catalog doesn't automatically integrate with. The `user_specified_system` string has the following limitations: * Is case insensitive. * Must begin with a letter or underscore. * Can only contain letters, numbers, and underscores. * Must be at least 1 character and at most 64 characters long.",
   ).optional(),
@@ -1164,39 +1083,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  bigqueryDateShardedSpec: z.object({
-    dataset: z.string().describe(
-      "Output only. The Data Catalog resource name of the dataset entry the current table belongs to. For example: `projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}`.",
-    ).optional(),
-    latestShardResource: z.string().describe(
-      "Output only. BigQuery resource name of the latest shard.",
-    ).optional(),
-    shardCount: z.string().describe("Output only. Total number of shards.")
-      .optional(),
-    tablePrefix: z.string().describe(
-      "Output only. The table name prefix of the shards. The name of any given shard is `[table_prefix]YYYYMMDD`. For example, for the `MyTable20180101` shard, the `table_prefix` is `MyTable`.",
-    ).optional(),
-  }).describe(
-    "Specification for a group of BigQuery tables with the `[prefix]YYYYMMDD` name pattern. For more information, see [Introduction to partitioned tables] (https://cloud.google.com/bigquery/docs/partitioned-tables#partitioning_versus_sharding).",
-  ).optional(),
-  bigqueryTableSpec: z.object({
-    tableSourceType: z.enum([
-      "TABLE_SOURCE_TYPE_UNSPECIFIED",
-      "BIGQUERY_VIEW",
-      "BIGQUERY_TABLE",
-      "BIGQUERY_MATERIALIZED_VIEW",
-    ]).describe("Output only. The table source type.").optional(),
-    tableSpec: z.object({
-      groupedEntry: z.string().describe(
-        "Output only. If the table is date-sharded, that is, it matches the `[prefix]YYYYMMDD` name pattern, this field is the Data Catalog resource name of the date-sharded grouped entry. For example: `projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}`. Otherwise, `grouped_entry` is empty.",
-      ).optional(),
-    }).describe("Normal BigQuery table specification.").optional(),
-    viewSpec: z.object({
-      viewQuery: z.string().describe(
-        "Output only. The query that defines the table view.",
-      ).optional(),
-    }).describe("Table view specification.").optional(),
-  }).describe("Describes a BigQuery table.").optional(),
   businessContext: z.object({
     contacts: z.object({
       people: z.array(z.object({
@@ -1214,32 +1100,16 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Entry overview fields for rich text descriptions of entries.")
       .optional(),
-  }).describe("Business Context of the entry.").optional(),
+  }).describe(
+    "Business Context of the entry. Not supported for BigQuery datasets",
+  ).optional(),
   cloudBigtableSystemSpec: z.object({
     instanceDisplayName: z.string().describe(
       "Display name of the Instance. This is user specified and different from the resource name.",
     ).optional(),
   }).describe(
-    "Specification that applies to all entries that are part of `CLOUD_BIGTABLE` system (user_specified_type)",
+    "Specification that applies to Cloud Bigtable system. Only settable when `integrated_system` is equal to `CLOUD_BIGTABLE`",
   ).optional(),
-  dataSource: z.object({
-    resource: z.string().describe(
-      "Full name of a resource as defined by the service. For example: `//bigquery.googleapis.com/projects/{PROJECT_ID}/locations/{LOCATION}/datasets/{DATASET_ID}/tables/{TABLE_ID}`",
-    ).optional(),
-    service: z.enum(["SERVICE_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"])
-      .describe("Service that physically stores the data.").optional(),
-    sourceEntry: z.string().describe(
-      "Output only. Data Catalog entry name, if applicable.",
-    ).optional(),
-    storageProperties: z.object({
-      filePattern: z.array(z.string()).describe(
-        "Patterns to identify a set of files for this fileset. Examples of a valid `file_pattern`: * `gs://bucket_name/dir/*`: matches all files in the `bucket_name/dir` directory * `gs://bucket_name/dir/**`: matches all files in the `bucket_name/dir` and all subdirectories recursively * `gs://bucket_name/file*`: matches files prefixed by `file` in `bucket_name` * `gs://bucket_name/??.txt`: matches files with two characters followed by `.txt` in `bucket_name` * `gs://bucket_name/[aeiou].txt`: matches files that contain a single vowel character followed by `.txt` in `bucket_name` * `gs://bucket_name/[a-m].txt`: matches files that contain `a`, `b`,... or `m` followed by `.txt` in `bucket_name` * `gs://bucket_name/a/*/b`: matches all files in `bucket_name` that match the `a/*/b` pattern, such as `a/c/b`, `a/d/b` * `gs://another_bucket/a.txt`: matches `gs://another_bucket/a.txt`",
-      ).optional(),
-      fileType: z.string().describe(
-        "File type in MIME format, for example, `text/plain`.",
-      ).optional(),
-    }).describe("Details the properties of the underlying storage.").optional(),
-  }).describe("Physical location of an entry.").optional(),
   dataSourceConnectionSpec: z.object({
     bigqueryConnectionSpec: z.object({
       cloudSql: z.object({
@@ -1257,9 +1127,10 @@ const InputsSchema = z.object({
       hasCredential: z.boolean().describe(
         "True if there are credentials attached to the BigQuery connection; false otherwise.",
       ).optional(),
-    }).describe("Specification for the BigQuery connection.").optional(),
+    }).describe("Output only. Fields specific to BigQuery connections.")
+      .optional(),
   }).describe(
-    "Specification that applies to a data source connection. Valid only for entries with the `DATA_SOURCE_CONNECTION` type. Only one of internal specs can be set at the time, and cannot be changed later.",
+    "Specification that applies to a data source connection. Valid only for entries with the `DATA_SOURCE_CONNECTION` type.",
   ).optional(),
   databaseTableSpec: z.object({
     databaseViewSpec: z.object({
@@ -1273,7 +1144,9 @@ const InputsSchema = z.object({
         "STANDARD_VIEW",
         "MATERIALIZED_VIEW",
       ]).describe("Type of this view.").optional(),
-    }).describe("Specification that applies to database view.").optional(),
+    }).describe(
+      'Spec what applies to tables that are actually views. Not set for "real" tables.',
+    ).optional(),
     dataplexTable: z.object({
       dataplexSpec: z.object({
         asset: z.string().describe(
@@ -1301,9 +1174,7 @@ const InputsSchema = z.object({
             text: z.unknown().describe("Thrift IDL source of the schema.")
               .optional(),
           }).describe("Schema in Thrift format.").optional(),
-        }).describe(
-          "Native schema used by a resource represented as an entry. Used by query engines for deserializing and parsing source data.",
-        ).optional(),
+        }).describe("Format of the data.").optional(),
         projectId: z.string().describe(
           "Project ID of the underlying Cloud Storage or BigQuery data. Note that this may not be the same project as the corresponding Dataplex Universal Catalog lake / zone / asset.",
         ).optional(),
@@ -1337,13 +1208,14 @@ const InputsSchema = z.object({
       userManaged: z.boolean().describe(
         "Indicates if the table schema is managed by the user or not.",
       ).optional(),
-    }).describe("Entry specification for a Dataplex Universal Catalog table.")
-      .optional(),
+    }).describe(
+      "Output only. Fields specific to a Dataplex Universal Catalog table and present only in the Dataplex Universal Catalog table entries.",
+    ).optional(),
     type: z.enum(["TABLE_TYPE_UNSPECIFIED", "NATIVE", "EXTERNAL"]).describe(
       "Type of this table.",
     ).optional(),
   }).describe(
-    "Specification that applies to a table resource. Valid only for entries with the `TABLE` type.",
+    "Specification that applies to a table resource. Valid only for entries with the `TABLE` or `EXPLORE` type.",
   ).optional(),
   datasetSpec: z.object({
     vertexDatasetSpec: z.object({
@@ -1365,10 +1237,8 @@ const InputsSchema = z.object({
         "ENTERPRISE_KNOWLEDGE_GRAPH",
         "TEXT_PROMPT",
       ]).describe("Type of the dataset.").optional(),
-    }).describe("Specification for vertex dataset resources.").optional(),
-  }).describe(
-    "Specification that applies to a dataset. Valid only for entries with the `DATASET` type.",
-  ).optional(),
+    }).describe("Vertex AI Dataset specific fields").optional(),
+  }).describe("Specification that applies to a dataset.").optional(),
   description: z.string().describe(
     "Entry description that can consist of several sentences or paragraphs that describe entry contents. The description must not contain Unicode non-characters as well as C0 and C1 control codes except tabs (HT), new lines (LF), carriage returns (CR), and page breaks (FF). The maximum size is 2000 bytes when encoded in UTF-8. Default value is an empty string.",
   ).optional(),
@@ -1380,9 +1250,8 @@ const InputsSchema = z.object({
       .describe(
         "Output only. Type of underlying storage for the FeatureOnlineStore.",
       ).optional(),
-  }).describe(
-    "Detail description of the source information of a Vertex Feature Online Store.",
-  ).optional(),
+  }).describe("FeatureonlineStore spec for Vertex AI Feature Store.")
+    .optional(),
   filesetSpec: z.object({
     dataplexFileset: z.object({
       dataplexSpec: z.object({
@@ -1411,17 +1280,16 @@ const InputsSchema = z.object({
             text: z.unknown().describe("Thrift IDL source of the schema.")
               .optional(),
           }).describe("Schema in Thrift format.").optional(),
-        }).describe(
-          "Native schema used by a resource represented as an entry. Used by query engines for deserializing and parsing source data.",
-        ).optional(),
+        }).describe("Format of the data.").optional(),
         projectId: z.string().describe(
           "Project ID of the underlying Cloud Storage or BigQuery data. Note that this may not be the same project as the corresponding Dataplex Universal Catalog lake / zone / asset.",
         ).optional(),
       }).describe("Common Dataplex Universal Catalog fields.").optional(),
-    }).describe("Entry specification for a Dataplex Universal Catalog fileset.")
-      .optional(),
+    }).describe(
+      "Fields specific to a Dataplex Universal Catalog fileset and present only in the Dataplex Universal Catalog fileset entries.",
+    ).optional(),
   }).describe(
-    "Specification that applies to a fileset. Valid only for entries with the 'FILESET' type.",
+    "Specification that applies to a fileset resource. Valid only for entries with the `FILESET` type.",
   ).optional(),
   fullyQualifiedName: z.string().describe(
     "[Fully Qualified Name (FQN)](https://cloud.google.com//data-catalog/docs/fully-qualified-names) of the resource. Set automatically for entries representing resources from synced systems. Settable only during creation, and read-only later. Can be used for search and lookup of the entries.",
@@ -1445,14 +1313,16 @@ const InputsSchema = z.object({
           "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
         ).optional(),
       }).describe(
-        "Timestamps associated with this resource in a particular system.",
+        "Output only. Creation, modification, and expiration timestamps of a Cloud Storage file.",
       ).optional(),
       sizeBytes: z.string().describe("Output only. File size in bytes.")
         .optional(),
     })).describe(
       "Output only. Sample files contained in this fileset, not all files contained in this fileset are represented here.",
     ).optional(),
-  }).describe("Describes a Cloud Storage fileset entry.").optional(),
+  }).describe(
+    "Specification that applies to a Cloud Storage fileset. Valid only for entries with the `FILESET` type.",
+  ).optional(),
   graphSpec: z.object({
     edgeTables: z.array(z.object({
       alias: z.string().describe(
@@ -1471,9 +1341,8 @@ const InputsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The destination node reference of the edge.")
+        .optional(),
       dynamicLabelColumn: z.string().describe(
         "Optional. If set, this is the input column for dynamic label in schemaless data model.",
       ).optional(),
@@ -1508,9 +1377,8 @@ const InputsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The source node reference of the edge.")
+        .optional(),
     })).describe("Optional. Edge tables of the graph.").optional(),
     name: z.string().describe(
       "Output only. Fully qualified graph name. e.g. `named_catalog.MyGraph`",
@@ -1532,9 +1400,8 @@ const InputsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The destination node reference of the edge.")
+        .optional(),
       dynamicLabelColumn: z.string().describe(
         "Optional. If set, this is the input column for dynamic label in schemaless data model.",
       ).optional(),
@@ -1569,11 +1436,10 @@ const InputsSchema = z.object({
         nodeTableColumns: z.array(z.unknown()).describe(
           "Required. The referenced columns of the source node table.",
         ).optional(),
-      }).describe(
-        "A reference to a source or destination node in a graph edge.",
-      ).optional(),
+      }).describe("Optional. The source node reference of the edge.")
+        .optional(),
     })).describe("Required. Node tables of the graph.").optional(),
-  }).describe("Specification that applies to a graph.").optional(),
+  }).describe("Spec for graph.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Cloud labels attached to the entry. In Data Catalog, you can create and modify labels attached only to custom entries. Synced entries have unmodifiable labels that come from the source system.",
   ).optional(),
@@ -1597,7 +1463,7 @@ const InputsSchema = z.object({
       "ID of the parent View. Empty if it does not exist.",
     ).optional(),
   }).describe(
-    "Specification that applies to entries that are part `LOOKER` system (user_specified_type)",
+    "Specification that applies to Looker sysstem. Only settable when `user_specified_system` is equal to `LOOKER`",
   ).optional(),
   modelSpec: z.object({
     vertexModelSpec: z.object({
@@ -1625,22 +1491,9 @@ const InputsSchema = z.object({
           "CUSTOM_TEXT_EMBEDDING",
           "MARKETPLACE",
         ]).describe("Type of the model source.").optional(),
-      }).describe(
-        "Detail description of the source information of a Vertex model.",
-      ).optional(),
+      }).describe("Source of a Vertex model.").optional(),
     }).describe("Specification for vertex model resources.").optional(),
-  }).describe(
-    "Specification that applies to a model. Valid only for entries with the `MODEL` type.",
-  ).optional(),
-  personalDetails: z.object({
-    starTime: z.string().describe(
-      "Set if the entry is starred; unset otherwise.",
-    ).optional(),
-    starred: z.boolean().describe(
-      "True if the entry is starred by the user; false otherwise.",
-    ).optional(),
-  }).describe("Entry metadata relevant only to the user and private to them.")
-    .optional(),
+  }).describe("Model specification.").optional(),
   routineSpec: z.object({
     bigqueryRoutineSpec: z.object({
       importedLibraries: z.array(z.string()).describe(
@@ -1671,7 +1524,7 @@ const InputsSchema = z.object({
       "PROCEDURE",
     ]).describe("The type of the routine.").optional(),
   }).describe(
-    "Specification that applies to a routine. Valid only for entries with the `ROUTINE` type.",
+    "Specification that applies to a user-defined function or procedure. Valid only for entries with the `ROUTINE` type.",
   ).optional(),
   schema: z.object({
     columns: z.array(z.object({
@@ -1704,7 +1557,7 @@ const InputsSchema = z.object({
           "MEASURE",
           "PARAMETER",
         ]).describe("Looker specific column type of this column.").optional(),
-      }).describe("Column info specific to Looker System.").optional(),
+      }).describe("Looker specific column info of this column.").optional(),
       mode: z.string().describe(
         "Optional. A column's mode indicates whether values in this column are required, nullable, or repeated. Only `NULLABLE`, `REQUIRED`, and `REPEATED` values are supported. Default mode is `NULLABLE`.",
       ).optional(),
@@ -1714,7 +1567,9 @@ const InputsSchema = z.object({
         type: z.string().describe(
           "Required. The type of a field element. See ColumnSchema.type.",
         ).optional(),
-      }).describe("Represents the type of a field element.").optional(),
+      }).describe(
+        "Optional. The subtype of the RANGE, if the type of this field is RANGE. If the type is RANGE, this field is required. Possible values for the field element type of a RANGE include: * DATE * DATETIME * TIMESTAMP",
+      ).optional(),
       subcolumns: z.array(z.record(z.string(), z.unknown())).describe(
         "Optional. Schema of sub-columns. A column can have zero or more sub-columns.",
       ).optional(),
@@ -1725,7 +1580,7 @@ const InputsSchema = z.object({
       "The unified GoogleSQL-like schema of columns. The overall maximum number of columns and nested columns is 10,000. The maximum nested depth is 15 levels.",
     ).optional(),
   }).describe(
-    "Represents a schema, for example, a BigQuery, GoogleSQL, or Avro schema.",
+    "Schema of the entry. An entry might not have any schema attached to it.",
   ).optional(),
   serviceSpec: z.object({
     cloudBigtableInstanceSpec: z.object({
@@ -1742,24 +1597,9 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("The list of clusters for the Instance.").optional(),
     }).describe(
-      "Specification that applies to Instance entries that are part of `CLOUD_BIGTABLE` system. (user_specified_type)",
+      "Specification that applies to Instance entries of `CLOUD_BIGTABLE` system.",
     ).optional(),
-  }).describe(
-    "Specification that applies to a Service resource. Valid only for entries with the `SERVICE` type.",
-  ).optional(),
-  sourceSystemTimestamps: z.object({
-    createTime: z.string().describe(
-      "Creation timestamp of the resource within the given system.",
-    ).optional(),
-    expireTime: z.string().describe(
-      "Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
-    ).optional(),
-  }).describe(
-    "Timestamps associated with this resource in a particular system.",
-  ).optional(),
+  }).describe("Specification that applies to a Service resource.").optional(),
   spannerTableSpec: z.object({
     foreignKeys: z.array(z.object({
       columnMappings: z.array(z.object({
@@ -1783,7 +1623,7 @@ const InputsSchema = z.object({
       columns: z.array(z.string()).describe(
         "Output only. Column names of the primary key.",
       ).optional(),
-    }).describe("Specification of a Spanner primary key.").optional(),
+    }).describe("Output only. The primary key of the table.").optional(),
   }).describe("Specification of a Spanner table.").optional(),
   sqlDatabaseSystemSpec: z.object({
     databaseVersion: z.string().describe("Version of the database engine.")
@@ -1795,7 +1635,7 @@ const InputsSchema = z.object({
       "SQL Database Engine. enum SqlEngine { UNDEFINED = 0; MY_SQL = 1; POSTGRE_SQL = 2; SQL_SERVER = 3; } Engine of the enclosing database instance.",
     ).optional(),
   }).describe(
-    "Specification that applies to entries that are part `SQL_DATABASE` system (user_specified_type)",
+    "Specification that applies to a relational database system. Only settable when `user_specified_system` is equal to `SQL_DATABASE`",
   ).optional(),
   type: z.enum([
     "ENTRY_TYPE_UNSPECIFIED",
@@ -1855,9 +1695,7 @@ const InputsSchema = z.object({
     ).describe(
       'Output only. BigQuery usage statistics over each of the predefined time ranges. Supported time ranges are `{"24H", "7D", "30D"}`.',
     ).optional(),
-  }).describe(
-    "The set of all usage signals that Data Catalog stores. Note: Usually, these signals are updated daily. In rare cases, an update may fail but will be performed again on the next day.",
-  ).optional(),
+  }).describe("Resource usage statistics.").optional(),
   userSpecifiedSystem: z.string().describe(
     "Indicates the entry's source system that Data Catalog doesn't automatically integrate with. The `user_specified_system` string has the following limitations: * Is case insensitive. * Must begin with a letter or underscore. * Can only contain letters, numbers, and underscores. * Must be at least 1 character and at most 64 characters long.",
   ).optional(),
@@ -1898,7 +1736,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Data Catalog EntryGroups.Entries. Registered at `@swamp/gcp/datacatalog/entrygroups-entries`. */
 export const model = {
   type: "@swamp/gcp/datacatalog/entrygroups-entries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2015,6 +1853,22 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: bigqueryDateShardedSpec, bigqueryTableSpec, dataSource, personalDetails, sourceSystemTimestamps",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          bigqueryDateShardedSpec: _bigqueryDateShardedSpec,
+          bigqueryTableSpec: _bigqueryTableSpec,
+          dataSource: _dataSource,
+          personalDetails: _personalDetails,
+          sourceSystemTimestamps: _sourceSystemTimestamps,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2038,19 +1892,12 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["bigqueryDateShardedSpec"] !== undefined) {
-          body["bigqueryDateShardedSpec"] = g["bigqueryDateShardedSpec"];
-        }
-        if (g["bigqueryTableSpec"] !== undefined) {
-          body["bigqueryTableSpec"] = g["bigqueryTableSpec"];
-        }
         if (g["businessContext"] !== undefined) {
           body["businessContext"] = g["businessContext"];
         }
         if (g["cloudBigtableSystemSpec"] !== undefined) {
           body["cloudBigtableSystemSpec"] = g["cloudBigtableSystemSpec"];
         }
-        if (g["dataSource"] !== undefined) body["dataSource"] = g["dataSource"];
         if (g["dataSourceConnectionSpec"] !== undefined) {
           body["dataSourceConnectionSpec"] = g["dataSourceConnectionSpec"];
         }
@@ -2084,18 +1931,12 @@ export const model = {
           body["lookerSystemSpec"] = g["lookerSystemSpec"];
         }
         if (g["modelSpec"] !== undefined) body["modelSpec"] = g["modelSpec"];
-        if (g["personalDetails"] !== undefined) {
-          body["personalDetails"] = g["personalDetails"];
-        }
         if (g["routineSpec"] !== undefined) {
           body["routineSpec"] = g["routineSpec"];
         }
         if (g["schema"] !== undefined) body["schema"] = g["schema"];
         if (g["serviceSpec"] !== undefined) {
           body["serviceSpec"] = g["serviceSpec"];
-        }
-        if (g["sourceSystemTimestamps"] !== undefined) {
-          body["sourceSystemTimestamps"] = g["sourceSystemTimestamps"];
         }
         if (g["spannerTableSpec"] !== undefined) {
           body["spannerTableSpec"] = g["spannerTableSpec"];
@@ -2221,19 +2062,15 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["bigqueryDateShardedSpec"] !== undefined) {
-          body["bigqueryDateShardedSpec"] = g["bigqueryDateShardedSpec"];
-        }
-        if (g["bigqueryTableSpec"] !== undefined) {
-          body["bigqueryTableSpec"] = g["bigqueryTableSpec"];
-        }
         if (g["businessContext"] !== undefined) {
           body["businessContext"] = g["businessContext"];
         }
         if (g["cloudBigtableSystemSpec"] !== undefined) {
           body["cloudBigtableSystemSpec"] = g["cloudBigtableSystemSpec"];
         }
-        if (g["dataSource"] !== undefined) body["dataSource"] = g["dataSource"];
+        if (g["dataSourceConnectionSpec"] !== undefined) {
+          body["dataSourceConnectionSpec"] = g["dataSourceConnectionSpec"];
+        }
         if (g["databaseTableSpec"] !== undefined) {
           body["databaseTableSpec"] = g["databaseTableSpec"];
         }
@@ -2264,18 +2101,12 @@ export const model = {
           body["lookerSystemSpec"] = g["lookerSystemSpec"];
         }
         if (g["modelSpec"] !== undefined) body["modelSpec"] = g["modelSpec"];
-        if (g["personalDetails"] !== undefined) {
-          body["personalDetails"] = g["personalDetails"];
-        }
         if (g["routineSpec"] !== undefined) {
           body["routineSpec"] = g["routineSpec"];
         }
         if (g["schema"] !== undefined) body["schema"] = g["schema"];
         if (g["serviceSpec"] !== undefined) {
           body["serviceSpec"] = g["serviceSpec"];
-        }
-        if (g["sourceSystemTimestamps"] !== undefined) {
-          body["sourceSystemTimestamps"] = g["sourceSystemTimestamps"];
         }
         if (g["spannerTableSpec"] !== undefined) {
           body["spannerTableSpec"] = g["spannerTableSpec"];

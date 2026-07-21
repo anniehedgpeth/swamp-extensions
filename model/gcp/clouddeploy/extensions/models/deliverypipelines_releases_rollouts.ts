@@ -147,51 +147,6 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
   ).optional(),
-  metadata: z.object({
-    automation: z.object({
-      advanceAutomationRuns: z.array(z.string()).describe(
-        "Output only. The names of the AutomationRuns initiated by an advance rollout rule.",
-      ).optional(),
-      promoteAutomationRun: z.string().describe(
-        "Output only. The name of the AutomationRun initiated by a promote release rule.",
-      ).optional(),
-      repairAutomationRuns: z.array(z.string()).describe(
-        "Output only. The names of the AutomationRuns initiated by a repair rollout rule.",
-      ).optional(),
-    }).describe(
-      "AutomationRolloutMetadata contains Automation-related actions that were performed on a rollout.",
-    ).optional(),
-    cloudRun: z.object({
-      job: z.string().describe(
-        "Output only. The name of the Cloud Run job that is associated with a `Rollout`. Format is `projects/{project}/locations/{location}/jobs/{job_name}`.",
-      ).optional(),
-      previousRevision: z.string().describe(
-        "Output only. The previous Cloud Run Revision name associated with a `Rollout`. Only set when a canary deployment strategy is configured. Format for service is projects/{project}/locations/{location}/services/{service}/revisions/{revision}. Format for worker pool is projects/{project}/locations/{location}/workerPools/{workerpool}/revisions/{revision}.",
-      ).optional(),
-      revision: z.string().describe(
-        "Output only. The Cloud Run Revision id associated with a `Rollout`.",
-      ).optional(),
-      service: z.string().describe(
-        "Output only. The name of the Cloud Run Service that is associated with a `Rollout`. Format is `projects/{project}/locations/{location}/services/{service}`.",
-      ).optional(),
-      serviceUrls: z.array(z.string()).describe(
-        "Output only. The Cloud Run Service urls that are associated with a `Rollout`.",
-      ).optional(),
-      workerPool: z.string().describe(
-        "Output only. The Cloud Run worker pool associated with a `Rollout`. Format is `projects/{project}/locations/{location}/workerPools/{worker_pool}`.",
-      ).optional(),
-    }).describe(
-      "CloudRunMetadata contains information from a Cloud Run deployment.",
-    ).optional(),
-    custom: z.object({
-      values: z.record(z.string(), z.string()).describe(
-        "Output only. Key-value pairs provided by the user-defined operation.",
-      ).optional(),
-    }).describe(
-      "CustomMetadata contains information from a user-defined operation.",
-    ).optional(),
-  }).describe("Metadata includes information associated with a `Rollout`.")
-    .optional(),
   name: z.string().describe(
     "Identifier. Name of the `Rollout`. Format is `projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}`. The `rollout` component must match `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`",
   ).optional(),
@@ -434,51 +389,6 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
   ).optional(),
-  metadata: z.object({
-    automation: z.object({
-      advanceAutomationRuns: z.array(z.string()).describe(
-        "Output only. The names of the AutomationRuns initiated by an advance rollout rule.",
-      ).optional(),
-      promoteAutomationRun: z.string().describe(
-        "Output only. The name of the AutomationRun initiated by a promote release rule.",
-      ).optional(),
-      repairAutomationRuns: z.array(z.string()).describe(
-        "Output only. The names of the AutomationRuns initiated by a repair rollout rule.",
-      ).optional(),
-    }).describe(
-      "AutomationRolloutMetadata contains Automation-related actions that were performed on a rollout.",
-    ).optional(),
-    cloudRun: z.object({
-      job: z.string().describe(
-        "Output only. The name of the Cloud Run job that is associated with a `Rollout`. Format is `projects/{project}/locations/{location}/jobs/{job_name}`.",
-      ).optional(),
-      previousRevision: z.string().describe(
-        "Output only. The previous Cloud Run Revision name associated with a `Rollout`. Only set when a canary deployment strategy is configured. Format for service is projects/{project}/locations/{location}/services/{service}/revisions/{revision}. Format for worker pool is projects/{project}/locations/{location}/workerPools/{workerpool}/revisions/{revision}.",
-      ).optional(),
-      revision: z.string().describe(
-        "Output only. The Cloud Run Revision id associated with a `Rollout`.",
-      ).optional(),
-      service: z.string().describe(
-        "Output only. The name of the Cloud Run Service that is associated with a `Rollout`. Format is `projects/{project}/locations/{location}/services/{service}`.",
-      ).optional(),
-      serviceUrls: z.array(z.string()).describe(
-        "Output only. The Cloud Run Service urls that are associated with a `Rollout`.",
-      ).optional(),
-      workerPool: z.string().describe(
-        "Output only. The Cloud Run worker pool associated with a `Rollout`. Format is `projects/{project}/locations/{location}/workerPools/{worker_pool}`.",
-      ).optional(),
-    }).describe(
-      "CloudRunMetadata contains information from a Cloud Run deployment.",
-    ).optional(),
-    custom: z.object({
-      values: z.record(z.string(), z.string()).describe(
-        "Output only. Key-value pairs provided by the user-defined operation.",
-      ).optional(),
-    }).describe(
-      "CustomMetadata contains information from a user-defined operation.",
-    ).optional(),
-  }).describe("Metadata includes information associated with a `Rollout`.")
-    .optional(),
   name: z.string().describe(
     "Identifier. Name of the `Rollout`. Format is `projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}`. The `rollout` component must match `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`",
   ).optional(),
@@ -526,7 +436,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy DeliveryPipelines.Releases.Rollouts. Registered at `@swamp/gcp/clouddeploy/deliverypipelines-releases-rollouts`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/deliverypipelines-releases-rollouts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -638,6 +548,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: metadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { metadata: _metadata, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -672,7 +590,6 @@ export const model = {
           body["description"] = g["description"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["targetId"] !== undefined) body["targetId"] = g["targetId"];
         if (g["overrideDeployPolicy"] !== undefined) {

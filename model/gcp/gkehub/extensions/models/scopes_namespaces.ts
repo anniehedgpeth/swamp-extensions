@@ -163,18 +163,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   scope: z.string().describe("Required. Scope associated with the namespace")
     .optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe("Output only. The current state of the Namespace resource.")
-      .optional(),
-  }).describe(
-    "NamespaceLifecycleState describes the state of a Namespace resource.",
-  ).optional(),
   scopeNamespaceId: z.string().describe(
     "Required. Client chosen ID for the Namespace. `namespace_id` must be a valid RFC 1123 compliant DNS label: 1. At most 63 characters in length 2. It must consist of lower case alphanumeric characters or `-` 3. It must start and end with an alphanumeric character Which can be expressed as the regex: `[a-z0-9]([-a-z0-9]*[a-z0-9])?`, with a maximum length of 63 characters.",
   ).optional(),
@@ -218,18 +206,6 @@ const InputsSchema = z.object({
   ).optional(),
   scope: z.string().describe("Required. Scope associated with the namespace")
     .optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe("Output only. The current state of the Namespace resource.")
-      .optional(),
-  }).describe(
-    "NamespaceLifecycleState describes the state of a Namespace resource.",
-  ).optional(),
   scopeNamespaceId: z.string().describe(
     "Required. Client chosen ID for the Namespace. `namespace_id` must be a valid RFC 1123 compliant DNS label: 1. At most 63 characters in length 2. It must consist of lower case alphanumeric characters or `-` 3. It must start and end with an alphanumeric character Which can be expressed as the regex: `[a-z0-9]([-a-z0-9]*[a-z0-9])?`, with a maximum length of 63 characters.",
   ).optional(),
@@ -264,7 +240,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Scopes.Namespaces. Registered at `@swamp/gcp/gkehub/scopes-namespaces`. */
 export const model = {
   type: "@swamp/gcp/gkehub/scopes-namespaces",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -292,7 +278,6 @@ export const model = {
           body["namespaceLabels"] = g["namespaceLabels"];
         }
         if (g["scope"] !== undefined) body["scope"] = g["scope"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["scopeNamespaceId"] !== undefined) {
           params["scopeNamespaceId"] = String(g["scopeNamespaceId"]);
         }
@@ -405,7 +390,6 @@ export const model = {
           body["namespaceLabels"] = g["namespaceLabels"];
         }
         if (g["scope"] !== undefined) body["scope"] = g["scope"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

@@ -700,12 +700,53 @@ interface IdempotencyConfig {
 The generator selects the match field via `resolveGcpMatchField()`, a cascade
 that picks the best user-facing unique identifier:
 
-- If `displayName` exists in `insertProperties`: match by `displayName` (covers
-  folders, projects, and other resources where `name` is auto-generated)
-- If `shortName` exists in `insertProperties`: match by `shortName` (covers
-  tagKeys, tagValues, and firewall/security policies where `name` is
-  auto-generated or not part of the insert body)
-- Otherwise: match by the resource's naming field
+1. If `displayName` exists in `insertProperties`: match by `displayName` (covers
+   folders, projects, and other resources where `name` is auto-generated)
+2. If `shortName` exists in `insertProperties`: match by `shortName` (covers
+   tagKeys, tagValues, and firewall/security policies where `name` is
+   auto-generated or not part of the insert body)
+3. If the naming field is **not synthetic** (user-settable): match by the naming
+   field
+4. If the naming field **is synthetic** (server-assigned): scan
+   `insertProperties` for a nested identity field — an object-typed property
+   with an `id` sub-property where neither the parent nor the `id` is described
+   as output-only. If exactly one candidate is found, return its dotted path
+   (e.g., `preferredMemberKey.id`). Multiple candidates → ambiguous, return
+   `undefined`.
+5. Otherwise: return `undefined` (no viable match field)
+
+When `resolveGcpMatchField` returns `undefined`, the generator omits the
+`IdempotencyConfig` entirely. The resource gets a clean 409 error on duplicate
+create instead of the misleading "Idempotency fallback also found no match via
+list" message that occurred when matching on a server-assigned `name`.
+
+### Nested identity field fallback
+
+When the match field is a dotted path (e.g., `preferredMemberKey.id`), the
+`IdempotencyConfig` approach cannot be used because `tryReadViaList` only
+supports flat field access. Instead, the generator emits an inline try/catch:
+
+```typescript
+let result: StateData;
+try {
+  result = await createResource(..., undefined, credentials) as StateData;
+} catch (createErr) {
+  if (!isAlreadyExistsError(createErr)) throw createErr;
+  const matchValue = String(g["preferredMemberKey"]?.id ?? "");
+  const { items } = await listResources(
+    BASE_URL, LIST_CONFIG, listParams, arrayField, 100, credentials,
+  );
+  const existing = items.find((item: any) =>
+    item?.preferredMemberKey?.id === matchValue
+  );
+  if (existing) result = existing as StateData;
+  else throw createErr;
+}
+```
+
+This pattern adds `isAlreadyExistsError` and `listResources` to the model's
+imports. The `listResponseArrayField` must be available for the resource;
+resources without it fall back to `undefined` (no fallback).
 
 ### Segment-ID fallback for wrapper create requests
 

@@ -146,8 +146,7 @@ const GlobalArgsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
-    }).describe("Configures various aspects of Dataform notebook runtime.")
-      .optional(),
+    }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
     ).optional(),
@@ -160,22 +159,12 @@ const GlobalArgsSchema = z.object({
     vars: z.record(z.string(), z.string()).describe(
       "Optional. User-defined variables that are made available to project code during compilation.",
     ).optional(),
-  }).describe("Configures various aspects of Dataform code compilation.")
-    .optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
+  }).describe(
+    "Immutable. If set, fields of `code_compilation_config` override the default compilation settings that are specified in dataform.json.",
+  ).optional(),
   gitCommitish: z.string().describe(
     "Immutable. Git commit/tag/branch name at which the repository should be compiled. Must exist in the remote repository. Examples: - a commit SHA: `12ade345` - a tag: `tag1` - a branch name: `branch1`",
   ).optional(),
-  privateResourceMetadata: z.object({
-    userScoped: z.boolean().describe(
-      "Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.",
-    ).optional(),
-  }).describe("Metadata used to identify if a resource is user scoped.")
-    .optional(),
   releaseConfig: z.string().describe(
     "Immutable. The name of the release config to compile. Must be in the format `projects/*/locations/*/repositories/*/releaseConfigs/*`.",
   ).optional(),
@@ -263,8 +252,7 @@ const InputsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
-    }).describe("Configures various aspects of Dataform notebook runtime.")
-      .optional(),
+    }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
     ).optional(),
@@ -277,22 +265,12 @@ const InputsSchema = z.object({
     vars: z.record(z.string(), z.string()).describe(
       "Optional. User-defined variables that are made available to project code during compilation.",
     ).optional(),
-  }).describe("Configures various aspects of Dataform code compilation.")
-    .optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
+  }).describe(
+    "Immutable. If set, fields of `code_compilation_config` override the default compilation settings that are specified in dataform.json.",
+  ).optional(),
   gitCommitish: z.string().describe(
     "Immutable. Git commit/tag/branch name at which the repository should be compiled. Must exist in the remote repository. Examples: - a commit SHA: `12ade345` - a tag: `tag1` - a branch name: `branch1`",
   ).optional(),
-  privateResourceMetadata: z.object({
-    userScoped: z.boolean().describe(
-      "Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.",
-    ).optional(),
-  }).describe("Metadata used to identify if a resource is user scoped.")
-    .optional(),
   releaseConfig: z.string().describe(
     "Immutable. The name of the release config to compile. Must be in the format `projects/*/locations/*/repositories/*/releaseConfigs/*`.",
   ).optional(),
@@ -330,7 +308,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.CompilationResults. Registered at `@swamp/gcp/dataform/repositories-compilationresults`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-compilationresults",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -452,6 +430,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: dataEncryptionState, privateResourceMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          dataEncryptionState: _dataEncryptionState,
+          privateResourceMetadata: _privateResourceMetadata,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -477,14 +467,8 @@ export const model = {
         if (g["codeCompilationConfig"] !== undefined) {
           body["codeCompilationConfig"] = g["codeCompilationConfig"];
         }
-        if (g["dataEncryptionState"] !== undefined) {
-          body["dataEncryptionState"] = g["dataEncryptionState"];
-        }
         if (g["gitCommitish"] !== undefined) {
           body["gitCommitish"] = g["gitCommitish"];
-        }
-        if (g["privateResourceMetadata"] !== undefined) {
-          body["privateResourceMetadata"] = g["privateResourceMetadata"];
         }
         if (g["releaseConfig"] !== undefined) {
           body["releaseConfig"] = g["releaseConfig"];
@@ -503,14 +487,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

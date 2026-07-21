@@ -175,25 +175,30 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the Version resource. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -208,7 +213,7 @@ const GlobalArgsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe("Optional. Documentation of the external API.").optional(),
   endpoints: z.array(z.string()).describe(
     "Optional. List of endpoints on which this API is accessible.",
   ).optional(),
@@ -270,25 +275,30 @@ const InputsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the Version resource. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -303,7 +313,7 @@ const InputsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe("Optional. Documentation of the external API.").optional(),
   endpoints: z.array(z.string()).describe(
     "Optional. List of endpoints on which this API is accessible.",
   ).optional(),
@@ -344,7 +354,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub ExternalApis. Registered at `@swamp/gcp/apihub/externalapis`. */
 export const model = {
   type: "@swamp/gcp/apihub/externalapis",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -453,6 +463,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

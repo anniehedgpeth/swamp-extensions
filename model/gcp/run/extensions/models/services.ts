@@ -186,7 +186,8 @@ const GlobalArgsSchema = z.object({
     useDefault: z.boolean().describe(
       "Optional. If True, indicates to use the default project's binary authorization policy. If False, binary authorization will be disabled.",
     ).optional(),
-  }).describe("Settings for Binary Authorization feature.").optional(),
+  }).describe("Optional. Settings for the Binary Authorization feature.")
+    .optional(),
   buildConfig: z.object({
     baseImage: z.string().describe(
       "Optional. The base image used to build the function.",
@@ -215,9 +216,8 @@ const GlobalArgsSchema = z.object({
     workerPool: z.string().describe(
       "Optional. Name of the Cloud Build Custom Worker Pool that should be used to build the Cloud Run function. The format of this field is `projects/{project}/locations/{region}/workerPools/{workerPool}` where `{project}` and `{region}` are the project id and region respectively where the worker pool is defined and `{workerPool}` is the short name of the worker pool.",
     ).optional(),
-  }).describe(
-    "Describes the Build step of the function that builds a container from the given source.",
-  ).optional(),
+  }).describe("Optional. Configuration for building a Cloud Run function.")
+    .optional(),
   client: z.string().describe("Arbitrary identifier for the API client.")
     .optional(),
   clientVersion: z.string().describe(
@@ -268,7 +268,7 @@ const GlobalArgsSchema = z.object({
     regions: z.array(z.string()).describe(
       "Required. List of regions to deploy to, including primary region.",
     ).optional(),
-  }).describe("Settings for multi-region deployment.").optional(),
+  }).describe("Optional. Settings for multi-region deployment.").optional(),
   name: z.string().describe(
     "Identifier. The fully qualified name of this Service. In CreateServiceRequest, this field is ignored, and instead composed from CreateServiceRequest.parent and CreateServiceRequest.service_id. Format: projects/{project}/locations/{location}/services/{service_id}",
   ).optional(),
@@ -284,9 +284,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     scalingMode: z.enum(["SCALING_MODE_UNSPECIFIED", "AUTOMATIC", "MANUAL"])
       .describe("Optional. The scaling mode for the service.").optional(),
-  }).describe(
-    "Scaling settings applied at the service level rather than at the revision level.",
-  ).optional(),
+  }).describe("Optional. Specifies service-level scaling settings").optional(),
   sshEnabled: z.boolean().describe(
     "Optional. Enables SSH access to the Service.",
   ).optional(),
@@ -314,7 +312,8 @@ const GlobalArgsSchema = z.object({
         sourceLocation: z.string().describe(
           "Output only. Source code location of the image.",
         ).optional(),
-      }).describe("Build information of the image.").optional(),
+      }).describe("Output only. The build info of the container image.")
+        .optional(),
       command: z.array(z.string()).describe(
         "Entrypoint array. Not executed within a shell. The docker image's ENTRYPOINT is used if this is not provided.",
       ).optional(),
@@ -329,7 +328,7 @@ const GlobalArgsSchema = z.object({
           'Literal value of the environment variable. Defaults to "", and the maximum length is 32768 bytes. Variable references are not supported in Cloud Run.',
         ).optional(),
         valueSource: z.unknown().describe(
-          "EnvVarSource represents a source for the value of an EnvVar.",
+          "Source for the environment variable's value.",
         ).optional(),
       })).describe("List of environment variables to set in the container.")
         .optional(),
@@ -347,8 +346,9 @@ const GlobalArgsSchema = z.object({
           service: z.unknown().describe(
             "Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
-          .optional(),
+        }).describe(
+          "Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
+        ).optional(),
         httpGet: z.object({
           httpHeaders: z.unknown().describe(
             "Optional. Custom headers to set in the request. HTTP allows repeated headers.",
@@ -360,7 +360,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
+          "Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
@@ -373,13 +373,13 @@ const GlobalArgsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
+          "Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         timeoutSeconds: z.number().int().describe(
           "Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Periodic probe of container liveness. Container will be restarted if the probe fails.",
       ).optional(),
       name: z.string().describe(
         "Name of the container specified as a DNS_LABEL (RFC 1123).",
@@ -405,8 +405,9 @@ const GlobalArgsSchema = z.object({
           service: z.unknown().describe(
             "Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
-          .optional(),
+        }).describe(
+          "Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
+        ).optional(),
         httpGet: z.object({
           httpHeaders: z.unknown().describe(
             "Optional. Custom headers to set in the request. HTTP allows repeated headers.",
@@ -418,7 +419,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
+          "Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
@@ -431,14 +432,12 @@ const GlobalArgsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
+          "Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         timeoutSeconds: z.number().int().describe(
           "Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Readiness probe to be used for health checks.").optional(),
       resources: z.object({
         cpuIdle: z.boolean().describe(
           "Determines whether CPU is only allocated during requests (true by default). However, if ResourceRequirements is set, the caller must explicitly set this field to true to preserve the default behavior.",
@@ -449,9 +448,8 @@ const GlobalArgsSchema = z.object({
         startupCpuBoost: z.boolean().describe(
           "Determines whether CPU should be boosted on startup of a new container instance above the requested CPU threshold, this can help reduce cold-start latency.",
         ).optional(),
-      }).describe(
-        "ResourceRequirements describes the compute resource requirements.",
-      ).optional(),
+      }).describe("Compute Resource requirements by this container.")
+        .optional(),
       sandboxLauncher: z.boolean().describe(
         "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
       ).optional(),
@@ -466,13 +464,15 @@ const GlobalArgsSchema = z.object({
           object: z.unknown().describe(
             "Required. The Cloud Storage object name.",
           ).optional(),
-        }).describe("Cloud Storage source.").optional(),
+        }).describe("The source is a Cloud Storage bucket.").optional(),
         inlinedSource: z.object({
           sources: z.unknown().describe(
             "Required. Input only. The source code.",
           ).optional(),
-        }).describe("Inlined source.").optional(),
-      }).describe("Source type for the container.").optional(),
+        }).describe(
+          "Optional. Input only. Source code inlined in the request. Cloud Run will store the inlined_source to Cloud Storage and replace the field with cloud_storage_source.",
+        ).optional(),
+      }).describe("Optional. Location of the source.").optional(),
       startupProbe: z.object({
         failureThreshold: z.number().int().describe(
           "Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
@@ -484,8 +484,9 @@ const GlobalArgsSchema = z.object({
           service: z.unknown().describe(
             "Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
-          .optional(),
+        }).describe(
+          "Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
+        ).optional(),
         httpGet: z.object({
           httpHeaders: z.unknown().describe(
             "Optional. Custom headers to set in the request. HTTP allows repeated headers.",
@@ -497,7 +498,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
+          "Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
@@ -510,13 +511,13 @@ const GlobalArgsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
+          "Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         timeoutSeconds: z.number().int().describe(
           "Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Startup probe of application within the container. All other probes are disabled if a startup probe is provided, until it succeeds. Container will not be added to service endpoints if the probe fails.",
       ).optional(),
       volumeMounts: z.array(z.object({
         mountPath: z.unknown().describe(
@@ -571,7 +572,8 @@ const GlobalArgsSchema = z.object({
       accelerator: z.string().describe(
         "Required. GPU accelerator type to attach to an instance.",
       ).optional(),
-    }).describe("Hardware constraints configuration.").optional(),
+    }).describe("Optional. The node selector for the revision template.")
+      .optional(),
     revision: z.string().describe(
       "Optional. The unique name for the revision. If this field is omitted, it will be automatically generated based on the Service name.",
     ).optional(),
@@ -588,7 +590,7 @@ const GlobalArgsSchema = z.object({
       minInstanceCount: z.number().int().describe(
         "Optional. Minimum number of serving instances that this resource should have.",
       ).optional(),
-    }).describe("Settings for revision-level scaling settings.").optional(),
+    }).describe("Optional. Scaling settings for this Revision.").optional(),
     serviceAccount: z.string().describe(
       "Optional. Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project's default service account.",
     ).optional(),
@@ -596,9 +598,7 @@ const GlobalArgsSchema = z.object({
       mesh: z.string().describe(
         "The Mesh resource name. Format: `projects/{project}/locations/global/meshes/{mesh}`, where `{project}` can be project id or number.",
       ).optional(),
-    }).describe(
-      "Settings for Cloud Service Mesh. For more information see https://cloud.google.com/service-mesh/docs/overview.",
-    ).optional(),
+    }).describe("Optional. Enables service mesh connectivity.").optional(),
     sessionAffinity: z.boolean().describe("Optional. Enable session affinity.")
       .optional(),
     timeout: z.string().describe(
@@ -610,7 +610,7 @@ const GlobalArgsSchema = z.object({
           "A list of Cloud SQL instance connection names. Cloud Run uses these to establish connections to the specified Cloud SQL instances. While the SQL instance name itself is unique within a project, the full connection name requires the location for proper routing. Format: `{project}:{location}:{instance}` Example: `my-project:us-central1:my-instance` You can find this value on the instance's **Overview** page in the Google Cloud console or by using the following `gcloud` command: ` sh gcloud sql instances describe INSTANCE_NAME \\ --format='value(connectionName)' ` Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.",
         ).optional(),
       }).describe(
-        "Represents a set of Cloud SQL instances. Each one will be available under /cloudsql/[instance]. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.",
+        "For Cloud SQL volumes, contains the specific instances that should be mounted. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.",
       ).optional(),
       emptyDir: z.object({
         medium: z.enum(["MEDIUM_UNSPECIFIED", "MEMORY", "DISK"]).describe(
@@ -619,9 +619,7 @@ const GlobalArgsSchema = z.object({
         sizeLimit: z.string().describe(
           "Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
         ).optional(),
-      }).describe(
-        "In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).",
-      ).optional(),
+      }).describe("Ephemeral storage used as a shared volume.").optional(),
       gcs: z.object({
         bucket: z.string().describe("Cloud Storage Bucket name.").optional(),
         mountOptions: z.array(z.unknown()).describe(
@@ -630,9 +628,8 @@ const GlobalArgsSchema = z.object({
         readOnly: z.boolean().describe(
           "If true, the volume will be mounted as read only for all mounts.",
         ).optional(),
-      }).describe(
-        "Represents a volume backed by a Cloud Storage bucket using Cloud Storage FUSE.",
-      ).optional(),
+      }).describe("Persistent storage backed by a Google Cloud Storage bucket.")
+        .optional(),
       name: z.string().describe("Required. Volume's name.").optional(),
       nfs: z.object({
         path: z.string().describe("Path that is exported by the NFS server.")
@@ -642,7 +639,8 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         server: z.string().describe("Hostname or IP address of the NFS server")
           .optional(),
-      }).describe("Represents an NFS mount.").optional(),
+      }).describe("For NFS Voumes, contains the path to the nfs Volume")
+        .optional(),
       secret: z.object({
         defaultMode: z.number().int().describe(
           "Integer representation of mode bits to use on created files by default. Must be a value between 0000 and 0777 (octal), defaulting to 0444. Directories within the path are not affected by this setting. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. This might be in conflict with other options that affect the file mode, like fsGroup, and as a result, other mode bits could be set.",
@@ -654,7 +652,7 @@ const GlobalArgsSchema = z.object({
           "Required. The name of the secret in Cloud Secret Manager. Format: {secret} if the secret is in the same project. projects/{project}/secrets/{secret} if the secret is in a different project.",
         ).optional(),
       }).describe(
-        "The secret's value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret.",
+        "Secret represents a secret that should populate this volume.",
       ).optional(),
     })).describe("Optional. A list of Volumes to make available to containers.")
       .optional(),
@@ -683,85 +681,11 @@ const GlobalArgsSchema = z.object({
         "Optional. Direct VPC egress settings. Currently only single network interface is supported.",
       ).optional(),
     }).describe(
-      "VPC Access settings. For more information on sending traffic to a VPC network, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.",
+      "Optional. VPC Access configuration to use for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.",
     ).optional(),
   }).describe(
-    "RevisionTemplate describes the data a revision should have when created from a template.",
+    "Required. The template used to create revisions for this Service.",
   ).optional(),
-  terminalCondition: z.object({
-    executionReason: z.enum([
-      "EXECUTION_REASON_UNDEFINED",
-      "JOB_STATUS_SERVICE_POLLING_ERROR",
-      "NON_ZERO_EXIT_CODE",
-      "CANCELLED",
-      "CANCELLING",
-      "DELETED",
-      "DELAYED_START_PENDING",
-    ]).describe("Output only. A reason for the execution condition.")
-      .optional(),
-    instanceReason: z.enum([
-      "INSTANCE_REASON_UNSPECIFIED",
-      "INSTANCE_DELETED",
-      "INSTANCE_STOPPED",
-      "INSTANCE_STOPPING",
-      "INSTANCE_NON_ZERO_EXIT_CODE",
-    ]).describe("Output only. A reason for the instance condition.").optional(),
-    lastTransitionTime: z.string().describe(
-      "Last time the condition transitioned from one status to another.",
-    ).optional(),
-    message: z.string().describe(
-      "Human readable message indicating details about the current status.",
-    ).optional(),
-    reason: z.enum([
-      "COMMON_REASON_UNDEFINED",
-      "UNKNOWN",
-      "REVISION_FAILED",
-      "PROGRESS_DEADLINE_EXCEEDED",
-      "CONTAINER_MISSING",
-      "CONTAINER_PERMISSION_DENIED",
-      "CONTAINER_IMAGE_UNAUTHORIZED",
-      "CONTAINER_IMAGE_AUTHORIZATION_CHECK_FAILED",
-      "ENCRYPTION_KEY_PERMISSION_DENIED",
-      "ENCRYPTION_KEY_CHECK_FAILED",
-      "SECRETS_ACCESS_CHECK_FAILED",
-      "WAITING_FOR_OPERATION",
-      "IMMEDIATE_RETRY",
-      "POSTPONED_RETRY",
-      "INTERNAL",
-      "VPC_NETWORK_NOT_FOUND",
-    ]).describe(
-      "Output only. A common (service-level) reason for this condition.",
-    ).optional(),
-    revisionReason: z.enum([
-      "REVISION_REASON_UNDEFINED",
-      "PENDING",
-      "RESERVE",
-      "RETIRED",
-      "RETIRING",
-      "RECREATING",
-      "HEALTH_CHECK_CONTAINER_ERROR",
-      "CUSTOMIZED_PATH_RESPONSE_PENDING",
-      "MIN_INSTANCES_NOT_PROVISIONED",
-      "ACTIVE_REVISION_LIMIT_REACHED",
-      "NO_DEPLOYMENT",
-      "HEALTH_CHECK_SKIPPED",
-      "MIN_INSTANCES_WARMING",
-    ]).describe("Output only. A reason for the revision condition.").optional(),
-    severity: z.enum(["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"])
-      .describe(
-        "How to interpret failures of this condition, one of Error, Warning, Info",
-      ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CONDITION_PENDING",
-      "CONDITION_RECONCILING",
-      "CONDITION_FAILED",
-      "CONDITION_SUCCEEDED",
-    ]).describe("State of the condition.").optional(),
-    type: z.string().describe(
-      'type is used to communicate the status of the reconciliation process. See also: https://github.com/knative/serving/blob/main/docs/spec/errors.md#error-conditions-and-reporting Types common to all resources include: * "Ready": True when the Resource is ready.',
-    ).optional(),
-  }).describe("Defines a status condition for a resource.").optional(),
   traffic: z.array(z.object({
     percent: z.number().int().describe(
       "Specifies percent of the traffic to this Revision. This defaults to zero if unspecified.",
@@ -1062,7 +986,8 @@ const InputsSchema = z.object({
     useDefault: z.boolean().describe(
       "Optional. If True, indicates to use the default project's binary authorization policy. If False, binary authorization will be disabled.",
     ).optional(),
-  }).describe("Settings for Binary Authorization feature.").optional(),
+  }).describe("Optional. Settings for the Binary Authorization feature.")
+    .optional(),
   buildConfig: z.object({
     baseImage: z.string().describe(
       "Optional. The base image used to build the function.",
@@ -1091,9 +1016,8 @@ const InputsSchema = z.object({
     workerPool: z.string().describe(
       "Optional. Name of the Cloud Build Custom Worker Pool that should be used to build the Cloud Run function. The format of this field is `projects/{project}/locations/{region}/workerPools/{workerPool}` where `{project}` and `{region}` are the project id and region respectively where the worker pool is defined and `{workerPool}` is the short name of the worker pool.",
     ).optional(),
-  }).describe(
-    "Describes the Build step of the function that builds a container from the given source.",
-  ).optional(),
+  }).describe("Optional. Configuration for building a Cloud Run function.")
+    .optional(),
   client: z.string().describe("Arbitrary identifier for the API client.")
     .optional(),
   clientVersion: z.string().describe(
@@ -1144,7 +1068,7 @@ const InputsSchema = z.object({
     regions: z.array(z.string()).describe(
       "Required. List of regions to deploy to, including primary region.",
     ).optional(),
-  }).describe("Settings for multi-region deployment.").optional(),
+  }).describe("Optional. Settings for multi-region deployment.").optional(),
   name: z.string().describe(
     "Identifier. The fully qualified name of this Service. In CreateServiceRequest, this field is ignored, and instead composed from CreateServiceRequest.parent and CreateServiceRequest.service_id. Format: projects/{project}/locations/{location}/services/{service_id}",
   ).optional(),
@@ -1160,9 +1084,7 @@ const InputsSchema = z.object({
     ).optional(),
     scalingMode: z.enum(["SCALING_MODE_UNSPECIFIED", "AUTOMATIC", "MANUAL"])
       .describe("Optional. The scaling mode for the service.").optional(),
-  }).describe(
-    "Scaling settings applied at the service level rather than at the revision level.",
-  ).optional(),
+  }).describe("Optional. Specifies service-level scaling settings").optional(),
   sshEnabled: z.boolean().describe(
     "Optional. Enables SSH access to the Service.",
   ).optional(),
@@ -1190,7 +1112,8 @@ const InputsSchema = z.object({
         sourceLocation: z.string().describe(
           "Output only. Source code location of the image.",
         ).optional(),
-      }).describe("Build information of the image.").optional(),
+      }).describe("Output only. The build info of the container image.")
+        .optional(),
       command: z.array(z.string()).describe(
         "Entrypoint array. Not executed within a shell. The docker image's ENTRYPOINT is used if this is not provided.",
       ).optional(),
@@ -1205,7 +1128,7 @@ const InputsSchema = z.object({
           'Literal value of the environment variable. Defaults to "", and the maximum length is 32768 bytes. Variable references are not supported in Cloud Run.',
         ).optional(),
         valueSource: z.unknown().describe(
-          "EnvVarSource represents a source for the value of an EnvVar.",
+          "Source for the environment variable's value.",
         ).optional(),
       })).describe("List of environment variables to set in the container.")
         .optional(),
@@ -1223,8 +1146,9 @@ const InputsSchema = z.object({
           service: z.unknown().describe(
             "Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
-          .optional(),
+        }).describe(
+          "Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
+        ).optional(),
         httpGet: z.object({
           httpHeaders: z.unknown().describe(
             "Optional. Custom headers to set in the request. HTTP allows repeated headers.",
@@ -1236,7 +1160,7 @@ const InputsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
+          "Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
@@ -1249,13 +1173,13 @@ const InputsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
+          "Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         timeoutSeconds: z.number().int().describe(
           "Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Periodic probe of container liveness. Container will be restarted if the probe fails.",
       ).optional(),
       name: z.string().describe(
         "Name of the container specified as a DNS_LABEL (RFC 1123).",
@@ -1281,8 +1205,9 @@ const InputsSchema = z.object({
           service: z.unknown().describe(
             "Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
-          .optional(),
+        }).describe(
+          "Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
+        ).optional(),
         httpGet: z.object({
           httpHeaders: z.unknown().describe(
             "Optional. Custom headers to set in the request. HTTP allows repeated headers.",
@@ -1294,7 +1219,7 @@ const InputsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
+          "Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
@@ -1307,14 +1232,12 @@ const InputsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
+          "Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         timeoutSeconds: z.number().int().describe(
           "Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Readiness probe to be used for health checks.").optional(),
       resources: z.object({
         cpuIdle: z.boolean().describe(
           "Determines whether CPU is only allocated during requests (true by default). However, if ResourceRequirements is set, the caller must explicitly set this field to true to preserve the default behavior.",
@@ -1325,9 +1248,8 @@ const InputsSchema = z.object({
         startupCpuBoost: z.boolean().describe(
           "Determines whether CPU should be boosted on startup of a new container instance above the requested CPU threshold, this can help reduce cold-start latency.",
         ).optional(),
-      }).describe(
-        "ResourceRequirements describes the compute resource requirements.",
-      ).optional(),
+      }).describe("Compute Resource requirements by this container.")
+        .optional(),
       sandboxLauncher: z.boolean().describe(
         "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
       ).optional(),
@@ -1342,13 +1264,15 @@ const InputsSchema = z.object({
           object: z.unknown().describe(
             "Required. The Cloud Storage object name.",
           ).optional(),
-        }).describe("Cloud Storage source.").optional(),
+        }).describe("The source is a Cloud Storage bucket.").optional(),
         inlinedSource: z.object({
           sources: z.unknown().describe(
             "Required. Input only. The source code.",
           ).optional(),
-        }).describe("Inlined source.").optional(),
-      }).describe("Source type for the container.").optional(),
+        }).describe(
+          "Optional. Input only. Source code inlined in the request. Cloud Run will store the inlined_source to Cloud Storage and replace the field with cloud_storage_source.",
+        ).optional(),
+      }).describe("Optional. Location of the source.").optional(),
       startupProbe: z.object({
         failureThreshold: z.number().int().describe(
           "Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
@@ -1360,8 +1284,9 @@ const InputsSchema = z.object({
           service: z.unknown().describe(
             "Optional. Service is the name of the service to place in the gRPC HealthCheckRequest (see https://github.com/grpc/grpc/blob/master/doc/health-checking.md). If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
-          .optional(),
+        }).describe(
+          "Optional. GRPC specifies an action involving a gRPC port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
+        ).optional(),
         httpGet: z.object({
           httpHeaders: z.unknown().describe(
             "Optional. Custom headers to set in the request. HTTP allows repeated headers.",
@@ -1373,7 +1298,7 @@ const InputsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
+          "Optional. HTTPGet specifies the http request to perform. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         initialDelaySeconds: z.number().int().describe(
           "Optional. Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
@@ -1386,13 +1311,13 @@ const InputsSchema = z.object({
             "Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.",
           ).optional(),
         }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
+          "Optional. TCPSocket specifies an action involving a TCP port. Exactly one of httpGet, tcpSocket, or grpc must be specified.",
         ).optional(),
         timeoutSeconds: z.number().int().describe(
           "Optional. Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Startup probe of application within the container. All other probes are disabled if a startup probe is provided, until it succeeds. Container will not be added to service endpoints if the probe fails.",
       ).optional(),
       volumeMounts: z.array(z.object({
         mountPath: z.unknown().describe(
@@ -1447,7 +1372,8 @@ const InputsSchema = z.object({
       accelerator: z.string().describe(
         "Required. GPU accelerator type to attach to an instance.",
       ).optional(),
-    }).describe("Hardware constraints configuration.").optional(),
+    }).describe("Optional. The node selector for the revision template.")
+      .optional(),
     revision: z.string().describe(
       "Optional. The unique name for the revision. If this field is omitted, it will be automatically generated based on the Service name.",
     ).optional(),
@@ -1464,7 +1390,7 @@ const InputsSchema = z.object({
       minInstanceCount: z.number().int().describe(
         "Optional. Minimum number of serving instances that this resource should have.",
       ).optional(),
-    }).describe("Settings for revision-level scaling settings.").optional(),
+    }).describe("Optional. Scaling settings for this Revision.").optional(),
     serviceAccount: z.string().describe(
       "Optional. Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project's default service account.",
     ).optional(),
@@ -1472,9 +1398,7 @@ const InputsSchema = z.object({
       mesh: z.string().describe(
         "The Mesh resource name. Format: `projects/{project}/locations/global/meshes/{mesh}`, where `{project}` can be project id or number.",
       ).optional(),
-    }).describe(
-      "Settings for Cloud Service Mesh. For more information see https://cloud.google.com/service-mesh/docs/overview.",
-    ).optional(),
+    }).describe("Optional. Enables service mesh connectivity.").optional(),
     sessionAffinity: z.boolean().describe("Optional. Enable session affinity.")
       .optional(),
     timeout: z.string().describe(
@@ -1486,7 +1410,7 @@ const InputsSchema = z.object({
           "A list of Cloud SQL instance connection names. Cloud Run uses these to establish connections to the specified Cloud SQL instances. While the SQL instance name itself is unique within a project, the full connection name requires the location for proper routing. Format: `{project}:{location}:{instance}` Example: `my-project:us-central1:my-instance` You can find this value on the instance's **Overview** page in the Google Cloud console or by using the following `gcloud` command: ` sh gcloud sql instances describe INSTANCE_NAME \\ --format='value(connectionName)' ` Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.",
         ).optional(),
       }).describe(
-        "Represents a set of Cloud SQL instances. Each one will be available under /cloudsql/[instance]. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.",
+        "For Cloud SQL volumes, contains the specific instances that should be mounted. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.",
       ).optional(),
       emptyDir: z.object({
         medium: z.enum(["MEDIUM_UNSPECIFIED", "MEMORY", "DISK"]).describe(
@@ -1495,9 +1419,7 @@ const InputsSchema = z.object({
         sizeLimit: z.string().describe(
           "Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
         ).optional(),
-      }).describe(
-        "In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).",
-      ).optional(),
+      }).describe("Ephemeral storage used as a shared volume.").optional(),
       gcs: z.object({
         bucket: z.string().describe("Cloud Storage Bucket name.").optional(),
         mountOptions: z.array(z.unknown()).describe(
@@ -1506,9 +1428,8 @@ const InputsSchema = z.object({
         readOnly: z.boolean().describe(
           "If true, the volume will be mounted as read only for all mounts.",
         ).optional(),
-      }).describe(
-        "Represents a volume backed by a Cloud Storage bucket using Cloud Storage FUSE.",
-      ).optional(),
+      }).describe("Persistent storage backed by a Google Cloud Storage bucket.")
+        .optional(),
       name: z.string().describe("Required. Volume's name.").optional(),
       nfs: z.object({
         path: z.string().describe("Path that is exported by the NFS server.")
@@ -1518,7 +1439,8 @@ const InputsSchema = z.object({
         ).optional(),
         server: z.string().describe("Hostname or IP address of the NFS server")
           .optional(),
-      }).describe("Represents an NFS mount.").optional(),
+      }).describe("For NFS Voumes, contains the path to the nfs Volume")
+        .optional(),
       secret: z.object({
         defaultMode: z.number().int().describe(
           "Integer representation of mode bits to use on created files by default. Must be a value between 0000 and 0777 (octal), defaulting to 0444. Directories within the path are not affected by this setting. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. This might be in conflict with other options that affect the file mode, like fsGroup, and as a result, other mode bits could be set.",
@@ -1530,7 +1452,7 @@ const InputsSchema = z.object({
           "Required. The name of the secret in Cloud Secret Manager. Format: {secret} if the secret is in the same project. projects/{project}/secrets/{secret} if the secret is in a different project.",
         ).optional(),
       }).describe(
-        "The secret's value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret.",
+        "Secret represents a secret that should populate this volume.",
       ).optional(),
     })).describe("Optional. A list of Volumes to make available to containers.")
       .optional(),
@@ -1559,85 +1481,11 @@ const InputsSchema = z.object({
         "Optional. Direct VPC egress settings. Currently only single network interface is supported.",
       ).optional(),
     }).describe(
-      "VPC Access settings. For more information on sending traffic to a VPC network, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.",
+      "Optional. VPC Access configuration to use for this Revision. For more information, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.",
     ).optional(),
   }).describe(
-    "RevisionTemplate describes the data a revision should have when created from a template.",
+    "Required. The template used to create revisions for this Service.",
   ).optional(),
-  terminalCondition: z.object({
-    executionReason: z.enum([
-      "EXECUTION_REASON_UNDEFINED",
-      "JOB_STATUS_SERVICE_POLLING_ERROR",
-      "NON_ZERO_EXIT_CODE",
-      "CANCELLED",
-      "CANCELLING",
-      "DELETED",
-      "DELAYED_START_PENDING",
-    ]).describe("Output only. A reason for the execution condition.")
-      .optional(),
-    instanceReason: z.enum([
-      "INSTANCE_REASON_UNSPECIFIED",
-      "INSTANCE_DELETED",
-      "INSTANCE_STOPPED",
-      "INSTANCE_STOPPING",
-      "INSTANCE_NON_ZERO_EXIT_CODE",
-    ]).describe("Output only. A reason for the instance condition.").optional(),
-    lastTransitionTime: z.string().describe(
-      "Last time the condition transitioned from one status to another.",
-    ).optional(),
-    message: z.string().describe(
-      "Human readable message indicating details about the current status.",
-    ).optional(),
-    reason: z.enum([
-      "COMMON_REASON_UNDEFINED",
-      "UNKNOWN",
-      "REVISION_FAILED",
-      "PROGRESS_DEADLINE_EXCEEDED",
-      "CONTAINER_MISSING",
-      "CONTAINER_PERMISSION_DENIED",
-      "CONTAINER_IMAGE_UNAUTHORIZED",
-      "CONTAINER_IMAGE_AUTHORIZATION_CHECK_FAILED",
-      "ENCRYPTION_KEY_PERMISSION_DENIED",
-      "ENCRYPTION_KEY_CHECK_FAILED",
-      "SECRETS_ACCESS_CHECK_FAILED",
-      "WAITING_FOR_OPERATION",
-      "IMMEDIATE_RETRY",
-      "POSTPONED_RETRY",
-      "INTERNAL",
-      "VPC_NETWORK_NOT_FOUND",
-    ]).describe(
-      "Output only. A common (service-level) reason for this condition.",
-    ).optional(),
-    revisionReason: z.enum([
-      "REVISION_REASON_UNDEFINED",
-      "PENDING",
-      "RESERVE",
-      "RETIRED",
-      "RETIRING",
-      "RECREATING",
-      "HEALTH_CHECK_CONTAINER_ERROR",
-      "CUSTOMIZED_PATH_RESPONSE_PENDING",
-      "MIN_INSTANCES_NOT_PROVISIONED",
-      "ACTIVE_REVISION_LIMIT_REACHED",
-      "NO_DEPLOYMENT",
-      "HEALTH_CHECK_SKIPPED",
-      "MIN_INSTANCES_WARMING",
-    ]).describe("Output only. A reason for the revision condition.").optional(),
-    severity: z.enum(["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"])
-      .describe(
-        "How to interpret failures of this condition, one of Error, Warning, Info",
-      ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CONDITION_PENDING",
-      "CONDITION_RECONCILING",
-      "CONDITION_FAILED",
-      "CONDITION_SUCCEEDED",
-    ]).describe("State of the condition.").optional(),
-    type: z.string().describe(
-      'type is used to communicate the status of the reconciliation process. See also: https://github.com/knative/serving/blob/main/docs/spec/errors.md#error-conditions-and-reporting Types common to all resources include: * "Ready": True when the Resource is ready.',
-    ).optional(),
-  }).describe("Defines a status condition for a resource.").optional(),
   traffic: z.array(z.object({
     percent: z.number().int().describe(
       "Specifies percent of the traffic to this Revision. This defaults to zero if unspecified.",
@@ -1687,7 +1535,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Services. Registered at `@swamp/gcp/run/services`. */
 export const model = {
   type: "@swamp/gcp/run/services",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1842,6 +1690,14 @@ export const model = {
       description: "Added: sshEnabled",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: terminalCondition",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { terminalCondition: _terminalCondition, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1905,9 +1761,6 @@ export const model = {
         if (g["scaling"] !== undefined) body["scaling"] = g["scaling"];
         if (g["sshEnabled"] !== undefined) body["sshEnabled"] = g["sshEnabled"];
         if (g["template"] !== undefined) body["template"] = g["template"];
-        if (g["terminalCondition"] !== undefined) {
-          body["terminalCondition"] = g["terminalCondition"];
-        }
         if (g["traffic"] !== undefined) body["traffic"] = g["traffic"];
         if (g["serviceId"] !== undefined) {
           params["serviceId"] = String(g["serviceId"]);
@@ -2055,9 +1908,6 @@ export const model = {
         if (g["scaling"] !== undefined) body["scaling"] = g["scaling"];
         if (g["sshEnabled"] !== undefined) body["sshEnabled"] = g["sshEnabled"];
         if (g["template"] !== undefined) body["template"] = g["template"];
-        if (g["terminalCondition"] !== undefined) {
-          body["terminalCondition"] = g["terminalCondition"];
-        }
         if (g["traffic"] !== undefined) body["traffic"] = g["traffic"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

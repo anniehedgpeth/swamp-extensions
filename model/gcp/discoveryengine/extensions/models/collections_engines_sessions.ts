@@ -248,7 +248,7 @@ const GlobalArgsSchema = z.object({
       references: z.array(z.object({
         chunkInfo: z.unknown().describe("Chunk information.").optional(),
         structuredDocumentInfo: z.unknown().describe(
-          "Structured search information.",
+          "Structured document information.",
         ).optional(),
         unstructuredDocumentInfo: z.unknown().describe(
           "Unstructured document information.",
@@ -289,7 +289,9 @@ const GlobalArgsSchema = z.object({
         state: z.unknown().describe("The state of the step.").optional(),
         thought: z.unknown().describe("The thought of the step.").optional(),
       })).describe("Answer generation steps.").optional(),
-    }).describe("Defines an answer.").optional(),
+    }).describe(
+      "Output only. In ConversationalSearchService.GetSession API, if GetSessionRequest.include_answer_details is set to true, this field will be populated when getting answer query session.",
+    ).optional(),
     detailedAssistAnswer: z.object({
       assistSkippedReasons: z.array(
         z.enum([
@@ -306,7 +308,7 @@ const GlobalArgsSchema = z.object({
           "Final verdict of the customer policy enforcement. If only one policy blocked the processing, the verdict is BLOCK.",
         ).optional(),
       }).describe(
-        "Customer policy enforcement results. Contains the results of the various policy checks, like the banned phrases or the Model Armor checks.",
+        "Optional. The field contains information about the various policy checks' results like the banned phrases or the Model Armor checks. This field is populated only if the assist call was skipped due to a policy violation.",
       ).optional(),
       name: z.string().describe(
         "Immutable. Identifier. Resource name of the `AssistAnswer`. Format: `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/sessions/{session}/assistAnswers/{assist_answer}` This field must be a UTF-8 encoded string with a length limit of 1024 characters.",
@@ -315,7 +317,7 @@ const GlobalArgsSchema = z.object({
         createTime: z.unknown().describe("The time when the reply was created.")
           .optional(),
         groundedContent: z.unknown().describe(
-          'A piece of content and possibly its grounding information. Not all content needs grounding. Phrases like "Of course, I will gladly search it for you." do not need grounding.',
+          "Possibly grounded response text or media from the assistant.",
         ).optional(),
       })).describe("Replies of the assistant.").optional(),
       state: z.enum([
@@ -326,8 +328,9 @@ const GlobalArgsSchema = z.object({
         "SKIPPED",
         "CANCELLED",
       ]).describe("State of the answer generation.").optional(),
-    }).describe("AssistAnswer resource, main part of AssistResponse.")
-      .optional(),
+    }).describe(
+      "Output only. In ConversationalSearchService.GetSession API, if GetSessionRequest.include_answer_details is set to true, this field will be populated when getting assistant session.",
+    ).optional(),
     live: z.boolean().describe(
       "Optional. Indicates whether this turn is a live turn.",
     ).optional(),
@@ -335,7 +338,9 @@ const GlobalArgsSchema = z.object({
       queryId: z.string().describe("Output only. Unique Id for the query.")
         .optional(),
       text: z.string().describe("Plain text.").optional(),
-    }).describe("Defines a user inputed query.").optional(),
+    }).describe(
+      "Optional. The user query. May not be set if this turn is merely regenerating an answer to a different turn",
+    ).optional(),
     queryConfig: z.record(z.string(), z.string()).describe(
       'Optional. Represents metadata related to the query config, for example LLM model and version used, model parameters (temperature, grounding parameters, etc.). The prefix "google." is reserved for Google-developed functionality.',
     ).optional(),
@@ -523,7 +528,7 @@ const InputsSchema = z.object({
       references: z.array(z.object({
         chunkInfo: z.unknown().describe("Chunk information.").optional(),
         structuredDocumentInfo: z.unknown().describe(
-          "Structured search information.",
+          "Structured document information.",
         ).optional(),
         unstructuredDocumentInfo: z.unknown().describe(
           "Unstructured document information.",
@@ -564,7 +569,9 @@ const InputsSchema = z.object({
         state: z.unknown().describe("The state of the step.").optional(),
         thought: z.unknown().describe("The thought of the step.").optional(),
       })).describe("Answer generation steps.").optional(),
-    }).describe("Defines an answer.").optional(),
+    }).describe(
+      "Output only. In ConversationalSearchService.GetSession API, if GetSessionRequest.include_answer_details is set to true, this field will be populated when getting answer query session.",
+    ).optional(),
     detailedAssistAnswer: z.object({
       assistSkippedReasons: z.array(
         z.enum([
@@ -581,7 +588,7 @@ const InputsSchema = z.object({
           "Final verdict of the customer policy enforcement. If only one policy blocked the processing, the verdict is BLOCK.",
         ).optional(),
       }).describe(
-        "Customer policy enforcement results. Contains the results of the various policy checks, like the banned phrases or the Model Armor checks.",
+        "Optional. The field contains information about the various policy checks' results like the banned phrases or the Model Armor checks. This field is populated only if the assist call was skipped due to a policy violation.",
       ).optional(),
       name: z.string().describe(
         "Immutable. Identifier. Resource name of the `AssistAnswer`. Format: `projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/sessions/{session}/assistAnswers/{assist_answer}` This field must be a UTF-8 encoded string with a length limit of 1024 characters.",
@@ -590,7 +597,7 @@ const InputsSchema = z.object({
         createTime: z.unknown().describe("The time when the reply was created.")
           .optional(),
         groundedContent: z.unknown().describe(
-          'A piece of content and possibly its grounding information. Not all content needs grounding. Phrases like "Of course, I will gladly search it for you." do not need grounding.',
+          "Possibly grounded response text or media from the assistant.",
         ).optional(),
       })).describe("Replies of the assistant.").optional(),
       state: z.enum([
@@ -601,8 +608,9 @@ const InputsSchema = z.object({
         "SKIPPED",
         "CANCELLED",
       ]).describe("State of the answer generation.").optional(),
-    }).describe("AssistAnswer resource, main part of AssistResponse.")
-      .optional(),
+    }).describe(
+      "Output only. In ConversationalSearchService.GetSession API, if GetSessionRequest.include_answer_details is set to true, this field will be populated when getting assistant session.",
+    ).optional(),
     live: z.boolean().describe(
       "Optional. Indicates whether this turn is a live turn.",
     ).optional(),
@@ -610,7 +618,9 @@ const InputsSchema = z.object({
       queryId: z.string().describe("Output only. Unique Id for the query.")
         .optional(),
       text: z.string().describe("Plain text.").optional(),
-    }).describe("Defines a user inputed query.").optional(),
+    }).describe(
+      "Optional. The user query. May not be set if this turn is merely regenerating an answer to a different turn",
+    ).optional(),
     queryConfig: z.record(z.string(), z.string()).describe(
       'Optional. Represents metadata related to the query config, for example LLM model and version used, model parameters (temperature, grounding parameters, etc.). The prefix "google." is reserved for Google-developed functionality.',
     ).optional(),
@@ -651,7 +661,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.Sessions. Registered at `@swamp/gcp/discoveryengine/collections-engines-sessions`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-sessions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -813,6 +823,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: sessionId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

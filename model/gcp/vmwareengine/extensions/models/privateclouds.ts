@@ -192,16 +192,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "CMEK", "LEGACY_CMEK", "OTHER"]).describe(
       "Required. The encryption type of the private cloud.",
     ).optional(),
-  }).describe("Encryption configuration for a private cloud.").optional(),
-  hcx: z.object({
-    fqdn: z.string().describe("Fully qualified domain name of the appliance.")
-      .optional(),
-    internalIp: z.string().describe("Internal IP address of the appliance.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "ACTIVATING"])
-      .describe("Output only. The state of the appliance.").optional(),
-    version: z.string().describe("Version of the appliance.").optional(),
-  }).describe("Details about a HCX Cloud Manager appliance.").optional(),
+  }).describe(
+    "Optional. Encryption configuration for the private cloud. If this field is left unspecified, Google default encryption is used.",
+  ).optional(),
   managementCluster: z.object({
     clusterId: z.string().describe(
       "Required. The user-provided identifier of the new `Cluster`. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
@@ -226,8 +219,12 @@ const GlobalArgsSchema = z.object({
       secondaryLocation: z.string().describe(
         "Required. Additional zone for a higher level of availability and load balancing. Specify the resource name of a zone that belongs to the region of the private cloud. For example: `projects/{project}/locations/europe-west3-b` where `{project}` can either be a project number or a project ID.",
       ).optional(),
-    }).describe("Configuration of a stretched cluster.").optional(),
-  }).describe("Management cluster configuration.").optional(),
+    }).describe(
+      "Optional. Configuration of a stretched cluster. Required for STRETCHED private clouds.",
+    ).optional(),
+  }).describe(
+    "Required. Input only. The management cluster for this private cloud. This field is required during creation of the private cloud to provide details for the default cluster. The following fields can't be changed after private cloud creation: `ManagementCluster.clusterId`, `ManagementCluster.nodeTypeId`.",
+  ).optional(),
   networkConfig: z.object({
     dnsServerIp: z.string().describe(
       "Output only. DNS Server IP of the Private Cloud. All DNS queries can be forwarded to this address for name resolution of Private Cloud's management entities like vCenter, NSX-T Manager and ESXi hosts.",
@@ -244,33 +241,11 @@ const GlobalArgsSchema = z.object({
     vmwareEngineNetworkCanonical: z.string().describe(
       "Output only. The canonical name of the VMware Engine network in the form: `projects/{project_number}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id}`",
     ).optional(),
-  }).describe(
-    "Network configuration in the consumer project with which the peering has to be done.",
-  ).optional(),
-  nsx: z.object({
-    fqdn: z.string().describe("Fully qualified domain name of the appliance.")
-      .optional(),
-    internalIp: z.string().describe("Internal IP address of the appliance.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]).describe(
-      "Output only. The state of the appliance.",
-    ).optional(),
-    version: z.string().describe("Version of the appliance.").optional(),
-  }).describe("Details about a NSX Manager appliance.").optional(),
+  }).describe("Required. Network configuration of the private cloud.")
+    .optional(),
   type: z.enum(["STANDARD", "TIME_LIMITED", "STRETCHED"]).describe(
     "Optional. Type of the private cloud. Defaults to STANDARD.",
   ).optional(),
-  vcenter: z.object({
-    fqdn: z.string().describe("Fully qualified domain name of the appliance.")
-      .optional(),
-    internalIp: z.string().describe("Internal IP address of the appliance.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]).describe(
-      "Output only. The state of the appliance.",
-    ).optional(),
-    version: z.string().describe("Version of the appliance.").optional(),
-  }).describe("Details about a vCenter Server management appliance.")
-    .optional(),
   privateCloudId: z.string().describe(
     "Required. The user-provided identifier of the private cloud to be created. This identifier must be unique among each `PrivateCloud` within the parent and becomes the final token in the name URI. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
   ).optional(),
@@ -349,16 +324,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "CMEK", "LEGACY_CMEK", "OTHER"]).describe(
       "Required. The encryption type of the private cloud.",
     ).optional(),
-  }).describe("Encryption configuration for a private cloud.").optional(),
-  hcx: z.object({
-    fqdn: z.string().describe("Fully qualified domain name of the appliance.")
-      .optional(),
-    internalIp: z.string().describe("Internal IP address of the appliance.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "ACTIVATING"])
-      .describe("Output only. The state of the appliance.").optional(),
-    version: z.string().describe("Version of the appliance.").optional(),
-  }).describe("Details about a HCX Cloud Manager appliance.").optional(),
+  }).describe(
+    "Optional. Encryption configuration for the private cloud. If this field is left unspecified, Google default encryption is used.",
+  ).optional(),
   managementCluster: z.object({
     clusterId: z.string().describe(
       "Required. The user-provided identifier of the new `Cluster`. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
@@ -383,8 +351,12 @@ const InputsSchema = z.object({
       secondaryLocation: z.string().describe(
         "Required. Additional zone for a higher level of availability and load balancing. Specify the resource name of a zone that belongs to the region of the private cloud. For example: `projects/{project}/locations/europe-west3-b` where `{project}` can either be a project number or a project ID.",
       ).optional(),
-    }).describe("Configuration of a stretched cluster.").optional(),
-  }).describe("Management cluster configuration.").optional(),
+    }).describe(
+      "Optional. Configuration of a stretched cluster. Required for STRETCHED private clouds.",
+    ).optional(),
+  }).describe(
+    "Required. Input only. The management cluster for this private cloud. This field is required during creation of the private cloud to provide details for the default cluster. The following fields can't be changed after private cloud creation: `ManagementCluster.clusterId`, `ManagementCluster.nodeTypeId`.",
+  ).optional(),
   networkConfig: z.object({
     dnsServerIp: z.string().describe(
       "Output only. DNS Server IP of the Private Cloud. All DNS queries can be forwarded to this address for name resolution of Private Cloud's management entities like vCenter, NSX-T Manager and ESXi hosts.",
@@ -401,33 +373,11 @@ const InputsSchema = z.object({
     vmwareEngineNetworkCanonical: z.string().describe(
       "Output only. The canonical name of the VMware Engine network in the form: `projects/{project_number}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id}`",
     ).optional(),
-  }).describe(
-    "Network configuration in the consumer project with which the peering has to be done.",
-  ).optional(),
-  nsx: z.object({
-    fqdn: z.string().describe("Fully qualified domain name of the appliance.")
-      .optional(),
-    internalIp: z.string().describe("Internal IP address of the appliance.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]).describe(
-      "Output only. The state of the appliance.",
-    ).optional(),
-    version: z.string().describe("Version of the appliance.").optional(),
-  }).describe("Details about a NSX Manager appliance.").optional(),
+  }).describe("Required. Network configuration of the private cloud.")
+    .optional(),
   type: z.enum(["STANDARD", "TIME_LIMITED", "STRETCHED"]).describe(
     "Optional. Type of the private cloud. Defaults to STANDARD.",
   ).optional(),
-  vcenter: z.object({
-    fqdn: z.string().describe("Fully qualified domain name of the appliance.")
-      .optional(),
-    internalIp: z.string().describe("Internal IP address of the appliance.")
-      .optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "CREATING"]).describe(
-      "Output only. The state of the appliance.",
-    ).optional(),
-    version: z.string().describe("Version of the appliance.").optional(),
-  }).describe("Details about a vCenter Server management appliance.")
-    .optional(),
   privateCloudId: z.string().describe(
     "Required. The user-provided identifier of the private cloud to be created. This identifier must be unique among each `PrivateCloud` within the parent and becomes the final token in the name URI. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)",
   ).optional(),
@@ -462,7 +412,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VMware Engine PrivateClouds. Registered at `@swamp/gcp/vmwareengine/privateclouds`. */
 export const model = {
   type: "@swamp/gcp/vmwareengine/privateclouds",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -597,6 +547,14 @@ export const model = {
       description: "Added: encryptionConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: hcx, nsx, vcenter",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { hcx: _hcx, nsx: _nsx, vcenter: _vcenter, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -632,16 +590,13 @@ export const model = {
         if (g["encryptionConfig"] !== undefined) {
           body["encryptionConfig"] = g["encryptionConfig"];
         }
-        if (g["hcx"] !== undefined) body["hcx"] = g["hcx"];
         if (g["managementCluster"] !== undefined) {
           body["managementCluster"] = g["managementCluster"];
         }
         if (g["networkConfig"] !== undefined) {
           body["networkConfig"] = g["networkConfig"];
         }
-        if (g["nsx"] !== undefined) body["nsx"] = g["nsx"];
         if (g["type"] !== undefined) body["type"] = g["type"];
-        if (g["vcenter"] !== undefined) body["vcenter"] = g["vcenter"];
         if (g["privateCloudId"] !== undefined) {
           params["privateCloudId"] = String(g["privateCloudId"]);
         }
@@ -667,16 +622,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -773,16 +719,13 @@ export const model = {
         if (g["encryptionConfig"] !== undefined) {
           body["encryptionConfig"] = g["encryptionConfig"];
         }
-        if (g["hcx"] !== undefined) body["hcx"] = g["hcx"];
         if (g["managementCluster"] !== undefined) {
           body["managementCluster"] = g["managementCluster"];
         }
         if (g["networkConfig"] !== undefined) {
           body["networkConfig"] = g["networkConfig"];
         }
-        if (g["nsx"] !== undefined) body["nsx"] = g["nsx"];
         if (g["type"] !== undefined) body["type"] = g["type"];
-        if (g["vcenter"] !== undefined) body["vcenter"] = g["vcenter"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

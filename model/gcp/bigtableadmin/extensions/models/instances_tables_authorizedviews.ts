@@ -188,7 +188,7 @@ const GlobalArgsSchema = z.object({
       'Row prefixes to be included in the AuthorizedView. To provide access to all rows, include the empty string as a prefix ("").',
     ).optional(),
   }).describe(
-    "Defines a simple AuthorizedView that is a subset of the underlying Table.",
+    "An AuthorizedView permitting access to an explicit subset of a Table.",
   ).optional(),
   authorizedViewId: z.string().describe(
     "Required. The id of the AuthorizedView to create. This AuthorizedView must not already exist. The `authorized_view_id` appended to `parent` forms the full AuthorizedView name of the form `projects/{project}/instances/{instance}/tables/{table}/authorizedView/{authorized_view}`.",
@@ -242,7 +242,7 @@ const InputsSchema = z.object({
       'Row prefixes to be included in the AuthorizedView. To provide access to all rows, include the empty string as a prefix ("").',
     ).optional(),
   }).describe(
-    "Defines a simple AuthorizedView that is a subset of the underlying Table.",
+    "An AuthorizedView permitting access to an explicit subset of a Table.",
   ).optional(),
   authorizedViewId: z.string().describe(
     "Required. The id of the AuthorizedView to create. This AuthorizedView must not already exist. The `authorized_view_id` appended to `parent` forms the full AuthorizedView name of the form `projects/{project}/instances/{instance}/tables/{table}/authorizedView/{authorized_view}`.",
@@ -278,7 +278,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Tables.AuthorizedViews. Registered at `@swamp/gcp/bigtableadmin/instances-tables-authorizedviews`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-tables-authorizedviews",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -382,6 +382,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

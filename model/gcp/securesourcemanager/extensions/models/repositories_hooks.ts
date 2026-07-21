@@ -165,7 +165,7 @@ const GlobalArgsSchema = z.object({
     branchFilter: z.string().describe(
       "Optional. Trigger hook for matching branches only. Specified as glob pattern. If empty or *, events for all branches are reported. Examples: main, {main,release*}. See https://pkg.go.dev/github.com/gobwas/glob documentation.",
     ).optional(),
-  }).optional(),
+  }).describe("Optional. The trigger option for push events.").optional(),
   sensitiveQueryString: z.string().describe(
     "Optional. The sensitive query string to be appended to the target URI.",
   ).optional(),
@@ -217,7 +217,7 @@ const InputsSchema = z.object({
     branchFilter: z.string().describe(
       "Optional. Trigger hook for matching branches only. Specified as glob pattern. If empty or *, events for all branches are reported. Examples: main, {main,release*}. See https://pkg.go.dev/github.com/gobwas/glob documentation.",
     ).optional(),
-  }).optional(),
+  }).describe("Optional. The trigger option for push events.").optional(),
   sensitiveQueryString: z.string().describe(
     "Optional. The sensitive query string to be appended to the target URI.",
   ).optional(),
@@ -258,7 +258,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Repositories.Hooks. Registered at `@swamp/gcp/securesourcemanager/repositories-hooks`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/repositories-hooks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -362,6 +362,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

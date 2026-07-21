@@ -206,7 +206,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE.",
     ).optional(),
   }).describe(
-    "The configuration for Platform Telemetry logging for Eventarc Advanced resources.",
+    "Optional. Config to control Platform logging for the GoogleApiSource.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the form projects/{project}/locations/{location}/googleApiSources/{google_api_source}",
@@ -215,14 +215,14 @@ const GlobalArgsSchema = z.object({
     enabled: z.boolean().describe("Required. Enable org level subscription.")
       .optional(),
   }).describe(
-    "Config to enabled subscribing to events from other projects in the org.",
+    "Optional. Config to enable subscribing to events from all projects in the GoogleApiSource's org.",
   ).optional(),
   projectSubscriptions: z.object({
     list: z.array(z.string()).describe(
       "Required. A list of projects to receive events from. All the projects must be in the same org. The listed projects should have the format project/{identifier} where identifier can be either the project id for project number. A single list may contain both formats. At most 100 projects can be listed.",
     ).optional(),
   }).describe(
-    "Config to enable subscribing to all events from a list of projects.",
+    "Optional. Config to enable subscribing to all events from a list of projects. All the projects must be in the same org as the GoogleApiSource.",
   ).optional(),
   googleApiSourceId: z.string().describe(
     "Required. The user-provided ID to be assigned to the GoogleApiSource. It should match the format `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
@@ -291,7 +291,7 @@ const InputsSchema = z.object({
       "Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE.",
     ).optional(),
   }).describe(
-    "The configuration for Platform Telemetry logging for Eventarc Advanced resources.",
+    "Optional. Config to control Platform logging for the GoogleApiSource.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the form projects/{project}/locations/{location}/googleApiSources/{google_api_source}",
@@ -300,14 +300,14 @@ const InputsSchema = z.object({
     enabled: z.boolean().describe("Required. Enable org level subscription.")
       .optional(),
   }).describe(
-    "Config to enabled subscribing to events from other projects in the org.",
+    "Optional. Config to enable subscribing to events from all projects in the GoogleApiSource's org.",
   ).optional(),
   projectSubscriptions: z.object({
     list: z.array(z.string()).describe(
       "Required. A list of projects to receive events from. All the projects must be in the same org. The listed projects should have the format project/{identifier} where identifier can be either the project id for project number. A single list may contain both formats. At most 100 projects can be listed.",
     ).optional(),
   }).describe(
-    "Config to enable subscribing to all events from a list of projects.",
+    "Optional. Config to enable subscribing to all events from a list of projects. All the projects must be in the same org as the GoogleApiSource.",
   ).optional(),
   googleApiSourceId: z.string().describe(
     "Required. The user-provided ID to be assigned to the GoogleApiSource. It should match the format `^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`.",
@@ -340,7 +340,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Eventarc GoogleApiSources. Registered at `@swamp/gcp/eventarc/googleapisources`. */
 export const model = {
   type: "@swamp/gcp/eventarc/googleapisources",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -802,6 +802,29 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description:
+        "Removed: createTime, etag, uid, updateTime, g, type, version, upgrades, globalArguments, inputsSchema, resources, methods",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          createTime: _createTime,
+          etag: _etag,
+          uid: _uid,
+          updateTime: _updateTime,
+          g: _g,
+          type: _type,
+          version: _version,
+          upgrades: _upgrades,
+          globalArguments: _globalArguments,
+          inputsSchema: _inputsSchema,
+          resources: _resources,
+          methods: _methods,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.21.1",
       description:
         "Removed: createTime, etag, uid, updateTime, g, type, version, upgrades, globalArguments, inputsSchema, resources, methods",
       upgradeAttributes: (old: Record<string, unknown>) => {

@@ -188,7 +188,9 @@ const GlobalArgsSchema = z.object({
     photoLink: z.string().describe(
       "Output only. A link to the user's profile photo, if available.",
     ).optional(),
-  }).describe("Information about a Drive user.").optional(),
+  }).describe(
+    "Output only. The last user to modify this revision. This field is only populated when the last modification was performed by a signed-in user.",
+  ).optional(),
   md5Checksum: z.string().describe(
     "Output only. The MD5 checksum of the revision's content. This is only applicable to files with binary content in Drive.",
   ).optional(),
@@ -279,7 +281,9 @@ const InputsSchema = z.object({
     photoLink: z.string().describe(
       "Output only. A link to the user's profile photo, if available.",
     ).optional(),
-  }).describe("Information about a Drive user.").optional(),
+  }).describe(
+    "Output only. The last user to modify this revision. This field is only populated when the last modification was performed by a signed-in user.",
+  ).optional(),
   md5Checksum: z.string().describe(
     "Output only. The MD5 checksum of the revision's content. This is only applicable to files with binary content in Drive.",
   ).optional(),
@@ -332,7 +336,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Revisions. Registered at `@swamp/gcp/drive/revisions`. */
 export const model = {
   type: "@swamp/gcp/drive/revisions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -431,6 +435,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -228,7 +228,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The storage limit in bytes per processing unit.",
     ).optional(),
   }).describe(
-    "A possible configuration for a Cloud Spanner instance. Configurations define the geographic placement of nodes and their replication.",
+    "Required. The user instance configuration to update, which must always include the instance configuration name. Otherwise, only fields mentioned in update_mask need be included. To prevent conflicts of concurrent updates, etag can be used.",
   ).optional(),
   instanceConfigId: z.string().describe(
     "Required. The ID of the instance configuration to create. Valid identifiers are of the form `custom-[-a-z0-9]*[a-z0-9]` and must be between 2 and 64 characters in length. The `custom-` prefix is required to avoid name conflicts with Google-managed configurations.",
@@ -350,7 +350,7 @@ const InputsSchema = z.object({
       "Output only. The storage limit in bytes per processing unit.",
     ).optional(),
   }).describe(
-    "A possible configuration for a Cloud Spanner instance. Configurations define the geographic placement of nodes and their replication.",
+    "Required. The user instance configuration to update, which must always include the instance configuration name. Otherwise, only fields mentioned in update_mask need be included. To prevent conflicts of concurrent updates, etag can be used.",
   ).optional(),
   instanceConfigId: z.string().describe(
     "Required. The ID of the instance configuration to create. Valid identifiers are of the form `custom-[-a-z0-9]*[a-z0-9]` and must be between 2 and 64 characters in length. The `custom-` prefix is required to avoid name conflicts with Google-managed configurations.",
@@ -389,7 +389,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner InstanceConfigs. Registered at `@swamp/gcp/spanner/instanceconfigs`. */
 export const model = {
   type: "@swamp/gcp/spanner/instanceconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -496,6 +496,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -553,22 +558,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? "") ||
-              buildResourceName(
-                `projects/${projectId}/locations/${
-                  String(g["location"] ?? "")
-                }`,
-                String(g["instanceConfigId"] ?? ""),
-              ),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

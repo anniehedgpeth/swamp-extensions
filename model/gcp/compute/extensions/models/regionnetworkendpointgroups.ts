@@ -186,7 +186,7 @@ const GlobalArgsSchema = z.object({
       "Optional serving version. The version name is case-sensitive and must be 1-100 characters long. Example value: v1, v2.",
     ).optional(),
   }).describe(
-    "Configuration for an App Engine network endpoint group (NEG). The service is optional, may be provided explicitly or in the URL mask. The version is optional and can only be provided explicitly or in the URL mask when service is present. Note: App Engine service must be in the same project and located in the same region as the Serverless NEG.",
+    "Optional. Only valid when networkEndpointType isSERVERLESS. Only one of cloudRun,appEngine or cloudFunction may be set.",
   ).optional(),
   cloudFunction: z.object({
     function: z.string().describe(
@@ -196,7 +196,7 @@ const GlobalArgsSchema = z.object({
       'An URL mask is one of the main components of the Cloud Function. A template to parse function field from a request URL. URL mask allows for routing to multiple Cloud Functions without having to create multiple Network Endpoint Groups and backend services. For example, request URLs mydomain.com/function1 andmydomain.com/function2 can be backed by the same Serverless NEG with URL mask /. The URL mask will parse them to { function = "function1" } and{ function = "function2" } respectively.',
     ).optional(),
   }).describe(
-    "Configuration for a Cloud Function network endpoint group (NEG). The function must be provided explicitly or in the URL mask. Note: Cloud Function must be in the same project and located in the same region as the Serverless NEG.",
+    "Optional. Only valid when networkEndpointType isSERVERLESS. Only one of cloudRun,appEngine or cloudFunction may be set.",
   ).optional(),
   cloudRun: z.object({
     service: z.string().describe(
@@ -209,7 +209,7 @@ const GlobalArgsSchema = z.object({
       'An URL mask is one of the main components of the Cloud Function. A template to parse  and fields from a request URL. URL mask allows for routing to multiple Run services without having to create multiple network endpoint groups and backend services. For example, request URLs foo1.domain.com/bar1 andfoo1.domain.com/bar2 can be backed by the same Serverless Network Endpoint Group (NEG) with URL mask.domain.com/. The URL mask will parse them to { service="bar1", tag="foo1" } and { service="bar2", tag="foo2" } respectively.',
     ).optional(),
   }).describe(
-    "Configuration for a Cloud Run network endpoint group (NEG). The service must be provided explicitly or in the URL mask. The tag is optional, may be provided explicitly or in the URL mask. Note: Cloud Run service must be in the same project and located in the same region as the Serverless NEG.",
+    "Optional. Only valid when networkEndpointType isSERVERLESS. Only one of cloudRun,appEngine or cloudFunction may be set.",
   ).optional(),
   defaultPort: z.number().int().describe(
     "The default port used if the port number is not specified in the network endpoint. Optional. If the network endpoint type is either GCE_VM_IP,SERVERLESS or PRIVATE_SERVICE_CONNECT, this field must not be specified.",
@@ -256,7 +256,7 @@ const GlobalArgsSchema = z.object({
       "Output only. [Output Only] The connection status of the PSC Forwarding Rule.",
     ).optional(),
   }).describe(
-    "All data that is specifically relevant to only network endpoint groups of type PRIVATE_SERVICE_CONNECT.",
+    "Optional. Only valid when networkEndpointType isPRIVATE_SERVICE_CONNECT.",
   ).optional(),
   pscTargetService: z.string().describe(
     "The target service url used to set up private service connection to a Google API or a PSC Producer Service Attachment. An example value is: asia-northeast3-cloudkms.googleapis.com. Optional. Only valid when networkEndpointType isPRIVATE_SERVICE_CONNECT.",
@@ -331,7 +331,7 @@ const InputsSchema = z.object({
       "Optional serving version. The version name is case-sensitive and must be 1-100 characters long. Example value: v1, v2.",
     ).optional(),
   }).describe(
-    "Configuration for an App Engine network endpoint group (NEG). The service is optional, may be provided explicitly or in the URL mask. The version is optional and can only be provided explicitly or in the URL mask when service is present. Note: App Engine service must be in the same project and located in the same region as the Serverless NEG.",
+    "Optional. Only valid when networkEndpointType isSERVERLESS. Only one of cloudRun,appEngine or cloudFunction may be set.",
   ).optional(),
   cloudFunction: z.object({
     function: z.string().describe(
@@ -341,7 +341,7 @@ const InputsSchema = z.object({
       'An URL mask is one of the main components of the Cloud Function. A template to parse function field from a request URL. URL mask allows for routing to multiple Cloud Functions without having to create multiple Network Endpoint Groups and backend services. For example, request URLs mydomain.com/function1 andmydomain.com/function2 can be backed by the same Serverless NEG with URL mask /. The URL mask will parse them to { function = "function1" } and{ function = "function2" } respectively.',
     ).optional(),
   }).describe(
-    "Configuration for a Cloud Function network endpoint group (NEG). The function must be provided explicitly or in the URL mask. Note: Cloud Function must be in the same project and located in the same region as the Serverless NEG.",
+    "Optional. Only valid when networkEndpointType isSERVERLESS. Only one of cloudRun,appEngine or cloudFunction may be set.",
   ).optional(),
   cloudRun: z.object({
     service: z.string().describe(
@@ -354,7 +354,7 @@ const InputsSchema = z.object({
       'An URL mask is one of the main components of the Cloud Function. A template to parse  and fields from a request URL. URL mask allows for routing to multiple Run services without having to create multiple network endpoint groups and backend services. For example, request URLs foo1.domain.com/bar1 andfoo1.domain.com/bar2 can be backed by the same Serverless Network Endpoint Group (NEG) with URL mask.domain.com/. The URL mask will parse them to { service="bar1", tag="foo1" } and { service="bar2", tag="foo2" } respectively.',
     ).optional(),
   }).describe(
-    "Configuration for a Cloud Run network endpoint group (NEG). The service must be provided explicitly or in the URL mask. The tag is optional, may be provided explicitly or in the URL mask. Note: Cloud Run service must be in the same project and located in the same region as the Serverless NEG.",
+    "Optional. Only valid when networkEndpointType isSERVERLESS. Only one of cloudRun,appEngine or cloudFunction may be set.",
   ).optional(),
   defaultPort: z.number().int().describe(
     "The default port used if the port number is not specified in the network endpoint. Optional. If the network endpoint type is either GCE_VM_IP,SERVERLESS or PRIVATE_SERVICE_CONNECT, this field must not be specified.",
@@ -401,7 +401,7 @@ const InputsSchema = z.object({
       "Output only. [Output Only] The connection status of the PSC Forwarding Rule.",
     ).optional(),
   }).describe(
-    "All data that is specifically relevant to only network endpoint groups of type PRIVATE_SERVICE_CONNECT.",
+    "Optional. Only valid when networkEndpointType isPRIVATE_SERVICE_CONNECT.",
   ).optional(),
   pscTargetService: z.string().describe(
     "The target service url used to set up private service connection to a Google API or a PSC Producer Service Attachment. An example value is: asia-northeast3-cloudkms.googleapis.com. Optional. Only valid when networkEndpointType isPRIVATE_SERVICE_CONNECT.",
@@ -440,7 +440,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionNetworkEndpointGroups. Registered at `@swamp/gcp/compute/regionnetworkendpointgroups`. */
 export const model = {
   type: "@swamp/gcp/compute/regionnetworkendpointgroups",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -569,6 +569,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -141,9 +141,7 @@ const GlobalArgsSchema = z.object({
     hardwareKeyMetadata: z.object({
       description: z.string().describe("Description about the hardware key.")
         .optional(),
-    }).describe(
-      "Metadata for hardware keys. If [hardware key encryption](https://support.google.com/a/answer/14153163) is set up for the Google Workspace organization, users can optionally store their private key on their smart card and use it to sign and decrypt email messages in Gmail by inserting their smart card into a reader attached to their Windows device.",
-    ).optional(),
+    }).describe("Metadata for hardware keys.").optional(),
     kaclsKeyMetadata: z.object({
       kaclsData: z.string().describe(
         "Opaque data generated and used by the key access control list service. Maximum size: 8 KiB.",
@@ -152,7 +150,7 @@ const GlobalArgsSchema = z.object({
         "The URI of the key access control list service that manages the private key.",
       ).optional(),
     }).describe(
-      "Metadata for private keys managed by an external key access control list service. For details about managing key access, see [Google Workspace CSE API Reference](https://developers.google.com/workspace/cse/reference).",
+      "Metadata for a private key instance managed by an external key access control list service.",
     ).optional(),
     privateKeyMetadataId: z.string().describe(
       "Output only. The immutable ID for the private key metadata instance.",
@@ -198,9 +196,7 @@ const InputsSchema = z.object({
     hardwareKeyMetadata: z.object({
       description: z.string().describe("Description about the hardware key.")
         .optional(),
-    }).describe(
-      "Metadata for hardware keys. If [hardware key encryption](https://support.google.com/a/answer/14153163) is set up for the Google Workspace organization, users can optionally store their private key on their smart card and use it to sign and decrypt email messages in Gmail by inserting their smart card into a reader attached to their Windows device.",
-    ).optional(),
+    }).describe("Metadata for hardware keys.").optional(),
     kaclsKeyMetadata: z.object({
       kaclsData: z.string().describe(
         "Opaque data generated and used by the key access control list service. Maximum size: 8 KiB.",
@@ -209,7 +205,7 @@ const InputsSchema = z.object({
         "The URI of the key access control list service that manages the private key.",
       ).optional(),
     }).describe(
-      "Metadata for private keys managed by an external key access control list service. For details about managing key access, see [Google Workspace CSE API Reference](https://developers.google.com/workspace/cse/reference).",
+      "Metadata for a private key instance managed by an external key access control list service.",
     ).optional(),
     privateKeyMetadataId: z.string().describe(
       "Output only. The immutable ID for the private key metadata instance.",
@@ -244,7 +240,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Settings.Cse.Keypairs. Registered at `@swamp/gcp/gmail/users-settings-cse-keypairs`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-settings-cse-keypairs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -331,6 +327,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -366,12 +367,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "userId": String(g["userId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

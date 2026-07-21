@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If present, it fixes the release on the unit until the given time; i.e. changes to the release field will be rejected. Rollouts should and will also respect this by not requesting an upgrade in the first place.",
     ).optional(),
   }).describe(
-    "Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.",
+    "Optional. Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.",
   ).optional(),
   managementMode: z.enum([
     "MANAGEMENT_MODE_UNSPECIFIED",
@@ -287,7 +287,7 @@ const InputsSchema = z.object({
       "Optional. If present, it fixes the release on the unit until the given time; i.e. changes to the release field will be rejected. Rollouts should and will also respect this by not requesting an upgrade in the first place.",
     ).optional(),
   }).describe(
-    "Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.",
+    "Optional. Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.",
   ).optional(),
   managementMode: z.enum([
     "MANAGEMENT_MODE_UNSPECIFIED",
@@ -338,7 +338,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Lifecycle Manager Units. Registered at `@swamp/gcp/saasservicemgmt/units`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/units",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -477,6 +477,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

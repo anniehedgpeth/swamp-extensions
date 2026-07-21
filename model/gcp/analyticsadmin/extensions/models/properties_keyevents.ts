@@ -171,7 +171,8 @@ const GlobalArgsSchema = z.object({
     numericValue: z.number().describe(
       'Required. This will be used to populate the "value" parameter for all occurrences of this Key Event (specified by event_name) where that parameter is unset.',
     ).optional(),
-  }).describe("Defines a default value/currency for a key event.").optional(),
+  }).describe("Optional. Defines a default value/currency for a key event.")
+    .optional(),
   eventName: z.string().describe(
     "Immutable. The event name for this key event. Examples: 'click', 'purchase'",
   ).optional(),
@@ -215,7 +216,8 @@ const InputsSchema = z.object({
     numericValue: z.number().describe(
       'Required. This will be used to populate the "value" parameter for all occurrences of this Key Event (specified by event_name) where that parameter is unset.',
     ).optional(),
-  }).describe("Defines a default value/currency for a key event.").optional(),
+  }).describe("Optional. Defines a default value/currency for a key event.")
+    .optional(),
   eventName: z.string().describe(
     "Immutable. The event name for this key event. Examples: 'click', 'purchase'",
   ).optional(),
@@ -247,7 +249,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Admin Properties.KeyEvents. Registered at `@swamp/gcp/analyticsadmin/properties-keyevents`. */
 export const model = {
   type: "@swamp/gcp/analyticsadmin/properties-keyevents",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -354,6 +356,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -396,14 +403,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

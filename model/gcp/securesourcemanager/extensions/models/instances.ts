@@ -148,12 +148,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  hostConfig: z.object({
-    api: z.string().describe("Output only. API hostname.").optional(),
-    gitHttp: z.string().describe("Output only. Git HTTP hostname.").optional(),
-    gitSsh: z.string().describe("Output only. Git SSH hostname.").optional(),
-    html: z.string().describe("Output only. HTML hostname.").optional(),
-  }).describe("HostConfig has different instance endpoints.").optional(),
   kmsKey: z.string().describe(
     "Optional. Immutable. Customer-managed encryption key name, in the format projects/*/locations/*/keyRings/*/cryptoKeys/*.",
   ).optional(),
@@ -180,7 +174,7 @@ const GlobalArgsSchema = z.object({
       html: z.string().describe(
         'Required. The custom UI hostname for the instance, e.g., "git.source.internal.mycompany.com"',
       ).optional(),
-    }).describe("Custom host config for the instance.").optional(),
+    }).describe("Optional. Custom host config for the instance.").optional(),
     httpServiceAttachment: z.string().describe(
       "Output only. Service Attachment for HTTP, resource is in the format of `projects/{project}/regions/{region}/serviceAttachments/{service_attachment}`.",
     ).optional(),
@@ -193,14 +187,13 @@ const GlobalArgsSchema = z.object({
     sshServiceAttachment: z.string().describe(
       "Output only. Service Attachment for SSH, resource is in the format of `projects/{project}/regions/{region}/serviceAttachments/{service_attachment}`.",
     ).optional(),
-  }).describe("PrivateConfig includes settings for private instance.")
-    .optional(),
+  }).describe("Optional. Private settings for private instance.").optional(),
   workforceIdentityFederationConfig: z.object({
     enabled: z.boolean().describe(
       "Optional. Immutable. Whether Workforce Identity Federation is enabled.",
     ).optional(),
   }).describe(
-    "WorkforceIdentityFederationConfig allows this instance to support users from external identity providers.",
+    "Optional. Configuration for Workforce Identity Federation to support third party identity provider. If unset, defaults to the Google OIDC IdP.",
   ).optional(),
   instanceId: z.string().describe("Required. ID of the instance to be created.")
     .optional(),
@@ -251,12 +244,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  hostConfig: z.object({
-    api: z.string().describe("Output only. API hostname.").optional(),
-    gitHttp: z.string().describe("Output only. Git HTTP hostname.").optional(),
-    gitSsh: z.string().describe("Output only. Git SSH hostname.").optional(),
-    html: z.string().describe("Output only. HTML hostname.").optional(),
-  }).describe("HostConfig has different instance endpoints.").optional(),
   kmsKey: z.string().describe(
     "Optional. Immutable. Customer-managed encryption key name, in the format projects/*/locations/*/keyRings/*/cryptoKeys/*.",
   ).optional(),
@@ -283,7 +270,7 @@ const InputsSchema = z.object({
       html: z.string().describe(
         'Required. The custom UI hostname for the instance, e.g., "git.source.internal.mycompany.com"',
       ).optional(),
-    }).describe("Custom host config for the instance.").optional(),
+    }).describe("Optional. Custom host config for the instance.").optional(),
     httpServiceAttachment: z.string().describe(
       "Output only. Service Attachment for HTTP, resource is in the format of `projects/{project}/regions/{region}/serviceAttachments/{service_attachment}`.",
     ).optional(),
@@ -296,14 +283,13 @@ const InputsSchema = z.object({
     sshServiceAttachment: z.string().describe(
       "Output only. Service Attachment for SSH, resource is in the format of `projects/{project}/regions/{region}/serviceAttachments/{service_attachment}`.",
     ).optional(),
-  }).describe("PrivateConfig includes settings for private instance.")
-    .optional(),
+  }).describe("Optional. Private settings for private instance.").optional(),
   workforceIdentityFederationConfig: z.object({
     enabled: z.boolean().describe(
       "Optional. Immutable. Whether Workforce Identity Federation is enabled.",
     ).optional(),
   }).describe(
-    "WorkforceIdentityFederationConfig allows this instance to support users from external identity providers.",
+    "Optional. Configuration for Workforce Identity Federation to support third party identity provider. If unset, defaults to the Google OIDC IdP.",
   ).optional(),
   instanceId: z.string().describe("Required. ID of the instance to be created.")
     .optional(),
@@ -338,7 +324,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Instances. Registered at `@swamp/gcp/securesourcemanager/instances`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -445,6 +431,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: hostConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { hostConfig: _hostConfig, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -474,7 +468,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["hostConfig"] !== undefined) body["hostConfig"] = g["hostConfig"];
         if (g["kmsKey"] !== undefined) body["kmsKey"] = g["kmsKey"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];

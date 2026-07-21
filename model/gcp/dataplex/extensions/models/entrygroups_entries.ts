@@ -186,8 +186,9 @@ const GlobalArgsSchema = z.object({
         updateTime: z.string().describe(
           "The time the aspect was last updated in the source system.",
         ).optional(),
-      }).describe("Information related to the source system of the aspect.")
-        .optional(),
+      }).describe(
+        "Optional. Information related to the source system of the aspect.",
+      ).optional(),
       aspectType: z.string().describe(
         "Output only. The resource name of the type used to create this Aspect.",
       ).optional(),
@@ -244,7 +245,7 @@ const GlobalArgsSchema = z.object({
       "The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.",
     ).optional(),
   }).describe(
-    "Information related to the source system of the data resource that is represented by the entry.",
+    "Optional. Information related to the source system of the data resource that is represented by the entry.",
   ).optional(),
   entryType: z.string().describe(
     "Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.",
@@ -314,8 +315,9 @@ const InputsSchema = z.object({
         updateTime: z.string().describe(
           "The time the aspect was last updated in the source system.",
         ).optional(),
-      }).describe("Information related to the source system of the aspect.")
-        .optional(),
+      }).describe(
+        "Optional. Information related to the source system of the aspect.",
+      ).optional(),
       aspectType: z.string().describe(
         "Output only. The resource name of the type used to create this Aspect.",
       ).optional(),
@@ -372,7 +374,7 @@ const InputsSchema = z.object({
       "The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.",
     ).optional(),
   }).describe(
-    "Information related to the source system of the data resource that is represented by the entry.",
+    "Optional. Information related to the source system of the data resource that is represented by the entry.",
   ).optional(),
   entryType: z.string().describe(
     "Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.",
@@ -420,7 +422,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex EntryGroups.Entries. Registered at `@swamp/gcp/dataplex/entrygroups-entries`. */
 export const model = {
   type: "@swamp/gcp/dataplex/entrygroups-entries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -524,6 +526,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

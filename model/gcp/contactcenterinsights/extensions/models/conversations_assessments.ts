@@ -178,8 +178,7 @@ const GlobalArgsSchema = z.object({
     versionId: z.string().describe(
       "The agent's version ID. Only applicable to automated agents.",
     ).optional(),
-  }).describe("Information about an agent involved in the conversation.")
-    .optional(),
+  }).describe("Information about the agent the assessment is for.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the assessment. Format: projects/{project}/locations/{location}/conversations/{conversation}/assessments/{assessment}",
   ).optional(),
@@ -258,8 +257,7 @@ const InputsSchema = z.object({
     versionId: z.string().describe(
       "The agent's version ID. Only applicable to automated agents.",
     ).optional(),
-  }).describe("Information about an agent involved in the conversation.")
-    .optional(),
+  }).describe("Information about the agent the assessment is for.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the assessment. Format: projects/{project}/locations/{location}/conversations/{conversation}/assessments/{assessment}",
   ).optional(),
@@ -294,7 +292,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Conversations.Assessments. Registered at `@swamp/gcp/contactcenterinsights/conversations-assessments`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/conversations-assessments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -423,6 +421,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

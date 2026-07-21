@@ -144,43 +144,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  channelPartnerCloudIdentityInfo: z.object({
-    adminConsoleUri: z.string().describe(
-      "Output only. URI of Customer's Admin console dashboard.",
-    ).optional(),
-    alternateEmail: z.string().describe("The alternate email.").optional(),
-    customerType: z.enum(["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"])
-      .describe(
-        "CustomerType indicates verification type needed for using services.",
-      ).optional(),
-    eduData: z.object({
-      instituteSize: z.enum([
-        "INSTITUTE_SIZE_UNSPECIFIED",
-        "SIZE_1_100",
-        "SIZE_101_500",
-        "SIZE_501_1000",
-        "SIZE_1001_2000",
-        "SIZE_2001_5000",
-        "SIZE_5001_10000",
-        "SIZE_10001_OR_MORE",
-      ]).describe("Size of the institute.").optional(),
-      instituteType: z.enum(["INSTITUTE_TYPE_UNSPECIFIED", "K12", "UNIVERSITY"])
-        .describe("Designated institute type of customer.").optional(),
-      website: z.string().describe(
-        "Web address for the edu customer's institution.",
-      ).optional(),
-    }).describe("Required Edu Attributes").optional(),
-    isDomainVerified: z.boolean().describe(
-      "Output only. Whether the domain is verified. This field is not returned for a Customer's cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK's Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.",
-    ).optional(),
-    languageCode: z.string().describe("Language code.").optional(),
-    phoneNumber: z.string().describe(
-      "Phone number associated with the Cloud Identity.",
-    ).optional(),
-    primaryDomain: z.string().describe("Output only. The primary domain name.")
-      .optional(),
-  }).describe("Cloud Identity information for the Cloud Channel Customer.")
-    .optional(),
   linkState: z.enum([
     "CHANNEL_PARTNER_LINK_STATE_UNSPECIFIED",
     "INVITED",
@@ -220,7 +183,7 @@ const GlobalArgsSchema = z.object({
         website: z.string().describe(
           "Web address for the edu customer's institution.",
         ).optional(),
-      }).describe("Required Edu Attributes").optional(),
+      }).describe("Edu information about the customer.").optional(),
       isDomainVerified: z.boolean().describe(
         "Output only. Whether the domain is verified. This field is not returned for a Customer's cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK's Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.",
       ).optional(),
@@ -231,7 +194,7 @@ const GlobalArgsSchema = z.object({
       primaryDomain: z.string().describe(
         "Output only. The primary domain name.",
       ).optional(),
-    }).describe("Cloud Identity information for the Cloud Channel Customer.")
+    }).describe("Output only. Cloud Identity info of the channel partner (IR).")
       .optional(),
     createTime: z.string().describe(
       "Output only. Timestamp of when the channel partner link is created.",
@@ -259,7 +222,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Timestamp of when the channel partner link is updated.",
     ).optional(),
   }).describe(
-    "Entity representing a link between distributors and their indirect resellers in an n-tier resale channel.",
+    "Required. The channel partner link to update. Only channel_partner_link.link_state is allowed for updates.",
   ).optional(),
   updateMask: z.string().describe(
     "Required. The update mask that applies to the resource. The only allowable value for an update mask is channel_partner_link.link_state.",
@@ -301,43 +264,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  channelPartnerCloudIdentityInfo: z.object({
-    adminConsoleUri: z.string().describe(
-      "Output only. URI of Customer's Admin console dashboard.",
-    ).optional(),
-    alternateEmail: z.string().describe("The alternate email.").optional(),
-    customerType: z.enum(["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"])
-      .describe(
-        "CustomerType indicates verification type needed for using services.",
-      ).optional(),
-    eduData: z.object({
-      instituteSize: z.enum([
-        "INSTITUTE_SIZE_UNSPECIFIED",
-        "SIZE_1_100",
-        "SIZE_101_500",
-        "SIZE_501_1000",
-        "SIZE_1001_2000",
-        "SIZE_2001_5000",
-        "SIZE_5001_10000",
-        "SIZE_10001_OR_MORE",
-      ]).describe("Size of the institute.").optional(),
-      instituteType: z.enum(["INSTITUTE_TYPE_UNSPECIFIED", "K12", "UNIVERSITY"])
-        .describe("Designated institute type of customer.").optional(),
-      website: z.string().describe(
-        "Web address for the edu customer's institution.",
-      ).optional(),
-    }).describe("Required Edu Attributes").optional(),
-    isDomainVerified: z.boolean().describe(
-      "Output only. Whether the domain is verified. This field is not returned for a Customer's cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK's Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.",
-    ).optional(),
-    languageCode: z.string().describe("Language code.").optional(),
-    phoneNumber: z.string().describe(
-      "Phone number associated with the Cloud Identity.",
-    ).optional(),
-    primaryDomain: z.string().describe("Output only. The primary domain name.")
-      .optional(),
-  }).describe("Cloud Identity information for the Cloud Channel Customer.")
-    .optional(),
   linkState: z.enum([
     "CHANNEL_PARTNER_LINK_STATE_UNSPECIFIED",
     "INVITED",
@@ -377,7 +303,7 @@ const InputsSchema = z.object({
         website: z.string().describe(
           "Web address for the edu customer's institution.",
         ).optional(),
-      }).describe("Required Edu Attributes").optional(),
+      }).describe("Edu information about the customer.").optional(),
       isDomainVerified: z.boolean().describe(
         "Output only. Whether the domain is verified. This field is not returned for a Customer's cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK's Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.",
       ).optional(),
@@ -388,7 +314,7 @@ const InputsSchema = z.object({
       primaryDomain: z.string().describe(
         "Output only. The primary domain name.",
       ).optional(),
-    }).describe("Cloud Identity information for the Cloud Channel Customer.")
+    }).describe("Output only. Cloud Identity info of the channel partner (IR).")
       .optional(),
     createTime: z.string().describe(
       "Output only. Timestamp of when the channel partner link is created.",
@@ -416,7 +342,7 @@ const InputsSchema = z.object({
       "Output only. Timestamp of when the channel partner link is updated.",
     ).optional(),
   }).describe(
-    "Entity representing a link between distributors and their indirect resellers in an n-tier resale channel.",
+    "Required. The channel partner link to update. Only channel_partner_link.link_state is allowed for updates.",
   ).optional(),
   updateMask: z.string().describe(
     "Required. The update mask that applies to the resource. The only allowable value for an update mask is channel_partner_link.link_state.",
@@ -449,7 +375,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Channel Accounts.ChannelPartnerLinks. Registered at `@swamp/gcp/cloudchannel/accounts-channelpartnerlinks`. */
 export const model = {
   type: "@swamp/gcp/cloudchannel/accounts-channelpartnerlinks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -541,6 +467,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: channelPartnerCloudIdentityInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          channelPartnerCloudIdentityInfo: _channelPartnerCloudIdentityInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -564,10 +501,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["channelPartnerCloudIdentityInfo"] !== undefined) {
-          body["channelPartnerCloudIdentityInfo"] =
-            g["channelPartnerCloudIdentityInfo"];
-        }
         if (g["linkState"] !== undefined) body["linkState"] = g["linkState"];
         if (g["resellerCloudIdentityId"] !== undefined) {
           body["resellerCloudIdentityId"] = g["resellerCloudIdentityId"];
@@ -585,14 +518,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

@@ -170,7 +170,7 @@ const GlobalArgsSchema = z.object({
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
     }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
+      "Source context for the protocol buffer service represented by this message.",
     ).optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax of the service.").optional(),
@@ -241,9 +241,7 @@ const GlobalArgsSchema = z.object({
         canonicalScopes: z.string().describe(
           "The list of publicly documented OAuth scopes that are allowed access. An OAuth token containing any of these scopes will be accepted. Example: canonical_scopes: https://www.googleapis.com/auth/calendar, https://www.googleapis.com/auth/calendar.read",
         ).optional(),
-      }).describe(
-        'OAuth scopes are a way to define data and permissions on data. For example, there are scopes defined for "Read-only access to Google Calendar" and "Access to Cloud Platform". Users can consent to a scope for an application, giving it permission to access that data on their behalf. OAuth scope specifications should be fairly coarse grained; a user will need to see and understand the text description of what your scope means. In most cases: use one or at most two OAuth scopes for an entire family of products. If your product has multiple APIs, you should probably be sharing the OAuth scope across all of those APIs. When you need finer grained OAuth consent screens: talk with your product management about how developers will use them in practice. Please note that even though each of the canonical scopes is enough for a request to be accepted and passed to the backend, a request can still fail due to the backend requiring additional scopes or permissions.',
-      ).optional(),
+      }).describe("The requirements for OAuth credentials.").optional(),
       requirements: z.array(z.object({
         audiences: z.unknown().describe(
           'NOTE: This will be deprecated soon, once AuthProvider.audiences is implemented and accepted in all the runtime components. The list of JWT [audiences](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3). that are allowed to access. A JWT containing any of these audiences will be accepted. When this setting is absent, only JWTs with audience "https://Service_name/API_name" will be accepted. For example, if no audiences are in the setting, LibraryService API will only accept JWTs with the following audience "https://library-example.googleapis.com/google.example.library.v1.LibraryService". Example: audiences: bookstore_android.apps.googleusercontent.com, bookstore_web.apps.googleusercontent.com',
@@ -259,9 +257,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       'A list of authentication rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    '`Authentication` defines the authentication configuration for API methods provided by an API service. Example: name: calendar.googleapis.com authentication: providers: - id: google_calendar_auth jwks_uri: https://www.googleapis.com/oauth2/v1/certs issuer: https://securetoken.google.com rules: - selector: "*" requirements: provider_id: google_calendar_auth - selector: google.calendar.Delegate oauth: canonical_scopes: https://www.googleapis.com/auth/calendar.read',
-  ).optional(),
+  }).describe("Auth configuration.").optional(),
   backend: z.object({
     rules: z.array(z.object({
       address: z.string().describe(
@@ -304,8 +300,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       'A list of API backend rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe("`Backend` defines the backend configuration for a service.")
-    .optional(),
+  }).describe("API backend configuration.").optional(),
   billing: z.object({
     consumerDestinations: z.array(z.object({
       metrics: z.array(z.string()).describe(
@@ -317,9 +312,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Billing configurations for sending metrics to the consumer project. There can be multiple consumer destinations per service, each one must have a different monitored resource type. A metric can be used in at most one consumer destination.",
     ).optional(),
-  }).describe(
-    'Billing related configuration of the service. The following example shows how to configure monitored resources and metrics for billing, `consumer_destinations` is the only supported destination and the monitored resources need at least one label key `cloud.googleapis.com/location` to indicate the location of the billing usage, using different monitored resources between monitoring and billing is recommended so they can be evolved independently: monitored_resources: - type: library.googleapis.com/billing_branch labels: - key: cloud.googleapis.com/location description: | Predefined label to support billing location restriction. - key: city description: | Custom label to define the city where the library branch is located in. - key: name description: Custom label to define the name of the library branch. metrics: - name: library.googleapis.com/book/borrowed_count metric_kind: DELTA value_type: INT64 unit: "1" billing: consumer_destinations: - monitored_resource: library.googleapis.com/billing_branch metrics: - library.googleapis.com/book/borrowed_count',
-  ).optional(),
+  }).describe("Billing configuration.").optional(),
   configVersion: z.number().int().describe(
     "Obsolete. Do not use. This field has no semantic meaning. The service config compiler always sets this field to `3`.",
   ).optional(),
@@ -343,9 +336,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       'A list of RPC context rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    '`Context` defines which contexts an API requests. Example: context: rules: - selector: "*" requested: - google.rpc.context.ProjectContext - google.rpc.context.OriginContext The above specifies that all methods in the API request `google.rpc.context.ProjectContext` and `google.rpc.context.OriginContext`. Available context types are defined in package `google.rpc.context`. This also provides mechanism to allowlist any protobuf message extension that can be sent in grpc metadata using “x-goog-ext--bin” and “x-goog-ext--jspb” format. For example, list any service specific protobuf types that can appear in grpc metadata as follows in your yaml file: Example: context: rules: - selector: "google.example.library.v1.LibraryService.CreateBook" allowed_request_extensions: - google.foo.v1.NewExtension allowed_response_extensions: - google.foo.v1.NewExtension You can also specify extension ID instead of fully qualified extension name here.',
-  ).optional(),
+  }).describe("Context configuration.").optional(),
   control: z.object({
     environment: z.string().describe(
       "The service controller environment to use. If empty, no control plane features (like quota and billing) will be enabled. The recommended value for most services is servicecontrol.googleapis.com.",
@@ -368,9 +359,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Defines policies applying to the API methods of the service.")
       .optional(),
-  }).describe(
-    "Selects and configures the service controller used by the service. Example: control: environment: servicecontrol.googleapis.com",
-  ).optional(),
+  }).describe("Configuration for the service control plane.").optional(),
   customError: z.object({
     rules: z.array(z.object({
       isErrorType: z.boolean().describe(
@@ -385,9 +374,7 @@ const GlobalArgsSchema = z.object({
     types: z.array(z.string()).describe(
       "The list of custom error detail types, e.g. 'google.foo.v1.CustomError'.",
     ).optional(),
-  }).describe(
-    "Customize service error responses. For example, list any service specific protobuf types that can appear in error detail lists of error responses. Example: custom_error: types: - google.foo.v1.CustomError - google.foo.v1.AnotherError",
-  ).optional(),
+  }).describe("Custom error configuration.").optional(),
   documentation: z.object({
     additionalIamInfo: z.string().describe(
       "Optional information about the IAM configuration. This is typically used to link to documentation about a product's IAM roles and permissions.",
@@ -444,9 +431,7 @@ const GlobalArgsSchema = z.object({
     summary: z.string().describe(
       "A short description of what the service does. The summary must be plain text. It becomes the overview of the service displayed in Google Cloud Console. NOTE: This field is equivalent to the standard field `description`.",
     ).optional(),
-  }).describe(
-    "`Documentation` provides the information for describing a service. Example: documentation: summary: > The Google Calendar API gives access to most calendar features. pages: - name: Overview content: (== include google/foo/overview.md ==) - name: Tutorial content: (== include google/foo/tutorial.md ==) subpages: - name: Java content: (== include google/foo/tutorial_java.md ==) rules: - selector: google.calendar.Calendar.Get description: >... - selector: google.calendar.Calendar.Put description: >... Documentation is provided in markdown syntax. In addition to standard markdown features, definition lists, tables and fenced code blocks are supported. Section headers can be provided and are interpreted relative to the section nesting of the context where a documentation fragment is embedded. Documentation from the IDL is merged with documentation defined via the config at normalization time, where documentation provided by config rules overrides IDL provided. A number of constructs specific to the API platform are supported in documentation text. In order to reference a proto element, the following notation can be used: [fully.qualified.proto.name][] To override the display text used for the link, this can be used: [display text][fully.qualified.proto.name] Text can be excluded from doc using the following notation: (-- internal comment --) A few directives are available in documentation. Note that directives must appear on a single line to be properly identified. The `include` directive includes a markdown file from an external source: (== include path/to/file ==) The `resource_for` directive marks a message to be the resource of a collection in REST view. If it is not specified, tools attempt to infer the resource from the operations in a collection: (== resource_for v1.shelves.books ==) The directive `suppress_warning` does not directly affect documentation and is documented together with service config validation.",
-  ).optional(),
+  }).describe("Additional API documentation.").optional(),
   endpoints: z.array(z.object({
     aliases: z.array(z.string()).describe(
       "Aliases for this endpoint, these will be served by the same UrlMap as the parent endpoint, and will be provisioned in the GCP stack for the Regional Endpoints.",
@@ -485,9 +470,7 @@ const GlobalArgsSchema = z.object({
       fileName: z.string().describe(
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
-    }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
-    ).optional(),
+    }).describe("The source context.").optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax.").optional(),
   })).describe(
@@ -509,8 +492,9 @@ const GlobalArgsSchema = z.object({
           .optional(),
         path: z.string().describe("The path matched by this custom verb.")
           .optional(),
-      }).describe("A custom pattern is used for defining custom HTTP verb.")
-        .optional(),
+      }).describe(
+        'The custom pattern is used for specifying an HTTP method that is not included in the `pattern` field, such as HEAD, or "*" to leave the HTTP method unspecified for this rule. The wild-card rule is useful for services that provide content to Web (HTML) clients.',
+      ).optional(),
       delete: z.string().describe(
         "Maps to HTTP DELETE. Used for deleting a resource.",
       ).optional(),
@@ -535,9 +519,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       'A list of HTTP configuration rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    "Defines the HTTP configuration for an API service. It contains a list of HttpRule, each specifying the mapping of an RPC method to one or more HTTP REST API methods.",
-  ).optional(),
+  }).describe("HTTP configuration.").optional(),
   id: z.string().describe(
     "A unique ID for a specific instance of this message, typically assigned by the client for tracking purpose. Must be no longer than 63 characters and only lower case letters, digits, '.', '_' and '-' are allowed. If empty, the server may choose to generate one instead.",
   ).optional(),
@@ -562,9 +544,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Logging configurations for sending logs to the producer project. There can be multiple producer destinations, each one must have a different monitored resource type. A log can be used in at most one producer destination.",
     ).optional(),
-  }).describe(
-    "Logging configuration of the service. The following example shows how to configure logs to be sent to the producer and consumer projects. In the example, the `activity_history` log is sent to both the producer and consumer projects, whereas the `purchase_history` log is only sent to the producer project. monitored_resources: - type: library.googleapis.com/branch labels: - key: /city description: The city where the library branch is located in. - key: /name description: The name of the branch. logs: - name: activity_history labels: - key: /customer_id - name: purchase_history logging: producer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history - purchase_history consumer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history",
-  ).optional(),
+  }).describe("Logging configuration.").optional(),
   logs: z.array(z.object({
     description: z.string().describe(
       "A human-readable description of this log. This information appears in the documentation and can contain details.",
@@ -644,7 +624,7 @@ const GlobalArgsSchema = z.object({
         ]),
       ).describe("The scope of the timeseries data of the metric.").optional(),
     }).describe(
-      "Additional annotations that can be used to guide the usage of a metric.",
+      "Optional. Metadata which can be used to guide usage of the metric.",
     ).optional(),
     metricKind: z.enum([
       "METRIC_KIND_UNSPECIFIED",
@@ -737,9 +717,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Monitoring configurations for sending metrics to the producer project. There can be multiple producer destinations. A monitored resource type may appear in multiple monitoring destinations if different aggregations are needed for different sets of metrics associated with that monitored resource type. A monitored resource and metric pair may only be used once in the Monitoring configuration.",
     ).optional(),
-  }).describe(
-    'Monitoring configuration of the service. The example below shows how to configure monitored resources and metrics for monitoring. In the example, a monitored resource and two metrics are defined. The `library.googleapis.com/book/returned_count` metric is sent to both producer and consumer projects, whereas the `library.googleapis.com/book/num_overdue` metric is only sent to the consumer project. monitored_resources: - type: library.googleapis.com/Branch display_name: "Library Branch" description: "A branch of a library." launch_stage: GA labels: - key: resource_container description: "The Cloud container (ie. project id) for the Branch." - key: location description: "The location of the library branch." - key: branch_id description: "The id of the branch." metrics: - name: library.googleapis.com/book/returned_count display_name: "Books Returned" description: "The count of books that have been returned." launch_stage: GA metric_kind: DELTA value_type: INT64 unit: "1" labels: - key: customer_id description: "The id of the customer." - name: library.googleapis.com/book/num_overdue display_name: "Books Overdue" description: "The current number of overdue books." launch_stage: GA metric_kind: GAUGE value_type: INT64 unit: "1" labels: - key: customer_id description: "The id of the customer." monitoring: producer_destinations: - monitored_resource: library.googleapis.com/Branch metrics: - library.googleapis.com/book/returned_count consumer_destinations: - monitored_resource: library.googleapis.com/Branch metrics: - library.googleapis.com/book/returned_count - library.googleapis.com/book/num_overdue',
-  ).optional(),
+  }).describe("Monitoring configuration.").optional(),
   name: z.string().describe(
     "The service name, which is a DNS-like logical identifier for the service, such as `calendar.googleapis.com`. The service name typically goes through DNS verification to make sure the owner of the service also owns the DNS name.",
   ).optional(),
@@ -772,9 +750,9 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
       }).describe("Settings for C++ client libraries.").optional(),
       dotnetSettings: z.object({
         common: z.object({
@@ -785,9 +763,9 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         forcedNamespaceAliases: z.array(z.unknown()).describe(
           "Namespaces which must be aliased in snippets due to a known (but non-generator-predictable) naming collision",
         ).optional(),
@@ -803,7 +781,7 @@ const GlobalArgsSchema = z.object({
         renamedServices: z.record(z.string(), z.unknown()).describe(
           "Map from original service names to renamed versions. This is used when the default generated types would cause a naming conflict. (Neither name is fully-qualified.) Example: Subscriber to SubscriberServiceApi.",
         ).optional(),
-      }).describe("Settings for Dotnet client libraries.").optional(),
+      }).describe("Settings for.NET client libraries.").optional(),
       goSettings: z.object({
         common: z.object({
           destinations: z.unknown().describe(
@@ -813,9 +791,9 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         renamedServices: z.record(z.string(), z.unknown()).describe(
           "Map of service names to renamed services. Keys are the package relative service names and values are the name to be used for the service client and call options. Example: publishing: go_settings: renamed_services: Publisher: TopicAdmin",
         ).optional(),
@@ -829,16 +807,18 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         libraryPackage: z.string().describe(
           'The package name to use in Java. Clobbers the java_package option set in the protobuf. This should be used **only** by APIs who have already set the language_settings.java.package_name" field in gapic.yaml. API teams should use the protobuf java_package option where possible. Example of a YAML configuration:: publishing: library_settings: java_settings: library_package: com.google.cloud.pubsub.v1',
         ).optional(),
         serviceClassNames: z.record(z.string(), z.unknown()).describe(
           "Configure the Java class name to use instead of the service's for its corresponding generated GAPIC client. Keys are fully-qualified service names as they appear in the protobuf (including the full the language_settings.java.interface_names\" field in gapic.yaml. API teams should otherwise use the service name as it appears in the protobuf. Example of a YAML configuration:: publishing: java_settings: service_class_names: - google.pubsub.v1.Publisher: TopicAdmin - google.pubsub.v1.Subscriber: SubscriptionAdmin",
         ).optional(),
-      }).describe("Settings for Java client libraries.").optional(),
+      }).describe(
+        "Settings for legacy Java features, supported in the Service YAML.",
+      ).optional(),
       launchStage: z.enum([
         "LAUNCH_STAGE_UNSPECIFIED",
         "UNIMPLEMENTED",
@@ -858,9 +838,9 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
       }).describe("Settings for Node client libraries.").optional(),
       phpSettings: z.object({
         common: z.object({
@@ -871,13 +851,13 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         libraryPackage: z.string().describe(
           'The package name to use in Php. Clobbers the php_namespace option set in the protobuf. This should be used **only** by APIs who have already set the language_settings.php.package_name" field in gapic.yaml. API teams should use the protobuf php_namespace option where possible. Example of a YAML configuration:: publishing: library_settings: php_settings: library_package: Google\\Cloud\\PubSub\\V1',
         ).optional(),
-      }).describe("Settings for Php client libraries.").optional(),
+      }).describe("Settings for PHP client libraries.").optional(),
       pythonSettings: z.object({
         common: z.object({
           destinations: z.unknown().describe(
@@ -887,9 +867,9 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         experimentalFeatures: z.object({
           protobufPythonicTypesEnabled: z.unknown().describe(
             "Enables generation of protobuf code using new types that are more Pythonic which are included in `protobuf>=5.29.x`. This feature will be enabled by default 1 month after launching the feature in preview packages.",
@@ -901,7 +881,7 @@ const GlobalArgsSchema = z.object({
             "Disables generation of an unversioned Python package for this client library. This means that the module names will need to be versioned in import statements. For example `import google.cloud.library_v2` instead of `import google.cloud.library`.",
           ).optional(),
         }).describe(
-          "Experimental features to be included during client library generation. These fields will be deprecated once the feature graduates and is enabled by default.",
+          "Experimental features to be included during client library generation.",
         ).optional(),
       }).describe("Settings for Python client libraries.").optional(),
       restNumericEnums: z.boolean().describe(
@@ -916,9 +896,9 @@ const GlobalArgsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
       }).describe("Settings for Ruby client libraries.").optional(),
       version: z.string().describe(
         'Version of the API to apply these settings to. This is the full protobuf package for the API, ending in the version element. Examples: "google.cloud.speech.v1" and "google.spanner.admin.database.v1".',
@@ -941,9 +921,8 @@ const GlobalArgsSchema = z.object({
           subresponseField: z.unknown().describe(
             "Optional. When present, indicates the field in the response message to be used to demultiplex the response into multiple response messages, in correspondence with the multiple request messages originally batched together.",
           ).optional(),
-        }).describe(
-          "`BatchingDescriptorProto` specifies the fields of the request message to be used for batching, and, optionally, the fields of the response message to be used for demultiplexing.",
-        ).optional(),
+        }).describe("The request and response fields used in batching.")
+          .optional(),
         thresholds: z.object({
           delayThreshold: z.unknown().describe(
             "The duration after which a batch should be sent, starting from the addition of the first message to that batch.",
@@ -970,10 +949,10 @@ const GlobalArgsSchema = z.object({
             "The aggregated size of the batched field which, if exceeded, causes the batch to be sent. This size is computed by aggregating the sizes of the request field to be batched, not of the entire request message.",
           ).optional(),
         }).describe(
-          "`BatchingSettingsProto` specifies a set of batching thresholds, each of which acts as a trigger to send a batch of messages as a request. At least one threshold must be positive nonzero.",
+          "The thresholds which trigger a batched request to be sent.",
         ).optional(),
       }).describe(
-        "`BatchingConfigProto` defines the batching configuration for an API method.",
+        "Batching configuration for an API method in client libraries. Example of a YAML configuration: publishing: method_settings: - selector: google.example.v1.ExampleService.BatchCreateExample batching: element_count_threshold: 1000 request_byte_threshold: 100000000 delay_threshold_millis: 10",
       ).optional(),
       longRunning: z.object({
         initialPollDelay: z.string().describe(
@@ -989,7 +968,7 @@ const GlobalArgsSchema = z.object({
           "Total polling timeout. Default value: 5 minutes.",
         ).optional(),
       }).describe(
-        "Describes settings to use when generating API methods that use the long-running operation pattern. All default values below are from those used in the client library generators (e.g. [Java](https://github.com/googleapis/gapic-generator-java/blob/04c2faa191a9b5a10b92392fe8482279c4404803/src/main/java/com/google/api/generator/gapic/composer/common/RetrySettingsComposer.java)).",
+        "Describes settings to use for long-running operations when generating API methods for RPCs. Complements RPCs that use the annotations in google/longrunning/operations.proto. Example of a YAML configuration:: publishing: method_settings: - selector: google.cloud.speech.v2.Speech.BatchRecognize long_running: initial_poll_delay: 60s # 1 minute poll_delay_multiplier: 1.5 max_poll_delay: 360s # 6 minutes total_poll_timeout: 54000s # 90 minutes",
       ).optional(),
       selector: z.string().describe(
         "The fully qualified name of the method, for which the options below apply. This is used to find the method to apply the options. Example: publishing: method_settings: - selector: google.storage.control.v2.StorageControl.CreateFolder # method settings for CreateFolder...",
@@ -1018,7 +997,7 @@ const GlobalArgsSchema = z.object({
       "Optional link to REST reference documentation. Example: https://cloud.google.com/pubsub/lite/docs/reference/rest",
     ).optional(),
   }).describe(
-    "This message configures the settings for publishing [Google Cloud Client libraries](https://cloud.google.com/apis/docs/cloud-client-libraries) generated from the service config.",
+    "Settings for [Google Cloud Client libraries](https://cloud.google.com/apis/docs/cloud-client-libraries) generated from APIs defined as protocol buffers.",
   ).optional(),
   quota: z.object({
     limits: z.array(z.object({
@@ -1063,14 +1042,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "List of MetricRule definitions, each one mapping a selected method to one or more metrics.",
     ).optional(),
-  }).describe(
-    'Quota configuration helps to achieve fairness and budgeting in service usage. The metric based quota configuration works this way: - The service configuration defines a set of metrics. - For API calls, the quota.metric_rules maps methods to metrics with corresponding costs. - The quota.limits defines limits on the metrics, which will be used for quota checks at runtime. An example quota configuration in yaml format: quota: limits: - name: apiWriteQpsPerProject metric: library.googleapis.com/write_calls unit: "1/min/{project}" # rate limit for consumer projects values: STANDARD: 10000 (The metric rules bind all methods to the read_calls metric, except for the UpdateBook and DeleteBook methods. These two methods are mapped to the write_calls metric, with the UpdateBook method consuming at twice rate as the DeleteBook method.) metric_rules: - selector: "*" metric_costs: library.googleapis.com/read_calls: 1 - selector: google.example.library.v1.LibraryService.UpdateBook metric_costs: library.googleapis.com/write_calls: 2 - selector: google.example.library.v1.LibraryService.DeleteBook metric_costs: library.googleapis.com/write_calls: 1 Corresponding Metric definition: metrics: - name: library.googleapis.com/read_calls display_name: Read requests metric_kind: DELTA value_type: INT64 - name: library.googleapis.com/write_calls display_name: Write requests metric_kind: DELTA value_type: INT64',
-  ).optional(),
-  sourceInfo: z.object({
-    sourceFiles: z.array(z.record(z.string(), z.string())).describe(
-      "All files used during config generation.",
-    ).optional(),
-  }).describe("Source information used to create a Service Config").optional(),
+  }).describe("Quota configuration.").optional(),
   systemParameters: z.object({
     rules: z.array(z.object({
       parameters: z.array(z.object({
@@ -1092,9 +1064,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       'Define system parameters. The parameters defined here will override the default parameters implemented by the system. If this field is missing from the service config, default system parameters will be used. Default system parameters and names is implementation-dependent. Example: define api key for all methods system_parameters rules: - selector: "*" parameters: - name: api_key url_query_parameter: api_key Example: define 2 api key names for a specific method. system_parameters rules: - selector: "/ListShelves" parameters: - name: api_key http_header: Api-Key1 - name: api_key http_header: Api-Key2 **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    "### System parameter configuration A system parameter is a special kind of parameter defined by the API system, not by an individual API. It is typically mapped to an HTTP header and/or a URL query parameter. This configuration specifies which methods change the names of the system parameters.",
-  ).optional(),
+  }).describe("System parameter configuration.").optional(),
   systemTypes: z.array(z.object({
     edition: z.string().describe(
       "The source edition string, only valid when syntax is SYNTAX_EDITIONS.",
@@ -1161,9 +1131,7 @@ const GlobalArgsSchema = z.object({
       fileName: z.string().describe(
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
-    }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
-    ).optional(),
+    }).describe("The source context.").optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax.").optional(),
   })).describe(
@@ -1238,9 +1206,7 @@ const GlobalArgsSchema = z.object({
       fileName: z.string().describe(
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
-    }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
-    ).optional(),
+    }).describe("The source context.").optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax.").optional(),
   })).describe(
@@ -1266,7 +1232,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       'A list of usage rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe("Configuration controlling usage of a service.").optional(),
+  }).describe("Configuration controlling usage of this service.").optional(),
   serviceName: z.string().describe(
     "Required. The name of the service. See the [overview](https://cloud.google.com/service-management/overview) for naming requirements. For example: `example.googleapis.com`.",
   ),
@@ -1780,7 +1746,7 @@ const InputsSchema = z.object({
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
     }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
+      "Source context for the protocol buffer service represented by this message.",
     ).optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax of the service.").optional(),
@@ -1851,9 +1817,7 @@ const InputsSchema = z.object({
         canonicalScopes: z.string().describe(
           "The list of publicly documented OAuth scopes that are allowed access. An OAuth token containing any of these scopes will be accepted. Example: canonical_scopes: https://www.googleapis.com/auth/calendar, https://www.googleapis.com/auth/calendar.read",
         ).optional(),
-      }).describe(
-        'OAuth scopes are a way to define data and permissions on data. For example, there are scopes defined for "Read-only access to Google Calendar" and "Access to Cloud Platform". Users can consent to a scope for an application, giving it permission to access that data on their behalf. OAuth scope specifications should be fairly coarse grained; a user will need to see and understand the text description of what your scope means. In most cases: use one or at most two OAuth scopes for an entire family of products. If your product has multiple APIs, you should probably be sharing the OAuth scope across all of those APIs. When you need finer grained OAuth consent screens: talk with your product management about how developers will use them in practice. Please note that even though each of the canonical scopes is enough for a request to be accepted and passed to the backend, a request can still fail due to the backend requiring additional scopes or permissions.',
-      ).optional(),
+      }).describe("The requirements for OAuth credentials.").optional(),
       requirements: z.array(z.object({
         audiences: z.unknown().describe(
           'NOTE: This will be deprecated soon, once AuthProvider.audiences is implemented and accepted in all the runtime components. The list of JWT [audiences](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#section-4.1.3). that are allowed to access. A JWT containing any of these audiences will be accepted. When this setting is absent, only JWTs with audience "https://Service_name/API_name" will be accepted. For example, if no audiences are in the setting, LibraryService API will only accept JWTs with the following audience "https://library-example.googleapis.com/google.example.library.v1.LibraryService". Example: audiences: bookstore_android.apps.googleusercontent.com, bookstore_web.apps.googleusercontent.com',
@@ -1869,9 +1833,7 @@ const InputsSchema = z.object({
     })).describe(
       'A list of authentication rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    '`Authentication` defines the authentication configuration for API methods provided by an API service. Example: name: calendar.googleapis.com authentication: providers: - id: google_calendar_auth jwks_uri: https://www.googleapis.com/oauth2/v1/certs issuer: https://securetoken.google.com rules: - selector: "*" requirements: provider_id: google_calendar_auth - selector: google.calendar.Delegate oauth: canonical_scopes: https://www.googleapis.com/auth/calendar.read',
-  ).optional(),
+  }).describe("Auth configuration.").optional(),
   backend: z.object({
     rules: z.array(z.object({
       address: z.string().describe(
@@ -1914,8 +1876,7 @@ const InputsSchema = z.object({
     })).describe(
       'A list of API backend rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe("`Backend` defines the backend configuration for a service.")
-    .optional(),
+  }).describe("API backend configuration.").optional(),
   billing: z.object({
     consumerDestinations: z.array(z.object({
       metrics: z.array(z.string()).describe(
@@ -1927,9 +1888,7 @@ const InputsSchema = z.object({
     })).describe(
       "Billing configurations for sending metrics to the consumer project. There can be multiple consumer destinations per service, each one must have a different monitored resource type. A metric can be used in at most one consumer destination.",
     ).optional(),
-  }).describe(
-    'Billing related configuration of the service. The following example shows how to configure monitored resources and metrics for billing, `consumer_destinations` is the only supported destination and the monitored resources need at least one label key `cloud.googleapis.com/location` to indicate the location of the billing usage, using different monitored resources between monitoring and billing is recommended so they can be evolved independently: monitored_resources: - type: library.googleapis.com/billing_branch labels: - key: cloud.googleapis.com/location description: | Predefined label to support billing location restriction. - key: city description: | Custom label to define the city where the library branch is located in. - key: name description: Custom label to define the name of the library branch. metrics: - name: library.googleapis.com/book/borrowed_count metric_kind: DELTA value_type: INT64 unit: "1" billing: consumer_destinations: - monitored_resource: library.googleapis.com/billing_branch metrics: - library.googleapis.com/book/borrowed_count',
-  ).optional(),
+  }).describe("Billing configuration.").optional(),
   configVersion: z.number().int().describe(
     "Obsolete. Do not use. This field has no semantic meaning. The service config compiler always sets this field to `3`.",
   ).optional(),
@@ -1953,9 +1912,7 @@ const InputsSchema = z.object({
     })).describe(
       'A list of RPC context rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    '`Context` defines which contexts an API requests. Example: context: rules: - selector: "*" requested: - google.rpc.context.ProjectContext - google.rpc.context.OriginContext The above specifies that all methods in the API request `google.rpc.context.ProjectContext` and `google.rpc.context.OriginContext`. Available context types are defined in package `google.rpc.context`. This also provides mechanism to allowlist any protobuf message extension that can be sent in grpc metadata using “x-goog-ext--bin” and “x-goog-ext--jspb” format. For example, list any service specific protobuf types that can appear in grpc metadata as follows in your yaml file: Example: context: rules: - selector: "google.example.library.v1.LibraryService.CreateBook" allowed_request_extensions: - google.foo.v1.NewExtension allowed_response_extensions: - google.foo.v1.NewExtension You can also specify extension ID instead of fully qualified extension name here.',
-  ).optional(),
+  }).describe("Context configuration.").optional(),
   control: z.object({
     environment: z.string().describe(
       "The service controller environment to use. If empty, no control plane features (like quota and billing) will be enabled. The recommended value for most services is servicecontrol.googleapis.com.",
@@ -1978,9 +1935,7 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Defines policies applying to the API methods of the service.")
       .optional(),
-  }).describe(
-    "Selects and configures the service controller used by the service. Example: control: environment: servicecontrol.googleapis.com",
-  ).optional(),
+  }).describe("Configuration for the service control plane.").optional(),
   customError: z.object({
     rules: z.array(z.object({
       isErrorType: z.boolean().describe(
@@ -1995,9 +1950,7 @@ const InputsSchema = z.object({
     types: z.array(z.string()).describe(
       "The list of custom error detail types, e.g. 'google.foo.v1.CustomError'.",
     ).optional(),
-  }).describe(
-    "Customize service error responses. For example, list any service specific protobuf types that can appear in error detail lists of error responses. Example: custom_error: types: - google.foo.v1.CustomError - google.foo.v1.AnotherError",
-  ).optional(),
+  }).describe("Custom error configuration.").optional(),
   documentation: z.object({
     additionalIamInfo: z.string().describe(
       "Optional information about the IAM configuration. This is typically used to link to documentation about a product's IAM roles and permissions.",
@@ -2054,9 +2007,7 @@ const InputsSchema = z.object({
     summary: z.string().describe(
       "A short description of what the service does. The summary must be plain text. It becomes the overview of the service displayed in Google Cloud Console. NOTE: This field is equivalent to the standard field `description`.",
     ).optional(),
-  }).describe(
-    "`Documentation` provides the information for describing a service. Example: documentation: summary: > The Google Calendar API gives access to most calendar features. pages: - name: Overview content: (== include google/foo/overview.md ==) - name: Tutorial content: (== include google/foo/tutorial.md ==) subpages: - name: Java content: (== include google/foo/tutorial_java.md ==) rules: - selector: google.calendar.Calendar.Get description: >... - selector: google.calendar.Calendar.Put description: >... Documentation is provided in markdown syntax. In addition to standard markdown features, definition lists, tables and fenced code blocks are supported. Section headers can be provided and are interpreted relative to the section nesting of the context where a documentation fragment is embedded. Documentation from the IDL is merged with documentation defined via the config at normalization time, where documentation provided by config rules overrides IDL provided. A number of constructs specific to the API platform are supported in documentation text. In order to reference a proto element, the following notation can be used: [fully.qualified.proto.name][] To override the display text used for the link, this can be used: [display text][fully.qualified.proto.name] Text can be excluded from doc using the following notation: (-- internal comment --) A few directives are available in documentation. Note that directives must appear on a single line to be properly identified. The `include` directive includes a markdown file from an external source: (== include path/to/file ==) The `resource_for` directive marks a message to be the resource of a collection in REST view. If it is not specified, tools attempt to infer the resource from the operations in a collection: (== resource_for v1.shelves.books ==) The directive `suppress_warning` does not directly affect documentation and is documented together with service config validation.",
-  ).optional(),
+  }).describe("Additional API documentation.").optional(),
   endpoints: z.array(z.object({
     aliases: z.array(z.string()).describe(
       "Aliases for this endpoint, these will be served by the same UrlMap as the parent endpoint, and will be provisioned in the GCP stack for the Regional Endpoints.",
@@ -2095,9 +2046,7 @@ const InputsSchema = z.object({
       fileName: z.string().describe(
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
-    }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
-    ).optional(),
+    }).describe("The source context.").optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax.").optional(),
   })).describe(
@@ -2119,8 +2068,9 @@ const InputsSchema = z.object({
           .optional(),
         path: z.string().describe("The path matched by this custom verb.")
           .optional(),
-      }).describe("A custom pattern is used for defining custom HTTP verb.")
-        .optional(),
+      }).describe(
+        'The custom pattern is used for specifying an HTTP method that is not included in the `pattern` field, such as HEAD, or "*" to leave the HTTP method unspecified for this rule. The wild-card rule is useful for services that provide content to Web (HTML) clients.',
+      ).optional(),
       delete: z.string().describe(
         "Maps to HTTP DELETE. Used for deleting a resource.",
       ).optional(),
@@ -2145,9 +2095,7 @@ const InputsSchema = z.object({
     })).describe(
       'A list of HTTP configuration rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    "Defines the HTTP configuration for an API service. It contains a list of HttpRule, each specifying the mapping of an RPC method to one or more HTTP REST API methods.",
-  ).optional(),
+  }).describe("HTTP configuration.").optional(),
   id: z.string().describe(
     "A unique ID for a specific instance of this message, typically assigned by the client for tracking purpose. Must be no longer than 63 characters and only lower case letters, digits, '.', '_' and '-' are allowed. If empty, the server may choose to generate one instead.",
   ).optional(),
@@ -2172,9 +2120,7 @@ const InputsSchema = z.object({
     })).describe(
       "Logging configurations for sending logs to the producer project. There can be multiple producer destinations, each one must have a different monitored resource type. A log can be used in at most one producer destination.",
     ).optional(),
-  }).describe(
-    "Logging configuration of the service. The following example shows how to configure logs to be sent to the producer and consumer projects. In the example, the `activity_history` log is sent to both the producer and consumer projects, whereas the `purchase_history` log is only sent to the producer project. monitored_resources: - type: library.googleapis.com/branch labels: - key: /city description: The city where the library branch is located in. - key: /name description: The name of the branch. logs: - name: activity_history labels: - key: /customer_id - name: purchase_history logging: producer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history - purchase_history consumer_destinations: - monitored_resource: library.googleapis.com/branch logs: - activity_history",
-  ).optional(),
+  }).describe("Logging configuration.").optional(),
   logs: z.array(z.object({
     description: z.string().describe(
       "A human-readable description of this log. This information appears in the documentation and can contain details.",
@@ -2254,7 +2200,7 @@ const InputsSchema = z.object({
         ]),
       ).describe("The scope of the timeseries data of the metric.").optional(),
     }).describe(
-      "Additional annotations that can be used to guide the usage of a metric.",
+      "Optional. Metadata which can be used to guide usage of the metric.",
     ).optional(),
     metricKind: z.enum([
       "METRIC_KIND_UNSPECIFIED",
@@ -2347,9 +2293,7 @@ const InputsSchema = z.object({
     })).describe(
       "Monitoring configurations for sending metrics to the producer project. There can be multiple producer destinations. A monitored resource type may appear in multiple monitoring destinations if different aggregations are needed for different sets of metrics associated with that monitored resource type. A monitored resource and metric pair may only be used once in the Monitoring configuration.",
     ).optional(),
-  }).describe(
-    'Monitoring configuration of the service. The example below shows how to configure monitored resources and metrics for monitoring. In the example, a monitored resource and two metrics are defined. The `library.googleapis.com/book/returned_count` metric is sent to both producer and consumer projects, whereas the `library.googleapis.com/book/num_overdue` metric is only sent to the consumer project. monitored_resources: - type: library.googleapis.com/Branch display_name: "Library Branch" description: "A branch of a library." launch_stage: GA labels: - key: resource_container description: "The Cloud container (ie. project id) for the Branch." - key: location description: "The location of the library branch." - key: branch_id description: "The id of the branch." metrics: - name: library.googleapis.com/book/returned_count display_name: "Books Returned" description: "The count of books that have been returned." launch_stage: GA metric_kind: DELTA value_type: INT64 unit: "1" labels: - key: customer_id description: "The id of the customer." - name: library.googleapis.com/book/num_overdue display_name: "Books Overdue" description: "The current number of overdue books." launch_stage: GA metric_kind: GAUGE value_type: INT64 unit: "1" labels: - key: customer_id description: "The id of the customer." monitoring: producer_destinations: - monitored_resource: library.googleapis.com/Branch metrics: - library.googleapis.com/book/returned_count consumer_destinations: - monitored_resource: library.googleapis.com/Branch metrics: - library.googleapis.com/book/returned_count - library.googleapis.com/book/num_overdue',
-  ).optional(),
+  }).describe("Monitoring configuration.").optional(),
   name: z.string().describe(
     "The service name, which is a DNS-like logical identifier for the service, such as `calendar.googleapis.com`. The service name typically goes through DNS verification to make sure the owner of the service also owns the DNS name.",
   ).optional(),
@@ -2382,9 +2326,9 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
       }).describe("Settings for C++ client libraries.").optional(),
       dotnetSettings: z.object({
         common: z.object({
@@ -2395,9 +2339,9 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         forcedNamespaceAliases: z.array(z.unknown()).describe(
           "Namespaces which must be aliased in snippets due to a known (but non-generator-predictable) naming collision",
         ).optional(),
@@ -2413,7 +2357,7 @@ const InputsSchema = z.object({
         renamedServices: z.record(z.string(), z.unknown()).describe(
           "Map from original service names to renamed versions. This is used when the default generated types would cause a naming conflict. (Neither name is fully-qualified.) Example: Subscriber to SubscriberServiceApi.",
         ).optional(),
-      }).describe("Settings for Dotnet client libraries.").optional(),
+      }).describe("Settings for.NET client libraries.").optional(),
       goSettings: z.object({
         common: z.object({
           destinations: z.unknown().describe(
@@ -2423,9 +2367,9 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         renamedServices: z.record(z.string(), z.unknown()).describe(
           "Map of service names to renamed services. Keys are the package relative service names and values are the name to be used for the service client and call options. Example: publishing: go_settings: renamed_services: Publisher: TopicAdmin",
         ).optional(),
@@ -2439,16 +2383,18 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         libraryPackage: z.string().describe(
           'The package name to use in Java. Clobbers the java_package option set in the protobuf. This should be used **only** by APIs who have already set the language_settings.java.package_name" field in gapic.yaml. API teams should use the protobuf java_package option where possible. Example of a YAML configuration:: publishing: library_settings: java_settings: library_package: com.google.cloud.pubsub.v1',
         ).optional(),
         serviceClassNames: z.record(z.string(), z.unknown()).describe(
           "Configure the Java class name to use instead of the service's for its corresponding generated GAPIC client. Keys are fully-qualified service names as they appear in the protobuf (including the full the language_settings.java.interface_names\" field in gapic.yaml. API teams should otherwise use the service name as it appears in the protobuf. Example of a YAML configuration:: publishing: java_settings: service_class_names: - google.pubsub.v1.Publisher: TopicAdmin - google.pubsub.v1.Subscriber: SubscriptionAdmin",
         ).optional(),
-      }).describe("Settings for Java client libraries.").optional(),
+      }).describe(
+        "Settings for legacy Java features, supported in the Service YAML.",
+      ).optional(),
       launchStage: z.enum([
         "LAUNCH_STAGE_UNSPECIFIED",
         "UNIMPLEMENTED",
@@ -2468,9 +2414,9 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
       }).describe("Settings for Node client libraries.").optional(),
       phpSettings: z.object({
         common: z.object({
@@ -2481,13 +2427,13 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         libraryPackage: z.string().describe(
           'The package name to use in Php. Clobbers the php_namespace option set in the protobuf. This should be used **only** by APIs who have already set the language_settings.php.package_name" field in gapic.yaml. API teams should use the protobuf php_namespace option where possible. Example of a YAML configuration:: publishing: library_settings: php_settings: library_package: Google\\Cloud\\PubSub\\V1',
         ).optional(),
-      }).describe("Settings for Php client libraries.").optional(),
+      }).describe("Settings for PHP client libraries.").optional(),
       pythonSettings: z.object({
         common: z.object({
           destinations: z.unknown().describe(
@@ -2497,9 +2443,9 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
         experimentalFeatures: z.object({
           protobufPythonicTypesEnabled: z.unknown().describe(
             "Enables generation of protobuf code using new types that are more Pythonic which are included in `protobuf>=5.29.x`. This feature will be enabled by default 1 month after launching the feature in preview packages.",
@@ -2511,7 +2457,7 @@ const InputsSchema = z.object({
             "Disables generation of an unversioned Python package for this client library. This means that the module names will need to be versioned in import statements. For example `import google.cloud.library_v2` instead of `import google.cloud.library`.",
           ).optional(),
         }).describe(
-          "Experimental features to be included during client library generation. These fields will be deprecated once the feature graduates and is enabled by default.",
+          "Experimental features to be included during client library generation.",
         ).optional(),
       }).describe("Settings for Python client libraries.").optional(),
       restNumericEnums: z.boolean().describe(
@@ -2526,9 +2472,9 @@ const InputsSchema = z.object({
             "Link to automatically generated reference documentation. Example: https://cloud.google.com/nodejs/docs/reference/asset/latest",
           ).optional(),
           selectiveGapicGeneration: z.unknown().describe(
-            "This message is used to configure the generation of a subset of the RPCs in a service for client libraries. Note: This feature should not be used in most cases.",
+            "Configuration for which RPCs should be generated in the GAPIC client. Note: This field should not be used in most cases.",
           ).optional(),
-        }).describe("Required information for every language.").optional(),
+        }).describe("Some settings.").optional(),
       }).describe("Settings for Ruby client libraries.").optional(),
       version: z.string().describe(
         'Version of the API to apply these settings to. This is the full protobuf package for the API, ending in the version element. Examples: "google.cloud.speech.v1" and "google.spanner.admin.database.v1".',
@@ -2551,9 +2497,8 @@ const InputsSchema = z.object({
           subresponseField: z.unknown().describe(
             "Optional. When present, indicates the field in the response message to be used to demultiplex the response into multiple response messages, in correspondence with the multiple request messages originally batched together.",
           ).optional(),
-        }).describe(
-          "`BatchingDescriptorProto` specifies the fields of the request message to be used for batching, and, optionally, the fields of the response message to be used for demultiplexing.",
-        ).optional(),
+        }).describe("The request and response fields used in batching.")
+          .optional(),
         thresholds: z.object({
           delayThreshold: z.unknown().describe(
             "The duration after which a batch should be sent, starting from the addition of the first message to that batch.",
@@ -2580,10 +2525,10 @@ const InputsSchema = z.object({
             "The aggregated size of the batched field which, if exceeded, causes the batch to be sent. This size is computed by aggregating the sizes of the request field to be batched, not of the entire request message.",
           ).optional(),
         }).describe(
-          "`BatchingSettingsProto` specifies a set of batching thresholds, each of which acts as a trigger to send a batch of messages as a request. At least one threshold must be positive nonzero.",
+          "The thresholds which trigger a batched request to be sent.",
         ).optional(),
       }).describe(
-        "`BatchingConfigProto` defines the batching configuration for an API method.",
+        "Batching configuration for an API method in client libraries. Example of a YAML configuration: publishing: method_settings: - selector: google.example.v1.ExampleService.BatchCreateExample batching: element_count_threshold: 1000 request_byte_threshold: 100000000 delay_threshold_millis: 10",
       ).optional(),
       longRunning: z.object({
         initialPollDelay: z.string().describe(
@@ -2599,7 +2544,7 @@ const InputsSchema = z.object({
           "Total polling timeout. Default value: 5 minutes.",
         ).optional(),
       }).describe(
-        "Describes settings to use when generating API methods that use the long-running operation pattern. All default values below are from those used in the client library generators (e.g. [Java](https://github.com/googleapis/gapic-generator-java/blob/04c2faa191a9b5a10b92392fe8482279c4404803/src/main/java/com/google/api/generator/gapic/composer/common/RetrySettingsComposer.java)).",
+        "Describes settings to use for long-running operations when generating API methods for RPCs. Complements RPCs that use the annotations in google/longrunning/operations.proto. Example of a YAML configuration:: publishing: method_settings: - selector: google.cloud.speech.v2.Speech.BatchRecognize long_running: initial_poll_delay: 60s # 1 minute poll_delay_multiplier: 1.5 max_poll_delay: 360s # 6 minutes total_poll_timeout: 54000s # 90 minutes",
       ).optional(),
       selector: z.string().describe(
         "The fully qualified name of the method, for which the options below apply. This is used to find the method to apply the options. Example: publishing: method_settings: - selector: google.storage.control.v2.StorageControl.CreateFolder # method settings for CreateFolder...",
@@ -2628,7 +2573,7 @@ const InputsSchema = z.object({
       "Optional link to REST reference documentation. Example: https://cloud.google.com/pubsub/lite/docs/reference/rest",
     ).optional(),
   }).describe(
-    "This message configures the settings for publishing [Google Cloud Client libraries](https://cloud.google.com/apis/docs/cloud-client-libraries) generated from the service config.",
+    "Settings for [Google Cloud Client libraries](https://cloud.google.com/apis/docs/cloud-client-libraries) generated from APIs defined as protocol buffers.",
   ).optional(),
   quota: z.object({
     limits: z.array(z.object({
@@ -2673,14 +2618,7 @@ const InputsSchema = z.object({
     })).describe(
       "List of MetricRule definitions, each one mapping a selected method to one or more metrics.",
     ).optional(),
-  }).describe(
-    'Quota configuration helps to achieve fairness and budgeting in service usage. The metric based quota configuration works this way: - The service configuration defines a set of metrics. - For API calls, the quota.metric_rules maps methods to metrics with corresponding costs. - The quota.limits defines limits on the metrics, which will be used for quota checks at runtime. An example quota configuration in yaml format: quota: limits: - name: apiWriteQpsPerProject metric: library.googleapis.com/write_calls unit: "1/min/{project}" # rate limit for consumer projects values: STANDARD: 10000 (The metric rules bind all methods to the read_calls metric, except for the UpdateBook and DeleteBook methods. These two methods are mapped to the write_calls metric, with the UpdateBook method consuming at twice rate as the DeleteBook method.) metric_rules: - selector: "*" metric_costs: library.googleapis.com/read_calls: 1 - selector: google.example.library.v1.LibraryService.UpdateBook metric_costs: library.googleapis.com/write_calls: 2 - selector: google.example.library.v1.LibraryService.DeleteBook metric_costs: library.googleapis.com/write_calls: 1 Corresponding Metric definition: metrics: - name: library.googleapis.com/read_calls display_name: Read requests metric_kind: DELTA value_type: INT64 - name: library.googleapis.com/write_calls display_name: Write requests metric_kind: DELTA value_type: INT64',
-  ).optional(),
-  sourceInfo: z.object({
-    sourceFiles: z.array(z.record(z.string(), z.string())).describe(
-      "All files used during config generation.",
-    ).optional(),
-  }).describe("Source information used to create a Service Config").optional(),
+  }).describe("Quota configuration.").optional(),
   systemParameters: z.object({
     rules: z.array(z.object({
       parameters: z.array(z.object({
@@ -2702,9 +2640,7 @@ const InputsSchema = z.object({
     })).describe(
       'Define system parameters. The parameters defined here will override the default parameters implemented by the system. If this field is missing from the service config, default system parameters will be used. Default system parameters and names is implementation-dependent. Example: define api key for all methods system_parameters rules: - selector: "*" parameters: - name: api_key url_query_parameter: api_key Example: define 2 api key names for a specific method. system_parameters rules: - selector: "/ListShelves" parameters: - name: api_key http_header: Api-Key1 - name: api_key http_header: Api-Key2 **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe(
-    "### System parameter configuration A system parameter is a special kind of parameter defined by the API system, not by an individual API. It is typically mapped to an HTTP header and/or a URL query parameter. This configuration specifies which methods change the names of the system parameters.",
-  ).optional(),
+  }).describe("System parameter configuration.").optional(),
   systemTypes: z.array(z.object({
     edition: z.string().describe(
       "The source edition string, only valid when syntax is SYNTAX_EDITIONS.",
@@ -2771,9 +2707,7 @@ const InputsSchema = z.object({
       fileName: z.string().describe(
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
-    }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
-    ).optional(),
+    }).describe("The source context.").optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax.").optional(),
   })).describe(
@@ -2848,9 +2782,7 @@ const InputsSchema = z.object({
       fileName: z.string().describe(
         'The path-qualified name of the.proto file that contained the associated protobuf element. For example: `"google/protobuf/source_context.proto"`.',
       ).optional(),
-    }).describe(
-      "`SourceContext` represents information about the source of a protobuf element, like the file in which it is defined.",
-    ).optional(),
+    }).describe("The source context.").optional(),
     syntax: z.enum(["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"])
       .describe("The source syntax.").optional(),
   })).describe(
@@ -2876,7 +2808,7 @@ const InputsSchema = z.object({
     })).describe(
       'A list of usage rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order.',
     ).optional(),
-  }).describe("Configuration controlling usage of a service.").optional(),
+  }).describe("Configuration controlling usage of this service.").optional(),
   serviceName: z.string().describe(
     "Required. The name of the service. See the [overview](https://cloud.google.com/service-management/overview) for naming requirements. For example: `example.googleapis.com`.",
   ).optional(),
@@ -2905,7 +2837,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Management Services.Configs. Registered at `@swamp/gcp/servicemanagement/services-configs`. */
 export const model = {
   type: "@swamp/gcp/servicemanagement/services-configs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3047,6 +2979,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: sourceInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { sourceInfo: _sourceInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3107,7 +3047,6 @@ export const model = {
         }
         if (g["publishing"] !== undefined) body["publishing"] = g["publishing"];
         if (g["quota"] !== undefined) body["quota"] = g["quota"];
-        if (g["sourceInfo"] !== undefined) body["sourceInfo"] = g["sourceInfo"];
         if (g["systemParameters"] !== undefined) {
           body["systemParameters"] = g["systemParameters"];
         }

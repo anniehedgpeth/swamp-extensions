@@ -221,28 +221,12 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Start time of the window in UTC time.").optional(),
     })).describe(
       "Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_window is expected to be one.",
     ).optional(),
-  }).describe("Maintenance policy for an instance.").optional(),
-  maintenanceSchedule: z.object({
-    canReschedule: z.boolean().describe(
-      "If the scheduled maintenance can be rescheduled, default is true.",
-    ).optional(),
-    endTime: z.string().describe(
-      "Output only. The end time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-    scheduleDeadlineTime: z.string().describe(
-      "Output only. The deadline that the maintenance schedule start time can not go beyond, including reschedule.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Output only. The start time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
   }).describe(
-    "Upcoming maintenance schedule. If no maintenance is scheduled, fields are not populated.",
+    "Optional. The maintenance policy for the instance. If not provided, maintenance events can be performed at any time.",
   ).optional(),
   maintenanceVersion: z.string().describe(
     'Optional. The self service update maintenance version. The version is date based such as "20210712_00_00".',
@@ -272,7 +256,7 @@ const GlobalArgsSchema = z.object({
     rdbSnapshotStartTime: z.string().describe(
       "Optional. Date and time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.",
     ).optional(),
-  }).describe("Configuration of the persistence functionality.").optional(),
+  }).describe("Optional. Persistence configuration parameters").optional(),
   readReplicasMode: z.enum([
     "READ_REPLICAS_MODE_UNSPECIFIED",
     "READ_REPLICAS_DISABLED",
@@ -470,28 +454,12 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Start time of the window in UTC time.").optional(),
     })).describe(
       "Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_window is expected to be one.",
     ).optional(),
-  }).describe("Maintenance policy for an instance.").optional(),
-  maintenanceSchedule: z.object({
-    canReschedule: z.boolean().describe(
-      "If the scheduled maintenance can be rescheduled, default is true.",
-    ).optional(),
-    endTime: z.string().describe(
-      "Output only. The end time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-    scheduleDeadlineTime: z.string().describe(
-      "Output only. The deadline that the maintenance schedule start time can not go beyond, including reschedule.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Output only. The start time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
   }).describe(
-    "Upcoming maintenance schedule. If no maintenance is scheduled, fields are not populated.",
+    "Optional. The maintenance policy for the instance. If not provided, maintenance events can be performed at any time.",
   ).optional(),
   maintenanceVersion: z.string().describe(
     'Optional. The self service update maintenance version. The version is date based such as "20210712_00_00".',
@@ -521,7 +489,7 @@ const InputsSchema = z.object({
     rdbSnapshotStartTime: z.string().describe(
       "Optional. Date and time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.",
     ).optional(),
-  }).describe("Configuration of the persistence functionality.").optional(),
+  }).describe("Optional. Persistence configuration parameters").optional(),
   readReplicasMode: z.enum([
     "READ_REPLICAS_MODE_UNSPECIFIED",
     "READ_REPLICAS_DISABLED",
@@ -592,7 +560,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Memorystore for Redis Instances. Registered at `@swamp/gcp/redis/instances`. */
 export const model = {
   type: "@swamp/gcp/redis/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -699,6 +667,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: maintenanceSchedule",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { maintenanceSchedule: _maintenanceSchedule, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -753,9 +729,6 @@ export const model = {
         if (g["locationId"] !== undefined) body["locationId"] = g["locationId"];
         if (g["maintenancePolicy"] !== undefined) {
           body["maintenancePolicy"] = g["maintenancePolicy"];
-        }
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
         }
         if (g["maintenanceVersion"] !== undefined) {
           body["maintenanceVersion"] = g["maintenanceVersion"];
@@ -940,9 +913,6 @@ export const model = {
         if (g["locationId"] !== undefined) body["locationId"] = g["locationId"];
         if (g["maintenancePolicy"] !== undefined) {
           body["maintenancePolicy"] = g["maintenancePolicy"];
-        }
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
         }
         if (g["maintenanceVersion"] !== undefined) {
           body["maintenanceVersion"] = g["maintenanceVersion"];

@@ -129,31 +129,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  attestation: z.object({
-    certChains: z.object({
-      caviumCerts: z.array(z.string()).describe(
-        "Cavium certificate chain corresponding to the attestation.",
-      ).optional(),
-      googleCardCerts: z.array(z.string()).describe(
-        "Google card certificate chain corresponding to the attestation.",
-      ).optional(),
-      googlePartitionCerts: z.array(z.string()).describe(
-        "Google partition certificate chain corresponding to the attestation.",
-      ).optional(),
-    }).describe(
-      "Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.",
-    ).optional(),
-    content: z.string().describe(
-      "Output only. The attestation data provided by the HSM when the key operation was performed.",
-    ).optional(),
-    format: z.enum([
-      "ATTESTATION_FORMAT_UNSPECIFIED",
-      "CAVIUM_V1_COMPRESSED",
-      "CAVIUM_V2_COMPRESSED",
-    ]).describe("Output only. The format of the attestation data.").optional(),
-  }).describe(
-    "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
-  ).optional(),
   cryptoKeyBackend: z.string().describe(
     'Immutable. The resource name of the backend environment where the key material for the wrapping key resides and where all related cryptographic operations are performed. Currently, this field is only populated for keys stored in HSM_SINGLE_TENANT. Note, this list is non-exhaustive and may apply to additional ProtectionLevels in the future. Supported resources: * `"projects/*/locations/*/singleTenantHsmInstances/*"`',
   ).optional(),
@@ -180,16 +155,6 @@ const GlobalArgsSchema = z.object({
     "HSM_SINGLE_TENANT",
   ]).describe(
     "Required. Immutable. The protection level of the ImportJob. This must match the protection_level of the version_template on the CryptoKey you attempt to import into.",
-  ).optional(),
-  publicKey: z.object({
-    data: z.string().describe(
-      "Output only. Contains the public key, formatted according to the PublicKey.PublicKeyFormat specified in the KeyManagementService.GetImportJob request.",
-    ).optional(),
-    pem: z.string().describe(
-      "The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13). This field gets populated by default for RSA-based import methods, if no public_key_format is specified in the request. If you want to retrieve the wrapping key of an ImportJob in some other format, use KeyManagementService.GetImportJob and set the public_key_format to the desired public key format.",
-    ).optional(),
-  }).describe(
-    "The public key component of the wrapping key. For details of the type of key this public key corresponds to, see the ImportMethod.",
   ).optional(),
   importJobId: z.string().describe(
     "Required. It must be unique within a KeyRing and match the regular expression `[a-zA-Z0-9_-]{1,63}`",
@@ -236,31 +201,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  attestation: z.object({
-    certChains: z.object({
-      caviumCerts: z.array(z.string()).describe(
-        "Cavium certificate chain corresponding to the attestation.",
-      ).optional(),
-      googleCardCerts: z.array(z.string()).describe(
-        "Google card certificate chain corresponding to the attestation.",
-      ).optional(),
-      googlePartitionCerts: z.array(z.string()).describe(
-        "Google partition certificate chain corresponding to the attestation.",
-      ).optional(),
-    }).describe(
-      "Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.",
-    ).optional(),
-    content: z.string().describe(
-      "Output only. The attestation data provided by the HSM when the key operation was performed.",
-    ).optional(),
-    format: z.enum([
-      "ATTESTATION_FORMAT_UNSPECIFIED",
-      "CAVIUM_V1_COMPRESSED",
-      "CAVIUM_V2_COMPRESSED",
-    ]).describe("Output only. The format of the attestation data.").optional(),
-  }).describe(
-    "Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).",
-  ).optional(),
   cryptoKeyBackend: z.string().describe(
     'Immutable. The resource name of the backend environment where the key material for the wrapping key resides and where all related cryptographic operations are performed. Currently, this field is only populated for keys stored in HSM_SINGLE_TENANT. Note, this list is non-exhaustive and may apply to additional ProtectionLevels in the future. Supported resources: * `"projects/*/locations/*/singleTenantHsmInstances/*"`',
   ).optional(),
@@ -287,16 +227,6 @@ const InputsSchema = z.object({
     "HSM_SINGLE_TENANT",
   ]).describe(
     "Required. Immutable. The protection level of the ImportJob. This must match the protection_level of the version_template on the CryptoKey you attempt to import into.",
-  ).optional(),
-  publicKey: z.object({
-    data: z.string().describe(
-      "Output only. Contains the public key, formatted according to the PublicKey.PublicKeyFormat specified in the KeyManagementService.GetImportJob request.",
-    ).optional(),
-    pem: z.string().describe(
-      "The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13). This field gets populated by default for RSA-based import methods, if no public_key_format is specified in the request. If you want to retrieve the wrapping key of an ImportJob in some other format, use KeyManagementService.GetImportJob and set the public_key_format to the desired public key format.",
-    ).optional(),
-  }).describe(
-    "The public key component of the wrapping key. For details of the type of key this public key corresponds to, see the ImportMethod.",
   ).optional(),
   importJobId: z.string().describe(
     "Required. It must be unique within a KeyRing and match the regular expression `[a-zA-Z0-9_-]{1,63}`",
@@ -332,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.ImportJobs. Registered at `@swamp/gcp/cloudkms/keyrings-importjobs`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-importjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -449,6 +379,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: attestation, publicKey",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { attestation: _attestation, publicKey: _publicKey, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -476,9 +415,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["attestation"] !== undefined) {
-          body["attestation"] = g["attestation"];
-        }
         if (g["cryptoKeyBackend"] !== undefined) {
           body["cryptoKeyBackend"] = g["cryptoKeyBackend"];
         }
@@ -488,7 +424,6 @@ export const model = {
         if (g["protectionLevel"] !== undefined) {
           body["protectionLevel"] = g["protectionLevel"];
         }
-        if (g["publicKey"] !== undefined) body["publicKey"] = g["publicKey"];
         if (g["importJobId"] !== undefined) {
           params["importJobId"] = String(g["importJobId"]);
         }
@@ -511,14 +446,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

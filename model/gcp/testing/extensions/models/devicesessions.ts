@@ -149,7 +149,7 @@ const GlobalArgsSchema = z.object({
     orientation: z.string().describe(
       "Required. How the device is oriented during the test. Use the TestEnvironmentDiscoveryService to get supported options.",
     ).optional(),
-  }).describe("A single Android device.").optional(),
+  }).describe("Required. The requested device").optional(),
   expireTime: z.string().describe(
     "Optional. If the device is still in use at this time, any connections will be ended and the SessionState will transition from ACTIVE to FINISHED.",
   ).optional(),
@@ -206,7 +206,7 @@ const InputsSchema = z.object({
     orientation: z.string().describe(
       "Required. How the device is oriented during the test. Use the TestEnvironmentDiscoveryService to get supported options.",
     ).optional(),
-  }).describe("A single Android device.").optional(),
+  }).describe("Required. The requested device").optional(),
   expireTime: z.string().describe(
     "Optional. If the device is still in use at this time, any connections will be ended and the SessionState will transition from ACTIVE to FINISHED.",
   ).optional(),
@@ -244,7 +244,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Testing DeviceSessions. Registered at `@swamp/gcp/testing/devicesessions`. */
 export const model = {
   type: "@swamp/gcp/testing/devicesessions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -348,6 +348,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

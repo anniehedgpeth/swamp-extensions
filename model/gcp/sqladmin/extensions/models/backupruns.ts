@@ -168,14 +168,14 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Resource name of KMS key for disk encryption",
     ).optional(),
-  }).describe("Disk encryption configuration for an instance.").optional(),
+  }).describe("Encryption configuration specific to a backup.").optional(),
   diskEncryptionStatus: z.object({
     kind: z.string().describe("This is always `sql#diskEncryptionStatus`.")
       .optional(),
     kmsKeyVersionName: z.string().describe(
       "KMS key version used to encrypt the Cloud SQL instance resource",
     ).optional(),
-  }).describe("Disk encryption status for an instance.").optional(),
+  }).describe("Encryption status specific to a backup.").optional(),
   endTime: z.string().describe(
     "The time the backup operation completed in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example `2012-11-15T16:19:00.094Z`.",
   ).optional(),
@@ -190,7 +190,9 @@ const GlobalArgsSchema = z.object({
     message: z.string().describe(
       "Additional information about the error encountered.",
     ).optional(),
-  }).describe("Database instance operation error.").optional(),
+  }).describe(
+    "Information about why the backup operation failed. This is only present if the run has the FAILED status.",
+  ).optional(),
   id: z.string().describe(
     "The identifier for this backup run. Unique only for a specific Cloud SQL instance.",
   ).optional(),
@@ -275,14 +277,14 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Resource name of KMS key for disk encryption",
     ).optional(),
-  }).describe("Disk encryption configuration for an instance.").optional(),
+  }).describe("Encryption configuration specific to a backup.").optional(),
   diskEncryptionStatus: z.object({
     kind: z.string().describe("This is always `sql#diskEncryptionStatus`.")
       .optional(),
     kmsKeyVersionName: z.string().describe(
       "KMS key version used to encrypt the Cloud SQL instance resource",
     ).optional(),
-  }).describe("Disk encryption status for an instance.").optional(),
+  }).describe("Encryption status specific to a backup.").optional(),
   endTime: z.string().describe(
     "The time the backup operation completed in UTC timezone in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example `2012-11-15T16:19:00.094Z`.",
   ).optional(),
@@ -297,7 +299,9 @@ const InputsSchema = z.object({
     message: z.string().describe(
       "Additional information about the error encountered.",
     ).optional(),
-  }).describe("Database instance operation error.").optional(),
+  }).describe(
+    "Information about why the backup operation failed. This is only present if the run has the FAILED status.",
+  ).optional(),
   id: z.string().describe(
     "The identifier for this backup run. Unique only for a specific Cloud SQL instance.",
   ).optional(),
@@ -353,7 +357,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin BackupRuns. Registered at `@swamp/gcp/sqladmin/backupruns`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/backupruns",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -447,6 +451,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

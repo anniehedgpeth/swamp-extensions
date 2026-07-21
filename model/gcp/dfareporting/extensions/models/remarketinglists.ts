@@ -182,7 +182,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   description: z.string().describe("Remarketing list description.").optional(),
   id: z.string().describe(
     "Remarketing list ID. This is a read-only, auto-generated field.",
@@ -229,7 +231,8 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Clauses that make up this list population rule. Clauses are joined by ANDs, and the clauses themselves are made up of list population terms which are joined by ORs.",
     ).optional(),
-  }).describe("Remarketing List Population Rule.").optional(),
+  }).describe("Rule used to populate the remarketing list with users.")
+    .optional(),
   listSize: z.string().describe(
     "Number of users currently in the list. This is a read-only field.",
   ).optional(),
@@ -329,7 +332,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   description: z.string().describe("Remarketing list description.").optional(),
   id: z.string().describe(
     "Remarketing list ID. This is a read-only, auto-generated field.",
@@ -376,7 +381,8 @@ const InputsSchema = z.object({
     })).describe(
       "Clauses that make up this list population rule. Clauses are joined by ANDs, and the clauses themselves are made up of list population terms which are joined by ORs.",
     ).optional(),
-  }).describe("Remarketing List Population Rule.").optional(),
+  }).describe("Rule used to populate the remarketing list with users.")
+    .optional(),
   listSize: z.string().describe(
     "Number of users currently in the list. This is a read-only field.",
   ).optional(),
@@ -428,7 +434,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 RemarketingLists. Registered at `@swamp/gcp/dfareporting/remarketinglists`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/remarketinglists",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -522,6 +528,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

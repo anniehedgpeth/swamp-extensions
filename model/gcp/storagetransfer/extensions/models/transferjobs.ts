@@ -158,7 +158,7 @@ const GlobalArgsSchema = z.object({
       "Required. Specifies a unique name of the resource such as AWS SQS ARN in the form 'arn:aws:sqs:region:account_id:queue_name', or Pub/Sub subscription resource name in the form 'projects/{project}/subscriptions/{sub}'.",
     ).optional(),
   }).describe(
-    "Specifies the Event-driven transfer options. Event-driven transfers listen to an event stream to transfer updated files.",
+    "Specifies the event stream for the transfer job for event-driven transfers. When EventStream is specified, the Schedule fields are ignored.",
   ).optional(),
   latestOperationName: z.string().describe(
     "The name of the most recently started TransferOperation of this JobConfig. Present if a TransferOperation has been created for this JobConfig.",
@@ -182,9 +182,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "Specifies the actions to be logged. If empty, no logs are generated.",
     ).optional(),
-  }).describe(
-    "Specifies the logging behavior for transfer operations. Logs can be sent to Cloud Logging for all transfer types. See [Read transfer logs](https://cloud.google.com/storage-transfer/docs/read-transfer-logs) for details.",
-  ).optional(),
+  }).describe("Logging configuration.").optional(),
   name: z.string().describe(
     'A unique name (within the transfer project) assigned when the job is created. If this field is empty in a CreateTransferJobRequest, Storage Transfer Service assigns a unique name. Otherwise, the specified name is used as the unique name for this job. If the specified name is in use by a job, the creation request fails with an ALREADY_EXISTS error. This name must start with `"transferJobs/"` prefix and end with a letter or a number, and should be no more than 128 characters. For transfers involving PosixFilesystem, this name must start with `transferJobs/OPI` specifically. For all other transfer types, this name must not start with `transferJobs/OPI`. Non-PosixFilesystem example: `"transferJobs/^(?!OPI)[A-Za-z0-9-._~]*[A-Za-z0-9]$"` PosixFilesystem example: `"transferJobs/OPI^[A-Za-z0-9-._~]*[A-Za-z0-9]$"` Applications must not rely on the enforcement of naming requirements involving OPI. Invalid job names fail with an INVALID_ARGUMENT error.',
   ).optional(),
@@ -206,9 +204,7 @@ const GlobalArgsSchema = z.object({
     pubsubTopic: z.string().describe(
       "Required. The `Topic.name` of the Pub/Sub topic to which to publish notifications. Must be of the format: `projects/{project}/topics/{topic}`. Not matching this format results in an INVALID_ARGUMENT error.",
     ).optional(),
-  }).describe(
-    'Specification to configure notifications published to Pub/Sub. Notifications are published to the customer-provided topic using the following `PubsubMessage.attributes`: * `"eventType"`: one of the EventType values * `"payloadFormat"`: one of the PayloadFormat values * `"projectId"`: the project_id of the `TransferOperation` * `"transferJobName"`: the transfer_job_name of the `TransferOperation` * `"transferOperationName"`: the name of the `TransferOperation` The `PubsubMessage.data` contains a TransferOperation resource formatted according to the specified `PayloadFormat`.',
-  ).optional(),
+  }).describe("Notification configuration.").optional(),
   projectId: z.string().describe(
     "Required. The ID of the Google Cloud project that owns the job.",
   ).optional(),
@@ -223,9 +219,8 @@ const GlobalArgsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("The Cloud Storage bucket to which to replicate objects.")
+      .optional(),
     gcsDataSource: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -236,9 +231,8 @@ const GlobalArgsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("The Cloud Storage bucket from which to replicate objects.")
+      .optional(),
     objectConditions: z.object({
       excludePrefixes: z.array(z.string()).describe(
         "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -265,7 +259,7 @@ const GlobalArgsSchema = z.object({
         'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
       ).optional(),
     }).describe(
-      'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+      "Object conditions that determine which objects are transferred. For replication jobs, only `include_prefixes` and `exclude_prefixes` are supported.",
     ).optional(),
     transferOptions: z.object({
       deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
@@ -331,8 +325,9 @@ const GlobalArgsSchema = z.object({
         uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
           "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
         ).optional(),
-      }).describe("Specifies the metadata options for running a transfer.")
-        .optional(),
+      }).describe(
+        "Represents the selected metadata options for a transfer job.",
+      ).optional(),
       overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
         "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
       ).optional(),
@@ -345,11 +340,9 @@ const GlobalArgsSchema = z.object({
         "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
       ).optional(),
     }).describe(
-      "TransferOptions define the actions to be performed on objects in a transfer.",
+      "Specifies the metadata options to be applied during replication. Delete options are not supported. If a delete option is specified, the request fails with an INVALID_ARGUMENT error.",
     ).optional(),
-  }).describe(
-    "Specifies the configuration for a cross-bucket replication job. Cross-bucket replication copies new or updated objects from a source Cloud Storage bucket to a destination Cloud Storage bucket. Existing objects in the source bucket are not copied by a new cross-bucket replication job.",
-  ).optional(),
+  }).describe("Replication specification.").optional(),
   schedule: z.object({
     endTimeOfDay: z.object({
       hours: z.number().int().describe(
@@ -365,7 +358,7 @@ const GlobalArgsSchema = z.object({
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
     }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+      "The time in UTC that no further transfer operations are scheduled. Combined with schedule_end_date, `end_time_of_day` specifies the end date and time for starting new transfer operations. This field must be greater than or equal to the timestamp corresponding to the combination of schedule_start_date and start_time_of_day, and is subject to the following: * If `end_time_of_day` is not set and `schedule_end_date` is set, then a default value of `23:59:59` is used for `end_time_of_day`. * If `end_time_of_day` is set and `schedule_end_date` is not set, then INVALID_ARGUMENT is returned.",
     ).optional(),
     repeatInterval: z.string().describe(
       "Interval between the start of each scheduled TransferOperation. If unspecified, the default value is 24 hours. This value may not be less than 1 hour.",
@@ -381,7 +374,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "The last day a transfer runs. Date boundaries are determined relative to UTC time. A job runs once per 24 hours within the following guidelines: * If `schedule_end_date` and schedule_start_date are the same and in the future relative to UTC, the transfer is executed only one time. * If `schedule_end_date` is later than `schedule_start_date` and `schedule_end_date` is in the future relative to UTC, the job runs each day at start_time_of_day through `schedule_end_date`.",
     ).optional(),
     scheduleStartDate: z.object({
       day: z.number().int().describe(
@@ -394,7 +387,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. The start date of a transfer. Date boundaries are determined relative to UTC time. If `schedule_start_date` and start_time_of_day are in the past relative to the job's creation time, the transfer starts the day after you schedule the transfer request. **Note:** When starting jobs at or near midnight UTC it is possible that a job starts later than expected. For example, if you send an outbound request on June 1 one millisecond prior to midnight UTC and the Storage Transfer Service server receives the request on June 2, then it creates a TransferJob with `schedule_start_date` set to June 2 and a `start_time_of_day` set to midnight UTC. The first scheduled TransferOperation takes place on June 3 at midnight UTC.",
     ).optional(),
     startTimeOfDay: z.object({
       hours: z.number().int().describe(
@@ -410,10 +403,11 @@ const GlobalArgsSchema = z.object({
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
     }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+      "The time in UTC that a transfer job is scheduled to run. Transfers may start later than this time. If `start_time_of_day` is not specified: * One-time transfers run immediately. * Recurring transfers run immediately, and each day at midnight UTC, through schedule_end_date. If `start_time_of_day` is specified: * One-time transfers run at the specified time. * Recurring transfers run at the specified time each day, through `schedule_end_date`.",
     ).optional(),
-  }).describe("Transfers can be scheduled to recur or to run just once.")
-    .optional(),
+  }).describe(
+    "Specifies schedule for the transfer job. This is an optional field. When the field is not set, the job never executes a transfer, unless you invoke RunTransferJob or update the job to have a non-empty schedule.",
+  ).optional(),
   serviceAccount: z.string().describe(
     "Optional. The user-managed service account to which to delegate service agent permissions. You can grant Cloud Storage bucket permissions to this service account instead of to the Transfer Service service agent. Either the service account email (`SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com`) or the unique ID (`123456789012345678901`) are accepted. See https://docs.cloud.google.com/storage-transfer/docs/delegate-service-agent-permissions for required permissions.",
   ).optional(),
@@ -464,10 +458,8 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Specifies the API request model used to call the storage service. When not specified, the default value of RequestModel REQUEST_MODEL_VIRTUAL_HOSTED_STYLE is used.",
         ).optional(),
-      }).describe(
-        "S3CompatibleMetadata contains the metadata fields that apply to the basic types of S3-compatible data providers.",
-      ).optional(),
-    }).describe("An AwsS3CompatibleData resource.").optional(),
+      }).describe("A S3 compatible metadata.").optional(),
+    }).describe("Optional. An AWS S3 compatible data source.").optional(),
     awsS3DataSource: z.object({
       awsAccessKey: z.object({
         accessKeyId: z.string().describe("Required. AWS access key ID.")
@@ -476,7 +468,7 @@ const GlobalArgsSchema = z.object({
           "Required. AWS secret access key. This field is not returned in RPC responses.",
         ).optional(),
       }).describe(
-        "AWS access key (see [AWS Security Credentials](https://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html)). For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+        "Input only. AWS access key used to sign the API requests to the AWS S3 bucket. Permissions on the bucket must be granted to the access ID of the AWS access key. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
       ).optional(),
       bucketName: z.string().describe(
         "Required. S3 Bucket name (see [Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/dev/create-bucket-get-location-example.html)).",
@@ -499,16 +491,14 @@ const GlobalArgsSchema = z.object({
       roleArn: z.string().describe(
         "The Amazon Resource Name (ARN) of the role to support temporary credentials via `AssumeRoleWithWebIdentity`. For more information about ARNs, see [IAM ARNs](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns). When a role ARN is provided, Transfer Service fetches temporary credentials for the session using a `AssumeRoleWithWebIdentity` call for the provided role using the GoogleServiceAccount for this project.",
       ).optional(),
-    }).describe(
-      "An AwsS3Data resource can be a data source, but not a data sink. In an AwsS3Data resource, an object's name is the S3 object's key name.",
-    ).optional(),
+    }).describe("Optional. An AWS S3 data source.").optional(),
     azureBlobStorageDataSource: z.object({
       azureCredentials: z.object({
         sasToken: z.string().describe(
           "Required. Azure shared access signature (SAS). For more information about SAS, see [Grant limited access to Azure Storage resources using shared access signatures (SAS)](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview).",
         ).optional(),
       }).describe(
-        "Azure credentials For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+        "Required. Input only. Credentials used to authenticate API requests to Azure. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
       ).optional(),
       container: z.string().describe(
         "Required. The container to transfer from the Azure Storage account.",
@@ -524,7 +514,7 @@ const GlobalArgsSchema = z.object({
           "Required. The tenant (directory) ID of the application with federated credentials.",
         ).optional(),
       }).describe(
-        "The identity of an Azure application through which Storage Transfer Service can authenticate requests using Azure workload identity federation. Storage Transfer Service can issue requests to Azure Storage through registered Azure applications, eliminating the need to pass credentials to Storage Transfer Service directly. To configure federated identity, see [Configure access to Microsoft Azure Storage](https://cloud.google.com/storage-transfer/docs/source-microsoft-azure#option_3_authenticate_using_federated_identity).",
+        "Optional. Federated identity config of a user registered Azure application. If `federated_identity_config` is specified, do not specify azure_credentials or credentials_secret.",
       ).optional(),
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'.",
@@ -535,9 +525,7 @@ const GlobalArgsSchema = z.object({
       storageAccount: z.string().describe(
         "Required. The name of the Azure Storage account.",
       ).optional(),
-    }).describe(
-      "An AzureBlobStorageData resource can be a data source, but not a data sink. An AzureBlobStorageData resource represents one Azure container. The storage account determines the [Azure endpoint](https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account#storage-account-endpoints). In an AzureBlobStorageData resource, a blobs's name is the [Azure Blob Storage blob's key name](https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names).",
-    ).optional(),
+    }).describe("Optional. An Azure Blob Storage data source.").optional(),
     gcsDataSink: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -548,9 +536,7 @@ const GlobalArgsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("Optional. A Cloud Storage data sink.").optional(),
     gcsDataSource: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -561,9 +547,7 @@ const GlobalArgsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("Optional. A Cloud Storage data source.").optional(),
     gcsIntermediateDataLocation: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -575,20 +559,16 @@ const GlobalArgsSchema = z.object({
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
     }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
+      "For transfers between file systems, specifies a Cloud Storage bucket to be used as an intermediate location through which to transfer data. See [Transfer data between file systems](https://cloud.google.com/storage-transfer/docs/file-to-file) for more information.",
     ).optional(),
     hdfsDataSource: z.object({
       path: z.string().describe("Root path to transfer files.").optional(),
-    }).describe(
-      "An HdfsData resource specifies a path within an HDFS entity (e.g. a cluster). All cluster-specific settings, such as namenodes and ports, are configured on the transfer agents servicing requests, so HdfsData only contains the root path to the data in our transfer.",
-    ).optional(),
+    }).describe("Optional. An HDFS cluster data source.").optional(),
     httpDataSource: z.object({
       listUrl: z.string().describe(
         "Required. The URL that points to the file that stores the object list entries. This file must allow public access. The URL is either an HTTP/HTTPS address (e.g. `https://example.com/urllist.tsv`) or a Cloud Storage path (e.g. `gs://my-bucket/urllist.tsv`).",
       ).optional(),
-    }).describe(
-      'An HttpData resource specifies a list of objects on the web to be transferred over HTTP. The information of the objects to be transferred is contained in a file referenced by a URL. The first line in the file must be `"TsvHttpData-1.0"`, which specifies the format of the file. Subsequent lines specify the information of the list of objects, one object per list entry. Each entry has the following tab-delimited fields: * **HTTP URL** — The location of the object. * **Length** — The size of the object in bytes. * **MD5** — The base64-encoded MD5 hash of the object. For an example of a valid TSV file, see [Transferring data from URLs](https://cloud.google.com/storage-transfer/docs/create-url-list). When transferring data based on a URL list, keep the following in mind: * When an object located at `http(s)://hostname:port/` is transferred to a data sink, the name of the object at the data sink is `/`. * If the specified size of an object does not match the actual size of the object fetched, the object is not transferred. * If the specified MD5 does not match the MD5 computed from the transferred bytes, the object transfer fails. * Ensure that each URL you specify is publicly accessible. For example, in Cloud Storage you can [share an object publicly] (/storage/docs/cloud-console#_sharingdata) and get a link to it. * Storage Transfer Service obeys `robots.txt` rules and requires the source HTTP server to support `Range` requests and to return a `Content-Length` header in each response. * ObjectConditions have no effect when filtering objects to transfer.',
-    ).optional(),
+    }).describe("Optional. An HTTP URL data source.").optional(),
     objectConditions: z.object({
       excludePrefixes: z.array(z.string()).describe(
         "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -615,18 +595,18 @@ const GlobalArgsSchema = z.object({
         'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
       ).optional(),
     }).describe(
-      'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+      'Only objects that satisfy these object conditions are included in the set of data source and data sink objects. Object conditions based on objects\' "last modification time" do not exclude objects in a data sink.',
     ).optional(),
     posixDataSink: z.object({
       rootDirectory: z.string().describe(
         "Root directory path to the filesystem.",
       ).optional(),
-    }).describe("A POSIX filesystem resource.").optional(),
+    }).describe("Optional. A POSIX Filesystem data sink.").optional(),
     posixDataSource: z.object({
       rootDirectory: z.string().describe(
         "Root directory path to the filesystem.",
       ).optional(),
-    }).describe("A POSIX filesystem resource.").optional(),
+    }).describe("Optional. A POSIX Filesystem data source.").optional(),
     sinkAgentPoolName: z.string().describe(
       "Specifies the agent pool name associated with the posix data sink. When unspecified, the default name is used.",
     ).optional(),
@@ -637,7 +617,9 @@ const GlobalArgsSchema = z.object({
       location: z.string().describe(
         "Specifies the path to the manifest in Cloud Storage. The Google-managed service account for the transfer must have `storage.objects.get` permission for this object. An example path is `gs://bucket_name/path/manifest.csv`.",
       ).optional(),
-    }).describe("Specifies where the manifest is located.").optional(),
+    }).describe(
+      "A manifest file provides a list of objects to be transferred from the data source. This field points to the location of the manifest file. Otherwise, the entire source bucket is used. ObjectConditions still apply.",
+    ).optional(),
     transferOptions: z.object({
       deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
         "Whether objects should be deleted from the source after they are transferred to the sink. **Note:** This option and delete_objects_unique_in_sink are mutually exclusive.",
@@ -702,8 +684,9 @@ const GlobalArgsSchema = z.object({
         uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
           "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
         ).optional(),
-      }).describe("Specifies the metadata options for running a transfer.")
-        .optional(),
+      }).describe(
+        "Represents the selected metadata options for a transfer job.",
+      ).optional(),
       overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
         "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
       ).optional(),
@@ -716,9 +699,9 @@ const GlobalArgsSchema = z.object({
         "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
       ).optional(),
     }).describe(
-      "TransferOptions define the actions to be performed on objects in a transfer.",
+      "If the option delete_objects_unique_in_sink is `true` and time-based object conditions such as 'last modification time' are specified, the request fails with an INVALID_ARGUMENT error.",
     ).optional(),
-  }).describe("Configuration for running a transfer.").optional(),
+  }).describe("Transfer specification.").optional(),
   transferJob: z.object({
     creationTime: z.string().describe(
       "Output only. The time that the transfer job was created.",
@@ -740,7 +723,7 @@ const GlobalArgsSchema = z.object({
         "Required. Specifies a unique name of the resource such as AWS SQS ARN in the form 'arn:aws:sqs:region:account_id:queue_name', or Pub/Sub subscription resource name in the form 'projects/{project}/subscriptions/{sub}'.",
       ).optional(),
     }).describe(
-      "Specifies the Event-driven transfer options. Event-driven transfers listen to an event stream to transfer updated files.",
+      "Specifies the event stream for the transfer job for event-driven transfers. When EventStream is specified, the Schedule fields are ignored.",
     ).optional(),
     lastModificationTime: z.string().describe(
       "Output only. The time that the transfer job was last modified.",
@@ -767,9 +750,7 @@ const GlobalArgsSchema = z.object({
       ).describe(
         "Specifies the actions to be logged. If empty, no logs are generated.",
       ).optional(),
-    }).describe(
-      "Specifies the logging behavior for transfer operations. Logs can be sent to Cloud Logging for all transfer types. See [Read transfer logs](https://cloud.google.com/storage-transfer/docs/read-transfer-logs) for details.",
-    ).optional(),
+    }).describe("Logging configuration.").optional(),
     name: z.string().describe(
       'A unique name (within the transfer project) assigned when the job is created. If this field is empty in a CreateTransferJobRequest, Storage Transfer Service assigns a unique name. Otherwise, the specified name is used as the unique name for this job. If the specified name is in use by a job, the creation request fails with an ALREADY_EXISTS error. This name must start with `"transferJobs/"` prefix and end with a letter or a number, and should be no more than 128 characters. For transfers involving PosixFilesystem, this name must start with `transferJobs/OPI` specifically. For all other transfer types, this name must not start with `transferJobs/OPI`. Non-PosixFilesystem example: `"transferJobs/^(?!OPI)[A-Za-z0-9-._~]*[A-Za-z0-9]$"` PosixFilesystem example: `"transferJobs/OPI^[A-Za-z0-9-._~]*[A-Za-z0-9]$"` Applications must not rely on the enforcement of naming requirements involving OPI. Invalid job names fail with an INVALID_ARGUMENT error.',
     ).optional(),
@@ -791,9 +772,7 @@ const GlobalArgsSchema = z.object({
       pubsubTopic: z.string().describe(
         "Required. The `Topic.name` of the Pub/Sub topic to which to publish notifications. Must be of the format: `projects/{project}/topics/{topic}`. Not matching this format results in an INVALID_ARGUMENT error.",
       ).optional(),
-    }).describe(
-      'Specification to configure notifications published to Pub/Sub. Notifications are published to the customer-provided topic using the following `PubsubMessage.attributes`: * `"eventType"`: one of the EventType values * `"payloadFormat"`: one of the PayloadFormat values * `"projectId"`: the project_id of the `TransferOperation` * `"transferJobName"`: the transfer_job_name of the `TransferOperation` * `"transferOperationName"`: the name of the `TransferOperation` The `PubsubMessage.data` contains a TransferOperation resource formatted according to the specified `PayloadFormat`.',
-    ).optional(),
+    }).describe("Notification configuration.").optional(),
     projectId: z.string().describe(
       "The ID of the Google Cloud project that owns the job.",
     ).optional(),
@@ -808,9 +787,8 @@ const GlobalArgsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("The Cloud Storage bucket to which to replicate objects.")
+        .optional(),
       gcsDataSource: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -821,9 +799,8 @@ const GlobalArgsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("The Cloud Storage bucket from which to replicate objects.")
+        .optional(),
       objectConditions: z.object({
         excludePrefixes: z.array(z.string()).describe(
           "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -850,7 +827,7 @@ const GlobalArgsSchema = z.object({
           'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
         ).optional(),
       }).describe(
-        'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+        "Object conditions that determine which objects are transferred. For replication jobs, only `include_prefixes` and `exclude_prefixes` are supported.",
       ).optional(),
       transferOptions: z.object({
         deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
@@ -916,8 +893,9 @@ const GlobalArgsSchema = z.object({
           uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
             "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
           ).optional(),
-        }).describe("Specifies the metadata options for running a transfer.")
-          .optional(),
+        }).describe(
+          "Represents the selected metadata options for a transfer job.",
+        ).optional(),
         overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
           "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
         ).optional(),
@@ -930,11 +908,9 @@ const GlobalArgsSchema = z.object({
           "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
         ).optional(),
       }).describe(
-        "TransferOptions define the actions to be performed on objects in a transfer.",
+        "Specifies the metadata options to be applied during replication. Delete options are not supported. If a delete option is specified, the request fails with an INVALID_ARGUMENT error.",
       ).optional(),
-    }).describe(
-      "Specifies the configuration for a cross-bucket replication job. Cross-bucket replication copies new or updated objects from a source Cloud Storage bucket to a destination Cloud Storage bucket. Existing objects in the source bucket are not copied by a new cross-bucket replication job.",
-    ).optional(),
+    }).describe("Replication specification.").optional(),
     schedule: z.object({
       endTimeOfDay: z.object({
         hours: z.number().int().describe(
@@ -950,7 +926,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "The time in UTC that no further transfer operations are scheduled. Combined with schedule_end_date, `end_time_of_day` specifies the end date and time for starting new transfer operations. This field must be greater than or equal to the timestamp corresponding to the combination of schedule_start_date and start_time_of_day, and is subject to the following: * If `end_time_of_day` is not set and `schedule_end_date` is set, then a default value of `23:59:59` is used for `end_time_of_day`. * If `end_time_of_day` is set and `schedule_end_date` is not set, then INVALID_ARGUMENT is returned.",
       ).optional(),
       repeatInterval: z.string().describe(
         "Interval between the start of each scheduled TransferOperation. If unspecified, the default value is 24 hours. This value may not be less than 1 hour.",
@@ -966,7 +942,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The last day a transfer runs. Date boundaries are determined relative to UTC time. A job runs once per 24 hours within the following guidelines: * If `schedule_end_date` and schedule_start_date are the same and in the future relative to UTC, the transfer is executed only one time. * If `schedule_end_date` is later than `schedule_start_date` and `schedule_end_date` is in the future relative to UTC, the job runs each day at start_time_of_day through `schedule_end_date`.",
       ).optional(),
       scheduleStartDate: z.object({
         day: z.number().int().describe(
@@ -979,7 +955,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Required. The start date of a transfer. Date boundaries are determined relative to UTC time. If `schedule_start_date` and start_time_of_day are in the past relative to the job's creation time, the transfer starts the day after you schedule the transfer request. **Note:** When starting jobs at or near midnight UTC it is possible that a job starts later than expected. For example, if you send an outbound request on June 1 one millisecond prior to midnight UTC and the Storage Transfer Service server receives the request on June 2, then it creates a TransferJob with `schedule_start_date` set to June 2 and a `start_time_of_day` set to midnight UTC. The first scheduled TransferOperation takes place on June 3 at midnight UTC.",
       ).optional(),
       startTimeOfDay: z.object({
         hours: z.number().int().describe(
@@ -995,10 +971,11 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "The time in UTC that a transfer job is scheduled to run. Transfers may start later than this time. If `start_time_of_day` is not specified: * One-time transfers run immediately. * Recurring transfers run immediately, and each day at midnight UTC, through schedule_end_date. If `start_time_of_day` is specified: * One-time transfers run at the specified time. * Recurring transfers run at the specified time each day, through `schedule_end_date`.",
       ).optional(),
-    }).describe("Transfers can be scheduled to recur or to run just once.")
-      .optional(),
+    }).describe(
+      "Specifies schedule for the transfer job. This is an optional field. When the field is not set, the job never executes a transfer, unless you invoke RunTransferJob or update the job to have a non-empty schedule.",
+    ).optional(),
     serviceAccount: z.string().describe(
       "Optional. The user-managed service account to which to delegate service agent permissions. You can grant Cloud Storage bucket permissions to this service account instead of to the Transfer Service service agent. Either the service account email (`SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com`) or the unique ID (`123456789012345678901`) are accepted. See https://docs.cloud.google.com/storage-transfer/docs/delegate-service-agent-permissions for required permissions.",
     ).optional(),
@@ -1049,10 +1026,8 @@ const GlobalArgsSchema = z.object({
           ]).describe(
             "Specifies the API request model used to call the storage service. When not specified, the default value of RequestModel REQUEST_MODEL_VIRTUAL_HOSTED_STYLE is used.",
           ).optional(),
-        }).describe(
-          "S3CompatibleMetadata contains the metadata fields that apply to the basic types of S3-compatible data providers.",
-        ).optional(),
-      }).describe("An AwsS3CompatibleData resource.").optional(),
+        }).describe("A S3 compatible metadata.").optional(),
+      }).describe("Optional. An AWS S3 compatible data source.").optional(),
       awsS3DataSource: z.object({
         awsAccessKey: z.object({
           accessKeyId: z.string().describe("Required. AWS access key ID.")
@@ -1061,7 +1036,7 @@ const GlobalArgsSchema = z.object({
             "Required. AWS secret access key. This field is not returned in RPC responses.",
           ).optional(),
         }).describe(
-          "AWS access key (see [AWS Security Credentials](https://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html)). For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+          "Input only. AWS access key used to sign the API requests to the AWS S3 bucket. Permissions on the bucket must be granted to the access ID of the AWS access key. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
         ).optional(),
         bucketName: z.string().describe(
           "Required. S3 Bucket name (see [Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/dev/create-bucket-get-location-example.html)).",
@@ -1084,16 +1059,14 @@ const GlobalArgsSchema = z.object({
         roleArn: z.string().describe(
           "The Amazon Resource Name (ARN) of the role to support temporary credentials via `AssumeRoleWithWebIdentity`. For more information about ARNs, see [IAM ARNs](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns). When a role ARN is provided, Transfer Service fetches temporary credentials for the session using a `AssumeRoleWithWebIdentity` call for the provided role using the GoogleServiceAccount for this project.",
         ).optional(),
-      }).describe(
-        "An AwsS3Data resource can be a data source, but not a data sink. In an AwsS3Data resource, an object's name is the S3 object's key name.",
-      ).optional(),
+      }).describe("Optional. An AWS S3 data source.").optional(),
       azureBlobStorageDataSource: z.object({
         azureCredentials: z.object({
           sasToken: z.string().describe(
             "Required. Azure shared access signature (SAS). For more information about SAS, see [Grant limited access to Azure Storage resources using shared access signatures (SAS)](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview).",
           ).optional(),
         }).describe(
-          "Azure credentials For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+          "Required. Input only. Credentials used to authenticate API requests to Azure. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
         ).optional(),
         container: z.string().describe(
           "Required. The container to transfer from the Azure Storage account.",
@@ -1109,7 +1082,7 @@ const GlobalArgsSchema = z.object({
             "Required. The tenant (directory) ID of the application with federated credentials.",
           ).optional(),
         }).describe(
-          "The identity of an Azure application through which Storage Transfer Service can authenticate requests using Azure workload identity federation. Storage Transfer Service can issue requests to Azure Storage through registered Azure applications, eliminating the need to pass credentials to Storage Transfer Service directly. To configure federated identity, see [Configure access to Microsoft Azure Storage](https://cloud.google.com/storage-transfer/docs/source-microsoft-azure#option_3_authenticate_using_federated_identity).",
+          "Optional. Federated identity config of a user registered Azure application. If `federated_identity_config` is specified, do not specify azure_credentials or credentials_secret.",
         ).optional(),
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'.",
@@ -1120,9 +1093,7 @@ const GlobalArgsSchema = z.object({
         storageAccount: z.string().describe(
           "Required. The name of the Azure Storage account.",
         ).optional(),
-      }).describe(
-        "An AzureBlobStorageData resource can be a data source, but not a data sink. An AzureBlobStorageData resource represents one Azure container. The storage account determines the [Azure endpoint](https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account#storage-account-endpoints). In an AzureBlobStorageData resource, a blobs's name is the [Azure Blob Storage blob's key name](https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names).",
-      ).optional(),
+      }).describe("Optional. An Azure Blob Storage data source.").optional(),
       gcsDataSink: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1133,9 +1104,7 @@ const GlobalArgsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("Optional. A Cloud Storage data sink.").optional(),
       gcsDataSource: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1146,9 +1115,7 @@ const GlobalArgsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("Optional. A Cloud Storage data source.").optional(),
       gcsIntermediateDataLocation: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1160,20 +1127,16 @@ const GlobalArgsSchema = z.object({
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
       }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
+        "For transfers between file systems, specifies a Cloud Storage bucket to be used as an intermediate location through which to transfer data. See [Transfer data between file systems](https://cloud.google.com/storage-transfer/docs/file-to-file) for more information.",
       ).optional(),
       hdfsDataSource: z.object({
         path: z.string().describe("Root path to transfer files.").optional(),
-      }).describe(
-        "An HdfsData resource specifies a path within an HDFS entity (e.g. a cluster). All cluster-specific settings, such as namenodes and ports, are configured on the transfer agents servicing requests, so HdfsData only contains the root path to the data in our transfer.",
-      ).optional(),
+      }).describe("Optional. An HDFS cluster data source.").optional(),
       httpDataSource: z.object({
         listUrl: z.string().describe(
           "Required. The URL that points to the file that stores the object list entries. This file must allow public access. The URL is either an HTTP/HTTPS address (e.g. `https://example.com/urllist.tsv`) or a Cloud Storage path (e.g. `gs://my-bucket/urllist.tsv`).",
         ).optional(),
-      }).describe(
-        'An HttpData resource specifies a list of objects on the web to be transferred over HTTP. The information of the objects to be transferred is contained in a file referenced by a URL. The first line in the file must be `"TsvHttpData-1.0"`, which specifies the format of the file. Subsequent lines specify the information of the list of objects, one object per list entry. Each entry has the following tab-delimited fields: * **HTTP URL** — The location of the object. * **Length** — The size of the object in bytes. * **MD5** — The base64-encoded MD5 hash of the object. For an example of a valid TSV file, see [Transferring data from URLs](https://cloud.google.com/storage-transfer/docs/create-url-list). When transferring data based on a URL list, keep the following in mind: * When an object located at `http(s)://hostname:port/` is transferred to a data sink, the name of the object at the data sink is `/`. * If the specified size of an object does not match the actual size of the object fetched, the object is not transferred. * If the specified MD5 does not match the MD5 computed from the transferred bytes, the object transfer fails. * Ensure that each URL you specify is publicly accessible. For example, in Cloud Storage you can [share an object publicly] (/storage/docs/cloud-console#_sharingdata) and get a link to it. * Storage Transfer Service obeys `robots.txt` rules and requires the source HTTP server to support `Range` requests and to return a `Content-Length` header in each response. * ObjectConditions have no effect when filtering objects to transfer.',
-      ).optional(),
+      }).describe("Optional. An HTTP URL data source.").optional(),
       objectConditions: z.object({
         excludePrefixes: z.array(z.string()).describe(
           "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -1200,18 +1163,18 @@ const GlobalArgsSchema = z.object({
           'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
         ).optional(),
       }).describe(
-        'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+        'Only objects that satisfy these object conditions are included in the set of data source and data sink objects. Object conditions based on objects\' "last modification time" do not exclude objects in a data sink.',
       ).optional(),
       posixDataSink: z.object({
         rootDirectory: z.string().describe(
           "Root directory path to the filesystem.",
         ).optional(),
-      }).describe("A POSIX filesystem resource.").optional(),
+      }).describe("Optional. A POSIX Filesystem data sink.").optional(),
       posixDataSource: z.object({
         rootDirectory: z.string().describe(
           "Root directory path to the filesystem.",
         ).optional(),
-      }).describe("A POSIX filesystem resource.").optional(),
+      }).describe("Optional. A POSIX Filesystem data source.").optional(),
       sinkAgentPoolName: z.string().describe(
         "Specifies the agent pool name associated with the posix data sink. When unspecified, the default name is used.",
       ).optional(),
@@ -1222,7 +1185,9 @@ const GlobalArgsSchema = z.object({
         location: z.string().describe(
           "Specifies the path to the manifest in Cloud Storage. The Google-managed service account for the transfer must have `storage.objects.get` permission for this object. An example path is `gs://bucket_name/path/manifest.csv`.",
         ).optional(),
-      }).describe("Specifies where the manifest is located.").optional(),
+      }).describe(
+        "A manifest file provides a list of objects to be transferred from the data source. This field points to the location of the manifest file. Otherwise, the entire source bucket is used. ObjectConditions still apply.",
+      ).optional(),
       transferOptions: z.object({
         deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
           "Whether objects should be deleted from the source after they are transferred to the sink. **Note:** This option and delete_objects_unique_in_sink are mutually exclusive.",
@@ -1287,8 +1252,9 @@ const GlobalArgsSchema = z.object({
           uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
             "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
           ).optional(),
-        }).describe("Specifies the metadata options for running a transfer.")
-          .optional(),
+        }).describe(
+          "Represents the selected metadata options for a transfer job.",
+        ).optional(),
         overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
           "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
         ).optional(),
@@ -1301,11 +1267,11 @@ const GlobalArgsSchema = z.object({
           "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
         ).optional(),
       }).describe(
-        "TransferOptions define the actions to be performed on objects in a transfer.",
+        "If the option delete_objects_unique_in_sink is `true` and time-based object conditions such as 'last modification time' are specified, the request fails with an INVALID_ARGUMENT error.",
       ).optional(),
-    }).describe("Configuration for running a transfer.").optional(),
+    }).describe("Transfer specification.").optional(),
   }).describe(
-    "This resource represents the configuration of a transfer job that runs periodically.",
+    "Required. The job to update. `transferJob` is expected to specify one or more of five fields: description, transfer_spec, notification_config, logging_config, and status. An `UpdateTransferJobRequest` that specifies other fields are rejected with the error INVALID_ARGUMENT. Updating a job status to DELETED requires `storagetransfer.jobs.delete` permission.",
   ).optional(),
   updateTransferJobFieldMask: z.string().describe(
     "The field mask of the fields in `transferJob` that are to be updated in this request. Fields in `transferJob` that can be updated are: description, transfer_spec, notification_config, logging_config, and status. To update the `transfer_spec` of the job, a complete transfer specification must be provided. An incomplete specification missing any required fields is rejected with the error INVALID_ARGUMENT.",
@@ -1528,7 +1494,7 @@ const InputsSchema = z.object({
       "Required. Specifies a unique name of the resource such as AWS SQS ARN in the form 'arn:aws:sqs:region:account_id:queue_name', or Pub/Sub subscription resource name in the form 'projects/{project}/subscriptions/{sub}'.",
     ).optional(),
   }).describe(
-    "Specifies the Event-driven transfer options. Event-driven transfers listen to an event stream to transfer updated files.",
+    "Specifies the event stream for the transfer job for event-driven transfers. When EventStream is specified, the Schedule fields are ignored.",
   ).optional(),
   latestOperationName: z.string().describe(
     "The name of the most recently started TransferOperation of this JobConfig. Present if a TransferOperation has been created for this JobConfig.",
@@ -1552,9 +1518,7 @@ const InputsSchema = z.object({
     ).describe(
       "Specifies the actions to be logged. If empty, no logs are generated.",
     ).optional(),
-  }).describe(
-    "Specifies the logging behavior for transfer operations. Logs can be sent to Cloud Logging for all transfer types. See [Read transfer logs](https://cloud.google.com/storage-transfer/docs/read-transfer-logs) for details.",
-  ).optional(),
+  }).describe("Logging configuration.").optional(),
   name: z.string().describe(
     'A unique name (within the transfer project) assigned when the job is created. If this field is empty in a CreateTransferJobRequest, Storage Transfer Service assigns a unique name. Otherwise, the specified name is used as the unique name for this job. If the specified name is in use by a job, the creation request fails with an ALREADY_EXISTS error. This name must start with `"transferJobs/"` prefix and end with a letter or a number, and should be no more than 128 characters. For transfers involving PosixFilesystem, this name must start with `transferJobs/OPI` specifically. For all other transfer types, this name must not start with `transferJobs/OPI`. Non-PosixFilesystem example: `"transferJobs/^(?!OPI)[A-Za-z0-9-._~]*[A-Za-z0-9]$"` PosixFilesystem example: `"transferJobs/OPI^[A-Za-z0-9-._~]*[A-Za-z0-9]$"` Applications must not rely on the enforcement of naming requirements involving OPI. Invalid job names fail with an INVALID_ARGUMENT error.',
   ).optional(),
@@ -1576,9 +1540,7 @@ const InputsSchema = z.object({
     pubsubTopic: z.string().describe(
       "Required. The `Topic.name` of the Pub/Sub topic to which to publish notifications. Must be of the format: `projects/{project}/topics/{topic}`. Not matching this format results in an INVALID_ARGUMENT error.",
     ).optional(),
-  }).describe(
-    'Specification to configure notifications published to Pub/Sub. Notifications are published to the customer-provided topic using the following `PubsubMessage.attributes`: * `"eventType"`: one of the EventType values * `"payloadFormat"`: one of the PayloadFormat values * `"projectId"`: the project_id of the `TransferOperation` * `"transferJobName"`: the transfer_job_name of the `TransferOperation` * `"transferOperationName"`: the name of the `TransferOperation` The `PubsubMessage.data` contains a TransferOperation resource formatted according to the specified `PayloadFormat`.',
-  ).optional(),
+  }).describe("Notification configuration.").optional(),
   projectId: z.string().describe(
     "Required. The ID of the Google Cloud project that owns the job.",
   ).optional(),
@@ -1593,9 +1555,8 @@ const InputsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("The Cloud Storage bucket to which to replicate objects.")
+      .optional(),
     gcsDataSource: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1606,9 +1567,8 @@ const InputsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("The Cloud Storage bucket from which to replicate objects.")
+      .optional(),
     objectConditions: z.object({
       excludePrefixes: z.array(z.string()).describe(
         "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -1635,7 +1595,7 @@ const InputsSchema = z.object({
         'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
       ).optional(),
     }).describe(
-      'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+      "Object conditions that determine which objects are transferred. For replication jobs, only `include_prefixes` and `exclude_prefixes` are supported.",
     ).optional(),
     transferOptions: z.object({
       deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
@@ -1701,8 +1661,9 @@ const InputsSchema = z.object({
         uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
           "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
         ).optional(),
-      }).describe("Specifies the metadata options for running a transfer.")
-        .optional(),
+      }).describe(
+        "Represents the selected metadata options for a transfer job.",
+      ).optional(),
       overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
         "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
       ).optional(),
@@ -1715,11 +1676,9 @@ const InputsSchema = z.object({
         "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
       ).optional(),
     }).describe(
-      "TransferOptions define the actions to be performed on objects in a transfer.",
+      "Specifies the metadata options to be applied during replication. Delete options are not supported. If a delete option is specified, the request fails with an INVALID_ARGUMENT error.",
     ).optional(),
-  }).describe(
-    "Specifies the configuration for a cross-bucket replication job. Cross-bucket replication copies new or updated objects from a source Cloud Storage bucket to a destination Cloud Storage bucket. Existing objects in the source bucket are not copied by a new cross-bucket replication job.",
-  ).optional(),
+  }).describe("Replication specification.").optional(),
   schedule: z.object({
     endTimeOfDay: z.object({
       hours: z.number().int().describe(
@@ -1735,7 +1694,7 @@ const InputsSchema = z.object({
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
     }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+      "The time in UTC that no further transfer operations are scheduled. Combined with schedule_end_date, `end_time_of_day` specifies the end date and time for starting new transfer operations. This field must be greater than or equal to the timestamp corresponding to the combination of schedule_start_date and start_time_of_day, and is subject to the following: * If `end_time_of_day` is not set and `schedule_end_date` is set, then a default value of `23:59:59` is used for `end_time_of_day`. * If `end_time_of_day` is set and `schedule_end_date` is not set, then INVALID_ARGUMENT is returned.",
     ).optional(),
     repeatInterval: z.string().describe(
       "Interval between the start of each scheduled TransferOperation. If unspecified, the default value is 24 hours. This value may not be less than 1 hour.",
@@ -1751,7 +1710,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "The last day a transfer runs. Date boundaries are determined relative to UTC time. A job runs once per 24 hours within the following guidelines: * If `schedule_end_date` and schedule_start_date are the same and in the future relative to UTC, the transfer is executed only one time. * If `schedule_end_date` is later than `schedule_start_date` and `schedule_end_date` is in the future relative to UTC, the job runs each day at start_time_of_day through `schedule_end_date`.",
     ).optional(),
     scheduleStartDate: z.object({
       day: z.number().int().describe(
@@ -1764,7 +1723,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. The start date of a transfer. Date boundaries are determined relative to UTC time. If `schedule_start_date` and start_time_of_day are in the past relative to the job's creation time, the transfer starts the day after you schedule the transfer request. **Note:** When starting jobs at or near midnight UTC it is possible that a job starts later than expected. For example, if you send an outbound request on June 1 one millisecond prior to midnight UTC and the Storage Transfer Service server receives the request on June 2, then it creates a TransferJob with `schedule_start_date` set to June 2 and a `start_time_of_day` set to midnight UTC. The first scheduled TransferOperation takes place on June 3 at midnight UTC.",
     ).optional(),
     startTimeOfDay: z.object({
       hours: z.number().int().describe(
@@ -1780,10 +1739,11 @@ const InputsSchema = z.object({
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
     }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+      "The time in UTC that a transfer job is scheduled to run. Transfers may start later than this time. If `start_time_of_day` is not specified: * One-time transfers run immediately. * Recurring transfers run immediately, and each day at midnight UTC, through schedule_end_date. If `start_time_of_day` is specified: * One-time transfers run at the specified time. * Recurring transfers run at the specified time each day, through `schedule_end_date`.",
     ).optional(),
-  }).describe("Transfers can be scheduled to recur or to run just once.")
-    .optional(),
+  }).describe(
+    "Specifies schedule for the transfer job. This is an optional field. When the field is not set, the job never executes a transfer, unless you invoke RunTransferJob or update the job to have a non-empty schedule.",
+  ).optional(),
   serviceAccount: z.string().describe(
     "Optional. The user-managed service account to which to delegate service agent permissions. You can grant Cloud Storage bucket permissions to this service account instead of to the Transfer Service service agent. Either the service account email (`SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com`) or the unique ID (`123456789012345678901`) are accepted. See https://docs.cloud.google.com/storage-transfer/docs/delegate-service-agent-permissions for required permissions.",
   ).optional(),
@@ -1834,10 +1794,8 @@ const InputsSchema = z.object({
         ]).describe(
           "Specifies the API request model used to call the storage service. When not specified, the default value of RequestModel REQUEST_MODEL_VIRTUAL_HOSTED_STYLE is used.",
         ).optional(),
-      }).describe(
-        "S3CompatibleMetadata contains the metadata fields that apply to the basic types of S3-compatible data providers.",
-      ).optional(),
-    }).describe("An AwsS3CompatibleData resource.").optional(),
+      }).describe("A S3 compatible metadata.").optional(),
+    }).describe("Optional. An AWS S3 compatible data source.").optional(),
     awsS3DataSource: z.object({
       awsAccessKey: z.object({
         accessKeyId: z.string().describe("Required. AWS access key ID.")
@@ -1846,7 +1804,7 @@ const InputsSchema = z.object({
           "Required. AWS secret access key. This field is not returned in RPC responses.",
         ).optional(),
       }).describe(
-        "AWS access key (see [AWS Security Credentials](https://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html)). For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+        "Input only. AWS access key used to sign the API requests to the AWS S3 bucket. Permissions on the bucket must be granted to the access ID of the AWS access key. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
       ).optional(),
       bucketName: z.string().describe(
         "Required. S3 Bucket name (see [Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/dev/create-bucket-get-location-example.html)).",
@@ -1869,16 +1827,14 @@ const InputsSchema = z.object({
       roleArn: z.string().describe(
         "The Amazon Resource Name (ARN) of the role to support temporary credentials via `AssumeRoleWithWebIdentity`. For more information about ARNs, see [IAM ARNs](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns). When a role ARN is provided, Transfer Service fetches temporary credentials for the session using a `AssumeRoleWithWebIdentity` call for the provided role using the GoogleServiceAccount for this project.",
       ).optional(),
-    }).describe(
-      "An AwsS3Data resource can be a data source, but not a data sink. In an AwsS3Data resource, an object's name is the S3 object's key name.",
-    ).optional(),
+    }).describe("Optional. An AWS S3 data source.").optional(),
     azureBlobStorageDataSource: z.object({
       azureCredentials: z.object({
         sasToken: z.string().describe(
           "Required. Azure shared access signature (SAS). For more information about SAS, see [Grant limited access to Azure Storage resources using shared access signatures (SAS)](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview).",
         ).optional(),
       }).describe(
-        "Azure credentials For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+        "Required. Input only. Credentials used to authenticate API requests to Azure. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
       ).optional(),
       container: z.string().describe(
         "Required. The container to transfer from the Azure Storage account.",
@@ -1894,7 +1850,7 @@ const InputsSchema = z.object({
           "Required. The tenant (directory) ID of the application with federated credentials.",
         ).optional(),
       }).describe(
-        "The identity of an Azure application through which Storage Transfer Service can authenticate requests using Azure workload identity federation. Storage Transfer Service can issue requests to Azure Storage through registered Azure applications, eliminating the need to pass credentials to Storage Transfer Service directly. To configure federated identity, see [Configure access to Microsoft Azure Storage](https://cloud.google.com/storage-transfer/docs/source-microsoft-azure#option_3_authenticate_using_federated_identity).",
+        "Optional. Federated identity config of a user registered Azure application. If `federated_identity_config` is specified, do not specify azure_credentials or credentials_secret.",
       ).optional(),
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'.",
@@ -1905,9 +1861,7 @@ const InputsSchema = z.object({
       storageAccount: z.string().describe(
         "Required. The name of the Azure Storage account.",
       ).optional(),
-    }).describe(
-      "An AzureBlobStorageData resource can be a data source, but not a data sink. An AzureBlobStorageData resource represents one Azure container. The storage account determines the [Azure endpoint](https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account#storage-account-endpoints). In an AzureBlobStorageData resource, a blobs's name is the [Azure Blob Storage blob's key name](https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names).",
-    ).optional(),
+    }).describe("Optional. An Azure Blob Storage data source.").optional(),
     gcsDataSink: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1918,9 +1872,7 @@ const InputsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("Optional. A Cloud Storage data sink.").optional(),
     gcsDataSource: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1931,9 +1883,7 @@ const InputsSchema = z.object({
       path: z.string().describe(
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
-    }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-    ).optional(),
+    }).describe("Optional. A Cloud Storage data source.").optional(),
     gcsIntermediateDataLocation: z.object({
       bucketName: z.string().describe(
         "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -1945,20 +1895,16 @@ const InputsSchema = z.object({
         "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
       ).optional(),
     }).describe(
-      "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
+      "For transfers between file systems, specifies a Cloud Storage bucket to be used as an intermediate location through which to transfer data. See [Transfer data between file systems](https://cloud.google.com/storage-transfer/docs/file-to-file) for more information.",
     ).optional(),
     hdfsDataSource: z.object({
       path: z.string().describe("Root path to transfer files.").optional(),
-    }).describe(
-      "An HdfsData resource specifies a path within an HDFS entity (e.g. a cluster). All cluster-specific settings, such as namenodes and ports, are configured on the transfer agents servicing requests, so HdfsData only contains the root path to the data in our transfer.",
-    ).optional(),
+    }).describe("Optional. An HDFS cluster data source.").optional(),
     httpDataSource: z.object({
       listUrl: z.string().describe(
         "Required. The URL that points to the file that stores the object list entries. This file must allow public access. The URL is either an HTTP/HTTPS address (e.g. `https://example.com/urllist.tsv`) or a Cloud Storage path (e.g. `gs://my-bucket/urllist.tsv`).",
       ).optional(),
-    }).describe(
-      'An HttpData resource specifies a list of objects on the web to be transferred over HTTP. The information of the objects to be transferred is contained in a file referenced by a URL. The first line in the file must be `"TsvHttpData-1.0"`, which specifies the format of the file. Subsequent lines specify the information of the list of objects, one object per list entry. Each entry has the following tab-delimited fields: * **HTTP URL** — The location of the object. * **Length** — The size of the object in bytes. * **MD5** — The base64-encoded MD5 hash of the object. For an example of a valid TSV file, see [Transferring data from URLs](https://cloud.google.com/storage-transfer/docs/create-url-list). When transferring data based on a URL list, keep the following in mind: * When an object located at `http(s)://hostname:port/` is transferred to a data sink, the name of the object at the data sink is `/`. * If the specified size of an object does not match the actual size of the object fetched, the object is not transferred. * If the specified MD5 does not match the MD5 computed from the transferred bytes, the object transfer fails. * Ensure that each URL you specify is publicly accessible. For example, in Cloud Storage you can [share an object publicly] (/storage/docs/cloud-console#_sharingdata) and get a link to it. * Storage Transfer Service obeys `robots.txt` rules and requires the source HTTP server to support `Range` requests and to return a `Content-Length` header in each response. * ObjectConditions have no effect when filtering objects to transfer.',
-    ).optional(),
+    }).describe("Optional. An HTTP URL data source.").optional(),
     objectConditions: z.object({
       excludePrefixes: z.array(z.string()).describe(
         "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -1985,18 +1931,18 @@ const InputsSchema = z.object({
         'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
       ).optional(),
     }).describe(
-      'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+      'Only objects that satisfy these object conditions are included in the set of data source and data sink objects. Object conditions based on objects\' "last modification time" do not exclude objects in a data sink.',
     ).optional(),
     posixDataSink: z.object({
       rootDirectory: z.string().describe(
         "Root directory path to the filesystem.",
       ).optional(),
-    }).describe("A POSIX filesystem resource.").optional(),
+    }).describe("Optional. A POSIX Filesystem data sink.").optional(),
     posixDataSource: z.object({
       rootDirectory: z.string().describe(
         "Root directory path to the filesystem.",
       ).optional(),
-    }).describe("A POSIX filesystem resource.").optional(),
+    }).describe("Optional. A POSIX Filesystem data source.").optional(),
     sinkAgentPoolName: z.string().describe(
       "Specifies the agent pool name associated with the posix data sink. When unspecified, the default name is used.",
     ).optional(),
@@ -2007,7 +1953,9 @@ const InputsSchema = z.object({
       location: z.string().describe(
         "Specifies the path to the manifest in Cloud Storage. The Google-managed service account for the transfer must have `storage.objects.get` permission for this object. An example path is `gs://bucket_name/path/manifest.csv`.",
       ).optional(),
-    }).describe("Specifies where the manifest is located.").optional(),
+    }).describe(
+      "A manifest file provides a list of objects to be transferred from the data source. This field points to the location of the manifest file. Otherwise, the entire source bucket is used. ObjectConditions still apply.",
+    ).optional(),
     transferOptions: z.object({
       deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
         "Whether objects should be deleted from the source after they are transferred to the sink. **Note:** This option and delete_objects_unique_in_sink are mutually exclusive.",
@@ -2072,8 +2020,9 @@ const InputsSchema = z.object({
         uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
           "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
         ).optional(),
-      }).describe("Specifies the metadata options for running a transfer.")
-        .optional(),
+      }).describe(
+        "Represents the selected metadata options for a transfer job.",
+      ).optional(),
       overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
         "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
       ).optional(),
@@ -2086,9 +2035,9 @@ const InputsSchema = z.object({
         "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
       ).optional(),
     }).describe(
-      "TransferOptions define the actions to be performed on objects in a transfer.",
+      "If the option delete_objects_unique_in_sink is `true` and time-based object conditions such as 'last modification time' are specified, the request fails with an INVALID_ARGUMENT error.",
     ).optional(),
-  }).describe("Configuration for running a transfer.").optional(),
+  }).describe("Transfer specification.").optional(),
   transferJob: z.object({
     creationTime: z.string().describe(
       "Output only. The time that the transfer job was created.",
@@ -2110,7 +2059,7 @@ const InputsSchema = z.object({
         "Required. Specifies a unique name of the resource such as AWS SQS ARN in the form 'arn:aws:sqs:region:account_id:queue_name', or Pub/Sub subscription resource name in the form 'projects/{project}/subscriptions/{sub}'.",
       ).optional(),
     }).describe(
-      "Specifies the Event-driven transfer options. Event-driven transfers listen to an event stream to transfer updated files.",
+      "Specifies the event stream for the transfer job for event-driven transfers. When EventStream is specified, the Schedule fields are ignored.",
     ).optional(),
     lastModificationTime: z.string().describe(
       "Output only. The time that the transfer job was last modified.",
@@ -2137,9 +2086,7 @@ const InputsSchema = z.object({
       ).describe(
         "Specifies the actions to be logged. If empty, no logs are generated.",
       ).optional(),
-    }).describe(
-      "Specifies the logging behavior for transfer operations. Logs can be sent to Cloud Logging for all transfer types. See [Read transfer logs](https://cloud.google.com/storage-transfer/docs/read-transfer-logs) for details.",
-    ).optional(),
+    }).describe("Logging configuration.").optional(),
     name: z.string().describe(
       'A unique name (within the transfer project) assigned when the job is created. If this field is empty in a CreateTransferJobRequest, Storage Transfer Service assigns a unique name. Otherwise, the specified name is used as the unique name for this job. If the specified name is in use by a job, the creation request fails with an ALREADY_EXISTS error. This name must start with `"transferJobs/"` prefix and end with a letter or a number, and should be no more than 128 characters. For transfers involving PosixFilesystem, this name must start with `transferJobs/OPI` specifically. For all other transfer types, this name must not start with `transferJobs/OPI`. Non-PosixFilesystem example: `"transferJobs/^(?!OPI)[A-Za-z0-9-._~]*[A-Za-z0-9]$"` PosixFilesystem example: `"transferJobs/OPI^[A-Za-z0-9-._~]*[A-Za-z0-9]$"` Applications must not rely on the enforcement of naming requirements involving OPI. Invalid job names fail with an INVALID_ARGUMENT error.',
     ).optional(),
@@ -2161,9 +2108,7 @@ const InputsSchema = z.object({
       pubsubTopic: z.string().describe(
         "Required. The `Topic.name` of the Pub/Sub topic to which to publish notifications. Must be of the format: `projects/{project}/topics/{topic}`. Not matching this format results in an INVALID_ARGUMENT error.",
       ).optional(),
-    }).describe(
-      'Specification to configure notifications published to Pub/Sub. Notifications are published to the customer-provided topic using the following `PubsubMessage.attributes`: * `"eventType"`: one of the EventType values * `"payloadFormat"`: one of the PayloadFormat values * `"projectId"`: the project_id of the `TransferOperation` * `"transferJobName"`: the transfer_job_name of the `TransferOperation` * `"transferOperationName"`: the name of the `TransferOperation` The `PubsubMessage.data` contains a TransferOperation resource formatted according to the specified `PayloadFormat`.',
-    ).optional(),
+    }).describe("Notification configuration.").optional(),
     projectId: z.string().describe(
       "The ID of the Google Cloud project that owns the job.",
     ).optional(),
@@ -2178,9 +2123,8 @@ const InputsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("The Cloud Storage bucket to which to replicate objects.")
+        .optional(),
       gcsDataSource: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -2191,9 +2135,8 @@ const InputsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("The Cloud Storage bucket from which to replicate objects.")
+        .optional(),
       objectConditions: z.object({
         excludePrefixes: z.array(z.string()).describe(
           "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -2220,7 +2163,7 @@ const InputsSchema = z.object({
           'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
         ).optional(),
       }).describe(
-        'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+        "Object conditions that determine which objects are transferred. For replication jobs, only `include_prefixes` and `exclude_prefixes` are supported.",
       ).optional(),
       transferOptions: z.object({
         deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
@@ -2286,8 +2229,9 @@ const InputsSchema = z.object({
           uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
             "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
           ).optional(),
-        }).describe("Specifies the metadata options for running a transfer.")
-          .optional(),
+        }).describe(
+          "Represents the selected metadata options for a transfer job.",
+        ).optional(),
         overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
           "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
         ).optional(),
@@ -2300,11 +2244,9 @@ const InputsSchema = z.object({
           "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
         ).optional(),
       }).describe(
-        "TransferOptions define the actions to be performed on objects in a transfer.",
+        "Specifies the metadata options to be applied during replication. Delete options are not supported. If a delete option is specified, the request fails with an INVALID_ARGUMENT error.",
       ).optional(),
-    }).describe(
-      "Specifies the configuration for a cross-bucket replication job. Cross-bucket replication copies new or updated objects from a source Cloud Storage bucket to a destination Cloud Storage bucket. Existing objects in the source bucket are not copied by a new cross-bucket replication job.",
-    ).optional(),
+    }).describe("Replication specification.").optional(),
     schedule: z.object({
       endTimeOfDay: z.object({
         hours: z.number().int().describe(
@@ -2320,7 +2262,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "The time in UTC that no further transfer operations are scheduled. Combined with schedule_end_date, `end_time_of_day` specifies the end date and time for starting new transfer operations. This field must be greater than or equal to the timestamp corresponding to the combination of schedule_start_date and start_time_of_day, and is subject to the following: * If `end_time_of_day` is not set and `schedule_end_date` is set, then a default value of `23:59:59` is used for `end_time_of_day`. * If `end_time_of_day` is set and `schedule_end_date` is not set, then INVALID_ARGUMENT is returned.",
       ).optional(),
       repeatInterval: z.string().describe(
         "Interval between the start of each scheduled TransferOperation. If unspecified, the default value is 24 hours. This value may not be less than 1 hour.",
@@ -2336,7 +2278,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The last day a transfer runs. Date boundaries are determined relative to UTC time. A job runs once per 24 hours within the following guidelines: * If `schedule_end_date` and schedule_start_date are the same and in the future relative to UTC, the transfer is executed only one time. * If `schedule_end_date` is later than `schedule_start_date` and `schedule_end_date` is in the future relative to UTC, the job runs each day at start_time_of_day through `schedule_end_date`.",
       ).optional(),
       scheduleStartDate: z.object({
         day: z.number().int().describe(
@@ -2349,7 +2291,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Required. The start date of a transfer. Date boundaries are determined relative to UTC time. If `schedule_start_date` and start_time_of_day are in the past relative to the job's creation time, the transfer starts the day after you schedule the transfer request. **Note:** When starting jobs at or near midnight UTC it is possible that a job starts later than expected. For example, if you send an outbound request on June 1 one millisecond prior to midnight UTC and the Storage Transfer Service server receives the request on June 2, then it creates a TransferJob with `schedule_start_date` set to June 2 and a `start_time_of_day` set to midnight UTC. The first scheduled TransferOperation takes place on June 3 at midnight UTC.",
       ).optional(),
       startTimeOfDay: z.object({
         hours: z.number().int().describe(
@@ -2365,10 +2307,11 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "The time in UTC that a transfer job is scheduled to run. Transfers may start later than this time. If `start_time_of_day` is not specified: * One-time transfers run immediately. * Recurring transfers run immediately, and each day at midnight UTC, through schedule_end_date. If `start_time_of_day` is specified: * One-time transfers run at the specified time. * Recurring transfers run at the specified time each day, through `schedule_end_date`.",
       ).optional(),
-    }).describe("Transfers can be scheduled to recur or to run just once.")
-      .optional(),
+    }).describe(
+      "Specifies schedule for the transfer job. This is an optional field. When the field is not set, the job never executes a transfer, unless you invoke RunTransferJob or update the job to have a non-empty schedule.",
+    ).optional(),
     serviceAccount: z.string().describe(
       "Optional. The user-managed service account to which to delegate service agent permissions. You can grant Cloud Storage bucket permissions to this service account instead of to the Transfer Service service agent. Either the service account email (`SERVICE_ACCOUNT_NAME@PROJECT_ID.iam.gserviceaccount.com`) or the unique ID (`123456789012345678901`) are accepted. See https://docs.cloud.google.com/storage-transfer/docs/delegate-service-agent-permissions for required permissions.",
     ).optional(),
@@ -2419,10 +2362,8 @@ const InputsSchema = z.object({
           ]).describe(
             "Specifies the API request model used to call the storage service. When not specified, the default value of RequestModel REQUEST_MODEL_VIRTUAL_HOSTED_STYLE is used.",
           ).optional(),
-        }).describe(
-          "S3CompatibleMetadata contains the metadata fields that apply to the basic types of S3-compatible data providers.",
-        ).optional(),
-      }).describe("An AwsS3CompatibleData resource.").optional(),
+        }).describe("A S3 compatible metadata.").optional(),
+      }).describe("Optional. An AWS S3 compatible data source.").optional(),
       awsS3DataSource: z.object({
         awsAccessKey: z.object({
           accessKeyId: z.string().describe("Required. AWS access key ID.")
@@ -2431,7 +2372,7 @@ const InputsSchema = z.object({
             "Required. AWS secret access key. This field is not returned in RPC responses.",
           ).optional(),
         }).describe(
-          "AWS access key (see [AWS Security Credentials](https://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html)). For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+          "Input only. AWS access key used to sign the API requests to the AWS S3 bucket. Permissions on the bucket must be granted to the access ID of the AWS access key. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
         ).optional(),
         bucketName: z.string().describe(
           "Required. S3 Bucket name (see [Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/dev/create-bucket-get-location-example.html)).",
@@ -2454,16 +2395,14 @@ const InputsSchema = z.object({
         roleArn: z.string().describe(
           "The Amazon Resource Name (ARN) of the role to support temporary credentials via `AssumeRoleWithWebIdentity`. For more information about ARNs, see [IAM ARNs](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns). When a role ARN is provided, Transfer Service fetches temporary credentials for the session using a `AssumeRoleWithWebIdentity` call for the provided role using the GoogleServiceAccount for this project.",
         ).optional(),
-      }).describe(
-        "An AwsS3Data resource can be a data source, but not a data sink. In an AwsS3Data resource, an object's name is the S3 object's key name.",
-      ).optional(),
+      }).describe("Optional. An AWS S3 data source.").optional(),
       azureBlobStorageDataSource: z.object({
         azureCredentials: z.object({
           sasToken: z.string().describe(
             "Required. Azure shared access signature (SAS). For more information about SAS, see [Grant limited access to Azure Storage resources using shared access signatures (SAS)](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview).",
           ).optional(),
         }).describe(
-          "Azure credentials For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
+          "Required. Input only. Credentials used to authenticate API requests to Azure. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).",
         ).optional(),
         container: z.string().describe(
           "Required. The container to transfer from the Azure Storage account.",
@@ -2479,7 +2418,7 @@ const InputsSchema = z.object({
             "Required. The tenant (directory) ID of the application with federated credentials.",
           ).optional(),
         }).describe(
-          "The identity of an Azure application through which Storage Transfer Service can authenticate requests using Azure workload identity federation. Storage Transfer Service can issue requests to Azure Storage through registered Azure applications, eliminating the need to pass credentials to Storage Transfer Service directly. To configure federated identity, see [Configure access to Microsoft Azure Storage](https://cloud.google.com/storage-transfer/docs/source-microsoft-azure#option_3_authenticate_using_federated_identity).",
+          "Optional. Federated identity config of a user registered Azure application. If `federated_identity_config` is specified, do not specify azure_credentials or credentials_secret.",
         ).optional(),
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'.",
@@ -2490,9 +2429,7 @@ const InputsSchema = z.object({
         storageAccount: z.string().describe(
           "Required. The name of the Azure Storage account.",
         ).optional(),
-      }).describe(
-        "An AzureBlobStorageData resource can be a data source, but not a data sink. An AzureBlobStorageData resource represents one Azure container. The storage account determines the [Azure endpoint](https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account#storage-account-endpoints). In an AzureBlobStorageData resource, a blobs's name is the [Azure Blob Storage blob's key name](https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names).",
-      ).optional(),
+      }).describe("Optional. An Azure Blob Storage data source.").optional(),
       gcsDataSink: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -2503,9 +2440,7 @@ const InputsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("Optional. A Cloud Storage data sink.").optional(),
       gcsDataSource: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -2516,9 +2451,7 @@ const InputsSchema = z.object({
         path: z.string().describe(
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
-      }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
-      ).optional(),
+      }).describe("Optional. A Cloud Storage data source.").optional(),
       gcsIntermediateDataLocation: z.object({
         bucketName: z.string().describe(
           "Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).",
@@ -2530,20 +2463,16 @@ const InputsSchema = z.object({
           "Root path to transfer objects. Must be an empty string or full path name that ends with a '/'. This field is treated as an object prefix. As such, it should generally not begin with a '/'. The root path value must meet [Object Name Requirements](/storage/docs/naming#objectnames).",
         ).optional(),
       }).describe(
-        "In a GcsData resource, an object's name is the Cloud Storage object's name and its \"last modification time\" refers to the object's `updated` property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.",
+        "For transfers between file systems, specifies a Cloud Storage bucket to be used as an intermediate location through which to transfer data. See [Transfer data between file systems](https://cloud.google.com/storage-transfer/docs/file-to-file) for more information.",
       ).optional(),
       hdfsDataSource: z.object({
         path: z.string().describe("Root path to transfer files.").optional(),
-      }).describe(
-        "An HdfsData resource specifies a path within an HDFS entity (e.g. a cluster). All cluster-specific settings, such as namenodes and ports, are configured on the transfer agents servicing requests, so HdfsData only contains the root path to the data in our transfer.",
-      ).optional(),
+      }).describe("Optional. An HDFS cluster data source.").optional(),
       httpDataSource: z.object({
         listUrl: z.string().describe(
           "Required. The URL that points to the file that stores the object list entries. This file must allow public access. The URL is either an HTTP/HTTPS address (e.g. `https://example.com/urllist.tsv`) or a Cloud Storage path (e.g. `gs://my-bucket/urllist.tsv`).",
         ).optional(),
-      }).describe(
-        'An HttpData resource specifies a list of objects on the web to be transferred over HTTP. The information of the objects to be transferred is contained in a file referenced by a URL. The first line in the file must be `"TsvHttpData-1.0"`, which specifies the format of the file. Subsequent lines specify the information of the list of objects, one object per list entry. Each entry has the following tab-delimited fields: * **HTTP URL** — The location of the object. * **Length** — The size of the object in bytes. * **MD5** — The base64-encoded MD5 hash of the object. For an example of a valid TSV file, see [Transferring data from URLs](https://cloud.google.com/storage-transfer/docs/create-url-list). When transferring data based on a URL list, keep the following in mind: * When an object located at `http(s)://hostname:port/` is transferred to a data sink, the name of the object at the data sink is `/`. * If the specified size of an object does not match the actual size of the object fetched, the object is not transferred. * If the specified MD5 does not match the MD5 computed from the transferred bytes, the object transfer fails. * Ensure that each URL you specify is publicly accessible. For example, in Cloud Storage you can [share an object publicly] (/storage/docs/cloud-console#_sharingdata) and get a link to it. * Storage Transfer Service obeys `robots.txt` rules and requires the source HTTP server to support `Range` requests and to return a `Content-Length` header in each response. * ObjectConditions have no effect when filtering objects to transfer.',
-      ).optional(),
+      }).describe("Optional. An HTTP URL data source.").optional(),
       objectConditions: z.object({
         excludePrefixes: z.array(z.string()).describe(
           "If you specify `exclude_prefixes`, Storage Transfer Service uses the items in the `exclude_prefixes` array to determine which objects to exclude from a transfer. Objects must not start with one of the matching `exclude_prefixes` for inclusion in a transfer. The following are requirements of `exclude_prefixes`: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object `s3://my-aws-bucket/logs/y=2015/requests.gz`, specify the exclude-prefix as `logs/y=2015/requests.gz`. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by `include_prefixes`. The max size of `exclude_prefixes` is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).",
@@ -2570,18 +2499,18 @@ const InputsSchema = z.object({
           'Ensures that objects are not transferred until a specific minimum time has elapsed after the "last modification time". When a TransferOperation begins, objects with a "last modification time" are transferred only if the elapsed time between the start_time of the `TransferOperation` and the "last modification time" of the object is equal to or greater than the value of min_time_elapsed_since_last_modification`. Objects that do not have a "last modification time" are also transferred.',
         ).optional(),
       }).describe(
-        'Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object\'s content or metadata — specifically, this is the `updated` property of Cloud Storage objects, the `LastModified` field of S3 objects, and the `Last-Modified` header of Azure blobs. For S3 objects, the `LastModified` value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don\'t support `ObjectConditions`.',
+        'Only objects that satisfy these object conditions are included in the set of data source and data sink objects. Object conditions based on objects\' "last modification time" do not exclude objects in a data sink.',
       ).optional(),
       posixDataSink: z.object({
         rootDirectory: z.string().describe(
           "Root directory path to the filesystem.",
         ).optional(),
-      }).describe("A POSIX filesystem resource.").optional(),
+      }).describe("Optional. A POSIX Filesystem data sink.").optional(),
       posixDataSource: z.object({
         rootDirectory: z.string().describe(
           "Root directory path to the filesystem.",
         ).optional(),
-      }).describe("A POSIX filesystem resource.").optional(),
+      }).describe("Optional. A POSIX Filesystem data source.").optional(),
       sinkAgentPoolName: z.string().describe(
         "Specifies the agent pool name associated with the posix data sink. When unspecified, the default name is used.",
       ).optional(),
@@ -2592,7 +2521,9 @@ const InputsSchema = z.object({
         location: z.string().describe(
           "Specifies the path to the manifest in Cloud Storage. The Google-managed service account for the transfer must have `storage.objects.get` permission for this object. An example path is `gs://bucket_name/path/manifest.csv`.",
         ).optional(),
-      }).describe("Specifies where the manifest is located.").optional(),
+      }).describe(
+        "A manifest file provides a list of objects to be transferred from the data source. This field points to the location of the manifest file. Otherwise, the entire source bucket is used. ObjectConditions still apply.",
+      ).optional(),
       transferOptions: z.object({
         deleteObjectsFromSourceAfterTransfer: z.boolean().describe(
           "Whether objects should be deleted from the source after they are transferred to the sink. **Note:** This option and delete_objects_unique_in_sink are mutually exclusive.",
@@ -2657,8 +2588,9 @@ const InputsSchema = z.object({
           uid: z.enum(["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER"]).describe(
             "Specifies how each file's POSIX user ID (UID) attribute should be handled by the transfer. By default, UID is not preserved. Only applicable to transfers involving POSIX file systems, and ignored for other transfers.",
           ).optional(),
-        }).describe("Specifies the metadata options for running a transfer.")
-          .optional(),
+        }).describe(
+          "Represents the selected metadata options for a transfer job.",
+        ).optional(),
         overwriteObjectsAlreadyExistingInSink: z.boolean().describe(
           "When to overwrite objects that already exist in the sink. The default is that only objects that are different from the source are overwritten. If true, all objects in the sink whose name matches an object in the source are overwritten with the source object.",
         ).optional(),
@@ -2671,11 +2603,11 @@ const InputsSchema = z.object({
           "When to overwrite objects that already exist in the sink. If not set, overwrite behavior is determined by overwrite_objects_already_existing_in_sink.",
         ).optional(),
       }).describe(
-        "TransferOptions define the actions to be performed on objects in a transfer.",
+        "If the option delete_objects_unique_in_sink is `true` and time-based object conditions such as 'last modification time' are specified, the request fails with an INVALID_ARGUMENT error.",
       ).optional(),
-    }).describe("Configuration for running a transfer.").optional(),
+    }).describe("Transfer specification.").optional(),
   }).describe(
-    "This resource represents the configuration of a transfer job that runs periodically.",
+    "Required. The job to update. `transferJob` is expected to specify one or more of five fields: description, transfer_spec, notification_config, logging_config, and status. An `UpdateTransferJobRequest` that specifies other fields are rejected with the error INVALID_ARGUMENT. Updating a job status to DELETED requires `storagetransfer.jobs.delete` permission.",
   ).optional(),
   updateTransferJobFieldMask: z.string().describe(
     "The field mask of the fields in `transferJob` that are to be updated in this request. Fields in `transferJob` that can be updated are: description, transfer_spec, notification_config, logging_config, and status. To update the `transfer_spec` of the job, a complete transfer specification must be provided. An incomplete specification missing any required fields is rejected with the error INVALID_ARGUMENT.",
@@ -2709,7 +2641,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage Transfer TransferJobs. Registered at `@swamp/gcp/storagetransfer/transferjobs`. */
 export const model = {
   type: "@swamp/gcp/storagetransfer/transferjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2828,6 +2760,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

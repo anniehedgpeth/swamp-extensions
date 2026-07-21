@@ -141,7 +141,7 @@ const GlobalArgsSchema = z.object({
     supportedLocales: z.array(z.string()).describe(
       'All installed locales represented as BCP-47 strings, e.g. "en-US".',
     ).optional(),
-  }).describe("The device spec used to generate a system APK.").optional(),
+  }).describe("The device spec used to generate the APK.").optional(),
   options: z.object({
     rotated: z.boolean().describe(
       "Whether to use the rotated key for signing the system APK.",
@@ -152,7 +152,7 @@ const GlobalArgsSchema = z.object({
     uncompressedNativeLibraries: z.boolean().describe(
       "Whether system APK was generated with uncompressed native libraries.",
     ).optional(),
-  }).describe("Options for system APKs.").optional(),
+  }).describe("Optional. Options applied to the generated APK.").optional(),
   packageName: z.string().describe("Package name of the app."),
   versionCode: z.string().describe("The version code of the App Bundle."),
 });
@@ -187,7 +187,7 @@ const InputsSchema = z.object({
     supportedLocales: z.array(z.string()).describe(
       'All installed locales represented as BCP-47 strings, e.g. "en-US".',
     ).optional(),
-  }).describe("The device spec used to generate a system APK.").optional(),
+  }).describe("The device spec used to generate the APK.").optional(),
   options: z.object({
     rotated: z.boolean().describe(
       "Whether to use the rotated key for signing the system APK.",
@@ -198,7 +198,7 @@ const InputsSchema = z.object({
     uncompressedNativeLibraries: z.boolean().describe(
       "Whether system APK was generated with uncompressed native libraries.",
     ).optional(),
-  }).describe("Options for system APKs.").optional(),
+  }).describe("Optional. Options applied to the generated APK.").optional(),
   packageName: z.string().describe("Package name of the app.").optional(),
   versionCode: z.string().describe("The version code of the App Bundle.")
     .optional(),
@@ -227,7 +227,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Systemapks.Variants. Registered at `@swamp/gcp/androidpublisher/systemapks-variants`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/systemapks-variants",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -319,6 +319,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -357,15 +362,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "packageName": String(g["packageName"] ?? ""),
-              "versionCode": String(g["versionCode"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

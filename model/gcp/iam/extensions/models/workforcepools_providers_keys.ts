@@ -155,7 +155,7 @@ const GlobalArgsSchema = z.object({
     notBeforeTime: z.string().describe(
       "Output only. Earliest timestamp when this key is valid. Attempts to use this key before this time will fail. Only present if the key data represents a X.509 certificate.",
     ).optional(),
-  }).describe("Represents a public key data along with its format.").optional(),
+  }).describe("Immutable. Public half of the asymmetric key.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the key. Format: `locations/{location}/workforcePools/{workforce_pool_id}/providers/{provider_id}/keys/{key_id}`",
   ).optional(),
@@ -210,7 +210,7 @@ const InputsSchema = z.object({
     notBeforeTime: z.string().describe(
       "Output only. Earliest timestamp when this key is valid. Attempts to use this key before this time will fail. Only present if the key data represents a X.509 certificate.",
     ).optional(),
-  }).describe("Represents a public key data along with its format.").optional(),
+  }).describe("Immutable. Public half of the asymmetric key.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the key. Format: `locations/{location}/workforcePools/{workforce_pool_id}/providers/{provider_id}/keys/{key_id}`",
   ).optional(),
@@ -248,7 +248,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkforcePools.Providers.Keys. Registered at `@swamp/gcp/iam/workforcepools-providers-keys`. */
 export const model = {
   type: "@swamp/gcp/iam/workforcepools-providers-keys",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

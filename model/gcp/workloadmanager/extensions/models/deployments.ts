@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       vmsMultiplier: z.number().int().describe("Required. VMs multiplier.")
         .optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Instance details.").optional(),
     database: z.object({
       databaseServiceAccount: z.string().describe(
         "Database service account. Let customers bring their own SA for the database.",
@@ -209,7 +209,7 @@ const GlobalArgsSchema = z.object({
       sid: z.string().describe(
         "Required. The SID is a three-digit server-specific unique identification code.",
       ).optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Database details.").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "DISTRIBUTED",
@@ -247,7 +247,7 @@ const GlobalArgsSchema = z.object({
       vpcName: z.string().describe("Required. VPC name.").optional(),
       zone1Name: z.string().describe("Required. Zone 1 name.").optional(),
       zone2Name: z.string().describe("Optional. Zone 2 name.").optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Database details.").optional(),
     mediaBucketName: z.string().describe("Required. Media bucket name.")
       .optional(),
     sapBootDiskImage: z.string().describe("Optional. SAP boot disk image.")
@@ -261,7 +261,7 @@ const GlobalArgsSchema = z.object({
       "S4_HANA_2023",
     ]).describe("Required. SAP HANA version.").optional(),
     vmPrefix: z.string().describe("VM prefix.").optional(),
-  }).describe("Message for SAP system workload.").optional(),
+  }).describe("SAP system workload input.").optional(),
   serviceAccount: z.string().describe(
     "User-specified Service Account (SA) credentials to be used for Cloud Build. Format: `projects/{projectID}/serviceAccounts/{serviceAccount}` The default Cloud Build SA will be used initially if this field is not set during deployment creation.",
   ).optional(),
@@ -281,7 +281,7 @@ const GlobalArgsSchema = z.object({
         "GCP_MANAGED",
         "SELF_MANAGED",
       ]).describe("Required. Active Directory type.").optional(),
-    }).describe("Active Directory details.").optional(),
+    }).describe("Required. Active Directory details.").optional(),
     computeEngineServiceAccount: z.string().describe(
       "Compute Engine service account. Let customers bring their own service account for Compute Engine.",
     ).optional(),
@@ -317,7 +317,7 @@ const GlobalArgsSchema = z.object({
         "SHARED",
         "SOLE_TENANT",
       ]).describe("Required. SHARED or SOLE_TENANT.").optional(),
-    }).describe("Database details.").optional(),
+    }).describe("Required. Database details.").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "HIGH_AVAILABILITY",
@@ -357,9 +357,7 @@ const GlobalArgsSchema = z.object({
       tertiaryZone: z.string().describe(
         "Optional. Tertiary zone cannot be the same as primary_zone and secondary_zone, and it is only for High Availability deployment mode.",
       ).optional(),
-    }).describe(
-      "Location and networking details for configuring SQL server workload.",
-    ).optional(),
+    }).describe("Required. Location details.").optional(),
     mediaBucket: z.string().describe(
       "Required. Name of the media storing SQL server installation files.",
     ).optional(),
@@ -399,7 +397,9 @@ const GlobalArgsSchema = z.object({
       sqlPacemakerUsername: z.string().describe(
         "Required. SQL Pacemaker username.",
       ).optional(),
-    }).describe("Pacemaker configuration.").optional(),
+    }).describe(
+      "Optional. Pacemaker configuration, only applicable for Linux HA deployments.",
+    ).optional(),
     sqlServerEdition: z.enum([
       "SQL_SERVER_EDITION_TYPE_UNSPECIFIED",
       "SQL_SERVER_EDITION_TYPE_DEVELOPER",
@@ -417,7 +417,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Optional. 2017, 2019, or 2022.").optional(),
     vmPrefix: z.string().describe("Required. Should be unique in the project.")
       .optional(),
-  }).describe("Message for MS SQL workload.").optional(),
+  }).describe("MS SQL workload input.").optional(),
   terraformVariables: z.record(
     z.string(),
     z.object({
@@ -618,7 +618,7 @@ const InputsSchema = z.object({
       ).optional(),
       vmsMultiplier: z.number().int().describe("Required. VMs multiplier.")
         .optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Instance details.").optional(),
     database: z.object({
       databaseServiceAccount: z.string().describe(
         "Database service account. Let customers bring their own SA for the database.",
@@ -638,7 +638,7 @@ const InputsSchema = z.object({
       sid: z.string().describe(
         "Required. The SID is a three-digit server-specific unique identification code.",
       ).optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Database details.").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "DISTRIBUTED",
@@ -676,7 +676,7 @@ const InputsSchema = z.object({
       vpcName: z.string().describe("Required. VPC name.").optional(),
       zone1Name: z.string().describe("Required. Zone 1 name.").optional(),
       zone2Name: z.string().describe("Optional. Zone 2 name.").optional(),
-    }).describe("Message for SAP instance details.").optional(),
+    }).describe("Database details.").optional(),
     mediaBucketName: z.string().describe("Required. Media bucket name.")
       .optional(),
     sapBootDiskImage: z.string().describe("Optional. SAP boot disk image.")
@@ -690,7 +690,7 @@ const InputsSchema = z.object({
       "S4_HANA_2023",
     ]).describe("Required. SAP HANA version.").optional(),
     vmPrefix: z.string().describe("VM prefix.").optional(),
-  }).describe("Message for SAP system workload.").optional(),
+  }).describe("SAP system workload input.").optional(),
   serviceAccount: z.string().describe(
     "User-specified Service Account (SA) credentials to be used for Cloud Build. Format: `projects/{projectID}/serviceAccounts/{serviceAccount}` The default Cloud Build SA will be used initially if this field is not set during deployment creation.",
   ).optional(),
@@ -710,7 +710,7 @@ const InputsSchema = z.object({
         "GCP_MANAGED",
         "SELF_MANAGED",
       ]).describe("Required. Active Directory type.").optional(),
-    }).describe("Active Directory details.").optional(),
+    }).describe("Required. Active Directory details.").optional(),
     computeEngineServiceAccount: z.string().describe(
       "Compute Engine service account. Let customers bring their own service account for Compute Engine.",
     ).optional(),
@@ -746,7 +746,7 @@ const InputsSchema = z.object({
         "SHARED",
         "SOLE_TENANT",
       ]).describe("Required. SHARED or SOLE_TENANT.").optional(),
-    }).describe("Database details.").optional(),
+    }).describe("Required. Database details.").optional(),
     deploymentModel: z.enum([
       "DEPLOYMENT_MODEL_UNSPECIFIED",
       "HIGH_AVAILABILITY",
@@ -786,9 +786,7 @@ const InputsSchema = z.object({
       tertiaryZone: z.string().describe(
         "Optional. Tertiary zone cannot be the same as primary_zone and secondary_zone, and it is only for High Availability deployment mode.",
       ).optional(),
-    }).describe(
-      "Location and networking details for configuring SQL server workload.",
-    ).optional(),
+    }).describe("Required. Location details.").optional(),
     mediaBucket: z.string().describe(
       "Required. Name of the media storing SQL server installation files.",
     ).optional(),
@@ -828,7 +826,9 @@ const InputsSchema = z.object({
       sqlPacemakerUsername: z.string().describe(
         "Required. SQL Pacemaker username.",
       ).optional(),
-    }).describe("Pacemaker configuration.").optional(),
+    }).describe(
+      "Optional. Pacemaker configuration, only applicable for Linux HA deployments.",
+    ).optional(),
     sqlServerEdition: z.enum([
       "SQL_SERVER_EDITION_TYPE_UNSPECIFIED",
       "SQL_SERVER_EDITION_TYPE_DEVELOPER",
@@ -846,7 +846,7 @@ const InputsSchema = z.object({
     ]).describe("Optional. 2017, 2019, or 2022.").optional(),
     vmPrefix: z.string().describe("Required. Should be unique in the project.")
       .optional(),
-  }).describe("Message for MS SQL workload.").optional(),
+  }).describe("MS SQL workload input.").optional(),
   terraformVariables: z.record(
     z.string(),
     z.object({
@@ -898,7 +898,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workload Manager Deployments. Registered at `@swamp/gcp/workloadmanager/deployments`. */
 export const model = {
   type: "@swamp/gcp/workloadmanager/deployments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1017,6 +1017,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

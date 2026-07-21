@@ -195,7 +195,7 @@ const GlobalArgsSchema = z.object({
       "Output only. State of the service. New values may be added to this enum when appropriate.",
     ).optional(),
   }).describe(
-    "Represents a network service that is managed by a `NetworkPolicy` resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.",
+    "Network service that allows External IP addresses to be assigned to VMware workloads. This service can only be enabled when `internet_access` is also enabled.",
   ).optional(),
   internetAccess: z.object({
     enabled: z.boolean().describe(
@@ -210,7 +210,7 @@ const GlobalArgsSchema = z.object({
       "Output only. State of the service. New values may be added to this enum when appropriate.",
     ).optional(),
   }).describe(
-    "Represents a network service that is managed by a `NetworkPolicy` resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.",
+    "Network service that allows VMware workloads to access the internet.",
   ).optional(),
   vmwareEngineNetwork: z.string().describe(
     "Optional. The relative resource name of the VMware Engine network. Specify the name in the following form: `projects/{project}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id}` where `{project}` can either be a project number or a project ID.",
@@ -272,7 +272,7 @@ const InputsSchema = z.object({
       "Output only. State of the service. New values may be added to this enum when appropriate.",
     ).optional(),
   }).describe(
-    "Represents a network service that is managed by a `NetworkPolicy` resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.",
+    "Network service that allows External IP addresses to be assigned to VMware workloads. This service can only be enabled when `internet_access` is also enabled.",
   ).optional(),
   internetAccess: z.object({
     enabled: z.boolean().describe(
@@ -287,7 +287,7 @@ const InputsSchema = z.object({
       "Output only. State of the service. New values may be added to this enum when appropriate.",
     ).optional(),
   }).describe(
-    "Represents a network service that is managed by a `NetworkPolicy` resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.",
+    "Network service that allows VMware workloads to access the internet.",
   ).optional(),
   vmwareEngineNetwork: z.string().describe(
     "Optional. The relative resource name of the VMware Engine network. Specify the name in the following form: `projects/{project}/locations/{location}/vmwareEngineNetworks/{vmware_engine_network_id}` where `{project}` can either be a project number or a project ID.",
@@ -326,7 +326,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VMware Engine NetworkPolicies. Registered at `@swamp/gcp/vmwareengine/networkpolicies`. */
 export const model = {
   type: "@swamp/gcp/vmwareengine/networkpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -443,6 +443,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -500,16 +505,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

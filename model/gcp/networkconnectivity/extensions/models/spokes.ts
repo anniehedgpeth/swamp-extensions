@@ -193,8 +193,9 @@ const GlobalArgsSchema = z.object({
     sacAttachment: z.string().describe(
       "Output only. The URI of the connected SACAttachment. Should be in the form: projects/{project}/locations/{location}/sacAttachments/{sac_attachment}",
     ).optional(),
-  }).describe("A gateway that can apply specialized traffic processing.")
-    .optional(),
+  }).describe(
+    "Optional. This is a gateway that can apply specialized processing to traffic going through it.",
+  ).optional(),
   group: z.string().describe(
     "Optional. The name of the group that this spoke is associated with.",
   ).optional(),
@@ -226,9 +227,8 @@ const GlobalArgsSchema = z.object({
     vpcNetwork: z.string().describe(
       "Output only. The VPC network where these VLAN attachments are located.",
     ).optional(),
-  }).describe(
-    "A collection of VLAN attachment resources. These resources should be redundant attachments that all advertise the same prefixes to Google Cloud. Alternatively, in active/passive configurations, all attachments should be capable of advertising the same prefixes.",
-  ).optional(),
+  }).describe("Optional. VLAN attachments that are associated with the spoke.")
+    .optional(),
   linkedProducerVpcNetwork: z.object({
     excludeExportRanges: z.array(z.string()).describe(
       "Optional. IP ranges encompassing the subnets to be excluded from peering.",
@@ -254,7 +254,9 @@ const GlobalArgsSchema = z.object({
     serviceConsumerVpcSpoke: z.string().describe(
       "Output only. The Service Consumer Network spoke.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Optional. The linked producer VPC that is associated with the spoke.",
+  ).optional(),
   linkedRouterApplianceInstances: z.object({
     excludeExportRanges: z.array(z.string()).describe(
       "Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.",
@@ -281,7 +283,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The VPC network where these router appliance instances are located.",
     ).optional(),
   }).describe(
-    "A collection of router appliance instances. If you configure multiple router appliance instances to receive data from the same set of sites outside of Google Cloud, we recommend that you associate those instances with the same spoke.",
+    "Optional. Router appliance instances that are associated with the spoke.",
   ).optional(),
   linkedVpcNetwork: z.object({
     excludeExportRanges: z.array(z.string()).describe(
@@ -301,7 +303,8 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     uri: z.string().describe("Required. The URI of the VPC network resource.")
       .optional(),
-  }).describe("An existing VPC network.").optional(),
+  }).describe("Optional. VPC network that is associated with the spoke.")
+    .optional(),
   linkedVpnTunnels: z.object({
     excludeExportRanges: z.array(z.string()).describe(
       "Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.",
@@ -324,9 +327,8 @@ const GlobalArgsSchema = z.object({
     vpcNetwork: z.string().describe(
       "Output only. The VPC network where these VPN tunnels are located.",
     ).optional(),
-  }).describe(
-    "A collection of Cloud VPN tunnel resources. These resources should be redundant HA VPN tunnels that all advertise the same prefixes to Google Cloud. Alternatively, in a passive/active configuration, all tunnels should be capable of advertising the same prefixes.",
-  ).optional(),
+  }).describe("Optional. VPN tunnels that are associated with the spoke.")
+    .optional(),
   name: z.string().describe(
     "Immutable. The name of the spoke. Spoke names must be unique. They use the following form: `projects/{project_number}/locations/{region}/spokes/{spoke_id}`",
   ).optional(),
@@ -449,8 +451,9 @@ const InputsSchema = z.object({
     sacAttachment: z.string().describe(
       "Output only. The URI of the connected SACAttachment. Should be in the form: projects/{project}/locations/{location}/sacAttachments/{sac_attachment}",
     ).optional(),
-  }).describe("A gateway that can apply specialized traffic processing.")
-    .optional(),
+  }).describe(
+    "Optional. This is a gateway that can apply specialized processing to traffic going through it.",
+  ).optional(),
   group: z.string().describe(
     "Optional. The name of the group that this spoke is associated with.",
   ).optional(),
@@ -482,9 +485,8 @@ const InputsSchema = z.object({
     vpcNetwork: z.string().describe(
       "Output only. The VPC network where these VLAN attachments are located.",
     ).optional(),
-  }).describe(
-    "A collection of VLAN attachment resources. These resources should be redundant attachments that all advertise the same prefixes to Google Cloud. Alternatively, in active/passive configurations, all attachments should be capable of advertising the same prefixes.",
-  ).optional(),
+  }).describe("Optional. VLAN attachments that are associated with the spoke.")
+    .optional(),
   linkedProducerVpcNetwork: z.object({
     excludeExportRanges: z.array(z.string()).describe(
       "Optional. IP ranges encompassing the subnets to be excluded from peering.",
@@ -510,7 +512,9 @@ const InputsSchema = z.object({
     serviceConsumerVpcSpoke: z.string().describe(
       "Output only. The Service Consumer Network spoke.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Optional. The linked producer VPC that is associated with the spoke.",
+  ).optional(),
   linkedRouterApplianceInstances: z.object({
     excludeExportRanges: z.array(z.string()).describe(
       "Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.",
@@ -537,7 +541,7 @@ const InputsSchema = z.object({
       "Output only. The VPC network where these router appliance instances are located.",
     ).optional(),
   }).describe(
-    "A collection of router appliance instances. If you configure multiple router appliance instances to receive data from the same set of sites outside of Google Cloud, we recommend that you associate those instances with the same spoke.",
+    "Optional. Router appliance instances that are associated with the spoke.",
   ).optional(),
   linkedVpcNetwork: z.object({
     excludeExportRanges: z.array(z.string()).describe(
@@ -557,7 +561,8 @@ const InputsSchema = z.object({
     ).optional(),
     uri: z.string().describe("Required. The URI of the VPC network resource.")
       .optional(),
-  }).describe("An existing VPC network.").optional(),
+  }).describe("Optional. VPC network that is associated with the spoke.")
+    .optional(),
   linkedVpnTunnels: z.object({
     excludeExportRanges: z.array(z.string()).describe(
       "Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.",
@@ -580,9 +585,8 @@ const InputsSchema = z.object({
     vpcNetwork: z.string().describe(
       "Output only. The VPC network where these VPN tunnels are located.",
     ).optional(),
-  }).describe(
-    "A collection of Cloud VPN tunnel resources. These resources should be redundant HA VPN tunnels that all advertise the same prefixes to Google Cloud. Alternatively, in a passive/active configuration, all tunnels should be capable of advertising the same prefixes.",
-  ).optional(),
+  }).describe("Optional. VPN tunnels that are associated with the spoke.")
+    .optional(),
   name: z.string().describe(
     "Immutable. The name of the spoke. Spoke names must be unique. They use the following form: `projects/{project_number}/locations/{region}/spokes/{spoke_id}`",
   ).optional(),
@@ -619,7 +623,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity Spokes. Registered at `@swamp/gcp/networkconnectivity/spokes`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/spokes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -753,6 +757,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: gateway",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -170,9 +170,9 @@ const GlobalArgsSchema = z.object({
       statusTime: z.string().describe(
         "The latest time at which the dynamic group is guaranteed to be in the given status. If status is `UP_TO_DATE`, the latest time at which the dynamic group was confirmed to be up-to-date. If status is `UPDATING_MEMBERSHIPS`, the time at which dynamic group was created.",
       ).optional(),
-    }).describe("The current status of a dynamic group along with timestamp.")
-      .optional(),
-  }).describe("Dynamic group metadata like queries and status.").optional(),
+    }).describe("Output only. Status of the dynamic group.").optional(),
+  }).describe("Optional. Dynamic group metadata like queries and status.")
+    .optional(),
   groupKey: z.object({
     id: z.string().describe(
       "The ID of the entity. For Google-managed entities, the `id` should be the email address of an existing group or user. Email addresses need to adhere to [name guidelines for users and groups](https://support.google.com/a/answer/9193374). For external-identity-mapped entities, the `id` must be a string conforming to the Identity Source's requirements. Must be unique within a `namespace`.",
@@ -180,9 +180,7 @@ const GlobalArgsSchema = z.object({
     namespace: z.string().describe(
       "The namespace in which the entity exists. If not specified, the `EntityKey` represents a Google-managed entity such as a Google user or a Google Group. If specified, the `EntityKey` represents an external-identity-mapped group. The namespace must correspond to an identity source created in Admin Console and must be in the form of `identitysources/{identity_source}`.",
     ).optional(),
-  }).describe(
-    "A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional `namespace` or a user without a `namespace`. The combination of `id` and `namespace` must be unique; however, the same `id` can be used with different `namespace`s.",
-  ).optional(),
+  }).describe("Required. The `EntityKey` of the `Group`.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Required. One or more label entries that apply to the Group. Labels contain a key with an empty value. Google Groups are the default type of group and have a label with a key of `cloudidentity.googleapis.com/groups.discussion_forum` and an empty value. Existing Google Groups can have an additional label with a key of `cloudidentity.googleapis.com/groups.security` and an empty value added to them. **This is an immutable change and the security label cannot be removed once added.** Dynamic groups have a label with a key of `cloudidentity.googleapis.com/groups.dynamic`. Identity-mapped groups for Cloud Search have a label with a key of `system/groups/external` and an empty value. Google Groups can be [locked](https://support.google.com/a?p=locked-groups). To lock a group, add a label with a key of `cloudidentity.googleapis.com/groups.locked` and an empty value. Doing so locks the group. To unlock the group, remove this label.",
   ).optional(),
@@ -256,9 +254,9 @@ const InputsSchema = z.object({
       statusTime: z.string().describe(
         "The latest time at which the dynamic group is guaranteed to be in the given status. If status is `UP_TO_DATE`, the latest time at which the dynamic group was confirmed to be up-to-date. If status is `UPDATING_MEMBERSHIPS`, the time at which dynamic group was created.",
       ).optional(),
-    }).describe("The current status of a dynamic group along with timestamp.")
-      .optional(),
-  }).describe("Dynamic group metadata like queries and status.").optional(),
+    }).describe("Output only. Status of the dynamic group.").optional(),
+  }).describe("Optional. Dynamic group metadata like queries and status.")
+    .optional(),
   groupKey: z.object({
     id: z.string().describe(
       "The ID of the entity. For Google-managed entities, the `id` should be the email address of an existing group or user. Email addresses need to adhere to [name guidelines for users and groups](https://support.google.com/a/answer/9193374). For external-identity-mapped entities, the `id` must be a string conforming to the Identity Source's requirements. Must be unique within a `namespace`.",
@@ -266,9 +264,7 @@ const InputsSchema = z.object({
     namespace: z.string().describe(
       "The namespace in which the entity exists. If not specified, the `EntityKey` represents a Google-managed entity such as a Google user or a Google Group. If specified, the `EntityKey` represents an external-identity-mapped group. The namespace must correspond to an identity source created in Admin Console and must be in the form of `identitysources/{identity_source}`.",
     ).optional(),
-  }).describe(
-    "A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional `namespace` or a user without a `namespace`. The combination of `id` and `namespace` must be unique; however, the same `id` can be used with different `namespace`s.",
-  ).optional(),
+  }).describe("Required. The `EntityKey` of the `Group`.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Required. One or more label entries that apply to the Group. Labels contain a key with an empty value. Google Groups are the default type of group and have a label with a key of `cloudidentity.googleapis.com/groups.discussion_forum` and an empty value. Existing Google Groups can have an additional label with a key of `cloudidentity.googleapis.com/groups.security` and an empty value added to them. **This is an immutable change and the security label cannot be removed once added.** Dynamic groups have a label with a key of `cloudidentity.googleapis.com/groups.dynamic`. Identity-mapped groups for Cloud Search have a label with a key of `system/groups/external` and an empty value. Google Groups can be [locked](https://support.google.com/a?p=locked-groups). To lock a group, add a label with a key of `cloudidentity.googleapis.com/groups.locked` and an empty value. Doing so locks the group. To unlock the group, remove this label.",
   ).optional(),
@@ -303,7 +299,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Groups. Registered at `@swamp/gcp/cloudidentity/groups`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/groups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -407,6 +403,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

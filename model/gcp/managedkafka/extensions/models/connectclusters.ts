@@ -174,7 +174,8 @@ const GlobalArgsSchema = z.object({
     vcpuCount: z.string().describe(
       "Required. The number of vCPUs to provision for the cluster. Minimum: 3.",
     ).optional(),
-  }).describe("A capacity configuration of a Kafka cluster.").optional(),
+  }).describe("Required. Capacity configuration for the Kafka Connect cluster.")
+    .optional(),
   config: z.record(z.string(), z.string()).describe(
     "Optional. Reserved for future use. This field is meant for worker config overrides, but is unsupported for now.",
   ).optional(),
@@ -193,13 +194,13 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka Connect cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.",
       ).optional(),
-    }).describe("The configuration of access to the Kafka Connect cluster.")
+    }).describe("Required. Access configuration for the Kafka Connect cluster.")
       .optional(),
     secretPaths: z.array(z.string()).describe(
       "Optional. Secrets to load into workers. Exact SecretVersions from Secret Manager must be provided -- aliases are not supported. Up to 32 secrets may be loaded into one cluster. Format: projects//secrets//versions/",
     ).optional(),
   }).describe(
-    "Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.",
+    "Required. Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.",
   ).optional(),
   kafkaCluster: z.string().describe(
     "Required. Immutable. The name of the Kafka cluster this Kafka Connect cluster is attached to. Structured like: projects/{project}/locations/{location}/clusters/{cluster}",
@@ -261,7 +262,8 @@ const InputsSchema = z.object({
     vcpuCount: z.string().describe(
       "Required. The number of vCPUs to provision for the cluster. Minimum: 3.",
     ).optional(),
-  }).describe("A capacity configuration of a Kafka cluster.").optional(),
+  }).describe("Required. Capacity configuration for the Kafka Connect cluster.")
+    .optional(),
   config: z.record(z.string(), z.string()).describe(
     "Optional. Reserved for future use. This field is meant for worker config overrides, but is unsupported for now.",
   ).optional(),
@@ -280,13 +282,13 @@ const InputsSchema = z.object({
       })).describe(
         "Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka Connect cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.",
       ).optional(),
-    }).describe("The configuration of access to the Kafka Connect cluster.")
+    }).describe("Required. Access configuration for the Kafka Connect cluster.")
       .optional(),
     secretPaths: z.array(z.string()).describe(
       "Optional. Secrets to load into workers. Exact SecretVersions from Secret Manager must be provided -- aliases are not supported. Up to 32 secrets may be loaded into one cluster. Format: projects//secrets//versions/",
     ).optional(),
   }).describe(
-    "Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.",
+    "Required. Configuration properties for a Kafka Connect cluster deployed to Google Cloud Platform.",
   ).optional(),
   kafkaCluster: z.string().describe(
     "Required. Immutable. The name of the Kafka cluster this Kafka Connect cluster is attached to. Structured like: projects/{project}/locations/{location}/clusters/{cluster}",
@@ -331,7 +333,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Managed Service for Apache Kafka ConnectClusters. Registered at `@swamp/gcp/managedkafka/connectclusters`. */
 export const model = {
   type: "@swamp/gcp/managedkafka/connectclusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -465,6 +467,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

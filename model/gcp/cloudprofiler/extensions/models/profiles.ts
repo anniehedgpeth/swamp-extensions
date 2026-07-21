@@ -123,8 +123,7 @@ const GlobalArgsSchema = z.object({
     target: z.string().describe(
       "Target is the service name used to group related deployments: * Service name for App Engine Flex / Standard. * Cluster and container name for GKE. * User-specified string for direct Compute Engine profiling (e.g. Java). * Job name for Dataflow. Validation regex: `^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$`.",
     ).optional(),
-  }).describe("Deployment contains the deployment identification information.")
-    .optional(),
+  }).describe("Deployment this profile corresponds to.").optional(),
   profileType: z.enum([
     "PROFILE_TYPE_UNSPECIFIED",
     "CPU",
@@ -188,8 +187,7 @@ const InputsSchema = z.object({
     target: z.string().describe(
       "Target is the service name used to group related deployments: * Service name for App Engine Flex / Standard. * Cluster and container name for GKE. * User-specified string for direct Compute Engine profiling (e.g. Java). * Job name for Dataflow. Validation regex: `^[a-z0-9]([-a-z0-9_.]{0,253}[a-z0-9])?$`.",
     ).optional(),
-  }).describe("Deployment contains the deployment identification information.")
-    .optional(),
+  }).describe("Deployment this profile corresponds to.").optional(),
   profileType: z.enum([
     "PROFILE_TYPE_UNSPECIFIED",
     "CPU",
@@ -245,7 +243,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Profiler Profiles. Registered at `@swamp/gcp/cloudprofiler/profiles`. */
 export const model = {
   type: "@swamp/gcp/cloudprofiler/profiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -344,6 +342,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

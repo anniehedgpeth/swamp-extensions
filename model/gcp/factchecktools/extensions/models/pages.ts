@@ -147,7 +147,9 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Name of the organization that is publishing the fact check. Corresponds to `ClaimReview.author.name`.",
     ).optional(),
-  }).describe("Information about the claim review author.").optional(),
+  }).describe(
+    "Info about the author of this claim review. Similar to the above, semantically these are page-level fields, and each `ClaimReview` on this page will contain the same values.",
+  ).optional(),
   claimReviewMarkups: z.array(z.object({
     claimAppearances: z.array(z.string()).describe(
       "A list of links to works in which this claim appears, aside from the one specified in `claim_first_appearance`. Corresponds to `ClaimReview.itemReviewed[@type=Claim].appearance.url`.",
@@ -165,7 +167,7 @@ const GlobalArgsSchema = z.object({
       sameAs: z.string().describe(
         "Corresponds to `ClaimReview.itemReviewed.author.sameAs`.",
       ).optional(),
-    }).describe("Information about the claim author.").optional(),
+    }).describe("Info about the author of this claim.").optional(),
     claimDate: z.string().describe(
       "The date when the claim was made or entered public discourse. Corresponds to `ClaimReview.itemReviewed.datePublished`.",
     ).optional(),
@@ -197,7 +199,7 @@ const GlobalArgsSchema = z.object({
       worstRating: z.number().int().describe(
         "For numeric ratings, the worst value possible in the scale from worst to best. Corresponds to `ClaimReview.reviewRating.worstRating`.",
       ).optional(),
-    }).describe("Information about the claim rating.").optional(),
+    }).describe("Info about the rating of this claim review.").optional(),
     url: z.string().describe(
       'This field is optional, and will default to the page URL. We provide this field to allow you the override the default value, but the only permitted override is the page URL plus an optional anchor link ("page jump"). Corresponds to `ClaimReview.url`',
     ).optional(),
@@ -264,7 +266,9 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Name of the organization that is publishing the fact check. Corresponds to `ClaimReview.author.name`.",
     ).optional(),
-  }).describe("Information about the claim review author.").optional(),
+  }).describe(
+    "Info about the author of this claim review. Similar to the above, semantically these are page-level fields, and each `ClaimReview` on this page will contain the same values.",
+  ).optional(),
   claimReviewMarkups: z.array(z.object({
     claimAppearances: z.array(z.string()).describe(
       "A list of links to works in which this claim appears, aside from the one specified in `claim_first_appearance`. Corresponds to `ClaimReview.itemReviewed[@type=Claim].appearance.url`.",
@@ -282,7 +286,7 @@ const InputsSchema = z.object({
       sameAs: z.string().describe(
         "Corresponds to `ClaimReview.itemReviewed.author.sameAs`.",
       ).optional(),
-    }).describe("Information about the claim author.").optional(),
+    }).describe("Info about the author of this claim.").optional(),
     claimDate: z.string().describe(
       "The date when the claim was made or entered public discourse. Corresponds to `ClaimReview.itemReviewed.datePublished`.",
     ).optional(),
@@ -314,7 +318,7 @@ const InputsSchema = z.object({
       worstRating: z.number().int().describe(
         "For numeric ratings, the worst value possible in the scale from worst to best. Corresponds to `ClaimReview.reviewRating.worstRating`.",
       ).optional(),
-    }).describe("Information about the claim rating.").optional(),
+    }).describe("Info about the rating of this claim review.").optional(),
     url: z.string().describe(
       'This field is optional, and will default to the page URL. We provide this field to allow you the override the default value, but the only permitted override is the page URL plus an optional anchor link ("page jump"). Corresponds to `ClaimReview.url`',
     ).optional(),
@@ -358,7 +362,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Fact Check Tools Pages. Registered at `@swamp/gcp/factchecktools/pages`. */
 export const model = {
   type: "@swamp/gcp/factchecktools/pages",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -452,6 +456,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

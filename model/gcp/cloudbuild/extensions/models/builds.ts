@@ -129,42 +129,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  approval: z.object({
-    config: z.object({
-      approvalRequired: z.boolean().describe(
-        "Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.",
-      ).optional(),
-    }).describe(
-      "ApprovalConfig describes configuration for manual approval of a build.",
-    ).optional(),
-    result: z.object({
-      approvalTime: z.string().describe(
-        "Output only. The time when the approval decision was made.",
-      ).optional(),
-      approverAccount: z.string().describe(
-        "Output only. Email of the user that called the ApproveBuild API to approve or reject a build at the time that the API was called.",
-      ).optional(),
-      comment: z.string().describe(
-        "Optional. An optional comment for this manual approval result.",
-      ).optional(),
-      decision: z.enum(["DECISION_UNSPECIFIED", "APPROVED", "REJECTED"])
-        .describe("Required. The decision of this manual approval.").optional(),
-      url: z.string().describe(
-        "Optional. An optional URL tied to this manual approval result. This field is essentially the same as comment, except that it will be rendered by the UI differently. An example use case is a link to an external job that approved this Build.",
-      ).optional(),
-    }).describe(
-      "ApprovalResult describes the decision and associated metadata of a manual approval of a build.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "PENDING",
-      "APPROVED",
-      "REJECTED",
-      "CANCELLED",
-    ]).describe("Output only. The state of this build's approval.").optional(),
-  }).describe(
-    "BuildApproval describes a build's approval configuration, state, and result.",
-  ).optional(),
   artifacts: z.object({
     genericArtifacts: z.array(z.object({
       folder: z.string().describe(
@@ -243,10 +207,11 @@ const GlobalArgsSchema = z.object({
       timing: z.object({
         endTime: z.string().describe("End of time span.").optional(),
         startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
+      }).describe(
+        "Output only. Stores timing information for pushing all artifact objects.",
+      ).optional(),
     }).describe(
-      "Files in the workspace to upload to Cloud Storage upon successful completion of all build steps.",
+      "A list of objects to be uploaded to Cloud Storage upon successful completion of all build steps. Files in the workspace matching specified paths globs will be uploaded to the specified Cloud Storage location using the builder service account's credentials. The location and generation of the uploaded objects will be stored in the Build resource's results field. If any objects fail to be pushed, the build is marked FAILURE.",
     ).optional(),
     oci: z.array(z.object({
       file: z.string().describe(
@@ -272,7 +237,7 @@ const GlobalArgsSchema = z.object({
       "A list of Python packages to be uploaded to Artifact Registry upon successful completion of all build steps. The build service account credentials will be used to perform the upload. If any objects fail to be pushed, the build is marked FAILURE.",
     ).optional(),
   }).describe(
-    "Artifacts produced by a build that should be uploaded upon successful completion of all build steps.",
+    "Artifacts produced by the build that should be uploaded upon successful completion of all build steps.",
   ).optional(),
   availableSecrets: z.object({
     inline: z.array(z.object({
@@ -324,7 +289,8 @@ const GlobalArgsSchema = z.object({
           "The Developer Connect Git repository link formatted as `projects/*/locations/*/connections/*/gitRepositoryLink/*`",
         ).optional(),
         url: z.string().describe("Location of the Git repository.").optional(),
-      }).describe("A repository for a git source.").optional(),
+      }).describe("Required. The kind of repo (url or dev connect).")
+        .optional(),
       revision: z.string().describe(
         "Required. The revision that we will fetch the repo at.",
       ).optional(),
@@ -333,30 +299,13 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Optional. Dependencies that the Cloud Build worker will fetch before executing user steps.",
   ).optional(),
-  failureInfo: z.object({
-    detail: z.string().describe(
-      "Explains the failure issue in more detail using hard-coded text.",
-    ).optional(),
-    type: z.enum([
-      "FAILURE_TYPE_UNSPECIFIED",
-      "PUSH_FAILED",
-      "PUSH_IMAGE_NOT_FOUND",
-      "PUSH_NOT_AUTHORIZED",
-      "LOGGING_FAILURE",
-      "USER_BUILD_STEP",
-      "FETCH_SOURCE_FAILED",
-    ]).describe("The name of the failure.").optional(),
-  }).describe("A fatal problem encountered during the execution of the build.")
-    .optional(),
   gitConfig: z.object({
     http: z.object({
       proxySecretVersionName: z.string().describe(
         "SecretVersion resource of the HTTP proxy URL. The Service Account used in the build (either the default Service Account or user-specified Service Account) should have `secretmanager.versions.access` permissions on this secret. The proxy URL should be in format `protocol://@]proxyhost[:port]`.",
       ).optional(),
-    }).describe(
-      "HttpConfig is a configuration for HTTP related git operations.",
-    ).optional(),
-  }).describe("GitConfig is a configuration for git operations.").optional(),
+    }).describe("Configuration for HTTP related git operations.").optional(),
+  }).describe("Optional. Configuration for git operations.").optional(),
   images: z.array(z.string()).describe(
     "A list of images to be pushed upon the successful completion of all build steps. The images are pushed using the builder service account's credentials. The digests of the pushed images will be stored in the `Build` resource's results field. If any of the images fail to be pushed, the build status is marked `FAILURE`.",
   ).optional(),
@@ -415,7 +364,7 @@ const GlobalArgsSchema = z.object({
         "The `WorkerPool` resource to execute the build on. You must have `cloudbuild.workerpools.use` on the project hosting the WorkerPool. Format projects/{project}/locations/{location}/workerPools/{workerPoolId}",
       ).optional(),
     }).describe(
-      "Details about how a build should be executed on a `WorkerPool`. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.",
+      "Optional. Specification for execution on a `WorkerPool`. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.",
     ).optional(),
     pubsubTopic: z.string().describe(
       "Optional. Option to specify the Pub/Sub topic to receive build status updates.",
@@ -452,166 +401,11 @@ const GlobalArgsSchema = z.object({
     workerPool: z.string().describe(
       "This field deprecated; please use `pool.name` instead.",
     ).optional(),
-  }).describe("Optional arguments to enable specific features of builds.")
-    .optional(),
+  }).describe("Special options for this build.").optional(),
   projectId: z.string().describe("Output only. ID of the project.").optional(),
   queueTtl: z.string().describe(
     "TTL in queue for this build. If provided and the build is enqueued longer than this value, the build will expire and the build status will be `EXPIRED`. The TTL starts ticking from create_time.",
   ).optional(),
-  results: z.object({
-    artifactManifest: z.string().describe(
-      "Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.",
-    ).optional(),
-    artifactTiming: z.object({
-      endTime: z.string().describe("End of time span.").optional(),
-      startTime: z.string().describe("Start of time span.").optional(),
-    }).describe("Start and end times for a build execution phase.").optional(),
-    buildStepImages: z.array(z.string()).describe(
-      "List of build step digests, in the order corresponding to build step indices.",
-    ).optional(),
-    buildStepOutputs: z.array(z.string()).describe(
-      "List of build step outputs, produced by builder images, in the order corresponding to build step indices. [Cloud Builders](https://cloud.google.com/cloud-build/docs/cloud-builders) can produce this output by writing to `$BUILDER_OUTPUT/output`. Only the first 50KB of data is stored. Note that the `$BUILDER_OUTPUT` variable is read-only and can't be substituted.",
-    ).optional(),
-    buildStepResults: z.record(
-      z.string(),
-      z.object({
-        results: z.record(z.string(), z.string()).describe(
-          "Results for a build step.",
-        ).optional(),
-      }),
-    ).describe("Results for build steps. step_id ->").optional(),
-    genericArtifacts: z.array(z.object({
-      artifactFingerprint: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.record(
-        z.string(),
-        z.object({
-          fileHash: z.unknown().describe("Collection of file hashes.")
-            .optional(),
-        }),
-      ).describe(
-        "Output only. The file hashes that make up the generic artifact.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe(
-        "Output only. URI of the uploaded artifact. Ex: projects/p1/locations/us/repositories/r1/packages/p1/versions/v1",
-      ).optional(),
-    })).describe(
-      "Output only. Generic artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    goModules: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded artifact.").optional(),
-    })).describe(
-      "Optional. Go module artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    images: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      digest: z.string().describe("Docker Registry 2.0 digest.").optional(),
-      name: z.string().describe(
-        "Name used to push the container image to Google Container Registry, as presented to `docker push`.",
-      ).optional(),
-      ociMediaType: z.enum([
-        "OCI_MEDIA_TYPE_UNSPECIFIED",
-        "IMAGE_MANIFEST",
-        "IMAGE_INDEX",
-      ]).describe(
-        "Output only. The OCI media type of the artifact. Non-OCI images, such as Docker images, will have an unspecified value.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-    })).describe("Container images that were built as a part of the build.")
-      .optional(),
-    mavenArtifacts: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded artifact.").optional(),
-    })).describe(
-      "Maven artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    npmPackages: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded npm package.").optional(),
-    })).describe(
-      "Npm packages uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    numArtifacts: z.string().describe(
-      "Number of non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.",
-    ).optional(),
-    pythonPackages: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded artifact.").optional(),
-    })).describe(
-      "Python artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-  }).describe("Artifacts created by the build pipeline.").optional(),
   secrets: z.array(z.object({
     kmsKeyName: z.string().describe(
       "Cloud KMS key name to use to decrypt these envs.",
@@ -637,7 +431,7 @@ const GlobalArgsSchema = z.object({
         "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
       ).optional(),
     }).describe(
-      "Location of the source in a 2nd-gen Google Cloud Build repository resource.",
+      "Optional. If provided, get the source from this 2nd-gen Google Cloud Build repository resource.",
     ).optional(),
     developerConnectConfig: z.object({
       dir: z.string().describe(
@@ -650,7 +444,7 @@ const GlobalArgsSchema = z.object({
         "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
       ).optional(),
     }).describe(
-      "This config defines the location of a source through Developer Connect.",
+      "If provided, get the source from this Developer Connect config.",
     ).optional(),
     gitSource: z.object({
       dir: z.string().describe(
@@ -662,7 +456,7 @@ const GlobalArgsSchema = z.object({
       url: z.string().describe(
         "Required. Location of the Git repo to build. This will be used as a `git remote`, see https://git-scm.com/docs/git-remote.",
       ).optional(),
-    }).describe("Location of the source in any accessible Git repository.")
+    }).describe("If provided, get the source from this Git repository.")
       .optional(),
     repoSource: z.object({
       branchName: z.string().describe(
@@ -688,8 +482,9 @@ const GlobalArgsSchema = z.object({
       tagName: z.string().describe(
         "Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
       ).optional(),
-    }).describe("Location of the source in a Google Cloud Source Repository.")
-      .optional(),
+    }).describe(
+      "If provided, get the source from this location in a Cloud Source Repository.",
+    ).optional(),
     storageSource: z.object({
       bucket: z.string().describe(
         "Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
@@ -707,8 +502,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Option to specify the tool to fetch the source file for the build.",
       ).optional(),
-    }).describe("Location of the source in an archive file in Cloud Storage.")
-      .optional(),
+    }).describe(
+      "If provided, get the source from this location in Cloud Storage.",
+    ).optional(),
     storageSourceManifest: z.object({
       bucket: z.string().describe(
         "Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
@@ -720,109 +516,10 @@ const GlobalArgsSchema = z.object({
         "Required. Cloud Storage object containing the source manifest. This object must be a JSON file.",
       ).optional(),
     }).describe(
-      "Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).",
+      "If provided, get the source from this manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).",
     ).optional(),
-  }).describe("Location of the source in a supported storage service.")
+  }).describe("Optional. The location of the source files to build.")
     .optional(),
-  sourceProvenance: z.object({
-    fileHashes: z.record(
-      z.string(),
-      z.object({
-        fileHash: z.array(z.object({
-          type: z.unknown().describe("The type of hash that was performed.")
-            .optional(),
-          value: z.unknown().describe("The hash value.").optional(),
-        })).describe("Collection of file hashes.").optional(),
-      }),
-    ).describe(
-      "Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that `FileHashes` will only be populated if `BuildOptions` has requested a `SourceProvenanceHash`. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (`.tar.gz`), the `FileHash` will be for the single path to that file.",
-    ).optional(),
-    resolvedConnectedRepository: z.object({
-      dir: z.string().describe(
-        "Optional. Directory, relative to the source root, in which to run the build.",
-      ).optional(),
-      repository: z.string().describe(
-        "Required. Name of the Google Cloud Build repository, formatted as `projects/*/locations/*/connections/*/repositories/*`.",
-      ).optional(),
-      revision: z.string().describe(
-        "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
-      ).optional(),
-    }).describe(
-      "Location of the source in a 2nd-gen Google Cloud Build repository resource.",
-    ).optional(),
-    resolvedGitSource: z.object({
-      dir: z.string().describe(
-        "Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step's `dir` is specified and is an absolute path, this value is ignored for that step's execution.",
-      ).optional(),
-      revision: z.string().describe(
-        "Optional. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref. Cloud Build uses `git fetch` to fetch the revision from the Git repository; therefore make sure that the string you provide for `revision` is parsable by the command. For information on string values accepted by `git fetch`, see https://git-scm.com/docs/gitrevisions#_specifying_revisions. For information on `git fetch`, see https://git-scm.com/docs/git-fetch.",
-      ).optional(),
-      url: z.string().describe(
-        "Required. Location of the Git repo to build. This will be used as a `git remote`, see https://git-scm.com/docs/git-remote.",
-      ).optional(),
-    }).describe("Location of the source in any accessible Git repository.")
-      .optional(),
-    resolvedRepoSource: z.object({
-      branchName: z.string().describe(
-        "Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-      commitSha: z.string().describe("Explicit commit SHA to build.")
-        .optional(),
-      dir: z.string().describe(
-        "Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step's `dir` is specified and is an absolute path, this value is ignored for that step's execution.",
-      ).optional(),
-      invertRegex: z.boolean().describe(
-        "Optional. Only trigger a build if the revision regex does NOT match the revision regex.",
-      ).optional(),
-      projectId: z.string().describe(
-        "Optional. ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.",
-      ).optional(),
-      repoName: z.string().describe(
-        "Required. Name of the Cloud Source Repository.",
-      ).optional(),
-      substitutions: z.record(z.string(), z.string()).describe(
-        "Optional. Substitutions to use in a triggered build. Should only be used with RunBuildTrigger",
-      ).optional(),
-      tagName: z.string().describe(
-        "Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-    }).describe("Location of the source in a Google Cloud Source Repository.")
-      .optional(),
-    resolvedStorageSource: z.object({
-      bucket: z.string().describe(
-        "Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
-      ).optional(),
-      generation: z.string().describe(
-        "Optional. Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.",
-      ).optional(),
-      object: z.string().describe(
-        "Required. Cloud Storage object containing the source. This object must be a zipped (`.zip`) or gzipped archive file (`.tar.gz`) containing source to build.",
-      ).optional(),
-      sourceFetcher: z.enum([
-        "SOURCE_FETCHER_UNSPECIFIED",
-        "GSUTIL",
-        "GCS_FETCHER",
-      ]).describe(
-        "Optional. Option to specify the tool to fetch the source file for the build.",
-      ).optional(),
-    }).describe("Location of the source in an archive file in Cloud Storage.")
-      .optional(),
-    resolvedStorageSourceManifest: z.object({
-      bucket: z.string().describe(
-        "Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
-      ).optional(),
-      generation: z.string().describe(
-        "Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.",
-      ).optional(),
-      object: z.string().describe(
-        "Required. Cloud Storage object containing the source manifest. This object must be a JSON file.",
-      ).optional(),
-    }).describe(
-      "Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).",
-    ).optional(),
-  }).describe(
-    "Provenance of the source. Ways to find the original source, or verify that some source was used for this build.",
-  ).optional(),
   steps: z.array(z.object({
     allowExitCodes: z.array(z.number().int()).describe(
       "Allow this build step to fail without failing the entire build if and only if the exit code is one of the specified codes. If allow_failure is also specified, this field will take precedence.",
@@ -857,7 +554,9 @@ const GlobalArgsSchema = z.object({
     pullTiming: z.object({
       endTime: z.string().describe("End of time span.").optional(),
       startTime: z.string().describe("Start of time span.").optional(),
-    }).describe("Start and end times for a build execution phase.").optional(),
+    }).describe(
+      "Output only. Stores timing information for pulling this build step's builder image only.",
+    ).optional(),
     results: z.array(z.object({
       attestationContent: z.string().describe(
         "Optional. The content of the attestation to be generated.",
@@ -893,7 +592,9 @@ const GlobalArgsSchema = z.object({
     timing: z.object({
       endTime: z.string().describe("End of time span.").optional(),
       startTime: z.string().describe("Start of time span.").optional(),
-    }).describe("Start and end times for a build execution phase.").optional(),
+    }).describe(
+      "Output only. Stores timing information for executing this build step.",
+    ).optional(),
     volumes: z.array(z.object({
       name: z.string().describe(
         "Name of the volume to mount. Volume names must be unique per build step and must be valid names for Docker volumes. Each named volume must be used by at least two build steps.",
@@ -1260,42 +961,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  approval: z.object({
-    config: z.object({
-      approvalRequired: z.boolean().describe(
-        "Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.",
-      ).optional(),
-    }).describe(
-      "ApprovalConfig describes configuration for manual approval of a build.",
-    ).optional(),
-    result: z.object({
-      approvalTime: z.string().describe(
-        "Output only. The time when the approval decision was made.",
-      ).optional(),
-      approverAccount: z.string().describe(
-        "Output only. Email of the user that called the ApproveBuild API to approve or reject a build at the time that the API was called.",
-      ).optional(),
-      comment: z.string().describe(
-        "Optional. An optional comment for this manual approval result.",
-      ).optional(),
-      decision: z.enum(["DECISION_UNSPECIFIED", "APPROVED", "REJECTED"])
-        .describe("Required. The decision of this manual approval.").optional(),
-      url: z.string().describe(
-        "Optional. An optional URL tied to this manual approval result. This field is essentially the same as comment, except that it will be rendered by the UI differently. An example use case is a link to an external job that approved this Build.",
-      ).optional(),
-    }).describe(
-      "ApprovalResult describes the decision and associated metadata of a manual approval of a build.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "PENDING",
-      "APPROVED",
-      "REJECTED",
-      "CANCELLED",
-    ]).describe("Output only. The state of this build's approval.").optional(),
-  }).describe(
-    "BuildApproval describes a build's approval configuration, state, and result.",
-  ).optional(),
   artifacts: z.object({
     genericArtifacts: z.array(z.object({
       folder: z.string().describe(
@@ -1374,10 +1039,11 @@ const InputsSchema = z.object({
       timing: z.object({
         endTime: z.string().describe("End of time span.").optional(),
         startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
+      }).describe(
+        "Output only. Stores timing information for pushing all artifact objects.",
+      ).optional(),
     }).describe(
-      "Files in the workspace to upload to Cloud Storage upon successful completion of all build steps.",
+      "A list of objects to be uploaded to Cloud Storage upon successful completion of all build steps. Files in the workspace matching specified paths globs will be uploaded to the specified Cloud Storage location using the builder service account's credentials. The location and generation of the uploaded objects will be stored in the Build resource's results field. If any objects fail to be pushed, the build is marked FAILURE.",
     ).optional(),
     oci: z.array(z.object({
       file: z.string().describe(
@@ -1403,7 +1069,7 @@ const InputsSchema = z.object({
       "A list of Python packages to be uploaded to Artifact Registry upon successful completion of all build steps. The build service account credentials will be used to perform the upload. If any objects fail to be pushed, the build is marked FAILURE.",
     ).optional(),
   }).describe(
-    "Artifacts produced by a build that should be uploaded upon successful completion of all build steps.",
+    "Artifacts produced by the build that should be uploaded upon successful completion of all build steps.",
   ).optional(),
   availableSecrets: z.object({
     inline: z.array(z.object({
@@ -1455,7 +1121,8 @@ const InputsSchema = z.object({
           "The Developer Connect Git repository link formatted as `projects/*/locations/*/connections/*/gitRepositoryLink/*`",
         ).optional(),
         url: z.string().describe("Location of the Git repository.").optional(),
-      }).describe("A repository for a git source.").optional(),
+      }).describe("Required. The kind of repo (url or dev connect).")
+        .optional(),
       revision: z.string().describe(
         "Required. The revision that we will fetch the repo at.",
       ).optional(),
@@ -1464,30 +1131,13 @@ const InputsSchema = z.object({
   })).describe(
     "Optional. Dependencies that the Cloud Build worker will fetch before executing user steps.",
   ).optional(),
-  failureInfo: z.object({
-    detail: z.string().describe(
-      "Explains the failure issue in more detail using hard-coded text.",
-    ).optional(),
-    type: z.enum([
-      "FAILURE_TYPE_UNSPECIFIED",
-      "PUSH_FAILED",
-      "PUSH_IMAGE_NOT_FOUND",
-      "PUSH_NOT_AUTHORIZED",
-      "LOGGING_FAILURE",
-      "USER_BUILD_STEP",
-      "FETCH_SOURCE_FAILED",
-    ]).describe("The name of the failure.").optional(),
-  }).describe("A fatal problem encountered during the execution of the build.")
-    .optional(),
   gitConfig: z.object({
     http: z.object({
       proxySecretVersionName: z.string().describe(
         "SecretVersion resource of the HTTP proxy URL. The Service Account used in the build (either the default Service Account or user-specified Service Account) should have `secretmanager.versions.access` permissions on this secret. The proxy URL should be in format `protocol://@]proxyhost[:port]`.",
       ).optional(),
-    }).describe(
-      "HttpConfig is a configuration for HTTP related git operations.",
-    ).optional(),
-  }).describe("GitConfig is a configuration for git operations.").optional(),
+    }).describe("Configuration for HTTP related git operations.").optional(),
+  }).describe("Optional. Configuration for git operations.").optional(),
   images: z.array(z.string()).describe(
     "A list of images to be pushed upon the successful completion of all build steps. The images are pushed using the builder service account's credentials. The digests of the pushed images will be stored in the `Build` resource's results field. If any of the images fail to be pushed, the build status is marked `FAILURE`.",
   ).optional(),
@@ -1546,7 +1196,7 @@ const InputsSchema = z.object({
         "The `WorkerPool` resource to execute the build on. You must have `cloudbuild.workerpools.use` on the project hosting the WorkerPool. Format projects/{project}/locations/{location}/workerPools/{workerPoolId}",
       ).optional(),
     }).describe(
-      "Details about how a build should be executed on a `WorkerPool`. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.",
+      "Optional. Specification for execution on a `WorkerPool`. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.",
     ).optional(),
     pubsubTopic: z.string().describe(
       "Optional. Option to specify the Pub/Sub topic to receive build status updates.",
@@ -1583,166 +1233,11 @@ const InputsSchema = z.object({
     workerPool: z.string().describe(
       "This field deprecated; please use `pool.name` instead.",
     ).optional(),
-  }).describe("Optional arguments to enable specific features of builds.")
-    .optional(),
+  }).describe("Special options for this build.").optional(),
   projectId: z.string().describe("Output only. ID of the project.").optional(),
   queueTtl: z.string().describe(
     "TTL in queue for this build. If provided and the build is enqueued longer than this value, the build will expire and the build status will be `EXPIRED`. The TTL starts ticking from create_time.",
   ).optional(),
-  results: z.object({
-    artifactManifest: z.string().describe(
-      "Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.",
-    ).optional(),
-    artifactTiming: z.object({
-      endTime: z.string().describe("End of time span.").optional(),
-      startTime: z.string().describe("Start of time span.").optional(),
-    }).describe("Start and end times for a build execution phase.").optional(),
-    buildStepImages: z.array(z.string()).describe(
-      "List of build step digests, in the order corresponding to build step indices.",
-    ).optional(),
-    buildStepOutputs: z.array(z.string()).describe(
-      "List of build step outputs, produced by builder images, in the order corresponding to build step indices. [Cloud Builders](https://cloud.google.com/cloud-build/docs/cloud-builders) can produce this output by writing to `$BUILDER_OUTPUT/output`. Only the first 50KB of data is stored. Note that the `$BUILDER_OUTPUT` variable is read-only and can't be substituted.",
-    ).optional(),
-    buildStepResults: z.record(
-      z.string(),
-      z.object({
-        results: z.record(z.string(), z.string()).describe(
-          "Results for a build step.",
-        ).optional(),
-      }),
-    ).describe("Results for build steps. step_id ->").optional(),
-    genericArtifacts: z.array(z.object({
-      artifactFingerprint: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.record(
-        z.string(),
-        z.object({
-          fileHash: z.unknown().describe("Collection of file hashes.")
-            .optional(),
-        }),
-      ).describe(
-        "Output only. The file hashes that make up the generic artifact.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe(
-        "Output only. URI of the uploaded artifact. Ex: projects/p1/locations/us/repositories/r1/packages/p1/versions/v1",
-      ).optional(),
-    })).describe(
-      "Output only. Generic artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    goModules: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded artifact.").optional(),
-    })).describe(
-      "Optional. Go module artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    images: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      digest: z.string().describe("Docker Registry 2.0 digest.").optional(),
-      name: z.string().describe(
-        "Name used to push the container image to Google Container Registry, as presented to `docker push`.",
-      ).optional(),
-      ociMediaType: z.enum([
-        "OCI_MEDIA_TYPE_UNSPECIFIED",
-        "IMAGE_MANIFEST",
-        "IMAGE_INDEX",
-      ]).describe(
-        "Output only. The OCI media type of the artifact. Non-OCI images, such as Docker images, will have an unspecified value.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-    })).describe("Container images that were built as a part of the build.")
-      .optional(),
-    mavenArtifacts: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded artifact.").optional(),
-    })).describe(
-      "Maven artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    npmPackages: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded npm package.").optional(),
-    })).describe(
-      "Npm packages uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-    numArtifacts: z.string().describe(
-      "Number of non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.",
-    ).optional(),
-    pythonPackages: z.array(z.object({
-      artifactRegistryPackage: z.string().describe(
-        "Output only. Path to the artifact in Artifact Registry.",
-      ).optional(),
-      fileHashes: z.object({
-        fileHash: z.array(z.unknown()).describe("Collection of file hashes.")
-          .optional(),
-      }).describe(
-        "Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.",
-      ).optional(),
-      pushTiming: z.object({
-        endTime: z.string().describe("End of time span.").optional(),
-        startTime: z.string().describe("Start of time span.").optional(),
-      }).describe("Start and end times for a build execution phase.")
-        .optional(),
-      uri: z.string().describe("URI of the uploaded artifact.").optional(),
-    })).describe(
-      "Python artifacts uploaded to Artifact Registry at the end of the build.",
-    ).optional(),
-  }).describe("Artifacts created by the build pipeline.").optional(),
   secrets: z.array(z.object({
     kmsKeyName: z.string().describe(
       "Cloud KMS key name to use to decrypt these envs.",
@@ -1768,7 +1263,7 @@ const InputsSchema = z.object({
         "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
       ).optional(),
     }).describe(
-      "Location of the source in a 2nd-gen Google Cloud Build repository resource.",
+      "Optional. If provided, get the source from this 2nd-gen Google Cloud Build repository resource.",
     ).optional(),
     developerConnectConfig: z.object({
       dir: z.string().describe(
@@ -1781,7 +1276,7 @@ const InputsSchema = z.object({
         "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
       ).optional(),
     }).describe(
-      "This config defines the location of a source through Developer Connect.",
+      "If provided, get the source from this Developer Connect config.",
     ).optional(),
     gitSource: z.object({
       dir: z.string().describe(
@@ -1793,7 +1288,7 @@ const InputsSchema = z.object({
       url: z.string().describe(
         "Required. Location of the Git repo to build. This will be used as a `git remote`, see https://git-scm.com/docs/git-remote.",
       ).optional(),
-    }).describe("Location of the source in any accessible Git repository.")
+    }).describe("If provided, get the source from this Git repository.")
       .optional(),
     repoSource: z.object({
       branchName: z.string().describe(
@@ -1819,8 +1314,9 @@ const InputsSchema = z.object({
       tagName: z.string().describe(
         "Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
       ).optional(),
-    }).describe("Location of the source in a Google Cloud Source Repository.")
-      .optional(),
+    }).describe(
+      "If provided, get the source from this location in a Cloud Source Repository.",
+    ).optional(),
     storageSource: z.object({
       bucket: z.string().describe(
         "Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
@@ -1838,8 +1334,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Option to specify the tool to fetch the source file for the build.",
       ).optional(),
-    }).describe("Location of the source in an archive file in Cloud Storage.")
-      .optional(),
+    }).describe(
+      "If provided, get the source from this location in Cloud Storage.",
+    ).optional(),
     storageSourceManifest: z.object({
       bucket: z.string().describe(
         "Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
@@ -1851,109 +1348,10 @@ const InputsSchema = z.object({
         "Required. Cloud Storage object containing the source manifest. This object must be a JSON file.",
       ).optional(),
     }).describe(
-      "Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).",
+      "If provided, get the source from this manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).",
     ).optional(),
-  }).describe("Location of the source in a supported storage service.")
+  }).describe("Optional. The location of the source files to build.")
     .optional(),
-  sourceProvenance: z.object({
-    fileHashes: z.record(
-      z.string(),
-      z.object({
-        fileHash: z.array(z.object({
-          type: z.unknown().describe("The type of hash that was performed.")
-            .optional(),
-          value: z.unknown().describe("The hash value.").optional(),
-        })).describe("Collection of file hashes.").optional(),
-      }),
-    ).describe(
-      "Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that `FileHashes` will only be populated if `BuildOptions` has requested a `SourceProvenanceHash`. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (`.tar.gz`), the `FileHash` will be for the single path to that file.",
-    ).optional(),
-    resolvedConnectedRepository: z.object({
-      dir: z.string().describe(
-        "Optional. Directory, relative to the source root, in which to run the build.",
-      ).optional(),
-      repository: z.string().describe(
-        "Required. Name of the Google Cloud Build repository, formatted as `projects/*/locations/*/connections/*/repositories/*`.",
-      ).optional(),
-      revision: z.string().describe(
-        "Required. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref.",
-      ).optional(),
-    }).describe(
-      "Location of the source in a 2nd-gen Google Cloud Build repository resource.",
-    ).optional(),
-    resolvedGitSource: z.object({
-      dir: z.string().describe(
-        "Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step's `dir` is specified and is an absolute path, this value is ignored for that step's execution.",
-      ).optional(),
-      revision: z.string().describe(
-        "Optional. The revision to fetch from the Git repository such as a branch, a tag, a commit SHA, or any Git ref. Cloud Build uses `git fetch` to fetch the revision from the Git repository; therefore make sure that the string you provide for `revision` is parsable by the command. For information on string values accepted by `git fetch`, see https://git-scm.com/docs/gitrevisions#_specifying_revisions. For information on `git fetch`, see https://git-scm.com/docs/git-fetch.",
-      ).optional(),
-      url: z.string().describe(
-        "Required. Location of the Git repo to build. This will be used as a `git remote`, see https://git-scm.com/docs/git-remote.",
-      ).optional(),
-    }).describe("Location of the source in any accessible Git repository.")
-      .optional(),
-    resolvedRepoSource: z.object({
-      branchName: z.string().describe(
-        "Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-      commitSha: z.string().describe("Explicit commit SHA to build.")
-        .optional(),
-      dir: z.string().describe(
-        "Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step's `dir` is specified and is an absolute path, this value is ignored for that step's execution.",
-      ).optional(),
-      invertRegex: z.boolean().describe(
-        "Optional. Only trigger a build if the revision regex does NOT match the revision regex.",
-      ).optional(),
-      projectId: z.string().describe(
-        "Optional. ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.",
-      ).optional(),
-      repoName: z.string().describe(
-        "Required. Name of the Cloud Source Repository.",
-      ).optional(),
-      substitutions: z.record(z.string(), z.string()).describe(
-        "Optional. Substitutions to use in a triggered build. Should only be used with RunBuildTrigger",
-      ).optional(),
-      tagName: z.string().describe(
-        "Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
-      ).optional(),
-    }).describe("Location of the source in a Google Cloud Source Repository.")
-      .optional(),
-    resolvedStorageSource: z.object({
-      bucket: z.string().describe(
-        "Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
-      ).optional(),
-      generation: z.string().describe(
-        "Optional. Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.",
-      ).optional(),
-      object: z.string().describe(
-        "Required. Cloud Storage object containing the source. This object must be a zipped (`.zip`) or gzipped archive file (`.tar.gz`) containing source to build.",
-      ).optional(),
-      sourceFetcher: z.enum([
-        "SOURCE_FETCHER_UNSPECIFIED",
-        "GSUTIL",
-        "GCS_FETCHER",
-      ]).describe(
-        "Optional. Option to specify the tool to fetch the source file for the build.",
-      ).optional(),
-    }).describe("Location of the source in an archive file in Cloud Storage.")
-      .optional(),
-    resolvedStorageSourceManifest: z.object({
-      bucket: z.string().describe(
-        "Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).",
-      ).optional(),
-      generation: z.string().describe(
-        "Cloud Storage generation for the object. If the generation is omitted, the latest generation will be used.",
-      ).optional(),
-      object: z.string().describe(
-        "Required. Cloud Storage object containing the source manifest. This object must be a JSON file.",
-      ).optional(),
-    }).describe(
-      "Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).",
-    ).optional(),
-  }).describe(
-    "Provenance of the source. Ways to find the original source, or verify that some source was used for this build.",
-  ).optional(),
   steps: z.array(z.object({
     allowExitCodes: z.array(z.number().int()).describe(
       "Allow this build step to fail without failing the entire build if and only if the exit code is one of the specified codes. If allow_failure is also specified, this field will take precedence.",
@@ -1988,7 +1386,9 @@ const InputsSchema = z.object({
     pullTiming: z.object({
       endTime: z.string().describe("End of time span.").optional(),
       startTime: z.string().describe("Start of time span.").optional(),
-    }).describe("Start and end times for a build execution phase.").optional(),
+    }).describe(
+      "Output only. Stores timing information for pulling this build step's builder image only.",
+    ).optional(),
     results: z.array(z.object({
       attestationContent: z.string().describe(
         "Optional. The content of the attestation to be generated.",
@@ -2024,7 +1424,9 @@ const InputsSchema = z.object({
     timing: z.object({
       endTime: z.string().describe("End of time span.").optional(),
       startTime: z.string().describe("Start of time span.").optional(),
-    }).describe("Start and end times for a build execution phase.").optional(),
+    }).describe(
+      "Output only. Stores timing information for executing this build step.",
+    ).optional(),
     volumes: z.array(z.object({
       name: z.string().describe(
         "Name of the volume to mount. Volume names must be unique per build step and must be valid names for Docker volumes. Each named volume must be used by at least two build steps.",
@@ -2077,7 +1479,23 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Builds. Registered at `@swamp/gcp/cloudbuild/builds`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/builds",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: approval, failureInfo, results, sourceProvenance",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          approval: _approval,
+          failureInfo: _failureInfo,
+          results: _results,
+          sourceProvenance: _sourceProvenance,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -2099,7 +1517,6 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["approval"] !== undefined) body["approval"] = g["approval"];
         if (g["artifacts"] !== undefined) body["artifacts"] = g["artifacts"];
         if (g["availableSecrets"] !== undefined) {
           body["availableSecrets"] = g["availableSecrets"];
@@ -2107,23 +1524,16 @@ export const model = {
         if (g["dependencies"] !== undefined) {
           body["dependencies"] = g["dependencies"];
         }
-        if (g["failureInfo"] !== undefined) {
-          body["failureInfo"] = g["failureInfo"];
-        }
         if (g["gitConfig"] !== undefined) body["gitConfig"] = g["gitConfig"];
         if (g["images"] !== undefined) body["images"] = g["images"];
         if (g["logsBucket"] !== undefined) body["logsBucket"] = g["logsBucket"];
         if (g["options"] !== undefined) body["options"] = g["options"];
         if (g["queueTtl"] !== undefined) body["queueTtl"] = g["queueTtl"];
-        if (g["results"] !== undefined) body["results"] = g["results"];
         if (g["secrets"] !== undefined) body["secrets"] = g["secrets"];
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
         }
         if (g["source"] !== undefined) body["source"] = g["source"];
-        if (g["sourceProvenance"] !== undefined) {
-          body["sourceProvenance"] = g["sourceProvenance"];
-        }
         if (g["steps"] !== undefined) body["steps"] = g["steps"];
         if (g["substitutions"] !== undefined) {
           body["substitutions"] = g["substitutions"];
@@ -2139,15 +1549,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

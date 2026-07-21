@@ -221,9 +221,7 @@ const GlobalArgsSchema = z.object({
     uid: z.string().describe(
       "Unique, system-generated identifier for this resource.",
     ).optional(),
-  }).describe(
-    "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
-  ).optional(),
+  }).describe("Optional. Standard object's metadata.").optional(),
   spec: z.object({
     containers: z.array(z.object({
       args: z.array(z.string()).describe(
@@ -240,21 +238,18 @@ const GlobalArgsSchema = z.object({
           'Value of the environment variable. Defaults to "". Variable references are not supported in Cloud Run.',
         ).optional(),
         valueFrom: z.unknown().describe(
-          "EnvVarSource represents a source for the value of an EnvVar.",
+          "Source for the environment variable's value. Only supports secret_key_ref. Cannot be used if value is not empty.",
         ).optional(),
       })).describe(
         "List of environment variables to set in the container. EnvVar with duplicate names are generally allowed; if referencing a secret, the name must be unique for the container. For non-secret EnvVar names, the Container will only get the last-declared one.",
       ).optional(),
       envFrom: z.array(z.object({
-        configMapRef: z.unknown().describe(
-          "Not supported by Cloud Run. ConfigMapEnvSource selects a ConfigMap to populate the environment variables with. The contents of the target ConfigMap's Data field will represent the key-value pairs as environment variables.",
-        ).optional(),
+        configMapRef: z.unknown().describe("The ConfigMap to select from")
+          .optional(),
         prefix: z.unknown().describe(
           "An optional identifier to prepend to each key in the ConfigMap. Must be a C_IDENTIFIER.",
         ).optional(),
-        secretRef: z.unknown().describe(
-          "Not supported by Cloud Run. SecretEnvSource selects a Secret to populate the environment variables with. The contents of the target Secret's Data field will represent the key-value pairs as environment variables.",
-        ).optional(),
+        secretRef: z.unknown().describe("The Secret to select from").optional(),
       })).describe("Not supported by Cloud Run.").optional(),
       image: z.string().describe(
         "Required. Name of the container image in Dockerhub, Google Artifact Registry, or Google Container Registry. If the host is not provided, Dockerhub is assumed.",
@@ -267,9 +262,7 @@ const GlobalArgsSchema = z.object({
           command: z.unknown().describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe(
-          'Not supported by Cloud Run. ExecAction describes a "run in container" action.',
-        ).optional(),
+        }).describe("Not supported by Cloud Run.").optional(),
         failureThreshold: z.number().int().describe(
           "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
         ).optional(),
@@ -280,7 +273,7 @@ const GlobalArgsSchema = z.object({
           service: z.unknown().describe(
             "Service is the name of the service to place in the gRPC HealthCheckRequest. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
+        }).describe("GRPCAction specifies an action involving a GRPC port.")
           .optional(),
         httpGet: z.object({
           host: z.unknown().describe("Not supported by Cloud Run.").optional(),
@@ -294,9 +287,8 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           scheme: z.unknown().describe("Not supported by Cloud Run.")
             .optional(),
-        }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
-        ).optional(),
+        }).describe("HTTPGet specifies the http request to perform.")
+          .optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
         ).optional(),
@@ -311,14 +303,13 @@ const GlobalArgsSchema = z.object({
           port: z.unknown().describe(
             "Port number to access on the container. Number must be in the range 1 to 65535.",
           ).optional(),
-        }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
-        ).optional(),
+        }).describe("TCPSocket specifies an action involving a TCP port.")
+          .optional(),
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Periodic probe of container liveness. Container will be restarted if the probe fails.",
       ).optional(),
       name: z.string().describe(
         "Name of the container specified as a DNS_LABEL (RFC 1123).",
@@ -341,9 +332,7 @@ const GlobalArgsSchema = z.object({
           command: z.unknown().describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe(
-          'Not supported by Cloud Run. ExecAction describes a "run in container" action.',
-        ).optional(),
+        }).describe("Not supported by Cloud Run.").optional(),
         failureThreshold: z.number().int().describe(
           "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
         ).optional(),
@@ -354,7 +343,7 @@ const GlobalArgsSchema = z.object({
           service: z.unknown().describe(
             "Service is the name of the service to place in the gRPC HealthCheckRequest. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
+        }).describe("GRPCAction specifies an action involving a GRPC port.")
           .optional(),
         httpGet: z.object({
           host: z.unknown().describe("Not supported by Cloud Run.").optional(),
@@ -368,9 +357,8 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           scheme: z.unknown().describe("Not supported by Cloud Run.")
             .optional(),
-        }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
-        ).optional(),
+        }).describe("HTTPGet specifies the http request to perform.")
+          .optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
         ).optional(),
@@ -385,15 +373,12 @@ const GlobalArgsSchema = z.object({
           port: z.unknown().describe(
             "Port number to access on the container. Number must be in the range 1 to 65535.",
           ).optional(),
-        }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
-        ).optional(),
+        }).describe("TCPSocket specifies an action involving a TCP port.")
+          .optional(),
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Readiness probe to be used for health checks.").optional(),
       resources: z.object({
         limits: z.record(z.string(), z.unknown()).describe(
           "Limits describes the maximum amount of compute resources allowed. Only 'cpu', 'memory' and 'nvidia.com/gpu' keys are supported. * For supported 'cpu' values, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported 'memory' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits. * The only supported 'nvidia.com/gpu' value is '1'.",
@@ -401,9 +386,7 @@ const GlobalArgsSchema = z.object({
         requests: z.record(z.string(), z.unknown()).describe(
           "Requests describes the minimum amount of compute resources required. Only `cpu` and `memory` are supported. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. * For supported 'cpu' values, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported 'memory' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits",
         ).optional(),
-      }).describe(
-        "ResourceRequirements describes the compute resource requirements.",
-      ).optional(),
+      }).describe("Compute Resources required by this container.").optional(),
       sandboxLauncher: z.boolean().describe(
         "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
       ).optional(),
@@ -411,17 +394,13 @@ const GlobalArgsSchema = z.object({
         runAsUser: z.number().int().describe(
           "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.",
         ).optional(),
-      }).describe(
-        "Not supported by Cloud Run. SecurityContext holds security configuration that will be applied to a container. Some fields are present in both SecurityContext and PodSecurityContext. When both are set, the values in SecurityContext take precedence.",
-      ).optional(),
+      }).describe("Not supported by Cloud Run.").optional(),
       startupProbe: z.object({
         exec: z.object({
           command: z.unknown().describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe(
-          'Not supported by Cloud Run. ExecAction describes a "run in container" action.',
-        ).optional(),
+        }).describe("Not supported by Cloud Run.").optional(),
         failureThreshold: z.number().int().describe(
           "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
         ).optional(),
@@ -432,7 +411,7 @@ const GlobalArgsSchema = z.object({
           service: z.unknown().describe(
             "Service is the name of the service to place in the gRPC HealthCheckRequest. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
+        }).describe("GRPCAction specifies an action involving a GRPC port.")
           .optional(),
         httpGet: z.object({
           host: z.unknown().describe("Not supported by Cloud Run.").optional(),
@@ -446,9 +425,8 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           scheme: z.unknown().describe("Not supported by Cloud Run.")
             .optional(),
-        }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
-        ).optional(),
+        }).describe("HTTPGet specifies the http request to perform.")
+          .optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
         ).optional(),
@@ -463,14 +441,13 @@ const GlobalArgsSchema = z.object({
           port: z.unknown().describe(
             "Port number to access on the container. Number must be in the range 1 to 65535.",
           ).optional(),
-        }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
-        ).optional(),
+        }).describe("TCPSocket specifies an action involving a TCP port.")
+          .optional(),
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Startup probe of application within the container. All other probes are disabled if a startup probe is provided, until it succeeds. Container will not receive traffic if the probe fails. If not provided, a default startup probe with TCP socket action is used.",
       ).optional(),
       terminationMessagePath: z.string().describe(
         "Path at which the file to which the container's termination message will be written is mounted into the container's filesystem. Message written is intended to be brief final status, such as an assertion failure message. Will be truncated by the node if greater than 4096 bytes. The total message length across all containers will be limited to 12kb. Defaults to /dev/termination-log.",
@@ -521,9 +498,7 @@ const GlobalArgsSchema = z.object({
         optional: z.boolean().describe(
           "(Optional) Specify whether the Secret or its keys must be defined.",
         ).optional(),
-      }).describe(
-        "Not supported by Cloud Run. Adapts a ConfigMap into a volume. The contents of the target ConfigMap's Data field will be presented in a volume as files using the keys in the Data field as the file names, unless the items element is populated with specific mappings of keys to paths.",
-      ).optional(),
+      }).describe("Not supported in Cloud Run.").optional(),
       csi: z.object({
         driver: z.string().describe(
           "name of the CSI driver for the requested storage system. Cloud Run supports the following drivers: * gcsfuse.run.googleapis.com: Mount a Cloud Storage Bucket as a volume.",
@@ -534,9 +509,8 @@ const GlobalArgsSchema = z.object({
         volumeAttributes: z.record(z.string(), z.unknown()).describe(
           "stores driver specific attributes. For Google Cloud Storage volumes, the following attributes are supported: * bucketName: the name of the Cloud Storage bucket to mount. The Cloud Run Service identity must have access to this bucket. * mountOptions: comma-separated list of mount options to pass to the gcsfuse.",
         ).optional(),
-      }).describe(
-        "Storage volume source using the Container Storage Interface.",
-      ).optional(),
+      }).describe("Volume specified by the Container Storage Interface driver")
+        .optional(),
       emptyDir: z.object({
         medium: z.string().describe(
           'The medium on which the data is stored. The default is "" which means to use the node\'s default medium. Must be an empty string (default) or Memory. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir',
@@ -544,9 +518,7 @@ const GlobalArgsSchema = z.object({
         sizeLimit: z.string().describe(
           "Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
         ).optional(),
-      }).describe(
-        "In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).",
-      ).optional(),
+      }).describe("Ephemeral storage used as a shared volume.").optional(),
       name: z.string().describe(
         "Volume's name. In Cloud Run Fully Managed, the name 'cloudsql' is reserved.",
       ).optional(),
@@ -574,45 +546,12 @@ const GlobalArgsSchema = z.object({
           "The name of the secret in Cloud Secret Manager. By default, the secret is assumed to be in the same project. If the secret is in another project, you must define an alias. An alias definition has the form::projects//secrets/. If multiple alias definitions are needed, they must be separated by commas. The alias definitions must be set on the run.googleapis.com/secrets annotation. Name of the secret in the container's namespace to use.",
         ).optional(),
       }).describe(
-        "A volume representing a secret stored in Google Secret Manager. The secret's value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret_name. The contents of the target Secret's Data field will be presented in a volume as files using the keys in the Data field as the file names.",
+        "The secret's value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secretName.",
       ).optional(),
     })).describe(
       "Optional. List of volumes that can be mounted by containers belonging to the Instance.",
     ).optional(),
-  }).describe("InstanceSpec describes how the Instance will look.").optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Optional. Last time the condition transitioned from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Optional. Human readable message indicating details about the current status.",
-      ).optional(),
-      reason: z.string().describe(
-        "Optional. One-word CamelCase reason for the condition's last transition. These are intended to be stable, unique values which the client may use to trigger error handling logic, whereas messages which may be changed later by the server.",
-      ).optional(),
-      severity: z.string().describe(
-        "Optional. How to interpret this condition. One of Error, Warning, or Info. Conditions of severity Info do not contribute to resource readiness.",
-      ).optional(),
-      status: z.string().describe(
-        "Status of the condition, one of True, False, Unknown.",
-      ).optional(),
-      type: z.string().describe(
-        'type is used to communicate the status of the reconciliation process. Types common to all resources include: * "Ready" or "Completed": True when the Resource is ready.',
-      ).optional(),
-    })).describe(
-      'Output only. Conditions communicate information about ongoing/complete reconciliation processes that bring the "spec" inline with the observed state of the world. Instance-specific conditions include: * `Ready`: `True` when the Instance is ready to be executed.',
-    ).optional(),
-    logUri: z.string().describe(
-      "Optional. URI where logs for this execution can be found in Cloud Console.",
-    ).optional(),
-    observedGeneration: z.number().int().describe(
-      "Output only. The 'generation' of the Instance that was last processed by the controller.",
-    ).optional(),
-    urls: z.array(z.string()).describe(
-      "Output only. All URLs serving traffic for this Instance.",
-    ).optional(),
-  }).describe("InstanceStatus represents the current state of an Instance.")
+  }).describe("Optional. Specification of the desired behavior of an Instance.")
     .optional(),
   dryRun: z.string().describe(
     "Optional. Indicates that the server should validate the request and populate default values without persisting the request. Supported values: `all`",
@@ -878,9 +817,7 @@ const InputsSchema = z.object({
     uid: z.string().describe(
       "Unique, system-generated identifier for this resource.",
     ).optional(),
-  }).describe(
-    "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
-  ).optional(),
+  }).describe("Optional. Standard object's metadata.").optional(),
   spec: z.object({
     containers: z.array(z.object({
       args: z.array(z.string()).describe(
@@ -897,21 +834,18 @@ const InputsSchema = z.object({
           'Value of the environment variable. Defaults to "". Variable references are not supported in Cloud Run.',
         ).optional(),
         valueFrom: z.unknown().describe(
-          "EnvVarSource represents a source for the value of an EnvVar.",
+          "Source for the environment variable's value. Only supports secret_key_ref. Cannot be used if value is not empty.",
         ).optional(),
       })).describe(
         "List of environment variables to set in the container. EnvVar with duplicate names are generally allowed; if referencing a secret, the name must be unique for the container. For non-secret EnvVar names, the Container will only get the last-declared one.",
       ).optional(),
       envFrom: z.array(z.object({
-        configMapRef: z.unknown().describe(
-          "Not supported by Cloud Run. ConfigMapEnvSource selects a ConfigMap to populate the environment variables with. The contents of the target ConfigMap's Data field will represent the key-value pairs as environment variables.",
-        ).optional(),
+        configMapRef: z.unknown().describe("The ConfigMap to select from")
+          .optional(),
         prefix: z.unknown().describe(
           "An optional identifier to prepend to each key in the ConfigMap. Must be a C_IDENTIFIER.",
         ).optional(),
-        secretRef: z.unknown().describe(
-          "Not supported by Cloud Run. SecretEnvSource selects a Secret to populate the environment variables with. The contents of the target Secret's Data field will represent the key-value pairs as environment variables.",
-        ).optional(),
+        secretRef: z.unknown().describe("The Secret to select from").optional(),
       })).describe("Not supported by Cloud Run.").optional(),
       image: z.string().describe(
         "Required. Name of the container image in Dockerhub, Google Artifact Registry, or Google Container Registry. If the host is not provided, Dockerhub is assumed.",
@@ -924,9 +858,7 @@ const InputsSchema = z.object({
           command: z.unknown().describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe(
-          'Not supported by Cloud Run. ExecAction describes a "run in container" action.',
-        ).optional(),
+        }).describe("Not supported by Cloud Run.").optional(),
         failureThreshold: z.number().int().describe(
           "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
         ).optional(),
@@ -937,7 +869,7 @@ const InputsSchema = z.object({
           service: z.unknown().describe(
             "Service is the name of the service to place in the gRPC HealthCheckRequest. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
+        }).describe("GRPCAction specifies an action involving a GRPC port.")
           .optional(),
         httpGet: z.object({
           host: z.unknown().describe("Not supported by Cloud Run.").optional(),
@@ -951,9 +883,8 @@ const InputsSchema = z.object({
           ).optional(),
           scheme: z.unknown().describe("Not supported by Cloud Run.")
             .optional(),
-        }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
-        ).optional(),
+        }).describe("HTTPGet specifies the http request to perform.")
+          .optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
         ).optional(),
@@ -968,14 +899,13 @@ const InputsSchema = z.object({
           port: z.unknown().describe(
             "Port number to access on the container. Number must be in the range 1 to 65535.",
           ).optional(),
-        }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
-        ).optional(),
+        }).describe("TCPSocket specifies an action involving a TCP port.")
+          .optional(),
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Periodic probe of container liveness. Container will be restarted if the probe fails.",
       ).optional(),
       name: z.string().describe(
         "Name of the container specified as a DNS_LABEL (RFC 1123).",
@@ -998,9 +928,7 @@ const InputsSchema = z.object({
           command: z.unknown().describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe(
-          'Not supported by Cloud Run. ExecAction describes a "run in container" action.',
-        ).optional(),
+        }).describe("Not supported by Cloud Run.").optional(),
         failureThreshold: z.number().int().describe(
           "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
         ).optional(),
@@ -1011,7 +939,7 @@ const InputsSchema = z.object({
           service: z.unknown().describe(
             "Service is the name of the service to place in the gRPC HealthCheckRequest. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
+        }).describe("GRPCAction specifies an action involving a GRPC port.")
           .optional(),
         httpGet: z.object({
           host: z.unknown().describe("Not supported by Cloud Run.").optional(),
@@ -1025,9 +953,8 @@ const InputsSchema = z.object({
           ).optional(),
           scheme: z.unknown().describe("Not supported by Cloud Run.")
             .optional(),
-        }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
-        ).optional(),
+        }).describe("HTTPGet specifies the http request to perform.")
+          .optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
         ).optional(),
@@ -1042,15 +969,12 @@ const InputsSchema = z.object({
           port: z.unknown().describe(
             "Port number to access on the container. Number must be in the range 1 to 65535.",
           ).optional(),
-        }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
-        ).optional(),
+        }).describe("TCPSocket specifies an action involving a TCP port.")
+          .optional(),
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
         ).optional(),
-      }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
-      ).optional(),
+      }).describe("Readiness probe to be used for health checks.").optional(),
       resources: z.object({
         limits: z.record(z.string(), z.unknown()).describe(
           "Limits describes the maximum amount of compute resources allowed. Only 'cpu', 'memory' and 'nvidia.com/gpu' keys are supported. * For supported 'cpu' values, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported 'memory' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits. * The only supported 'nvidia.com/gpu' value is '1'.",
@@ -1058,9 +982,7 @@ const InputsSchema = z.object({
         requests: z.record(z.string(), z.unknown()).describe(
           "Requests describes the minimum amount of compute resources required. Only `cpu` and `memory` are supported. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. * For supported 'cpu' values, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported 'memory' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits",
         ).optional(),
-      }).describe(
-        "ResourceRequirements describes the compute resource requirements.",
-      ).optional(),
+      }).describe("Compute Resources required by this container.").optional(),
       sandboxLauncher: z.boolean().describe(
         "Optional. Indicates that this container can act as a sandbox supervisor and launch sandboxes.",
       ).optional(),
@@ -1068,17 +990,13 @@ const InputsSchema = z.object({
         runAsUser: z.number().int().describe(
           "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.",
         ).optional(),
-      }).describe(
-        "Not supported by Cloud Run. SecurityContext holds security configuration that will be applied to a container. Some fields are present in both SecurityContext and PodSecurityContext. When both are set, the values in SecurityContext take precedence.",
-      ).optional(),
+      }).describe("Not supported by Cloud Run.").optional(),
       startupProbe: z.object({
         exec: z.object({
           command: z.unknown().describe(
             "Command is the command line to execute inside the container, the working directory for the command is root ('/') in the container's filesystem. The command is simply exec'd, it is not run inside a shell, so traditional shell instructions ('|', etc) won't work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.",
           ).optional(),
-        }).describe(
-          'Not supported by Cloud Run. ExecAction describes a "run in container" action.',
-        ).optional(),
+        }).describe("Not supported by Cloud Run.").optional(),
         failureThreshold: z.number().int().describe(
           "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
         ).optional(),
@@ -1089,7 +1007,7 @@ const InputsSchema = z.object({
           service: z.unknown().describe(
             "Service is the name of the service to place in the gRPC HealthCheckRequest. If this is not specified, the default behavior is defined by gRPC.",
           ).optional(),
-        }).describe("GRPCAction describes an action involving a GRPC port.")
+        }).describe("GRPCAction specifies an action involving a GRPC port.")
           .optional(),
         httpGet: z.object({
           host: z.unknown().describe("Not supported by Cloud Run.").optional(),
@@ -1103,9 +1021,8 @@ const InputsSchema = z.object({
           ).optional(),
           scheme: z.unknown().describe("Not supported by Cloud Run.")
             .optional(),
-        }).describe(
-          "HTTPGetAction describes an action based on HTTP Get requests.",
-        ).optional(),
+        }).describe("HTTPGet specifies the http request to perform.")
+          .optional(),
         initialDelaySeconds: z.number().int().describe(
           "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
         ).optional(),
@@ -1120,14 +1037,13 @@ const InputsSchema = z.object({
           port: z.unknown().describe(
             "Port number to access on the container. Number must be in the range 1 to 65535.",
           ).optional(),
-        }).describe(
-          "TCPSocketAction describes an action based on opening a socket",
-        ).optional(),
+        }).describe("TCPSocket specifies an action involving a TCP port.")
+          .optional(),
         timeoutSeconds: z.number().int().describe(
           "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
         ).optional(),
       }).describe(
-        "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+        "Startup probe of application within the container. All other probes are disabled if a startup probe is provided, until it succeeds. Container will not receive traffic if the probe fails. If not provided, a default startup probe with TCP socket action is used.",
       ).optional(),
       terminationMessagePath: z.string().describe(
         "Path at which the file to which the container's termination message will be written is mounted into the container's filesystem. Message written is intended to be brief final status, such as an assertion failure message. Will be truncated by the node if greater than 4096 bytes. The total message length across all containers will be limited to 12kb. Defaults to /dev/termination-log.",
@@ -1178,9 +1094,7 @@ const InputsSchema = z.object({
         optional: z.boolean().describe(
           "(Optional) Specify whether the Secret or its keys must be defined.",
         ).optional(),
-      }).describe(
-        "Not supported by Cloud Run. Adapts a ConfigMap into a volume. The contents of the target ConfigMap's Data field will be presented in a volume as files using the keys in the Data field as the file names, unless the items element is populated with specific mappings of keys to paths.",
-      ).optional(),
+      }).describe("Not supported in Cloud Run.").optional(),
       csi: z.object({
         driver: z.string().describe(
           "name of the CSI driver for the requested storage system. Cloud Run supports the following drivers: * gcsfuse.run.googleapis.com: Mount a Cloud Storage Bucket as a volume.",
@@ -1191,9 +1105,8 @@ const InputsSchema = z.object({
         volumeAttributes: z.record(z.string(), z.unknown()).describe(
           "stores driver specific attributes. For Google Cloud Storage volumes, the following attributes are supported: * bucketName: the name of the Cloud Storage bucket to mount. The Cloud Run Service identity must have access to this bucket. * mountOptions: comma-separated list of mount options to pass to the gcsfuse.",
         ).optional(),
-      }).describe(
-        "Storage volume source using the Container Storage Interface.",
-      ).optional(),
+      }).describe("Volume specified by the Container Storage Interface driver")
+        .optional(),
       emptyDir: z.object({
         medium: z.string().describe(
           'The medium on which the data is stored. The default is "" which means to use the node\'s default medium. Must be an empty string (default) or Memory. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir',
@@ -1201,9 +1114,7 @@ const InputsSchema = z.object({
         sizeLimit: z.string().describe(
           "Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
         ).optional(),
-      }).describe(
-        "In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).",
-      ).optional(),
+      }).describe("Ephemeral storage used as a shared volume.").optional(),
       name: z.string().describe(
         "Volume's name. In Cloud Run Fully Managed, the name 'cloudsql' is reserved.",
       ).optional(),
@@ -1231,45 +1142,12 @@ const InputsSchema = z.object({
           "The name of the secret in Cloud Secret Manager. By default, the secret is assumed to be in the same project. If the secret is in another project, you must define an alias. An alias definition has the form::projects//secrets/. If multiple alias definitions are needed, they must be separated by commas. The alias definitions must be set on the run.googleapis.com/secrets annotation. Name of the secret in the container's namespace to use.",
         ).optional(),
       }).describe(
-        "A volume representing a secret stored in Google Secret Manager. The secret's value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret_name. The contents of the target Secret's Data field will be presented in a volume as files using the keys in the Data field as the file names.",
+        "The secret's value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secretName.",
       ).optional(),
     })).describe(
       "Optional. List of volumes that can be mounted by containers belonging to the Instance.",
     ).optional(),
-  }).describe("InstanceSpec describes how the Instance will look.").optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Optional. Last time the condition transitioned from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Optional. Human readable message indicating details about the current status.",
-      ).optional(),
-      reason: z.string().describe(
-        "Optional. One-word CamelCase reason for the condition's last transition. These are intended to be stable, unique values which the client may use to trigger error handling logic, whereas messages which may be changed later by the server.",
-      ).optional(),
-      severity: z.string().describe(
-        "Optional. How to interpret this condition. One of Error, Warning, or Info. Conditions of severity Info do not contribute to resource readiness.",
-      ).optional(),
-      status: z.string().describe(
-        "Status of the condition, one of True, False, Unknown.",
-      ).optional(),
-      type: z.string().describe(
-        'type is used to communicate the status of the reconciliation process. Types common to all resources include: * "Ready" or "Completed": True when the Resource is ready.',
-      ).optional(),
-    })).describe(
-      'Output only. Conditions communicate information about ongoing/complete reconciliation processes that bring the "spec" inline with the observed state of the world. Instance-specific conditions include: * `Ready`: `True` when the Instance is ready to be executed.',
-    ).optional(),
-    logUri: z.string().describe(
-      "Optional. URI where logs for this execution can be found in Cloud Console.",
-    ).optional(),
-    observedGeneration: z.number().int().describe(
-      "Output only. The 'generation' of the Instance that was last processed by the controller.",
-    ).optional(),
-    urls: z.array(z.string()).describe(
-      "Output only. All URLs serving traffic for this Instance.",
-    ).optional(),
-  }).describe("InstanceStatus represents the current state of an Instance.")
+  }).describe("Optional. Specification of the desired behavior of an Instance.")
     .optional(),
   dryRun: z.string().describe(
     "Optional. Indicates that the server should validate the request and populate default values without persisting the request. Supported values: `all`",
@@ -1302,7 +1180,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Namespaces.Instances. Registered at `@swamp/gcp/run/namespaces-instances`. */
 export const model = {
   type: "@swamp/gcp/run/namespaces-instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1328,7 +1216,6 @@ export const model = {
         if (g["apiVersion"] !== undefined) body["apiVersion"] = g["apiVersion"];
         if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["spec"] !== undefined) body["spec"] = g["spec"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["dryRun"] !== undefined) params["dryRun"] = String(g["dryRun"]);
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -1343,14 +1230,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

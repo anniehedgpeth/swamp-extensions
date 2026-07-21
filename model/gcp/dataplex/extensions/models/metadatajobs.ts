@@ -129,16 +129,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  exportResult: z.object({
-    errorMessage: z.string().describe(
-      "Output only. The error message if the metadata export job failed.",
-    ).optional(),
-    exportedEntries: z.string().describe(
-      "Output only. The number of entries that were exported.",
-    ).optional(),
-  }).describe(
-    "Summary results from a metadata export job. The results are a snapshot of the metadata at the time when the job was created. The exported entries are saved to a Cloud Storage bucket.",
-  ).optional(),
   exportSpec: z.object({
     outputPath: z.string().describe(
       "Required. The root path of the Cloud Storage bucket to export the metadata to, in the format gs://{bucket}/. You can optionally specify a custom prefix after the bucket name, in the format gs://{bucket}/{prefix}/. The maximum length of the custom prefix is 128 characters. Dataplex Universal Catalog constructs the object path for the exported files by using the bucket name and prefix that you provide, followed by a system-generated path.The bucket must be in the same VPC Service Controls perimeter as the job.",
@@ -159,37 +149,8 @@ const GlobalArgsSchema = z.object({
       projects: z.array(z.string()).describe(
         "The projects whose metadata you want to export, in the format projects/{project_id_or_number}. Only the entries from the specified projects are exported.The projects must be in the same organization and VPC Service Controls perimeter as the job.If you set the job scope to be a list of projects, then set the organization-level export flag to false and don't provide a list of entry groups.",
       ).optional(),
-    }).describe("The scope of the export job.").optional(),
-  }).describe("Job specification for a metadata export job.").optional(),
-  importResult: z.object({
-    createdEntries: z.string().describe(
-      "Output only. The total number of entries that were created.",
-    ).optional(),
-    createdEntryLinks: z.string().describe(
-      "Output only. The total number of entry links that were successfully created.",
-    ).optional(),
-    deletedEntries: z.string().describe(
-      "Output only. The total number of entries that were deleted.",
-    ).optional(),
-    deletedEntryLinks: z.string().describe(
-      "Output only. The total number of entry links that were successfully deleted.",
-    ).optional(),
-    recreatedEntries: z.string().describe(
-      "Output only. The total number of entries that were recreated.",
-    ).optional(),
-    unchangedEntries: z.string().describe(
-      "Output only. The total number of entries that were unchanged.",
-    ).optional(),
-    unchangedEntryLinks: z.string().describe(
-      "Output only. The total number of entry links that were left unchanged.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Output only. The time when the status was updated.",
-    ).optional(),
-    updatedEntries: z.string().describe(
-      "Output only. The total number of entries that were updated.",
-    ).optional(),
-  }).describe("Results from a metadata import job.").optional(),
+    }).describe("Required. The scope of the export job.").optional(),
+  }).describe("Export job specification.").optional(),
   importSpec: z.object({
     aspectSyncMode: z.enum([
       "SYNC_MODE_UNSPECIFIED",
@@ -226,7 +187,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Defines the scope of entries that can be referenced in the entry links.Currently, projects are supported as valid scopes. Format: projects/{project_number_or_id}If the metadata import file attempts to create an entry link which references an entry that is not in the scope, the import job will skip that entry link.",
       ).optional(),
     }).describe(
-      "A boundary on the scope of impact that the metadata import job can have.",
+      "Required. A boundary on the scope of impact that the metadata import job can have.",
     ).optional(),
     sourceCreateTime: z.string().describe(
       "Optional. The time when the process that created the metadata import files began.",
@@ -234,33 +195,10 @@ const GlobalArgsSchema = z.object({
     sourceStorageUri: z.string().describe(
       "Optional. The URI of a Cloud Storage bucket or folder (beginning with gs:// and ending with /) that contains the metadata import files for this job.A metadata import file defines the values to set for each of the entries and aspects in a metadata import job. For more information about how to create a metadata import file and the file requirements, see Metadata import file (https://cloud.google.com/dataplex/docs/import-metadata#metadata-import-file).You can provide multiple metadata import files in the same metadata job. The bucket or folder must contain at least one metadata import file, in JSON Lines format (either.json or.jsonl file extension).In FULL entry sync mode, don't save the metadata import file in a folder named SOURCE_STORAGE_URI/deletions/.Caution: If the metadata import file contains no data, all entries and aspects that belong to the job's scope are deleted.",
     ).optional(),
-  }).describe(
-    "Job specification for a metadata import job.You can run the following kinds of metadata import jobs: Full sync of entries with incremental import of their aspects. Supported for custom entries. Incremental import of aspects only. Supported for aspects that belong to custom entries and system entries. For custom entries, you can modify both optional aspects and required aspects. For system entries, you can modify optional aspects.",
-  ).optional(),
+  }).describe("Import job specification.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels.",
   ).optional(),
-  status: z.object({
-    completionPercent: z.number().int().describe(
-      "Output only. Progress tracking.",
-    ).optional(),
-    message: z.string().describe(
-      "Output only. Message relating to the progression of a metadata job.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "QUEUED",
-      "RUNNING",
-      "CANCELING",
-      "CANCELED",
-      "SUCCEEDED",
-      "FAILED",
-      "SUCCEEDED_WITH_ERRORS",
-    ]).describe("Output only. State of the metadata job.").optional(),
-    updateTime: z.string().describe(
-      "Output only. The time when the status was updated.",
-    ).optional(),
-  }).describe("Metadata job status.").optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "IMPORT", "EXPORT"]).describe(
     "Required. Metadata job type.",
   ).optional(),
@@ -335,16 +273,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  exportResult: z.object({
-    errorMessage: z.string().describe(
-      "Output only. The error message if the metadata export job failed.",
-    ).optional(),
-    exportedEntries: z.string().describe(
-      "Output only. The number of entries that were exported.",
-    ).optional(),
-  }).describe(
-    "Summary results from a metadata export job. The results are a snapshot of the metadata at the time when the job was created. The exported entries are saved to a Cloud Storage bucket.",
-  ).optional(),
   exportSpec: z.object({
     outputPath: z.string().describe(
       "Required. The root path of the Cloud Storage bucket to export the metadata to, in the format gs://{bucket}/. You can optionally specify a custom prefix after the bucket name, in the format gs://{bucket}/{prefix}/. The maximum length of the custom prefix is 128 characters. Dataplex Universal Catalog constructs the object path for the exported files by using the bucket name and prefix that you provide, followed by a system-generated path.The bucket must be in the same VPC Service Controls perimeter as the job.",
@@ -365,37 +293,8 @@ const InputsSchema = z.object({
       projects: z.array(z.string()).describe(
         "The projects whose metadata you want to export, in the format projects/{project_id_or_number}. Only the entries from the specified projects are exported.The projects must be in the same organization and VPC Service Controls perimeter as the job.If you set the job scope to be a list of projects, then set the organization-level export flag to false and don't provide a list of entry groups.",
       ).optional(),
-    }).describe("The scope of the export job.").optional(),
-  }).describe("Job specification for a metadata export job.").optional(),
-  importResult: z.object({
-    createdEntries: z.string().describe(
-      "Output only. The total number of entries that were created.",
-    ).optional(),
-    createdEntryLinks: z.string().describe(
-      "Output only. The total number of entry links that were successfully created.",
-    ).optional(),
-    deletedEntries: z.string().describe(
-      "Output only. The total number of entries that were deleted.",
-    ).optional(),
-    deletedEntryLinks: z.string().describe(
-      "Output only. The total number of entry links that were successfully deleted.",
-    ).optional(),
-    recreatedEntries: z.string().describe(
-      "Output only. The total number of entries that were recreated.",
-    ).optional(),
-    unchangedEntries: z.string().describe(
-      "Output only. The total number of entries that were unchanged.",
-    ).optional(),
-    unchangedEntryLinks: z.string().describe(
-      "Output only. The total number of entry links that were left unchanged.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Output only. The time when the status was updated.",
-    ).optional(),
-    updatedEntries: z.string().describe(
-      "Output only. The total number of entries that were updated.",
-    ).optional(),
-  }).describe("Results from a metadata import job.").optional(),
+    }).describe("Required. The scope of the export job.").optional(),
+  }).describe("Export job specification.").optional(),
   importSpec: z.object({
     aspectSyncMode: z.enum([
       "SYNC_MODE_UNSPECIFIED",
@@ -432,7 +331,7 @@ const InputsSchema = z.object({
         "Optional. Defines the scope of entries that can be referenced in the entry links.Currently, projects are supported as valid scopes. Format: projects/{project_number_or_id}If the metadata import file attempts to create an entry link which references an entry that is not in the scope, the import job will skip that entry link.",
       ).optional(),
     }).describe(
-      "A boundary on the scope of impact that the metadata import job can have.",
+      "Required. A boundary on the scope of impact that the metadata import job can have.",
     ).optional(),
     sourceCreateTime: z.string().describe(
       "Optional. The time when the process that created the metadata import files began.",
@@ -440,33 +339,10 @@ const InputsSchema = z.object({
     sourceStorageUri: z.string().describe(
       "Optional. The URI of a Cloud Storage bucket or folder (beginning with gs:// and ending with /) that contains the metadata import files for this job.A metadata import file defines the values to set for each of the entries and aspects in a metadata import job. For more information about how to create a metadata import file and the file requirements, see Metadata import file (https://cloud.google.com/dataplex/docs/import-metadata#metadata-import-file).You can provide multiple metadata import files in the same metadata job. The bucket or folder must contain at least one metadata import file, in JSON Lines format (either.json or.jsonl file extension).In FULL entry sync mode, don't save the metadata import file in a folder named SOURCE_STORAGE_URI/deletions/.Caution: If the metadata import file contains no data, all entries and aspects that belong to the job's scope are deleted.",
     ).optional(),
-  }).describe(
-    "Job specification for a metadata import job.You can run the following kinds of metadata import jobs: Full sync of entries with incremental import of their aspects. Supported for custom entries. Incremental import of aspects only. Supported for aspects that belong to custom entries and system entries. For custom entries, you can modify both optional aspects and required aspects. For system entries, you can modify optional aspects.",
-  ).optional(),
+  }).describe("Import job specification.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels.",
   ).optional(),
-  status: z.object({
-    completionPercent: z.number().int().describe(
-      "Output only. Progress tracking.",
-    ).optional(),
-    message: z.string().describe(
-      "Output only. Message relating to the progression of a metadata job.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "QUEUED",
-      "RUNNING",
-      "CANCELING",
-      "CANCELED",
-      "SUCCEEDED",
-      "FAILED",
-      "SUCCEEDED_WITH_ERRORS",
-    ]).describe("Output only. State of the metadata job.").optional(),
-    updateTime: z.string().describe(
-      "Output only. The time when the status was updated.",
-    ).optional(),
-  }).describe("Metadata job status.").optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "IMPORT", "EXPORT"]).describe(
     "Required. Metadata job type.",
   ).optional(),
@@ -501,7 +377,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex MetadataJobs. Registered at `@swamp/gcp/dataplex/metadatajobs`. */
 export const model = {
   type: "@swamp/gcp/dataplex/metadatajobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -603,6 +479,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: exportResult, importResult, status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          exportResult: _exportResult,
+          importResult: _importResult,
+          status: _status,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -627,16 +516,9 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["exportResult"] !== undefined) {
-          body["exportResult"] = g["exportResult"];
-        }
         if (g["exportSpec"] !== undefined) body["exportSpec"] = g["exportSpec"];
-        if (g["importResult"] !== undefined) {
-          body["importResult"] = g["importResult"];
-        }
         if (g["importSpec"] !== undefined) body["importSpec"] = g["importSpec"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["type"] !== undefined) body["type"] = g["type"];
         if (g["metadataJobId"] !== undefined) {
           params["metadataJobId"] = String(g["metadataJobId"]);
@@ -654,16 +536,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

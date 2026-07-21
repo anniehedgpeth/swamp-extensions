@@ -186,7 +186,7 @@ const GlobalArgsSchema = z.object({
           "Required. The hour of day (0-23) when the window starts for example if value of start hour of day is 6 that mean backup window start at 6:00.",
         ).optional(),
       }).describe(
-        "`BackupWindow` defines a window of the day during which backup jobs will run.",
+        "Required. A BackupWindow defines the window of day during which backup jobs will run. Jobs are queued at the beginning of the window and will be marked as `NOT_RUN` if they do not start by the end of the window. Note: running jobs will not be cancelled at the end of the window.",
       ).optional(),
       daysOfMonth: z.array(z.number().int()).describe(
         "Optional. Specifies days of months like 1, 5, or 14 on which jobs will run. Values for `days_of_month` are only applicable for `recurrence_type`, `MONTHLY` and `YEARLY`. A validation error will occur if other values are supplied.",
@@ -259,10 +259,10 @@ const GlobalArgsSchema = z.object({
           "LAST",
         ]).describe("Required. Specifies the week of the month.").optional(),
       }).describe(
-        "`WeekDayOfMonth` defines the week day of the month on which the backups will run. The message combines a `WeekOfMonth` and `DayOfWeek` to produce values like `FIRST`/`MONDAY` or `LAST`/`FRIDAY`.",
+        "Optional. Specifies a week day of the month like, FIRST SUNDAY or LAST MONDAY, on which jobs will run. This will be specified by two fields in `WeekDayOfMonth`, one for the day, e.g. `MONDAY`, and one for the week, e.g. `LAST`. This field is only applicable for `recurrence_type`, `MONTHLY` and `YEARLY`. A validation error will occur if other values are supplied.",
       ).optional(),
     }).describe(
-      "`StandardSchedule` defines a schedule that run within the confines of a defined window of days. We can define recurrence type for schedule as HOURLY, DAILY, WEEKLY, MONTHLY or YEARLY.",
+      "Optional. Defines a schedule that runs within the confines of a defined window of time.",
     ).optional(),
   })).describe("Optional. The backup rules for this `BackupPlan`.").optional(),
   backupVault: z.string().describe(
@@ -272,7 +272,9 @@ const GlobalArgsSchema = z.object({
     guestFlush: z.boolean().describe(
       "Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.",
     ).optional(),
-  }).describe("Properties for a compute instance backup plan.").optional(),
+  }).describe(
+    "Optional. Defines optional properties specific to backups of compute instance-based resources, such as Compute Engine. This includes settings like whether to perform a guest flush.",
+  ).optional(),
   description: z.string().describe(
     'Optional. The description of the `BackupPlan` resource. The description allows for additional details about `BackupPlan` and its use cases to be provided. An example description is the following: "This is a backup plan that performs a daily backup at 6pm and retains data for 3 months". The description must be at most 2048 characters.',
   ).optional(),
@@ -280,7 +282,9 @@ const GlobalArgsSchema = z.object({
     guestFlush: z.boolean().describe(
       "Optional. Indicates whether to perform a guest flush operation before taking a disk backup. When set to false, the system will create crash-consistent backups. Default value is false.",
     ).optional(),
-  }).describe("Properties for a disk backup plan.").optional(),
+  }).describe(
+    "Optional. Defines optional properties specific to backups of disk-based resources, such as Compute Engine Persistent Disks. This includes settings like whether to perform a guest flush.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. This collection of key/value pairs allows for custom labels to be supplied by the user. Example, {"tag": "Weekly"}.',
   ).optional(),
@@ -372,7 +376,7 @@ const InputsSchema = z.object({
           "Required. The hour of day (0-23) when the window starts for example if value of start hour of day is 6 that mean backup window start at 6:00.",
         ).optional(),
       }).describe(
-        "`BackupWindow` defines a window of the day during which backup jobs will run.",
+        "Required. A BackupWindow defines the window of day during which backup jobs will run. Jobs are queued at the beginning of the window and will be marked as `NOT_RUN` if they do not start by the end of the window. Note: running jobs will not be cancelled at the end of the window.",
       ).optional(),
       daysOfMonth: z.array(z.number().int()).describe(
         "Optional. Specifies days of months like 1, 5, or 14 on which jobs will run. Values for `days_of_month` are only applicable for `recurrence_type`, `MONTHLY` and `YEARLY`. A validation error will occur if other values are supplied.",
@@ -445,10 +449,10 @@ const InputsSchema = z.object({
           "LAST",
         ]).describe("Required. Specifies the week of the month.").optional(),
       }).describe(
-        "`WeekDayOfMonth` defines the week day of the month on which the backups will run. The message combines a `WeekOfMonth` and `DayOfWeek` to produce values like `FIRST`/`MONDAY` or `LAST`/`FRIDAY`.",
+        "Optional. Specifies a week day of the month like, FIRST SUNDAY or LAST MONDAY, on which jobs will run. This will be specified by two fields in `WeekDayOfMonth`, one for the day, e.g. `MONDAY`, and one for the week, e.g. `LAST`. This field is only applicable for `recurrence_type`, `MONTHLY` and `YEARLY`. A validation error will occur if other values are supplied.",
       ).optional(),
     }).describe(
-      "`StandardSchedule` defines a schedule that run within the confines of a defined window of days. We can define recurrence type for schedule as HOURLY, DAILY, WEEKLY, MONTHLY or YEARLY.",
+      "Optional. Defines a schedule that runs within the confines of a defined window of time.",
     ).optional(),
   })).describe("Optional. The backup rules for this `BackupPlan`.").optional(),
   backupVault: z.string().describe(
@@ -458,7 +462,9 @@ const InputsSchema = z.object({
     guestFlush: z.boolean().describe(
       "Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.",
     ).optional(),
-  }).describe("Properties for a compute instance backup plan.").optional(),
+  }).describe(
+    "Optional. Defines optional properties specific to backups of compute instance-based resources, such as Compute Engine. This includes settings like whether to perform a guest flush.",
+  ).optional(),
   description: z.string().describe(
     'Optional. The description of the `BackupPlan` resource. The description allows for additional details about `BackupPlan` and its use cases to be provided. An example description is the following: "This is a backup plan that performs a daily backup at 6pm and retains data for 3 months". The description must be at most 2048 characters.',
   ).optional(),
@@ -466,7 +472,9 @@ const InputsSchema = z.object({
     guestFlush: z.boolean().describe(
       "Optional. Indicates whether to perform a guest flush operation before taking a disk backup. When set to false, the system will create crash-consistent backups. Default value is false.",
     ).optional(),
-  }).describe("Properties for a disk backup plan.").optional(),
+  }).describe(
+    "Optional. Defines optional properties specific to backups of disk-based resources, such as Compute Engine Persistent Disks. This includes settings like whether to perform a guest flush.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. This collection of key/value pairs allows for custom labels to be supplied by the user. Example, {"tag": "Weekly"}.',
   ).optional(),
@@ -513,7 +521,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupPlans. Registered at `@swamp/gcp/backupdr/backupplans`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupplans",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -665,6 +673,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -746,16 +759,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

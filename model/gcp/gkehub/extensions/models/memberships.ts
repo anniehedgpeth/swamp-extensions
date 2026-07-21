@@ -193,7 +193,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The name of the workload identity pool in which `issuer` will be recognized. There is a single Workload Identity Pool per Hub that is shared between all Memberships that belong to that Hub. For a Hub hosted in {PROJECT_ID}, the workload pool format is `{PROJECT_ID}.hub.id.goog`, although this is subject to change in newer versions of this API.",
     ).optional(),
   }).describe(
-    "Authority encodes how Google will recognize identities from this Membership. See the workload identity documentation for more details: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity",
+    "Optional. How to identify workloads from this Membership. See the documentation on Workload Identity for more details: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity",
   ).optional(),
   endpoint: z.object({
     applianceCluster: z.object({
@@ -201,15 +201,14 @@ const GlobalArgsSchema = z.object({
         "Immutable. Self-link of the Google Cloud resource for the Appliance Cluster. For example: //transferappliance.googleapis.com/projects/my-project/locations/us-west1-a/appliances/my-appliance",
       ).optional(),
     }).describe(
-      "ApplianceCluster contains information specific to GDC Edge Appliance Clusters.",
+      "Optional. Specific information for a GDC Edge Appliance cluster.",
     ).optional(),
     edgeCluster: z.object({
       resourceLink: z.string().describe(
         "Immutable. Self-link of the Google Cloud resource for the Edge Cluster. For example: //edgecontainer.googleapis.com/projects/my-project/locations/us-west1-a/clusters/my-cluster",
       ).optional(),
-    }).describe(
-      "EdgeCluster contains information specific to Google Edge Clusters.",
-    ).optional(),
+    }).describe("Optional. Specific information for a Google Edge cluster.")
+      .optional(),
     gkeCluster: z.object({
       clusterMissing: z.boolean().describe(
         "Output only. If cluster_missing is set then it denotes that the GKE cluster no longer exists in the GKE Control Plane.",
@@ -217,8 +216,9 @@ const GlobalArgsSchema = z.object({
       resourceLink: z.string().describe(
         "Immutable. Self-link of the Google Cloud resource for the GKE cluster. For example: //container.googleapis.com/projects/my-project/locations/us-west1-a/clusters/my-cluster Zonal clusters are also supported.",
       ).optional(),
-    }).describe("GkeCluster contains information specific to GKE clusters.")
-      .optional(),
+    }).describe(
+      "Optional. Specific information for a GKE on Google Cloud cluster.",
+    ).optional(),
     googleManaged: z.boolean().describe(
       "Output only. Whether the lifecycle of this membership is managed by a google cluster platform service.",
     ).optional(),
@@ -241,9 +241,7 @@ const GlobalArgsSchema = z.object({
       vcpuCount: z.number().int().describe(
         "Output only. vCPU count as reported by Kubernetes nodes resources.",
       ).optional(),
-    }).describe(
-      "KubernetesMetadata provides informational metadata for Memberships representing Kubernetes clusters.",
-    ).optional(),
+    }).describe("Output only. Useful Kubernetes-specific metadata.").optional(),
     kubernetesResource: z.object({
       connectResources: z.array(z.object({
         clusterScoped: z.boolean().describe(
@@ -281,11 +279,10 @@ const GlobalArgsSchema = z.object({
         v1beta1Crd: z.boolean().describe(
           "Optional. Use `apiextensions/v1beta1` instead of `apiextensions/v1` for CustomResourceDefinition resources. This option should be set for clusters with Kubernetes apiserver versions <1.16.",
         ).optional(),
-      }).describe(
-        "ResourceOptions represent options for Kubernetes resource generation.",
-      ).optional(),
+      }).describe("Optional. Options for Kubernetes resource generation.")
+        .optional(),
     }).describe(
-      "KubernetesResource contains the YAML manifests and configuration for Membership Kubernetes resources in the cluster. After CreateMembership or UpdateMembership, these resources should be re-applied in the cluster.",
+      "Optional. The in-cluster Kubernetes Resources that should be applied for a correctly registered cluster, in the steady state. These resources: * Ensure that the cluster is exclusively registered to one and only one Hub Membership. * Propagate Workload Pool Information available in the Membership Authority field. * Ensure proper initial configuration of default Hub Features.",
     ).optional(),
     multiCloudCluster: z.object({
       clusterMissing: z.boolean().describe(
@@ -294,9 +291,8 @@ const GlobalArgsSchema = z.object({
       resourceLink: z.string().describe(
         "Immutable. Self-link of the Google Cloud resource for the GKE Multi-Cloud cluster. For example: //gkemulticloud.googleapis.com/projects/my-project/locations/us-west1-a/awsClusters/my-cluster //gkemulticloud.googleapis.com/projects/my-project/locations/us-west1-a/azureClusters/my-cluster //gkemulticloud.googleapis.com/projects/my-project/locations/us-west1-a/attachedClusters/my-cluster",
       ).optional(),
-    }).describe(
-      "MultiCloudCluster contains information specific to GKE Multi-Cloud clusters.",
-    ).optional(),
+    }).describe("Optional. Specific information for a GKE Multi-Cloud cluster.")
+      .optional(),
     onPremCluster: z.object({
       adminCluster: z.boolean().describe(
         "Immutable. Whether the cluster is an admin cluster.",
@@ -315,11 +311,10 @@ const GlobalArgsSchema = z.object({
         "Immutable. Self-link of the Google Cloud resource for the GKE On-Prem cluster. For example: //gkeonprem.googleapis.com/projects/my-project/locations/us-west1-a/vmwareClusters/my-cluster //gkeonprem.googleapis.com/projects/my-project/locations/us-west1-a/bareMetalClusters/my-cluster",
       ).optional(),
     }).describe(
-      "OnPremCluster contains information specific to GKE On-Prem clusters.",
+      'Optional. Specific information for a GKE On-Prem cluster. An onprem user-cluster who has no resourceLink is not allowed to use this field, it should have a nil "type" instead.',
     ).optional(),
-  }).describe(
-    "MembershipEndpoint contains information needed to contact a Kubernetes API, endpoint and any additional Kubernetes metadata.",
-  ).optional(),
+  }).describe("Optional. Endpoint information to reach this member.")
+    .optional(),
   externalId: z.string().describe(
     "Optional. An externally-generated and managed ID for this Membership. This ID may be modified after creation, but this is not recommended. The ID must match the regex: `a-zA-Z0-9*` If this Membership represents a Kubernetes cluster, this value should be set to the UID of the `kube-system` namespace object.",
   ).optional(),
@@ -341,20 +336,8 @@ const GlobalArgsSchema = z.object({
     projectId: z.string().describe("Optional. Project used to report Metrics")
       .optional(),
   }).describe(
-    "MonitoringConfig informs Fleet-based applications/services/UIs how the metrics for the underlying cluster is reported to cloud monitoring services. It can be set from empty to non-empty, but can't be mutated directly to prevent accidentally breaking the constinousty of metrics.",
+    "Optional. The monitoring config information for this membership.",
   ).optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-      "SERVICE_UPDATING",
-    ]).describe("Output only. The current state of the Membership resource.")
-      .optional(),
-  }).describe("MembershipState describes the state of a Membership resource.")
-    .optional(),
   membershipId: z.string().describe(
     "Required. Client chosen ID for the membership. `membership_id` must be a valid RFC 1123 compliant DNS label: 1. At most 63 characters in length 2. It must consist of lower case alphanumeric characters or `-` 3. It must start and end with an alphanumeric character Which can be expressed as the regex: `[a-z0-9]([-a-z0-9]*[a-z0-9])?`, with a maximum length of 63 characters.",
   ).optional(),
@@ -474,7 +457,7 @@ const InputsSchema = z.object({
       "Output only. The name of the workload identity pool in which `issuer` will be recognized. There is a single Workload Identity Pool per Hub that is shared between all Memberships that belong to that Hub. For a Hub hosted in {PROJECT_ID}, the workload pool format is `{PROJECT_ID}.hub.id.goog`, although this is subject to change in newer versions of this API.",
     ).optional(),
   }).describe(
-    "Authority encodes how Google will recognize identities from this Membership. See the workload identity documentation for more details: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity",
+    "Optional. How to identify workloads from this Membership. See the documentation on Workload Identity for more details: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity",
   ).optional(),
   endpoint: z.object({
     applianceCluster: z.object({
@@ -482,15 +465,14 @@ const InputsSchema = z.object({
         "Immutable. Self-link of the Google Cloud resource for the Appliance Cluster. For example: //transferappliance.googleapis.com/projects/my-project/locations/us-west1-a/appliances/my-appliance",
       ).optional(),
     }).describe(
-      "ApplianceCluster contains information specific to GDC Edge Appliance Clusters.",
+      "Optional. Specific information for a GDC Edge Appliance cluster.",
     ).optional(),
     edgeCluster: z.object({
       resourceLink: z.string().describe(
         "Immutable. Self-link of the Google Cloud resource for the Edge Cluster. For example: //edgecontainer.googleapis.com/projects/my-project/locations/us-west1-a/clusters/my-cluster",
       ).optional(),
-    }).describe(
-      "EdgeCluster contains information specific to Google Edge Clusters.",
-    ).optional(),
+    }).describe("Optional. Specific information for a Google Edge cluster.")
+      .optional(),
     gkeCluster: z.object({
       clusterMissing: z.boolean().describe(
         "Output only. If cluster_missing is set then it denotes that the GKE cluster no longer exists in the GKE Control Plane.",
@@ -498,8 +480,9 @@ const InputsSchema = z.object({
       resourceLink: z.string().describe(
         "Immutable. Self-link of the Google Cloud resource for the GKE cluster. For example: //container.googleapis.com/projects/my-project/locations/us-west1-a/clusters/my-cluster Zonal clusters are also supported.",
       ).optional(),
-    }).describe("GkeCluster contains information specific to GKE clusters.")
-      .optional(),
+    }).describe(
+      "Optional. Specific information for a GKE on Google Cloud cluster.",
+    ).optional(),
     googleManaged: z.boolean().describe(
       "Output only. Whether the lifecycle of this membership is managed by a google cluster platform service.",
     ).optional(),
@@ -522,9 +505,7 @@ const InputsSchema = z.object({
       vcpuCount: z.number().int().describe(
         "Output only. vCPU count as reported by Kubernetes nodes resources.",
       ).optional(),
-    }).describe(
-      "KubernetesMetadata provides informational metadata for Memberships representing Kubernetes clusters.",
-    ).optional(),
+    }).describe("Output only. Useful Kubernetes-specific metadata.").optional(),
     kubernetesResource: z.object({
       connectResources: z.array(z.object({
         clusterScoped: z.boolean().describe(
@@ -562,11 +543,10 @@ const InputsSchema = z.object({
         v1beta1Crd: z.boolean().describe(
           "Optional. Use `apiextensions/v1beta1` instead of `apiextensions/v1` for CustomResourceDefinition resources. This option should be set for clusters with Kubernetes apiserver versions <1.16.",
         ).optional(),
-      }).describe(
-        "ResourceOptions represent options for Kubernetes resource generation.",
-      ).optional(),
+      }).describe("Optional. Options for Kubernetes resource generation.")
+        .optional(),
     }).describe(
-      "KubernetesResource contains the YAML manifests and configuration for Membership Kubernetes resources in the cluster. After CreateMembership or UpdateMembership, these resources should be re-applied in the cluster.",
+      "Optional. The in-cluster Kubernetes Resources that should be applied for a correctly registered cluster, in the steady state. These resources: * Ensure that the cluster is exclusively registered to one and only one Hub Membership. * Propagate Workload Pool Information available in the Membership Authority field. * Ensure proper initial configuration of default Hub Features.",
     ).optional(),
     multiCloudCluster: z.object({
       clusterMissing: z.boolean().describe(
@@ -575,9 +555,8 @@ const InputsSchema = z.object({
       resourceLink: z.string().describe(
         "Immutable. Self-link of the Google Cloud resource for the GKE Multi-Cloud cluster. For example: //gkemulticloud.googleapis.com/projects/my-project/locations/us-west1-a/awsClusters/my-cluster //gkemulticloud.googleapis.com/projects/my-project/locations/us-west1-a/azureClusters/my-cluster //gkemulticloud.googleapis.com/projects/my-project/locations/us-west1-a/attachedClusters/my-cluster",
       ).optional(),
-    }).describe(
-      "MultiCloudCluster contains information specific to GKE Multi-Cloud clusters.",
-    ).optional(),
+    }).describe("Optional. Specific information for a GKE Multi-Cloud cluster.")
+      .optional(),
     onPremCluster: z.object({
       adminCluster: z.boolean().describe(
         "Immutable. Whether the cluster is an admin cluster.",
@@ -596,11 +575,10 @@ const InputsSchema = z.object({
         "Immutable. Self-link of the Google Cloud resource for the GKE On-Prem cluster. For example: //gkeonprem.googleapis.com/projects/my-project/locations/us-west1-a/vmwareClusters/my-cluster //gkeonprem.googleapis.com/projects/my-project/locations/us-west1-a/bareMetalClusters/my-cluster",
       ).optional(),
     }).describe(
-      "OnPremCluster contains information specific to GKE On-Prem clusters.",
+      'Optional. Specific information for a GKE On-Prem cluster. An onprem user-cluster who has no resourceLink is not allowed to use this field, it should have a nil "type" instead.',
     ).optional(),
-  }).describe(
-    "MembershipEndpoint contains information needed to contact a Kubernetes API, endpoint and any additional Kubernetes metadata.",
-  ).optional(),
+  }).describe("Optional. Endpoint information to reach this member.")
+    .optional(),
   externalId: z.string().describe(
     "Optional. An externally-generated and managed ID for this Membership. This ID may be modified after creation, but this is not recommended. The ID must match the regex: `a-zA-Z0-9*` If this Membership represents a Kubernetes cluster, this value should be set to the UID of the `kube-system` namespace object.",
   ).optional(),
@@ -622,20 +600,8 @@ const InputsSchema = z.object({
     projectId: z.string().describe("Optional. Project used to report Metrics")
       .optional(),
   }).describe(
-    "MonitoringConfig informs Fleet-based applications/services/UIs how the metrics for the underlying cluster is reported to cloud monitoring services. It can be set from empty to non-empty, but can't be mutated directly to prevent accidentally breaking the constinousty of metrics.",
+    "Optional. The monitoring config information for this membership.",
   ).optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-      "SERVICE_UPDATING",
-    ]).describe("Output only. The current state of the Membership resource.")
-      .optional(),
-  }).describe("MembershipState describes the state of a Membership resource.")
-    .optional(),
   membershipId: z.string().describe(
     "Required. Client chosen ID for the membership. `membership_id` must be a valid RFC 1123 compliant DNS label: 1. At most 63 characters in length 2. It must consist of lower case alphanumeric characters or `-` 3. It must start and end with an alphanumeric character Which can be expressed as the regex: `[a-z0-9]([-a-z0-9]*[a-z0-9])?`, with a maximum length of 63 characters.",
   ).optional(),
@@ -670,7 +636,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Memberships. Registered at `@swamp/gcp/gkehub/memberships`. */
 export const model = {
   type: "@swamp/gcp/gkehub/memberships",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -701,7 +677,6 @@ export const model = {
         if (g["monitoringConfig"] !== undefined) {
           body["monitoringConfig"] = g["monitoringConfig"];
         }
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["membershipId"] !== undefined) {
           params["membershipId"] = String(g["membershipId"]);
         }
@@ -721,16 +696,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -822,7 +788,6 @@ export const model = {
         if (g["monitoringConfig"] !== undefined) {
           body["monitoringConfig"] = g["monitoringConfig"];
         }
-        if (g["state"] !== undefined) body["state"] = g["state"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

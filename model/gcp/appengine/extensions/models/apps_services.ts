@@ -165,9 +165,8 @@ const GlobalArgsSchema = z.object({
       "INGRESS_TRAFFIC_ALLOWED_INTERNAL_ONLY",
       "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB",
     ]).describe("The ingress settings for version or service.").optional(),
-  }).describe(
-    "A NetworkSettings resource is a container for ingress settings for a version or service.",
-  ).optional(),
+  }).describe("Ingress settings for this service. Will apply to all versions.")
+    .optional(),
   split: z.object({
     allocations: z.record(z.string(), z.number()).describe(
       "Mapping from version IDs within the service to fractional (0.000, 1] allocations of traffic for that version. Each version can be specified only once, but some versions in the service may not have any traffic allocation. Services that have traffic allocated cannot be deleted until either the service is deleted or their traffic allocation is removed. Allocations must sum to 1. Up to two decimal place precision is supported for IP-based splits and up to three decimal places is supported for cookie-based splits.",
@@ -176,7 +175,7 @@ const GlobalArgsSchema = z.object({
       "Mechanism used to determine which version a request is sent to. The traffic selection algorithm will be stable for either type until allocations are changed.",
     ).optional(),
   }).describe(
-    "Traffic routing configuration for versions within a single service. Traffic splits define how traffic directed to the service is assigned to versions.",
+    "Mapping that defines fractional HTTP traffic diversion to different versions within the service.",
   ).optional(),
   appsId: z.string().describe(
     "Part of `name`. Required. Name of the resource requested. Example: apps/myapp/services/default.",
@@ -223,9 +222,8 @@ const InputsSchema = z.object({
       "INGRESS_TRAFFIC_ALLOWED_INTERNAL_ONLY",
       "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB",
     ]).describe("The ingress settings for version or service.").optional(),
-  }).describe(
-    "A NetworkSettings resource is a container for ingress settings for a version or service.",
-  ).optional(),
+  }).describe("Ingress settings for this service. Will apply to all versions.")
+    .optional(),
   split: z.object({
     allocations: z.record(z.string(), z.number()).describe(
       "Mapping from version IDs within the service to fractional (0.000, 1] allocations of traffic for that version. Each version can be specified only once, but some versions in the service may not have any traffic allocation. Services that have traffic allocated cannot be deleted until either the service is deleted or their traffic allocation is removed. Allocations must sum to 1. Up to two decimal place precision is supported for IP-based splits and up to three decimal places is supported for cookie-based splits.",
@@ -234,7 +232,7 @@ const InputsSchema = z.object({
       "Mechanism used to determine which version a request is sent to. The traffic selection algorithm will be stable for either type until allocations are changed.",
     ).optional(),
   }).describe(
-    "Traffic routing configuration for versions within a single service. Traffic splits define how traffic directed to the service is assigned to versions.",
+    "Mapping that defines fractional HTTP traffic diversion to different versions within the service.",
   ).optional(),
   appsId: z.string().describe(
     "Part of `name`. Required. Name of the resource requested. Example: apps/myapp/services/default.",
@@ -264,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.Services. Registered at `@swamp/gcp/appengine/apps-services`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-services",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -363,6 +361,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

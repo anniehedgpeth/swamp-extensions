@@ -192,12 +192,14 @@ const GlobalArgsSchema = z.object({
         allowAutomaticImageImprovements: z.boolean().describe(
           "Enables automatic image improvements.",
         ).optional(),
-      }).describe("Settings for the Automatic Image Improvements.").optional(),
+      }).describe(
+        "Determines how the images should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.",
+      ).optional(),
       effectiveAllowAutomaticImageImprovements: z.boolean().describe(
         "Output only. The effective value of allow_automatic_image_improvements. If account_image_improvements_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.",
       ).optional(),
     }).describe(
-      "This improvement will attempt to automatically correct submitted images if they don't meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973)",
+      "This improvement will attempt to automatically correct submitted images if they don't meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973) This field is only updated (cleared) if provided.",
     ).optional(),
     itemUpdates: z.object({
       accountItemUpdatesSettings: z.object({
@@ -213,7 +215,9 @@ const GlobalArgsSchema = z.object({
         allowStrictAvailabilityUpdates: z.boolean().describe(
           "If allow_availability_updates is enabled, items are automatically updated in all your Shopping target countries. By default, availability updates will only be applied to items that are 'out of stock' on your website but 'in stock' on Shopping. Set this to true to also update items that are 'in stock' on your website, but 'out of stock' on Google Shopping. In order for this field to have an effect, you must also allow availability updates.",
         ).optional(),
-      }).describe("Settings for the Automatic Item Updates.").optional(),
+      }).describe(
+        "Determines which attributes of the items should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.",
+      ).optional(),
       effectiveAllowAvailabilityUpdates: z.boolean().describe(
         "Output only. The effective value of allow_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.",
       ).optional(),
@@ -227,17 +231,17 @@ const GlobalArgsSchema = z.object({
         "Output only. The effective value of allow_strict_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.",
       ).optional(),
     }).describe(
-      "Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren't shown.",
+      "Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren't shown. This field is only updated (cleared) if provided.",
     ).optional(),
     shippingImprovements: z.object({
       allowShippingImprovements: z.boolean().describe(
         "Enables automatic shipping improvements.",
       ).optional(),
     }).describe(
-      "Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: * Delivery address of an order * Current handling time and shipping time settings * Estimated weekdays or business days * Parcel tracking data",
+      "Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: - Delivery address of an order - Current handling time and shipping time settings - Estimated weekdays or business days - Parcel tracking data This field is only updated (cleared) if provided.",
     ).optional(),
   }).describe(
-    "The automatic improvements of the account can be used to automatically update items, improve images and shipping.",
+    "The automatic improvements of the account can be used to automatically update items, improve images and shipping. Each section inside AutomaticImprovements is updated separately.",
   ).optional(),
   automaticLabelIds: z.array(z.string()).describe(
     "Automatically created label IDs that are assigned to the account by CSS Center.",
@@ -247,8 +251,9 @@ const GlobalArgsSchema = z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being black-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
     includeForPromotions: z.boolean().describe(
       "Required. By setting this field, your business may be included in promotions for all the selected attributes. If you clear this option, it won't affect your identification with any of the attributes. For this field to be set, the merchant must self identify with at least one of the `AccountIdentityType`. If none are included, the request will be considered invalid.",
     ).optional(),
@@ -256,28 +261,32 @@ const GlobalArgsSchema = z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being latino-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
     smallBusiness: z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as a small business. This optional field is only available for merchants with a business country set to "US". It is also not allowed for marketplaces, but it is allowed to marketplace sellers.',
+    ).optional(),
     veteranOwned: z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being veteran-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
     womenOwned: z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being women-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
   }).describe(
-    "The [business identity attributes](https://support.google.com/merchants/answer/10342414) can be used to self-declare attributes that let customers know more about your business.",
+    "The business identity attributes can be used to self-declare attributes that let customers know more about your business.",
   ).optional(),
   businessInformation: z.object({
     address: z.object({
@@ -296,13 +305,15 @@ const GlobalArgsSchema = z.object({
       streetAddress: z.string().describe(
         "Street-level part of the address. Use `\\n` to add a second line.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The address of the business. Use `\\n` to add a second address line.",
+    ).optional(),
     customerService: z.object({
       email: z.string().describe("Customer service email.").optional(),
       phoneNumber: z.string().describe("Customer service phone number.")
         .optional(),
       url: z.string().describe("Customer service URL.").optional(),
-    }).optional(),
+    }).describe("The customer service information of the business.").optional(),
     koreanBusinessRegistrationNumber: z.string().describe(
       "The 10-digit [Korean business registration number](https://support.google.com/merchants/answer/9037766) separated with dashes in the format: XXX-XX-XXXXX. This field will only be updated if explicitly set.",
     ).optional(),
@@ -312,7 +323,7 @@ const GlobalArgsSchema = z.object({
     phoneVerificationStatus: z.string().describe(
       'Verification status of the phone number of the business. This status is read only and can be updated only by successful phone verification. Acceptable values are: - "`verified`" - "`unverified`"',
     ).optional(),
-  }).optional(),
+  }).describe("The business information of the account.").optional(),
   conversionSettings: z.object({
     freeListingsAutoTaggingEnabled: z.boolean().describe(
       "When enabled, free listing URLs have a parameter to enable conversion tracking for products owned by the current merchant account. See [auto-tagging](https://support.google.com/merchants/answer/11127659).",
@@ -329,7 +340,9 @@ const GlobalArgsSchema = z.object({
     status: z.string().describe(
       'Status of the link between this Merchant Center account and the Business Profile. Acceptable values are: - "`active`" - "`pending`"',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The Business Profile which is linked or in the process of being linked with the Merchant Center account.",
+  ).optional(),
   id: z.string().describe("Required. 64-bit Merchant Center account ID.")
     .optional(),
   labelIds: z.array(z.string()).describe(
@@ -495,12 +508,14 @@ const InputsSchema = z.object({
         allowAutomaticImageImprovements: z.boolean().describe(
           "Enables automatic image improvements.",
         ).optional(),
-      }).describe("Settings for the Automatic Image Improvements.").optional(),
+      }).describe(
+        "Determines how the images should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.",
+      ).optional(),
       effectiveAllowAutomaticImageImprovements: z.boolean().describe(
         "Output only. The effective value of allow_automatic_image_improvements. If account_image_improvements_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.",
       ).optional(),
     }).describe(
-      "This improvement will attempt to automatically correct submitted images if they don't meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973)",
+      "This improvement will attempt to automatically correct submitted images if they don't meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973) This field is only updated (cleared) if provided.",
     ).optional(),
     itemUpdates: z.object({
       accountItemUpdatesSettings: z.object({
@@ -516,7 +531,9 @@ const InputsSchema = z.object({
         allowStrictAvailabilityUpdates: z.boolean().describe(
           "If allow_availability_updates is enabled, items are automatically updated in all your Shopping target countries. By default, availability updates will only be applied to items that are 'out of stock' on your website but 'in stock' on Shopping. Set this to true to also update items that are 'in stock' on your website, but 'out of stock' on Google Shopping. In order for this field to have an effect, you must also allow availability updates.",
         ).optional(),
-      }).describe("Settings for the Automatic Item Updates.").optional(),
+      }).describe(
+        "Determines which attributes of the items should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.",
+      ).optional(),
       effectiveAllowAvailabilityUpdates: z.boolean().describe(
         "Output only. The effective value of allow_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.",
       ).optional(),
@@ -530,17 +547,17 @@ const InputsSchema = z.object({
         "Output only. The effective value of allow_strict_availability_updates. If account_item_updates_settings is present, then this value is the same. Otherwise, it represents the inherited value of the parent account. Read-only.",
       ).optional(),
     }).describe(
-      "Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren't shown.",
+      "Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren't shown. This field is only updated (cleared) if provided.",
     ).optional(),
     shippingImprovements: z.object({
       allowShippingImprovements: z.boolean().describe(
         "Enables automatic shipping improvements.",
       ).optional(),
     }).describe(
-      "Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: * Delivery address of an order * Current handling time and shipping time settings * Estimated weekdays or business days * Parcel tracking data",
+      "Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: - Delivery address of an order - Current handling time and shipping time settings - Estimated weekdays or business days - Parcel tracking data This field is only updated (cleared) if provided.",
     ).optional(),
   }).describe(
-    "The automatic improvements of the account can be used to automatically update items, improve images and shipping.",
+    "The automatic improvements of the account can be used to automatically update items, improve images and shipping. Each section inside AutomaticImprovements is updated separately.",
   ).optional(),
   automaticLabelIds: z.array(z.string()).describe(
     "Automatically created label IDs that are assigned to the account by CSS Center.",
@@ -550,8 +567,9 @@ const InputsSchema = z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being black-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
     includeForPromotions: z.boolean().describe(
       "Required. By setting this field, your business may be included in promotions for all the selected attributes. If you clear this option, it won't affect your identification with any of the attributes. For this field to be set, the merchant must self identify with at least one of the `AccountIdentityType`. If none are included, the request will be considered invalid.",
     ).optional(),
@@ -559,28 +577,32 @@ const InputsSchema = z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being latino-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
     smallBusiness: z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as a small business. This optional field is only available for merchants with a business country set to "US". It is also not allowed for marketplaces, but it is allowed to marketplace sellers.',
+    ).optional(),
     veteranOwned: z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being veteran-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
     womenOwned: z.object({
       selfIdentified: z.boolean().describe(
         "Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.",
       ).optional(),
-    }).describe("The account identity type used to specify attributes.")
-      .optional(),
+    }).describe(
+      'Specifies whether the business identifies itself as being women-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.',
+    ).optional(),
   }).describe(
-    "The [business identity attributes](https://support.google.com/merchants/answer/10342414) can be used to self-declare attributes that let customers know more about your business.",
+    "The business identity attributes can be used to self-declare attributes that let customers know more about your business.",
   ).optional(),
   businessInformation: z.object({
     address: z.object({
@@ -599,13 +621,15 @@ const InputsSchema = z.object({
       streetAddress: z.string().describe(
         "Street-level part of the address. Use `\\n` to add a second line.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The address of the business. Use `\\n` to add a second address line.",
+    ).optional(),
     customerService: z.object({
       email: z.string().describe("Customer service email.").optional(),
       phoneNumber: z.string().describe("Customer service phone number.")
         .optional(),
       url: z.string().describe("Customer service URL.").optional(),
-    }).optional(),
+    }).describe("The customer service information of the business.").optional(),
     koreanBusinessRegistrationNumber: z.string().describe(
       "The 10-digit [Korean business registration number](https://support.google.com/merchants/answer/9037766) separated with dashes in the format: XXX-XX-XXXXX. This field will only be updated if explicitly set.",
     ).optional(),
@@ -615,7 +639,7 @@ const InputsSchema = z.object({
     phoneVerificationStatus: z.string().describe(
       'Verification status of the phone number of the business. This status is read only and can be updated only by successful phone verification. Acceptable values are: - "`verified`" - "`unverified`"',
     ).optional(),
-  }).optional(),
+  }).describe("The business information of the account.").optional(),
   conversionSettings: z.object({
     freeListingsAutoTaggingEnabled: z.boolean().describe(
       "When enabled, free listing URLs have a parameter to enable conversion tracking for products owned by the current merchant account. See [auto-tagging](https://support.google.com/merchants/answer/11127659).",
@@ -632,7 +656,9 @@ const InputsSchema = z.object({
     status: z.string().describe(
       'Status of the link between this Merchant Center account and the Business Profile. Acceptable values are: - "`active`" - "`pending`"',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The Business Profile which is linked or in the process of being linked with the Merchant Center account.",
+  ).optional(),
   id: z.string().describe("Required. 64-bit Merchant Center account ID.")
     .optional(),
   labelIds: z.array(z.string()).describe(
@@ -701,7 +727,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Accounts. Registered at `@swamp/gcp/content/accounts`. */
 export const model = {
   type: "@swamp/gcp/content/accounts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -790,6 +816,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

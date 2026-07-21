@@ -177,7 +177,9 @@ const GlobalArgsSchema = z.object({
     weeklyBackupImmutable: z.boolean().describe(
       "Optional. Indicates if the weekly backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.",
     ).optional(),
-  }).describe("Retention policy for backups in the backup vault").optional(),
+  }).describe(
+    "Optional. Backup retention policy defining the retention of backups.",
+  ).optional(),
   backupVaultType: z.enum([
     "BACKUP_VAULT_TYPE_UNSPECIFIED",
     "IN_REGION",
@@ -253,7 +255,9 @@ const InputsSchema = z.object({
     weeklyBackupImmutable: z.boolean().describe(
       "Optional. Indicates if the weekly backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.",
     ).optional(),
-  }).describe("Retention policy for backups in the backup vault").optional(),
+  }).describe(
+    "Optional. Backup retention policy defining the retention of backups.",
+  ).optional(),
   backupVaultType: z.enum([
     "BACKUP_VAULT_TYPE_UNSPECIFIED",
     "IN_REGION",
@@ -303,7 +307,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp BackupVaults. Registered at `@swamp/gcp/netapp/backupvaults`. */
 export const model = {
   type: "@swamp/gcp/netapp/backupvaults",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -407,6 +411,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

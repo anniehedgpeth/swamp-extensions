@@ -191,7 +191,7 @@ const GlobalArgsSchema = z.object({
         "Output only. Match rate for customer match user lists.",
       ).optional(),
     }).describe(
-      "Additional information when `CONTACT_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information when `CONTACT_ID` is one of the `upload_key_types`.",
     ).optional(),
     mobileIdInfo: z.object({
       appId: z.string().describe(
@@ -208,7 +208,7 @@ const GlobalArgsSchema = z.object({
         "Required. Immutable. The key space of mobile IDs.",
       ).optional(),
     }).describe(
-      "Additional information when `MOBILE_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information when `MOBILE_ID` is one of the `upload_key_types`.",
     ).optional(),
     pairIdInfo: z.object({
       advertiserIdentifierCount: z.string().describe(
@@ -227,7 +227,7 @@ const GlobalArgsSchema = z.object({
         "Required. Descriptive name of the publisher to be displayed in the UI for a better targeting experience.",
       ).optional(),
     }).describe(
-      "Additional information when `PAIR_ID` is one of the `upload_key_types`. This feature is only available to data partners.",
+      "Optional. Additional information when `PAIR_ID` is one of the `upload_key_types`. This feature is only available to data partners.",
     ).optional(),
     partnerAudienceInfo: z.object({
       commercePartner: z.string().describe(
@@ -241,7 +241,7 @@ const GlobalArgsSchema = z.object({
       ]).describe("Required. Immutable. The source of the partner audience.")
         .optional(),
     }).describe(
-      "Additional information for partner audiences. This feature is only available to data partners.",
+      "Optional. Additional information for partner audiences. This feature is only available to data partners.",
     ).optional(),
     pseudonymousIdInfo: z.object({
       billableRecordCount: z.string().describe(
@@ -254,7 +254,7 @@ const GlobalArgsSchema = z.object({
         "FAILED",
       ]).describe("Output only. Sync status of the user list.").optional(),
     }).describe(
-      "Additional information when `PSEUDONYMOUS_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information for `PSEUDONYMOUS_ID` is one of the `upload_key_types`.",
     ).optional(),
     uploadKeyTypes: z.array(
       z.enum([
@@ -276,10 +276,11 @@ const GlobalArgsSchema = z.object({
         "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA",
       ]).describe("Optional. Immutable. Source of the upload data.").optional(),
     }).describe(
-      "Additional information when `USER_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information when `USER_ID` is one of the `upload_key_types`.",
     ).optional(),
-  }).describe("Represents a user list that is populated by user provided data.")
-    .optional(),
+  }).describe(
+    "Optional. Represents a user list that is populated by user ingested data.",
+  ).optional(),
   integrationCode: z.string().describe(
     "Optional. An ID from external system. It is used by user list sellers to correlate IDs on their systems.",
   ).optional(),
@@ -291,22 +292,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the user list. Format: accountTypes/{account_type}/accounts/{account}/userLists/{user_list}",
   ).optional(),
-  sizeInfo: z.object({
-    displayNetworkMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list, on the Google Display Network.",
-    ).optional(),
-    gmailMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on Gmail.",
-    ).optional(),
-    searchNetworkMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list in the google.com domain. These are the members available for targeting in Search campaigns.",
-    ).optional(),
-    youtubeMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on YouTube.",
-    ).optional(),
-  }).describe(
-    "Estimated number of members in this user list in different target networks.",
-  ).optional(),
   targetNetworkInfo: z.object({
     eligibleForDisplay: z.boolean().describe(
       "Output only. Indicates this user list is eligible for Google Display Network.",
@@ -314,8 +299,9 @@ const GlobalArgsSchema = z.object({
     eligibleForSearch: z.boolean().describe(
       "Optional. Indicates if this user list is eligible for Google Search Network.",
     ).optional(),
-  }).describe("Eligibility information for different target networks.")
-    .optional(),
+  }).describe(
+    "Optional. Eligibility information for different target networks.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -407,7 +393,7 @@ const InputsSchema = z.object({
         "Output only. Match rate for customer match user lists.",
       ).optional(),
     }).describe(
-      "Additional information when `CONTACT_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information when `CONTACT_ID` is one of the `upload_key_types`.",
     ).optional(),
     mobileIdInfo: z.object({
       appId: z.string().describe(
@@ -424,7 +410,7 @@ const InputsSchema = z.object({
         "Required. Immutable. The key space of mobile IDs.",
       ).optional(),
     }).describe(
-      "Additional information when `MOBILE_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information when `MOBILE_ID` is one of the `upload_key_types`.",
     ).optional(),
     pairIdInfo: z.object({
       advertiserIdentifierCount: z.string().describe(
@@ -443,7 +429,7 @@ const InputsSchema = z.object({
         "Required. Descriptive name of the publisher to be displayed in the UI for a better targeting experience.",
       ).optional(),
     }).describe(
-      "Additional information when `PAIR_ID` is one of the `upload_key_types`. This feature is only available to data partners.",
+      "Optional. Additional information when `PAIR_ID` is one of the `upload_key_types`. This feature is only available to data partners.",
     ).optional(),
     partnerAudienceInfo: z.object({
       commercePartner: z.string().describe(
@@ -457,7 +443,7 @@ const InputsSchema = z.object({
       ]).describe("Required. Immutable. The source of the partner audience.")
         .optional(),
     }).describe(
-      "Additional information for partner audiences. This feature is only available to data partners.",
+      "Optional. Additional information for partner audiences. This feature is only available to data partners.",
     ).optional(),
     pseudonymousIdInfo: z.object({
       billableRecordCount: z.string().describe(
@@ -470,7 +456,7 @@ const InputsSchema = z.object({
         "FAILED",
       ]).describe("Output only. Sync status of the user list.").optional(),
     }).describe(
-      "Additional information when `PSEUDONYMOUS_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information for `PSEUDONYMOUS_ID` is one of the `upload_key_types`.",
     ).optional(),
     uploadKeyTypes: z.array(
       z.enum([
@@ -492,10 +478,11 @@ const InputsSchema = z.object({
         "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA",
       ]).describe("Optional. Immutable. Source of the upload data.").optional(),
     }).describe(
-      "Additional information when `USER_ID` is one of the `upload_key_types`.",
+      "Optional. Additional information when `USER_ID` is one of the `upload_key_types`.",
     ).optional(),
-  }).describe("Represents a user list that is populated by user provided data.")
-    .optional(),
+  }).describe(
+    "Optional. Represents a user list that is populated by user ingested data.",
+  ).optional(),
   integrationCode: z.string().describe(
     "Optional. An ID from external system. It is used by user list sellers to correlate IDs on their systems.",
   ).optional(),
@@ -507,22 +494,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the user list. Format: accountTypes/{account_type}/accounts/{account}/userLists/{user_list}",
   ).optional(),
-  sizeInfo: z.object({
-    displayNetworkMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list, on the Google Display Network.",
-    ).optional(),
-    gmailMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on Gmail.",
-    ).optional(),
-    searchNetworkMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list in the google.com domain. These are the members available for targeting in Search campaigns.",
-    ).optional(),
-    youtubeMembersCount: z.string().describe(
-      "Output only. Estimated number of members in this user list on YouTube.",
-    ).optional(),
-  }).describe(
-    "Estimated number of members in this user list in different target networks.",
-  ).optional(),
   targetNetworkInfo: z.object({
     eligibleForDisplay: z.boolean().describe(
       "Output only. Indicates this user list is eligible for Google Display Network.",
@@ -530,8 +501,9 @@ const InputsSchema = z.object({
     eligibleForSearch: z.boolean().describe(
       "Optional. Indicates if this user list is eligible for Google Search Network.",
     ).optional(),
-  }).describe("Eligibility information for different target networks.")
-    .optional(),
+  }).describe(
+    "Optional. Eligibility information for different target networks.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -560,7 +532,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Manager AccountTypes.Accounts.UserLists. Registered at `@swamp/gcp/datamanager/accounttypes-accounts-userlists`. */
 export const model = {
   type: "@swamp/gcp/datamanager/accounttypes-accounts-userlists",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -692,6 +664,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: sizeInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { sizeInfo: _sizeInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -736,7 +716,6 @@ export const model = {
           body["membershipStatus"] = g["membershipStatus"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["sizeInfo"] !== undefined) body["sizeInfo"] = g["sizeInfo"];
         if (g["targetNetworkInfo"] !== undefined) {
           body["targetNetworkInfo"] = g["targetNetworkInfo"];
         }
@@ -865,7 +844,6 @@ export const model = {
         if (g["membershipStatus"] !== undefined) {
           body["membershipStatus"] = g["membershipStatus"];
         }
-        if (g["sizeInfo"] !== undefined) body["sizeInfo"] = g["sizeInfo"];
         if (g["targetNetworkInfo"] !== undefined) {
           body["targetNetworkInfo"] = g["targetNetworkInfo"];
         }

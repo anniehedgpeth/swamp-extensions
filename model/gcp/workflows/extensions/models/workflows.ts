@@ -194,15 +194,6 @@ const GlobalArgsSchema = z.object({
   sourceContents: z.string().describe(
     "Workflow code to be executed. The size limit is 128KB.",
   ).optional(),
-  stateError: z.object({
-    details: z.string().describe("Provides specifics about the error.")
-      .optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "KMS_ERROR"]).describe(
-      "The type of this state error.",
-    ).optional(),
-  }).describe(
-    "Describes an error related to the current state of the workflow.",
-  ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     "Optional. Input only. Immutable. Tags associated with this workflow.",
   ).optional(),
@@ -282,15 +273,6 @@ const InputsSchema = z.object({
   sourceContents: z.string().describe(
     "Workflow code to be executed. The size limit is 128KB.",
   ).optional(),
-  stateError: z.object({
-    details: z.string().describe("Provides specifics about the error.")
-      .optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "KMS_ERROR"]).describe(
-      "The type of this state error.",
-    ).optional(),
-  }).describe(
-    "Describes an error related to the current state of the workflow.",
-  ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     "Optional. Input only. Immutable. Tags associated with this workflow.",
   ).optional(),
@@ -328,7 +310,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workflows Workflows. Registered at `@swamp/gcp/workflows/workflows`. */
 export const model = {
   type: "@swamp/gcp/workflows/workflows",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -435,6 +417,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: stateError",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { stateError: _stateError, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -483,7 +473,6 @@ export const model = {
         if (g["sourceContents"] !== undefined) {
           body["sourceContents"] = g["sourceContents"];
         }
-        if (g["stateError"] !== undefined) body["stateError"] = g["stateError"];
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["userEnvVars"] !== undefined) {
           body["userEnvVars"] = g["userEnvVars"];
@@ -628,7 +617,6 @@ export const model = {
         if (g["sourceContents"] !== undefined) {
           body["sourceContents"] = g["sourceContents"];
         }
-        if (g["stateError"] !== undefined) body["stateError"] = g["stateError"];
         if (g["userEnvVars"] !== undefined) {
           body["userEnvVars"] = g["userEnvVars"];
         }

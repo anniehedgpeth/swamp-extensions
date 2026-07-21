@@ -190,63 +190,6 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "Optional. The topology implemented in this hub. Currently, this field is only used when policy_mode = PRESET. The available preset topologies are MESH and STAR. If preset_topology is unspecified and policy_mode = PRESET, the preset_topology defaults to MESH. When policy_mode = CUSTOM, the preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.",
   ).optional(),
-  spokeSummary: z.object({
-    spokeStateCounts: z.array(z.object({
-      count: z.string().describe(
-        "Output only. The total number of spokes that are in this state and associated with a given hub.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "CREATING",
-        "ACTIVE",
-        "DELETING",
-        "ACCEPTING",
-        "REJECTING",
-        "UPDATING",
-        "INACTIVE",
-        "OBSOLETE",
-        "FAILED",
-      ]).describe("Output only. The state of the spokes.").optional(),
-    })).describe(
-      "Output only. Counts the number of spokes that are in each state and associated with a given hub.",
-    ).optional(),
-    spokeStateReasonCounts: z.array(z.object({
-      count: z.string().describe(
-        "Output only. The total number of spokes that are inactive for a particular reason and associated with a given hub.",
-      ).optional(),
-      stateReasonCode: z.enum([
-        "CODE_UNSPECIFIED",
-        "PENDING_REVIEW",
-        "REJECTED",
-        "PAUSED",
-        "FAILED",
-        "UPDATE_PENDING_REVIEW",
-        "UPDATE_REJECTED",
-        "UPDATE_FAILED",
-      ]).describe("Output only. The reason that a spoke is inactive.")
-        .optional(),
-    })).describe(
-      "Output only. Counts the number of spokes that are inactive for each possible reason and associated with a given hub.",
-    ).optional(),
-    spokeTypeCounts: z.array(z.object({
-      count: z.string().describe(
-        "Output only. The total number of spokes of this type that are associated with the hub.",
-      ).optional(),
-      spokeType: z.enum([
-        "SPOKE_TYPE_UNSPECIFIED",
-        "VPN_TUNNEL",
-        "INTERCONNECT_ATTACHMENT",
-        "ROUTER_APPLIANCE",
-        "VPC_NETWORK",
-        "GATEWAY",
-        "PRODUCER_VPC_NETWORK",
-      ]).describe("Output only. The type of the spokes.").optional(),
-    })).describe(
-      "Output only. Counts the number of spokes of each type that are associated with a specific hub.",
-    ).optional(),
-  }).describe(
-    "Summarizes information about the spokes associated with a hub. The summary includes a count of spokes according to type and according to state. If any spokes are inactive, the summary also lists the reasons they are inactive, including a count for each reason.",
-  ).optional(),
   hubId: z.string().describe("Required. A unique identifier for the hub.")
     .optional(),
   requestId: z.string().describe(
@@ -322,63 +265,6 @@ const InputsSchema = z.object({
   ]).describe(
     "Optional. The topology implemented in this hub. Currently, this field is only used when policy_mode = PRESET. The available preset topologies are MESH and STAR. If preset_topology is unspecified and policy_mode = PRESET, the preset_topology defaults to MESH. When policy_mode = CUSTOM, the preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.",
   ).optional(),
-  spokeSummary: z.object({
-    spokeStateCounts: z.array(z.object({
-      count: z.string().describe(
-        "Output only. The total number of spokes that are in this state and associated with a given hub.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "CREATING",
-        "ACTIVE",
-        "DELETING",
-        "ACCEPTING",
-        "REJECTING",
-        "UPDATING",
-        "INACTIVE",
-        "OBSOLETE",
-        "FAILED",
-      ]).describe("Output only. The state of the spokes.").optional(),
-    })).describe(
-      "Output only. Counts the number of spokes that are in each state and associated with a given hub.",
-    ).optional(),
-    spokeStateReasonCounts: z.array(z.object({
-      count: z.string().describe(
-        "Output only. The total number of spokes that are inactive for a particular reason and associated with a given hub.",
-      ).optional(),
-      stateReasonCode: z.enum([
-        "CODE_UNSPECIFIED",
-        "PENDING_REVIEW",
-        "REJECTED",
-        "PAUSED",
-        "FAILED",
-        "UPDATE_PENDING_REVIEW",
-        "UPDATE_REJECTED",
-        "UPDATE_FAILED",
-      ]).describe("Output only. The reason that a spoke is inactive.")
-        .optional(),
-    })).describe(
-      "Output only. Counts the number of spokes that are inactive for each possible reason and associated with a given hub.",
-    ).optional(),
-    spokeTypeCounts: z.array(z.object({
-      count: z.string().describe(
-        "Output only. The total number of spokes of this type that are associated with the hub.",
-      ).optional(),
-      spokeType: z.enum([
-        "SPOKE_TYPE_UNSPECIFIED",
-        "VPN_TUNNEL",
-        "INTERCONNECT_ATTACHMENT",
-        "ROUTER_APPLIANCE",
-        "VPC_NETWORK",
-        "GATEWAY",
-        "PRODUCER_VPC_NETWORK",
-      ]).describe("Output only. The type of the spokes.").optional(),
-    })).describe(
-      "Output only. Counts the number of spokes of each type that are associated with a specific hub.",
-    ).optional(),
-  }).describe(
-    "Summarizes information about the spokes associated with a hub. The summary includes a count of spokes according to type and according to state. If any spokes are inactive, the summary also lists the reasons they are inactive, including a count for each reason.",
-  ).optional(),
   hubId: z.string().describe("Required. A unique identifier for the hub.")
     .optional(),
   requestId: z.string().describe(
@@ -415,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity Global.Hubs. Registered at `@swamp/gcp/networkconnectivity/global-hubs`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/global-hubs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -542,6 +428,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: spokeSummary",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { spokeSummary: _spokeSummary, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -578,9 +472,6 @@ export const model = {
         if (g["policyMode"] !== undefined) body["policyMode"] = g["policyMode"];
         if (g["presetTopology"] !== undefined) {
           body["presetTopology"] = g["presetTopology"];
-        }
-        if (g["spokeSummary"] !== undefined) {
-          body["spokeSummary"] = g["spokeSummary"];
         }
         if (g["hubId"] !== undefined) params["hubId"] = String(g["hubId"]);
         if (g["requestId"] !== undefined) {
@@ -710,9 +601,6 @@ export const model = {
         if (g["policyMode"] !== undefined) body["policyMode"] = g["policyMode"];
         if (g["presetTopology"] !== undefined) {
           body["presetTopology"] = g["presetTopology"];
-        }
-        if (g["spokeSummary"] !== undefined) {
-          body["spokeSummary"] = g["spokeSummary"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

@@ -173,8 +173,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     name: z.string().describe("Required. The name of the agent tool.")
       .optional(),
-  }).describe("Represents a tool that allows the agent to call another agent.")
-    .optional(),
+  }).describe("Optional. The agent tool.").optional(),
   clientFunction: z.object({
     description: z.string().describe("Optional. The function description.")
       .optional(),
@@ -239,8 +238,7 @@ const GlobalArgsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
-      .optional(),
+    }).describe("Optional. The schema of the function parameters.").optional(),
     response: z.object({
       additionalProperties: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Schema",
@@ -301,11 +299,8 @@ const GlobalArgsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
-      .optional(),
-  }).describe(
-    "Represents a client-side function that the agent can invoke. When the tool is chosen by the agent, control is handed off to the client. The client is responsible for executing the function and returning the result as a ToolResponse to continue the interaction with the agent.",
-  ).optional(),
+    }).describe("Optional. The schema of the function response.").optional(),
+  }).describe("Optional. The client function.").optional(),
   connectorTool: z.object({
     action: z.object({
       connectionActionId: z.string().describe(
@@ -321,23 +316,21 @@ const GlobalArgsSchema = z.object({
           "UPDATE",
           "DELETE",
         ]).describe("Required. Operation to perform on the entity.").optional(),
-      }).describe("Entity CRUD operation specification.").optional(),
+      }).describe("Entity operation configuration for the tool to use.")
+        .optional(),
       inputFields: z.array(z.string()).describe(
         "Optional. Entity fields to use as inputs for the operation. If no fields are specified, all fields of the Entity will be used.",
       ).optional(),
       outputFields: z.array(z.string()).describe(
         "Optional. Entity fields to return from the operation. If no fields are specified, all fields of the Entity will be returned.",
       ).optional(),
-    }).describe(
-      "Configuration of an Action for the tool to use. Note: This can be either an Action or an Operation. See https://cloud.google.com/integration-connectors/docs/entities-operation-action for details.",
-    ).optional(),
+    }).describe("Required. Action for the tool to use.").optional(),
     authConfig: z.object({
       oauth2AuthCodeConfig: z.object({
         oauthToken: z.string().describe(
           "Required. Oauth token parameter name to pass through. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe("Oauth 2.0 Authorization Code authentication configuration.")
-        .optional(),
+      }).describe("Oauth 2.0 Authorization Code authentication.").optional(),
       oauth2JwtBearerConfig: z.object({
         clientKey: z.string().describe(
           "Required. Client parameter name to pass through. Must be in the format `$context.variables.`.",
@@ -348,11 +341,10 @@ const GlobalArgsSchema = z.object({
         subject: z.string().describe(
           "Required. Subject parameter name to pass through. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe(
-        "JWT Profile Oauth 2.0 Authorization Grant authentication configuration.",
-      ).optional(),
+      }).describe("JWT Profile Oauth 2.0 Authorization Grant authentication.")
+        .optional(),
     }).describe(
-      "End-user authentication configuration used for Connection calls. The field values must be the names of context variables in the format `$context.variables.`.",
+      "Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the ConnectorTool creation will fail. See https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override for details.",
     ).optional(),
     connection: z.string().describe(
       "Required. The full resource name of the referenced Integration Connectors Connection. Format: `projects/{project}/locations/{location}/connections/{connection}`",
@@ -363,9 +355,7 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Optional. The name of the tool that can be used by the Agent to decide whether to call this ConnectorTool.",
     ).optional(),
-  }).describe(
-    "A ConnectorTool allows connections to different integrations. See: https://cloud.google.com/integration-connectors/docs/overview.",
-  ).optional(),
+  }).describe("Optional. The Integration Connector tool.").optional(),
   dataStoreTool: z.object({
     boostSpecs: z.array(z.object({
       dataStores: z.array(z.string()).describe(
@@ -390,8 +380,9 @@ const GlobalArgsSchema = z.object({
           dataSource: z.string().describe(
             "The name of the data source. Example: `salesforce`, `jira`, `confluence`, `bigquery`.",
           ).optional(),
-        }).describe("The connector config for the data store connection.")
-          .optional(),
+        }).describe(
+          "Output only. The connector config for the data store connection.",
+        ).optional(),
         createTime: z.string().describe(
           "Output only. Timestamp when the data store was created.",
         ).optional(),
@@ -417,11 +408,11 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Output only. The type of the data store. This field is readonly and populated by the server.",
         ).optional(),
-      }).describe("A DataStore resource in Vertex AI Search.").optional(),
+      }).describe("Optional. The data store.").optional(),
       filter: z.string().describe(
         "Optional. Filter specification for the DataStore. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata",
       ).optional(),
-    }).describe("Configuration for searching within a specific DataStore.")
+    }).describe("Optional. Search within a single specific DataStore.")
       .optional(),
     description: z.string().describe("Optional. The tool description.")
       .optional(),
@@ -429,7 +420,7 @@ const GlobalArgsSchema = z.object({
       dataStoreSources: z.array(z.object({
         dataStore: z.object({
           connectorConfig: z.unknown().describe(
-            "The connector config for the data store connection.",
+            "Output only. The connector config for the data store connection.",
           ).optional(),
           createTime: z.unknown().describe(
             "Output only. Timestamp when the data store was created.",
@@ -446,7 +437,7 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Output only. The type of the data store. This field is readonly and populated by the server.",
           ).optional(),
-        }).describe("A DataStore resource in Vertex AI Search.").optional(),
+        }).describe("Optional. The data store.").optional(),
         filter: z.string().describe(
           "Optional. Filter specification for the DataStore. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata",
         ).optional(),
@@ -460,7 +451,7 @@ const GlobalArgsSchema = z.object({
         "Optional. A filter applied to the search across the Engine. Not relevant and not used if 'data_store_sources' is provided. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata",
       ).optional(),
     }).describe(
-      "Configuration for searching within an Engine, potentially targeting specific DataStores.",
+      "Optional. Search within an Engine (potentially across multiple DataStores).",
     ).optional(),
     filterParameterBehavior: z.enum([
       "FILTER_PARAMETER_BEHAVIOR_UNSPECIFIED",
@@ -475,7 +466,7 @@ const GlobalArgsSchema = z.object({
         groundingLevel: z.number().describe(
           "Optional. The groundedness threshold of the answer based on the retrieved sources. The value has a configurable range of [1, 5]. The level is used to threshold the groundedness of the answer, meaning that all responses with a groundedness score below the threshold will fall back to returning relevant snippets only. For example, a level of 3 means that the groundedness score must be 3 or higher for the response to be returned.",
         ).optional(),
-      }).describe("Grounding configuration.").optional(),
+      }).describe("Optional. The grounding configuration.").optional(),
       modalityType: z.enum(["MODALITY_TYPE_UNSPECIFIED", "TEXT", "AUDIO"])
         .describe("Required. The modality type.").optional(),
       rewriterConfig: z.object({
@@ -489,13 +480,11 @@ const GlobalArgsSchema = z.object({
           temperature: z.unknown().describe(
             "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
           ).optional(),
-        }).describe(
-          "Model settings contains various configurations for the LLM model.",
-        ).optional(),
+        }).describe("Required. Configurations for the LLM model.").optional(),
         prompt: z.string().describe(
           "Optional. The prompt definition. If not set, default prompt will be used.",
         ).optional(),
-      }).describe("Rewriter configuration.").optional(),
+      }).describe("Optional. The rewriter config.").optional(),
       summarizationConfig: z.object({
         disabled: z.boolean().describe(
           "Optional. Whether summarization is disabled.",
@@ -507,19 +496,15 @@ const GlobalArgsSchema = z.object({
           temperature: z.unknown().describe(
             "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
           ).optional(),
-        }).describe(
-          "Model settings contains various configurations for the LLM model.",
-        ).optional(),
+        }).describe("Optional. Configurations for the LLM model.").optional(),
         prompt: z.string().describe(
           "Optional. The prompt definition. If not set, default prompt will be used.",
         ).optional(),
-      }).describe("Summarization configuration.").optional(),
+      }).describe("Optional. The summarization config.").optional(),
     })).describe("Optional. The modality configs for the data store.")
       .optional(),
     name: z.string().describe("Required. The data store tool name.").optional(),
-  }).describe(
-    "Tool to retrieve from Vertex AI Search datastore or engine for grounding. Accepts either a datastore or an engine, but not both. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.",
-  ).optional(),
+  }).describe("Optional. The data store tool.").optional(),
   executionType: z.enum([
     "EXECUTION_TYPE_UNSPECIFIED",
     "SYNCHRONOUS",
@@ -538,9 +523,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The corpus where files are stored. Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus}",
     ).optional(),
     name: z.string().describe("Required. The tool name.").optional(),
-  }).describe(
-    "The file search tool allows the agent to search across the files uploaded by the app/agent developer. It has presets to give relatively good quality search over the uploaded files and summarization of the retrieved results.",
-  ).optional(),
+  }).describe("Optional. The file search tool.").optional(),
   googleSearchTool: z.object({
     contextUrls: z.array(z.string()).describe(
       'Optional. Content will be fetched directly from these URLs for context and grounding. Example: "https://example.com/path.html". A maximum of 20 URLs are allowed.',
@@ -563,11 +546,9 @@ const GlobalArgsSchema = z.object({
         "Optional. Defines the prompt used for the system instructions when interacting with the agent in voice conversations. If not set, default prompt will be used.",
       ).optional(),
     }).describe(
-      "Prompt settings used by the model when processing or summarizing the google search results.",
+      "Optional. Prompt instructions passed to planner on how the search results should be processed for text and voice.",
     ).optional(),
-  }).describe(
-    "Represents a tool to perform Google web searches for grounding. See https://cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool#google-search.",
-  ).optional(),
+  }).describe("Optional. The google search tool.").optional(),
   mcpTool: z.object({
     apiAuthentication: z.object({
       apiKeyConfig: z.object({
@@ -582,13 +563,12 @@ const GlobalArgsSchema = z.object({
           "HEADER",
           "QUERY_STRING",
         ]).describe("Required. Key location in the request.").optional(),
-      }).describe("Configurations for authentication with API key.").optional(),
+      }).describe("Optional. Config for API key auth.").optional(),
       bearerTokenConfig: z.object({
         token: z.string().describe(
           "Required. The bearer token. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe("Configurations for authentication with a bearer token.")
-        .optional(),
+      }).describe("Optional. Config for bearer token auth.").optional(),
       oauthConfig: z.object({
         clientId: z.string().describe(
           "Required. The client ID from the OAuth provider.",
@@ -606,7 +586,7 @@ const GlobalArgsSchema = z.object({
         tokenEndpoint: z.string().describe(
           "Required. The token endpoint in the OAuth provider to exchange for an access token.",
         ).optional(),
-      }).describe("Configurations for authentication with OAuth.").optional(),
+      }).describe("Optional. Config for OAuth.").optional(),
       serviceAccountAuthConfig: z.object({
         scopes: z.array(z.string()).describe(
           "Optional. The OAuth scopes to grant. If not specified, the default scope `https://www.googleapis.com/auth/cloud-platform` is used.",
@@ -614,14 +594,14 @@ const GlobalArgsSchema = z.object({
         serviceAccount: z.string().describe(
           "Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the `Authorization` header of the request. The service account must have the `roles/iam.serviceAccountTokenCreator` role granted to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
         ).optional(),
-      }).describe(
-        "Configurations for authentication using a custom service account.",
-      ).optional(),
+      }).describe("Optional. Config for service account authentication.")
+        .optional(),
       serviceAgentIdTokenAuthConfig: z.object({}).describe(
-        "Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.",
+        "Optional. Config for ID token auth generated from CES service agent.",
       ).optional(),
-    }).describe("Authentication information required for API calls.")
-      .optional(),
+    }).describe(
+      "Optional. Authentication information required to execute the tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.",
+    ).optional(),
     customHeaders: z.record(z.string(), z.string()).describe(
       "Optional. The custom headers to send in the request to the MCP server. The values must be in the format `$context.variables.` and can be set in the session variables. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool/open-api#openapi-injection for more details.",
     ).optional(),
@@ -688,7 +668,7 @@ const GlobalArgsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
+    }).describe("Optional. The schema of the input arguments of the MCP tool.")
       .optional(),
     name: z.string().describe("Required. The name of the MCP tool.").optional(),
     nameOverride: z.string().describe(
@@ -754,7 +734,7 @@ const GlobalArgsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
+    }).describe("Optional. The schema of the output arguments of the MCP tool.")
       .optional(),
     serverAddress: z.string().describe(
       'Required. The server address of the MCP server, e.g., "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. This is the same as the server_address in the McpToolset. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.',
@@ -763,7 +743,9 @@ const GlobalArgsSchema = z.object({
       service: z.string().describe(
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
+    }).describe(
+      "Optional. Service Directory configuration for VPC-SC, used to resolve service names within a perimeter.",
+    ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "STALE"])
       .describe(
         "Output only. The dynamic availability state of the tool on the external server.",
@@ -779,9 +761,11 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. Specifies a list of allowed custom CA certificates for HTTPS verification.",
       ).optional(),
-    }).describe("The TLS configuration.").optional(),
+    }).describe(
+      "Optional. The TLS configuration. Includes the custom server certificates that the client should trust.",
+    ).optional(),
   }).describe(
-    "An MCP tool. See https://modelcontextprotocol.io/specification/2025-06-18/server/tools for more details.",
+    "Optional. The MCP tool. An MCP tool cannot be created or updated directly and is managed by the MCP toolset.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the tool. Format: * `projects/{project}/locations/{location}/apps/{app}/tools/{tool}` for standalone tools. * `projects/{project}/locations/{location}/apps/{app}/toolsets/{toolset}/tools/{tool}` for tools retrieved from a toolset. These tools are dynamic and output-only; they cannot be referenced directly where a tool is expected.",
@@ -800,13 +784,12 @@ const GlobalArgsSchema = z.object({
           "HEADER",
           "QUERY_STRING",
         ]).describe("Required. Key location in the request.").optional(),
-      }).describe("Configurations for authentication with API key.").optional(),
+      }).describe("Optional. Config for API key auth.").optional(),
       bearerTokenConfig: z.object({
         token: z.string().describe(
           "Required. The bearer token. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe("Configurations for authentication with a bearer token.")
-        .optional(),
+      }).describe("Optional. Config for bearer token auth.").optional(),
       oauthConfig: z.object({
         clientId: z.string().describe(
           "Required. The client ID from the OAuth provider.",
@@ -824,7 +807,7 @@ const GlobalArgsSchema = z.object({
         tokenEndpoint: z.string().describe(
           "Required. The token endpoint in the OAuth provider to exchange for an access token.",
         ).optional(),
-      }).describe("Configurations for authentication with OAuth.").optional(),
+      }).describe("Optional. Config for OAuth.").optional(),
       serviceAccountAuthConfig: z.object({
         scopes: z.array(z.string()).describe(
           "Optional. The OAuth scopes to grant. If not specified, the default scope `https://www.googleapis.com/auth/cloud-platform` is used.",
@@ -832,13 +815,12 @@ const GlobalArgsSchema = z.object({
         serviceAccount: z.string().describe(
           "Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the `Authorization` header of the request. The service account must have the `roles/iam.serviceAccountTokenCreator` role granted to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
         ).optional(),
-      }).describe(
-        "Configurations for authentication using a custom service account.",
-      ).optional(),
+      }).describe("Optional. Config for service account authentication.")
+        .optional(),
       serviceAgentIdTokenAuthConfig: z.object({}).describe(
-        "Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.",
+        "Optional. Config for ID token auth generated from CES service agent.",
       ).optional(),
-    }).describe("Authentication information required for API calls.")
+    }).describe("Optional. Authentication information required by the API.")
       .optional(),
     description: z.string().describe(
       "Optional. The description of the tool. If not provided, the description of the tool will be derived from the OpenAPI schema, from `operation.description` or `operation.summary`.",
@@ -856,7 +838,7 @@ const GlobalArgsSchema = z.object({
       service: z.string().describe(
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
+    }).describe("Optional. Service Directory configuration.").optional(),
     tlsConfig: z.object({
       caCerts: z.array(z.object({
         cert: z.string().describe(
@@ -868,11 +850,13 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. Specifies a list of allowed custom CA certificates for HTTPS verification.",
       ).optional(),
-    }).describe("The TLS configuration.").optional(),
+    }).describe(
+      "Optional. The TLS configuration. Includes the custom server certificates that the client will trust.",
+    ).optional(),
     url: z.string().describe(
       "Optional. The server URL of the Open API schema. This field is only set in tools in the environment dependencies during the export process if the schema contains a server url. During the import process, if this url is present in the environment dependencies and the schema has the $env_var placeholder, it will replace the placeholder in the schema.",
     ).optional(),
-  }).describe("A remote API tool defined by an OpenAPI schema.").optional(),
+  }).describe("Optional. The open API tool.").optional(),
   pythonFunction: z.object({
     description: z.string().describe(
       "Output only. The description of the Python function, parsed from the python code's docstring.",
@@ -887,8 +871,9 @@ const GlobalArgsSchema = z.object({
       service: z.string().describe(
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
-  }).describe("A Python function tool.").optional(),
+    }).describe("Optional. Service Directory configuration for the tool.")
+      .optional(),
+  }).describe("Optional. The python function tool.").optional(),
   remoteAgentTool: z.object({
     agentCard: z.object({
       description: z.string().describe(
@@ -941,21 +926,19 @@ const GlobalArgsSchema = z.object({
       version: z.string().describe("Required. The version of the agent.")
         .optional(),
     }).describe(
-      "AgentCard conveys key information about a remote agent. It is a trimmed version of the AgentCard defined in the A2A protocol https://a2a-protocol.org/dev/specification/#441-agentcard",
+      "Required. The agent card of the remote agent that this tool invokes.",
     ).optional(),
     description: z.string().describe("Required. The description of the tool.")
       .optional(),
     name: z.string().describe("Required. The name of the tool.").optional(),
-  }).describe(
-    "Represents a tool that allows the agent to call another remote agent.",
-  ).optional(),
+  }).describe("Optional. The remote agent tool.").optional(),
   systemTool: z.object({
     description: z.string().describe(
       "Output only. The description of the system tool.",
     ).optional(),
     name: z.string().describe("Required. The name of the system tool.")
       .optional(),
-  }).describe("Pre-defined system tool.").optional(),
+  }).describe("Optional. The system tool.").optional(),
   timeout: z.string().describe(
     "Optional. The timeout for the tool execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` tools and 60 seconds for `ASYNCHRONOUS` tools.",
   ).optional(),
@@ -964,12 +947,14 @@ const GlobalArgsSchema = z.object({
       pythonCode: z.string().describe(
         "Required. Python code which will be invoked in tool fake mode. Expected Python function signature - To catch all tool calls: def fake_tool_call(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -> Optional[dict[str, Any]]: To catch a specific tool call: def fake_{tool_id}(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -> Optional[dict[str, Any]]: If the function returns None, the real tool will be invoked instead.",
       ).optional(),
-    }).describe("A code block to be executed instead of a real tool call.")
-      .optional(),
+    }).describe(
+      "Optional. Code block which will be executed instead of a real tool call.",
+    ).optional(),
     enableFakeMode: z.boolean().describe(
       "Optional. Whether the tool is using fake mode.",
     ).optional(),
-  }).describe("Configuration for tool behavior in fake mode.").optional(),
+  }).describe("Optional. Configuration for tool behavior in fake mode.")
+    .optional(),
   widgetTool: z.object({
     dataMapping: z.object({
       fieldMappings: z.record(z.string(), z.string()).describe(
@@ -991,9 +976,11 @@ const GlobalArgsSchema = z.object({
           service: z.string().describe(
             "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
           ).optional(),
-        }).describe("Configuration for tools using Service Directory.")
+        }).describe("Optional. Service Directory configuration for the tool.")
           .optional(),
-      }).describe("A Python function tool.").optional(),
+      }).describe(
+        "Optional. Configuration for a Python function used to transform the source tool's output into the widget's input format.",
+      ).optional(),
       pythonScript: z.string().describe(
         "Deprecated: Use `python_function` instead.",
       ).optional(),
@@ -1001,7 +988,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The resource name of the tool that provides the data for the widget (e.g., a search tool or a custom function). Format: `projects/{project}/locations/{location}/agents/{agent}/tools/{tool}`",
       ).optional(),
     }).describe(
-      "Configuration for mapping data from a source tool to the widget's input parameters.",
+      "Optional. The mapping that defines how data from a source tool is mapped to the widget's input parameters.",
     ).optional(),
     description: z.string().describe(
       "Optional. The description of the widget tool.",
@@ -1068,7 +1055,7 @@ const GlobalArgsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
+    }).describe("Optional. The input parameters of the widget tool.")
       .optional(),
     textResponseConfig: z.object({
       staticText: z.string().describe(
@@ -1080,7 +1067,7 @@ const GlobalArgsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "NONE", "LLM_GENERATED", "STATIC"])
         .describe("Optional. The strategy for providing the text response.")
         .optional(),
-    }).describe("Configuration for the text response returned with the widget.")
+    }).describe("Optional. Configuration for always-included text responses.")
       .optional(),
     uiConfig: z.record(z.string(), z.string()).describe(
       "Optional. Configuration for rendering the widget.",
@@ -1102,9 +1089,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. The type of the widget tool. If not specified, the default type will be CUSTOMIZED.",
     ).optional(),
-  }).describe(
-    "Represents a widget tool that the agent can invoke. When the tool is chosen by the agent, agent will return the widget to the client. The client is responsible for processing the widget and generating the next user query to continue the interaction with the agent.",
-  ).optional(),
+  }).describe("Optional. The widget tool.").optional(),
   toolId: z.string().describe(
     "Optional. The ID to use for the tool, which will become the final component of the tool's resource name. If not provided, a unique ID will be automatically assigned for the tool.",
   ).optional(),
@@ -1506,8 +1491,7 @@ const InputsSchema = z.object({
     ).optional(),
     name: z.string().describe("Required. The name of the agent tool.")
       .optional(),
-  }).describe("Represents a tool that allows the agent to call another agent.")
-    .optional(),
+  }).describe("Optional. The agent tool.").optional(),
   clientFunction: z.object({
     description: z.string().describe("Optional. The function description.")
       .optional(),
@@ -1572,8 +1556,7 @@ const InputsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
-      .optional(),
+    }).describe("Optional. The schema of the function parameters.").optional(),
     response: z.object({
       additionalProperties: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Schema",
@@ -1634,11 +1617,8 @@ const InputsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
-      .optional(),
-  }).describe(
-    "Represents a client-side function that the agent can invoke. When the tool is chosen by the agent, control is handed off to the client. The client is responsible for executing the function and returning the result as a ToolResponse to continue the interaction with the agent.",
-  ).optional(),
+    }).describe("Optional. The schema of the function response.").optional(),
+  }).describe("Optional. The client function.").optional(),
   connectorTool: z.object({
     action: z.object({
       connectionActionId: z.string().describe(
@@ -1654,23 +1634,21 @@ const InputsSchema = z.object({
           "UPDATE",
           "DELETE",
         ]).describe("Required. Operation to perform on the entity.").optional(),
-      }).describe("Entity CRUD operation specification.").optional(),
+      }).describe("Entity operation configuration for the tool to use.")
+        .optional(),
       inputFields: z.array(z.string()).describe(
         "Optional. Entity fields to use as inputs for the operation. If no fields are specified, all fields of the Entity will be used.",
       ).optional(),
       outputFields: z.array(z.string()).describe(
         "Optional. Entity fields to return from the operation. If no fields are specified, all fields of the Entity will be returned.",
       ).optional(),
-    }).describe(
-      "Configuration of an Action for the tool to use. Note: This can be either an Action or an Operation. See https://cloud.google.com/integration-connectors/docs/entities-operation-action for details.",
-    ).optional(),
+    }).describe("Required. Action for the tool to use.").optional(),
     authConfig: z.object({
       oauth2AuthCodeConfig: z.object({
         oauthToken: z.string().describe(
           "Required. Oauth token parameter name to pass through. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe("Oauth 2.0 Authorization Code authentication configuration.")
-        .optional(),
+      }).describe("Oauth 2.0 Authorization Code authentication.").optional(),
       oauth2JwtBearerConfig: z.object({
         clientKey: z.string().describe(
           "Required. Client parameter name to pass through. Must be in the format `$context.variables.`.",
@@ -1681,11 +1659,10 @@ const InputsSchema = z.object({
         subject: z.string().describe(
           "Required. Subject parameter name to pass through. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe(
-        "JWT Profile Oauth 2.0 Authorization Grant authentication configuration.",
-      ).optional(),
+      }).describe("JWT Profile Oauth 2.0 Authorization Grant authentication.")
+        .optional(),
     }).describe(
-      "End-user authentication configuration used for Connection calls. The field values must be the names of context variables in the format `$context.variables.`.",
+      "Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the ConnectorTool creation will fail. See https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override for details.",
     ).optional(),
     connection: z.string().describe(
       "Required. The full resource name of the referenced Integration Connectors Connection. Format: `projects/{project}/locations/{location}/connections/{connection}`",
@@ -1696,9 +1673,7 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Optional. The name of the tool that can be used by the Agent to decide whether to call this ConnectorTool.",
     ).optional(),
-  }).describe(
-    "A ConnectorTool allows connections to different integrations. See: https://cloud.google.com/integration-connectors/docs/overview.",
-  ).optional(),
+  }).describe("Optional. The Integration Connector tool.").optional(),
   dataStoreTool: z.object({
     boostSpecs: z.array(z.object({
       dataStores: z.array(z.string()).describe(
@@ -1723,8 +1698,9 @@ const InputsSchema = z.object({
           dataSource: z.string().describe(
             "The name of the data source. Example: `salesforce`, `jira`, `confluence`, `bigquery`.",
           ).optional(),
-        }).describe("The connector config for the data store connection.")
-          .optional(),
+        }).describe(
+          "Output only. The connector config for the data store connection.",
+        ).optional(),
         createTime: z.string().describe(
           "Output only. Timestamp when the data store was created.",
         ).optional(),
@@ -1750,11 +1726,11 @@ const InputsSchema = z.object({
         ]).describe(
           "Output only. The type of the data store. This field is readonly and populated by the server.",
         ).optional(),
-      }).describe("A DataStore resource in Vertex AI Search.").optional(),
+      }).describe("Optional. The data store.").optional(),
       filter: z.string().describe(
         "Optional. Filter specification for the DataStore. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata",
       ).optional(),
-    }).describe("Configuration for searching within a specific DataStore.")
+    }).describe("Optional. Search within a single specific DataStore.")
       .optional(),
     description: z.string().describe("Optional. The tool description.")
       .optional(),
@@ -1762,7 +1738,7 @@ const InputsSchema = z.object({
       dataStoreSources: z.array(z.object({
         dataStore: z.object({
           connectorConfig: z.unknown().describe(
-            "The connector config for the data store connection.",
+            "Output only. The connector config for the data store connection.",
           ).optional(),
           createTime: z.unknown().describe(
             "Output only. Timestamp when the data store was created.",
@@ -1779,7 +1755,7 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Output only. The type of the data store. This field is readonly and populated by the server.",
           ).optional(),
-        }).describe("A DataStore resource in Vertex AI Search.").optional(),
+        }).describe("Optional. The data store.").optional(),
         filter: z.string().describe(
           "Optional. Filter specification for the DataStore. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata",
         ).optional(),
@@ -1793,7 +1769,7 @@ const InputsSchema = z.object({
         "Optional. A filter applied to the search across the Engine. Not relevant and not used if 'data_store_sources' is provided. See: https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata",
       ).optional(),
     }).describe(
-      "Configuration for searching within an Engine, potentially targeting specific DataStores.",
+      "Optional. Search within an Engine (potentially across multiple DataStores).",
     ).optional(),
     filterParameterBehavior: z.enum([
       "FILTER_PARAMETER_BEHAVIOR_UNSPECIFIED",
@@ -1808,7 +1784,7 @@ const InputsSchema = z.object({
         groundingLevel: z.number().describe(
           "Optional. The groundedness threshold of the answer based on the retrieved sources. The value has a configurable range of [1, 5]. The level is used to threshold the groundedness of the answer, meaning that all responses with a groundedness score below the threshold will fall back to returning relevant snippets only. For example, a level of 3 means that the groundedness score must be 3 or higher for the response to be returned.",
         ).optional(),
-      }).describe("Grounding configuration.").optional(),
+      }).describe("Optional. The grounding configuration.").optional(),
       modalityType: z.enum(["MODALITY_TYPE_UNSPECIFIED", "TEXT", "AUDIO"])
         .describe("Required. The modality type.").optional(),
       rewriterConfig: z.object({
@@ -1822,13 +1798,11 @@ const InputsSchema = z.object({
           temperature: z.unknown().describe(
             "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
           ).optional(),
-        }).describe(
-          "Model settings contains various configurations for the LLM model.",
-        ).optional(),
+        }).describe("Required. Configurations for the LLM model.").optional(),
         prompt: z.string().describe(
           "Optional. The prompt definition. If not set, default prompt will be used.",
         ).optional(),
-      }).describe("Rewriter configuration.").optional(),
+      }).describe("Optional. The rewriter config.").optional(),
       summarizationConfig: z.object({
         disabled: z.boolean().describe(
           "Optional. Whether summarization is disabled.",
@@ -1840,19 +1814,15 @@ const InputsSchema = z.object({
           temperature: z.unknown().describe(
             "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
           ).optional(),
-        }).describe(
-          "Model settings contains various configurations for the LLM model.",
-        ).optional(),
+        }).describe("Optional. Configurations for the LLM model.").optional(),
         prompt: z.string().describe(
           "Optional. The prompt definition. If not set, default prompt will be used.",
         ).optional(),
-      }).describe("Summarization configuration.").optional(),
+      }).describe("Optional. The summarization config.").optional(),
     })).describe("Optional. The modality configs for the data store.")
       .optional(),
     name: z.string().describe("Required. The data store tool name.").optional(),
-  }).describe(
-    "Tool to retrieve from Vertex AI Search datastore or engine for grounding. Accepts either a datastore or an engine, but not both. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.",
-  ).optional(),
+  }).describe("Optional. The data store tool.").optional(),
   executionType: z.enum([
     "EXECUTION_TYPE_UNSPECIFIED",
     "SYNCHRONOUS",
@@ -1871,9 +1841,7 @@ const InputsSchema = z.object({
       "Optional. The corpus where files are stored. Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus}",
     ).optional(),
     name: z.string().describe("Required. The tool name.").optional(),
-  }).describe(
-    "The file search tool allows the agent to search across the files uploaded by the app/agent developer. It has presets to give relatively good quality search over the uploaded files and summarization of the retrieved results.",
-  ).optional(),
+  }).describe("Optional. The file search tool.").optional(),
   googleSearchTool: z.object({
     contextUrls: z.array(z.string()).describe(
       'Optional. Content will be fetched directly from these URLs for context and grounding. Example: "https://example.com/path.html". A maximum of 20 URLs are allowed.',
@@ -1896,11 +1864,9 @@ const InputsSchema = z.object({
         "Optional. Defines the prompt used for the system instructions when interacting with the agent in voice conversations. If not set, default prompt will be used.",
       ).optional(),
     }).describe(
-      "Prompt settings used by the model when processing or summarizing the google search results.",
+      "Optional. Prompt instructions passed to planner on how the search results should be processed for text and voice.",
     ).optional(),
-  }).describe(
-    "Represents a tool to perform Google web searches for grounding. See https://cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool#google-search.",
-  ).optional(),
+  }).describe("Optional. The google search tool.").optional(),
   mcpTool: z.object({
     apiAuthentication: z.object({
       apiKeyConfig: z.object({
@@ -1915,13 +1881,12 @@ const InputsSchema = z.object({
           "HEADER",
           "QUERY_STRING",
         ]).describe("Required. Key location in the request.").optional(),
-      }).describe("Configurations for authentication with API key.").optional(),
+      }).describe("Optional. Config for API key auth.").optional(),
       bearerTokenConfig: z.object({
         token: z.string().describe(
           "Required. The bearer token. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe("Configurations for authentication with a bearer token.")
-        .optional(),
+      }).describe("Optional. Config for bearer token auth.").optional(),
       oauthConfig: z.object({
         clientId: z.string().describe(
           "Required. The client ID from the OAuth provider.",
@@ -1939,7 +1904,7 @@ const InputsSchema = z.object({
         tokenEndpoint: z.string().describe(
           "Required. The token endpoint in the OAuth provider to exchange for an access token.",
         ).optional(),
-      }).describe("Configurations for authentication with OAuth.").optional(),
+      }).describe("Optional. Config for OAuth.").optional(),
       serviceAccountAuthConfig: z.object({
         scopes: z.array(z.string()).describe(
           "Optional. The OAuth scopes to grant. If not specified, the default scope `https://www.googleapis.com/auth/cloud-platform` is used.",
@@ -1947,14 +1912,14 @@ const InputsSchema = z.object({
         serviceAccount: z.string().describe(
           "Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the `Authorization` header of the request. The service account must have the `roles/iam.serviceAccountTokenCreator` role granted to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
         ).optional(),
-      }).describe(
-        "Configurations for authentication using a custom service account.",
-      ).optional(),
+      }).describe("Optional. Config for service account authentication.")
+        .optional(),
       serviceAgentIdTokenAuthConfig: z.object({}).describe(
-        "Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.",
+        "Optional. Config for ID token auth generated from CES service agent.",
       ).optional(),
-    }).describe("Authentication information required for API calls.")
-      .optional(),
+    }).describe(
+      "Optional. Authentication information required to execute the tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.",
+    ).optional(),
     customHeaders: z.record(z.string(), z.string()).describe(
       "Optional. The custom headers to send in the request to the MCP server. The values must be in the format `$context.variables.` and can be set in the session variables. See https://docs.cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool/open-api#openapi-injection for more details.",
     ).optional(),
@@ -2021,7 +1986,7 @@ const InputsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
+    }).describe("Optional. The schema of the input arguments of the MCP tool.")
       .optional(),
     name: z.string().describe("Required. The name of the MCP tool.").optional(),
     nameOverride: z.string().describe(
@@ -2087,7 +2052,7 @@ const InputsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
+    }).describe("Optional. The schema of the output arguments of the MCP tool.")
       .optional(),
     serverAddress: z.string().describe(
       'Required. The server address of the MCP server, e.g., "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. This is the same as the server_address in the McpToolset. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.',
@@ -2096,7 +2061,9 @@ const InputsSchema = z.object({
       service: z.string().describe(
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
+    }).describe(
+      "Optional. Service Directory configuration for VPC-SC, used to resolve service names within a perimeter.",
+    ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "STALE"])
       .describe(
         "Output only. The dynamic availability state of the tool on the external server.",
@@ -2112,9 +2079,11 @@ const InputsSchema = z.object({
       })).describe(
         "Required. Specifies a list of allowed custom CA certificates for HTTPS verification.",
       ).optional(),
-    }).describe("The TLS configuration.").optional(),
+    }).describe(
+      "Optional. The TLS configuration. Includes the custom server certificates that the client should trust.",
+    ).optional(),
   }).describe(
-    "An MCP tool. See https://modelcontextprotocol.io/specification/2025-06-18/server/tools for more details.",
+    "Optional. The MCP tool. An MCP tool cannot be created or updated directly and is managed by the MCP toolset.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the tool. Format: * `projects/{project}/locations/{location}/apps/{app}/tools/{tool}` for standalone tools. * `projects/{project}/locations/{location}/apps/{app}/toolsets/{toolset}/tools/{tool}` for tools retrieved from a toolset. These tools are dynamic and output-only; they cannot be referenced directly where a tool is expected.",
@@ -2133,13 +2102,12 @@ const InputsSchema = z.object({
           "HEADER",
           "QUERY_STRING",
         ]).describe("Required. Key location in the request.").optional(),
-      }).describe("Configurations for authentication with API key.").optional(),
+      }).describe("Optional. Config for API key auth.").optional(),
       bearerTokenConfig: z.object({
         token: z.string().describe(
           "Required. The bearer token. Must be in the format `$context.variables.`.",
         ).optional(),
-      }).describe("Configurations for authentication with a bearer token.")
-        .optional(),
+      }).describe("Optional. Config for bearer token auth.").optional(),
       oauthConfig: z.object({
         clientId: z.string().describe(
           "Required. The client ID from the OAuth provider.",
@@ -2157,7 +2125,7 @@ const InputsSchema = z.object({
         tokenEndpoint: z.string().describe(
           "Required. The token endpoint in the OAuth provider to exchange for an access token.",
         ).optional(),
-      }).describe("Configurations for authentication with OAuth.").optional(),
+      }).describe("Optional. Config for OAuth.").optional(),
       serviceAccountAuthConfig: z.object({
         scopes: z.array(z.string()).describe(
           "Optional. The OAuth scopes to grant. If not specified, the default scope `https://www.googleapis.com/auth/cloud-platform` is used.",
@@ -2165,13 +2133,12 @@ const InputsSchema = z.object({
         serviceAccount: z.string().describe(
           "Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the `Authorization` header of the request. The service account must have the `roles/iam.serviceAccountTokenCreator` role granted to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
         ).optional(),
-      }).describe(
-        "Configurations for authentication using a custom service account.",
-      ).optional(),
+      }).describe("Optional. Config for service account authentication.")
+        .optional(),
       serviceAgentIdTokenAuthConfig: z.object({}).describe(
-        "Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.",
+        "Optional. Config for ID token auth generated from CES service agent.",
       ).optional(),
-    }).describe("Authentication information required for API calls.")
+    }).describe("Optional. Authentication information required by the API.")
       .optional(),
     description: z.string().describe(
       "Optional. The description of the tool. If not provided, the description of the tool will be derived from the OpenAPI schema, from `operation.description` or `operation.summary`.",
@@ -2189,7 +2156,7 @@ const InputsSchema = z.object({
       service: z.string().describe(
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
+    }).describe("Optional. Service Directory configuration.").optional(),
     tlsConfig: z.object({
       caCerts: z.array(z.object({
         cert: z.string().describe(
@@ -2201,11 +2168,13 @@ const InputsSchema = z.object({
       })).describe(
         "Required. Specifies a list of allowed custom CA certificates for HTTPS verification.",
       ).optional(),
-    }).describe("The TLS configuration.").optional(),
+    }).describe(
+      "Optional. The TLS configuration. Includes the custom server certificates that the client will trust.",
+    ).optional(),
     url: z.string().describe(
       "Optional. The server URL of the Open API schema. This field is only set in tools in the environment dependencies during the export process if the schema contains a server url. During the import process, if this url is present in the environment dependencies and the schema has the $env_var placeholder, it will replace the placeholder in the schema.",
     ).optional(),
-  }).describe("A remote API tool defined by an OpenAPI schema.").optional(),
+  }).describe("Optional. The open API tool.").optional(),
   pythonFunction: z.object({
     description: z.string().describe(
       "Output only. The description of the Python function, parsed from the python code's docstring.",
@@ -2220,8 +2189,9 @@ const InputsSchema = z.object({
       service: z.string().describe(
         "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
       ).optional(),
-    }).describe("Configuration for tools using Service Directory.").optional(),
-  }).describe("A Python function tool.").optional(),
+    }).describe("Optional. Service Directory configuration for the tool.")
+      .optional(),
+  }).describe("Optional. The python function tool.").optional(),
   remoteAgentTool: z.object({
     agentCard: z.object({
       description: z.string().describe(
@@ -2274,21 +2244,19 @@ const InputsSchema = z.object({
       version: z.string().describe("Required. The version of the agent.")
         .optional(),
     }).describe(
-      "AgentCard conveys key information about a remote agent. It is a trimmed version of the AgentCard defined in the A2A protocol https://a2a-protocol.org/dev/specification/#441-agentcard",
+      "Required. The agent card of the remote agent that this tool invokes.",
     ).optional(),
     description: z.string().describe("Required. The description of the tool.")
       .optional(),
     name: z.string().describe("Required. The name of the tool.").optional(),
-  }).describe(
-    "Represents a tool that allows the agent to call another remote agent.",
-  ).optional(),
+  }).describe("Optional. The remote agent tool.").optional(),
   systemTool: z.object({
     description: z.string().describe(
       "Output only. The description of the system tool.",
     ).optional(),
     name: z.string().describe("Required. The name of the system tool.")
       .optional(),
-  }).describe("Pre-defined system tool.").optional(),
+  }).describe("Optional. The system tool.").optional(),
   timeout: z.string().describe(
     "Optional. The timeout for the tool execution. If not set, the default timeout is 30 seconds for `SYNCHRONOUS` tools and 60 seconds for `ASYNCHRONOUS` tools.",
   ).optional(),
@@ -2297,12 +2265,14 @@ const InputsSchema = z.object({
       pythonCode: z.string().describe(
         "Required. Python code which will be invoked in tool fake mode. Expected Python function signature - To catch all tool calls: def fake_tool_call(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -> Optional[dict[str, Any]]: To catch a specific tool call: def fake_{tool_id}(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -> Optional[dict[str, Any]]: If the function returns None, the real tool will be invoked instead.",
       ).optional(),
-    }).describe("A code block to be executed instead of a real tool call.")
-      .optional(),
+    }).describe(
+      "Optional. Code block which will be executed instead of a real tool call.",
+    ).optional(),
     enableFakeMode: z.boolean().describe(
       "Optional. Whether the tool is using fake mode.",
     ).optional(),
-  }).describe("Configuration for tool behavior in fake mode.").optional(),
+  }).describe("Optional. Configuration for tool behavior in fake mode.")
+    .optional(),
   widgetTool: z.object({
     dataMapping: z.object({
       fieldMappings: z.record(z.string(), z.string()).describe(
@@ -2324,9 +2294,11 @@ const InputsSchema = z.object({
           service: z.string().describe(
             "Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: `projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}`. Location of the service directory must be the same as the location of the app.",
           ).optional(),
-        }).describe("Configuration for tools using Service Directory.")
+        }).describe("Optional. Service Directory configuration for the tool.")
           .optional(),
-      }).describe("A Python function tool.").optional(),
+      }).describe(
+        "Optional. Configuration for a Python function used to transform the source tool's output into the widget's input format.",
+      ).optional(),
       pythonScript: z.string().describe(
         "Deprecated: Use `python_function` instead.",
       ).optional(),
@@ -2334,7 +2306,7 @@ const InputsSchema = z.object({
         "Optional. The resource name of the tool that provides the data for the widget (e.g., a search tool or a custom function). Format: `projects/{project}/locations/{location}/agents/{agent}/tools/{tool}`",
       ).optional(),
     }).describe(
-      "Configuration for mapping data from a source tool to the widget's input parameters.",
+      "Optional. The mapping that defines how data from a source tool is mapped to the widget's input parameters.",
     ).optional(),
     description: z.string().describe(
       "Optional. The description of the widget tool.",
@@ -2401,7 +2373,7 @@ const InputsSchema = z.object({
       uniqueItems: z.boolean().describe(
         "Optional. Indicate the items in the array must be unique. Only applies to TYPE.ARRAY.",
       ).optional(),
-    }).describe("Represents a select subset of an OpenAPI 3.0 schema object.")
+    }).describe("Optional. The input parameters of the widget tool.")
       .optional(),
     textResponseConfig: z.object({
       staticText: z.string().describe(
@@ -2413,7 +2385,7 @@ const InputsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "NONE", "LLM_GENERATED", "STATIC"])
         .describe("Optional. The strategy for providing the text response.")
         .optional(),
-    }).describe("Configuration for the text response returned with the widget.")
+    }).describe("Optional. Configuration for always-included text responses.")
       .optional(),
     uiConfig: z.record(z.string(), z.string()).describe(
       "Optional. Configuration for rendering the widget.",
@@ -2435,9 +2407,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. The type of the widget tool. If not specified, the default type will be CUSTOMIZED.",
     ).optional(),
-  }).describe(
-    "Represents a widget tool that the agent can invoke. When the tool is chosen by the agent, agent will return the widget to the client. The client is responsible for processing the widget and generating the next user query to continue the interaction with the agent.",
-  ).optional(),
+  }).describe("Optional. The widget tool.").optional(),
   toolId: z.string().describe(
     "Optional. The ID to use for the tool, which will become the final component of the tool's resource name. If not provided, a unique ID will be automatically assigned for the tool.",
   ).optional(),
@@ -2472,7 +2442,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Tools. Registered at `@swamp/gcp/ces/apps-tools`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-tools",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -2685,6 +2655,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: remoteAgentTool, timeout",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

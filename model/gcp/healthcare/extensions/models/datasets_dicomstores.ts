@@ -169,7 +169,7 @@ const GlobalArgsSchema = z.object({
       "Indicates whether or not to send Pub/Sub notifications on bulk import. Only supported for DICOM imports.",
     ).optional(),
   }).describe(
-    "Specifies where to send notifications upon changes to a data store.",
+    "Optional. Notification destination for new DICOM instances. Supplied by the client.",
   ).optional(),
   notificationConfigs: z.array(z.object({
     pubsubTopic: z.string().describe(
@@ -187,10 +187,10 @@ const GlobalArgsSchema = z.object({
         "Optional. If true, the source store name will be included as a column in the BigQuery schema.",
       ).optional(),
       schemaFlattened: z.object({}).describe(
-        "Using this field will flatten the DICOM instances into a BigQuery table. The table will have one column for each DICOM tag. The column name will be the DICOM tag's textual representation.",
+        "Optional. Setting this field will use flattened DICOM instances schema for the BigQuery table. The flattened schema will have one column for each DICOM tag.",
       ).optional(),
       schemaJson: z.object({}).describe(
-        "Using this field will set the schema such that all DICOM tags will be included in the BigQuery table as a single JSON type column. The BigQuery table schema will include the following columns: * `StudyInstanceUID` (Type: STRING): DICOM Tag 0020000D. * `SeriesInstanceUID` (Type: STRING): DICOM Tag 0020000E. * `SOPInstanceUID` (Type: STRING): DICOM Tag 00080018. * `SourceDicomStore` (Type: STRING): The name of the source DICOM store. This field is only included if the `include_source_store` option is set to true. * `Metadata` (Type: JSON): All DICOM tags for the instance, stored in a single JSON object. * `StructuredStorageSize` (Type: INTEGER): Size of the structured storage in bytes. * `DroppedTags` (Type: STRING, Repeated: Yes): List of tags that were dropped during the conversion. * `StorageClass` (Type: STRING): The storage class of the instance. * `LastUpdated` (Type: TIMESTAMP): Timestamp of the last update to the instance. * `BlobStorageSize` (Type: INTEGER): Size of the blob storage in bytes. * `Type` (Type: STRING): Indicates the type of operation (e.g., INSERT, DELETE).",
+        "Optional. Setting this field will store all the DICOM tags as a JSON type in a single column.",
       ).optional(),
       tableUri: z.string().describe(
         "Optional. BigQuery URI to a table, up to 2000 characters long, in the format `bq://projectId.bqDatasetId.tableId`",
@@ -203,8 +203,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Determines whether the existing table in the destination is to be overwritten or appended to. If a write_disposition is specified, the `force` parameter is ignored.",
       ).optional(),
-    }).describe("The BigQuery table where the server writes the output.")
-      .optional(),
+    }).describe(
+      "Results are appended to this table. The server creates a new table in the given BigQuery dataset if the specified table does not exist. To enable the Cloud Healthcare API to write to your BigQuery table, you must give the Cloud Healthcare API service account the bigquery.dataEditor role. The service account is: `service-{PROJECT_NUMBER}@gcp-sa-healthcare.iam.gserviceaccount.com`. The PROJECT_NUMBER identifies the project that the DICOM store resides in. To get the project number, go to the Cloud Console Dashboard. It is recommended to not have a custom schema in the destination table which could conflict with the schema created by the Cloud Healthcare API. Instance deletions are not applied to the destination table. The destination's table schema will be automatically updated in case a new instance's data is incompatible with the current schema. The schema should not be updated manually as this can cause incompatibilies that cannot be resolved automatically. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any instance that generates more than 1 MB of BigQuery data will not be streamed. If an instance cannot be streamed to BigQuery, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).",
+    ).optional(),
   })).describe(
     "Optional. A list of streaming configs used to configure the destination of streaming exports for every DICOM instance insertion in this DICOM store. After a new config is added to `stream_configs`, DICOM instance insertions are streamed to the new destination. When a config is removed from `stream_configs`, the server stops streaming to that destination. Each config must contain a unique destination.",
   ).optional(),
@@ -262,7 +263,7 @@ const InputsSchema = z.object({
       "Indicates whether or not to send Pub/Sub notifications on bulk import. Only supported for DICOM imports.",
     ).optional(),
   }).describe(
-    "Specifies where to send notifications upon changes to a data store.",
+    "Optional. Notification destination for new DICOM instances. Supplied by the client.",
   ).optional(),
   notificationConfigs: z.array(z.object({
     pubsubTopic: z.string().describe(
@@ -280,10 +281,10 @@ const InputsSchema = z.object({
         "Optional. If true, the source store name will be included as a column in the BigQuery schema.",
       ).optional(),
       schemaFlattened: z.object({}).describe(
-        "Using this field will flatten the DICOM instances into a BigQuery table. The table will have one column for each DICOM tag. The column name will be the DICOM tag's textual representation.",
+        "Optional. Setting this field will use flattened DICOM instances schema for the BigQuery table. The flattened schema will have one column for each DICOM tag.",
       ).optional(),
       schemaJson: z.object({}).describe(
-        "Using this field will set the schema such that all DICOM tags will be included in the BigQuery table as a single JSON type column. The BigQuery table schema will include the following columns: * `StudyInstanceUID` (Type: STRING): DICOM Tag 0020000D. * `SeriesInstanceUID` (Type: STRING): DICOM Tag 0020000E. * `SOPInstanceUID` (Type: STRING): DICOM Tag 00080018. * `SourceDicomStore` (Type: STRING): The name of the source DICOM store. This field is only included if the `include_source_store` option is set to true. * `Metadata` (Type: JSON): All DICOM tags for the instance, stored in a single JSON object. * `StructuredStorageSize` (Type: INTEGER): Size of the structured storage in bytes. * `DroppedTags` (Type: STRING, Repeated: Yes): List of tags that were dropped during the conversion. * `StorageClass` (Type: STRING): The storage class of the instance. * `LastUpdated` (Type: TIMESTAMP): Timestamp of the last update to the instance. * `BlobStorageSize` (Type: INTEGER): Size of the blob storage in bytes. * `Type` (Type: STRING): Indicates the type of operation (e.g., INSERT, DELETE).",
+        "Optional. Setting this field will store all the DICOM tags as a JSON type in a single column.",
       ).optional(),
       tableUri: z.string().describe(
         "Optional. BigQuery URI to a table, up to 2000 characters long, in the format `bq://projectId.bqDatasetId.tableId`",
@@ -296,8 +297,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Determines whether the existing table in the destination is to be overwritten or appended to. If a write_disposition is specified, the `force` parameter is ignored.",
       ).optional(),
-    }).describe("The BigQuery table where the server writes the output.")
-      .optional(),
+    }).describe(
+      "Results are appended to this table. The server creates a new table in the given BigQuery dataset if the specified table does not exist. To enable the Cloud Healthcare API to write to your BigQuery table, you must give the Cloud Healthcare API service account the bigquery.dataEditor role. The service account is: `service-{PROJECT_NUMBER}@gcp-sa-healthcare.iam.gserviceaccount.com`. The PROJECT_NUMBER identifies the project that the DICOM store resides in. To get the project number, go to the Cloud Console Dashboard. It is recommended to not have a custom schema in the destination table which could conflict with the schema created by the Cloud Healthcare API. Instance deletions are not applied to the destination table. The destination's table schema will be automatically updated in case a new instance's data is incompatible with the current schema. The schema should not be updated manually as this can cause incompatibilies that cannot be resolved automatically. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any instance that generates more than 1 MB of BigQuery data will not be streamed. If an instance cannot be streamed to BigQuery, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).",
+    ).optional(),
   })).describe(
     "Optional. A list of streaming configs used to configure the destination of streaming exports for every DICOM instance insertion in this DICOM store. After a new config is added to `stream_configs`, DICOM instance insertions are streamed to the new destination. When a config is removed from `stream_configs`, the server stops streaming to that destination. Each config must contain a unique destination.",
   ).optional(),
@@ -335,7 +337,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Healthcare Datasets.DicomStores. Registered at `@swamp/gcp/healthcare/datasets-dicomstores`. */
 export const model = {
   type: "@swamp/gcp/healthcare/datasets-dicomstores",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -439,6 +441,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

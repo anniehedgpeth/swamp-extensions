@@ -182,16 +182,6 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs",
   ).optional(),
-  policyMember: z.object({
-    iamPolicyNamePrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: `principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter`",
-    ).optional(),
-    iamPolicyUidPrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: `principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5`",
-    ).optional(),
-  }).describe(
-    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
-  ).optional(),
   parameterId: z.string().describe("Required. Id of the Parameter resource")
     .optional(),
   requestId: z.string().describe(
@@ -235,16 +225,6 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs",
   ).optional(),
-  policyMember: z.object({
-    iamPolicyNamePrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: `principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter`",
-    ).optional(),
-    iamPolicyUidPrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: `principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5`",
-    ).optional(),
-  }).describe(
-    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
-  ).optional(),
   parameterId: z.string().describe("Required. Id of the Parameter resource")
     .optional(),
   requestId: z.string().describe(
@@ -278,7 +258,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Parameter Manager Parameters. Registered at `@swamp/gcp/parametermanager/parameters`. */
 export const model = {
   type: "@swamp/gcp/parametermanager/parameters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -385,6 +365,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: policyMember",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { policyMember: _policyMember, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -412,9 +400,6 @@ export const model = {
         if (g["format"] !== undefined) body["format"] = g["format"];
         if (g["kmsKey"] !== undefined) body["kmsKey"] = g["kmsKey"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["policyMember"] !== undefined) {
-          body["policyMember"] = g["policyMember"];
-        }
         if (g["parameterId"] !== undefined) {
           params["parameterId"] = String(g["parameterId"]);
         }
@@ -434,16 +419,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -531,9 +507,6 @@ export const model = {
         if (g["format"] !== undefined) body["format"] = g["format"];
         if (g["kmsKey"] !== undefined) body["kmsKey"] = g["kmsKey"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["policyMember"] !== undefined) {
-          body["policyMember"] = g["policyMember"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

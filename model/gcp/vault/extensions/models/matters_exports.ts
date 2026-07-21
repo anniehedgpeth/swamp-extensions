@@ -140,19 +140,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  cloudStorageSink: z.object({
-    files: z.array(z.object({
-      bucketName: z.string().describe(
-        "The name of the Cloud Storage bucket for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api), but not to list the bucket contents. Instead, you can [get individual export files](https://cloud.google.com/storage/docs/json_api/v1/objects/get) by object name.",
-      ).optional(),
-      md5Hash: z.string().describe("The md5 hash of the file.").optional(),
-      objectName: z.string().describe(
-        "The name of the Cloud Storage object for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api).",
-      ).optional(),
-      size: z.string().describe("The export file size.").optional(),
-    })).describe("Output only. The exported files in Cloud Storage.")
-      .optional(),
-  }).describe("Export sink for Cloud Storage files.").optional(),
   exportOptions: z.object({
     calendarOptions: z.object({
       exportFormat: z.enum([
@@ -163,7 +150,7 @@ const GlobalArgsSchema = z.object({
         "XML",
         "JSON",
       ]).describe("The file format for exported text messages.").optional(),
-    }).describe("The options for Calendar exports.").optional(),
+    }).describe("Option available for Calendar export.").optional(),
     driveOptions: z.object({
       includeAccessInfo: z.boolean().describe(
         "To include access level information for users with [indirect access](https://support.google.com/vault/answer/6099459#metadata) to files, set to **true**.",
@@ -178,7 +165,7 @@ const GlobalArgsSchema = z.object({
         "XML",
         "JSON",
       ]).describe("The file format for exported messages.").optional(),
-    }).describe("The options for Gemini exports.").optional(),
+    }).describe("Option available for Gemini export.").optional(),
     groupsOptions: z.object({
       exportFormat: z.enum([
         "EXPORT_FORMAT_UNSPECIFIED",
@@ -229,8 +216,8 @@ const GlobalArgsSchema = z.object({
         "XML",
         "JSON",
       ]).describe("The file format for exported text messages.").optional(),
-    }).describe("The options for Voice exports.").optional(),
-  }).describe("Additional options for exports").optional(),
+    }).describe("Options for Voice exports.").optional(),
+  }).describe("Additional export options.").optional(),
   matterId: z.string().describe("Output only. The matter ID.").optional(),
   name: z.string().describe(
     "The export name. Don't use special characters (~!$'(),;@:/?) in the name, they can prevent you from downloading exports.",
@@ -239,7 +226,7 @@ const GlobalArgsSchema = z.object({
     accountInfo: z.object({
       emails: z.array(z.string()).describe("A set of accounts to search.")
         .optional(),
-    }).describe("The accounts to search").optional(),
+    }).describe("Required when **SearchMethod** is **ACCOUNT**.").optional(),
     calendarOptions: z.object({
       locationQuery: z.array(z.string()).describe(
         'Matches only those events whose location contains all of the words in the given set. If the string contains quoted phrases, this method only matches those events whose location contain the exact phrase. Entries in the set are considered in "and". Word splitting example: ["New Zealand"] vs ["New","Zealand"] "New Zealand": matched by both "New and better Zealand": only matched by the later',
@@ -264,7 +251,7 @@ const GlobalArgsSchema = z.object({
       versionDate: z.string().describe(
         "Search the current version of the Calendar event, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.",
       ).optional(),
-    }).describe("Additional options for Calendar search").optional(),
+    }).describe("Set Calendar search-specific options.").optional(),
     corpus: z.enum([
       "CORPUS_TYPE_UNSPECIFIED",
       "DRIVE",
@@ -287,7 +274,8 @@ const GlobalArgsSchema = z.object({
           "Required. A list of Drive document IDs.",
         ).optional(),
       }).describe("Specify Drive documents by document ID.").optional(),
-    }).describe("The Drive documents to search.").optional(),
+    }).describe("Required when **SearchMethod** is **DRIVE_DOCUMENT**.")
+      .optional(),
     driveOptions: z.object({
       clientSideEncryptedOption: z.enum([
         "CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED",
@@ -314,22 +302,23 @@ const GlobalArgsSchema = z.object({
       versionDate: z.string().describe(
         "Search the current version of the Drive file, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.",
       ).optional(),
-    }).describe("Additional options for Drive search.").optional(),
+    }).describe("Set Drive search-specific options.").optional(),
     endTime: z.string().describe(
       "The end time for the search query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
     ).optional(),
-    geminiOptions: z.object({}).describe("Additional options for Gemini search")
+    geminiOptions: z.object({}).describe("Set Gemini search-specific options.")
       .optional(),
     hangoutsChatInfo: z.object({
       roomId: z.array(z.string()).describe(
         "A list of Chat spaces IDs, as provided by the [Chat API](https://developers.google.com/workspace/chat). There is a limit of exporting from 500 Chat spaces per request.",
       ).optional(),
-    }).describe("The Chat spaces to search").optional(),
+    }).describe("Required when **SearchMethod** is **ROOM**. (read-only)")
+      .optional(),
     hangoutsChatOptions: z.object({
       includeRooms: z.boolean().describe(
         "For searches by account or organizational unit, set to **true** to include rooms.",
       ).optional(),
-    }).describe("Additional options for Google Chat search").optional(),
+    }).describe("Set Chat search-specific options. (read-only)").optional(),
     mailOptions: z.object({
       clientSideEncryptedOption: z.enum([
         "CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED",
@@ -341,7 +330,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       excludeDrafts: z.boolean().describe("Set to **true** to exclude drafts.")
         .optional(),
-    }).describe("Additional options for Gmail search").optional(),
+    }).describe("Set Gmail search-specific options.").optional(),
     method: z.enum([
       "SEARCH_METHOD_UNSPECIFIED",
       "ACCOUNT",
@@ -359,7 +348,7 @@ const GlobalArgsSchema = z.object({
       orgUnitId: z.string().describe(
         "The name of the organizational unit to search, as provided by the [Admin SDK Directory API](https://developers.google.com/admin-sdk/directory/).",
       ).optional(),
-    }).describe("The organizational unit to search").optional(),
+    }).describe("Required when **SearchMethod** is **ORG_UNIT**.").optional(),
     searchMethod: z.enum([
       "SEARCH_METHOD_UNSPECIFIED",
       "ACCOUNT",
@@ -375,12 +364,12 @@ const GlobalArgsSchema = z.object({
       sharedDriveIds: z.array(z.string()).describe(
         "A list of shared drive IDs, as provided by the [Drive API](https://developers.google.com/drive).",
       ).optional(),
-    }).describe("The shared drives to search").optional(),
+    }).describe("Required when **SearchMethod** is **SHARED_DRIVE**.")
+      .optional(),
     sitesUrlInfo: z.object({
       urls: z.array(z.string()).describe("A list of published site URLs.")
         .optional(),
-    }).describe("The published site URLs of new Google Sites to search")
-      .optional(),
+    }).describe("Required when **SearchMethod** is **SITES_URL**.").optional(),
     startTime: z.string().describe(
       "The start time for the search query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
     ).optional(),
@@ -388,7 +377,7 @@ const GlobalArgsSchema = z.object({
       teamDriveIds: z.array(z.string()).describe(
         "List of Team Drive IDs, as provided by the [Drive API](https://developers.google.com/drive).",
       ).optional(),
-    }).describe("Team Drives to search").optional(),
+    }).describe("Required when **SearchMethod** is **TEAM_DRIVE**.").optional(),
     terms: z.string().describe(
       "Service-specific [search operators](https://support.google.com/vault/answer/2474474) to filter search results.",
     ).optional(),
@@ -404,22 +393,8 @@ const GlobalArgsSchema = z.object({
           "CALL_LOGS",
         ]),
       ).describe("Datatypes to search").optional(),
-    }).describe("Additional options for Voice search").optional(),
-  }).describe("The query definition used for search and export.").optional(),
-  requester: z.object({
-    displayName: z.string().describe("The displayed name of the user.")
-      .optional(),
-    email: z.string().describe("The email address of the user.").optional(),
-  }).describe("User's information.").optional(),
-  stats: z.object({
-    exportedArtifactCount: z.string().describe(
-      "The number of messages or files already processed for export.",
-    ).optional(),
-    sizeInBytes: z.string().describe("The size of export in bytes.").optional(),
-    totalArtifactCount: z.string().describe(
-      "The number of messages or files to be exported.",
-    ).optional(),
-  }).describe("Progress information for an export.").optional(),
+    }).describe("Set Voice search-specific options.").optional(),
+  }).describe("The query parameters used to create the export.").optional(),
 });
 
 const StateSchema = z.object({
@@ -540,19 +515,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  cloudStorageSink: z.object({
-    files: z.array(z.object({
-      bucketName: z.string().describe(
-        "The name of the Cloud Storage bucket for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api), but not to list the bucket contents. Instead, you can [get individual export files](https://cloud.google.com/storage/docs/json_api/v1/objects/get) by object name.",
-      ).optional(),
-      md5Hash: z.string().describe("The md5 hash of the file.").optional(),
-      objectName: z.string().describe(
-        "The name of the Cloud Storage object for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api).",
-      ).optional(),
-      size: z.string().describe("The export file size.").optional(),
-    })).describe("Output only. The exported files in Cloud Storage.")
-      .optional(),
-  }).describe("Export sink for Cloud Storage files.").optional(),
   exportOptions: z.object({
     calendarOptions: z.object({
       exportFormat: z.enum([
@@ -563,7 +525,7 @@ const InputsSchema = z.object({
         "XML",
         "JSON",
       ]).describe("The file format for exported text messages.").optional(),
-    }).describe("The options for Calendar exports.").optional(),
+    }).describe("Option available for Calendar export.").optional(),
     driveOptions: z.object({
       includeAccessInfo: z.boolean().describe(
         "To include access level information for users with [indirect access](https://support.google.com/vault/answer/6099459#metadata) to files, set to **true**.",
@@ -578,7 +540,7 @@ const InputsSchema = z.object({
         "XML",
         "JSON",
       ]).describe("The file format for exported messages.").optional(),
-    }).describe("The options for Gemini exports.").optional(),
+    }).describe("Option available for Gemini export.").optional(),
     groupsOptions: z.object({
       exportFormat: z.enum([
         "EXPORT_FORMAT_UNSPECIFIED",
@@ -629,8 +591,8 @@ const InputsSchema = z.object({
         "XML",
         "JSON",
       ]).describe("The file format for exported text messages.").optional(),
-    }).describe("The options for Voice exports.").optional(),
-  }).describe("Additional options for exports").optional(),
+    }).describe("Options for Voice exports.").optional(),
+  }).describe("Additional export options.").optional(),
   matterId: z.string().describe("Output only. The matter ID.").optional(),
   name: z.string().describe(
     "The export name. Don't use special characters (~!$'(),;@:/?) in the name, they can prevent you from downloading exports.",
@@ -639,7 +601,7 @@ const InputsSchema = z.object({
     accountInfo: z.object({
       emails: z.array(z.string()).describe("A set of accounts to search.")
         .optional(),
-    }).describe("The accounts to search").optional(),
+    }).describe("Required when **SearchMethod** is **ACCOUNT**.").optional(),
     calendarOptions: z.object({
       locationQuery: z.array(z.string()).describe(
         'Matches only those events whose location contains all of the words in the given set. If the string contains quoted phrases, this method only matches those events whose location contain the exact phrase. Entries in the set are considered in "and". Word splitting example: ["New Zealand"] vs ["New","Zealand"] "New Zealand": matched by both "New and better Zealand": only matched by the later',
@@ -664,7 +626,7 @@ const InputsSchema = z.object({
       versionDate: z.string().describe(
         "Search the current version of the Calendar event, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.",
       ).optional(),
-    }).describe("Additional options for Calendar search").optional(),
+    }).describe("Set Calendar search-specific options.").optional(),
     corpus: z.enum([
       "CORPUS_TYPE_UNSPECIFIED",
       "DRIVE",
@@ -687,7 +649,8 @@ const InputsSchema = z.object({
           "Required. A list of Drive document IDs.",
         ).optional(),
       }).describe("Specify Drive documents by document ID.").optional(),
-    }).describe("The Drive documents to search.").optional(),
+    }).describe("Required when **SearchMethod** is **DRIVE_DOCUMENT**.")
+      .optional(),
     driveOptions: z.object({
       clientSideEncryptedOption: z.enum([
         "CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED",
@@ -714,22 +677,23 @@ const InputsSchema = z.object({
       versionDate: z.string().describe(
         "Search the current version of the Drive file, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.",
       ).optional(),
-    }).describe("Additional options for Drive search.").optional(),
+    }).describe("Set Drive search-specific options.").optional(),
     endTime: z.string().describe(
       "The end time for the search query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
     ).optional(),
-    geminiOptions: z.object({}).describe("Additional options for Gemini search")
+    geminiOptions: z.object({}).describe("Set Gemini search-specific options.")
       .optional(),
     hangoutsChatInfo: z.object({
       roomId: z.array(z.string()).describe(
         "A list of Chat spaces IDs, as provided by the [Chat API](https://developers.google.com/workspace/chat). There is a limit of exporting from 500 Chat spaces per request.",
       ).optional(),
-    }).describe("The Chat spaces to search").optional(),
+    }).describe("Required when **SearchMethod** is **ROOM**. (read-only)")
+      .optional(),
     hangoutsChatOptions: z.object({
       includeRooms: z.boolean().describe(
         "For searches by account or organizational unit, set to **true** to include rooms.",
       ).optional(),
-    }).describe("Additional options for Google Chat search").optional(),
+    }).describe("Set Chat search-specific options. (read-only)").optional(),
     mailOptions: z.object({
       clientSideEncryptedOption: z.enum([
         "CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED",
@@ -741,7 +705,7 @@ const InputsSchema = z.object({
       ).optional(),
       excludeDrafts: z.boolean().describe("Set to **true** to exclude drafts.")
         .optional(),
-    }).describe("Additional options for Gmail search").optional(),
+    }).describe("Set Gmail search-specific options.").optional(),
     method: z.enum([
       "SEARCH_METHOD_UNSPECIFIED",
       "ACCOUNT",
@@ -759,7 +723,7 @@ const InputsSchema = z.object({
       orgUnitId: z.string().describe(
         "The name of the organizational unit to search, as provided by the [Admin SDK Directory API](https://developers.google.com/admin-sdk/directory/).",
       ).optional(),
-    }).describe("The organizational unit to search").optional(),
+    }).describe("Required when **SearchMethod** is **ORG_UNIT**.").optional(),
     searchMethod: z.enum([
       "SEARCH_METHOD_UNSPECIFIED",
       "ACCOUNT",
@@ -775,12 +739,12 @@ const InputsSchema = z.object({
       sharedDriveIds: z.array(z.string()).describe(
         "A list of shared drive IDs, as provided by the [Drive API](https://developers.google.com/drive).",
       ).optional(),
-    }).describe("The shared drives to search").optional(),
+    }).describe("Required when **SearchMethod** is **SHARED_DRIVE**.")
+      .optional(),
     sitesUrlInfo: z.object({
       urls: z.array(z.string()).describe("A list of published site URLs.")
         .optional(),
-    }).describe("The published site URLs of new Google Sites to search")
-      .optional(),
+    }).describe("Required when **SearchMethod** is **SITES_URL**.").optional(),
     startTime: z.string().describe(
       "The start time for the search query. Specify in GMT. The value is rounded to 12 AM on the specified date.",
     ).optional(),
@@ -788,7 +752,7 @@ const InputsSchema = z.object({
       teamDriveIds: z.array(z.string()).describe(
         "List of Team Drive IDs, as provided by the [Drive API](https://developers.google.com/drive).",
       ).optional(),
-    }).describe("Team Drives to search").optional(),
+    }).describe("Required when **SearchMethod** is **TEAM_DRIVE**.").optional(),
     terms: z.string().describe(
       "Service-specific [search operators](https://support.google.com/vault/answer/2474474) to filter search results.",
     ).optional(),
@@ -804,22 +768,8 @@ const InputsSchema = z.object({
           "CALL_LOGS",
         ]),
       ).describe("Datatypes to search").optional(),
-    }).describe("Additional options for Voice search").optional(),
-  }).describe("The query definition used for search and export.").optional(),
-  requester: z.object({
-    displayName: z.string().describe("The displayed name of the user.")
-      .optional(),
-    email: z.string().describe("The email address of the user.").optional(),
-  }).describe("User's information.").optional(),
-  stats: z.object({
-    exportedArtifactCount: z.string().describe(
-      "The number of messages or files already processed for export.",
-    ).optional(),
-    sizeInBytes: z.string().describe("The size of export in bytes.").optional(),
-    totalArtifactCount: z.string().describe(
-      "The number of messages or files to be exported.",
-    ).optional(),
-  }).describe("Progress information for an export.").optional(),
+    }).describe("Set Voice search-specific options.").optional(),
+  }).describe("The query parameters used to create the export.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -845,7 +795,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Vault Matters.Exports. Registered at `@swamp/gcp/vault/matters-exports`. */
 export const model = {
   type: "@swamp/gcp/vault/matters-exports",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -947,6 +897,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cloudStorageSink, requester, stats",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          cloudStorageSink: _cloudStorageSink,
+          requester: _requester,
+          stats: _stats,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -976,16 +939,11 @@ export const model = {
           params["matterId"] = String(g["matterId"]);
         }
         const body: Record<string, unknown> = {};
-        if (g["cloudStorageSink"] !== undefined) {
-          body["cloudStorageSink"] = g["cloudStorageSink"];
-        }
         if (g["exportOptions"] !== undefined) {
           body["exportOptions"] = g["exportOptions"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["query"] !== undefined) body["query"] = g["query"];
-        if (g["requester"] !== undefined) body["requester"] = g["requester"];
-        if (g["stats"] !== undefined) body["stats"] = g["stats"];
         if (g["name"] !== undefined) params["exportId"] = String(g["name"]);
         const result = await createResource(
           BASE_URL,

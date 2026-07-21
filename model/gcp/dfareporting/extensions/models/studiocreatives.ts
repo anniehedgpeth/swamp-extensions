@@ -96,13 +96,17 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "The timestamp when the studio creative was created. This is a read-only, auto-generated field.",
+  ).optional(),
   dimension: z.object({
     height: z.number().int().describe("Height of the studio creative.")
       .optional(),
     width: z.number().int().describe("Width of the studio creative.")
       .optional(),
-  }).describe("Dimension information for a studio creative.").optional(),
+  }).describe(
+    "Dimension of this studio creative. This is a required field on insertion if format is BANNER or EXPANDING.",
+  ).optional(),
   dynamicProfileId: z.string().describe(
     "Dynamic profile ID of this studio creative.",
   ).optional(),
@@ -119,7 +123,9 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "The timestamp when the studio creative was last modified. This is a read-only, auto-generated field.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. Name of this studio creative. This is a required field on insertion.",
   ).optional(),
@@ -174,13 +180,17 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "The timestamp when the studio creative was created. This is a read-only, auto-generated field.",
+  ).optional(),
   dimension: z.object({
     height: z.number().int().describe("Height of the studio creative.")
       .optional(),
     width: z.number().int().describe("Width of the studio creative.")
       .optional(),
-  }).describe("Dimension information for a studio creative.").optional(),
+  }).describe(
+    "Dimension of this studio creative. This is a required field on insertion if format is BANNER or EXPANDING.",
+  ).optional(),
   dynamicProfileId: z.string().describe(
     "Dynamic profile ID of this studio creative.",
   ).optional(),
@@ -197,7 +207,9 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "The timestamp when the studio creative was last modified. This is a read-only, auto-generated field.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. Name of this studio creative. This is a required field on insertion.",
   ).optional(),
@@ -235,7 +247,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 StudioCreatives. Registered at `@swamp/gcp/dfareporting/studiocreatives`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/studiocreatives",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -324,6 +336,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

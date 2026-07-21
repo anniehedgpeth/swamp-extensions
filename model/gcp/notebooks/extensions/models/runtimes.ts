@@ -182,36 +182,9 @@ const GlobalArgsSchema = z.object({
     runtimeOwner: z.string().describe(
       "The owner of this runtime after creation. Format: `alias@example.com` Currently supports one owner only.",
     ).optional(),
-  }).describe("Specifies the login configuration for Runtime").optional(),
+  }).describe("The config settings for accessing runtime.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels to associate with this Managed Notebook or Runtime. Label **keys** must contain 1 to 63 characters, and must conform to [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt). Label **values** may be empty, but, if present, must contain 1 to 63 characters, and must conform to [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a cluster.",
-  ).optional(),
-  metrics: z.object({
-    systemMetrics: z.record(z.string(), z.string()).describe(
-      "Output only. The system metrics.",
-    ).optional(),
-  }).describe(
-    "Contains runtime daemon metrics, such as OS and kernels and sessions stats.",
-  ).optional(),
-  runtimeMigrationEligibility: z.object({
-    errors: z.array(z.enum(["ERROR_UNSPECIFIED", "CUSTOM_CONTAINER"])).describe(
-      "Output only. Certain configurations make the GmN ineligible for an automatic migration. A manual migration is required.",
-    ).optional(),
-    warnings: z.array(
-      z.enum([
-        "WARNING_UNSPECIFIED",
-        "UNSUPPORTED_ACCELERATOR_TYPE",
-        "UNSUPPORTED_OS",
-        "RESERVED_IP_RANGE",
-        "GOOGLE_MANAGED_NETWORK",
-        "POST_STARTUP_SCRIPT",
-        "SINGLE_USER",
-      ]),
-    ).describe(
-      "Output only. Certain configurations will be defaulted during the migration.",
-    ).optional(),
-  }).describe(
-    "RuntimeMigrationEligibility represents the feasibility information of a migration from GmN to WbI.",
   ).optional(),
   softwareConfig: z.object({
     customGpuDriverPath: z.string().describe(
@@ -262,9 +235,8 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       "Output only. version of boot image such as M100, from release label of the image.",
     ).optional(),
-  }).describe(
-    "Specifies the selection and configuration of software inside the runtime. The properties to set on runtime. Properties keys are specified in `key:value` format, for example: * `idle_shutdown: true` * `idle_shutdown_timeout: 180` * `enable_health_monitoring: true`",
-  ).optional(),
+  }).describe("The config settings for software inside the runtime.")
+    .optional(),
   virtualMachine: z.object({
     instanceId: z.string().describe(
       "Output only. The unique identifier of the Managed Compute Engine instance.",
@@ -292,10 +264,10 @@ const GlobalArgsSchema = z.object({
           "NVIDIA_TESLA_P4_VWS",
         ]).describe("Accelerator model.").optional(),
       }).describe(
-        "Definition of the types of hardware accelerators that can be used. See [Compute Engine AcceleratorTypes](https://cloud.google.com/compute/docs/reference/beta/acceleratorTypes). Examples: * `nvidia-tesla-k80` * `nvidia-tesla-p100` * `nvidia-tesla-v100` * `nvidia-tesla-p4` * `nvidia-tesla-t4` * `nvidia-tesla-a100`",
+        "Optional. The Compute Engine accelerator configuration for this runtime.",
       ).optional(),
       bootImage: z.object({}).describe(
-        "Definition of the boot image used by the Runtime. Used to facilitate runtime upgradeability.",
+        "Optional. Boot image metadata used for runtime upgradeability.",
       ).optional(),
       containerImages: z.array(z.object({
         repository: z.string().describe(
@@ -350,7 +322,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Labels to apply to this disk. These can be later modified by the disks.setLabels method. This field is only applicable for persistent disks.",
           ).optional(),
         }).describe(
-          "Input only. Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new runtime. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
+          "Input only. Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
         ).optional(),
         interface: z.string().describe(
           "Specifies the disk interface to use for attaching this disk, which is either SCSI or NVME. The default is SCSI. Persistent disks must always use SCSI and the request will fail if you attempt to attach a persistent disk in any other format than SCSI. Local SSDs can use either NVME or SCSI. For performance characteristics of SCSI over NVMe, see Local SSD performance. Valid values: * `NVME` * `SCSI`",
@@ -370,13 +342,14 @@ const GlobalArgsSchema = z.object({
         type: z.string().describe(
           "Specifies the type of the disk, either `SCRATCH` or `PERSISTENT`. If not specified, the default is `PERSISTENT`. Valid values: * `PERSISTENT` * `SCRATCH`",
         ).optional(),
-      }).describe("A Local attached disk resource.").optional(),
+      }).describe("Required. Data disk option configuration settings.")
+        .optional(),
       encryptionConfig: z.object({
         kmsKey: z.string().describe(
           "The Cloud KMS resource identifier of the customer-managed encryption key used to protect a resource, such as a disks. It has the following format: `projects/{PROJECT_ID}/locations/{REGION}/keyRings/{KEY_RING_NAME}/cryptoKeys/{KEY_NAME}`",
         ).optional(),
       }).describe(
-        "Represents a custom encryption key configuration that can be applied to a resource. This will encrypt all disks in Virtual Machine.",
+        "Optional. Encryption settings for virtual machine data disk.",
       ).optional(),
       guestAttributes: z.record(z.string(), z.string()).describe(
         "Output only. The Compute Engine guest attributes. (see [Project and instance guest attributes](https://cloud.google.com/compute/docs/storing-retrieving-metadata#guest_attributes)).",
@@ -412,9 +385,8 @@ const GlobalArgsSchema = z.object({
         enableVtpm: z.boolean().describe(
           "Defines whether the instance has the vTPM enabled. Enabled by default.",
         ).optional(),
-      }).describe(
-        "A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm). Not all combinations are valid.",
-      ).optional(),
+      }).describe("Optional. Shielded VM Instance configuration settings.")
+        .optional(),
       subnet: z.string().describe(
         "Optional. The Compute Engine subnetwork to be used for machine communications. Cannot be specified with network. A full URL or partial URI are valid. Examples: * `https://www.googleapis.com/compute/v1/projects/[project_id]/regions/us-east1/subnetworks/sub0` * `projects/[project_id]/regions/us-east1/subnetworks/sub0`",
       ).optional(),
@@ -424,8 +396,10 @@ const GlobalArgsSchema = z.object({
       zone: z.string().describe(
         "Output only. The zone where the virtual machine is located. If using regional request, the notebooks service will pick a location in the corresponding runtime region. On a get request, zone will always be present. Example: * `us-central1-b`",
       ).optional(),
-    }).describe("The config settings for virtual machine.").optional(),
-  }).describe("Runtime using Virtual Machine for computing.").optional(),
+    }).describe("Virtual Machine configuration settings.").optional(),
+  }).describe(
+    "Use a Compute Engine VM image to start the managed notebook instance.",
+  ).optional(),
   requestId: z.string().describe("Idempotent request UUID.").optional(),
   runtimeId: z.string().describe(
     "Required. User-defined unique ID of this Runtime.",
@@ -551,36 +525,9 @@ const InputsSchema = z.object({
     runtimeOwner: z.string().describe(
       "The owner of this runtime after creation. Format: `alias@example.com` Currently supports one owner only.",
     ).optional(),
-  }).describe("Specifies the login configuration for Runtime").optional(),
+  }).describe("The config settings for accessing runtime.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels to associate with this Managed Notebook or Runtime. Label **keys** must contain 1 to 63 characters, and must conform to [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt). Label **values** may be empty, but, if present, must contain 1 to 63 characters, and must conform to [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a cluster.",
-  ).optional(),
-  metrics: z.object({
-    systemMetrics: z.record(z.string(), z.string()).describe(
-      "Output only. The system metrics.",
-    ).optional(),
-  }).describe(
-    "Contains runtime daemon metrics, such as OS and kernels and sessions stats.",
-  ).optional(),
-  runtimeMigrationEligibility: z.object({
-    errors: z.array(z.enum(["ERROR_UNSPECIFIED", "CUSTOM_CONTAINER"])).describe(
-      "Output only. Certain configurations make the GmN ineligible for an automatic migration. A manual migration is required.",
-    ).optional(),
-    warnings: z.array(
-      z.enum([
-        "WARNING_UNSPECIFIED",
-        "UNSUPPORTED_ACCELERATOR_TYPE",
-        "UNSUPPORTED_OS",
-        "RESERVED_IP_RANGE",
-        "GOOGLE_MANAGED_NETWORK",
-        "POST_STARTUP_SCRIPT",
-        "SINGLE_USER",
-      ]),
-    ).describe(
-      "Output only. Certain configurations will be defaulted during the migration.",
-    ).optional(),
-  }).describe(
-    "RuntimeMigrationEligibility represents the feasibility information of a migration from GmN to WbI.",
   ).optional(),
   softwareConfig: z.object({
     customGpuDriverPath: z.string().describe(
@@ -631,9 +578,8 @@ const InputsSchema = z.object({
     version: z.string().describe(
       "Output only. version of boot image such as M100, from release label of the image.",
     ).optional(),
-  }).describe(
-    "Specifies the selection and configuration of software inside the runtime. The properties to set on runtime. Properties keys are specified in `key:value` format, for example: * `idle_shutdown: true` * `idle_shutdown_timeout: 180` * `enable_health_monitoring: true`",
-  ).optional(),
+  }).describe("The config settings for software inside the runtime.")
+    .optional(),
   virtualMachine: z.object({
     instanceId: z.string().describe(
       "Output only. The unique identifier of the Managed Compute Engine instance.",
@@ -661,10 +607,10 @@ const InputsSchema = z.object({
           "NVIDIA_TESLA_P4_VWS",
         ]).describe("Accelerator model.").optional(),
       }).describe(
-        "Definition of the types of hardware accelerators that can be used. See [Compute Engine AcceleratorTypes](https://cloud.google.com/compute/docs/reference/beta/acceleratorTypes). Examples: * `nvidia-tesla-k80` * `nvidia-tesla-p100` * `nvidia-tesla-v100` * `nvidia-tesla-p4` * `nvidia-tesla-t4` * `nvidia-tesla-a100`",
+        "Optional. The Compute Engine accelerator configuration for this runtime.",
       ).optional(),
       bootImage: z.object({}).describe(
-        "Definition of the boot image used by the Runtime. Used to facilitate runtime upgradeability.",
+        "Optional. Boot image metadata used for runtime upgradeability.",
       ).optional(),
       containerImages: z.array(z.object({
         repository: z.string().describe(
@@ -719,7 +665,7 @@ const InputsSchema = z.object({
             "Optional. Labels to apply to this disk. These can be later modified by the disks.setLabels method. This field is only applicable for persistent disks.",
           ).optional(),
         }).describe(
-          "Input only. Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new runtime. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
+          "Input only. Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
         ).optional(),
         interface: z.string().describe(
           "Specifies the disk interface to use for attaching this disk, which is either SCSI or NVME. The default is SCSI. Persistent disks must always use SCSI and the request will fail if you attempt to attach a persistent disk in any other format than SCSI. Local SSDs can use either NVME or SCSI. For performance characteristics of SCSI over NVMe, see Local SSD performance. Valid values: * `NVME` * `SCSI`",
@@ -739,13 +685,14 @@ const InputsSchema = z.object({
         type: z.string().describe(
           "Specifies the type of the disk, either `SCRATCH` or `PERSISTENT`. If not specified, the default is `PERSISTENT`. Valid values: * `PERSISTENT` * `SCRATCH`",
         ).optional(),
-      }).describe("A Local attached disk resource.").optional(),
+      }).describe("Required. Data disk option configuration settings.")
+        .optional(),
       encryptionConfig: z.object({
         kmsKey: z.string().describe(
           "The Cloud KMS resource identifier of the customer-managed encryption key used to protect a resource, such as a disks. It has the following format: `projects/{PROJECT_ID}/locations/{REGION}/keyRings/{KEY_RING_NAME}/cryptoKeys/{KEY_NAME}`",
         ).optional(),
       }).describe(
-        "Represents a custom encryption key configuration that can be applied to a resource. This will encrypt all disks in Virtual Machine.",
+        "Optional. Encryption settings for virtual machine data disk.",
       ).optional(),
       guestAttributes: z.record(z.string(), z.string()).describe(
         "Output only. The Compute Engine guest attributes. (see [Project and instance guest attributes](https://cloud.google.com/compute/docs/storing-retrieving-metadata#guest_attributes)).",
@@ -781,9 +728,8 @@ const InputsSchema = z.object({
         enableVtpm: z.boolean().describe(
           "Defines whether the instance has the vTPM enabled. Enabled by default.",
         ).optional(),
-      }).describe(
-        "A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm). Not all combinations are valid.",
-      ).optional(),
+      }).describe("Optional. Shielded VM Instance configuration settings.")
+        .optional(),
       subnet: z.string().describe(
         "Optional. The Compute Engine subnetwork to be used for machine communications. Cannot be specified with network. A full URL or partial URI are valid. Examples: * `https://www.googleapis.com/compute/v1/projects/[project_id]/regions/us-east1/subnetworks/sub0` * `projects/[project_id]/regions/us-east1/subnetworks/sub0`",
       ).optional(),
@@ -793,8 +739,10 @@ const InputsSchema = z.object({
       zone: z.string().describe(
         "Output only. The zone where the virtual machine is located. If using regional request, the notebooks service will pick a location in the corresponding runtime region. On a get request, zone will always be present. Example: * `us-central1-b`",
       ).optional(),
-    }).describe("The config settings for virtual machine.").optional(),
-  }).describe("Runtime using Virtual Machine for computing.").optional(),
+    }).describe("Virtual Machine configuration settings.").optional(),
+  }).describe(
+    "Use a Compute Engine VM image to start the managed notebook instance.",
+  ).optional(),
   requestId: z.string().describe("Idempotent request UUID.").optional(),
   runtimeId: z.string().describe(
     "Required. User-defined unique ID of this Runtime.",
@@ -827,7 +775,21 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Runtimes. Registered at `@swamp/gcp/notebooks/runtimes`. */
 export const model = {
   type: "@swamp/gcp/notebooks/runtimes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: metrics, runtimeMigrationEligibility",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          metrics: _metrics,
+          runtimeMigrationEligibility: _runtimeMigrationEligibility,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -860,11 +822,6 @@ export const model = {
           body["accessConfig"] = g["accessConfig"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["metrics"] !== undefined) body["metrics"] = g["metrics"];
-        if (g["runtimeMigrationEligibility"] !== undefined) {
-          body["runtimeMigrationEligibility"] =
-            g["runtimeMigrationEligibility"];
-        }
         if (g["softwareConfig"] !== undefined) {
           body["softwareConfig"] = g["softwareConfig"];
         }
@@ -896,16 +853,7 @@ export const model = {
               "failedValues": ["STOPPED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1000,11 +948,6 @@ export const model = {
           body["accessConfig"] = g["accessConfig"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["metrics"] !== undefined) body["metrics"] = g["metrics"];
-        if (g["runtimeMigrationEligibility"] !== undefined) {
-          body["runtimeMigrationEligibility"] =
-            g["runtimeMigrationEligibility"];
-        }
         if (g["softwareConfig"] !== undefined) {
           body["softwareConfig"] = g["softwareConfig"];
         }

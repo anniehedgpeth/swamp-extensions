@@ -200,10 +200,11 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
+      }).describe("Required. Client secret for OAuth Client Credentials.")
+        .optional(),
+    }).describe(
+      "Required. Credentials for authenticating with the Dataverse API.",
+    ).optional(),
     tenantId: z.string().describe(
       "Required. Tenant id of the Microsoft Dataverse instance.",
     ).optional(),
@@ -219,7 +220,7 @@ const GlobalArgsSchema = z.object({
     privateKey: z.string().describe("Input only. SSH private key.").optional(),
     username: z.string().describe("Required. Username for the SSH tunnel.")
       .optional(),
-  }).describe("Forward SSH Tunnel connectivity.").optional(),
+  }).describe("Forward SSH tunnel connectivity.").optional(),
   gcsProfile: z.object({
     bucket: z.string().describe("Required. The Cloud Storage bucket name.")
       .optional(),
@@ -274,7 +275,8 @@ const GlobalArgsSchema = z.object({
       secretManagerStoredClientKey: z.string().describe(
         "Optional. Input only. A reference to a Secret Manager resource name storing the PEM-encoded private key associated with the Client Certificate. If this field is used then the 'client_certificate' and the 'ca_certificate' fields are mandatory. Mutually exclusive with the `client_key` field.",
       ).optional(),
-    }).describe("MongoDB SSL configuration information.").optional(),
+    }).describe("Optional. SSL configuration for the MongoDB connection.")
+      .optional(),
     standardConnectionFormat: z.object({
       directConnection: z.boolean().describe(
         'Optional. Deprecated: Use the `additional_options` map to specify the `directConnection` parameter instead. For example: `additional_options = {"directConnection": "true"}`. Specifies whether the client connects directly to the host[:port] in the connection URI.',
@@ -316,7 +318,7 @@ const GlobalArgsSchema = z.object({
       clientKeySet: z.boolean().describe(
         "Output only. Indicates whether the client_key field is set.",
       ).optional(),
-    }).describe("MySQL SSL configuration information.").optional(),
+    }).describe("SSL configuration for the MySQL connection.").optional(),
     username: z.string().describe(
       "Required. Username for the MySQL connection.",
     ).optional(),
@@ -351,7 +353,8 @@ const GlobalArgsSchema = z.object({
         serverCertificateDistinguishedName: z.string().describe(
           "Optional. The distinguished name (DN) mentioned in the server certificate. This corresponds to SSL_SERVER_CERT_DN sqlnet parameter. Refer https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-70AB0695-A9AA-4A94-B141-4C605236EEB7 If this field is not provided, the DN matching is not enforced.",
         ).optional(),
-      }).describe("Oracle SSL configuration information.").optional(),
+      }).describe("Optional. SSL configuration for the Oracle connection.")
+        .optional(),
       password: z.string().describe(
         "Optional. Password for the Oracle ASM connection. Mutually exclusive with the `secret_manager_stored_password` field.",
       ).optional(),
@@ -364,9 +367,8 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Required. Username for the Oracle ASM connection.",
       ).optional(),
-    }).describe(
-      "Configuration for Oracle Automatic Storage Management (ASM) connection.",
-    ).optional(),
+    }).describe("Optional. Configuration for Oracle ASM connection.")
+      .optional(),
     oracleSslConfig: z.object({
       caCertificate: z.string().describe(
         "Input only. PEM-encoded certificate of the CA that signed the source database server's certificate.",
@@ -377,7 +379,8 @@ const GlobalArgsSchema = z.object({
       serverCertificateDistinguishedName: z.string().describe(
         "Optional. The distinguished name (DN) mentioned in the server certificate. This corresponds to SSL_SERVER_CERT_DN sqlnet parameter. Refer https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-70AB0695-A9AA-4A94-B141-4C605236EEB7 If this field is not provided, the DN matching is not enforced.",
       ).optional(),
-    }).describe("Oracle SSL configuration information.").optional(),
+    }).describe("Optional. SSL configuration for the Oracle connection.")
+      .optional(),
     password: z.string().describe(
       "Optional. Password for the Oracle connection. Mutually exclusive with the `secret_manager_stored_password` field.",
     ).optional(),
@@ -422,7 +425,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.",
         ).optional(),
       }).describe(
-        "Message represents the option where Datastream will enforce the encryption and authenticate the server identity as well as the client identity. ca_certificate, client_certificate and client_key must be set if user selects this option.",
+        "If this field is set, the communication will be encrypted with TLS encryption and both the server identity and the client identity will be authenticated.",
       ).optional(),
       serverVerification: z.object({
         caCertificate: z.string().describe(
@@ -432,9 +435,11 @@ const GlobalArgsSchema = z.object({
           "Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.",
         ).optional(),
       }).describe(
-        "Message represents the option where Datastream will enforce the encryption and authenticate the server identity. ca_certificate must be set if user selects this option.",
+        "If this field is set, the communication will be encrypted with TLS encryption and the server identity will be authenticated.",
       ).optional(),
-    }).describe("PostgreSQL SSL configuration information.").optional(),
+    }).describe(
+      "Optional. SSL configuration for the PostgreSQL connection. In case PostgresqlSslConfig is not set, the connection will use the default SSL mode, which is `prefer` (i.e. this mode will only use encryption if enabled from database side, otherwise will use unencrypted communication)",
+    ).optional(),
     username: z.string().describe(
       "Required. Username for the PostgreSQL connection.",
     ).optional(),
@@ -443,7 +448,7 @@ const GlobalArgsSchema = z.object({
     privateConnection: z.string().describe(
       "Required. A reference to a private connection resource. Format: `projects/{project}/locations/{location}/privateConnections/{name}`",
     ).optional(),
-  }).describe("Private Connectivity").optional(),
+  }).describe("Private connectivity.").optional(),
   salesforceMarketingCloudProfile: z.object({
     oauthClientCredentials: z.object({
       clientId: z.string().describe(
@@ -456,10 +461,11 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
+      }).describe("Required. Client secret for OAuth Client Credentials.")
+        .optional(),
+    }).describe(
+      "Required. Input only. Credentials for authenticating with the Salesforce Marketing Cloud API.",
+    ).optional(),
     subdomain: z.string().describe(
       "Required. Subdomain for the Salesforce Marketing Cloud connection. Example: if your specific endpoint is `https://{your-specific-subdomain}.rest.marketingcloudapis.com/`, the subdomain is `{your-specific-subdomain}`. Must be 1-63 characters, start and end with an alphanumeric character, and contain only lowercase letters, numbers, and hyphens (-).",
     ).optional(),
@@ -479,7 +485,7 @@ const GlobalArgsSchema = z.object({
       secretManagerStoredClientSecret: z.string().describe(
         "Optional. A reference to a Secret Manager resource name storing the Salesforce OAuth2 client_secret. Mutually exclusive with the `client_secret` field.",
       ).optional(),
-    }).describe("OAuth2 Client Credentials.").optional(),
+    }).describe("Connected app authentication.").optional(),
     userCredentials: z.object({
       password: z.string().describe(
         "Optional. Password for the Salesforce connection. Mutually exclusive with the `secret_manager_stored_password` field.",
@@ -497,7 +503,7 @@ const GlobalArgsSchema = z.object({
         "Required. Username for the Salesforce connection.",
       ).optional(),
     }).describe(
-      "Deprecated: Salesforce is retiring Username-Password authentication. Use `Oauth2ClientCredentials` instead.",
+      "Deprecated: Salesforce is retiring Username-Password authentication. Use `oauth2_client_credentials` instead.",
     ).optional(),
   }).describe("Profile for connecting to a Salesforce source.").optional(),
   serviceNowProfile: z.object({
@@ -515,10 +521,10 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
+      }).describe("Required. Client secret for OAuth Client Credentials.")
+        .optional(),
+    }).describe("Credentials for authenticating with the ServiceNow API.")
+      .optional(),
     userPasswordCredentials: z.object({
       password: z.object({
         rawValue: z.string().describe(
@@ -527,12 +533,10 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
+      }).describe("Required. Password for the connection.").optional(),
       username: z.string().describe("Required. Username for the connection.")
         .optional(),
-    }).describe("User-password credentials.").optional(),
+    }).describe("User-password authentication.").optional(),
   }).describe("Profile for connecting to a ServiceNow source.").optional(),
   spannerProfile: z.object({
     database: z.string().describe(
@@ -560,7 +564,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     sslConfig: z.object({
       basicEncryption: z.object({}).describe(
-        "Message to represent the option where Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.",
+        "If set, Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.",
       ).optional(),
       encryptionAndServerValidation: z.object({
         caCertificate: z.string().describe(
@@ -570,18 +574,19 @@ const GlobalArgsSchema = z.object({
           "Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. This field is used for bypassing the hostname validation while verifying server certificate. This is required for scenarios where the host name that datastream connects to is different from the certificate's subject. This specifically happens for private connectivity. It could also happen when the customer provides a public IP in connection profile but the same is not present in the server certificate.",
         ).optional(),
       }).describe(
-        "Message to represent the option where Datastream will enforce encryption and authenticate server identity. ca_certificate must be set if user selects this option.",
+        "If set, Datastream will enforce encryption and authenticate server identity.",
       ).optional(),
       encryptionNotEnforced: z.object({}).describe(
-        "Message to represent the option where encryption is not enforced. An empty message right now to allow future extensibility.",
+        "If set, Datastream will not enforce encryption. If the DB server mandates encryption, then connection will be encrypted but server identity will not be authenticated.",
       ).optional(),
-    }).describe("SQL Server SSL configuration information.").optional(),
+    }).describe("Optional. SSL configuration for the SQLServer connection.")
+      .optional(),
     username: z.string().describe(
       "Required. Username for the SQLServer connection.",
     ).optional(),
   }).describe("Profile for connecting to a SQLServer source.").optional(),
   staticServiceIpConnectivity: z.object({}).describe(
-    "Static IP address connectivity. Used when the source database is configured to allow incoming connections from the Datastream public IP addresses for the region specified in the connection profile.",
+    "Static Service IP connectivity.",
   ).optional(),
   connectionProfileId: z.string().describe(
     "Required. The connection profile identifier.",
@@ -809,10 +814,11 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
+      }).describe("Required. Client secret for OAuth Client Credentials.")
+        .optional(),
+    }).describe(
+      "Required. Credentials for authenticating with the Dataverse API.",
+    ).optional(),
     tenantId: z.string().describe(
       "Required. Tenant id of the Microsoft Dataverse instance.",
     ).optional(),
@@ -828,7 +834,7 @@ const InputsSchema = z.object({
     privateKey: z.string().describe("Input only. SSH private key.").optional(),
     username: z.string().describe("Required. Username for the SSH tunnel.")
       .optional(),
-  }).describe("Forward SSH Tunnel connectivity.").optional(),
+  }).describe("Forward SSH tunnel connectivity.").optional(),
   gcsProfile: z.object({
     bucket: z.string().describe("Required. The Cloud Storage bucket name.")
       .optional(),
@@ -883,7 +889,8 @@ const InputsSchema = z.object({
       secretManagerStoredClientKey: z.string().describe(
         "Optional. Input only. A reference to a Secret Manager resource name storing the PEM-encoded private key associated with the Client Certificate. If this field is used then the 'client_certificate' and the 'ca_certificate' fields are mandatory. Mutually exclusive with the `client_key` field.",
       ).optional(),
-    }).describe("MongoDB SSL configuration information.").optional(),
+    }).describe("Optional. SSL configuration for the MongoDB connection.")
+      .optional(),
     standardConnectionFormat: z.object({
       directConnection: z.boolean().describe(
         'Optional. Deprecated: Use the `additional_options` map to specify the `directConnection` parameter instead. For example: `additional_options = {"directConnection": "true"}`. Specifies whether the client connects directly to the host[:port] in the connection URI.',
@@ -925,7 +932,7 @@ const InputsSchema = z.object({
       clientKeySet: z.boolean().describe(
         "Output only. Indicates whether the client_key field is set.",
       ).optional(),
-    }).describe("MySQL SSL configuration information.").optional(),
+    }).describe("SSL configuration for the MySQL connection.").optional(),
     username: z.string().describe(
       "Required. Username for the MySQL connection.",
     ).optional(),
@@ -960,7 +967,8 @@ const InputsSchema = z.object({
         serverCertificateDistinguishedName: z.string().describe(
           "Optional. The distinguished name (DN) mentioned in the server certificate. This corresponds to SSL_SERVER_CERT_DN sqlnet parameter. Refer https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-70AB0695-A9AA-4A94-B141-4C605236EEB7 If this field is not provided, the DN matching is not enforced.",
         ).optional(),
-      }).describe("Oracle SSL configuration information.").optional(),
+      }).describe("Optional. SSL configuration for the Oracle connection.")
+        .optional(),
       password: z.string().describe(
         "Optional. Password for the Oracle ASM connection. Mutually exclusive with the `secret_manager_stored_password` field.",
       ).optional(),
@@ -973,9 +981,8 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Required. Username for the Oracle ASM connection.",
       ).optional(),
-    }).describe(
-      "Configuration for Oracle Automatic Storage Management (ASM) connection.",
-    ).optional(),
+    }).describe("Optional. Configuration for Oracle ASM connection.")
+      .optional(),
     oracleSslConfig: z.object({
       caCertificate: z.string().describe(
         "Input only. PEM-encoded certificate of the CA that signed the source database server's certificate.",
@@ -986,7 +993,8 @@ const InputsSchema = z.object({
       serverCertificateDistinguishedName: z.string().describe(
         "Optional. The distinguished name (DN) mentioned in the server certificate. This corresponds to SSL_SERVER_CERT_DN sqlnet parameter. Refer https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-70AB0695-A9AA-4A94-B141-4C605236EEB7 If this field is not provided, the DN matching is not enforced.",
       ).optional(),
-    }).describe("Oracle SSL configuration information.").optional(),
+    }).describe("Optional. SSL configuration for the Oracle connection.")
+      .optional(),
     password: z.string().describe(
       "Optional. Password for the Oracle connection. Mutually exclusive with the `secret_manager_stored_password` field.",
     ).optional(),
@@ -1031,7 +1039,7 @@ const InputsSchema = z.object({
           "Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.",
         ).optional(),
       }).describe(
-        "Message represents the option where Datastream will enforce the encryption and authenticate the server identity as well as the client identity. ca_certificate, client_certificate and client_key must be set if user selects this option.",
+        "If this field is set, the communication will be encrypted with TLS encryption and both the server identity and the client identity will be authenticated.",
       ).optional(),
       serverVerification: z.object({
         caCertificate: z.string().describe(
@@ -1041,9 +1049,11 @@ const InputsSchema = z.object({
           "Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.",
         ).optional(),
       }).describe(
-        "Message represents the option where Datastream will enforce the encryption and authenticate the server identity. ca_certificate must be set if user selects this option.",
+        "If this field is set, the communication will be encrypted with TLS encryption and the server identity will be authenticated.",
       ).optional(),
-    }).describe("PostgreSQL SSL configuration information.").optional(),
+    }).describe(
+      "Optional. SSL configuration for the PostgreSQL connection. In case PostgresqlSslConfig is not set, the connection will use the default SSL mode, which is `prefer` (i.e. this mode will only use encryption if enabled from database side, otherwise will use unencrypted communication)",
+    ).optional(),
     username: z.string().describe(
       "Required. Username for the PostgreSQL connection.",
     ).optional(),
@@ -1052,7 +1062,7 @@ const InputsSchema = z.object({
     privateConnection: z.string().describe(
       "Required. A reference to a private connection resource. Format: `projects/{project}/locations/{location}/privateConnections/{name}`",
     ).optional(),
-  }).describe("Private Connectivity").optional(),
+  }).describe("Private connectivity.").optional(),
   salesforceMarketingCloudProfile: z.object({
     oauthClientCredentials: z.object({
       clientId: z.string().describe(
@@ -1065,10 +1075,11 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
+      }).describe("Required. Client secret for OAuth Client Credentials.")
+        .optional(),
+    }).describe(
+      "Required. Input only. Credentials for authenticating with the Salesforce Marketing Cloud API.",
+    ).optional(),
     subdomain: z.string().describe(
       "Required. Subdomain for the Salesforce Marketing Cloud connection. Example: if your specific endpoint is `https://{your-specific-subdomain}.rest.marketingcloudapis.com/`, the subdomain is `{your-specific-subdomain}`. Must be 1-63 characters, start and end with an alphanumeric character, and contain only lowercase letters, numbers, and hyphens (-).",
     ).optional(),
@@ -1088,7 +1099,7 @@ const InputsSchema = z.object({
       secretManagerStoredClientSecret: z.string().describe(
         "Optional. A reference to a Secret Manager resource name storing the Salesforce OAuth2 client_secret. Mutually exclusive with the `client_secret` field.",
       ).optional(),
-    }).describe("OAuth2 Client Credentials.").optional(),
+    }).describe("Connected app authentication.").optional(),
     userCredentials: z.object({
       password: z.string().describe(
         "Optional. Password for the Salesforce connection. Mutually exclusive with the `secret_manager_stored_password` field.",
@@ -1106,7 +1117,7 @@ const InputsSchema = z.object({
         "Required. Username for the Salesforce connection.",
       ).optional(),
     }).describe(
-      "Deprecated: Salesforce is retiring Username-Password authentication. Use `Oauth2ClientCredentials` instead.",
+      "Deprecated: Salesforce is retiring Username-Password authentication. Use `oauth2_client_credentials` instead.",
     ).optional(),
   }).describe("Profile for connecting to a Salesforce source.").optional(),
   serviceNowProfile: z.object({
@@ -1124,10 +1135,10 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
-    }).describe("OAuth Client Credentials.").optional(),
+      }).describe("Required. Client secret for OAuth Client Credentials.")
+        .optional(),
+    }).describe("Credentials for authenticating with the ServiceNow API.")
+      .optional(),
     userPasswordCredentials: z.object({
       password: z.object({
         rawValue: z.string().describe(
@@ -1136,12 +1147,10 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
         ).optional(),
-      }).describe(
-        "A confidential piece of information where the actual value is either directly specified in the message as a raw string or stored in GCP secret manager.",
-      ).optional(),
+      }).describe("Required. Password for the connection.").optional(),
       username: z.string().describe("Required. Username for the connection.")
         .optional(),
-    }).describe("User-password credentials.").optional(),
+    }).describe("User-password authentication.").optional(),
   }).describe("Profile for connecting to a ServiceNow source.").optional(),
   spannerProfile: z.object({
     database: z.string().describe(
@@ -1169,7 +1178,7 @@ const InputsSchema = z.object({
     ).optional(),
     sslConfig: z.object({
       basicEncryption: z.object({}).describe(
-        "Message to represent the option where Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.",
+        "If set, Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.",
       ).optional(),
       encryptionAndServerValidation: z.object({
         caCertificate: z.string().describe(
@@ -1179,18 +1188,19 @@ const InputsSchema = z.object({
           "Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. This field is used for bypassing the hostname validation while verifying server certificate. This is required for scenarios where the host name that datastream connects to is different from the certificate's subject. This specifically happens for private connectivity. It could also happen when the customer provides a public IP in connection profile but the same is not present in the server certificate.",
         ).optional(),
       }).describe(
-        "Message to represent the option where Datastream will enforce encryption and authenticate server identity. ca_certificate must be set if user selects this option.",
+        "If set, Datastream will enforce encryption and authenticate server identity.",
       ).optional(),
       encryptionNotEnforced: z.object({}).describe(
-        "Message to represent the option where encryption is not enforced. An empty message right now to allow future extensibility.",
+        "If set, Datastream will not enforce encryption. If the DB server mandates encryption, then connection will be encrypted but server identity will not be authenticated.",
       ).optional(),
-    }).describe("SQL Server SSL configuration information.").optional(),
+    }).describe("Optional. SSL configuration for the SQLServer connection.")
+      .optional(),
     username: z.string().describe(
       "Required. Username for the SQLServer connection.",
     ).optional(),
   }).describe("Profile for connecting to a SQLServer source.").optional(),
   staticServiceIpConnectivity: z.object({}).describe(
-    "Static IP address connectivity. Used when the source database is configured to allow incoming connections from the Datastream public IP addresses for the region specified in the connection profile.",
+    "Static Service IP connectivity.",
   ).optional(),
   connectionProfileId: z.string().describe(
     "Required. The connection profile identifier.",
@@ -1229,7 +1239,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream ConnectionProfiles. Registered at `@swamp/gcp/datastream/connectionprofiles`. */
 export const model = {
   type: "@swamp/gcp/datastream/connectionprofiles",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1360,6 +1370,11 @@ export const model = {
       toVersion: "2026.07.20.2",
       description:
         "Added: dataverseProfile, salesforceMarketingCloudProfile, serviceNowProfile",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

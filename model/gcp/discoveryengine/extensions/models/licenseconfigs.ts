@@ -142,19 +142,6 @@ const GlobalArgsSchema = z.object({
   autoRenew: z.boolean().describe(
     "Optional. Whether the license config should be auto renewed when it reaches the end date.",
   ).optional(),
-  earlyTerminationDate: z.object({
-    day: z.number().int().describe(
-      "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-    ).optional(),
-    month: z.number().int().describe(
-      "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-    ).optional(),
-    year: z.number().int().describe(
-      "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-    ).optional(),
-  }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-  ).optional(),
   endDate: z.object({
     day: z.number().int().describe(
       "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -165,9 +152,7 @@ const GlobalArgsSchema = z.object({
     year: z.number().int().describe(
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
-  }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-  ).optional(),
+  }).describe("Optional. The planed end date.").optional(),
   freeTrial: z.boolean().describe(
     "Optional. Whether the license config is for free trial.",
   ).optional(),
@@ -189,9 +174,7 @@ const GlobalArgsSchema = z.object({
     year: z.number().int().describe(
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
-  }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-  ).optional(),
+  }).describe("Required. The start date.").optional(),
   subscriptionTerm: z.enum([
     "SUBSCRIPTION_TERM_UNSPECIFIED",
     "SUBSCRIPTION_TERM_ONE_MONTH",
@@ -264,19 +247,6 @@ const InputsSchema = z.object({
   autoRenew: z.boolean().describe(
     "Optional. Whether the license config should be auto renewed when it reaches the end date.",
   ).optional(),
-  earlyTerminationDate: z.object({
-    day: z.number().int().describe(
-      "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-    ).optional(),
-    month: z.number().int().describe(
-      "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-    ).optional(),
-    year: z.number().int().describe(
-      "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-    ).optional(),
-  }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-  ).optional(),
   endDate: z.object({
     day: z.number().int().describe(
       "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -287,9 +257,7 @@ const InputsSchema = z.object({
     year: z.number().int().describe(
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
-  }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-  ).optional(),
+  }).describe("Optional. The planed end date.").optional(),
   freeTrial: z.boolean().describe(
     "Optional. Whether the license config is for free trial.",
   ).optional(),
@@ -311,9 +279,7 @@ const InputsSchema = z.object({
     year: z.number().int().describe(
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
-  }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-  ).optional(),
+  }).describe("Required. The start date.").optional(),
   subscriptionTerm: z.enum([
     "SUBSCRIPTION_TERM_UNSPECIFIED",
     "SUBSCRIPTION_TERM_ONE_MONTH",
@@ -371,7 +337,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine LicenseConfigs. Registered at `@swamp/gcp/discoveryengine/licenseconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/licenseconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -514,6 +480,14 @@ export const model = {
       description: "Added: lastUserUpdateTime",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: earlyTerminationDate",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { earlyTerminationDate: _earlyTerminationDate, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -543,9 +517,6 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["autoRenew"] !== undefined) body["autoRenew"] = g["autoRenew"];
-        if (g["earlyTerminationDate"] !== undefined) {
-          body["earlyTerminationDate"] = g["earlyTerminationDate"];
-        }
         if (g["endDate"] !== undefined) body["endDate"] = g["endDate"];
         if (g["freeTrial"] !== undefined) body["freeTrial"] = g["freeTrial"];
         if (g["lastUserUpdateTime"] !== undefined) {
@@ -684,9 +655,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["autoRenew"] !== undefined) body["autoRenew"] = g["autoRenew"];
-        if (g["earlyTerminationDate"] !== undefined) {
-          body["earlyTerminationDate"] = g["earlyTerminationDate"];
-        }
         if (g["endDate"] !== undefined) body["endDate"] = g["endDate"];
         if (g["freeTrial"] !== undefined) body["freeTrial"] = g["freeTrial"];
         if (g["lastUserUpdateTime"] !== undefined) {

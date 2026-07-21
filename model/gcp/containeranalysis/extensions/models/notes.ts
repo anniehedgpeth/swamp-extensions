@@ -162,26 +162,22 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   aiSkillAnalysis: z.object({}).describe(
-    "AISkillAnalysisNote provides the metadata of an AI-based skill analysis.",
+    "A note describing an AI skill analysis.",
   ).optional(),
   attestation: z.object({
     hint: z.object({
       humanReadableName: z.string().describe(
         'Required. The human readable name of this attestation authority, for example "qa".',
       ).optional(),
-    }).describe(
-      'This submessage provides human-readable hints about the purpose of the authority. Because the name of a note acts as its resource reference, it is important to disambiguate the canonical name of the Note (which might be a UUID for security purposes) from "readable" names more suitable for debug output. Note that these hints should not be used to look up authorities in security sensitive contexts, such as when looking up attestations to verify.',
-    ).optional(),
-  }).describe(
-    'Note kind that represents a logical attestation "role" or "authority". For example, an organization might have one `Authority` for "QA" and one for "build". This note is intended to act strictly as a grouping mechanism for the attached occurrences (Attestations). This grouping mechanism also provides a security boundary, since IAM ACLs gate the ability for a principle to attach an occurrence to a given note. It also provides a single point of lookup to find all attached attestation occurrences, even if they don\'t all live in the same project.',
-  ).optional(),
+    }).describe("Hint hints at the purpose of the attestation authority.")
+      .optional(),
+  }).describe("A note describing an attestation role.").optional(),
   build: z.object({
     builderVersion: z.string().describe(
       "Required. Immutable. Version of the builder which produced this build.",
     ).optional(),
-  }).describe(
-    "Note holding the version of the provider's builder and the signature of the provenance message in the build details occurrence.",
-  ).optional(),
+  }).describe("A note describing build provenance for a verifiable build.")
+    .optional(),
   compliance: z.object({
     cisBenchmark: z.object({
       profileLevel: z.number().int().optional(),
@@ -222,12 +218,12 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("The OS and config versions the benchmark applies to.")
       .optional(),
-  }).optional(),
+  }).describe("A note describing a compliance check.").optional(),
   deployment: z.object({
     resourceUri: z.array(z.string()).describe(
       "Required. Resource URI for the artifact being deployed.",
     ).optional(),
-  }).describe("An artifact that can be deployed in some runtime.").optional(),
+  }).describe("A note describing something that can be deployed.").optional(),
   discovery: z.object({
     analysisKind: z.enum([
       "NOTE_KIND_UNSPECIFIED",
@@ -248,18 +244,16 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. Immutable. The kind of analysis that is handled by this discovery.",
     ).optional(),
-  }).describe(
-    "A note that indicates a type of analysis a provider would perform. This note exists in a provider's project. A `Discovery` occurrence is created in a consumer's project at the start of analysis.",
-  ).optional(),
+  }).describe("A note describing the initial analysis of a resource.")
+    .optional(),
   dsseAttestation: z.object({
     hint: z.object({
       humanReadableName: z.string().describe(
         'Required. The human readable name of this attestation authority, for example "cloudbuild-prod".',
       ).optional(),
-    }).describe(
-      'This submessage provides human-readable hints about the purpose of the authority. Because the name of a note acts as its resource reference, it is important to disambiguate the canonical name of the Note (which might be a UUID for security purposes) from "readable" names more suitable for debug output. Note that these hints should not be used to look up authorities in security sensitive contexts, such as when looking up attestations to verify.',
-    ).optional(),
-  }).optional(),
+    }).describe("DSSEHint hints at the purpose of the attestation authority.")
+      .optional(),
+  }).describe("A note describing a dsse attestation note.").optional(),
   expirationTime: z.string().describe(
     "Time of expiration for this note. Empty if note does not expire.",
   ).optional(),
@@ -274,15 +268,12 @@ const GlobalArgsSchema = z.object({
       v2Name: z.string().describe(
         'Output only. The name of the image\'s v2 blobs computed via: [bottom]:= v2_blobbottom:= sha256(v2_blob[N] + " " + v2_name[N+1]) Only the name of the final blob is kept.',
       ).optional(),
-    }).describe(
-      "A set of properties that uniquely identify a given Docker image.",
-    ).optional(),
+    }).describe("Required. Immutable. The fingerprint of the base image.")
+      .optional(),
     resourceUrl: z.string().describe(
       "Required. Immutable. The resource_url for the resource representing the basis of associated occurrence images.",
     ).optional(),
-  }).describe(
-    "Basis describes the base image portion (Note) of the DockerImage relationship. Linked occurrences are derived from this or an equivalent image via: FROM Or an equivalent reference, e.g., a tag of the resource_url.",
-  ).optional(),
+  }).describe("A note describing a base image.").optional(),
   longDescription: z.string().describe("A detailed description of this note.")
     .optional(),
   package: z.object({
@@ -335,7 +326,7 @@ const GlobalArgsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The latest available version of this package in this distribution channel.",
       ).optional(),
       maintainer: z.string().describe(
         "A freeform string denoting the maintainer of this package.",
@@ -351,7 +342,9 @@ const GlobalArgsSchema = z.object({
       expression: z.string().describe(
         'Often a single license can be used to represent the licensing terms. Sometimes it is necessary to include a choice of one or more licenses or some combination of license identifiers. Examples: "LGPL-2.1-only OR MIT", "LGPL-2.1-only AND MIT", "GPL-2.0-or-later WITH Bison-exception-2.2".',
       ).optional(),
-    }).describe("License information.").optional(),
+    }).describe(
+      "Licenses that have been declared by the authors of the package.",
+    ).optional(),
     maintainer: z.string().describe(
       "A freeform text denoting the maintainer of this package.",
     ).optional(),
@@ -381,10 +374,8 @@ const GlobalArgsSchema = z.object({
       revision: z.string().describe(
         "The iteration of the package build from the above version.",
       ).optional(),
-    }).describe(
-      "Version contains structured information about the version of a package.",
-    ).optional(),
-  }).describe("PackageNote represents a particular package version.")
+    }).describe("The version of the package.").optional(),
+  }).describe("A note describing a package hosted by various package managers.")
     .optional(),
   relatedNoteNames: z.array(z.string()).describe(
     "Other notes related to this note.",
@@ -402,8 +393,8 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       "The version of the format that the SBOM takes. E.g. if the format is spdx, the version may be 2.3.",
     ).optional(),
-  }).describe("The note representing an SBOM reference.").optional(),
-  secret: z.object({}).describe("The note representing a secret.").optional(),
+  }).describe("A note describing an SBOM reference.").optional(),
+  secret: z.object({}).describe("A note describing a secret.").optional(),
   shortDescription: z.string().describe(
     "A one sentence description of this note.",
   ).optional(),
@@ -447,7 +438,7 @@ const GlobalArgsSchema = z.object({
         "The iteration of the package build from the above version.",
       ).optional(),
     }).describe(
-      "Version contains structured information about the version of a package.",
+      "Required for non-Windows OS. The version of the package in machine + human readable form.",
     ).optional(),
     windowsUpdate: z.object({
       categories: z.array(z.object({
@@ -467,7 +458,8 @@ const GlobalArgsSchema = z.object({
         updateId: z.string().describe(
           "The revision independent identifier of the update.",
         ).optional(),
-      }).describe("The unique identifier of the update.").optional(),
+      }).describe("Required - The unique identifier for the update.")
+        .optional(),
       kbArticleIds: z.array(z.string()).describe(
         "The Microsoft Knowledge Base article IDs that are associated with the update.",
       ).optional(),
@@ -480,11 +472,9 @@ const GlobalArgsSchema = z.object({
       title: z.string().describe("The localized title of the update.")
         .optional(),
     }).describe(
-      "Windows Update represents the metadata about the update for the Windows operating system. The fields in this message come from the Windows Update API documented at https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdate.",
+      "Required for Windows OS. Represents the metadata about the Windows update.",
     ).optional(),
-  }).describe(
-    "An Upgrade Note represents a potential upgrade of a package to a given version. For each package version combination (i.e. bash 4.0, bash 4.1, bash 4.1.2), there will be an Upgrade Note. For Windows, windows_update field represents the information related to the update.",
-  ).optional(),
+  }).describe("A note describing available package upgrades.").optional(),
   vulnerability: z.object({
     advisoryPublishTime: z.string().describe(
       "The time this advisory was published by the source.",
@@ -632,9 +622,8 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The full description of the v2 CVSS for this vulnerability.")
+      .optional(),
     cvssV3: z.object({
       attackComplexity: z.enum([
         "ATTACK_COMPLEXITY_UNSPECIFIED",
@@ -686,9 +675,8 @@ const GlobalArgsSchema = z.object({
         "USER_INTERACTION_NONE",
         "USER_INTERACTION_REQUIRED",
       ]).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System version 3. For details, see https://www.first.org/cvss/specification-document",
-    ).optional(),
+    }).describe("The full description of the CVSSv3 for this vulnerability.")
+      .optional(),
     cvssV4: z.object({
       attackComplexity: z.enum([
         "ATTACK_COMPLEXITY_UNSPECIFIED",
@@ -829,9 +817,8 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The full description of the v4 CVSS for this vulnerability.")
+      .optional(),
     cvssVersion: z.enum([
       "CVSS_VERSION_UNSPECIFIED",
       "CVSS_VERSION_2",
@@ -871,7 +858,7 @@ const GlobalArgsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The version number at the end of an interval in which this vulnerability exists. A vulnerability can affect a package between version numbers that are disjoint sets of intervals (example: [1.0.0-1.1.0], [2.4.6-2.4.8] and [4.5.6-4.6.8]) each of which will be represented in its own Detail. If a specific affected version is provided by a vulnerability database, affected_version_start and affected_version_end will be the same in that Detail.",
       ).optional(),
       affectedVersionStart: z.object({
         epoch: z.number().int().describe(
@@ -898,7 +885,7 @@ const GlobalArgsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The version number at the start of an interval in which this vulnerability exists. A vulnerability can affect a package between version numbers that are disjoint sets of intervals (example: [1.0.0-1.1.0], [2.4.6-2.4.8] and [4.5.6-4.6.8]) each of which will be represented in its own Detail. If a specific affected version is provided by a vulnerability database, affected_version_start and affected_version_end will be the same in that Detail.",
       ).optional(),
       description: z.string().describe(
         "A vendor-specific description of this vulnerability.",
@@ -934,7 +921,7 @@ const GlobalArgsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The distro recommended version to update to that contains a fix for this vulnerability. Setting this to VersionKind.MAXIMUM means no such version is yet available.",
       ).optional(),
       isObsolete: z.boolean().describe(
         "Whether this detail is obsolete. Occurrences are expected not to point to obsolete details.",
@@ -989,8 +976,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Windows details get their own format because the information format and model don't match a normal detail. Specifically Windows updates are done as patches, thus Windows vulnerabilities really are a missing package, rather than a package being at an incorrect version.",
     ).optional(),
-  }).describe("A security vulnerability that can be found in resources.")
-    .optional(),
+  }).describe("A note describing a package vulnerability.").optional(),
   vulnerabilityAssessment: z.object({
     assessment: z.object({
       cve: z.string().describe(
@@ -1044,7 +1030,8 @@ const GlobalArgsSchema = z.object({
           url: z.unknown().describe(
             "Specific URL associated with the resource.",
           ).optional(),
-        }).describe("Metadata for any related URL information.").optional(),
+        }).describe("Contains the URL where to obtain the remediation.")
+          .optional(),
       })).describe(
         "Specifies details on how to handle (and presumably, fix) a vulnerability.",
       ).optional(),
@@ -1062,9 +1049,8 @@ const GlobalArgsSchema = z.object({
       vulnerabilityId: z.string().describe(
         "The vulnerability identifier for this Assessment. Will hold one of common identifiers e.g. CVE, GHSA etc.",
       ).optional(),
-    }).describe(
-      "Assessment provides all information that is related to a single vulnerability for this product.",
-    ).optional(),
+    }).describe("Represents a vulnerability assessment for the product.")
+      .optional(),
     languageCode: z.string().describe(
       "Identifies the language used by this document, corresponding to IETF BCP 47 / RFC 5646.",
     ).optional(),
@@ -1078,9 +1064,7 @@ const GlobalArgsSchema = z.object({
         "Token that identifies a product so that it can be referred to from other parts in the document. There is no predefined format as long as it uniquely identifies a group in the context of the current document.",
       ).optional(),
       name: z.string().describe("Name of the product.").optional(),
-    }).describe(
-      "Product contains information about a product and how to uniquely identify it.",
-    ).optional(),
+    }).describe("The product affected by this vex.").optional(),
     publisher: z.object({
       issuingAuthority: z.string().describe(
         "Provides information about the authority of the issuing party to release the document, in particular, the party's constituency and responsibilities or other obligations.",
@@ -1091,17 +1075,13 @@ const GlobalArgsSchema = z.object({
       publisherNamespace: z.string().describe(
         "The context or namespace. Contains a URL which is under control of the issuing party and can be used as a globally unique identifier for that issuing party. Example: https://csaf.io",
       ).optional(),
-    }).describe(
-      "Publisher contains information about the publisher of this Note.",
-    ).optional(),
+    }).describe("Publisher details of this Note.").optional(),
     shortDescription: z.string().describe(
       "A one sentence description of this Vex.",
     ).optional(),
     title: z.string().describe("The title of the note. E.g. `Vex-Debian-11.4`")
       .optional(),
-  }).describe(
-    "A single VulnerabilityAssessmentNote represents one particular product's vulnerability assessment for one CVE.",
-  ).optional(),
+  }).describe("A note describing a vulnerability assessment.").optional(),
   noteId: z.string().describe("Required. The ID to use for this note.")
     .optional(),
   location: z.string().describe(
@@ -1405,26 +1385,22 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   aiSkillAnalysis: z.object({}).describe(
-    "AISkillAnalysisNote provides the metadata of an AI-based skill analysis.",
+    "A note describing an AI skill analysis.",
   ).optional(),
   attestation: z.object({
     hint: z.object({
       humanReadableName: z.string().describe(
         'Required. The human readable name of this attestation authority, for example "qa".',
       ).optional(),
-    }).describe(
-      'This submessage provides human-readable hints about the purpose of the authority. Because the name of a note acts as its resource reference, it is important to disambiguate the canonical name of the Note (which might be a UUID for security purposes) from "readable" names more suitable for debug output. Note that these hints should not be used to look up authorities in security sensitive contexts, such as when looking up attestations to verify.',
-    ).optional(),
-  }).describe(
-    'Note kind that represents a logical attestation "role" or "authority". For example, an organization might have one `Authority` for "QA" and one for "build". This note is intended to act strictly as a grouping mechanism for the attached occurrences (Attestations). This grouping mechanism also provides a security boundary, since IAM ACLs gate the ability for a principle to attach an occurrence to a given note. It also provides a single point of lookup to find all attached attestation occurrences, even if they don\'t all live in the same project.',
-  ).optional(),
+    }).describe("Hint hints at the purpose of the attestation authority.")
+      .optional(),
+  }).describe("A note describing an attestation role.").optional(),
   build: z.object({
     builderVersion: z.string().describe(
       "Required. Immutable. Version of the builder which produced this build.",
     ).optional(),
-  }).describe(
-    "Note holding the version of the provider's builder and the signature of the provenance message in the build details occurrence.",
-  ).optional(),
+  }).describe("A note describing build provenance for a verifiable build.")
+    .optional(),
   compliance: z.object({
     cisBenchmark: z.object({
       profileLevel: z.number().int().optional(),
@@ -1465,12 +1441,12 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("The OS and config versions the benchmark applies to.")
       .optional(),
-  }).optional(),
+  }).describe("A note describing a compliance check.").optional(),
   deployment: z.object({
     resourceUri: z.array(z.string()).describe(
       "Required. Resource URI for the artifact being deployed.",
     ).optional(),
-  }).describe("An artifact that can be deployed in some runtime.").optional(),
+  }).describe("A note describing something that can be deployed.").optional(),
   discovery: z.object({
     analysisKind: z.enum([
       "NOTE_KIND_UNSPECIFIED",
@@ -1491,18 +1467,16 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. Immutable. The kind of analysis that is handled by this discovery.",
     ).optional(),
-  }).describe(
-    "A note that indicates a type of analysis a provider would perform. This note exists in a provider's project. A `Discovery` occurrence is created in a consumer's project at the start of analysis.",
-  ).optional(),
+  }).describe("A note describing the initial analysis of a resource.")
+    .optional(),
   dsseAttestation: z.object({
     hint: z.object({
       humanReadableName: z.string().describe(
         'Required. The human readable name of this attestation authority, for example "cloudbuild-prod".',
       ).optional(),
-    }).describe(
-      'This submessage provides human-readable hints about the purpose of the authority. Because the name of a note acts as its resource reference, it is important to disambiguate the canonical name of the Note (which might be a UUID for security purposes) from "readable" names more suitable for debug output. Note that these hints should not be used to look up authorities in security sensitive contexts, such as when looking up attestations to verify.',
-    ).optional(),
-  }).optional(),
+    }).describe("DSSEHint hints at the purpose of the attestation authority.")
+      .optional(),
+  }).describe("A note describing a dsse attestation note.").optional(),
   expirationTime: z.string().describe(
     "Time of expiration for this note. Empty if note does not expire.",
   ).optional(),
@@ -1517,15 +1491,12 @@ const InputsSchema = z.object({
       v2Name: z.string().describe(
         'Output only. The name of the image\'s v2 blobs computed via: [bottom]:= v2_blobbottom:= sha256(v2_blob[N] + " " + v2_name[N+1]) Only the name of the final blob is kept.',
       ).optional(),
-    }).describe(
-      "A set of properties that uniquely identify a given Docker image.",
-    ).optional(),
+    }).describe("Required. Immutable. The fingerprint of the base image.")
+      .optional(),
     resourceUrl: z.string().describe(
       "Required. Immutable. The resource_url for the resource representing the basis of associated occurrence images.",
     ).optional(),
-  }).describe(
-    "Basis describes the base image portion (Note) of the DockerImage relationship. Linked occurrences are derived from this or an equivalent image via: FROM Or an equivalent reference, e.g., a tag of the resource_url.",
-  ).optional(),
+  }).describe("A note describing a base image.").optional(),
   longDescription: z.string().describe("A detailed description of this note.")
     .optional(),
   package: z.object({
@@ -1578,7 +1549,7 @@ const InputsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The latest available version of this package in this distribution channel.",
       ).optional(),
       maintainer: z.string().describe(
         "A freeform string denoting the maintainer of this package.",
@@ -1594,7 +1565,9 @@ const InputsSchema = z.object({
       expression: z.string().describe(
         'Often a single license can be used to represent the licensing terms. Sometimes it is necessary to include a choice of one or more licenses or some combination of license identifiers. Examples: "LGPL-2.1-only OR MIT", "LGPL-2.1-only AND MIT", "GPL-2.0-or-later WITH Bison-exception-2.2".',
       ).optional(),
-    }).describe("License information.").optional(),
+    }).describe(
+      "Licenses that have been declared by the authors of the package.",
+    ).optional(),
     maintainer: z.string().describe(
       "A freeform text denoting the maintainer of this package.",
     ).optional(),
@@ -1624,10 +1597,8 @@ const InputsSchema = z.object({
       revision: z.string().describe(
         "The iteration of the package build from the above version.",
       ).optional(),
-    }).describe(
-      "Version contains structured information about the version of a package.",
-    ).optional(),
-  }).describe("PackageNote represents a particular package version.")
+    }).describe("The version of the package.").optional(),
+  }).describe("A note describing a package hosted by various package managers.")
     .optional(),
   relatedNoteNames: z.array(z.string()).describe(
     "Other notes related to this note.",
@@ -1645,8 +1616,8 @@ const InputsSchema = z.object({
     version: z.string().describe(
       "The version of the format that the SBOM takes. E.g. if the format is spdx, the version may be 2.3.",
     ).optional(),
-  }).describe("The note representing an SBOM reference.").optional(),
-  secret: z.object({}).describe("The note representing a secret.").optional(),
+  }).describe("A note describing an SBOM reference.").optional(),
+  secret: z.object({}).describe("A note describing a secret.").optional(),
   shortDescription: z.string().describe(
     "A one sentence description of this note.",
   ).optional(),
@@ -1690,7 +1661,7 @@ const InputsSchema = z.object({
         "The iteration of the package build from the above version.",
       ).optional(),
     }).describe(
-      "Version contains structured information about the version of a package.",
+      "Required for non-Windows OS. The version of the package in machine + human readable form.",
     ).optional(),
     windowsUpdate: z.object({
       categories: z.array(z.object({
@@ -1710,7 +1681,8 @@ const InputsSchema = z.object({
         updateId: z.string().describe(
           "The revision independent identifier of the update.",
         ).optional(),
-      }).describe("The unique identifier of the update.").optional(),
+      }).describe("Required - The unique identifier for the update.")
+        .optional(),
       kbArticleIds: z.array(z.string()).describe(
         "The Microsoft Knowledge Base article IDs that are associated with the update.",
       ).optional(),
@@ -1723,11 +1695,9 @@ const InputsSchema = z.object({
       title: z.string().describe("The localized title of the update.")
         .optional(),
     }).describe(
-      "Windows Update represents the metadata about the update for the Windows operating system. The fields in this message come from the Windows Update API documented at https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdate.",
+      "Required for Windows OS. Represents the metadata about the Windows update.",
     ).optional(),
-  }).describe(
-    "An Upgrade Note represents a potential upgrade of a package to a given version. For each package version combination (i.e. bash 4.0, bash 4.1, bash 4.1.2), there will be an Upgrade Note. For Windows, windows_update field represents the information related to the update.",
-  ).optional(),
+  }).describe("A note describing available package upgrades.").optional(),
   vulnerability: z.object({
     advisoryPublishTime: z.string().describe(
       "The time this advisory was published by the source.",
@@ -1875,9 +1845,8 @@ const InputsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The full description of the v2 CVSS for this vulnerability.")
+      .optional(),
     cvssV3: z.object({
       attackComplexity: z.enum([
         "ATTACK_COMPLEXITY_UNSPECIFIED",
@@ -1929,9 +1898,8 @@ const InputsSchema = z.object({
         "USER_INTERACTION_NONE",
         "USER_INTERACTION_REQUIRED",
       ]).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System version 3. For details, see https://www.first.org/cvss/specification-document",
-    ).optional(),
+    }).describe("The full description of the CVSSv3 for this vulnerability.")
+      .optional(),
     cvssV4: z.object({
       attackComplexity: z.enum([
         "ATTACK_COMPLEXITY_UNSPECIFIED",
@@ -2072,9 +2040,8 @@ const InputsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The full description of the v4 CVSS for this vulnerability.")
+      .optional(),
     cvssVersion: z.enum([
       "CVSS_VERSION_UNSPECIFIED",
       "CVSS_VERSION_2",
@@ -2114,7 +2081,7 @@ const InputsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The version number at the end of an interval in which this vulnerability exists. A vulnerability can affect a package between version numbers that are disjoint sets of intervals (example: [1.0.0-1.1.0], [2.4.6-2.4.8] and [4.5.6-4.6.8]) each of which will be represented in its own Detail. If a specific affected version is provided by a vulnerability database, affected_version_start and affected_version_end will be the same in that Detail.",
       ).optional(),
       affectedVersionStart: z.object({
         epoch: z.number().int().describe(
@@ -2141,7 +2108,7 @@ const InputsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The version number at the start of an interval in which this vulnerability exists. A vulnerability can affect a package between version numbers that are disjoint sets of intervals (example: [1.0.0-1.1.0], [2.4.6-2.4.8] and [4.5.6-4.6.8]) each of which will be represented in its own Detail. If a specific affected version is provided by a vulnerability database, affected_version_start and affected_version_end will be the same in that Detail.",
       ).optional(),
       description: z.string().describe(
         "A vendor-specific description of this vulnerability.",
@@ -2177,7 +2144,7 @@ const InputsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "The distro recommended version to update to that contains a fix for this vulnerability. Setting this to VersionKind.MAXIMUM means no such version is yet available.",
       ).optional(),
       isObsolete: z.boolean().describe(
         "Whether this detail is obsolete. Occurrences are expected not to point to obsolete details.",
@@ -2232,8 +2199,7 @@ const InputsSchema = z.object({
     })).describe(
       "Windows details get their own format because the information format and model don't match a normal detail. Specifically Windows updates are done as patches, thus Windows vulnerabilities really are a missing package, rather than a package being at an incorrect version.",
     ).optional(),
-  }).describe("A security vulnerability that can be found in resources.")
-    .optional(),
+  }).describe("A note describing a package vulnerability.").optional(),
   vulnerabilityAssessment: z.object({
     assessment: z.object({
       cve: z.string().describe(
@@ -2287,7 +2253,8 @@ const InputsSchema = z.object({
           url: z.unknown().describe(
             "Specific URL associated with the resource.",
           ).optional(),
-        }).describe("Metadata for any related URL information.").optional(),
+        }).describe("Contains the URL where to obtain the remediation.")
+          .optional(),
       })).describe(
         "Specifies details on how to handle (and presumably, fix) a vulnerability.",
       ).optional(),
@@ -2305,9 +2272,8 @@ const InputsSchema = z.object({
       vulnerabilityId: z.string().describe(
         "The vulnerability identifier for this Assessment. Will hold one of common identifiers e.g. CVE, GHSA etc.",
       ).optional(),
-    }).describe(
-      "Assessment provides all information that is related to a single vulnerability for this product.",
-    ).optional(),
+    }).describe("Represents a vulnerability assessment for the product.")
+      .optional(),
     languageCode: z.string().describe(
       "Identifies the language used by this document, corresponding to IETF BCP 47 / RFC 5646.",
     ).optional(),
@@ -2321,9 +2287,7 @@ const InputsSchema = z.object({
         "Token that identifies a product so that it can be referred to from other parts in the document. There is no predefined format as long as it uniquely identifies a group in the context of the current document.",
       ).optional(),
       name: z.string().describe("Name of the product.").optional(),
-    }).describe(
-      "Product contains information about a product and how to uniquely identify it.",
-    ).optional(),
+    }).describe("The product affected by this vex.").optional(),
     publisher: z.object({
       issuingAuthority: z.string().describe(
         "Provides information about the authority of the issuing party to release the document, in particular, the party's constituency and responsibilities or other obligations.",
@@ -2334,17 +2298,13 @@ const InputsSchema = z.object({
       publisherNamespace: z.string().describe(
         "The context or namespace. Contains a URL which is under control of the issuing party and can be used as a globally unique identifier for that issuing party. Example: https://csaf.io",
       ).optional(),
-    }).describe(
-      "Publisher contains information about the publisher of this Note.",
-    ).optional(),
+    }).describe("Publisher details of this Note.").optional(),
     shortDescription: z.string().describe(
       "A one sentence description of this Vex.",
     ).optional(),
     title: z.string().describe("The title of the note. E.g. `Vex-Debian-11.4`")
       .optional(),
-  }).describe(
-    "A single VulnerabilityAssessmentNote represents one particular product's vulnerability assessment for one CVE.",
-  ).optional(),
+  }).describe("A note describing a vulnerability assessment.").optional(),
   noteId: z.string().describe("Required. The ID to use for this note.")
     .optional(),
   location: z.string().describe(
@@ -2375,7 +2335,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Container Analysis Notes. Registered at `@swamp/gcp/containeranalysis/notes`. */
 export const model = {
   type: "@swamp/gcp/containeranalysis/notes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2564,6 +2524,11 @@ export const model = {
       description: "Added: aiSkillAnalysis",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2641,16 +2606,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

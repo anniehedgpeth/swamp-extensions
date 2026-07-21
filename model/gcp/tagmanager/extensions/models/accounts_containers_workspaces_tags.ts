@@ -187,8 +187,10 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
-  }).optional(),
+    }).describe(
+      "The type of consents to check for during tag firing if in the consent NEEDED state. This parameter must be of type LIST where each list item is of type STRING.",
+    ).optional(),
+  }).describe("Consent settings of a tag.").optional(),
   containerId: z.string().describe("GTM Container ID.").optional(),
   fingerprint: z.string().describe(
     "The fingerprint of the GTM Tag as computed at storage time. This value is recomputed whenever the tag is modified.",
@@ -227,7 +229,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A map of key-value pairs of tag metadata to be included in the event data for tag monitoring. Notes: - This parameter must be type MAP. - Each parameter in the map are type TEMPLATE, however cannot contain variable references.",
+  ).optional(),
   monitoringMetadataTagNameKey: z.string().describe(
     "If non-empty, then the tag display name will be included in the monitoring metadata map using the key specified.",
   ).optional(),
@@ -297,7 +301,9 @@ const GlobalArgsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag's priority can be a positive or negative value. The default value is 0.",
+  ).optional(),
   scheduleEndMs: z.string().describe(
     "The end timestamp in milliseconds to schedule a tag.",
   ).optional(),
@@ -444,8 +450,10 @@ const InputsSchema = z.object({
       value: z.string().describe(
         "A parameter's value (may contain variable references). as appropriate to the specified type.",
       ).optional(),
-    }).describe("Represents a Google Tag Manager Parameter.").optional(),
-  }).optional(),
+    }).describe(
+      "The type of consents to check for during tag firing if in the consent NEEDED state. This parameter must be of type LIST where each list item is of type STRING.",
+    ).optional(),
+  }).describe("Consent settings of a tag.").optional(),
   containerId: z.string().describe("GTM Container ID.").optional(),
   fingerprint: z.string().describe(
     "The fingerprint of the GTM Tag as computed at storage time. This value is recomputed whenever the tag is modified.",
@@ -484,7 +492,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "A map of key-value pairs of tag metadata to be included in the event data for tag monitoring. Notes: - This parameter must be type MAP. - Each parameter in the map are type TEMPLATE, however cannot contain variable references.",
+  ).optional(),
   monitoringMetadataTagNameKey: z.string().describe(
     "If non-empty, then the tag display name will be included in the monitoring metadata map using the key specified.",
   ).optional(),
@@ -554,7 +564,9 @@ const InputsSchema = z.object({
     value: z.string().describe(
       "A parameter's value (may contain variable references). as appropriate to the specified type.",
     ).optional(),
-  }).describe("Represents a Google Tag Manager Parameter.").optional(),
+  }).describe(
+    "User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag's priority can be a positive or negative value. The default value is 0.",
+  ).optional(),
   scheduleEndMs: z.string().describe(
     "The end timestamp in milliseconds to schedule a tag.",
   ).optional(),
@@ -616,7 +628,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Workspaces.Tags. Registered at `@swamp/gcp/tagmanager/accounts-containers-workspaces-tags`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-workspaces-tags",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -715,6 +727,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

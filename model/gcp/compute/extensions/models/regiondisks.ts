@@ -228,7 +228,7 @@ const GlobalArgsSchema = z.object({
     diskId: z.string().describe(
       "Output only. [Output Only] The unique ID of the other disk asynchronously replicated to or from the current disk. This value identifies the exact disk that was used to create this replication. For example, if you started replicating the persistent disk from a disk that was later deleted and recreated under the same name, the disk ID would identify the exact version of the disk that was used.",
     ).optional(),
-  }).optional(),
+  }).describe("Disk asynchronously replicated into this disk.").optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -248,7 +248,9 @@ const GlobalArgsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    'Encrypts the disk using a customer-supplied encryption key or a customer-managed encryption key. Encryption keys do not protect access to metadata of the disk. After you encrypt a disk with a customer-supplied key, you must provide the same key if you use the disk later. For example, to create a disk snapshot, to create a disk image, to create a machine image, or to attach the disk to a virtual machine. After you encrypt a disk with a customer-managed key, thediskEncryptionKey.kmsKeyName is set to a key *version* name once the disk is created. The disk is encrypted with this version of the key. In the response, diskEncryptionKey.kmsKeyName appears in the following format: "diskEncryptionKey.kmsKeyName": "projects/kms_project_id/locations/region/keyRings/ key_region/cryptoKeys/key /cryptoKeysVersions/version If you do not provide an encryption key when creating the disk, then the disk is encrypted using an automatically generated key and you don\'t need to provide a key to use the disk later.',
+  ).optional(),
   enableConfidentialCompute: z.boolean().describe(
     "Whether this disk is using confidential compute mode.",
   ).optional(),
@@ -300,7 +302,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the disk. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional disk params.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   physicalBlockSizeBytes: z.string().describe(
     "Physical block size of the persistent disk, in bytes. If not present in a request, a default value is used. The currently supported size is 4096, other sizes may be added in the future. If an unsupported value is requested, the error message will list the supported values for the caller's project.",
   ).optional(),
@@ -319,31 +323,6 @@ const GlobalArgsSchema = z.object({
   resourcePolicies: z.array(z.string()).describe(
     "Resource policies applied to this disk for automatic snapshot creations.",
   ).optional(),
-  resourceStatus: z.object({
-    asyncPrimaryDisk: z.object({
-      state: z.enum([
-        "ACTIVE",
-        "CREATED",
-        "STARTING",
-        "STATE_UNSPECIFIED",
-        "STOPPED",
-        "STOPPING",
-      ]).optional(),
-    }).optional(),
-    asyncSecondaryDisks: z.record(
-      z.string(),
-      z.object({
-        state: z.enum([
-          "ACTIVE",
-          "CREATED",
-          "STARTING",
-          "STATE_UNSPECIFIED",
-          "STOPPED",
-          "STOPPING",
-        ]).optional(),
-      }),
-    ).describe("Key: disk, value: AsyncReplicationStatus message").optional(),
-  }).optional(),
   sizeGb: z.string().describe(
     "Size, in GB, of the persistent disk. You can specify this field when creating a persistent disk using thesourceImage, sourceSnapshot, orsourceDisk parameter, or specify it alone to create an empty persistent disk. If you specify this field along with a source, the value ofsizeGb must not be less than the size of the source. Acceptable values are greater than 0.",
   ).optional(),
@@ -369,7 +348,9 @@ const GlobalArgsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Thecustomer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key.",
+  ).optional(),
   sourceInstantSnapshot: z.string().describe(
     "The source instant snapshot used to create this disk. You can provide this as a partial or full URL to the resource. For example, the following are valid values: - https://www.googleapis.com/compute/v1/projects/project/zones/zone/instantSnapshots/instantSnapshot - projects/project/zones/zone/instantSnapshots/instantSnapshot - zones/zone/instantSnapshots/instantSnapshot",
   ).optional(),
@@ -392,7 +373,9 @@ const GlobalArgsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Thecustomer-supplied encryption key of the source snapshot. Required if the source snapshot is protected by a customer-supplied encryption key.",
+  ).optional(),
   sourceStorageObject: z.string().describe(
     "The full Google Cloud Storage URI where the disk image is stored. This file must be a gzip-compressed tarball whose name ends in.tar.gz or virtual machine disk whose name ends in vmdk. Valid URIs may start with gs:// or https://storage.googleapis.com/. This flag is not optimized for creating multiple disks from a source storage object. To create many disks from a source storage object, use gcloud compute images import instead.",
   ).optional(),
@@ -519,7 +502,7 @@ const InputsSchema = z.object({
     diskId: z.string().describe(
       "Output only. [Output Only] The unique ID of the other disk asynchronously replicated to or from the current disk. This value identifies the exact disk that was used to create this replication. For example, if you started replicating the persistent disk from a disk that was later deleted and recreated under the same name, the disk ID would identify the exact version of the disk that was used.",
     ).optional(),
-  }).optional(),
+  }).describe("Disk asynchronously replicated into this disk.").optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -539,7 +522,9 @@ const InputsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    'Encrypts the disk using a customer-supplied encryption key or a customer-managed encryption key. Encryption keys do not protect access to metadata of the disk. After you encrypt a disk with a customer-supplied key, you must provide the same key if you use the disk later. For example, to create a disk snapshot, to create a disk image, to create a machine image, or to attach the disk to a virtual machine. After you encrypt a disk with a customer-managed key, thediskEncryptionKey.kmsKeyName is set to a key *version* name once the disk is created. The disk is encrypted with this version of the key. In the response, diskEncryptionKey.kmsKeyName appears in the following format: "diskEncryptionKey.kmsKeyName": "projects/kms_project_id/locations/region/keyRings/ key_region/cryptoKeys/key /cryptoKeysVersions/version If you do not provide an encryption key when creating the disk, then the disk is encrypted using an automatically generated key and you don\'t need to provide a key to use the disk later.',
+  ).optional(),
   enableConfidentialCompute: z.boolean().describe(
     "Whether this disk is using confidential compute mode.",
   ).optional(),
@@ -591,7 +576,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the disk. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional disk params.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   physicalBlockSizeBytes: z.string().describe(
     "Physical block size of the persistent disk, in bytes. If not present in a request, a default value is used. The currently supported size is 4096, other sizes may be added in the future. If an unsupported value is requested, the error message will list the supported values for the caller's project.",
   ).optional(),
@@ -610,31 +597,6 @@ const InputsSchema = z.object({
   resourcePolicies: z.array(z.string()).describe(
     "Resource policies applied to this disk for automatic snapshot creations.",
   ).optional(),
-  resourceStatus: z.object({
-    asyncPrimaryDisk: z.object({
-      state: z.enum([
-        "ACTIVE",
-        "CREATED",
-        "STARTING",
-        "STATE_UNSPECIFIED",
-        "STOPPED",
-        "STOPPING",
-      ]).optional(),
-    }).optional(),
-    asyncSecondaryDisks: z.record(
-      z.string(),
-      z.object({
-        state: z.enum([
-          "ACTIVE",
-          "CREATED",
-          "STARTING",
-          "STATE_UNSPECIFIED",
-          "STOPPED",
-          "STOPPING",
-        ]).optional(),
-      }),
-    ).describe("Key: disk, value: AsyncReplicationStatus message").optional(),
-  }).optional(),
   sizeGb: z.string().describe(
     "Size, in GB, of the persistent disk. You can specify this field when creating a persistent disk using thesourceImage, sourceSnapshot, orsourceDisk parameter, or specify it alone to create an empty persistent disk. If you specify this field along with a source, the value ofsizeGb must not be less than the size of the source. Acceptable values are greater than 0.",
   ).optional(),
@@ -660,7 +622,9 @@ const InputsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Thecustomer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key.",
+  ).optional(),
   sourceInstantSnapshot: z.string().describe(
     "The source instant snapshot used to create this disk. You can provide this as a partial or full URL to the resource. For example, the following are valid values: - https://www.googleapis.com/compute/v1/projects/project/zones/zone/instantSnapshots/instantSnapshot - projects/project/zones/zone/instantSnapshots/instantSnapshot - zones/zone/instantSnapshots/instantSnapshot",
   ).optional(),
@@ -683,7 +647,9 @@ const InputsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Thecustomer-supplied encryption key of the source snapshot. Required if the source snapshot is protected by a customer-supplied encryption key.",
+  ).optional(),
   sourceStorageObject: z.string().describe(
     "The full Google Cloud Storage URI where the disk image is stored. This file must be a gzip-compressed tarball whose name ends in.tar.gz or virtual machine disk whose name ends in vmdk. Valid URIs may start with gs:// or https://storage.googleapis.com/. This flag is not optimized for creating multiple disks from a source storage object. To create many disks from a source storage object, use gcloud compute images import instead.",
   ).optional(),
@@ -721,7 +687,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionDisks. Registered at `@swamp/gcp/compute/regiondisks`. */
 export const model = {
   type: "@swamp/gcp/compute/regiondisks",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -893,6 +859,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: resourceStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { resourceStatus: _resourceStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -967,9 +941,6 @@ export const model = {
         }
         if (g["resourcePolicies"] !== undefined) {
           body["resourcePolicies"] = g["resourcePolicies"];
-        }
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
         }
         if (g["sizeGb"] !== undefined) body["sizeGb"] = g["sizeGb"];
         if (g["sourceDisk"] !== undefined) body["sourceDisk"] = g["sourceDisk"];
@@ -1152,9 +1123,6 @@ export const model = {
         }
         if (g["resourcePolicies"] !== undefined) {
           body["resourcePolicies"] = g["resourcePolicies"];
-        }
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
         }
         if (g["sizeGb"] !== undefined) body["sizeGb"] = g["sizeGb"];
         if (g["sourceDisk"] !== undefined) body["sourceDisk"] = g["sourceDisk"];

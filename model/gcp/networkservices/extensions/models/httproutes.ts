@@ -207,14 +207,14 @@ const GlobalArgsSchema = z.object({
           "Specifies how long result of a preflight request can be cached in seconds. This translates to the Access-Control-Max-Age header.",
         ).optional(),
       }).describe(
-        "The Specification for allowing client side cross-origin requests.",
+        "The specification for allowing client side cross-origin requests.",
       ).optional(),
       destinations: z.array(z.object({
         requestHeaderModifier: z.unknown().describe(
-          "The specification for modifying HTTP header in HTTP request and HTTP response.",
+          "Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
         ).optional(),
         responseHeaderModifier: z.unknown().describe(
-          "The specification for modifying HTTP header in HTTP request and HTTP response.",
+          "Optional. The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
         ).optional(),
         serviceName: z.unknown().describe(
           "The URL of a BackendService to route traffic to.",
@@ -234,7 +234,9 @@ const GlobalArgsSchema = z.object({
         stringBody: z.string().describe(
           "Optional. Response body as a string. Maximum body length is 1024 characters.",
         ).optional(),
-      }).describe("Static HTTP response object to be returned.").optional(),
+      }).describe(
+        "Optional. Static HTTP Response object to be returned regardless of the request.",
+      ).optional(),
       faultInjectionPolicy: z.object({
         abort: z.object({
           httpStatus: z.unknown().describe(
@@ -243,9 +245,8 @@ const GlobalArgsSchema = z.object({
           percentage: z.unknown().describe(
             "The percentage of traffic which will be aborted. The value must be between [0, 100]",
           ).optional(),
-        }).describe(
-          "Specification of how client requests are aborted as part of fault injection before being sent to a destination.",
-        ).optional(),
+        }).describe("The specification for aborting to client requests.")
+          .optional(),
         delay: z.object({
           fixedDelay: z.unknown().describe(
             "Specify a fixed delay before forwarding the request.",
@@ -253,11 +254,10 @@ const GlobalArgsSchema = z.object({
           percentage: z.unknown().describe(
             "The percentage of traffic on which delay will be injected. The value must be between [0, 100]",
           ).optional(),
-        }).describe(
-          "Specification of how client requests are delayed as part of fault injection before being sent to a destination.",
-        ).optional(),
+        }).describe("The specification for injecting delay to client requests.")
+          .optional(),
       }).describe(
-        "The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced by client proxy on a percentage of requests before sending those requests to the destination service. Similarly requests can be aborted by client proxy for a percentage of requests.",
+        "The specification for fault injection introduced into traffic to test the resiliency of clients to backend service failure. As part of fault injection, when clients send requests to a backend service, delays can be introduced on a percentage of requests before sending those requests to the backend service. Similarly requests from clients can be aborted for a percentage of requests. timeout and retry_policy will be ignored by clients that are configured with a fault_injection_policy",
       ).optional(),
       idleTimeout: z.string().describe(
         "Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.",
@@ -289,7 +289,9 @@ const GlobalArgsSchema = z.object({
         stripQuery: z.boolean().describe(
           "if set to true, any accompanying query portion of the original URL is removed prior to redirecting the request. If set to false, the query portion of the original URL is retained. The default is set to false.",
         ).optional(),
-      }).describe("The specification for redirecting traffic.").optional(),
+      }).describe(
+        "If set, the request is directed as configured by this field.",
+      ).optional(),
       requestHeaderModifier: z.object({
         add: z.record(z.string(), z.unknown()).describe(
           "Add the headers with given map where key is the name of the header, value is the value of the header.",
@@ -301,15 +303,15 @@ const GlobalArgsSchema = z.object({
           "Completely overwrite/replace the headers with given map where key is the name of the header, value is the value of the header.",
         ).optional(),
       }).describe(
-        "The specification for modifying HTTP header in HTTP request and HTTP response.",
+        "The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
       ).optional(),
       requestMirrorPolicy: z.object({
         destination: z.object({
           requestHeaderModifier: z.unknown().describe(
-            "The specification for modifying HTTP header in HTTP request and HTTP response.",
+            "Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
           ).optional(),
           responseHeaderModifier: z.unknown().describe(
-            "The specification for modifying HTTP header in HTTP request and HTTP response.",
+            "Optional. The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
           ).optional(),
           serviceName: z.unknown().describe(
             "The URL of a BackendService to route traffic to.",
@@ -318,13 +320,13 @@ const GlobalArgsSchema = z.object({
             "Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.",
           ).optional(),
         }).describe(
-          "Specifications of a destination to which the request should be routed to.",
+          "The destination the requests will be mirrored to. The weight of the destination will be ignored.",
         ).optional(),
         mirrorPercent: z.number().describe(
           "Optional. The percentage of requests to get mirrored to the desired destination.",
         ).optional(),
       }).describe(
-        "Specifies the policy on how requests are shadowed to a separate mirrored destination service. The proxy does not wait for responses from the shadow service. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow. Mirroring is currently not supported for Cloud Run destinations.",
+        "Specifies the policy on how requests intended for the routes destination are shadowed to a separate mirrored destination. Proxy will not wait for the shadow destination to respond before returning the response. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow.",
       ).optional(),
       responseHeaderModifier: z.object({
         add: z.record(z.string(), z.unknown()).describe(
@@ -337,7 +339,7 @@ const GlobalArgsSchema = z.object({
           "Completely overwrite/replace the headers with given map where key is the name of the header, value is the value of the header.",
         ).optional(),
       }).describe(
-        "The specification for modifying HTTP header in HTTP request and HTTP response.",
+        "The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
       ).optional(),
       retryPolicy: z.object({
         numRetries: z.number().int().describe(
@@ -349,14 +351,14 @@ const GlobalArgsSchema = z.object({
         retryConditions: z.array(z.unknown()).describe(
           "Specifies one or more conditions when this retry policy applies. Valid values are: 5xx: Proxy will attempt a retry if the destination service responds with any 5xx response code, of if the destination service does not respond at all, example: disconnect, reset, read timeout, connection failure and refused streams. gateway-error: Similar to 5xx, but only applies to response codes 502, 503, 504. reset: Proxy will attempt a retry if the destination service does not respond at all (disconnect/reset/read timeout) connect-failure: Proxy will retry on failures connecting to destination for example due to connection timeouts. retriable-4xx: Proxy will retry fro retriable 4xx response codes. Currently the only retriable error supported is 409. refused-stream: Proxy will retry if the destination resets the stream with a REFUSED_STREAM error code. This reset type indicates that it is safe to retry.",
         ).optional(),
-      }).describe("The specifications for retries.").optional(),
+      }).describe("Specifies the retry policy associated with this route.")
+        .optional(),
       statefulSessionAffinity: z.object({
         cookieTtl: z.string().describe(
           "Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.",
         ).optional(),
-      }).describe(
-        'The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.',
-      ).optional(),
+      }).describe("Optional. Specifies cookie-based stateful session affinity.")
+        .optional(),
       timeout: z.string().describe(
         "Specifies the timeout for selected route. Timeout is computed from the time the request has been fully processed (i.e. end of stream) up until the response has been completely processed. Timeout includes all retries.",
       ).optional(),
@@ -368,11 +370,10 @@ const GlobalArgsSchema = z.object({
           "Prior to forwarding the request to the selected destination, the matching portion of the requests path is replaced by this value.",
         ).optional(),
       }).describe(
-        "The specification for modifying the URL of the request, prior to forwarding the request to the destination.",
+        "The specification for rewrite URL before forwarding requests to the destination.",
       ).optional(),
-    }).describe(
-      "The specifications for routing traffic and applying associated policies.",
-    ).optional(),
+    }).describe("The detailed rule defining how to route matched traffic.")
+      .optional(),
     matches: z.array(z.object({
       fullPathMatch: z.string().describe(
         "The HTTP request path value should exactly match this value. Only one of full_path_match, prefix_match, or regex_match should be used.",
@@ -558,14 +559,14 @@ const InputsSchema = z.object({
           "Specifies how long result of a preflight request can be cached in seconds. This translates to the Access-Control-Max-Age header.",
         ).optional(),
       }).describe(
-        "The Specification for allowing client side cross-origin requests.",
+        "The specification for allowing client side cross-origin requests.",
       ).optional(),
       destinations: z.array(z.object({
         requestHeaderModifier: z.unknown().describe(
-          "The specification for modifying HTTP header in HTTP request and HTTP response.",
+          "Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
         ).optional(),
         responseHeaderModifier: z.unknown().describe(
-          "The specification for modifying HTTP header in HTTP request and HTTP response.",
+          "Optional. The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
         ).optional(),
         serviceName: z.unknown().describe(
           "The URL of a BackendService to route traffic to.",
@@ -585,7 +586,9 @@ const InputsSchema = z.object({
         stringBody: z.string().describe(
           "Optional. Response body as a string. Maximum body length is 1024 characters.",
         ).optional(),
-      }).describe("Static HTTP response object to be returned.").optional(),
+      }).describe(
+        "Optional. Static HTTP Response object to be returned regardless of the request.",
+      ).optional(),
       faultInjectionPolicy: z.object({
         abort: z.object({
           httpStatus: z.unknown().describe(
@@ -594,9 +597,8 @@ const InputsSchema = z.object({
           percentage: z.unknown().describe(
             "The percentage of traffic which will be aborted. The value must be between [0, 100]",
           ).optional(),
-        }).describe(
-          "Specification of how client requests are aborted as part of fault injection before being sent to a destination.",
-        ).optional(),
+        }).describe("The specification for aborting to client requests.")
+          .optional(),
         delay: z.object({
           fixedDelay: z.unknown().describe(
             "Specify a fixed delay before forwarding the request.",
@@ -604,11 +606,10 @@ const InputsSchema = z.object({
           percentage: z.unknown().describe(
             "The percentage of traffic on which delay will be injected. The value must be between [0, 100]",
           ).optional(),
-        }).describe(
-          "Specification of how client requests are delayed as part of fault injection before being sent to a destination.",
-        ).optional(),
+        }).describe("The specification for injecting delay to client requests.")
+          .optional(),
       }).describe(
-        "The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced by client proxy on a percentage of requests before sending those requests to the destination service. Similarly requests can be aborted by client proxy for a percentage of requests.",
+        "The specification for fault injection introduced into traffic to test the resiliency of clients to backend service failure. As part of fault injection, when clients send requests to a backend service, delays can be introduced on a percentage of requests before sending those requests to the backend service. Similarly requests from clients can be aborted for a percentage of requests. timeout and retry_policy will be ignored by clients that are configured with a fault_injection_policy",
       ).optional(),
       idleTimeout: z.string().describe(
         "Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.",
@@ -640,7 +641,9 @@ const InputsSchema = z.object({
         stripQuery: z.boolean().describe(
           "if set to true, any accompanying query portion of the original URL is removed prior to redirecting the request. If set to false, the query portion of the original URL is retained. The default is set to false.",
         ).optional(),
-      }).describe("The specification for redirecting traffic.").optional(),
+      }).describe(
+        "If set, the request is directed as configured by this field.",
+      ).optional(),
       requestHeaderModifier: z.object({
         add: z.record(z.string(), z.unknown()).describe(
           "Add the headers with given map where key is the name of the header, value is the value of the header.",
@@ -652,15 +655,15 @@ const InputsSchema = z.object({
           "Completely overwrite/replace the headers with given map where key is the name of the header, value is the value of the header.",
         ).optional(),
       }).describe(
-        "The specification for modifying HTTP header in HTTP request and HTTP response.",
+        "The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
       ).optional(),
       requestMirrorPolicy: z.object({
         destination: z.object({
           requestHeaderModifier: z.unknown().describe(
-            "The specification for modifying HTTP header in HTTP request and HTTP response.",
+            "Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
           ).optional(),
           responseHeaderModifier: z.unknown().describe(
-            "The specification for modifying HTTP header in HTTP request and HTTP response.",
+            "Optional. The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
           ).optional(),
           serviceName: z.unknown().describe(
             "The URL of a BackendService to route traffic to.",
@@ -669,13 +672,13 @@ const InputsSchema = z.object({
             "Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.",
           ).optional(),
         }).describe(
-          "Specifications of a destination to which the request should be routed to.",
+          "The destination the requests will be mirrored to. The weight of the destination will be ignored.",
         ).optional(),
         mirrorPercent: z.number().describe(
           "Optional. The percentage of requests to get mirrored to the desired destination.",
         ).optional(),
       }).describe(
-        "Specifies the policy on how requests are shadowed to a separate mirrored destination service. The proxy does not wait for responses from the shadow service. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow. Mirroring is currently not supported for Cloud Run destinations.",
+        "Specifies the policy on how requests intended for the routes destination are shadowed to a separate mirrored destination. Proxy will not wait for the shadow destination to respond before returning the response. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow.",
       ).optional(),
       responseHeaderModifier: z.object({
         add: z.record(z.string(), z.unknown()).describe(
@@ -688,7 +691,7 @@ const InputsSchema = z.object({
           "Completely overwrite/replace the headers with given map where key is the name of the header, value is the value of the header.",
         ).optional(),
       }).describe(
-        "The specification for modifying HTTP header in HTTP request and HTTP response.",
+        "The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.",
       ).optional(),
       retryPolicy: z.object({
         numRetries: z.number().int().describe(
@@ -700,14 +703,14 @@ const InputsSchema = z.object({
         retryConditions: z.array(z.unknown()).describe(
           "Specifies one or more conditions when this retry policy applies. Valid values are: 5xx: Proxy will attempt a retry if the destination service responds with any 5xx response code, of if the destination service does not respond at all, example: disconnect, reset, read timeout, connection failure and refused streams. gateway-error: Similar to 5xx, but only applies to response codes 502, 503, 504. reset: Proxy will attempt a retry if the destination service does not respond at all (disconnect/reset/read timeout) connect-failure: Proxy will retry on failures connecting to destination for example due to connection timeouts. retriable-4xx: Proxy will retry fro retriable 4xx response codes. Currently the only retriable error supported is 409. refused-stream: Proxy will retry if the destination resets the stream with a REFUSED_STREAM error code. This reset type indicates that it is safe to retry.",
         ).optional(),
-      }).describe("The specifications for retries.").optional(),
+      }).describe("Specifies the retry policy associated with this route.")
+        .optional(),
       statefulSessionAffinity: z.object({
         cookieTtl: z.string().describe(
           "Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.",
         ).optional(),
-      }).describe(
-        'The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.',
-      ).optional(),
+      }).describe("Optional. Specifies cookie-based stateful session affinity.")
+        .optional(),
       timeout: z.string().describe(
         "Specifies the timeout for selected route. Timeout is computed from the time the request has been fully processed (i.e. end of stream) up until the response has been completely processed. Timeout includes all retries.",
       ).optional(),
@@ -719,11 +722,10 @@ const InputsSchema = z.object({
           "Prior to forwarding the request to the selected destination, the matching portion of the requests path is replaced by this value.",
         ).optional(),
       }).describe(
-        "The specification for modifying the URL of the request, prior to forwarding the request to the destination.",
+        "The specification for rewrite URL before forwarding requests to the destination.",
       ).optional(),
-    }).describe(
-      "The specifications for routing traffic and applying associated policies.",
-    ).optional(),
+    }).describe("The detailed rule defining how to route matched traffic.")
+      .optional(),
     matches: z.array(z.object({
       fullPathMatch: z.string().describe(
         "The HTTP request path value should exactly match this value. Only one of full_path_match, prefix_match, or regex_match should be used.",
@@ -782,7 +784,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services HttpRoutes. Registered at `@swamp/gcp/networkservices/httproutes`. */
 export const model = {
   type: "@swamp/gcp/networkservices/httproutes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -929,6 +931,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: requestId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

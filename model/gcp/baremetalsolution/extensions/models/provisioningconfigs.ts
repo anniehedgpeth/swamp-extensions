@@ -139,7 +139,9 @@ const GlobalArgsSchema = z.object({
       networkId: z.string().describe(
         "Id of the network to use, within the same ProvisioningConfig request.",
       ).optional(),
-    }).describe("A network.").optional(),
+    }).describe(
+      "Client network address. Filled if InstanceConfig.multivlan_config is false.",
+    ).optional(),
     hyperthreading: z.boolean().describe(
       "Whether the instance should be provisioned with Hyperthreading enabled.",
     ).optional(),
@@ -187,7 +189,9 @@ const GlobalArgsSchema = z.object({
       networkId: z.string().describe(
         "Id of the network to use, within the same ProvisioningConfig request.",
       ).optional(),
-    }).describe("A network.").optional(),
+    }).describe(
+      "Private network address, if any. Filled if InstanceConfig.multivlan_config is false.",
+    ).optional(),
     sshKeyNames: z.array(z.string()).describe(
       "Optional. List of names of ssh keys used to provision the instance.",
     ).optional(),
@@ -436,7 +440,9 @@ const InputsSchema = z.object({
       networkId: z.string().describe(
         "Id of the network to use, within the same ProvisioningConfig request.",
       ).optional(),
-    }).describe("A network.").optional(),
+    }).describe(
+      "Client network address. Filled if InstanceConfig.multivlan_config is false.",
+    ).optional(),
     hyperthreading: z.boolean().describe(
       "Whether the instance should be provisioned with Hyperthreading enabled.",
     ).optional(),
@@ -484,7 +490,9 @@ const InputsSchema = z.object({
       networkId: z.string().describe(
         "Id of the network to use, within the same ProvisioningConfig request.",
       ).optional(),
-    }).describe("A network.").optional(),
+    }).describe(
+      "Private network address, if any. Filled if InstanceConfig.multivlan_config is false.",
+    ).optional(),
     sshKeyNames: z.array(z.string()).describe(
       "Optional. List of names of ssh keys used to provision the instance.",
     ).optional(),
@@ -644,7 +652,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bare Metal Solution ProvisioningConfigs. Registered at `@swamp/gcp/baremetalsolution/provisioningconfigs`. */
 export const model = {
   type: "@swamp/gcp/baremetalsolution/provisioningconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -753,6 +761,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

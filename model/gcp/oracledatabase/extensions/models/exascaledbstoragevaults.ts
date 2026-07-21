@@ -184,7 +184,7 @@ const GlobalArgsSchema = z.object({
       totalSizeGbs: z.number().int().describe(
         "Required. The total storage allocation for the ExascaleDbStorageVault, in gigabytes (GB).",
       ).optional(),
-    }).describe("The storage details of the ExascaleDbStorageVault.")
+    }).describe("Required. The storage details of the ExascaleDbStorageVault.")
       .optional(),
     ociUri: z.string().describe(
       "Output only. Deep link to the OCI console to view this resource.",
@@ -209,16 +209,15 @@ const GlobalArgsSchema = z.object({
       version: z.string().describe(
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
-    }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
-    ).optional(),
+    }).describe("Output only. The time zone of the ExascaleDbStorageVault.")
+      .optional(),
     vmClusterCount: z.number().int().describe(
       "Output only. The number of VM clusters associated with the ExascaleDbStorageVault.",
     ).optional(),
     vmClusterIds: z.array(z.string()).describe(
       "Output only. The list of VM cluster OCIDs associated with the ExascaleDbStorageVault.",
     ).optional(),
-  }).describe("The properties of the ExascaleDbStorageVault. next ID: 12")
+  }).describe("Required. The properties of the ExascaleDbStorageVault.")
     .optional(),
   exascaleDbStorageVaultId: z.string().describe(
     "Required. The ID of the ExascaleDbStorageVault to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
@@ -306,7 +305,7 @@ const InputsSchema = z.object({
       totalSizeGbs: z.number().int().describe(
         "Required. The total storage allocation for the ExascaleDbStorageVault, in gigabytes (GB).",
       ).optional(),
-    }).describe("The storage details of the ExascaleDbStorageVault.")
+    }).describe("Required. The storage details of the ExascaleDbStorageVault.")
       .optional(),
     ociUri: z.string().describe(
       "Output only. Deep link to the OCI console to view this resource.",
@@ -331,16 +330,15 @@ const InputsSchema = z.object({
       version: z.string().describe(
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
-    }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
-    ).optional(),
+    }).describe("Output only. The time zone of the ExascaleDbStorageVault.")
+      .optional(),
     vmClusterCount: z.number().int().describe(
       "Output only. The number of VM clusters associated with the ExascaleDbStorageVault.",
     ).optional(),
     vmClusterIds: z.array(z.string()).describe(
       "Output only. The list of VM cluster OCIDs associated with the ExascaleDbStorageVault.",
     ).optional(),
-  }).describe("The properties of the ExascaleDbStorageVault. next ID: 12")
+  }).describe("Required. The properties of the ExascaleDbStorageVault.")
     .optional(),
   exascaleDbStorageVaultId: z.string().describe(
     "Required. The ID of the ExascaleDbStorageVault to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
@@ -376,7 +374,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud ExascaleDbStorageVaults. Registered at `@swamp/gcp/oracledatabase/exascaledbstoragevaults`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/exascaledbstoragevaults",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -494,6 +492,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: exadataInfrastructure",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

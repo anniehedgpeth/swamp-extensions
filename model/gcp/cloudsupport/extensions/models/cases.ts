@@ -143,9 +143,7 @@ const GlobalArgsSchema = z.object({
     id: z.string().describe(
       "The unique ID for a classification. Must be specified for case creation. To retrieve valid classification IDs for case creation, use `caseClassifications.search`. Classification IDs returned by `caseClassifications.search` are guaranteed to be valid for at least 6 months. If a given classification is deactiveated, it will immediately stop being returned. After 6 months, `case.create` requests using the classification ID will fail.",
     ).optional(),
-  }).describe(
-    "A Case Classification represents the topic that a case is about. It's very important to use accurate classifications, because they're used to route your cases to specialists who can help you. A classification always has an ID that is its unique identifier. A valid ID is required when creating a case.",
-  ).optional(),
+  }).describe("The issue classification applicable to this case.").optional(),
   contactEmail: z.string().describe(
     "A user-supplied email address to send case update notifications for. This should only be used in BYOID flows, where we cannot infer the user's email address directly from their EUCs.",
   ).optional(),
@@ -163,7 +161,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The username of the actor. It may look like an email or other format provided by the identity provider. If not provided, it is inferred from the credentials supplied. When a name is provided, a username must also be provided. If the user is a Google Support agent, this will not be set.",
     ).optional(),
   }).describe(
-    "An Actor represents an entity that performed an action. For example, an actor could be a user who posted a comment on a support case, a user who uploaded an attachment, or a service account that created a support case.",
+    "The user who created the case. Note: The name and email will be obfuscated if the case was created by Google Support.",
   ).optional(),
   description: z.string().describe("A broad description of the issue.")
     .optional(),
@@ -233,9 +231,7 @@ const InputsSchema = z.object({
     id: z.string().describe(
       "The unique ID for a classification. Must be specified for case creation. To retrieve valid classification IDs for case creation, use `caseClassifications.search`. Classification IDs returned by `caseClassifications.search` are guaranteed to be valid for at least 6 months. If a given classification is deactiveated, it will immediately stop being returned. After 6 months, `case.create` requests using the classification ID will fail.",
     ).optional(),
-  }).describe(
-    "A Case Classification represents the topic that a case is about. It's very important to use accurate classifications, because they're used to route your cases to specialists who can help you. A classification always has an ID that is its unique identifier. A valid ID is required when creating a case.",
-  ).optional(),
+  }).describe("The issue classification applicable to this case.").optional(),
   contactEmail: z.string().describe(
     "A user-supplied email address to send case update notifications for. This should only be used in BYOID flows, where we cannot infer the user's email address directly from their EUCs.",
   ).optional(),
@@ -253,7 +249,7 @@ const InputsSchema = z.object({
       "Output only. The username of the actor. It may look like an email or other format provided by the identity provider. If not provided, it is inferred from the credentials supplied. When a name is provided, a username must also be provided. If the user is a Google Support agent, this will not be set.",
     ).optional(),
   }).describe(
-    "An Actor represents an entity that performed an action. For example, an actor could be a user who posted a comment on a support case, a user who uploaded an attachment, or a service account that created a support case.",
+    "The user who created the case. Note: The name and email will be obfuscated if the case was created by Google Support.",
   ).optional(),
   description: z.string().describe("A broad description of the issue.")
     .optional(),
@@ -306,7 +302,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Support Cases. Registered at `@swamp/gcp/cloudsupport/cases`. */
 export const model = {
   type: "@swamp/gcp/cloudsupport/cases",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -405,6 +401,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

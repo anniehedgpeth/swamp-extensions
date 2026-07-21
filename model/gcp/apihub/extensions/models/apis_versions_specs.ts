@@ -178,25 +178,30 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the spec. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -207,33 +212,8 @@ const GlobalArgsSchema = z.object({
     mimeType: z.string().describe(
       "Required. The mime type of the content for example application/json, application/yaml, application/wsdl etc.",
     ).optional(),
-  }).describe("The spec contents.").optional(),
-  details: z.object({
-    description: z.string().describe(
-      "Output only. The description of the spec.",
-    ).optional(),
-    openApiSpecDetails: z.object({
-      format: z.enum([
-        "FORMAT_UNSPECIFIED",
-        "OPEN_API_SPEC_2_0",
-        "OPEN_API_SPEC_3_0",
-        "OPEN_API_SPEC_3_1",
-      ]).describe("Output only. The format of the spec.").optional(),
-      owner: z.object({
-        displayName: z.string().describe("Optional. The name of the owner.")
-          .optional(),
-        email: z.string().describe("Required. The email of the owner.")
-          .optional(),
-      }).describe("Owner details.").optional(),
-      version: z.string().describe(
-        "Output only. The version in the spec. This maps to `info.version` in OpenAPI spec.",
-      ).optional(),
-    }).describe(
-      "OpenApiSpecDetails contains the details parsed from an OpenAPI spec in addition to the fields mentioned in SpecDetails.",
-    ).optional(),
-  }).describe(
-    "SpecDetails contains the details parsed from supported spec types.",
-  ).optional(),
+  }).describe("Optional. Input only. The contents of the uploaded spec.")
+    .optional(),
   displayName: z.string().describe(
     "Required. The display name of the spec. This can contain the file name of the spec.",
   ).optional(),
@@ -241,7 +221,9 @@ const GlobalArgsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe(
+    "Optional. The documentation of the spec. For OpenAPI spec, this will be populated from `externalDocs` in OpenAPI spec.",
+  ).optional(),
   lintResponse: z.object({
     createTime: z.string().describe(
       "Required. Timestamp when the linting response was generated.",
@@ -263,16 +245,17 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           line: z.unknown().describe("Required. Line number (zero-indexed).")
             .optional(),
-        }).describe("Point within the file (line and character).").optional(),
+        }).describe("Required. End of the issue.").optional(),
         start: z.object({
           character: z.unknown().describe(
             "Required. Character position within the line (zero-indexed).",
           ).optional(),
           line: z.unknown().describe("Required. Line number (zero-indexed).")
             .optional(),
-        }).describe("Point within the file (line and character).").optional(),
-      }).describe("Object describing where in the file the issue was found.")
-        .optional(),
+        }).describe("Required. Start of the issue.").optional(),
+      }).describe(
+        "Required. Object describing where in the file the issue was found.",
+      ).optional(),
       severity: z.enum([
         "SEVERITY_UNSPECIFIED",
         "SEVERITY_ERROR",
@@ -308,7 +291,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. Summary of all issue types and counts for each severity level.",
     ).optional(),
-  }).describe("LintResponse contains the response from the linter.").optional(),
+  }).describe("Optional. The lint response for the spec.").optional(),
   name: z.string().describe(
     "Identifier. The name of the spec. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec}`",
   ).optional(),
@@ -340,23 +323,33 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Required. The type of spec. The value should be one of the allowed values defined for `projects/{project}/locations/{location}/attributes/system-spec-type` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. Note, this field is mandatory if content is provided.",
+  ).optional(),
   specId: z.string().describe(
     "Optional. The ID to use for the spec, which will become the final component of the spec's resource name. This field is optional. * If provided, the same will be used. The service will throw an error if the specified id is already used by another spec in the API resource. * If not provided, a system generated id will be used. This value should be 4-500 characters, overall resource name which will be of format `projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec}`, its length is limited to 1000 characters and valid characters are /a-z[0-9]-_/.",
   ).optional(),
@@ -492,25 +485,30 @@ const InputsSchema = z.object({
         })).describe(
           "Required. The attribute values in case attribute data type is enum.",
         ).optional(),
-      }).describe("The attribute values of data type enum.").optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is enum.",
+      ).optional(),
       jsonValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is JSON.",
+      ).optional(),
       stringValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is string.",
+      ).optional(),
       uriValues: z.object({
         values: z.array(z.string()).describe(
           "Required. The attribute values in case attribute data type is string or JSON.",
         ).optional(),
-      }).describe("The attribute values of data type string or JSON.")
-        .optional(),
+      }).describe(
+        "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+      ).optional(),
     }),
   ).describe(
     "Optional. The list of user defined attributes associated with the spec. The key is the attribute name. It will be of the format: `projects/{project}/locations/{location}/attributes/{attribute}`. The value is the attribute values associated with the resource.",
@@ -521,33 +519,8 @@ const InputsSchema = z.object({
     mimeType: z.string().describe(
       "Required. The mime type of the content for example application/json, application/yaml, application/wsdl etc.",
     ).optional(),
-  }).describe("The spec contents.").optional(),
-  details: z.object({
-    description: z.string().describe(
-      "Output only. The description of the spec.",
-    ).optional(),
-    openApiSpecDetails: z.object({
-      format: z.enum([
-        "FORMAT_UNSPECIFIED",
-        "OPEN_API_SPEC_2_0",
-        "OPEN_API_SPEC_3_0",
-        "OPEN_API_SPEC_3_1",
-      ]).describe("Output only. The format of the spec.").optional(),
-      owner: z.object({
-        displayName: z.string().describe("Optional. The name of the owner.")
-          .optional(),
-        email: z.string().describe("Required. The email of the owner.")
-          .optional(),
-      }).describe("Owner details.").optional(),
-      version: z.string().describe(
-        "Output only. The version in the spec. This maps to `info.version` in OpenAPI spec.",
-      ).optional(),
-    }).describe(
-      "OpenApiSpecDetails contains the details parsed from an OpenAPI spec in addition to the fields mentioned in SpecDetails.",
-    ).optional(),
-  }).describe(
-    "SpecDetails contains the details parsed from supported spec types.",
-  ).optional(),
+  }).describe("Optional. Input only. The contents of the uploaded spec.")
+    .optional(),
   displayName: z.string().describe(
     "Required. The display name of the spec. This can contain the file name of the spec.",
   ).optional(),
@@ -555,7 +528,9 @@ const InputsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe(
+    "Optional. The documentation of the spec. For OpenAPI spec, this will be populated from `externalDocs` in OpenAPI spec.",
+  ).optional(),
   lintResponse: z.object({
     createTime: z.string().describe(
       "Required. Timestamp when the linting response was generated.",
@@ -577,16 +552,17 @@ const InputsSchema = z.object({
           ).optional(),
           line: z.unknown().describe("Required. Line number (zero-indexed).")
             .optional(),
-        }).describe("Point within the file (line and character).").optional(),
+        }).describe("Required. End of the issue.").optional(),
         start: z.object({
           character: z.unknown().describe(
             "Required. Character position within the line (zero-indexed).",
           ).optional(),
           line: z.unknown().describe("Required. Line number (zero-indexed).")
             .optional(),
-        }).describe("Point within the file (line and character).").optional(),
-      }).describe("Object describing where in the file the issue was found.")
-        .optional(),
+        }).describe("Required. Start of the issue.").optional(),
+      }).describe(
+        "Required. Object describing where in the file the issue was found.",
+      ).optional(),
       severity: z.enum([
         "SEVERITY_UNSPECIFIED",
         "SEVERITY_ERROR",
@@ -622,7 +598,7 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. Summary of all issue types and counts for each severity level.",
     ).optional(),
-  }).describe("LintResponse contains the response from the linter.").optional(),
+  }).describe("Optional. The lint response for the spec.").optional(),
   name: z.string().describe(
     "Identifier. The name of the spec. Format: `projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec}`",
   ).optional(),
@@ -654,23 +630,33 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Required. The type of spec. The value should be one of the allowed values defined for `projects/{project}/locations/{location}/attributes/system-spec-type` attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. Note, this field is mandatory if content is provided.",
+  ).optional(),
   specId: z.string().describe(
     "Optional. The ID to use for the spec, which will become the final component of the spec's resource name. This field is optional. * If provided, the same will be used. The service will throw an error if the specified id is already used by another spec in the API resource. * If not provided, a system generated id will be used. This value should be 4-500 characters, overall resource name which will be of format `projects/{project}/locations/{location}/apis/{api}/versions/{version}/specs/{spec}`, its length is limited to 1000 characters and valid characters are /a-z[0-9]-_/.",
   ).optional(),
@@ -705,7 +691,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Apis.Versions.Specs. Registered at `@swamp/gcp/apihub/apis-versions-specs`. */
 export const model = {
   type: "@swamp/gcp/apihub/apis-versions-specs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -817,6 +803,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: details",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { details: _details, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -842,7 +836,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["attributes"] !== undefined) body["attributes"] = g["attributes"];
         if (g["contents"] !== undefined) body["contents"] = g["contents"];
-        if (g["details"] !== undefined) body["details"] = g["details"];
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
@@ -965,7 +958,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["attributes"] !== undefined) body["attributes"] = g["attributes"];
         if (g["contents"] !== undefined) body["contents"] = g["contents"];
-        if (g["details"] !== undefined) body["details"] = g["details"];
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }

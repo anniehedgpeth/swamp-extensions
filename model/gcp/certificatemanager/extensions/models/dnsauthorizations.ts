@@ -161,18 +161,6 @@ const GlobalArgsSchema = z.object({
   description: z.string().describe(
     "Optional. One or more paragraphs of text description of a DnsAuthorization.",
   ).optional(),
-  dnsResourceRecord: z.object({
-    data: z.string().describe("Output only. Data of the DNS Resource Record.")
-      .optional(),
-    name: z.string().describe(
-      "Output only. Fully qualified name of the DNS Resource Record. e.g. `_acme-challenge.example.com`",
-    ).optional(),
-    type: z.string().describe(
-      'Output only. Type of the DNS Resource Record. Currently always set to "CNAME".',
-    ).optional(),
-  }).describe(
-    "The structure describing the DNS Resource Record that needs to be added to DNS configuration for the authorization to be usable by certificate.",
-  ).optional(),
   domain: z.string().describe(
     "Required. Immutable. A domain that is being authorized. A DnsAuthorization resource covers a single domain and its wildcard, e.g. authorization for `example.com` can be used to issue certificates for `example.com` and `*.example.com`.",
   ).optional(),
@@ -223,18 +211,6 @@ const InputsSchema = z.object({
   description: z.string().describe(
     "Optional. One or more paragraphs of text description of a DnsAuthorization.",
   ).optional(),
-  dnsResourceRecord: z.object({
-    data: z.string().describe("Output only. Data of the DNS Resource Record.")
-      .optional(),
-    name: z.string().describe(
-      "Output only. Fully qualified name of the DNS Resource Record. e.g. `_acme-challenge.example.com`",
-    ).optional(),
-    type: z.string().describe(
-      'Output only. Type of the DNS Resource Record. Currently always set to "CNAME".',
-    ).optional(),
-  }).describe(
-    "The structure describing the DNS Resource Record that needs to be added to DNS configuration for the authorization to be usable by certificate.",
-  ).optional(),
   domain: z.string().describe(
     "Required. Immutable. A domain that is being authorized. A DnsAuthorization resource covers a single domain and its wildcard, e.g. authorization for `example.com` can be used to issue certificates for `example.com` and `*.example.com`.",
   ).optional(),
@@ -282,7 +258,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Manager DnsAuthorizations. Registered at `@swamp/gcp/certificatemanager/dnsauthorizations`. */
 export const model = {
   type: "@swamp/gcp/certificatemanager/dnsauthorizations",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -402,6 +378,14 @@ export const model = {
       description: "Added: tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: dnsResourceRecord",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { dnsResourceRecord: _dnsResourceRecord, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -429,9 +413,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
-        }
-        if (g["dnsResourceRecord"] !== undefined) {
-          body["dnsResourceRecord"] = g["dnsResourceRecord"];
         }
         if (g["domain"] !== undefined) body["domain"] = g["domain"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
@@ -549,9 +530,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
-        }
-        if (g["dnsResourceRecord"] !== undefined) {
-          body["dnsResourceRecord"] = g["dnsResourceRecord"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         const updateMaskKeys = Object.keys(body);

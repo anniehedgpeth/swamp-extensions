@@ -180,7 +180,7 @@ const GlobalArgsSchema = z.object({
           "Whether or not screenlock is required for the DevicePolicy to be true. Defaults to `false`.",
         ).optional(),
       }).describe(
-        "`DevicePolicy` specifies device specific restrictions necessary to acquire a given access level. A `DevicePolicy` specifies requirements for requests from devices to be granted access levels, it does not do any enforcement on the device. `DevicePolicy` acts as an AND over all specified fields, and each repeated field is an OR over its elements. Any unset fields are ignored. For example, if the proto is { os_type: DESKTOP_WINDOWS, os_type: DESKTOP_LINUX, encryption_status: ENCRYPTED}, then the DevicePolicy will be true for requests originating from encrypted Linux desktops and encrypted Windows desktops.",
+        "Device specific restrictions, all restrictions must hold for the Condition to be true. If not specified, all devices are allowed.",
       ).optional(),
       ipSubnetworks: z.array(z.string()).describe(
         'CIDR block IP subnetwork specification. May be IPv4 or IPv6. Note that for a CIDR IP address block, the specified IP address portion must be properly truncated (i.e. all the host bits must be zero) or the input is considered malformed. For example, "192.0.2.0/24" is accepted but "192.0.2.1/24" is not. Similarly, for IPv6, "2001:db8::/32" is accepted whereas "2001:db8::1/32" is not. The originating IP of a request must be in one of the listed subnets in order for this Condition to be true. If empty, all IP addresses are allowed.',
@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       vpcNetworkSources: z.array(z.object({
         vpcSubnetwork: z.unknown().describe(
-          "Sub-segment ranges inside of a VPC Network.",
+          "Sub-segment ranges of a VPC network.",
         ).optional(),
       })).describe(
         "The request must originate from one of the provided VPC networks in Google Cloud. Cannot specify this field together with `ip_subnetworks`.",
@@ -207,9 +207,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Required. A list of requirements for the `AccessLevel` to be granted.",
     ).optional(),
-  }).describe(
-    "`BasicLevel` is an `AccessLevel` using a set of recommended features.",
-  ).optional(),
+  }).describe("A `BasicLevel` composed of `Conditions`.").optional(),
   custom: z.object({
     expr: z.object({
       description: z.string().describe(
@@ -224,12 +222,10 @@ const GlobalArgsSchema = z.object({
       title: z.string().describe(
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
-    }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
-    ).optional(),
-  }).describe(
-    "`CustomLevel` is an `AccessLevel` using the Cloud Common Expression Language to represent the necessary conditions for the level to apply to a request. See CEL spec at: https://github.com/google/cel-spec",
-  ).optional(),
+    }).describe("Required. A Cloud CEL expression evaluating to a boolean.")
+      .optional(),
+  }).describe("A `CustomLevel` written in the Common Expression Language.")
+    .optional(),
   description: z.string().describe(
     "Description of the `AccessLevel` and its use. Does not affect behavior.",
   ).optional(),
@@ -311,7 +307,7 @@ const InputsSchema = z.object({
           "Whether or not screenlock is required for the DevicePolicy to be true. Defaults to `false`.",
         ).optional(),
       }).describe(
-        "`DevicePolicy` specifies device specific restrictions necessary to acquire a given access level. A `DevicePolicy` specifies requirements for requests from devices to be granted access levels, it does not do any enforcement on the device. `DevicePolicy` acts as an AND over all specified fields, and each repeated field is an OR over its elements. Any unset fields are ignored. For example, if the proto is { os_type: DESKTOP_WINDOWS, os_type: DESKTOP_LINUX, encryption_status: ENCRYPTED}, then the DevicePolicy will be true for requests originating from encrypted Linux desktops and encrypted Windows desktops.",
+        "Device specific restrictions, all restrictions must hold for the Condition to be true. If not specified, all devices are allowed.",
       ).optional(),
       ipSubnetworks: z.array(z.string()).describe(
         'CIDR block IP subnetwork specification. May be IPv4 or IPv6. Note that for a CIDR IP address block, the specified IP address portion must be properly truncated (i.e. all the host bits must be zero) or the input is considered malformed. For example, "192.0.2.0/24" is accepted but "192.0.2.1/24" is not. Similarly, for IPv6, "2001:db8::/32" is accepted whereas "2001:db8::1/32" is not. The originating IP of a request must be in one of the listed subnets in order for this Condition to be true. If empty, all IP addresses are allowed.',
@@ -330,7 +326,7 @@ const InputsSchema = z.object({
       ).optional(),
       vpcNetworkSources: z.array(z.object({
         vpcSubnetwork: z.unknown().describe(
-          "Sub-segment ranges inside of a VPC Network.",
+          "Sub-segment ranges of a VPC network.",
         ).optional(),
       })).describe(
         "The request must originate from one of the provided VPC networks in Google Cloud. Cannot specify this field together with `ip_subnetworks`.",
@@ -338,9 +334,7 @@ const InputsSchema = z.object({
     })).describe(
       "Required. A list of requirements for the `AccessLevel` to be granted.",
     ).optional(),
-  }).describe(
-    "`BasicLevel` is an `AccessLevel` using a set of recommended features.",
-  ).optional(),
+  }).describe("A `BasicLevel` composed of `Conditions`.").optional(),
   custom: z.object({
     expr: z.object({
       description: z.string().describe(
@@ -355,12 +349,10 @@ const InputsSchema = z.object({
       title: z.string().describe(
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
-    }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
-    ).optional(),
-  }).describe(
-    "`CustomLevel` is an `AccessLevel` using the Cloud Common Expression Language to represent the necessary conditions for the level to apply to a request. See CEL spec at: https://github.com/google/cel-spec",
-  ).optional(),
+    }).describe("Required. A Cloud CEL expression evaluating to a boolean.")
+      .optional(),
+  }).describe("A `CustomLevel` written in the Common Expression Language.")
+    .optional(),
   description: z.string().describe(
     "Description of the `AccessLevel` and its use. Does not affect behavior.",
   ).optional(),
@@ -398,7 +390,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager AccessPolicies.AccessLevels. Registered at `@swamp/gcp/accesscontextmanager/accesspolicies-accesslevels`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/accesspolicies-accesslevels",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -502,6 +494,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

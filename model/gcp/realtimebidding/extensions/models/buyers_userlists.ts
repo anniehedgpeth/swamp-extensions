@@ -157,7 +157,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "End date (if specified) of the URL restriction. End date should be later than the start date for the date range to be valid.",
     ).optional(),
     restrictionType: z.enum([
       "RESTRICTION_TYPE_UNSPECIFIED",
@@ -180,14 +180,12 @@ const GlobalArgsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Start date (if specified) of the URL restriction.").optional(),
     url: z.string().describe(
       "Required. The URL to use for applying the restriction on the user list.",
     ).optional(),
   }).describe(
-    "Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Represents the URL restriction (for the URL captured by the pixel callback) for a user list.",
+    "Required. Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api The URL restriction for the user list.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -244,7 +242,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "End date (if specified) of the URL restriction. End date should be later than the start date for the date range to be valid.",
     ).optional(),
     restrictionType: z.enum([
       "RESTRICTION_TYPE_UNSPECIFIED",
@@ -267,14 +265,12 @@ const InputsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Start date (if specified) of the URL restriction.").optional(),
     url: z.string().describe(
       "Required. The URL to use for applying the restriction on the user list.",
     ).optional(),
   }).describe(
-    "Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Represents the URL restriction (for the URL captured by the pixel callback) for a user list.",
+    "Required. Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api The URL restriction for the user list.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -304,7 +300,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Real-time Bidding Buyers.UserLists. Registered at `@swamp/gcp/realtimebidding/buyers-userlists`. */
 export const model = {
   type: "@swamp/gcp/realtimebidding/buyers-userlists",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -393,6 +389,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

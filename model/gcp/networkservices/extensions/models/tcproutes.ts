@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
         "Optional. If true, Router will use the destination IP and port of the original connection as the destination of the request. Default is false. Only one of route destinations or original destination can be set.",
       ).optional(),
     }).describe(
-      "The specifications for routing traffic and applying associated policies.",
+      "Required. The detailed rule defining how to route matched traffic.",
     ).optional(),
     matches: z.array(z.object({
       address: z.string().describe(
@@ -278,7 +278,7 @@ const InputsSchema = z.object({
         "Optional. If true, Router will use the destination IP and port of the original connection as the destination of the request. Default is false. Only one of route destinations or original destination can be set.",
       ).optional(),
     }).describe(
-      "The specifications for routing traffic and applying associated policies.",
+      "Required. The detailed rule defining how to route matched traffic.",
     ).optional(),
     matches: z.array(z.object({
       address: z.string().describe(
@@ -324,7 +324,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services TcpRoutes. Registered at `@swamp/gcp/networkservices/tcproutes`. */
 export const model = {
   type: "@swamp/gcp/networkservices/tcproutes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -433,6 +433,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

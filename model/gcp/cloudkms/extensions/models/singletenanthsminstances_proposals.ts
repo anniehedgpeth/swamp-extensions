@@ -150,7 +150,7 @@ const GlobalArgsSchema = z.object({
     "Add a quorum member to the SingleTenantHsmInstance. This will increase the total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
   ).optional(),
   deleteSingleTenantHsmInstance: z.object({}).describe(
-    "Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must not be in the DELETING or DELETED state to perform this operation.",
+    "Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must be in the DISABLED or PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.",
   ).optional(),
   disableSingleTenantHsmInstance: z.object({}).describe(
     "Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
@@ -164,26 +164,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name for this SingleTenantHsmInstance in the format `projects/*/locations/*/singleTenantHsmInstances/*/proposals/*`.",
   ).optional(),
-  quorumParameters: z.object({
-    approvedTwoFactorPublicKeyPems: z.array(z.string()).describe(
-      "Output only. The public keys associated with the 2FA keys that have already approved the SingleTenantHsmInstanceProposal by signing the challenge.",
-    ).optional(),
-    challenges: z.array(z.object({
-      challenge: z.string().describe(
-        "Output only. The challenge to be signed by the 2FA key indicated by the public key.",
-      ).optional(),
-      publicKeyPem: z.string().describe(
-        "Output only. The public key associated with the 2FA key that should sign the challenge.",
-      ).optional(),
-    })).describe(
-      "Output only. The challenges to be signed by 2FA keys for quorum auth. M of N of these challenges are required to be signed to approve the operation.",
-    ).optional(),
-    requiredApproverCount: z.number().int().describe(
-      "Output only. The required numbers of approvers. This is the M value used for M of N quorum auth. It is less than the number of public keys.",
-    ).optional(),
-  }).describe(
-    "Parameters of quorum approval for the SingleTenantHsmInstanceProposal.",
-  ).optional(),
   refreshSingleTenantHsmInstance: z.object({}).describe(
     "Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
   ).optional(),
@@ -195,7 +175,7 @@ const GlobalArgsSchema = z.object({
       "Required. The public keys associated with the 2FA keys for M of N quorum auth. Public keys must be associated with RSA 2048 keys.",
     ).optional(),
   }).describe(
-    "Register 2FA keys for the SingleTenantHsmInstance. This operation requires all Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.",
+    "Register 2FA keys for the SingleTenantHsmInstance. This operation requires all N Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.",
   ).optional(),
   removeQuorumMember: z.object({
     twoFactorPublicKeyPem: z.string().describe(
@@ -203,36 +183,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "Remove a quorum member from the SingleTenantHsmInstance. This will reduce total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
-  ).optional(),
-  requiredActionQuorumParameters: z.object({
-    approvedTwoFactorPublicKeyPems: z.array(z.string()).describe(
-      "Output only. The public keys associated with the 2FA keys that have already approved the SingleTenantHsmInstanceProposal by signing the challenge.",
-    ).optional(),
-    quorumChallenges: z.array(z.object({
-      challenge: z.string().describe(
-        "Output only. The challenge to be signed by the 2FA key indicated by the public key.",
-      ).optional(),
-      publicKeyPem: z.string().describe(
-        "Output only. The public key associated with the 2FA key that should sign the challenge.",
-      ).optional(),
-    })).describe(
-      "Output only. The challenges to be signed by 2FA keys for quorum auth. M of N of these challenges are required to be signed to approve the operation.",
-    ).optional(),
-    requiredApproverCount: z.number().int().describe(
-      "Output only. The required number of quorum approvers. This is the M value used for M of N quorum auth. It is less than the number of public keys.",
-    ).optional(),
-    requiredChallenges: z.array(z.object({
-      challenge: z.string().describe(
-        "Output only. The challenge to be signed by the 2FA key indicated by the public key.",
-      ).optional(),
-      publicKeyPem: z.string().describe(
-        "Output only. The public key associated with the 2FA key that should sign the challenge.",
-      ).optional(),
-    })).describe(
-      "Output only. A list of specific challenges that must be signed. For some operations, this will contain a single challenge.",
-    ).optional(),
-  }).describe(
-    "Parameters for an approval that has both required challenges and a quorum.",
   ).optional(),
   ttl: z.string().describe(
     "Input only. The TTL for the SingleTenantHsmInstanceProposal. Proposals will expire after this duration.",
@@ -322,7 +272,7 @@ const InputsSchema = z.object({
     "Add a quorum member to the SingleTenantHsmInstance. This will increase the total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
   ).optional(),
   deleteSingleTenantHsmInstance: z.object({}).describe(
-    "Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must not be in the DELETING or DELETED state to perform this operation.",
+    "Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must be in the DISABLED or PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.",
   ).optional(),
   disableSingleTenantHsmInstance: z.object({}).describe(
     "Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
@@ -336,26 +286,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name for this SingleTenantHsmInstance in the format `projects/*/locations/*/singleTenantHsmInstances/*/proposals/*`.",
   ).optional(),
-  quorumParameters: z.object({
-    approvedTwoFactorPublicKeyPems: z.array(z.string()).describe(
-      "Output only. The public keys associated with the 2FA keys that have already approved the SingleTenantHsmInstanceProposal by signing the challenge.",
-    ).optional(),
-    challenges: z.array(z.object({
-      challenge: z.string().describe(
-        "Output only. The challenge to be signed by the 2FA key indicated by the public key.",
-      ).optional(),
-      publicKeyPem: z.string().describe(
-        "Output only. The public key associated with the 2FA key that should sign the challenge.",
-      ).optional(),
-    })).describe(
-      "Output only. The challenges to be signed by 2FA keys for quorum auth. M of N of these challenges are required to be signed to approve the operation.",
-    ).optional(),
-    requiredApproverCount: z.number().int().describe(
-      "Output only. The required numbers of approvers. This is the M value used for M of N quorum auth. It is less than the number of public keys.",
-    ).optional(),
-  }).describe(
-    "Parameters of quorum approval for the SingleTenantHsmInstanceProposal.",
-  ).optional(),
   refreshSingleTenantHsmInstance: z.object({}).describe(
     "Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
   ).optional(),
@@ -367,7 +297,7 @@ const InputsSchema = z.object({
       "Required. The public keys associated with the 2FA keys for M of N quorum auth. Public keys must be associated with RSA 2048 keys.",
     ).optional(),
   }).describe(
-    "Register 2FA keys for the SingleTenantHsmInstance. This operation requires all Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.",
+    "Register 2FA keys for the SingleTenantHsmInstance. This operation requires all N Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.",
   ).optional(),
   removeQuorumMember: z.object({
     twoFactorPublicKeyPem: z.string().describe(
@@ -375,36 +305,6 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe(
     "Remove a quorum member from the SingleTenantHsmInstance. This will reduce total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.",
-  ).optional(),
-  requiredActionQuorumParameters: z.object({
-    approvedTwoFactorPublicKeyPems: z.array(z.string()).describe(
-      "Output only. The public keys associated with the 2FA keys that have already approved the SingleTenantHsmInstanceProposal by signing the challenge.",
-    ).optional(),
-    quorumChallenges: z.array(z.object({
-      challenge: z.string().describe(
-        "Output only. The challenge to be signed by the 2FA key indicated by the public key.",
-      ).optional(),
-      publicKeyPem: z.string().describe(
-        "Output only. The public key associated with the 2FA key that should sign the challenge.",
-      ).optional(),
-    })).describe(
-      "Output only. The challenges to be signed by 2FA keys for quorum auth. M of N of these challenges are required to be signed to approve the operation.",
-    ).optional(),
-    requiredApproverCount: z.number().int().describe(
-      "Output only. The required number of quorum approvers. This is the M value used for M of N quorum auth. It is less than the number of public keys.",
-    ).optional(),
-    requiredChallenges: z.array(z.object({
-      challenge: z.string().describe(
-        "Output only. The challenge to be signed by the 2FA key indicated by the public key.",
-      ).optional(),
-      publicKeyPem: z.string().describe(
-        "Output only. The public key associated with the 2FA key that should sign the challenge.",
-      ).optional(),
-    })).describe(
-      "Output only. A list of specific challenges that must be signed. For some operations, this will contain a single challenge.",
-    ).optional(),
-  }).describe(
-    "Parameters for an approval that has both required challenges and a quorum.",
   ).optional(),
   ttl: z.string().describe(
     "Input only. The TTL for the SingleTenantHsmInstanceProposal. Proposals will expire after this duration.",
@@ -453,7 +353,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) SingleTenantHsmInstances.Proposals. Registered at `@swamp/gcp/cloudkms/singletenanthsminstances-proposals`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/singletenanthsminstances-proposals",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -573,6 +473,18 @@ export const model = {
       description: "Added: upgradeKeyTrust",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: quorumParameters, requiredActionQuorumParameters",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          quorumParameters: _quorumParameters,
+          requiredActionQuorumParameters: _requiredActionQuorumParameters,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -617,9 +529,6 @@ export const model = {
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["quorumParameters"] !== undefined) {
-          body["quorumParameters"] = g["quorumParameters"];
-        }
         if (g["refreshSingleTenantHsmInstance"] !== undefined) {
           body["refreshSingleTenantHsmInstance"] =
             g["refreshSingleTenantHsmInstance"];
@@ -629,10 +538,6 @@ export const model = {
         }
         if (g["removeQuorumMember"] !== undefined) {
           body["removeQuorumMember"] = g["removeQuorumMember"];
-        }
-        if (g["requiredActionQuorumParameters"] !== undefined) {
-          body["requiredActionQuorumParameters"] =
-            g["requiredActionQuorumParameters"];
         }
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
         if (g["upgradeKeyTrust"] !== undefined) {

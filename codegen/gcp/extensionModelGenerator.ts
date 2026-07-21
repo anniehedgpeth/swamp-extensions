@@ -126,6 +126,15 @@ export function generateGcpExtensionModel(
     resource.methodConfigs.list && resource.methodConfigs.insert;
   const hasListFactory = !!(resource.methodConfigs.list &&
     resource.listResponseArrayField);
+
+  // Pre-compute idempotent match field so we know which imports are needed
+  const { field: namingField, synthetic: isSyntheticName } =
+    resolveGcpNamingField(resource);
+  const idempotentMatchField = hasIdempotentCreate
+    ? resolveGcpMatchField(resource, namingField, isSyntheticName)
+    : undefined;
+  const hasNestedMatchField = idempotentMatchField?.includes(".") ?? false;
+
   const helperImports: string[] = [];
   if (resource.handlers.create || hasActionMethods) {
     helperImports.push("createResource");
@@ -133,7 +142,10 @@ export function generateGcpExtensionModel(
   if (resource.handlers.delete) helperImports.push("deleteResource");
   helperImports.push("getProjectId");
   helperImports.push("isResourceNotFoundError");
-  if (hasListFactory) helperImports.push("listResources");
+  if (hasListFactory || hasNestedMatchField) {
+    helperImports.push("listResources");
+  }
+  if (hasNestedMatchField) helperImports.push("isAlreadyExistsError");
   if (resource.listOnly) {
     helperImports.push("readViaList");
   } else {
@@ -167,10 +179,6 @@ export function generateGcpExtensionModel(
     lines.push(`}`);
     lines.push("");
   }
-
-  // Naming field
-  const { field: namingField, synthetic: isSyntheticName } =
-    resolveGcpNamingField(resource);
 
   const isProjectOnly = resource.availableScopes?.length === 1 &&
     resource.availableScopes[0] === "projects";
@@ -574,9 +582,12 @@ export function generateGcpExtensionModel(
       createArgs.push("undefined");
     }
     // Idempotent create: pass list config for already-exists fallback
-    if (hasIdempotentCreate && resource.methodConfigs.list) {
+    if (
+      hasIdempotentCreate && resource.methodConfigs.list &&
+      idempotentMatchField && !hasNestedMatchField
+    ) {
+      // Flat match field (displayName, shortName, or namingField) — use IdempotencyConfig
       const listConfig = resource.methodConfigs.list;
-      const matchField = resolveGcpMatchField(resource, namingField);
 
       // Build list params from parameterOrder + parent if it's a list parameter
       const listParamParts: string[] = [];
@@ -619,13 +630,15 @@ export function generateGcpExtensionModel(
         }
       }
 
-      const segmentIdField = matchField === namingField
+      const segmentIdField = idempotentMatchField === namingField
         ? detectSegmentIdField(resource)
         : undefined;
-      let matchValueExpr = `String(g[${JSON.stringify(matchField)}] ?? "")`;
+      let matchValueExpr = `String(g[${
+        JSON.stringify(idempotentMatchField)
+      }] ?? "")`;
       if (segmentIdField && resource.resourceSegment) {
         matchValueExpr = `String(g[${
-          JSON.stringify(matchField)
+          JSON.stringify(idempotentMatchField)
         }] ?? "") || buildResourceName(${parentExpr}, String(g[${
           JSON.stringify(segmentIdField)
         }] ?? ""))`;
@@ -635,18 +648,102 @@ export function generateGcpExtensionModel(
         `{ listConfig: LIST_CONFIG, listParams: { ${
           listParamParts.join(", ")
         } }, matchField: ${
-          JSON.stringify(matchField)
+          JSON.stringify(idempotentMatchField)
         }, matchValue: ${matchValueExpr} }`,
       );
     } else {
+      // No viable flat match field (or nested — handled below) — omit IdempotencyConfig
       createArgs.push("undefined");
     }
     createArgs.push("credentials");
-    lines.push(
-      `        const result = await createResource(${
-        createArgs.join(", ")
-      }) as StateData;`,
-    );
+
+    if (
+      hasNestedMatchField && resource.methodConfigs.list &&
+      resource.listResponseArrayField
+    ) {
+      // Nested match field (e.g. "preferredMemberKey.id") — inline try/catch
+      // with listResources + nested field filtering instead of IdempotencyConfig
+      const dotParts = idempotentMatchField!.split(".");
+      const parentPropName = dotParts[0];
+      const childPropName = dotParts[1];
+      const listConfig = resource.methodConfigs.list;
+
+      // Build list params
+      const listParamParts: string[] = [];
+      const handledParams = new Set<string>();
+      for (const paramName of listConfig.parameterOrder) {
+        if (handledParams.has(paramName)) continue;
+        handledParams.add(paramName);
+        if (paramName === "project" || paramName === "projectId") {
+          listParamParts.push(`${JSON.stringify(paramName)}: projectId`);
+        } else if (paramName === "parent") {
+          if (shouldConstructParent) {
+            listParamParts.push(`"parent": ${parentExpr}`);
+          } else {
+            listParamParts.push(
+              `"parent": String(body["parent"] ?? g["parent"] ?? "")`,
+            );
+          }
+        } else if (
+          paramName !== "pageSize" && paramName !== "pageToken" &&
+          paramName !== "showDeleted"
+        ) {
+          listParamParts.push(
+            `${JSON.stringify(paramName)}: String(g[${
+              JSON.stringify(paramName)
+            }] ?? "")`,
+          );
+        }
+      }
+      if (
+        !handledParams.has("parent") && listConfig.parameters &&
+        "parent" in listConfig.parameters
+      ) {
+        if (shouldConstructParent) {
+          listParamParts.push(`"parent": ${parentExpr}`);
+        } else {
+          listParamParts.push(
+            `"parent": String(body["parent"] ?? g["parent"] ?? "")`,
+          );
+        }
+      }
+
+      const matchValueExpr = `String(g[${
+        JSON.stringify(parentPropName)
+      }]?.${childPropName} ?? "")`;
+      lines.push(`        let result: StateData;`);
+      lines.push(`        try {`);
+      lines.push(
+        `          result = await createResource(${
+          createArgs.join(", ")
+        }) as StateData;`,
+      );
+      lines.push(`        } catch (createErr) {`);
+      lines.push(
+        `          if (!isAlreadyExistsError(createErr)) throw createErr;`,
+      );
+      lines.push(`          const matchValue = ${matchValueExpr};`);
+      lines.push(
+        `          const { items } = await listResources(BASE_URL, LIST_CONFIG, { ${
+          listParamParts.join(", ")
+        } }, ${
+          JSON.stringify(resource.listResponseArrayField)
+        }, 100, credentials);`,
+      );
+      lines.push(
+        `          const existing = items.find((item: any) => item?.${parentPropName}?.${childPropName} === matchValue);`,
+      );
+      lines.push(
+        `          if (existing) { result = existing as StateData; } else { throw createErr; }`,
+      );
+      lines.push(`        }`);
+    } else {
+      lines.push(
+        `        const result = await createResource(${
+          createArgs.join(", ")
+        }) as StateData;`,
+      );
+    }
 
     if (isSyntheticName) {
       lines.push(
@@ -1612,12 +1709,22 @@ export function resolveGcpNamingField(
 /**
  * Select the best field for idempotent create matching.
  *
- * Cascade: displayName → shortName → namingField.
+ * Cascade: displayName → shortName → namingField (if user-settable) →
+ * nested identity field (e.g. "preferredMemberKey.id") → undefined.
+ *
+ * Returns undefined when no viable match field exists, which tells the
+ * create codegen to omit the broken IdempotencyConfig entirely.
+ *
+ * When isSyntheticName is true the naming field is server-assigned and
+ * cannot be matched; the function skips straight to nested identity
+ * detection. When false, namingField is always viable (it preserves the
+ * segmentIdField fallback path for wrapper-request resources).
  */
 export function resolveGcpMatchField(
   resource: GcpParsedResource,
   namingField: string,
-): string {
+  isSyntheticName: boolean,
+): string | undefined {
   if (
     resource.insertProperties.has("displayName") &&
     resource.domainProperties["displayName"]
@@ -1630,7 +1737,45 @@ export function resolveGcpMatchField(
   ) {
     return "shortName";
   }
-  return namingField;
+  // Non-synthetic names are user-settable — safe to match on
+  if (!isSyntheticName) {
+    return namingField;
+  }
+  // Synthetic name: look for a nested identity field in insertProperties.
+  // Scan for object-typed properties with an "id" sub-property that is
+  // not described as read-only/output-only. Check both domainProperties
+  // (from insert) and resourceValueProperties (from GET) since $ref
+  // resolution can lose property-level "Read-only" annotations.
+  const candidates: string[] = [];
+  for (const propName of resource.insertProperties) {
+    const prop = resource.domainProperties[propName];
+    if (!prop) continue;
+    if (prop.type !== "object" && prop.type !== undefined) continue;
+    const objProp = prop as {
+      properties?: Record<string, { type?: string; description?: string }>;
+    };
+    if (!objProp.properties?.["id"]) continue;
+    const parentDesc = (prop.description ?? "").toLowerCase();
+    if (
+      parentDesc.includes("output only") || parentDesc.includes("read-only")
+    ) continue;
+    const idDesc = (objProp.properties["id"].description ?? "").toLowerCase();
+    if (idDesc.includes("output only") || idDesc.includes("read-only")) {
+      continue;
+    }
+    // Also check the resource value (GET response) version of this property,
+    // which may preserve the "Read-only" annotation lost during $ref resolution
+    const rvProp = resource.resourceValueProperties[propName];
+    if (rvProp) {
+      const rvDesc = (rvProp.description ?? "").toLowerCase();
+      if (rvDesc.includes("output only") || rvDesc.includes("read-only")) {
+        continue;
+      }
+    }
+    candidates.push(`${propName}.id`);
+  }
+  if (candidates.length === 1) return candidates[0];
+  return undefined;
 }
 
 function singularize(segment: string): string {

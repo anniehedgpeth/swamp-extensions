@@ -288,12 +288,13 @@ const GlobalArgsSchema = z.object({
       wrappedKey: z.string().describe(
         "The URL-safe Base64 encoded wrapped key used to encrypt the contents of the file.",
       ).optional(),
-    }).describe("Representation of the CSE DecryptionMetadata.").optional(),
+    }).describe("The metadata used for client-side operations.").optional(),
     encryptionState: z.string().describe(
       "The encryption state of the file. The values expected here are: - encrypted - unencrypted",
     ).optional(),
-  }).describe("Details about the client-side encryption applied to the file.")
-    .optional(),
+  }).describe(
+    "Client Side Encryption related details. Contains details about the encryption state of the file and details regarding the encryption mechanism that clients need to use when decrypting the contents of this item. This will only be present on files and not on folders or shortcuts.",
+  ).optional(),
   contentHints: z.object({
     indexableText: z.string().describe(
       "Text to be indexed for the file to improve fullText queries. This is limited to 128 KB in length and may contain HTML elements.",
@@ -339,7 +340,9 @@ const GlobalArgsSchema = z.object({
       photoLink: z.string().describe(
         "Output only. A link to the user's profile photo, if available.",
       ).optional(),
-    }).describe("Information about a Drive user.").optional(),
+    }).describe(
+      "Output only. The user who set the content restriction. Only populated if `readOnly=true`.",
+    ).optional(),
     restrictionTime: z.string().describe(
       "The time at which the content restriction was set (formatted RFC 3339 timestamp). Only populated if readOnly is true.",
     ).optional(),
@@ -368,7 +371,9 @@ const GlobalArgsSchema = z.object({
       restrictedForWriters: z.boolean().describe(
         "Whether download and copy is restricted for writers. If true, download is also restricted for readers.",
       ).optional(),
-    }).describe("A restriction for copy and download of the file.").optional(),
+    }).describe(
+      "Output only. The effective download restriction applied to this file. This considers all restriction settings and DLP rules.",
+    ).optional(),
     itemDownloadRestriction: z.object({
       restrictedForReaders: z.boolean().describe(
         "Whether download and copy is restricted for readers.",
@@ -376,8 +381,10 @@ const GlobalArgsSchema = z.object({
       restrictedForWriters: z.boolean().describe(
         "Whether download and copy is restricted for writers. If true, download is also restricted for readers.",
       ).optional(),
-    }).describe("A restriction for copy and download of the file.").optional(),
-  }).describe("Download restrictions applied to the file.").optional(),
+    }).describe(
+      "The download restriction of the file applied directly by the owner or organizer. This doesn't take into account shared drive settings or DLP rules.",
+    ).optional(),
+  }).describe("Download restrictions applied on the file.").optional(),
   folderColorRgb: z.string().describe(
     "The color for a folder or a shortcut to a folder as an RGB hex string. The supported colors are published in the `folderColorPalette` field of the [`about`](/workspace/drive/api/reference/rest/v3/about) resource. If an unsupported color is specified, the closest color in the palette is used instead.",
   ).optional(),
@@ -421,26 +428,6 @@ const GlobalArgsSchema = z.object({
       "Output only. The set of labels on the file as requested by the label IDs in the `includeLabels` parameter. By default, no labels are returned.",
     ).optional(),
   }).describe("Label information on the file.").optional(),
-  lastModifyingUser: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   linkShareMetadata: z.object({
     securityUpdateEligible: z.boolean().describe(
       "Output only. Whether the file is eligible for security update.",
@@ -475,26 +462,6 @@ const GlobalArgsSchema = z.object({
   sharedWithMeTime: z.string().describe(
     "The time at which the file was shared with the user, if applicable (RFC 3339 date-time).",
   ).optional(),
-  sharingUser: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   shortcutDetails: z.object({
     targetId: z.string().describe(
       "The ID of the file that this shortcut points to. Can only be set on `files.create` requests.",
@@ -514,26 +481,6 @@ const GlobalArgsSchema = z.object({
   trashedTime: z.string().describe(
     "The time that the item was trashed (RFC 3339 date-time). Only populated for items in shared drives.",
   ).optional(),
-  trashingUser: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   viewedByMeTime: z.string().describe(
     "The last time the file was viewed by the user (RFC 3339 date-time).",
   ).optional(),
@@ -851,12 +798,13 @@ const InputsSchema = z.object({
       wrappedKey: z.string().describe(
         "The URL-safe Base64 encoded wrapped key used to encrypt the contents of the file.",
       ).optional(),
-    }).describe("Representation of the CSE DecryptionMetadata.").optional(),
+    }).describe("The metadata used for client-side operations.").optional(),
     encryptionState: z.string().describe(
       "The encryption state of the file. The values expected here are: - encrypted - unencrypted",
     ).optional(),
-  }).describe("Details about the client-side encryption applied to the file.")
-    .optional(),
+  }).describe(
+    "Client Side Encryption related details. Contains details about the encryption state of the file and details regarding the encryption mechanism that clients need to use when decrypting the contents of this item. This will only be present on files and not on folders or shortcuts.",
+  ).optional(),
   contentHints: z.object({
     indexableText: z.string().describe(
       "Text to be indexed for the file to improve fullText queries. This is limited to 128 KB in length and may contain HTML elements.",
@@ -902,7 +850,9 @@ const InputsSchema = z.object({
       photoLink: z.string().describe(
         "Output only. A link to the user's profile photo, if available.",
       ).optional(),
-    }).describe("Information about a Drive user.").optional(),
+    }).describe(
+      "Output only. The user who set the content restriction. Only populated if `readOnly=true`.",
+    ).optional(),
     restrictionTime: z.string().describe(
       "The time at which the content restriction was set (formatted RFC 3339 timestamp). Only populated if readOnly is true.",
     ).optional(),
@@ -931,7 +881,9 @@ const InputsSchema = z.object({
       restrictedForWriters: z.boolean().describe(
         "Whether download and copy is restricted for writers. If true, download is also restricted for readers.",
       ).optional(),
-    }).describe("A restriction for copy and download of the file.").optional(),
+    }).describe(
+      "Output only. The effective download restriction applied to this file. This considers all restriction settings and DLP rules.",
+    ).optional(),
     itemDownloadRestriction: z.object({
       restrictedForReaders: z.boolean().describe(
         "Whether download and copy is restricted for readers.",
@@ -939,8 +891,10 @@ const InputsSchema = z.object({
       restrictedForWriters: z.boolean().describe(
         "Whether download and copy is restricted for writers. If true, download is also restricted for readers.",
       ).optional(),
-    }).describe("A restriction for copy and download of the file.").optional(),
-  }).describe("Download restrictions applied to the file.").optional(),
+    }).describe(
+      "The download restriction of the file applied directly by the owner or organizer. This doesn't take into account shared drive settings or DLP rules.",
+    ).optional(),
+  }).describe("Download restrictions applied on the file.").optional(),
   folderColorRgb: z.string().describe(
     "The color for a folder or a shortcut to a folder as an RGB hex string. The supported colors are published in the `folderColorPalette` field of the [`about`](/workspace/drive/api/reference/rest/v3/about) resource. If an unsupported color is specified, the closest color in the palette is used instead.",
   ).optional(),
@@ -984,26 +938,6 @@ const InputsSchema = z.object({
       "Output only. The set of labels on the file as requested by the label IDs in the `includeLabels` parameter. By default, no labels are returned.",
     ).optional(),
   }).describe("Label information on the file.").optional(),
-  lastModifyingUser: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   linkShareMetadata: z.object({
     securityUpdateEligible: z.boolean().describe(
       "Output only. Whether the file is eligible for security update.",
@@ -1038,26 +972,6 @@ const InputsSchema = z.object({
   sharedWithMeTime: z.string().describe(
     "The time at which the file was shared with the user, if applicable (RFC 3339 date-time).",
   ).optional(),
-  sharingUser: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   shortcutDetails: z.object({
     targetId: z.string().describe(
       "The ID of the file that this shortcut points to. Can only be set on `files.create` requests.",
@@ -1077,26 +991,6 @@ const InputsSchema = z.object({
   trashedTime: z.string().describe(
     "The time that the item was trashed (RFC 3339 date-time). Only populated for items in shared drives.",
   ).optional(),
-  trashingUser: z.object({
-    displayName: z.string().describe(
-      "Output only. A plain text displayable name for this user.",
-    ).optional(),
-    emailAddress: z.string().describe(
-      "Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.",
-    ).optional(),
-    kind: z.string().describe(
-      "Output only. Identifies what kind of resource this is. Value: the fixed string `drive#user`.",
-    ).optional(),
-    me: z.boolean().describe(
-      "Output only. Whether this user is the requesting user.",
-    ).optional(),
-    permissionId: z.string().describe(
-      "Output only. The user's ID as visible in Permission resources.",
-    ).optional(),
-    photoLink: z.string().describe(
-      "Output only. A link to the user's profile photo, if available.",
-    ).optional(),
-  }).describe("Information about a Drive user.").optional(),
   viewedByMeTime: z.string().describe(
     "The last time the file was viewed by the user (RFC 3339 date-time).",
   ).optional(),
@@ -1149,7 +1043,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Files. Registered at `@swamp/gcp/drive/files`. */
 export const model = {
   type: "@swamp/gcp/drive/files",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1324,6 +1218,19 @@ export const model = {
       description: "Added: clientEncryptionDetails, labelInfo",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: lastModifyingUser, sharingUser, trashingUser",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          lastModifyingUser: _lastModifyingUser,
+          sharingUser: _sharingUser,
+          trashingUser: _trashingUser,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1380,9 +1287,6 @@ export const model = {
             g["inheritedPermissionsDisabled"];
         }
         if (g["labelInfo"] !== undefined) body["labelInfo"] = g["labelInfo"];
-        if (g["lastModifyingUser"] !== undefined) {
-          body["lastModifyingUser"] = g["lastModifyingUser"];
-        }
         if (g["linkShareMetadata"] !== undefined) {
           body["linkShareMetadata"] = g["linkShareMetadata"];
         }
@@ -1402,9 +1306,6 @@ export const model = {
         if (g["sharedWithMeTime"] !== undefined) {
           body["sharedWithMeTime"] = g["sharedWithMeTime"];
         }
-        if (g["sharingUser"] !== undefined) {
-          body["sharingUser"] = g["sharingUser"];
-        }
         if (g["shortcutDetails"] !== undefined) {
           body["shortcutDetails"] = g["shortcutDetails"];
         }
@@ -1412,9 +1313,6 @@ export const model = {
         if (g["trashed"] !== undefined) body["trashed"] = g["trashed"];
         if (g["trashedTime"] !== undefined) {
           body["trashedTime"] = g["trashedTime"];
-        }
-        if (g["trashingUser"] !== undefined) {
-          body["trashingUser"] = g["trashingUser"];
         }
         if (g["viewedByMeTime"] !== undefined) {
           body["viewedByMeTime"] = g["viewedByMeTime"];
@@ -1569,9 +1467,6 @@ export const model = {
             g["inheritedPermissionsDisabled"];
         }
         if (g["labelInfo"] !== undefined) body["labelInfo"] = g["labelInfo"];
-        if (g["lastModifyingUser"] !== undefined) {
-          body["lastModifyingUser"] = g["lastModifyingUser"];
-        }
         if (g["linkShareMetadata"] !== undefined) {
           body["linkShareMetadata"] = g["linkShareMetadata"];
         }
@@ -1589,9 +1484,6 @@ export const model = {
         if (g["sharedWithMeTime"] !== undefined) {
           body["sharedWithMeTime"] = g["sharedWithMeTime"];
         }
-        if (g["sharingUser"] !== undefined) {
-          body["sharingUser"] = g["sharingUser"];
-        }
         if (g["shortcutDetails"] !== undefined) {
           body["shortcutDetails"] = g["shortcutDetails"];
         }
@@ -1599,9 +1491,6 @@ export const model = {
         if (g["trashed"] !== undefined) body["trashed"] = g["trashed"];
         if (g["trashedTime"] !== undefined) {
           body["trashedTime"] = g["trashedTime"];
-        }
-        if (g["trashingUser"] !== undefined) {
-          body["trashingUser"] = g["trashingUser"];
         }
         if (g["viewedByMeTime"] !== undefined) {
           body["viewedByMeTime"] = g["viewedByMeTime"];

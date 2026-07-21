@@ -349,7 +349,9 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe(
       'Type of birthday or special event. Possible values are: - "anniversary" - An anniversary other than birthday. Always has a contact. - "birthday" - A birthday event. This is the default value. - "custom" - A special date whose label is further specified in the customTypeName field. Always has a contact. - "other" - A special date which does not fall into the other categories, and does not have a custom label. Always has a contact. - "self" - Calendar owner\'s own birthday. Cannot have a contact. The Calendar API only supports creating events with the type "birthday". The type cannot be changed after the event is created.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    'Birthday or special event data. Used if eventType is "birthday". Immutable.',
+  ).optional(),
   colorId: z.string().describe(
     "The color of the event. This is an ID referring to an entry in the event section of the colors definition (see the colors endpoint). Optional.",
   ).optional(),
@@ -364,17 +366,22 @@ const GlobalArgsSchema = z.object({
         type: z.string().describe(
           'The conference solution type. If a client encounters an unfamiliar or empty type, it should still be able to display the entry points. However, it should disallow modifications. The possible values are: - "eventHangout" for Hangouts for consumers (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "eventNamedHangout" for classic Hangouts for Google Workspace users (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "hangoutsMeet" for Google Meet (http://meet.google.com) - "addOn" for 3P conference providers',
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The key which can uniquely identify the conference solution for this event.",
+      ).optional(),
       name: z.string().describe(
         "The user-visible name of this solution. Not localized.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The conference solution, such as Google Meet. Unset for a conference with a failed create request. Either conferenceSolution and at least one entryPoint, or createRequest is required.",
+    ).optional(),
     createRequest: z.object({
       conferenceSolutionKey: z.object({
         type: z.string().describe(
           'The conference solution type. If a client encounters an unfamiliar or empty type, it should still be able to display the entry points. However, it should disallow modifications. The possible values are: - "eventHangout" for Hangouts for consumers (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "eventNamedHangout" for classic Hangouts for Google Workspace users (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "hangoutsMeet" for Google Meet (http://meet.google.com) - "addOn" for 3P conference providers',
         ).optional(),
-      }).optional(),
+      }).describe("The conference solution, such as Hangouts or Google Meet.")
+        .optional(),
       requestId: z.string().describe(
         "The client-generated unique ID for this request. Clients should regenerate this ID for every new request. If an ID provided is the same as for the previous request, the request is ignored.",
       ).optional(),
@@ -382,8 +389,10 @@ const GlobalArgsSchema = z.object({
         statusCode: z.string().describe(
           'The current status of the conference create request. Read-only. The possible values are: - "pending": the conference create request is still being processed. - "success": the conference create request succeeded, the entry points are populated. - "failure": the conference create request failed, there are no entry points.',
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("The status of the conference create request.").optional(),
+    }).describe(
+      "A request to generate a new conference and attach it to the event. The data is generated asynchronously. To see whether the data is present check the status field. Either conferenceSolution and at least one entryPoint, or createRequest is required.",
+    ).optional(),
     entryPoints: z.array(z.object({
       accessCode: z.string().describe(
         "The access code to access the conference. The maximum length is 128 characters. When creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed. Optional.",
@@ -424,12 +433,16 @@ const GlobalArgsSchema = z.object({
     parameters: z.object({
       addOnParameters: z.object({
         parameters: z.record(z.string(), z.string()).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Additional add-on specific data.").optional(),
+    }).describe(
+      "Additional properties related to a conference. An example would be a solution-specific setting for enabling video streaming.",
+    ).optional(),
     signature: z.string().describe(
       "The signature of the conference data. Generated on server side. Unset for a conference with a failed create request. Optional for a conference with a pending create request.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The conference-related information, such as details of a Google Meet conference. To create new conference details use the createRequest field. To persist your changes, remember to set the conferenceDataVersion request parameter to 1 for all event modification requests. Warning: Reusing Google Meet conference data across different events can cause access issues and expose meeting details to unintended users. To help ensure meeting privacy, always generate a unique conference for each event by using the createRequest field.",
+  ).optional(),
   created: z.string().describe(
     "Creation time of the event (as a RFC3339 timestamp). Read-only.",
   ).optional(),
@@ -457,7 +470,9 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       'The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The (exclusive) end time of the event. For a recurring event, this is the end time of the first instance.",
+  ).optional(),
   endTimeUnspecified: z.boolean().describe(
     "Whether the end time is actually unspecified. An end time is still provided for compatibility reasons, even if this attribute is set to True. The default is False.",
   ).optional(),
@@ -485,7 +500,8 @@ const GlobalArgsSchema = z.object({
     declineMessage: z.string().describe(
       "Response message to set if an existing event or new invitation is automatically declined by Calendar.",
     ).optional(),
-  }).optional(),
+  }).describe("Focus Time event data. Used if eventType is focusTime.")
+    .optional(),
   gadget: z.object({
     display: z.string().describe(
       'The gadget\'s display mode. Deprecated. Possible values are: - "icon" - The gadget displays next to the event\'s title in the calendar view. - "chip" - The gadget displays when the event is clicked.',
@@ -560,7 +576,9 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       'The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "For an instance of a recurring event, this is the time at which this event would start according to the recurrence data in the recurring event identified by recurringEventId. It uniquely identifies the instance within the recurring event series even if the instance was moved to a different time. Immutable.",
+  ).optional(),
   outOfOfficeProperties: z.object({
     autoDeclineMode: z.string().describe(
       "Whether to decline meeting invitations which overlap Out of office events. Valid values are declineNone, meaning that no meeting invitations are declined; declineAllConflictingInvitations, meaning that all conflicting meeting invitations that conflict with the event are declined; and declineOnlyNewConflictingInvitations, meaning that only new conflicting meeting invitations which arrive while the Out of office event is present are to be declined.",
@@ -568,7 +586,8 @@ const GlobalArgsSchema = z.object({
     declineMessage: z.string().describe(
       "Response message to set if an existing event or new invitation is automatically declined by Calendar.",
     ).optional(),
-  }).optional(),
+  }).describe("Out of office event data. Used if eventType is outOfOffice.")
+    .optional(),
   privateCopy: z.boolean().describe(
     "If set to True, Event propagation is disabled. Note that it is not the same thing as Private event properties. Optional. Immutable. The default is False.",
   ).optional(),
@@ -617,7 +636,9 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       'The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The (inclusive) start time of the event. For a recurring event, this is the start time of the first instance.",
+  ).optional(),
   status: z.string().describe(
     'Status of the event. Optional. Possible values are: - "confirmed" - The event is confirmed. This is the default status. - "tentative" - The event is tentatively confirmed. - "cancelled" - The event is cancelled (deleted). The list method returns cancelled events only on incremental sync (when syncToken or updatedMin are specified) or if the showDeleted flag is set to true. The get method always returns them. A cancelled status represents two different states depending on the event type: - Cancelled exceptions of an uncancelled recurring event indicate that this instance should no longer be presented to the user. Clients should store these events for the lifetime of the parent recurring event. Cancelled exceptions are only guaranteed to have values for the id, recurringEventId and originalStartTime fields populated. The other fields might be empty. - All other cancelled events represent deleted events. Clients should remove their locally synced copies. Such cancelled events will eventually disappear, so do not rely on them being available indefinitely. Deleted events are only guaranteed to have the id field populated. On the organizer\'s calendar, cancelled events continue to expose event details (summary, location, etc.) so that they can be restored (undeleted). Similarly, the events to which the user was invited and that they manually removed continue to provide details. However, incremental sync requests with showDeleted set to false will not return these details. If an event changes its organizer (for example via the move operation) and the original organizer is not on the attendee list, it will leave behind a cancelled event where only the id field is guaranteed to be populated.',
   ).optional(),
@@ -660,7 +681,7 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe(
       'Type of the working location. Possible values are: - "homeOffice" - The user is working at home. - "officeLocation" - The user is working from an office. - "customLocation" - The user is working from a custom location. Any details are specified in a sub-field of the specified name, but this field may be missing if empty. Any other fields are ignored. Required when adding working location properties.',
     ).optional(),
-  }).optional(),
+  }).describe("Working location event data.").optional(),
   calendarId: z.string().describe(
     'Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.',
   ),
@@ -929,7 +950,9 @@ const InputsSchema = z.object({
     type: z.string().describe(
       'Type of birthday or special event. Possible values are: - "anniversary" - An anniversary other than birthday. Always has a contact. - "birthday" - A birthday event. This is the default value. - "custom" - A special date whose label is further specified in the customTypeName field. Always has a contact. - "other" - A special date which does not fall into the other categories, and does not have a custom label. Always has a contact. - "self" - Calendar owner\'s own birthday. Cannot have a contact. The Calendar API only supports creating events with the type "birthday". The type cannot be changed after the event is created.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    'Birthday or special event data. Used if eventType is "birthday". Immutable.',
+  ).optional(),
   colorId: z.string().describe(
     "The color of the event. This is an ID referring to an entry in the event section of the colors definition (see the colors endpoint). Optional.",
   ).optional(),
@@ -944,17 +967,22 @@ const InputsSchema = z.object({
         type: z.string().describe(
           'The conference solution type. If a client encounters an unfamiliar or empty type, it should still be able to display the entry points. However, it should disallow modifications. The possible values are: - "eventHangout" for Hangouts for consumers (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "eventNamedHangout" for classic Hangouts for Google Workspace users (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "hangoutsMeet" for Google Meet (http://meet.google.com) - "addOn" for 3P conference providers',
         ).optional(),
-      }).optional(),
+      }).describe(
+        "The key which can uniquely identify the conference solution for this event.",
+      ).optional(),
       name: z.string().describe(
         "The user-visible name of this solution. Not localized.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The conference solution, such as Google Meet. Unset for a conference with a failed create request. Either conferenceSolution and at least one entryPoint, or createRequest is required.",
+    ).optional(),
     createRequest: z.object({
       conferenceSolutionKey: z.object({
         type: z.string().describe(
           'The conference solution type. If a client encounters an unfamiliar or empty type, it should still be able to display the entry points. However, it should disallow modifications. The possible values are: - "eventHangout" for Hangouts for consumers (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "eventNamedHangout" for classic Hangouts for Google Workspace users (deprecated; existing events may show this conference solution type but new conferences cannot be created) - "hangoutsMeet" for Google Meet (http://meet.google.com) - "addOn" for 3P conference providers',
         ).optional(),
-      }).optional(),
+      }).describe("The conference solution, such as Hangouts or Google Meet.")
+        .optional(),
       requestId: z.string().describe(
         "The client-generated unique ID for this request. Clients should regenerate this ID for every new request. If an ID provided is the same as for the previous request, the request is ignored.",
       ).optional(),
@@ -962,8 +990,10 @@ const InputsSchema = z.object({
         statusCode: z.string().describe(
           'The current status of the conference create request. Read-only. The possible values are: - "pending": the conference create request is still being processed. - "success": the conference create request succeeded, the entry points are populated. - "failure": the conference create request failed, there are no entry points.',
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("The status of the conference create request.").optional(),
+    }).describe(
+      "A request to generate a new conference and attach it to the event. The data is generated asynchronously. To see whether the data is present check the status field. Either conferenceSolution and at least one entryPoint, or createRequest is required.",
+    ).optional(),
     entryPoints: z.array(z.object({
       accessCode: z.string().describe(
         "The access code to access the conference. The maximum length is 128 characters. When creating new conference data, populate only the subset of {meetingCode, accessCode, passcode, password, pin} fields that match the terminology that the conference provider uses. Only the populated fields should be displayed. Optional.",
@@ -1004,12 +1034,16 @@ const InputsSchema = z.object({
     parameters: z.object({
       addOnParameters: z.object({
         parameters: z.record(z.string(), z.string()).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Additional add-on specific data.").optional(),
+    }).describe(
+      "Additional properties related to a conference. An example would be a solution-specific setting for enabling video streaming.",
+    ).optional(),
     signature: z.string().describe(
       "The signature of the conference data. Generated on server side. Unset for a conference with a failed create request. Optional for a conference with a pending create request.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The conference-related information, such as details of a Google Meet conference. To create new conference details use the createRequest field. To persist your changes, remember to set the conferenceDataVersion request parameter to 1 for all event modification requests. Warning: Reusing Google Meet conference data across different events can cause access issues and expose meeting details to unintended users. To help ensure meeting privacy, always generate a unique conference for each event by using the createRequest field.",
+  ).optional(),
   created: z.string().describe(
     "Creation time of the event (as a RFC3339 timestamp). Read-only.",
   ).optional(),
@@ -1037,7 +1071,9 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       'The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The (exclusive) end time of the event. For a recurring event, this is the end time of the first instance.",
+  ).optional(),
   endTimeUnspecified: z.boolean().describe(
     "Whether the end time is actually unspecified. An end time is still provided for compatibility reasons, even if this attribute is set to True. The default is False.",
   ).optional(),
@@ -1065,7 +1101,8 @@ const InputsSchema = z.object({
     declineMessage: z.string().describe(
       "Response message to set if an existing event or new invitation is automatically declined by Calendar.",
     ).optional(),
-  }).optional(),
+  }).describe("Focus Time event data. Used if eventType is focusTime.")
+    .optional(),
   gadget: z.object({
     display: z.string().describe(
       'The gadget\'s display mode. Deprecated. Possible values are: - "icon" - The gadget displays next to the event\'s title in the calendar view. - "chip" - The gadget displays when the event is clicked.',
@@ -1140,7 +1177,9 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       'The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "For an instance of a recurring event, this is the time at which this event would start according to the recurrence data in the recurring event identified by recurringEventId. It uniquely identifies the instance within the recurring event series even if the instance was moved to a different time. Immutable.",
+  ).optional(),
   outOfOfficeProperties: z.object({
     autoDeclineMode: z.string().describe(
       "Whether to decline meeting invitations which overlap Out of office events. Valid values are declineNone, meaning that no meeting invitations are declined; declineAllConflictingInvitations, meaning that all conflicting meeting invitations that conflict with the event are declined; and declineOnlyNewConflictingInvitations, meaning that only new conflicting meeting invitations which arrive while the Out of office event is present are to be declined.",
@@ -1148,7 +1187,8 @@ const InputsSchema = z.object({
     declineMessage: z.string().describe(
       "Response message to set if an existing event or new invitation is automatically declined by Calendar.",
     ).optional(),
-  }).optional(),
+  }).describe("Out of office event data. Used if eventType is outOfOffice.")
+    .optional(),
   privateCopy: z.boolean().describe(
     "If set to True, Event propagation is disabled. Note that it is not the same thing as Private event properties. Optional. Immutable. The default is False.",
   ).optional(),
@@ -1197,7 +1237,9 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       'The time zone in which the time is specified. (Formatted as an IANA Time Zone Database name, e.g. "Europe/Zurich".) For recurring events this field is required and specifies the time zone in which the recurrence is expanded. For single events this field is optional and indicates a custom time zone for the event start/end.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The (inclusive) start time of the event. For a recurring event, this is the start time of the first instance.",
+  ).optional(),
   status: z.string().describe(
     'Status of the event. Optional. Possible values are: - "confirmed" - The event is confirmed. This is the default status. - "tentative" - The event is tentatively confirmed. - "cancelled" - The event is cancelled (deleted). The list method returns cancelled events only on incremental sync (when syncToken or updatedMin are specified) or if the showDeleted flag is set to true. The get method always returns them. A cancelled status represents two different states depending on the event type: - Cancelled exceptions of an uncancelled recurring event indicate that this instance should no longer be presented to the user. Clients should store these events for the lifetime of the parent recurring event. Cancelled exceptions are only guaranteed to have values for the id, recurringEventId and originalStartTime fields populated. The other fields might be empty. - All other cancelled events represent deleted events. Clients should remove their locally synced copies. Such cancelled events will eventually disappear, so do not rely on them being available indefinitely. Deleted events are only guaranteed to have the id field populated. On the organizer\'s calendar, cancelled events continue to expose event details (summary, location, etc.) so that they can be restored (undeleted). Similarly, the events to which the user was invited and that they manually removed continue to provide details. However, incremental sync requests with showDeleted set to false will not return these details. If an event changes its organizer (for example via the move operation) and the original organizer is not on the attendee list, it will leave behind a cancelled event where only the id field is guaranteed to be populated.',
   ).optional(),
@@ -1240,7 +1282,7 @@ const InputsSchema = z.object({
     type: z.string().describe(
       'Type of the working location. Possible values are: - "homeOffice" - The user is working at home. - "officeLocation" - The user is working from an office. - "customLocation" - The user is working from a custom location. Any details are specified in a sub-field of the specified name, but this field may be missing if empty. Any other fields are ignored. Required when adding working location properties.',
     ).optional(),
-  }).optional(),
+  }).describe("Working location event data.").optional(),
   calendarId: z.string().describe(
     'Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.',
   ).optional(),
@@ -1287,7 +1329,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Calendar Events. Registered at `@swamp/gcp/calendar/events`. */
 export const model = {
   type: "@swamp/gcp/calendar/events",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1409,6 +1451,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: eventLabelId, eventLabelVersion",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -1544,12 +1591,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "calendarId": String(g["calendarId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1641,9 +1683,6 @@ export const model = {
         if (g["attendeesOmitted"] !== undefined) {
           body["attendeesOmitted"] = g["attendeesOmitted"];
         }
-        if (g["birthdayProperties"] !== undefined) {
-          body["birthdayProperties"] = g["birthdayProperties"];
-        }
         if (g["colorId"] !== undefined) body["colorId"] = g["colorId"];
         if (g["conferenceData"] !== undefined) {
           body["conferenceData"] = g["conferenceData"];
@@ -1685,9 +1724,6 @@ export const model = {
         if (g["location"] !== undefined) body["location"] = g["location"];
         if (g["locked"] !== undefined) body["locked"] = g["locked"];
         if (g["organizer"] !== undefined) body["organizer"] = g["organizer"];
-        if (g["originalStartTime"] !== undefined) {
-          body["originalStartTime"] = g["originalStartTime"];
-        }
         if (g["outOfOfficeProperties"] !== undefined) {
           body["outOfOfficeProperties"] = g["outOfOfficeProperties"];
         }

@@ -193,14 +193,14 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time the group was last updated.",
       ).optional(),
-    }).describe("The metadata about a contact group.").optional(),
+    }).describe("Output only. Metadata about the contact group.").optional(),
     name: z.string().describe(
       "The contact group name set by the group owner or a system provided name for system groups. For [`contactGroups.create`](/people/api/rest/v1/contactGroups/create) or [`contactGroups.update`](/people/api/rest/v1/contactGroups/update) the name must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error.",
     ).optional(),
     resourceName: z.string().describe(
       "The resource name for the contact group, assigned by the server. An ASCII string, in the form of `contactGroups/{contact_group_id}`.",
     ).optional(),
-  }).describe("A contact group.").optional(),
+  }).describe("Required. The contact group to update.").optional(),
   readGroupFields: z.string().describe(
     "Optional. A field mask to restrict which fields on the group are returned. Defaults to `metadata`, `groupType`, and `name` if not set or set to empty. Valid fields are: * clientData * groupType * memberCount * metadata * name",
   ).optional(),
@@ -267,14 +267,14 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time the group was last updated.",
       ).optional(),
-    }).describe("The metadata about a contact group.").optional(),
+    }).describe("Output only. Metadata about the contact group.").optional(),
     name: z.string().describe(
       "The contact group name set by the group owner or a system provided name for system groups. For [`contactGroups.create`](/people/api/rest/v1/contactGroups/create) or [`contactGroups.update`](/people/api/rest/v1/contactGroups/update) the name must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error.",
     ).optional(),
     resourceName: z.string().describe(
       "The resource name for the contact group, assigned by the server. An ASCII string, in the form of `contactGroups/{contact_group_id}`.",
     ).optional(),
-  }).describe("A contact group.").optional(),
+  }).describe("Required. The contact group to update.").optional(),
   readGroupFields: z.string().describe(
     "Optional. A field mask to restrict which fields on the group are returned. Defaults to `metadata`, `groupType`, and `name` if not set or set to empty. Valid fields are: * clientData * groupType * memberCount * metadata * name",
   ).optional(),
@@ -306,7 +306,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud People ContactGroups. Registered at `@swamp/gcp/people/contactgroups`. */
 export const model = {
   type: "@swamp/gcp/people/contactgroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -398,6 +398,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -433,12 +438,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

@@ -218,9 +218,8 @@ const GlobalArgsSchema = z.object({
     videoId: z.string().describe(
       "The ID that YouTube uses to uniquely identify the video associated with the caption track. @mutable youtube.captions.insert",
     ).optional(),
-  }).describe(
-    "Basic details about a caption track, such as its language and name.",
-  ).optional(),
+  }).describe("The snippet object contains basic details about the caption.")
+    .optional(),
   part: z.string().describe(
     "The *part* parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
   ),
@@ -312,9 +311,8 @@ const InputsSchema = z.object({
     videoId: z.string().describe(
       "The ID that YouTube uses to uniquely identify the video associated with the caption track. @mutable youtube.captions.insert",
     ).optional(),
-  }).describe(
-    "Basic details about a caption track, such as its language and name.",
-  ).optional(),
+  }).describe("The snippet object contains basic details about the caption.")
+    .optional(),
   part: z.string().describe(
     "The *part* parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
   ).optional(),
@@ -354,7 +352,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Captions. Registered at `@swamp/gcp/youtube/captions`. */
 export const model = {
   type: "@swamp/gcp/youtube/captions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -451,6 +449,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -492,15 +495,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "part": String(g["part"] ?? ""),
-              "videoId": String(g["videoId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

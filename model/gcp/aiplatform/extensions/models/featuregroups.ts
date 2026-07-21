@@ -166,7 +166,9 @@ const GlobalArgsSchema = z.object({
       inputUri: z.string().describe(
         "Required. BigQuery URI to a table, up to 2000 characters long. Accepted forms: * BigQuery path. For example: `bq://projectId.bqDatasetId.bqTableId`.",
       ).optional(),
-    }).describe("The BigQuery location for the input content.").optional(),
+    }).describe(
+      "Required. Immutable. The BigQuery source URI that points to either a BigQuery Table or View.",
+    ).optional(),
     dense: z.boolean().describe(
       "Optional. If set, all feature values will be fetched from a single row per unique entityId including nulls. If not set, will collapse all rows for each unique entityId into a singe row with any non-null values if present, if no non-null values are present will sync null. ex: If source has schema `(entity_id, feature_timestamp, f0, f1)` and the following rows: `(e1, 2020-01-01T10:00:00.123Z, 10, 15)` `(e1, 2020-02-01T10:00:00.123Z, 20, null)` If dense is set, `(e1, 20, null)` is synced to online stores. If dense is not set, `(e1, 20, 15)` is synced to online stores.",
     ).optional(),
@@ -180,8 +182,12 @@ const GlobalArgsSchema = z.object({
       timestampColumn: z.string().describe(
         "Optional. Column hosting timestamp values for a time-series source. Will be used to determine the latest `feature_values` for each entity. Optional. If not provided, column named `feature_timestamp` of type `TIMESTAMP` will be used.",
       ).optional(),
-    }).optional(),
-  }).describe("Input source type for BigQuery Tables and Views.").optional(),
+    }).describe(
+      "Optional. If the source is a time-series source, this can be set to control how downstream sources (ex: FeatureView) will treat time-series sources. If not set, will treat the source as a time-series source with `feature_timestamp` as timestamp column and no scan boundary.",
+    ).optional(),
+  }).describe(
+    "Indicates that features for this group come from BigQuery Table/View. By default treats the source as a sparse time series source. The BigQuery source table or view must have at least one entity ID column and a column named `feature_timestamp`.",
+  ).optional(),
   description: z.string().describe("Optional. Description of the FeatureGroup.")
     .optional(),
   labels: z.record(z.string(), z.string()).describe(
@@ -239,7 +245,9 @@ const InputsSchema = z.object({
       inputUri: z.string().describe(
         "Required. BigQuery URI to a table, up to 2000 characters long. Accepted forms: * BigQuery path. For example: `bq://projectId.bqDatasetId.bqTableId`.",
       ).optional(),
-    }).describe("The BigQuery location for the input content.").optional(),
+    }).describe(
+      "Required. Immutable. The BigQuery source URI that points to either a BigQuery Table or View.",
+    ).optional(),
     dense: z.boolean().describe(
       "Optional. If set, all feature values will be fetched from a single row per unique entityId including nulls. If not set, will collapse all rows for each unique entityId into a singe row with any non-null values if present, if no non-null values are present will sync null. ex: If source has schema `(entity_id, feature_timestamp, f0, f1)` and the following rows: `(e1, 2020-01-01T10:00:00.123Z, 10, 15)` `(e1, 2020-02-01T10:00:00.123Z, 20, null)` If dense is set, `(e1, 20, null)` is synced to online stores. If dense is not set, `(e1, 20, 15)` is synced to online stores.",
     ).optional(),
@@ -253,8 +261,12 @@ const InputsSchema = z.object({
       timestampColumn: z.string().describe(
         "Optional. Column hosting timestamp values for a time-series source. Will be used to determine the latest `feature_values` for each entity. Optional. If not provided, column named `feature_timestamp` of type `TIMESTAMP` will be used.",
       ).optional(),
-    }).optional(),
-  }).describe("Input source type for BigQuery Tables and Views.").optional(),
+    }).describe(
+      "Optional. If the source is a time-series source, this can be set to control how downstream sources (ex: FeatureView) will treat time-series sources. If not set, will treat the source as a time-series source with `feature_timestamp` as timestamp column and no scan boundary.",
+    ).optional(),
+  }).describe(
+    "Indicates that features for this group come from BigQuery Table/View. By default treats the source as a sparse time series source. The BigQuery source table or view must have at least one entity ID column and a column named `feature_timestamp`.",
+  ).optional(),
   description: z.string().describe("Optional. Description of the FeatureGroup.")
     .optional(),
   labels: z.record(z.string(), z.string()).describe(
@@ -301,7 +313,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform FeatureGroups. Registered at `@swamp/gcp/aiplatform/featuregroups`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/featuregroups",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -430,6 +442,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

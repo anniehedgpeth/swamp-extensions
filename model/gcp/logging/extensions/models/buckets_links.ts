@@ -140,8 +140,9 @@ const GlobalArgsSchema = z.object({
     datasetId: z.string().describe(
       'Output only. The full resource name of the BigQuery dataset. The DATASET_ID will match the ID of the link, so the link must match the naming restrictions of BigQuery datasets (alphanumeric characters and underscores only).The dataset will have a resource path of "bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID"',
     ).optional(),
-  }).describe("Describes a BigQuery dataset that was created by a link.")
-    .optional(),
+  }).describe(
+    "Optional. The information of a BigQuery Dataset. When a link is created, a BigQuery dataset is created along with it, in the same project as the LogBucket it's linked to. This dataset will also have BigQuery Views corresponding to the LogViews in the bucket.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Describes this link.The maximum length of the description is 8000 characters.",
   ).optional(),
@@ -175,8 +176,9 @@ const InputsSchema = z.object({
     datasetId: z.string().describe(
       'Output only. The full resource name of the BigQuery dataset. The DATASET_ID will match the ID of the link, so the link must match the naming restrictions of BigQuery datasets (alphanumeric characters and underscores only).The dataset will have a resource path of "bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID"',
     ).optional(),
-  }).describe("Describes a BigQuery dataset that was created by a link.")
-    .optional(),
+  }).describe(
+    "Optional. The information of a BigQuery Dataset. When a link is created, a BigQuery dataset is created along with it, in the same project as the LogBucket it's linked to. This dataset will also have BigQuery Views corresponding to the LogViews in the bucket.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Describes this link.The maximum length of the description is 8000 characters.",
   ).optional(),
@@ -211,7 +213,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Logging Buckets.Links. Registered at `@swamp/gcp/logging/buckets-links`. */
 export const model = {
   type: "@swamp/gcp/logging/buckets-links",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -308,6 +310,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -360,14 +367,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

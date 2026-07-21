@@ -166,8 +166,7 @@ const GlobalArgsSchema = z.object({
       streamArn: z.string().describe(
         "Required. The Kinesis stream ARN to ingest data from.",
       ).optional(),
-    }).describe("Ingestion settings for Amazon Kinesis Data Streams.")
-      .optional(),
+    }).describe("Optional. Amazon Kinesis Data Streams.").optional(),
     awsMsk: z.object({
       awsRoleArn: z.string().describe(
         "Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.",
@@ -192,7 +191,7 @@ const GlobalArgsSchema = z.object({
       topic: z.string().describe(
         "Required. The name of the topic in the Amazon MSK cluster that Pub/Sub will import from.",
       ).optional(),
-    }).describe("Ingestion settings for Amazon MSK.").optional(),
+    }).describe("Optional. Amazon MSK.").optional(),
     azureEventHubs: z.object({
       clientId: z.string().describe(
         "Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.",
@@ -227,10 +226,10 @@ const GlobalArgsSchema = z.object({
       tenantId: z.string().describe(
         "Optional. The tenant id of the Azure application that is being used to authenticate Pub/Sub.",
       ).optional(),
-    }).describe("Ingestion settings for Azure Event Hubs.").optional(),
+    }).describe("Optional. Azure Event Hubs.").optional(),
     cloudStorage: z.object({
       avroFormat: z.object({}).describe(
-        "Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the `data` field of a Pub/Sub message.",
+        "Optional. Data from Cloud Storage will be interpreted in Avro format.",
       ).optional(),
       bucket: z.string().describe(
         'Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -242,7 +241,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Only objects with a larger or equal creation timestamp will be ingested.",
       ).optional(),
       pubsubAvroFormat: z.object({}).describe(
-        "Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.",
+        "Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).",
       ).optional(),
       state: z.enum([
         "STATE_UNSPECIFIED",
@@ -259,9 +258,9 @@ const GlobalArgsSchema = z.object({
         delimiter: z.string().describe("Optional. When unset, '\\n' is used.")
           .optional(),
       }).describe(
-        "Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the `data` field of a Pub/Sub message.",
+        "Optional. Data from Cloud Storage will be interpreted as text.",
       ).optional(),
-    }).describe("Ingestion settings for Cloud Storage.").optional(),
+    }).describe("Optional. Cloud Storage.").optional(),
     confluentCloud: z.object({
       bootstrapServer: z.string().describe(
         "Required. The address of the bootstrap server. The format is url:port.",
@@ -289,7 +288,7 @@ const GlobalArgsSchema = z.object({
       topic: z.string().describe(
         "Required. The name of the topic in the Confluent Cloud cluster that Pub/Sub will import from.",
       ).optional(),
-    }).describe("Ingestion settings for Confluent Cloud.").optional(),
+    }).describe("Optional. Confluent Cloud.").optional(),
     platformLogsSettings: z.object({
       severity: z.enum([
         "SEVERITY_UNSPECIFIED",
@@ -301,8 +300,12 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. The minimum severity level of Platform Logs that will be written.",
       ).optional(),
-    }).describe("Settings for Platform Logs produced by Pub/Sub.").optional(),
-  }).describe("Settings for an ingestion data source on a topic.").optional(),
+    }).describe(
+      "Optional. Platform Logs settings. If unset, no Platform Logs will be generated.",
+    ).optional(),
+  }).describe(
+    "Optional. Settings for ingestion from a data source into this topic.",
+  ).optional(),
   kmsKeyName: z.string().describe(
     "Optional. The resource name of the Cloud KMS CryptoKey to be used to protect access to messages published on this topic. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
   ).optional(),
@@ -320,7 +323,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If true, `allowed_persistence_regions` is also used to enforce in-transit guarantees for messages. That is, Pub/Sub will fail Publish operations on this topic and subscribe operations on any subscription attached to this topic in any region that is not in `allowed_persistence_regions`.",
     ).optional(),
   }).describe(
-    "A policy constraining the storage of messages published to the topic.",
+    "Optional. Policy constraining the set of Google Cloud Platform regions where messages published to the topic may be stored. If not present, then no constraints are in effect.",
   ).optional(),
   messageTransforms: z.array(z.object({
     aiInference: z.object({
@@ -335,10 +338,10 @@ const GlobalArgsSchema = z.object({
           "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
         ).optional(),
       }).describe(
-        "Configuration for making inferences using arbitrary JSON payloads.",
+        "Optional. Requests and responses can be any arbitrary JSON object.",
       ).optional(),
     }).describe(
-      "Configuration for making inference requests against Vertex AI models.",
+      "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
     ).optional(),
     compression: z.object({
       compressionAlgorithm: z.enum([
@@ -353,9 +356,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Required. Specifies whether to compress or decompress the message.",
       ).optional(),
-    }).describe(
-      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-    ).optional(),
+    }).describe("Optional. Compression/Decompression.").optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -370,7 +371,7 @@ const GlobalArgsSchema = z.object({
         "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
       ).optional(),
     }).describe(
-      "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+      "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
     ).optional(),
   })).describe(
     "Optional. Transforms to be applied to messages published to the topic. Transforms are applied in the order specified.",
@@ -394,8 +395,9 @@ const GlobalArgsSchema = z.object({
     schema: z.string().describe(
       "Required. The name of the schema that messages published should be validated against. Format is `projects/{project}/schemas/{schema}`. The value of this field will be `_deleted-schema_` if the schema has been deleted.",
     ).optional(),
-  }).describe("Settings for validating messages published against a schema.")
-    .optional(),
+  }).describe(
+    "Optional. Settings for validating messages published against a schema.",
+  ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
   ).optional(),
@@ -425,8 +427,7 @@ const GlobalArgsSchema = z.object({
         streamArn: z.string().describe(
           "Required. The Kinesis stream ARN to ingest data from.",
         ).optional(),
-      }).describe("Ingestion settings for Amazon Kinesis Data Streams.")
-        .optional(),
+      }).describe("Optional. Amazon Kinesis Data Streams.").optional(),
       awsMsk: z.object({
         awsRoleArn: z.string().describe(
           "Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.",
@@ -451,7 +452,7 @@ const GlobalArgsSchema = z.object({
         topic: z.string().describe(
           "Required. The name of the topic in the Amazon MSK cluster that Pub/Sub will import from.",
         ).optional(),
-      }).describe("Ingestion settings for Amazon MSK.").optional(),
+      }).describe("Optional. Amazon MSK.").optional(),
       azureEventHubs: z.object({
         clientId: z.string().describe(
           "Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.",
@@ -486,10 +487,10 @@ const GlobalArgsSchema = z.object({
         tenantId: z.string().describe(
           "Optional. The tenant id of the Azure application that is being used to authenticate Pub/Sub.",
         ).optional(),
-      }).describe("Ingestion settings for Azure Event Hubs.").optional(),
+      }).describe("Optional. Azure Event Hubs.").optional(),
       cloudStorage: z.object({
         avroFormat: z.object({}).describe(
-          "Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the `data` field of a Pub/Sub message.",
+          "Optional. Data from Cloud Storage will be interpreted in Avro format.",
         ).optional(),
         bucket: z.string().describe(
           'Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -501,7 +502,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Only objects with a larger or equal creation timestamp will be ingested.",
         ).optional(),
         pubsubAvroFormat: z.object({}).describe(
-          "Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.",
+          "Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).",
         ).optional(),
         state: z.enum([
           "STATE_UNSPECIFIED",
@@ -518,9 +519,9 @@ const GlobalArgsSchema = z.object({
           delimiter: z.string().describe("Optional. When unset, '\\n' is used.")
             .optional(),
         }).describe(
-          "Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the `data` field of a Pub/Sub message.",
+          "Optional. Data from Cloud Storage will be interpreted as text.",
         ).optional(),
-      }).describe("Ingestion settings for Cloud Storage.").optional(),
+      }).describe("Optional. Cloud Storage.").optional(),
       confluentCloud: z.object({
         bootstrapServer: z.string().describe(
           "Required. The address of the bootstrap server. The format is url:port.",
@@ -548,7 +549,7 @@ const GlobalArgsSchema = z.object({
         topic: z.string().describe(
           "Required. The name of the topic in the Confluent Cloud cluster that Pub/Sub will import from.",
         ).optional(),
-      }).describe("Ingestion settings for Confluent Cloud.").optional(),
+      }).describe("Optional. Confluent Cloud.").optional(),
       platformLogsSettings: z.object({
         severity: z.enum([
           "SEVERITY_UNSPECIFIED",
@@ -560,8 +561,12 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. The minimum severity level of Platform Logs that will be written.",
         ).optional(),
-      }).describe("Settings for Platform Logs produced by Pub/Sub.").optional(),
-    }).describe("Settings for an ingestion data source on a topic.").optional(),
+      }).describe(
+        "Optional. Platform Logs settings. If unset, no Platform Logs will be generated.",
+      ).optional(),
+    }).describe(
+      "Optional. Settings for ingestion from a data source into this topic.",
+    ).optional(),
     kmsKeyName: z.string().describe(
       "Optional. The resource name of the Cloud KMS CryptoKey to be used to protect access to messages published on this topic. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
@@ -579,7 +584,7 @@ const GlobalArgsSchema = z.object({
         "Optional. If true, `allowed_persistence_regions` is also used to enforce in-transit guarantees for messages. That is, Pub/Sub will fail Publish operations on this topic and subscribe operations on any subscription attached to this topic in any region that is not in `allowed_persistence_regions`.",
       ).optional(),
     }).describe(
-      "A policy constraining the storage of messages published to the topic.",
+      "Optional. Policy constraining the set of Google Cloud Platform regions where messages published to the topic may be stored. If not present, then no constraints are in effect.",
     ).optional(),
     messageTransforms: z.array(z.object({
       aiInference: z.object({
@@ -594,10 +599,10 @@ const GlobalArgsSchema = z.object({
             "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
           ).optional(),
         }).describe(
-          "Configuration for making inferences using arbitrary JSON payloads.",
+          "Optional. Requests and responses can be any arbitrary JSON object.",
         ).optional(),
       }).describe(
-        "Configuration for making inference requests against Vertex AI models.",
+        "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
       ).optional(),
       compression: z.object({
         compressionAlgorithm: z.enum([
@@ -612,9 +617,7 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Required. Specifies whether to compress or decompress the message.",
         ).optional(),
-      }).describe(
-        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-      ).optional(),
+      }).describe("Optional. Compression/Decompression.").optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -629,7 +632,7 @@ const GlobalArgsSchema = z.object({
           "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
         ).optional(),
       }).describe(
-        "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+        "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
       ).optional(),
     })).describe(
       "Optional. Transforms to be applied to messages published to the topic. Transforms are applied in the order specified.",
@@ -653,8 +656,9 @@ const GlobalArgsSchema = z.object({
       schema: z.string().describe(
         "Required. The name of the schema that messages published should be validated against. Format is `projects/{project}/schemas/{schema}`. The value of this field will be `_deleted-schema_` if the schema has been deleted.",
       ).optional(),
-    }).describe("Settings for validating messages published against a schema.")
-      .optional(),
+    }).describe(
+      "Optional. Settings for validating messages published against a schema.",
+    ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INGESTION_RESOURCE_ERROR"])
       .describe(
         "Output only. An output-only field indicating the state of the topic.",
@@ -662,7 +666,7 @@ const GlobalArgsSchema = z.object({
     tags: z.record(z.string(), z.string()).describe(
       'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
     ).optional(),
-  }).describe("A topic resource.").optional(),
+  }).describe("Required. The updated topic object.").optional(),
   updateMask: z.string().describe(
     'Required. Indicates which fields in the provided topic to update. Must be specified and non-empty. Note that if `update_mask` contains "message_storage_policy" but the `message_storage_policy` is not set in the `topic` provided above, then the updated value is determined by the policy configured at the project or organization level.',
   ).optional(),
@@ -787,8 +791,7 @@ const InputsSchema = z.object({
       streamArn: z.string().describe(
         "Required. The Kinesis stream ARN to ingest data from.",
       ).optional(),
-    }).describe("Ingestion settings for Amazon Kinesis Data Streams.")
-      .optional(),
+    }).describe("Optional. Amazon Kinesis Data Streams.").optional(),
     awsMsk: z.object({
       awsRoleArn: z.string().describe(
         "Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.",
@@ -813,7 +816,7 @@ const InputsSchema = z.object({
       topic: z.string().describe(
         "Required. The name of the topic in the Amazon MSK cluster that Pub/Sub will import from.",
       ).optional(),
-    }).describe("Ingestion settings for Amazon MSK.").optional(),
+    }).describe("Optional. Amazon MSK.").optional(),
     azureEventHubs: z.object({
       clientId: z.string().describe(
         "Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.",
@@ -848,10 +851,10 @@ const InputsSchema = z.object({
       tenantId: z.string().describe(
         "Optional. The tenant id of the Azure application that is being used to authenticate Pub/Sub.",
       ).optional(),
-    }).describe("Ingestion settings for Azure Event Hubs.").optional(),
+    }).describe("Optional. Azure Event Hubs.").optional(),
     cloudStorage: z.object({
       avroFormat: z.object({}).describe(
-        "Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the `data` field of a Pub/Sub message.",
+        "Optional. Data from Cloud Storage will be interpreted in Avro format.",
       ).optional(),
       bucket: z.string().describe(
         'Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -863,7 +866,7 @@ const InputsSchema = z.object({
         "Optional. Only objects with a larger or equal creation timestamp will be ingested.",
       ).optional(),
       pubsubAvroFormat: z.object({}).describe(
-        "Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.",
+        "Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).",
       ).optional(),
       state: z.enum([
         "STATE_UNSPECIFIED",
@@ -880,9 +883,9 @@ const InputsSchema = z.object({
         delimiter: z.string().describe("Optional. When unset, '\\n' is used.")
           .optional(),
       }).describe(
-        "Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the `data` field of a Pub/Sub message.",
+        "Optional. Data from Cloud Storage will be interpreted as text.",
       ).optional(),
-    }).describe("Ingestion settings for Cloud Storage.").optional(),
+    }).describe("Optional. Cloud Storage.").optional(),
     confluentCloud: z.object({
       bootstrapServer: z.string().describe(
         "Required. The address of the bootstrap server. The format is url:port.",
@@ -910,7 +913,7 @@ const InputsSchema = z.object({
       topic: z.string().describe(
         "Required. The name of the topic in the Confluent Cloud cluster that Pub/Sub will import from.",
       ).optional(),
-    }).describe("Ingestion settings for Confluent Cloud.").optional(),
+    }).describe("Optional. Confluent Cloud.").optional(),
     platformLogsSettings: z.object({
       severity: z.enum([
         "SEVERITY_UNSPECIFIED",
@@ -922,8 +925,12 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. The minimum severity level of Platform Logs that will be written.",
       ).optional(),
-    }).describe("Settings for Platform Logs produced by Pub/Sub.").optional(),
-  }).describe("Settings for an ingestion data source on a topic.").optional(),
+    }).describe(
+      "Optional. Platform Logs settings. If unset, no Platform Logs will be generated.",
+    ).optional(),
+  }).describe(
+    "Optional. Settings for ingestion from a data source into this topic.",
+  ).optional(),
   kmsKeyName: z.string().describe(
     "Optional. The resource name of the Cloud KMS CryptoKey to be used to protect access to messages published on this topic. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
   ).optional(),
@@ -941,7 +948,7 @@ const InputsSchema = z.object({
       "Optional. If true, `allowed_persistence_regions` is also used to enforce in-transit guarantees for messages. That is, Pub/Sub will fail Publish operations on this topic and subscribe operations on any subscription attached to this topic in any region that is not in `allowed_persistence_regions`.",
     ).optional(),
   }).describe(
-    "A policy constraining the storage of messages published to the topic.",
+    "Optional. Policy constraining the set of Google Cloud Platform regions where messages published to the topic may be stored. If not present, then no constraints are in effect.",
   ).optional(),
   messageTransforms: z.array(z.object({
     aiInference: z.object({
@@ -956,10 +963,10 @@ const InputsSchema = z.object({
           "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
         ).optional(),
       }).describe(
-        "Configuration for making inferences using arbitrary JSON payloads.",
+        "Optional. Requests and responses can be any arbitrary JSON object.",
       ).optional(),
     }).describe(
-      "Configuration for making inference requests against Vertex AI models.",
+      "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
     ).optional(),
     compression: z.object({
       compressionAlgorithm: z.enum([
@@ -974,9 +981,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Required. Specifies whether to compress or decompress the message.",
       ).optional(),
-    }).describe(
-      "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-    ).optional(),
+    }).describe("Optional. Compression/Decompression.").optional(),
     disabled: z.boolean().describe(
       "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
     ).optional(),
@@ -991,7 +996,7 @@ const InputsSchema = z.object({
         "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
       ).optional(),
     }).describe(
-      "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+      "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
     ).optional(),
   })).describe(
     "Optional. Transforms to be applied to messages published to the topic. Transforms are applied in the order specified.",
@@ -1015,8 +1020,9 @@ const InputsSchema = z.object({
     schema: z.string().describe(
       "Required. The name of the schema that messages published should be validated against. Format is `projects/{project}/schemas/{schema}`. The value of this field will be `_deleted-schema_` if the schema has been deleted.",
     ).optional(),
-  }).describe("Settings for validating messages published against a schema.")
-    .optional(),
+  }).describe(
+    "Optional. Settings for validating messages published against a schema.",
+  ).optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
   ).optional(),
@@ -1046,8 +1052,7 @@ const InputsSchema = z.object({
         streamArn: z.string().describe(
           "Required. The Kinesis stream ARN to ingest data from.",
         ).optional(),
-      }).describe("Ingestion settings for Amazon Kinesis Data Streams.")
-        .optional(),
+      }).describe("Optional. Amazon Kinesis Data Streams.").optional(),
       awsMsk: z.object({
         awsRoleArn: z.string().describe(
           "Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.",
@@ -1072,7 +1077,7 @@ const InputsSchema = z.object({
         topic: z.string().describe(
           "Required. The name of the topic in the Amazon MSK cluster that Pub/Sub will import from.",
         ).optional(),
-      }).describe("Ingestion settings for Amazon MSK.").optional(),
+      }).describe("Optional. Amazon MSK.").optional(),
       azureEventHubs: z.object({
         clientId: z.string().describe(
           "Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.",
@@ -1107,10 +1112,10 @@ const InputsSchema = z.object({
         tenantId: z.string().describe(
           "Optional. The tenant id of the Azure application that is being used to authenticate Pub/Sub.",
         ).optional(),
-      }).describe("Ingestion settings for Azure Event Hubs.").optional(),
+      }).describe("Optional. Azure Event Hubs.").optional(),
       cloudStorage: z.object({
         avroFormat: z.object({}).describe(
-          "Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the `data` field of a Pub/Sub message.",
+          "Optional. Data from Cloud Storage will be interpreted in Avro format.",
         ).optional(),
         bucket: z.string().describe(
           'Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).',
@@ -1122,7 +1127,7 @@ const InputsSchema = z.object({
           "Optional. Only objects with a larger or equal creation timestamp will be ingested.",
         ).optional(),
         pubsubAvroFormat: z.object({}).describe(
-          "Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.",
+          "Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).",
         ).optional(),
         state: z.enum([
           "STATE_UNSPECIFIED",
@@ -1139,9 +1144,9 @@ const InputsSchema = z.object({
           delimiter: z.string().describe("Optional. When unset, '\\n' is used.")
             .optional(),
         }).describe(
-          "Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the `data` field of a Pub/Sub message.",
+          "Optional. Data from Cloud Storage will be interpreted as text.",
         ).optional(),
-      }).describe("Ingestion settings for Cloud Storage.").optional(),
+      }).describe("Optional. Cloud Storage.").optional(),
       confluentCloud: z.object({
         bootstrapServer: z.string().describe(
           "Required. The address of the bootstrap server. The format is url:port.",
@@ -1169,7 +1174,7 @@ const InputsSchema = z.object({
         topic: z.string().describe(
           "Required. The name of the topic in the Confluent Cloud cluster that Pub/Sub will import from.",
         ).optional(),
-      }).describe("Ingestion settings for Confluent Cloud.").optional(),
+      }).describe("Optional. Confluent Cloud.").optional(),
       platformLogsSettings: z.object({
         severity: z.enum([
           "SEVERITY_UNSPECIFIED",
@@ -1181,8 +1186,12 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. The minimum severity level of Platform Logs that will be written.",
         ).optional(),
-      }).describe("Settings for Platform Logs produced by Pub/Sub.").optional(),
-    }).describe("Settings for an ingestion data source on a topic.").optional(),
+      }).describe(
+        "Optional. Platform Logs settings. If unset, no Platform Logs will be generated.",
+      ).optional(),
+    }).describe(
+      "Optional. Settings for ingestion from a data source into this topic.",
+    ).optional(),
     kmsKeyName: z.string().describe(
       "Optional. The resource name of the Cloud KMS CryptoKey to be used to protect access to messages published on this topic. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
@@ -1200,7 +1209,7 @@ const InputsSchema = z.object({
         "Optional. If true, `allowed_persistence_regions` is also used to enforce in-transit guarantees for messages. That is, Pub/Sub will fail Publish operations on this topic and subscribe operations on any subscription attached to this topic in any region that is not in `allowed_persistence_regions`.",
       ).optional(),
     }).describe(
-      "A policy constraining the storage of messages published to the topic.",
+      "Optional. Policy constraining the set of Google Cloud Platform regions where messages published to the topic may be stored. If not present, then no constraints are in effect.",
     ).optional(),
     messageTransforms: z.array(z.object({
       aiInference: z.object({
@@ -1215,10 +1224,10 @@ const InputsSchema = z.object({
             "Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.",
           ).optional(),
         }).describe(
-          "Configuration for making inferences using arbitrary JSON payloads.",
+          "Optional. Requests and responses can be any arbitrary JSON object.",
         ).optional(),
       }).describe(
-        "Configuration for making inference requests against Vertex AI models.",
+        "Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.",
       ).optional(),
       compression: z.object({
         compressionAlgorithm: z.enum([
@@ -1233,9 +1242,7 @@ const InputsSchema = z.object({
         ]).describe(
           "Required. Specifies whether to compress or decompress the message.",
         ).optional(),
-      }).describe(
-        "Configuration for compressing/decompressing message data using a user-specified compression algorithm.",
-      ).optional(),
+      }).describe("Optional. Compression/Decompression.").optional(),
       disabled: z.boolean().describe(
         "Optional. If true, the transform is disabled and will not be applied to messages. Defaults to `false`.",
       ).optional(),
@@ -1250,7 +1257,7 @@ const InputsSchema = z.object({
           "Required. Name of the JavasScript function that should applied to Pub/Sub messages.",
         ).optional(),
       }).describe(
-        "User-defined JavaScript function that can transform or filter a Pub/Sub message.",
+        "Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are specified on a resource, each must have a unique `function_name`.",
       ).optional(),
     })).describe(
       "Optional. Transforms to be applied to messages published to the topic. Transforms are applied in the order specified.",
@@ -1274,8 +1281,9 @@ const InputsSchema = z.object({
       schema: z.string().describe(
         "Required. The name of the schema that messages published should be validated against. Format is `projects/{project}/schemas/{schema}`. The value of this field will be `_deleted-schema_` if the schema has been deleted.",
       ).optional(),
-    }).describe("Settings for validating messages published against a schema.")
-      .optional(),
+    }).describe(
+      "Optional. Settings for validating messages published against a schema.",
+    ).optional(),
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INGESTION_RESOURCE_ERROR"])
       .describe(
         "Output only. An output-only field indicating the state of the topic.",
@@ -1283,7 +1291,7 @@ const InputsSchema = z.object({
     tags: z.record(z.string(), z.string()).describe(
       'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing" See https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags for more information on using tags with Pub/Sub resources.',
     ).optional(),
-  }).describe("A topic resource.").optional(),
+  }).describe("Required. The updated topic object.").optional(),
   updateMask: z.string().describe(
     'Required. Indicates which fields in the provided topic to update. Must be specified and non-empty. Note that if `update_mask` contains "message_storage_policy" but the `message_storage_policy` is not set in the `topic` provided above, then the updated value is determined by the policy configured at the project or organization level.',
   ).optional(),
@@ -1312,7 +1320,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Topics. Registered at `@swamp/gcp/pubsub/topics`. */
 export const model = {
   type: "@swamp/gcp/pubsub/topics",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1461,6 +1469,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

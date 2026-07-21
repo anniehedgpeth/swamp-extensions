@@ -204,13 +204,13 @@ const GlobalArgsSchema = z.object({
         "Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS` Value of this field is in micros of the advertiser's currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for Demand Gen resources.",
+      "A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.",
     ).optional(),
     fixedBid: z.object({
       bidAmountMicros: z.string().describe(
         "The fixed bid amount, in micros of the advertiser's currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.",
       ).optional(),
-    }).describe("A strategy that uses a fixed bidding price.").optional(),
+    }).describe("A strategy that uses a fixed bid price.").optional(),
     maximizeSpendAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
         "The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.",
@@ -235,7 +235,7 @@ const GlobalArgsSchema = z.object({
         "Whether the strategy takes deal floor prices into account.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.",
+      "A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`, `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` only allow for `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH` only allows for `LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP` line items.",
     ).optional(),
     performanceGoalAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
@@ -261,7 +261,7 @@ const GlobalArgsSchema = z.object({
         "Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal.",
+      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.",
     ).optional(),
     youtubeAndPartnersBid: z.object({
       adGroupEffectiveTargetCpaSource: z.enum([
@@ -291,11 +291,9 @@ const GlobalArgsSchema = z.object({
         "The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for YouTube and Partners resources.",
+      "A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.",
     ).optional(),
-  }).describe(
-    "Settings that control the bid strategy. Bid strategy determines the bid price.",
-  ).optional(),
+  }).describe("Required. The bidding strategy of the line item.").optional(),
   budget: z.object({
     budgetAllocationType: z.enum([
       "LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNSPECIFIED",
@@ -315,7 +313,8 @@ const GlobalArgsSchema = z.object({
     maxAmount: z.string().describe(
       "The maximum budget amount the line item will spend. Must be greater than 0. When budget_allocation_type is: * `LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC`, this field is immutable and is set by the system. * `LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED`, if budget_unit is: - `BUDGET_UNIT_CURRENCY`, this field represents maximum budget amount to spend, in micros of the advertiser's currency. For example, 1500000 represents 1.5 standard units of the currency. - `BUDGET_UNIT_IMPRESSIONS`, this field represents the maximum number of impressions to serve. * `LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED`, this field is not applicable and will be ignored by the system.",
     ).optional(),
-  }).describe("Settings that control how budget is allocated.").optional(),
+  }).describe("Required. The budget allocation setting of the line item.")
+    .optional(),
   containsEuPoliticalAds: z.enum([
     "EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN",
     "CONTAINS_EU_POLITICAL_ADVERTISING",
@@ -343,9 +342,7 @@ const GlobalArgsSchema = z.object({
     primaryAttributionModelId: z.string().describe(
       "Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items.",
     ).optional(),
-  }).describe(
-    "Settings that control how conversions are counted. All post-click conversions will be counted. A percentage value can be set for post-view conversions counting.",
-  ).optional(),
+  }).describe("The conversion tracking setting of the line item.").optional(),
   creativeIds: z.array(z.string()).describe(
     "The IDs of the creatives associated with the line item.",
   ).optional(),
@@ -478,9 +475,11 @@ const GlobalArgsSchema = z.object({
         "Optional. The third-party vendors measuring viewability. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_MOAT` * `THIRD_PARTY_VENDOR_DOUBLE_VERIFY` * `THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE` * `THIRD_PARTY_VENDOR_COMSCORE` * `THIRD_PARTY_VENDOR_TELEMETRY` * `THIRD_PARTY_VENDOR_MEETRICS`",
       ).optional(),
     }).describe(
-      "Settings that control what third-party vendors are measuring specific line item metrics.",
+      "Optional. The third party measurement settings for the Demand Gen line item.",
     ).optional(),
-  }).describe("Settings for Demand Gen line items.").optional(),
+  }).describe(
+    "Optional. Settings specific to Demand Gen line items. Only applicable to Demand Gen line items.",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the line item. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -510,7 +509,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -523,16 +522,18 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
-    }).describe("A date range.").optional(),
+    }).describe(
+      "The flight start and end dates of the line item. They are resolved relative to the parent advertiser's time zone. * Required when flight_date_type is `LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM`. Output only otherwise. * When creating a new flight, both `start_date` and `end_date` must be in the future. * An existing flight with a `start_date` in the past has a mutable `end_date` but an immutable `start_date`. * `end_date` must be the `start_date` or later, both before the year 2037.",
+    ).optional(),
     flightDateType: z.enum([
       "LINE_ITEM_FLIGHT_DATE_TYPE_UNSPECIFIED",
       "LINE_ITEM_FLIGHT_DATE_TYPE_INHERITED",
       "LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM",
     ]).describe("Required. The type of the line item's flight dates.")
       .optional(),
-  }).describe("Settings that control the active duration of a line item.")
+  }).describe("Required. The start and end time of the line item's flight.")
     .optional(),
   frequencyCap: z.object({
     maxImpressions: z.number().int().describe(
@@ -559,7 +560,7 @@ const GlobalArgsSchema = z.object({
       "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
     ).optional(),
   }).describe(
-    "Settings that control the number of times a user may be shown with the same ad during a given time period.",
+    "Optional. Required if the line item type is not `LINE_ITEM_TYPE_DEMAND_GEN`. The impression frequency cap settings of the line item. The max_impressions field in this settings object must be used if assigning a limited cap.",
   ).optional(),
   insertionOrderId: z.string().describe(
     "Required. Immutable. The unique ID of the insertion order that the line item belongs to.",
@@ -571,7 +572,7 @@ const GlobalArgsSchema = z.object({
     integrationCode: z.string().describe(
       "An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.",
     ).optional(),
-  }).describe("Integration details of an entry.").optional(),
+  }).describe("Integration details of the line item.").optional(),
   lineItemType: z.enum([
     "LINE_ITEM_TYPE_UNSPECIFIED",
     "LINE_ITEM_TYPE_DISPLAY_DEFAULT",
@@ -607,8 +608,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     publisher: z.string().describe("Output only. The app publisher.")
       .optional(),
-  }).describe("A mobile app promoted by a mobile app install line item.")
-    .optional(),
+  }).describe(
+    "The mobile app promoted by the line item. This is applicable only when line_item_type is either `LINE_ITEM_TYPE_DISPLAY_MOBILE_APP_INSTALL` or `LINE_ITEM_TYPE_VIDEO_MOBILE_APP_INSTALL`.",
+  ).optional(),
   optimizeFixedBidding: z.boolean().describe(
     "Optional. Whether to enable DV360's bid optimization for fixed bid line items. By default, DV360 optimizes your fixed bid by automatically lowering bids for impressions that are less likely to perform well. This optimization is enabled by default (value is true). When this field is set to `false`, this optimization is disabled, and the bid will not be lowered for any reason. This setting only applies to line items with a `bidding_strategy` of type `FIXED_BID`.",
   ).optional(),
@@ -634,7 +636,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. The type of pacing that defines how the budget amount will be spent across the pacing_period. `PACING_TYPE_ASAP` is not compatible with pacing_period `PACING_PERIOD_FLIGHT` for insertion orders.",
     ).optional(),
-  }).describe("Settings that control the rate at which a budget is spent.")
+  }).describe("Required. The budget spending speed setting of the line item.")
     .optional(),
   partnerCosts: z.array(z.object({
     costType: z.enum([
@@ -702,7 +704,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. The markup type of the partner revenue model. This field must be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP` for Demand Gen line items.",
     ).optional(),
-  }).describe("Settings that control how partner revenue is calculated.")
+  }).describe("Required. The partner revenue model setting of the line item.")
     .optional(),
   targetingExpansion: z.object({
     audienceExpansionLevel: z.enum([
@@ -724,263 +726,8 @@ const GlobalArgsSchema = z.object({
       "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups.",
     ).optional(),
   }).describe(
-    "Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.",
+    "The [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item. This config is only applicable for display, video, or audio line items that use automated bidding and positively target eligible audience lists.",
   ).optional(),
-  youtubeAndPartnersSettings: z.object({
-    contentCategory: z.enum([
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED",
-    ]).describe(
-      "Output only. The kind of content on which the YouTube and Partners ads will be shown. *Warning*: This field will be removed in the near future. Use effective_content_category instead.",
-    ).optional(),
-    effectiveContentCategory: z.enum([
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED",
-    ]).describe(
-      "Output only. The content category which takes effect when serving the line item. When content category is set in both line item and advertiser, the stricter one will take effect when serving the line item. New line items will only inherit the advertiser level setting.",
-    ).optional(),
-    inventorySourceSettings: z.object({
-      includeGoogleTv: z.boolean().describe(
-        "Optional. Whether to target inventory in video apps available with Google TV.",
-      ).optional(),
-      includeYoutube: z.boolean().describe(
-        "Optional. Whether to target inventory on YouTube. This includes both search, channels and videos.",
-      ).optional(),
-      includeYoutubeVideoPartners: z.boolean().describe(
-        "Whether to target inventory on a collection of partner sites and apps that follow the same brand safety standards as YouTube.",
-      ).optional(),
-    }).describe(
-      "Settings that control what YouTube related inventories the YouTube and Partners line item will target.",
-    ).optional(),
-    leadFormId: z.string().describe(
-      "Optional. The ID of the form to generate leads.",
-    ).optional(),
-    linkedMerchantId: z.string().describe(
-      "Optional. The ID of the Merchant Center account used to provide a product feed. This Merchant Center account must already be linked to the advertiser.",
-    ).optional(),
-    relatedVideoIds: z.array(z.string()).describe(
-      "Optional. The IDs of the videos appear below the primary video ad when the ad is playing in the YouTube app on mobile devices.",
-    ).optional(),
-    targetFrequency: z.object({
-      targetCount: z.string().describe(
-        "The target number of times, on average, the ads will be shown to the same person in the timespan dictated by time_unit and time_unit_count.",
-      ).optional(),
-      timeUnit: z.enum([
-        "TIME_UNIT_UNSPECIFIED",
-        "TIME_UNIT_LIFETIME",
-        "TIME_UNIT_MONTHS",
-        "TIME_UNIT_WEEKS",
-        "TIME_UNIT_DAYS",
-        "TIME_UNIT_HOURS",
-        "TIME_UNIT_MINUTES",
-      ]).describe(
-        "The unit of time in which the target frequency will be applied. The following time unit is applicable: * `TIME_UNIT_WEEKS`",
-      ).optional(),
-      timeUnitCount: z.number().int().describe(
-        "The number of time_unit the target frequency will last. The following restrictions apply based on the value of time_unit: * `TIME_UNIT_WEEKS` - must be 1",
-      ).optional(),
-    }).describe(
-      "Setting that controls the average number of times the ads will show to the same person over a certain period of time.",
-    ).optional(),
-    thirdPartyMeasurementConfigs: z.object({
-      brandLiftVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_MACROMILL`",
-      ).optional(),
-      brandSafetyVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring brand safety. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_ZEFR` * `THIRD_PARTY_VENDOR_DOUBLE_VERIFY` * `THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE`",
-      ).optional(),
-      reachVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring reach. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_COMSCORE` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_VIDEO_RESEARCH` * `THIRD_PARTY_VENDOR_MEDIA_SCOPE` * `THIRD_PARTY_VENDOR_AUDIENCE_PROJECT` * `THIRD_PARTY_VENDOR_VIDEO_AMP` * `THIRD_PARTY_VENDOR_ISPOT_TV` * `THIRD_PARTY_VENDOR_GEMIUS`",
-      ).optional(),
-      viewabilityVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring viewability. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_MOAT` * `THIRD_PARTY_VENDOR_DOUBLE_VERIFY` * `THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE` * `THIRD_PARTY_VENDOR_COMSCORE` * `THIRD_PARTY_VENDOR_TELEMETRY` * `THIRD_PARTY_VENDOR_MEETRICS`",
-      ).optional(),
-    }).describe(
-      "Settings that control what third-party vendors are measuring specific line item metrics.",
-    ).optional(),
-    videoAdInventoryControl: z.object({
-      allowInFeed: z.boolean().describe(
-        "Optional. Whether ads can serve as in-feed format.",
-      ).optional(),
-      allowInStream: z.boolean().describe(
-        "Optional. Whether ads can serve as in-stream format.",
-      ).optional(),
-      allowNonSkippableInStream: z.boolean().describe(
-        "Optional. Indicates whether ads can serve as non-skippable in-stream format.",
-      ).optional(),
-      allowShorts: z.boolean().describe(
-        "Optional. Whether ads can serve as shorts format.",
-      ).optional(),
-    }).describe(
-      "The video ad inventory control used in certain YouTube line item types.",
-    ).optional(),
-    videoAdSequenceSettings: z.object({
-      minimumDuration: z.enum([
-        "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_UNSPECIFIED",
-        "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_WEEK",
-        "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_MONTH",
-      ]).describe(
-        "The minimum time interval before the same user sees this sequence again.",
-      ).optional(),
-      steps: z.array(z.object({
-        adGroupId: z.string().describe(
-          "The ID of the corresponding ad group of the step.",
-        ).optional(),
-        interactionType: z.enum([
-          "INTERACTION_TYPE_UNSPECIFIED",
-          "INTERACTION_TYPE_PAID_VIEW",
-          "INTERACTION_TYPE_SKIP",
-          "INTERACTION_TYPE_IMPRESSION",
-          "INTERACTION_TYPE_ENGAGED_IMPRESSION",
-        ]).describe(
-          "The interaction on the previous step that will lead the viewer to this step. The first step does not have interaction_type.",
-        ).optional(),
-        previousStepId: z.string().describe(
-          "The ID of the previous step. The first step does not have previous step.",
-        ).optional(),
-        stepId: z.string().describe("The ID of the step.").optional(),
-      })).describe("The steps of which the sequence consists.").optional(),
-    }).describe("Settings related to VideoAdSequence.").optional(),
-    viewFrequencyCap: z.object({
-      maxImpressions: z.number().int().describe(
-        "The maximum number of times a user may be shown the same ad during this period. Must be greater than 0. Required when unlimited is `false` and max_views is not set.",
-      ).optional(),
-      maxViews: z.number().int().describe(
-        "Optional. The maximum number of times a user may click-through or fully view an ad during this period until it is no longer served to them. Must be greater than 0. Only applicable to YouTube and Partners resources. Required when unlimited is `false` and max_impressions is not set.",
-      ).optional(),
-      timeUnit: z.enum([
-        "TIME_UNIT_UNSPECIFIED",
-        "TIME_UNIT_LIFETIME",
-        "TIME_UNIT_MONTHS",
-        "TIME_UNIT_WEEKS",
-        "TIME_UNIT_DAYS",
-        "TIME_UNIT_HOURS",
-        "TIME_UNIT_MINUTES",
-      ]).describe(
-        "The time unit in which the frequency cap will be applied. Required when unlimited is `false`.",
-      ).optional(),
-      timeUnitCount: z.number().int().describe(
-        "The number of time_unit the frequency cap will last. Required when unlimited is `false`. The following restrictions apply based on the value of time_unit: * `TIME_UNIT_MONTHS` - must be 1 * `TIME_UNIT_WEEKS` - must be between 1 and 4 * `TIME_UNIT_DAYS` - must be between 1 and 6 * `TIME_UNIT_HOURS` - must be between 1 and 23 * `TIME_UNIT_MINUTES` - must be between 1 and 59",
-      ).optional(),
-      unlimited: z.boolean().describe(
-        "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
-      ).optional(),
-    }).describe(
-      "Settings that control the number of times a user may be shown with the same ad during a given time period.",
-    ).optional(),
-  }).describe("Settings for YouTube and Partners line items.").optional(),
 });
 
 const StateSchema = z.object({
@@ -1215,13 +962,13 @@ const InputsSchema = z.object({
         "Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS` Value of this field is in micros of the advertiser's currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for Demand Gen resources.",
+      "A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.",
     ).optional(),
     fixedBid: z.object({
       bidAmountMicros: z.string().describe(
         "The fixed bid amount, in micros of the advertiser's currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.",
       ).optional(),
-    }).describe("A strategy that uses a fixed bidding price.").optional(),
+    }).describe("A strategy that uses a fixed bid price.").optional(),
     maximizeSpendAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
         "The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.",
@@ -1246,7 +993,7 @@ const InputsSchema = z.object({
         "Whether the strategy takes deal floor prices into account.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.",
+      "A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`, `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` only allow for `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH` only allows for `LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP` line items.",
     ).optional(),
     performanceGoalAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
@@ -1272,7 +1019,7 @@ const InputsSchema = z.object({
         "Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal.",
+      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.",
     ).optional(),
     youtubeAndPartnersBid: z.object({
       adGroupEffectiveTargetCpaSource: z.enum([
@@ -1302,11 +1049,9 @@ const InputsSchema = z.object({
         "The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for YouTube and Partners resources.",
+      "A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.",
     ).optional(),
-  }).describe(
-    "Settings that control the bid strategy. Bid strategy determines the bid price.",
-  ).optional(),
+  }).describe("Required. The bidding strategy of the line item.").optional(),
   budget: z.object({
     budgetAllocationType: z.enum([
       "LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNSPECIFIED",
@@ -1326,7 +1071,8 @@ const InputsSchema = z.object({
     maxAmount: z.string().describe(
       "The maximum budget amount the line item will spend. Must be greater than 0. When budget_allocation_type is: * `LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC`, this field is immutable and is set by the system. * `LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED`, if budget_unit is: - `BUDGET_UNIT_CURRENCY`, this field represents maximum budget amount to spend, in micros of the advertiser's currency. For example, 1500000 represents 1.5 standard units of the currency. - `BUDGET_UNIT_IMPRESSIONS`, this field represents the maximum number of impressions to serve. * `LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED`, this field is not applicable and will be ignored by the system.",
     ).optional(),
-  }).describe("Settings that control how budget is allocated.").optional(),
+  }).describe("Required. The budget allocation setting of the line item.")
+    .optional(),
   containsEuPoliticalAds: z.enum([
     "EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN",
     "CONTAINS_EU_POLITICAL_ADVERTISING",
@@ -1354,9 +1100,7 @@ const InputsSchema = z.object({
     primaryAttributionModelId: z.string().describe(
       "Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items.",
     ).optional(),
-  }).describe(
-    "Settings that control how conversions are counted. All post-click conversions will be counted. A percentage value can be set for post-view conversions counting.",
-  ).optional(),
+  }).describe("The conversion tracking setting of the line item.").optional(),
   creativeIds: z.array(z.string()).describe(
     "The IDs of the creatives associated with the line item.",
   ).optional(),
@@ -1489,9 +1233,11 @@ const InputsSchema = z.object({
         "Optional. The third-party vendors measuring viewability. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_MOAT` * `THIRD_PARTY_VENDOR_DOUBLE_VERIFY` * `THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE` * `THIRD_PARTY_VENDOR_COMSCORE` * `THIRD_PARTY_VENDOR_TELEMETRY` * `THIRD_PARTY_VENDOR_MEETRICS`",
       ).optional(),
     }).describe(
-      "Settings that control what third-party vendors are measuring specific line item metrics.",
+      "Optional. The third party measurement settings for the Demand Gen line item.",
     ).optional(),
-  }).describe("Settings for Demand Gen line items.").optional(),
+  }).describe(
+    "Optional. Settings specific to Demand Gen line items. Only applicable to Demand Gen line items.",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the line item. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -1521,7 +1267,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -1534,16 +1280,18 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
       ).optional(),
-    }).describe("A date range.").optional(),
+    }).describe(
+      "The flight start and end dates of the line item. They are resolved relative to the parent advertiser's time zone. * Required when flight_date_type is `LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM`. Output only otherwise. * When creating a new flight, both `start_date` and `end_date` must be in the future. * An existing flight with a `start_date` in the past has a mutable `end_date` but an immutable `start_date`. * `end_date` must be the `start_date` or later, both before the year 2037.",
+    ).optional(),
     flightDateType: z.enum([
       "LINE_ITEM_FLIGHT_DATE_TYPE_UNSPECIFIED",
       "LINE_ITEM_FLIGHT_DATE_TYPE_INHERITED",
       "LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM",
     ]).describe("Required. The type of the line item's flight dates.")
       .optional(),
-  }).describe("Settings that control the active duration of a line item.")
+  }).describe("Required. The start and end time of the line item's flight.")
     .optional(),
   frequencyCap: z.object({
     maxImpressions: z.number().int().describe(
@@ -1570,7 +1318,7 @@ const InputsSchema = z.object({
       "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
     ).optional(),
   }).describe(
-    "Settings that control the number of times a user may be shown with the same ad during a given time period.",
+    "Optional. Required if the line item type is not `LINE_ITEM_TYPE_DEMAND_GEN`. The impression frequency cap settings of the line item. The max_impressions field in this settings object must be used if assigning a limited cap.",
   ).optional(),
   insertionOrderId: z.string().describe(
     "Required. Immutable. The unique ID of the insertion order that the line item belongs to.",
@@ -1582,7 +1330,7 @@ const InputsSchema = z.object({
     integrationCode: z.string().describe(
       "An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.",
     ).optional(),
-  }).describe("Integration details of an entry.").optional(),
+  }).describe("Integration details of the line item.").optional(),
   lineItemType: z.enum([
     "LINE_ITEM_TYPE_UNSPECIFIED",
     "LINE_ITEM_TYPE_DISPLAY_DEFAULT",
@@ -1618,8 +1366,9 @@ const InputsSchema = z.object({
     ).optional(),
     publisher: z.string().describe("Output only. The app publisher.")
       .optional(),
-  }).describe("A mobile app promoted by a mobile app install line item.")
-    .optional(),
+  }).describe(
+    "The mobile app promoted by the line item. This is applicable only when line_item_type is either `LINE_ITEM_TYPE_DISPLAY_MOBILE_APP_INSTALL` or `LINE_ITEM_TYPE_VIDEO_MOBILE_APP_INSTALL`.",
+  ).optional(),
   optimizeFixedBidding: z.boolean().describe(
     "Optional. Whether to enable DV360's bid optimization for fixed bid line items. By default, DV360 optimizes your fixed bid by automatically lowering bids for impressions that are less likely to perform well. This optimization is enabled by default (value is true). When this field is set to `false`, this optimization is disabled, and the bid will not be lowered for any reason. This setting only applies to line items with a `bidding_strategy` of type `FIXED_BID`.",
   ).optional(),
@@ -1645,7 +1394,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. The type of pacing that defines how the budget amount will be spent across the pacing_period. `PACING_TYPE_ASAP` is not compatible with pacing_period `PACING_PERIOD_FLIGHT` for insertion orders.",
     ).optional(),
-  }).describe("Settings that control the rate at which a budget is spent.")
+  }).describe("Required. The budget spending speed setting of the line item.")
     .optional(),
   partnerCosts: z.array(z.object({
     costType: z.enum([
@@ -1713,7 +1462,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. The markup type of the partner revenue model. This field must be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP` for Demand Gen line items.",
     ).optional(),
-  }).describe("Settings that control how partner revenue is calculated.")
+  }).describe("Required. The partner revenue model setting of the line item.")
     .optional(),
   targetingExpansion: z.object({
     audienceExpansionLevel: z.enum([
@@ -1735,263 +1484,8 @@ const InputsSchema = z.object({
       "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups.",
     ).optional(),
   }).describe(
-    "Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.",
+    "The [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item. This config is only applicable for display, video, or audio line items that use automated bidding and positively target eligible audience lists.",
   ).optional(),
-  youtubeAndPartnersSettings: z.object({
-    contentCategory: z.enum([
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED",
-    ]).describe(
-      "Output only. The kind of content on which the YouTube and Partners ads will be shown. *Warning*: This field will be removed in the near future. Use effective_content_category instead.",
-    ).optional(),
-    effectiveContentCategory: z.enum([
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED",
-      "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED",
-    ]).describe(
-      "Output only. The content category which takes effect when serving the line item. When content category is set in both line item and advertiser, the stricter one will take effect when serving the line item. New line items will only inherit the advertiser level setting.",
-    ).optional(),
-    inventorySourceSettings: z.object({
-      includeGoogleTv: z.boolean().describe(
-        "Optional. Whether to target inventory in video apps available with Google TV.",
-      ).optional(),
-      includeYoutube: z.boolean().describe(
-        "Optional. Whether to target inventory on YouTube. This includes both search, channels and videos.",
-      ).optional(),
-      includeYoutubeVideoPartners: z.boolean().describe(
-        "Whether to target inventory on a collection of partner sites and apps that follow the same brand safety standards as YouTube.",
-      ).optional(),
-    }).describe(
-      "Settings that control what YouTube related inventories the YouTube and Partners line item will target.",
-    ).optional(),
-    leadFormId: z.string().describe(
-      "Optional. The ID of the form to generate leads.",
-    ).optional(),
-    linkedMerchantId: z.string().describe(
-      "Optional. The ID of the Merchant Center account used to provide a product feed. This Merchant Center account must already be linked to the advertiser.",
-    ).optional(),
-    relatedVideoIds: z.array(z.string()).describe(
-      "Optional. The IDs of the videos appear below the primary video ad when the ad is playing in the YouTube app on mobile devices.",
-    ).optional(),
-    targetFrequency: z.object({
-      targetCount: z.string().describe(
-        "The target number of times, on average, the ads will be shown to the same person in the timespan dictated by time_unit and time_unit_count.",
-      ).optional(),
-      timeUnit: z.enum([
-        "TIME_UNIT_UNSPECIFIED",
-        "TIME_UNIT_LIFETIME",
-        "TIME_UNIT_MONTHS",
-        "TIME_UNIT_WEEKS",
-        "TIME_UNIT_DAYS",
-        "TIME_UNIT_HOURS",
-        "TIME_UNIT_MINUTES",
-      ]).describe(
-        "The unit of time in which the target frequency will be applied. The following time unit is applicable: * `TIME_UNIT_WEEKS`",
-      ).optional(),
-      timeUnitCount: z.number().int().describe(
-        "The number of time_unit the target frequency will last. The following restrictions apply based on the value of time_unit: * `TIME_UNIT_WEEKS` - must be 1",
-      ).optional(),
-    }).describe(
-      "Setting that controls the average number of times the ads will show to the same person over a certain period of time.",
-    ).optional(),
-    thirdPartyMeasurementConfigs: z.object({
-      brandLiftVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_DYNATA` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_INTAGE` * `THIRD_PARTY_VENDOR_MACROMILL`",
-      ).optional(),
-      brandSafetyVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring brand safety. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_ZEFR` * `THIRD_PARTY_VENDOR_DOUBLE_VERIFY` * `THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE`",
-      ).optional(),
-      reachVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring reach. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_NIELSEN` * `THIRD_PARTY_VENDOR_COMSCORE` * `THIRD_PARTY_VENDOR_KANTAR` * `THIRD_PARTY_VENDOR_VIDEO_RESEARCH` * `THIRD_PARTY_VENDOR_MEDIA_SCOPE` * `THIRD_PARTY_VENDOR_AUDIENCE_PROJECT` * `THIRD_PARTY_VENDOR_VIDEO_AMP` * `THIRD_PARTY_VENDOR_ISPOT_TV` * `THIRD_PARTY_VENDOR_GEMIUS`",
-      ).optional(),
-      viewabilityVendorConfigs: z.array(z.object({
-        placementId: z.string().describe(
-          "The ID used by the platform of the third-party vendor to identify the line item.",
-        ).optional(),
-        vendor: z.enum([
-          "THIRD_PARTY_VENDOR_UNSPECIFIED",
-          "THIRD_PARTY_VENDOR_MOAT",
-          "THIRD_PARTY_VENDOR_DOUBLE_VERIFY",
-          "THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE",
-          "THIRD_PARTY_VENDOR_COMSCORE",
-          "THIRD_PARTY_VENDOR_TELEMETRY",
-          "THIRD_PARTY_VENDOR_MEETRICS",
-          "THIRD_PARTY_VENDOR_ZEFR",
-          "THIRD_PARTY_VENDOR_NIELSEN",
-          "THIRD_PARTY_VENDOR_KANTAR",
-          "THIRD_PARTY_VENDOR_DYNATA",
-          "THIRD_PARTY_VENDOR_TRANSUNION",
-          "THIRD_PARTY_VENDOR_ORIGIN",
-          "THIRD_PARTY_VENDOR_GEMIUS",
-          "THIRD_PARTY_VENDOR_MEDIA_SCOPE",
-          "THIRD_PARTY_VENDOR_AUDIENCE_PROJECT",
-          "THIRD_PARTY_VENDOR_VIDEO_AMP",
-          "THIRD_PARTY_VENDOR_ISPOT_TV",
-          "THIRD_PARTY_VENDOR_INTAGE",
-          "THIRD_PARTY_VENDOR_MACROMILL",
-          "THIRD_PARTY_VENDOR_VIDEO_RESEARCH",
-        ]).describe("The third-party measurement vendor.").optional(),
-      })).describe(
-        "Optional. The third-party vendors measuring viewability. The following third-party vendors are applicable: * `THIRD_PARTY_VENDOR_MOAT` * `THIRD_PARTY_VENDOR_DOUBLE_VERIFY` * `THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE` * `THIRD_PARTY_VENDOR_COMSCORE` * `THIRD_PARTY_VENDOR_TELEMETRY` * `THIRD_PARTY_VENDOR_MEETRICS`",
-      ).optional(),
-    }).describe(
-      "Settings that control what third-party vendors are measuring specific line item metrics.",
-    ).optional(),
-    videoAdInventoryControl: z.object({
-      allowInFeed: z.boolean().describe(
-        "Optional. Whether ads can serve as in-feed format.",
-      ).optional(),
-      allowInStream: z.boolean().describe(
-        "Optional. Whether ads can serve as in-stream format.",
-      ).optional(),
-      allowNonSkippableInStream: z.boolean().describe(
-        "Optional. Indicates whether ads can serve as non-skippable in-stream format.",
-      ).optional(),
-      allowShorts: z.boolean().describe(
-        "Optional. Whether ads can serve as shorts format.",
-      ).optional(),
-    }).describe(
-      "The video ad inventory control used in certain YouTube line item types.",
-    ).optional(),
-    videoAdSequenceSettings: z.object({
-      minimumDuration: z.enum([
-        "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_UNSPECIFIED",
-        "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_WEEK",
-        "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_MONTH",
-      ]).describe(
-        "The minimum time interval before the same user sees this sequence again.",
-      ).optional(),
-      steps: z.array(z.object({
-        adGroupId: z.string().describe(
-          "The ID of the corresponding ad group of the step.",
-        ).optional(),
-        interactionType: z.enum([
-          "INTERACTION_TYPE_UNSPECIFIED",
-          "INTERACTION_TYPE_PAID_VIEW",
-          "INTERACTION_TYPE_SKIP",
-          "INTERACTION_TYPE_IMPRESSION",
-          "INTERACTION_TYPE_ENGAGED_IMPRESSION",
-        ]).describe(
-          "The interaction on the previous step that will lead the viewer to this step. The first step does not have interaction_type.",
-        ).optional(),
-        previousStepId: z.string().describe(
-          "The ID of the previous step. The first step does not have previous step.",
-        ).optional(),
-        stepId: z.string().describe("The ID of the step.").optional(),
-      })).describe("The steps of which the sequence consists.").optional(),
-    }).describe("Settings related to VideoAdSequence.").optional(),
-    viewFrequencyCap: z.object({
-      maxImpressions: z.number().int().describe(
-        "The maximum number of times a user may be shown the same ad during this period. Must be greater than 0. Required when unlimited is `false` and max_views is not set.",
-      ).optional(),
-      maxViews: z.number().int().describe(
-        "Optional. The maximum number of times a user may click-through or fully view an ad during this period until it is no longer served to them. Must be greater than 0. Only applicable to YouTube and Partners resources. Required when unlimited is `false` and max_impressions is not set.",
-      ).optional(),
-      timeUnit: z.enum([
-        "TIME_UNIT_UNSPECIFIED",
-        "TIME_UNIT_LIFETIME",
-        "TIME_UNIT_MONTHS",
-        "TIME_UNIT_WEEKS",
-        "TIME_UNIT_DAYS",
-        "TIME_UNIT_HOURS",
-        "TIME_UNIT_MINUTES",
-      ]).describe(
-        "The time unit in which the frequency cap will be applied. Required when unlimited is `false`.",
-      ).optional(),
-      timeUnitCount: z.number().int().describe(
-        "The number of time_unit the frequency cap will last. Required when unlimited is `false`. The following restrictions apply based on the value of time_unit: * `TIME_UNIT_MONTHS` - must be 1 * `TIME_UNIT_WEEKS` - must be between 1 and 4 * `TIME_UNIT_DAYS` - must be between 1 and 6 * `TIME_UNIT_HOURS` - must be between 1 and 23 * `TIME_UNIT_MINUTES` - must be between 1 and 59",
-      ).optional(),
-      unlimited: z.boolean().describe(
-        "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
-      ).optional(),
-    }).describe(
-      "Settings that control the number of times a user may be shown with the same ad during a given time period.",
-    ).optional(),
-  }).describe("Settings for YouTube and Partners line items.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -2017,7 +1511,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.LineItems. Registered at `@swamp/gcp/displayvideo/advertisers-lineitems`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-lineitems",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2186,6 +1680,17 @@ export const model = {
       description: "Added: optimizeFixedBidding",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: youtubeAndPartnersSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          youtubeAndPartnersSettings: _youtubeAndPartnersSettings,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2261,9 +1766,6 @@ export const model = {
         }
         if (g["targetingExpansion"] !== undefined) {
           body["targetingExpansion"] = g["targetingExpansion"];
-        }
-        if (g["youtubeAndPartnersSettings"] !== undefined) {
-          body["youtubeAndPartnersSettings"] = g["youtubeAndPartnersSettings"];
         }
         if (g["name"] !== undefined) params["lineItemId"] = String(g["name"]);
         const result = await createResource(
@@ -2402,9 +1904,6 @@ export const model = {
         }
         if (g["targetingExpansion"] !== undefined) {
           body["targetingExpansion"] = g["targetingExpansion"];
-        }
-        if (g["youtubeAndPartnersSettings"] !== undefined) {
-          body["youtubeAndPartnersSettings"] = g["youtubeAndPartnersSettings"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

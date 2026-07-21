@@ -159,15 +159,14 @@ const GlobalArgsSchema = z.object({
     interceptEndpointGroup: z.string().describe(
       "Required. The target InterceptEndpointGroup. When a firewall rule with this security profile attached matches a packet, the packet will be intercepted to the location-local target in this group.",
     ).optional(),
-  }).describe(
-    "CustomInterceptProfile defines in-band integration behavior (intercept). It is used by firewall rules with an APPLY_SECURITY_PROFILE_GROUP action.",
-  ).optional(),
+  }).describe("The custom TPPI configuration for the SecurityProfile.")
+    .optional(),
   customMirroringProfile: z.object({
     mirroringEndpointGroup: z.string().describe(
       "Required. Immutable. The target MirroringEndpointGroup. When a mirroring rule with this security profile attached matches a packet, a replica will be mirrored to the location-local target in this group.",
     ).optional(),
   }).describe(
-    "CustomMirroringProfile defines out-of-band integration behavior (mirroring). It is used by mirroring rules with a MIRROR action.",
+    "The custom Packet Mirroring v2 configuration for the SecurityProfile.",
   ).optional(),
   description: z.string().describe(
     "Optional. An optional description of the profile. Max length 512 characters.",
@@ -245,9 +244,8 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. Configuration for overriding threats actions by threat_id match. If a threat is matched both by configuration provided in severity_overrides and threat_overrides, the threat_overrides action is applied.",
     ).optional(),
-  }).describe(
-    "ThreatPreventionProfile defines an action for specific threat signatures or severity levels.",
-  ).optional(),
+  }).describe("The threat prevention configuration for the SecurityProfile.")
+    .optional(),
   type: z.enum([
     "PROFILE_TYPE_UNSPECIFIED",
     "THREAT_PREVENTION",
@@ -274,7 +272,8 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. The list of filtering configs in which each config defines an action to take for some URL match.",
     ).optional(),
-  }).describe("UrlFilteringProfile defines filters based on URL.").optional(),
+  }).describe("The URL filtering configuration for the SecurityProfile.")
+    .optional(),
   securityProfileId: z.string().describe(
     'Required. Short name of the SecurityProfile resource to be created. This value should be 1-63 characters long, containing only letters, numbers, hyphens, and underscores, and should not start with a number. E.g. "security_profile1".',
   ).optional(),
@@ -332,15 +331,14 @@ const InputsSchema = z.object({
     interceptEndpointGroup: z.string().describe(
       "Required. The target InterceptEndpointGroup. When a firewall rule with this security profile attached matches a packet, the packet will be intercepted to the location-local target in this group.",
     ).optional(),
-  }).describe(
-    "CustomInterceptProfile defines in-band integration behavior (intercept). It is used by firewall rules with an APPLY_SECURITY_PROFILE_GROUP action.",
-  ).optional(),
+  }).describe("The custom TPPI configuration for the SecurityProfile.")
+    .optional(),
   customMirroringProfile: z.object({
     mirroringEndpointGroup: z.string().describe(
       "Required. Immutable. The target MirroringEndpointGroup. When a mirroring rule with this security profile attached matches a packet, a replica will be mirrored to the location-local target in this group.",
     ).optional(),
   }).describe(
-    "CustomMirroringProfile defines out-of-band integration behavior (mirroring). It is used by mirroring rules with a MIRROR action.",
+    "The custom Packet Mirroring v2 configuration for the SecurityProfile.",
   ).optional(),
   description: z.string().describe(
     "Optional. An optional description of the profile. Max length 512 characters.",
@@ -418,9 +416,8 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. Configuration for overriding threats actions by threat_id match. If a threat is matched both by configuration provided in severity_overrides and threat_overrides, the threat_overrides action is applied.",
     ).optional(),
-  }).describe(
-    "ThreatPreventionProfile defines an action for specific threat signatures or severity levels.",
-  ).optional(),
+  }).describe("The threat prevention configuration for the SecurityProfile.")
+    .optional(),
   type: z.enum([
     "PROFILE_TYPE_UNSPECIFIED",
     "THREAT_PREVENTION",
@@ -447,7 +444,8 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. The list of filtering configs in which each config defines an action to take for some URL match.",
     ).optional(),
-  }).describe("UrlFilteringProfile defines filters based on URL.").optional(),
+  }).describe("The URL filtering configuration for the SecurityProfile.")
+    .optional(),
   securityProfileId: z.string().describe(
     'Required. Short name of the SecurityProfile resource to be created. This value should be 1-63 characters long, containing only letters, numbers, hyphens, and underscores, and should not start with a number. E.g. "security_profile1".',
   ).optional(),
@@ -479,7 +477,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security SecurityProfiles. Registered at `@swamp/gcp/networksecurity/securityprofiles`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/securityprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -578,6 +576,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

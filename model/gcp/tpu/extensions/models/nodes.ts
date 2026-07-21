@@ -167,7 +167,7 @@ const GlobalArgsSchema = z.object({
       "V5P",
       "V6E",
     ]).describe("Required. Type of TPU.").optional(),
-  }).describe("A TPU accelerator configuration.").optional(),
+  }).describe("The AccleratorConfig for the TPU Node.").optional(),
   acceleratorType: z.string().describe(
     "Optional. The type of hardware accelerators associated with this node.",
   ).optional(),
@@ -176,9 +176,8 @@ const GlobalArgsSchema = z.object({
       kmsKeyName: z.string().describe(
         'The name of the encryption key that is stored in Google Cloud KMS. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY The fully-qualifed key name may be returned for resource GET requests. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY/cryptoKeyVersions/1',
       ).optional(),
-    }).describe("Defines the customer encryption key for disk encryption.")
-      .optional(),
-  }).describe("Sets the boot disk configuration for the TPU node.").optional(),
+    }).describe("Optional. Customer encryption key for boot disk.").optional(),
+  }).describe("Optional. Boot disk configuration.").optional(),
   cidrBlock: z.string().describe(
     "The CIDR block that the TPU node will use when selecting an IP address. This CIDR block must be a /29 block; the Compute Engine networks API forbids a smaller block, and using a larger block would be wasteful (a node can only consume one IP address). Errors will occur if the CIDR block has already been used for a currently existing TPU node, the CIDR block conflicts with any subnetworks in the user's provided network, or the provided network is peered with another network that is using that CIDR block.",
   ).optional(),
@@ -222,7 +221,9 @@ const GlobalArgsSchema = z.object({
     subnetwork: z.string().describe(
       'The name of the subnetwork for the TPU node. It must be a preexisting Google Compute Engine subnetwork. If none is provided, "default" will be used.',
     ).optional(),
-  }).describe("Network related configurations.").optional(),
+  }).describe(
+    "Network configurations for the TPU node. network_config and network_configs are mutually exclusive, you can only specify one of them. If both are specified, an error will be returned.",
+  ).optional(),
   networkConfigs: z.array(z.object({
     canIpForward: z.boolean().describe(
       "Allows the TPU node to send and receive packets with non-matching destination or source IPs. This is required if you plan to use the TPU workers to forward routes.",
@@ -254,7 +255,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     spot: z.boolean().describe("Optional. Defines whether the node is Spot VM.")
       .optional(),
-  }).describe("Sets the scheduling options for this node.").optional(),
+  }).describe("The scheduling options for this node.").optional(),
   serviceAccount: z.object({
     email: z.string().describe(
       "Email address of the service account. If empty, default Compute service account will be used.",
@@ -262,35 +263,17 @@ const GlobalArgsSchema = z.object({
     scope: z.array(z.string()).describe(
       "The list of scopes to be made available for this service account. If empty, access to all Cloud APIs will be allowed.",
     ).optional(),
-  }).describe("A service account.").optional(),
+  }).describe(
+    "The Google Cloud Platform Service Account to be used by the TPU node VMs. If None is specified, the default compute service account will be used.",
+  ).optional(),
   shieldedInstanceConfig: z.object({
     enableSecureBoot: z.boolean().describe(
       "Defines whether the instance has Secure Boot enabled.",
     ).optional(),
-  }).describe("A set of Shielded Instance options.").optional(),
+  }).describe("Shielded Instance options.").optional(),
   tags: z.array(z.string()).describe(
     "Tags to apply to the TPU Node. Tags are used to identify valid sources or targets for network firewalls.",
   ).optional(),
-  upcomingMaintenance: z.object({
-    canReschedule: z.boolean().describe(
-      "Indicates if the maintenance can be customer triggered.",
-    ).optional(),
-    latestWindowStartTime: z.string().describe(
-      "The latest time for the planned maintenance window to start. This timestamp value is in RFC3339 text format.",
-    ).optional(),
-    maintenanceStatus: z.enum(["UNKNOWN", "PENDING", "ONGOING"]).describe(
-      "The status of the maintenance.",
-    ).optional(),
-    type: z.enum(["UNKNOWN_TYPE", "SCHEDULED", "UNSCHEDULED"]).describe(
-      "Defines the type of maintenance.",
-    ).optional(),
-    windowEndTime: z.string().describe(
-      "The time by which the maintenance disruption will be completed. This timestamp value is in RFC3339 text format.",
-    ).optional(),
-    windowStartTime: z.string().describe(
-      "The current start time of the maintenance window. This timestamp value is in RFC3339 text format.",
-    ).optional(),
-  }).describe("Upcoming Maintenance notification information.").optional(),
   nodeId: z.string().describe("The unqualified resource name.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -396,7 +379,7 @@ const InputsSchema = z.object({
       "V5P",
       "V6E",
     ]).describe("Required. Type of TPU.").optional(),
-  }).describe("A TPU accelerator configuration.").optional(),
+  }).describe("The AccleratorConfig for the TPU Node.").optional(),
   acceleratorType: z.string().describe(
     "Optional. The type of hardware accelerators associated with this node.",
   ).optional(),
@@ -405,9 +388,8 @@ const InputsSchema = z.object({
       kmsKeyName: z.string().describe(
         'The name of the encryption key that is stored in Google Cloud KMS. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY The fully-qualifed key name may be returned for resource GET requests. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY/cryptoKeyVersions/1',
       ).optional(),
-    }).describe("Defines the customer encryption key for disk encryption.")
-      .optional(),
-  }).describe("Sets the boot disk configuration for the TPU node.").optional(),
+    }).describe("Optional. Customer encryption key for boot disk.").optional(),
+  }).describe("Optional. Boot disk configuration.").optional(),
   cidrBlock: z.string().describe(
     "The CIDR block that the TPU node will use when selecting an IP address. This CIDR block must be a /29 block; the Compute Engine networks API forbids a smaller block, and using a larger block would be wasteful (a node can only consume one IP address). Errors will occur if the CIDR block has already been used for a currently existing TPU node, the CIDR block conflicts with any subnetworks in the user's provided network, or the provided network is peered with another network that is using that CIDR block.",
   ).optional(),
@@ -451,7 +433,9 @@ const InputsSchema = z.object({
     subnetwork: z.string().describe(
       'The name of the subnetwork for the TPU node. It must be a preexisting Google Compute Engine subnetwork. If none is provided, "default" will be used.',
     ).optional(),
-  }).describe("Network related configurations.").optional(),
+  }).describe(
+    "Network configurations for the TPU node. network_config and network_configs are mutually exclusive, you can only specify one of them. If both are specified, an error will be returned.",
+  ).optional(),
   networkConfigs: z.array(z.object({
     canIpForward: z.boolean().describe(
       "Allows the TPU node to send and receive packets with non-matching destination or source IPs. This is required if you plan to use the TPU workers to forward routes.",
@@ -483,7 +467,7 @@ const InputsSchema = z.object({
     ).optional(),
     spot: z.boolean().describe("Optional. Defines whether the node is Spot VM.")
       .optional(),
-  }).describe("Sets the scheduling options for this node.").optional(),
+  }).describe("The scheduling options for this node.").optional(),
   serviceAccount: z.object({
     email: z.string().describe(
       "Email address of the service account. If empty, default Compute service account will be used.",
@@ -491,35 +475,17 @@ const InputsSchema = z.object({
     scope: z.array(z.string()).describe(
       "The list of scopes to be made available for this service account. If empty, access to all Cloud APIs will be allowed.",
     ).optional(),
-  }).describe("A service account.").optional(),
+  }).describe(
+    "The Google Cloud Platform Service Account to be used by the TPU node VMs. If None is specified, the default compute service account will be used.",
+  ).optional(),
   shieldedInstanceConfig: z.object({
     enableSecureBoot: z.boolean().describe(
       "Defines whether the instance has Secure Boot enabled.",
     ).optional(),
-  }).describe("A set of Shielded Instance options.").optional(),
+  }).describe("Shielded Instance options.").optional(),
   tags: z.array(z.string()).describe(
     "Tags to apply to the TPU Node. Tags are used to identify valid sources or targets for network firewalls.",
   ).optional(),
-  upcomingMaintenance: z.object({
-    canReschedule: z.boolean().describe(
-      "Indicates if the maintenance can be customer triggered.",
-    ).optional(),
-    latestWindowStartTime: z.string().describe(
-      "The latest time for the planned maintenance window to start. This timestamp value is in RFC3339 text format.",
-    ).optional(),
-    maintenanceStatus: z.enum(["UNKNOWN", "PENDING", "ONGOING"]).describe(
-      "The status of the maintenance.",
-    ).optional(),
-    type: z.enum(["UNKNOWN_TYPE", "SCHEDULED", "UNSCHEDULED"]).describe(
-      "Defines the type of maintenance.",
-    ).optional(),
-    windowEndTime: z.string().describe(
-      "The time by which the maintenance disruption will be completed. This timestamp value is in RFC3339 text format.",
-    ).optional(),
-    windowStartTime: z.string().describe(
-      "The current start time of the maintenance window. This timestamp value is in RFC3339 text format.",
-    ).optional(),
-  }).describe("Upcoming Maintenance notification information.").optional(),
   nodeId: z.string().describe("The unqualified resource name.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -549,7 +515,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud TPU Nodes. Registered at `@swamp/gcp/tpu/nodes`. */
 export const model = {
   type: "@swamp/gcp/tpu/nodes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -656,6 +622,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: upcomingMaintenance",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { upcomingMaintenance: _upcomingMaintenance, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -720,9 +694,6 @@ export const model = {
           body["shieldedInstanceConfig"] = g["shieldedInstanceConfig"];
         }
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
-        if (g["upcomingMaintenance"] !== undefined) {
-          body["upcomingMaintenance"] = g["upcomingMaintenance"];
-        }
         if (g["nodeId"] !== undefined) params["nodeId"] = String(g["nodeId"]);
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -743,16 +714,7 @@ export const model = {
               "failedValues": ["STOPPED", "TERMINATED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -879,9 +841,6 @@ export const model = {
           body["shieldedInstanceConfig"] = g["shieldedInstanceConfig"];
         }
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
-        if (g["upcomingMaintenance"] !== undefined) {
-          body["upcomingMaintenance"] = g["upcomingMaintenance"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

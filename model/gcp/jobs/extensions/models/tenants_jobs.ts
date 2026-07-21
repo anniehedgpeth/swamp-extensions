@@ -168,7 +168,7 @@ const GlobalArgsSchema = z.object({
     uris: z.array(z.string()).describe(
       "Use this URI field to direct an applicant to a website, for example to link to an online application form. The maximum number of allowed characters for each entry is 2,000.",
     ).optional(),
-  }).describe("Application related details of a job posting.").optional(),
+  }).describe("Job application information.").optional(),
   company: z.string().describe(
     'Required. The resource name of the company listing the job. The format is "projects/{project_id}/tenants/{tenant_id}/companies/{company_id}". For example, "projects/foo/tenants/bar/companies/baz".',
   ).optional(),
@@ -184,8 +184,9 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+      ).optional(),
       minCompensation: z.object({
         currencyCode: z.string().describe(
           "The three-letter currency code defined in ISO 4217.",
@@ -196,9 +197,12 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
-    }).describe("Compensation range.").optional(),
+      }).describe(
+        "The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+      ).optional(),
+    }).describe(
+      "Output only. Annualized base compensation range. Computed as base compensation entry's CompensationEntry.amount times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+    ).optional(),
     annualizedTotalCompensationRange: z.object({
       maxCompensation: z.object({
         currencyCode: z.string().describe(
@@ -210,8 +214,9 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+      ).optional(),
       minCompensation: z.object({
         currencyCode: z.string().describe(
           "The three-letter currency code defined in ISO 4217.",
@@ -222,9 +227,12 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
-    }).describe("Compensation range.").optional(),
+      }).describe(
+        "The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+      ).optional(),
+    }).describe(
+      "Output only. Annualized total compensation range. Computed as all compensation entries' CompensationEntry.amount times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+    ).optional(),
     entries: z.array(z.object({
       amount: z.object({
         currencyCode: z.string().describe(
@@ -236,8 +244,7 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe("Compensation amount.").optional(),
       description: z.string().describe(
         "Compensation description. For example, could indicate equity terms or provide additional context to an estimated bonus.",
       ).optional(),
@@ -255,8 +262,9 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+        ).optional(),
         minCompensation: z.object({
           currencyCode: z.unknown().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -267,8 +275,9 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+        ).optional(),
       }).describe("Compensation range.").optional(),
       type: z.enum([
         "COMPENSATION_TYPE_UNSPECIFIED",
@@ -298,7 +307,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Job compensation information. At most one entry can be of type CompensationInfo.CompensationType.BASE, which is referred as **base compensation entry** for the job.",
     ).optional(),
-  }).describe("Job compensation details.").optional(),
+  }).describe(
+    'Job compensation information (a.k.a. "pay rate") i.e., the compensation that will paid to the employee.',
+  ).optional(),
   customAttributes: z.record(
     z.string(),
     z.object({
@@ -336,113 +347,6 @@ const GlobalArgsSchema = z.object({
   department: z.string().describe(
     "The department or functional area within the company with the open position. The maximum number of allowed characters is 255.",
   ).optional(),
-  derivedInfo: z.object({
-    jobCategories: z.array(
-      z.enum([
-        "JOB_CATEGORY_UNSPECIFIED",
-        "ACCOUNTING_AND_FINANCE",
-        "ADMINISTRATIVE_AND_OFFICE",
-        "ADVERTISING_AND_MARKETING",
-        "ANIMAL_CARE",
-        "ART_FASHION_AND_DESIGN",
-        "BUSINESS_OPERATIONS",
-        "CLEANING_AND_FACILITIES",
-        "COMPUTER_AND_IT",
-        "CONSTRUCTION",
-        "CUSTOMER_SERVICE",
-        "EDUCATION",
-        "ENTERTAINMENT_AND_TRAVEL",
-        "FARMING_AND_OUTDOORS",
-        "HEALTHCARE",
-        "HUMAN_RESOURCES",
-        "INSTALLATION_MAINTENANCE_AND_REPAIR",
-        "LEGAL",
-        "MANAGEMENT",
-        "MANUFACTURING_AND_WAREHOUSE",
-        "MEDIA_COMMUNICATIONS_AND_WRITING",
-        "OIL_GAS_AND_MINING",
-        "PERSONAL_CARE_AND_SERVICES",
-        "PROTECTIVE_SERVICES",
-        "REAL_ESTATE",
-        "RESTAURANT_AND_HOSPITALITY",
-        "SALES_AND_RETAIL",
-        "SCIENCE_AND_ENGINEERING",
-        "SOCIAL_SERVICES_AND_NON_PROFIT",
-        "SPORTS_FITNESS_AND_RECREATION",
-        "TRANSPORTATION_AND_LOGISTICS",
-      ]),
-    ).describe("Job categories derived from Job.title and Job.description.")
-      .optional(),
-    locations: z.array(z.object({
-      latLng: z.object({
-        latitude: z.number().describe(
-          "The latitude in degrees. It must be in the range [-90.0, +90.0].",
-        ).optional(),
-        longitude: z.number().describe(
-          "The longitude in degrees. It must be in the range [-180.0, +180.0].",
-        ).optional(),
-      }).describe(
-        "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-      ).optional(),
-      locationType: z.enum([
-        "LOCATION_TYPE_UNSPECIFIED",
-        "COUNTRY",
-        "ADMINISTRATIVE_AREA",
-        "SUB_ADMINISTRATIVE_AREA",
-        "LOCALITY",
-        "POSTAL_CODE",
-        "SUB_LOCALITY",
-        "SUB_LOCALITY_1",
-        "SUB_LOCALITY_2",
-        "NEIGHBORHOOD",
-        "STREET_ADDRESS",
-      ]).describe(
-        'The type of a location, which corresponds to the address lines field of google.type.PostalAddress. For example, "Downtown, Atlanta, GA, USA" has a type of LocationType.NEIGHBORHOOD, and "Kansas City, KS, USA" has a type of LocationType.LOCALITY.',
-      ).optional(),
-      postalAddress: z.object({
-        addressLines: z.array(z.unknown()).describe(
-          'Unstructured address lines describing the lower levels of an address. Because values in `address_lines` do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), `address_language` is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a `region_code` with all remaining information placed in the `address_lines`. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a `region_code` and `address_lines` and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).',
-        ).optional(),
-        administrativeArea: z.string().describe(
-          'Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don\'t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.',
-        ).optional(),
-        languageCode: z.string().describe(
-          'Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address\' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".',
-        ).optional(),
-        locality: z.string().describe(
-          "Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave `locality` empty and use `address_lines`.",
-        ).optional(),
-        organization: z.string().describe(
-          "Optional. The name of the organization at the address.",
-        ).optional(),
-        postalCode: z.string().describe(
-          "Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).",
-        ).optional(),
-        recipients: z.array(z.unknown()).describe(
-          'Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.',
-        ).optional(),
-        regionCode: z.string().describe(
-          'Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.',
-        ).optional(),
-        revision: z.number().int().describe(
-          "The schema revision of the `PostalAddress`. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.",
-        ).optional(),
-        sortingCode: z.string().describe(
-          'Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d\'Ivoire).',
-        ).optional(),
-        sublocality: z.string().describe(
-          "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
-        ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-      radiusMiles: z.number().describe(
-        'Radius in miles of the job location. This value is derived from the location bounding box in which a circle with the specified radius centered from google.type.LatLng covers the area associated with the job location. For example, currently, "Mountain View, CA, USA" has a radius of 6.17 miles.',
-      ).optional(),
-    })).describe(
-      "Structured locations of the job, resolved from Job.addresses. locations are exactly matched to Job.addresses in the same order.",
-    ).optional(),
-  }).describe("Derived details about the job posting.").optional(),
   description: z.string().describe(
     "Required. The description of the job, which typically includes a multi-paragraph description of the company and related information. Separate fields are provided on the job object for responsibilities, qualifications, and other job characteristics. Use of these separate job fields is recommended. This field accepts and sanitizes HTML input, and also accepts bold, italic, ordered list, and unordered list markup tags. The maximum number of allowed characters is 100,000.",
   ).optional(),
@@ -684,7 +588,7 @@ const InputsSchema = z.object({
     uris: z.array(z.string()).describe(
       "Use this URI field to direct an applicant to a website, for example to link to an online application form. The maximum number of allowed characters for each entry is 2,000.",
     ).optional(),
-  }).describe("Application related details of a job posting.").optional(),
+  }).describe("Job application information.").optional(),
   company: z.string().describe(
     'Required. The resource name of the company listing the job. The format is "projects/{project_id}/tenants/{tenant_id}/companies/{company_id}". For example, "projects/foo/tenants/bar/companies/baz".',
   ).optional(),
@@ -700,8 +604,9 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+      ).optional(),
       minCompensation: z.object({
         currencyCode: z.string().describe(
           "The three-letter currency code defined in ISO 4217.",
@@ -712,9 +617,12 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
-    }).describe("Compensation range.").optional(),
+      }).describe(
+        "The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+      ).optional(),
+    }).describe(
+      "Output only. Annualized base compensation range. Computed as base compensation entry's CompensationEntry.amount times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+    ).optional(),
     annualizedTotalCompensationRange: z.object({
       maxCompensation: z.object({
         currencyCode: z.string().describe(
@@ -726,8 +634,9 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+      ).optional(),
       minCompensation: z.object({
         currencyCode: z.string().describe(
           "The three-letter currency code defined in ISO 4217.",
@@ -738,9 +647,12 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
-    }).describe("Compensation range.").optional(),
+      }).describe(
+        "The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+      ).optional(),
+    }).describe(
+      "Output only. Annualized total compensation range. Computed as all compensation entries' CompensationEntry.amount times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+    ).optional(),
     entries: z.array(z.object({
       amount: z.object({
         currencyCode: z.string().describe(
@@ -752,8 +664,7 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe("Compensation amount.").optional(),
       description: z.string().describe(
         "Compensation description. For example, could indicate equity terms or provide additional context to an estimated bonus.",
       ).optional(),
@@ -771,8 +682,9 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+        ).optional(),
         minCompensation: z.object({
           currencyCode: z.unknown().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -783,8 +695,9 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+        ).optional(),
       }).describe("Compensation range.").optional(),
       type: z.enum([
         "COMPENSATION_TYPE_UNSPECIFIED",
@@ -814,7 +727,9 @@ const InputsSchema = z.object({
     })).describe(
       "Job compensation information. At most one entry can be of type CompensationInfo.CompensationType.BASE, which is referred as **base compensation entry** for the job.",
     ).optional(),
-  }).describe("Job compensation details.").optional(),
+  }).describe(
+    'Job compensation information (a.k.a. "pay rate") i.e., the compensation that will paid to the employee.',
+  ).optional(),
   customAttributes: z.record(
     z.string(),
     z.object({
@@ -852,113 +767,6 @@ const InputsSchema = z.object({
   department: z.string().describe(
     "The department or functional area within the company with the open position. The maximum number of allowed characters is 255.",
   ).optional(),
-  derivedInfo: z.object({
-    jobCategories: z.array(
-      z.enum([
-        "JOB_CATEGORY_UNSPECIFIED",
-        "ACCOUNTING_AND_FINANCE",
-        "ADMINISTRATIVE_AND_OFFICE",
-        "ADVERTISING_AND_MARKETING",
-        "ANIMAL_CARE",
-        "ART_FASHION_AND_DESIGN",
-        "BUSINESS_OPERATIONS",
-        "CLEANING_AND_FACILITIES",
-        "COMPUTER_AND_IT",
-        "CONSTRUCTION",
-        "CUSTOMER_SERVICE",
-        "EDUCATION",
-        "ENTERTAINMENT_AND_TRAVEL",
-        "FARMING_AND_OUTDOORS",
-        "HEALTHCARE",
-        "HUMAN_RESOURCES",
-        "INSTALLATION_MAINTENANCE_AND_REPAIR",
-        "LEGAL",
-        "MANAGEMENT",
-        "MANUFACTURING_AND_WAREHOUSE",
-        "MEDIA_COMMUNICATIONS_AND_WRITING",
-        "OIL_GAS_AND_MINING",
-        "PERSONAL_CARE_AND_SERVICES",
-        "PROTECTIVE_SERVICES",
-        "REAL_ESTATE",
-        "RESTAURANT_AND_HOSPITALITY",
-        "SALES_AND_RETAIL",
-        "SCIENCE_AND_ENGINEERING",
-        "SOCIAL_SERVICES_AND_NON_PROFIT",
-        "SPORTS_FITNESS_AND_RECREATION",
-        "TRANSPORTATION_AND_LOGISTICS",
-      ]),
-    ).describe("Job categories derived from Job.title and Job.description.")
-      .optional(),
-    locations: z.array(z.object({
-      latLng: z.object({
-        latitude: z.number().describe(
-          "The latitude in degrees. It must be in the range [-90.0, +90.0].",
-        ).optional(),
-        longitude: z.number().describe(
-          "The longitude in degrees. It must be in the range [-180.0, +180.0].",
-        ).optional(),
-      }).describe(
-        "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-      ).optional(),
-      locationType: z.enum([
-        "LOCATION_TYPE_UNSPECIFIED",
-        "COUNTRY",
-        "ADMINISTRATIVE_AREA",
-        "SUB_ADMINISTRATIVE_AREA",
-        "LOCALITY",
-        "POSTAL_CODE",
-        "SUB_LOCALITY",
-        "SUB_LOCALITY_1",
-        "SUB_LOCALITY_2",
-        "NEIGHBORHOOD",
-        "STREET_ADDRESS",
-      ]).describe(
-        'The type of a location, which corresponds to the address lines field of google.type.PostalAddress. For example, "Downtown, Atlanta, GA, USA" has a type of LocationType.NEIGHBORHOOD, and "Kansas City, KS, USA" has a type of LocationType.LOCALITY.',
-      ).optional(),
-      postalAddress: z.object({
-        addressLines: z.array(z.unknown()).describe(
-          'Unstructured address lines describing the lower levels of an address. Because values in `address_lines` do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), `address_language` is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a `region_code` with all remaining information placed in the `address_lines`. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a `region_code` and `address_lines` and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).',
-        ).optional(),
-        administrativeArea: z.string().describe(
-          'Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don\'t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.',
-        ).optional(),
-        languageCode: z.string().describe(
-          'Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address\' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".',
-        ).optional(),
-        locality: z.string().describe(
-          "Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave `locality` empty and use `address_lines`.",
-        ).optional(),
-        organization: z.string().describe(
-          "Optional. The name of the organization at the address.",
-        ).optional(),
-        postalCode: z.string().describe(
-          "Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).",
-        ).optional(),
-        recipients: z.array(z.unknown()).describe(
-          'Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.',
-        ).optional(),
-        regionCode: z.string().describe(
-          'Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.',
-        ).optional(),
-        revision: z.number().int().describe(
-          "The schema revision of the `PostalAddress`. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.",
-        ).optional(),
-        sortingCode: z.string().describe(
-          'Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d\'Ivoire).',
-        ).optional(),
-        sublocality: z.string().describe(
-          "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
-        ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-      radiusMiles: z.number().describe(
-        'Radius in miles of the job location. This value is derived from the location bounding box in which a circle with the specified radius centered from google.type.LatLng covers the area associated with the job location. For example, currently, "Mountain View, CA, USA" has a radius of 6.17 miles.',
-      ).optional(),
-    })).describe(
-      "Structured locations of the job, resolved from Job.addresses. locations are exactly matched to Job.addresses in the same order.",
-    ).optional(),
-  }).describe("Derived details about the job posting.").optional(),
   description: z.string().describe(
     "Required. The description of the job, which typically includes a multi-paragraph description of the company and related information. Separate fields are provided on the job object for responsibilities, qualifications, and other job characteristics. Use of these separate job fields is recommended. This field accepts and sanitizes HTML input, and also accepts bold, italic, ordered list, and unordered list markup tags. The maximum number of allowed characters is 100,000.",
   ).optional(),
@@ -1092,7 +900,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Talent Solution Tenants.Jobs. Registered at `@swamp/gcp/jobs/tenants-jobs`. */
 export const model = {
   type: "@swamp/gcp/jobs/tenants-jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1204,6 +1012,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: derivedInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { derivedInfo: _derivedInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1242,9 +1058,6 @@ export const model = {
           body["degreeTypes"] = g["degreeTypes"];
         }
         if (g["department"] !== undefined) body["department"] = g["department"];
-        if (g["derivedInfo"] !== undefined) {
-          body["derivedInfo"] = g["derivedInfo"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -1408,9 +1221,6 @@ export const model = {
           body["degreeTypes"] = g["degreeTypes"];
         }
         if (g["department"] !== undefined) body["department"] = g["department"];
-        if (g["derivedInfo"] !== undefined) {
-          body["derivedInfo"] = g["derivedInfo"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

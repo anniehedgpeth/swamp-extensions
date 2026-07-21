@@ -227,7 +227,7 @@ const GlobalArgsSchema = z.object({
       "Identifiers for the students that have access to the coursework/announcement.",
     ).optional(),
   }).describe(
-    "Assignee details about a coursework/announcement. This field is set if and only if `assigneeMode` is `INDIVIDUAL_STUDENTS`.",
+    "Identifiers of students with access to the course work material. This field is set only if `assigneeMode` is `INDIVIDUAL_STUDENTS`. If the `assigneeMode` is `INDIVIDUAL_STUDENTS`, then only students specified in this field can see the course work material.",
   ).optional(),
   materials: z.array(z.object({
     driveFile: z.object({
@@ -241,12 +241,11 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the Drive item. Read-only.")
           .optional(),
-      }).describe("Representation of a Google Drive file.").optional(),
+      }).describe("Drive file details.").optional(),
       shareMode: z.enum(["UNKNOWN_SHARE_MODE", "VIEW", "EDIT", "STUDENT_COPY"])
         .describe("Mechanism by which students access the Drive item.")
         .optional(),
-    }).describe("Drive file that is used as material for course work.")
-      .optional(),
+    }).describe("Google Drive file material.").optional(),
     form: z.object({
       formUrl: z.string().describe("URL of the form.").optional(),
       responseUrl: z.string().describe(
@@ -256,13 +255,13 @@ const GlobalArgsSchema = z.object({
         "URL of a thumbnail image of the Form. Read-only.",
       ).optional(),
       title: z.string().describe("Title of the Form. Read-only.").optional(),
-    }).describe("Google Forms item.").optional(),
+    }).describe("Google Forms material. Read-only.").optional(),
     gem: z.object({
       id: z.string().describe("Gems resource id.").optional(),
       title: z.string().describe("Title of the Gem.").optional(),
       url: z.string().describe("URL that can be used to access the Gem.")
         .optional(),
-    }).describe("Gemini Gem link.").optional(),
+    }).describe("Gemini Gem material. Read-only.").optional(),
     link: z.object({
       thumbnailUrl: z.string().describe(
         "URL of a thumbnail image of the target URL. Read-only.",
@@ -272,13 +271,15 @@ const GlobalArgsSchema = z.object({
       url: z.string().describe(
         "URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.",
       ).optional(),
-    }).describe("URL item.").optional(),
+    }).describe(
+      "Link material. On creation, this is upgraded to a more appropriate type if possible, and this is reflected in the response.",
+    ).optional(),
     notebook: z.object({
       id: z.string().describe("Notebook resource id.").optional(),
       title: z.string().describe("Title of the Notebook.").optional(),
       url: z.string().describe("URL that can be used to access the Notebook.")
         .optional(),
-    }).describe("NotebookLM Notebook link.").optional(),
+    }).describe("NotebookLM Notebook material. Read-only.").optional(),
     youtubeVideo: z.object({
       alternateLink: z.string().describe(
         "URL that can be used to view the YouTube video. Read-only.",
@@ -289,7 +290,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       title: z.string().describe("Title of the YouTube video. Read-only.")
         .optional(),
-    }).describe("YouTube video item.").optional(),
+    }).describe("YouTube video material.").optional(),
   })).describe(
     "Additional materials. A course work material must have no more than 20 material items.",
   ).optional(),
@@ -407,7 +408,7 @@ const InputsSchema = z.object({
       "Identifiers for the students that have access to the coursework/announcement.",
     ).optional(),
   }).describe(
-    "Assignee details about a coursework/announcement. This field is set if and only if `assigneeMode` is `INDIVIDUAL_STUDENTS`.",
+    "Identifiers of students with access to the course work material. This field is set only if `assigneeMode` is `INDIVIDUAL_STUDENTS`. If the `assigneeMode` is `INDIVIDUAL_STUDENTS`, then only students specified in this field can see the course work material.",
   ).optional(),
   materials: z.array(z.object({
     driveFile: z.object({
@@ -421,12 +422,11 @@ const InputsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the Drive item. Read-only.")
           .optional(),
-      }).describe("Representation of a Google Drive file.").optional(),
+      }).describe("Drive file details.").optional(),
       shareMode: z.enum(["UNKNOWN_SHARE_MODE", "VIEW", "EDIT", "STUDENT_COPY"])
         .describe("Mechanism by which students access the Drive item.")
         .optional(),
-    }).describe("Drive file that is used as material for course work.")
-      .optional(),
+    }).describe("Google Drive file material.").optional(),
     form: z.object({
       formUrl: z.string().describe("URL of the form.").optional(),
       responseUrl: z.string().describe(
@@ -436,13 +436,13 @@ const InputsSchema = z.object({
         "URL of a thumbnail image of the Form. Read-only.",
       ).optional(),
       title: z.string().describe("Title of the Form. Read-only.").optional(),
-    }).describe("Google Forms item.").optional(),
+    }).describe("Google Forms material. Read-only.").optional(),
     gem: z.object({
       id: z.string().describe("Gems resource id.").optional(),
       title: z.string().describe("Title of the Gem.").optional(),
       url: z.string().describe("URL that can be used to access the Gem.")
         .optional(),
-    }).describe("Gemini Gem link.").optional(),
+    }).describe("Gemini Gem material. Read-only.").optional(),
     link: z.object({
       thumbnailUrl: z.string().describe(
         "URL of a thumbnail image of the target URL. Read-only.",
@@ -452,13 +452,15 @@ const InputsSchema = z.object({
       url: z.string().describe(
         "URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.",
       ).optional(),
-    }).describe("URL item.").optional(),
+    }).describe(
+      "Link material. On creation, this is upgraded to a more appropriate type if possible, and this is reflected in the response.",
+    ).optional(),
     notebook: z.object({
       id: z.string().describe("Notebook resource id.").optional(),
       title: z.string().describe("Title of the Notebook.").optional(),
       url: z.string().describe("URL that can be used to access the Notebook.")
         .optional(),
-    }).describe("NotebookLM Notebook link.").optional(),
+    }).describe("NotebookLM Notebook material. Read-only.").optional(),
     youtubeVideo: z.object({
       alternateLink: z.string().describe(
         "URL that can be used to view the YouTube video. Read-only.",
@@ -469,7 +471,7 @@ const InputsSchema = z.object({
       ).optional(),
       title: z.string().describe("Title of the YouTube video. Read-only.")
         .optional(),
-    }).describe("YouTube video item.").optional(),
+    }).describe("YouTube video material.").optional(),
   })).describe(
     "Additional materials. A course work material must have no more than 20 material items.",
   ).optional(),
@@ -518,7 +520,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.CourseWorkMaterials. Registered at `@swamp/gcp/classroom/courses-courseworkmaterials`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-courseworkmaterials",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -607,6 +609,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

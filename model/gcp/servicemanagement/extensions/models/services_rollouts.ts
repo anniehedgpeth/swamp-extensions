@@ -125,7 +125,7 @@ const GlobalArgsSchema = z.object({
   createdBy: z.string().describe("The user who created the Rollout. Readonly.")
     .optional(),
   deleteServiceStrategy: z.object({}).describe(
-    "Strategy used to delete a service. This strategy is a placeholder only used by the system generated rollout to delete a service.",
+    "The strategy associated with a rollout to delete a `ManagedService`. Readonly.",
   ).optional(),
   rolloutId: z.string().describe(
     "Optional. Unique identifier of this Rollout. Must be no longer than 63 characters and only lower case letters, digits, '.', '_' and '-' are allowed. If not specified by client, the server will generate one. The generated id will have the form of, where \"date\" is the create date in ISO 8601 format. \"revision number\" is a monotonically increasing positive number that is reset every day for each service. An example of the generated rollout_id is '2016-02-16r1'",
@@ -149,7 +149,7 @@ const GlobalArgsSchema = z.object({
       "Maps service configuration IDs to their corresponding traffic percentage. Key is the service configuration ID, Value is the traffic percentage which must be greater than 0.0 and the sum must equal to 100.0.",
     ).optional(),
   }).describe(
-    'Strategy that specifies how clients of Google Service Controller want to send traffic to use different config versions. This is generally used by API proxy to split traffic based on your configured percentage for each config version. One example of how to gradually rollout a new service configuration using this strategy: Day 1 Rollout { id: "example.googleapis.com/rollout_20160206" traffic_percent_strategy { percentages: { "example.googleapis.com/20160201": 70.00 "example.googleapis.com/20160206": 30.00 } } } Day 2 Rollout { id: "example.googleapis.com/rollout_20160207" traffic_percent_strategy: { percentages: { "example.googleapis.com/20160206": 100.00 } } }',
+    "Google Service Control selects service configurations based on traffic percentage.",
   ).optional(),
 });
 
@@ -178,7 +178,7 @@ const InputsSchema = z.object({
   createdBy: z.string().describe("The user who created the Rollout. Readonly.")
     .optional(),
   deleteServiceStrategy: z.object({}).describe(
-    "Strategy used to delete a service. This strategy is a placeholder only used by the system generated rollout to delete a service.",
+    "The strategy associated with a rollout to delete a `ManagedService`. Readonly.",
   ).optional(),
   rolloutId: z.string().describe(
     "Optional. Unique identifier of this Rollout. Must be no longer than 63 characters and only lower case letters, digits, '.', '_' and '-' are allowed. If not specified by client, the server will generate one. The generated id will have the form of, where \"date\" is the create date in ISO 8601 format. \"revision number\" is a monotonically increasing positive number that is reset every day for each service. An example of the generated rollout_id is '2016-02-16r1'",
@@ -202,7 +202,7 @@ const InputsSchema = z.object({
       "Maps service configuration IDs to their corresponding traffic percentage. Key is the service configuration ID, Value is the traffic percentage which must be greater than 0.0 and the sum must equal to 100.0.",
     ).optional(),
   }).describe(
-    'Strategy that specifies how clients of Google Service Controller want to send traffic to use different config versions. This is generally used by API proxy to split traffic based on your configured percentage for each config version. One example of how to gradually rollout a new service configuration using this strategy: Day 1 Rollout { id: "example.googleapis.com/rollout_20160206" traffic_percent_strategy { percentages: { "example.googleapis.com/20160201": 70.00 "example.googleapis.com/20160206": 30.00 } } } Day 2 Rollout { id: "example.googleapis.com/rollout_20160207" traffic_percent_strategy: { percentages: { "example.googleapis.com/20160206": 100.00 } } }',
+    "Google Service Control selects service configurations based on traffic percentage.",
   ).optional(),
 });
 
@@ -229,7 +229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Management Services.Rollouts. Registered at `@swamp/gcp/servicemanagement/services-rollouts`. */
 export const model = {
   type: "@swamp/gcp/servicemanagement/services-rollouts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -321,6 +321,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -364,12 +369,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "serviceName": String(g["serviceName"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

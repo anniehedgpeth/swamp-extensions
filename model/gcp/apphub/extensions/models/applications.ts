@@ -185,8 +185,7 @@ const GlobalArgsSchema = z.object({
         "MEDIUM",
         "LOW",
       ]).describe("Required. Criticality Type.").optional(),
-    }).describe("Criticality of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined criticality information.").optional(),
     developerOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -203,8 +202,7 @@ const GlobalArgsSchema = z.object({
         "TEST",
         "DEVELOPMENT",
       ]).describe("Required. Environment Type.").optional(),
-    }).describe("Environment of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined environment information.").optional(),
     operatorOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -213,7 +211,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
     })).describe("Optional. Operator team that ensures runtime and operations.")
       .optional(),
-  }).describe("Consumer provided attributes.").optional(),
+  }).describe("Optional. Consumer provided attributes.").optional(),
   description: z.string().describe(
     "Optional. User-defined description of an Application. Can have a maximum length of 2048 characters.",
   ).optional(),
@@ -227,7 +225,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "REGIONAL", "GLOBAL"]).describe(
       "Required. Scope Type.",
     ).optional(),
-  }).describe("Scope of an application.").optional(),
+  }).describe(
+    "Required. Immutable. Defines what data can be included into this Application. Limits which Services and Workloads can be registered.",
+  ).optional(),
   applicationId: z.string().describe(
     "Required. The Application identifier. Must contain only lowercase letters, numbers or hyphens, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
   ).optional(),
@@ -297,8 +297,7 @@ const InputsSchema = z.object({
         "MEDIUM",
         "LOW",
       ]).describe("Required. Criticality Type.").optional(),
-    }).describe("Criticality of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined criticality information.").optional(),
     developerOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -315,8 +314,7 @@ const InputsSchema = z.object({
         "TEST",
         "DEVELOPMENT",
       ]).describe("Required. Environment Type.").optional(),
-    }).describe("Environment of the Application, Service, or Workload")
-      .optional(),
+    }).describe("Optional. User-defined environment information.").optional(),
     operatorOwners: z.array(z.object({
       displayName: z.string().describe(
         "Optional. Contact's name. Can have a maximum length of 63 characters.",
@@ -325,7 +323,7 @@ const InputsSchema = z.object({
         .optional(),
     })).describe("Optional. Operator team that ensures runtime and operations.")
       .optional(),
-  }).describe("Consumer provided attributes.").optional(),
+  }).describe("Optional. Consumer provided attributes.").optional(),
   description: z.string().describe(
     "Optional. User-defined description of an Application. Can have a maximum length of 2048 characters.",
   ).optional(),
@@ -339,7 +337,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "REGIONAL", "GLOBAL"]).describe(
       "Required. Scope Type.",
     ).optional(),
-  }).describe("Scope of an application.").optional(),
+  }).describe(
+    "Required. Immutable. Defines what data can be included into this Application. Limits which Services and Workloads can be registered.",
+  ).optional(),
   applicationId: z.string().describe(
     "Required. The Application identifier. Must contain only lowercase letters, numbers or hyphens, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
   ).optional(),
@@ -374,7 +374,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Hub Applications. Registered at `@swamp/gcp/apphub/applications`. */
 export const model = {
   type: "@swamp/gcp/apphub/applications",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -478,6 +478,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -650,7 +655,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["scope"] !== undefined) body["scope"] = g["scope"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

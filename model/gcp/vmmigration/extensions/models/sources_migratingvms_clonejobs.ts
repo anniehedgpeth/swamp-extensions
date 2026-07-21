@@ -129,190 +129,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  computeEngineDisksTargetDetails: z.object({
-    disks: z.array(z.object({
-      diskUri: z.string().describe(
-        "Output only. The URI of the Persistent Disk.",
-      ).optional(),
-      sourceDiskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the source VM disk.",
-      ).optional(),
-    })).describe("The details of each created Persistent Disk.").optional(),
-    disksTargetDetails: z.object({}).describe(
-      "Details for a disks-only migration.",
-    ).optional(),
-    vmTargetDetails: z.object({
-      vmUri: z.string().describe(
-        "Output only. The URI of the Compute Engine VM.",
-      ).optional(),
-    }).describe("Details for the VM created VM as part of disks migration.")
-      .optional(),
-  }).describe(
-    "ComputeEngineDisksTargetDetails is a collection of created Persistent Disks details.",
-  ).optional(),
-  computeEngineTargetDetails: z.object({
-    adaptationModifiers: z.array(z.object({
-      modifier: z.string().describe("Optional. The modifier name.").optional(),
-      value: z.string().describe(
-        "Optional. The value of the modifier. The actual value depends on the modifier and can also be empty.",
-      ).optional(),
-    })).describe(
-      "Optional. Modifiers to be used as configuration of the OS adaptation process.",
-    ).optional(),
-    additionalLicenses: z.array(z.string()).describe(
-      "Additional licenses to assign to the VM.",
-    ).optional(),
-    appliedLicense: z.object({
-      osLicense: z.string().describe(
-        "The OS license returned from the adaptation module's report.",
-      ).optional(),
-      type: z.enum(["TYPE_UNSPECIFIED", "NONE", "PAYG", "BYOL"]).describe(
-        "The license type that was used in OS adaptation.",
-      ).optional(),
-    }).describe(
-      "AppliedLicense holds the license data returned by adaptation module report.",
-    ).optional(),
-    bootConversion: z.enum([
-      "BOOT_CONVERSION_UNSPECIFIED",
-      "NONE",
-      "BIOS_TO_EFI",
-    ]).describe(
-      "Optional. By default the virtual machine will keep its existing boot option. Setting this property will trigger an internal process which will convert the virtual machine from using the existing boot option to another.",
-    ).optional(),
-    bootOption: z.enum([
-      "COMPUTE_ENGINE_BOOT_OPTION_UNSPECIFIED",
-      "COMPUTE_ENGINE_BOOT_OPTION_EFI",
-      "COMPUTE_ENGINE_BOOT_OPTION_BIOS",
-    ]).describe("The VM Boot Option, as set in the source VM.").optional(),
-    computeScheduling: z.object({
-      minNodeCpus: z.number().int().describe(
-        "The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. Ignored if no node_affinites are configured.",
-      ).optional(),
-      nodeAffinities: z.array(z.object({
-        key: z.string().describe("The label key of Node resource to reference.")
-          .optional(),
-        operator: z.enum(["OPERATOR_UNSPECIFIED", "IN", "NOT_IN"]).describe(
-          "The operator to use for the node resources specified in the `values` parameter.",
-        ).optional(),
-        values: z.array(z.unknown()).describe(
-          "Corresponds to the label values of Node resource.",
-        ).optional(),
-      })).describe(
-        "A set of node affinity and anti-affinity configurations for sole tenant nodes.",
-      ).optional(),
-      onHostMaintenance: z.enum([
-        "ON_HOST_MAINTENANCE_UNSPECIFIED",
-        "TERMINATE",
-        "MIGRATE",
-      ]).describe(
-        "How the instance should behave when the host machine undergoes maintenance that may temporarily impact instance performance.",
-      ).optional(),
-      restartType: z.enum([
-        "RESTART_TYPE_UNSPECIFIED",
-        "AUTOMATIC_RESTART",
-        "NO_AUTOMATIC_RESTART",
-      ]).describe(
-        "Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to `automaticRestart` field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart.",
-      ).optional(),
-    }).describe(
-      "Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.",
-    ).optional(),
-    diskReplicaZones: z.array(z.string()).describe(
-      "Optional. Additional replica zones of the target regional disks. If this list is not empty a regional disk will be created. The first supported zone would be the one stated in the zone field. The rest are taken from this list. Please refer to the [regional disk creation API](https://cloud.google.com/compute/docs/regions-zones/global-regional-zonal-resources) for further details about regional vs zonal disks. If not specified, a zonal disk will be created in the same zone the VM is created.",
-    ).optional(),
-    diskType: z.enum([
-      "COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED",
-      "COMPUTE_ENGINE_DISK_TYPE_STANDARD",
-      "COMPUTE_ENGINE_DISK_TYPE_SSD",
-      "COMPUTE_ENGINE_DISK_TYPE_BALANCED",
-      "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED",
-      "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY",
-    ]).describe("The disk type to use in the VM.").optional(),
-    enableIntegrityMonitoring: z.boolean().describe(
-      "Optional. Defines whether the instance has integrity monitoring enabled.",
-    ).optional(),
-    enableVtpm: z.boolean().describe(
-      "Optional. Defines whether the instance has vTPM enabled.",
-    ).optional(),
-    encryption: z.object({
-      kmsKey: z.string().describe(
-        "Required. The name of the encryption key that is stored in Google Cloud KMS.",
-      ).optional(),
-    }).describe(
-      "Encryption message describes the details of the applied encryption.",
-    ).optional(),
-    hostname: z.string().describe("The hostname to assign to the VM.")
-      .optional(),
-    labels: z.record(z.string(), z.string()).describe(
-      "A map of labels to associate with the VM.",
-    ).optional(),
-    licenseType: z.enum([
-      "COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT",
-      "COMPUTE_ENGINE_LICENSE_TYPE_PAYG",
-      "COMPUTE_ENGINE_LICENSE_TYPE_BYOL",
-    ]).describe("The license type to use in OS adaptation.").optional(),
-    machineType: z.string().describe("The machine type to create the VM with.")
-      .optional(),
-    machineTypeSeries: z.string().describe(
-      "The machine type series to create the VM with.",
-    ).optional(),
-    metadata: z.record(z.string(), z.string()).describe(
-      "The metadata key/value pairs to assign to the VM.",
-    ).optional(),
-    networkInterfaces: z.array(z.object({
-      externalIp: z.string().describe(
-        "Optional. The external IP to define in the NIC.",
-      ).optional(),
-      internalIp: z.string().describe(
-        "Optional. The internal IP to define in the NIC. The formats accepted are: `ephemeral` \\ ipv4 address \\ a named address resource full path.",
-      ).optional(),
-      network: z.string().describe(
-        "Optional. The network to connect the NIC to.",
-      ).optional(),
-      networkTier: z.enum([
-        "COMPUTE_ENGINE_NETWORK_TIER_UNSPECIFIED",
-        "NETWORK_TIER_STANDARD",
-        "NETWORK_TIER_PREMIUM",
-      ]).describe(
-        "Optional. The networking tier used for optimizing connectivity between instances and systems on the internet. Applies only for external ephemeral IP addresses. If left empty, will default to PREMIUM.",
-      ).optional(),
-      subnetwork: z.string().describe(
-        "Optional. The subnetwork to connect the NIC to.",
-      ).optional(),
-    })).describe("List of NICs connected to this VM.").optional(),
-    networkTags: z.array(z.string()).describe(
-      "A list of network tags to associate with the VM.",
-    ).optional(),
-    project: z.string().describe(
-      "The Google Cloud target project ID or project name.",
-    ).optional(),
-    secureBoot: z.boolean().describe(
-      "Defines whether the instance has Secure Boot enabled. This can be set to true only if the VM boot option is EFI.",
-    ).optional(),
-    serviceAccount: z.string().describe(
-      "The service account to associate the VM with.",
-    ).optional(),
-    storagePool: z.string().describe(
-      'Optional. The storage pool used for the VM disks. If specified this will be the storage pool in which the disk is created. This is the full path of the storage pool resource, for example: "projects/my-project/zones/us-central1-a/storagePools/my-storage-pool". The storage pool must be in the same project and zone as the target disks. The storage pool\'s type must match the disk type.',
-    ).optional(),
-    vmName: z.string().describe("The name of the VM to create.").optional(),
-    zone: z.string().describe("The zone in which to create the VM.").optional(),
-  }).describe(
-    "ComputeEngineTargetDetails is a collection of details for creating a VM in a target Compute Engine project.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   cloneJobId: z.string().describe("Required. The clone job identifier.")
     .optional(),
   requestId: z.string().describe(
@@ -414,190 +230,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  computeEngineDisksTargetDetails: z.object({
-    disks: z.array(z.object({
-      diskUri: z.string().describe(
-        "Output only. The URI of the Persistent Disk.",
-      ).optional(),
-      sourceDiskNumber: z.number().int().describe(
-        "Output only. The ordinal number of the source VM disk.",
-      ).optional(),
-    })).describe("The details of each created Persistent Disk.").optional(),
-    disksTargetDetails: z.object({}).describe(
-      "Details for a disks-only migration.",
-    ).optional(),
-    vmTargetDetails: z.object({
-      vmUri: z.string().describe(
-        "Output only. The URI of the Compute Engine VM.",
-      ).optional(),
-    }).describe("Details for the VM created VM as part of disks migration.")
-      .optional(),
-  }).describe(
-    "ComputeEngineDisksTargetDetails is a collection of created Persistent Disks details.",
-  ).optional(),
-  computeEngineTargetDetails: z.object({
-    adaptationModifiers: z.array(z.object({
-      modifier: z.string().describe("Optional. The modifier name.").optional(),
-      value: z.string().describe(
-        "Optional. The value of the modifier. The actual value depends on the modifier and can also be empty.",
-      ).optional(),
-    })).describe(
-      "Optional. Modifiers to be used as configuration of the OS adaptation process.",
-    ).optional(),
-    additionalLicenses: z.array(z.string()).describe(
-      "Additional licenses to assign to the VM.",
-    ).optional(),
-    appliedLicense: z.object({
-      osLicense: z.string().describe(
-        "The OS license returned from the adaptation module's report.",
-      ).optional(),
-      type: z.enum(["TYPE_UNSPECIFIED", "NONE", "PAYG", "BYOL"]).describe(
-        "The license type that was used in OS adaptation.",
-      ).optional(),
-    }).describe(
-      "AppliedLicense holds the license data returned by adaptation module report.",
-    ).optional(),
-    bootConversion: z.enum([
-      "BOOT_CONVERSION_UNSPECIFIED",
-      "NONE",
-      "BIOS_TO_EFI",
-    ]).describe(
-      "Optional. By default the virtual machine will keep its existing boot option. Setting this property will trigger an internal process which will convert the virtual machine from using the existing boot option to another.",
-    ).optional(),
-    bootOption: z.enum([
-      "COMPUTE_ENGINE_BOOT_OPTION_UNSPECIFIED",
-      "COMPUTE_ENGINE_BOOT_OPTION_EFI",
-      "COMPUTE_ENGINE_BOOT_OPTION_BIOS",
-    ]).describe("The VM Boot Option, as set in the source VM.").optional(),
-    computeScheduling: z.object({
-      minNodeCpus: z.number().int().describe(
-        "The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. Ignored if no node_affinites are configured.",
-      ).optional(),
-      nodeAffinities: z.array(z.object({
-        key: z.string().describe("The label key of Node resource to reference.")
-          .optional(),
-        operator: z.enum(["OPERATOR_UNSPECIFIED", "IN", "NOT_IN"]).describe(
-          "The operator to use for the node resources specified in the `values` parameter.",
-        ).optional(),
-        values: z.array(z.unknown()).describe(
-          "Corresponds to the label values of Node resource.",
-        ).optional(),
-      })).describe(
-        "A set of node affinity and anti-affinity configurations for sole tenant nodes.",
-      ).optional(),
-      onHostMaintenance: z.enum([
-        "ON_HOST_MAINTENANCE_UNSPECIFIED",
-        "TERMINATE",
-        "MIGRATE",
-      ]).describe(
-        "How the instance should behave when the host machine undergoes maintenance that may temporarily impact instance performance.",
-      ).optional(),
-      restartType: z.enum([
-        "RESTART_TYPE_UNSPECIFIED",
-        "AUTOMATIC_RESTART",
-        "NO_AUTOMATIC_RESTART",
-      ]).describe(
-        "Whether the Instance should be automatically restarted whenever it is terminated by Compute Engine (not terminated by user). This configuration is identical to `automaticRestart` field in Compute Engine create instance under scheduling. It was changed to an enum (instead of a boolean) to match the default value in Compute Engine which is automatic restart.",
-      ).optional(),
-    }).describe(
-      "Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.",
-    ).optional(),
-    diskReplicaZones: z.array(z.string()).describe(
-      "Optional. Additional replica zones of the target regional disks. If this list is not empty a regional disk will be created. The first supported zone would be the one stated in the zone field. The rest are taken from this list. Please refer to the [regional disk creation API](https://cloud.google.com/compute/docs/regions-zones/global-regional-zonal-resources) for further details about regional vs zonal disks. If not specified, a zonal disk will be created in the same zone the VM is created.",
-    ).optional(),
-    diskType: z.enum([
-      "COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED",
-      "COMPUTE_ENGINE_DISK_TYPE_STANDARD",
-      "COMPUTE_ENGINE_DISK_TYPE_SSD",
-      "COMPUTE_ENGINE_DISK_TYPE_BALANCED",
-      "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED",
-      "COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY",
-    ]).describe("The disk type to use in the VM.").optional(),
-    enableIntegrityMonitoring: z.boolean().describe(
-      "Optional. Defines whether the instance has integrity monitoring enabled.",
-    ).optional(),
-    enableVtpm: z.boolean().describe(
-      "Optional. Defines whether the instance has vTPM enabled.",
-    ).optional(),
-    encryption: z.object({
-      kmsKey: z.string().describe(
-        "Required. The name of the encryption key that is stored in Google Cloud KMS.",
-      ).optional(),
-    }).describe(
-      "Encryption message describes the details of the applied encryption.",
-    ).optional(),
-    hostname: z.string().describe("The hostname to assign to the VM.")
-      .optional(),
-    labels: z.record(z.string(), z.string()).describe(
-      "A map of labels to associate with the VM.",
-    ).optional(),
-    licenseType: z.enum([
-      "COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT",
-      "COMPUTE_ENGINE_LICENSE_TYPE_PAYG",
-      "COMPUTE_ENGINE_LICENSE_TYPE_BYOL",
-    ]).describe("The license type to use in OS adaptation.").optional(),
-    machineType: z.string().describe("The machine type to create the VM with.")
-      .optional(),
-    machineTypeSeries: z.string().describe(
-      "The machine type series to create the VM with.",
-    ).optional(),
-    metadata: z.record(z.string(), z.string()).describe(
-      "The metadata key/value pairs to assign to the VM.",
-    ).optional(),
-    networkInterfaces: z.array(z.object({
-      externalIp: z.string().describe(
-        "Optional. The external IP to define in the NIC.",
-      ).optional(),
-      internalIp: z.string().describe(
-        "Optional. The internal IP to define in the NIC. The formats accepted are: `ephemeral` \\ ipv4 address \\ a named address resource full path.",
-      ).optional(),
-      network: z.string().describe(
-        "Optional. The network to connect the NIC to.",
-      ).optional(),
-      networkTier: z.enum([
-        "COMPUTE_ENGINE_NETWORK_TIER_UNSPECIFIED",
-        "NETWORK_TIER_STANDARD",
-        "NETWORK_TIER_PREMIUM",
-      ]).describe(
-        "Optional. The networking tier used for optimizing connectivity between instances and systems on the internet. Applies only for external ephemeral IP addresses. If left empty, will default to PREMIUM.",
-      ).optional(),
-      subnetwork: z.string().describe(
-        "Optional. The subnetwork to connect the NIC to.",
-      ).optional(),
-    })).describe("List of NICs connected to this VM.").optional(),
-    networkTags: z.array(z.string()).describe(
-      "A list of network tags to associate with the VM.",
-    ).optional(),
-    project: z.string().describe(
-      "The Google Cloud target project ID or project name.",
-    ).optional(),
-    secureBoot: z.boolean().describe(
-      "Defines whether the instance has Secure Boot enabled. This can be set to true only if the VM boot option is EFI.",
-    ).optional(),
-    serviceAccount: z.string().describe(
-      "The service account to associate the VM with.",
-    ).optional(),
-    storagePool: z.string().describe(
-      'Optional. The storage pool used for the VM disks. If specified this will be the storage pool in which the disk is created. This is the full path of the storage pool resource, for example: "projects/my-project/zones/us-central1-a/storagePools/my-storage-pool". The storage pool must be in the same project and zone as the target disks. The storage pool\'s type must match the disk type.',
-    ).optional(),
-    vmName: z.string().describe("The name of the VM to create.").optional(),
-    zone: z.string().describe("The zone in which to create the VM.").optional(),
-  }).describe(
-    "ComputeEngineTargetDetails is a collection of details for creating a VM in a target Compute Engine project.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   cloneJobId: z.string().describe("Required. The clone job identifier.")
     .optional(),
   requestId: z.string().describe(
@@ -634,7 +266,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud VM Migration Sources.MigratingVms.CloneJobs. Registered at `@swamp/gcp/vmmigration/sources-migratingvms-clonejobs`. */
 export const model = {
   type: "@swamp/gcp/vmmigration/sources-migratingvms-clonejobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -751,6 +383,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: computeEngineDisksTargetDetails, computeEngineTargetDetails, error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          computeEngineDisksTargetDetails: _computeEngineDisksTargetDetails,
+          computeEngineTargetDetails: _computeEngineTargetDetails,
+          error: _error,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -778,14 +424,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["computeEngineDisksTargetDetails"] !== undefined) {
-          body["computeEngineDisksTargetDetails"] =
-            g["computeEngineDisksTargetDetails"];
-        }
-        if (g["computeEngineTargetDetails"] !== undefined) {
-          body["computeEngineTargetDetails"] = g["computeEngineTargetDetails"];
-        }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["cloneJobId"] !== undefined) {
           params["cloneJobId"] = String(g["cloneJobId"]);
         }
@@ -811,14 +449,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

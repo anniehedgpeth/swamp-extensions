@@ -179,23 +179,6 @@ const GlobalArgsSchema = z.object({
   artifactsGcsBucket: z.string().describe(
     "User-defined location of Cloud Build logs and artifacts in Google Cloud Storage. Format: `gs://{bucket}/{folder}` A default bucket will be bootstrapped if the field is not set or empty. Default bucket format: `gs://--blueprint-config` Constraints: - The bucket needs to be in the same project as the deployment - The path cannot be within the path of `gcs_source` - The field cannot be updated, including changing its presence",
   ).optional(),
-  deleteResults: z.object({
-    artifacts: z.string().describe(
-      "Location of artifacts (e.g. logs) in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-    content: z.string().describe(
-      "Location of a blueprint copy and other manifests in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-    outputs: z.record(
-      z.string(),
-      z.object({
-        sensitive: z.boolean().describe(
-          "Identifies whether Terraform has set this output as a potential sensitive value.",
-        ).optional(),
-        value: z.string().describe("Value of output.").optional(),
-      }),
-    ).describe("Map of output name to output info.").optional(),
-  }).describe("Outputs and artifacts from applying a deployment.").optional(),
   importExistingResources: z.boolean().describe(
     "By default, Infra Manager will return a failure when Terraform encounters a 409 code (resource conflict error) during actuation. If this flag is set to true, Infra Manager will instead attempt to automatically import the resource into the Terraform state (for supported resource types) and continue actuation. Not all resource types are supported, refer to documentation.",
   ).optional(),
@@ -210,7 +193,7 @@ const GlobalArgsSchema = z.object({
       .describe(
         "Optional. ProviderSource specifies the source type of the provider.",
       ).optional(),
-  }).describe("ProviderConfig contains the provider configurations.")
+  }).describe("Optional. This field specifies the provider configurations.")
     .optional(),
   quotaValidation: z.enum([
     "QUOTA_VALIDATION_UNSPECIFIED",
@@ -233,8 +216,7 @@ const GlobalArgsSchema = z.object({
           outputName: z.string().describe(
             "Required. The name of the output variable in the source deployment's latest successfully applied revision.",
           ).optional(),
-        }).describe("Configuration for a value sourced from a Deployment.")
-          .optional(),
+        }).describe("A source from a Deployment.").optional(),
       }),
     ).describe(
       "Optional. Map of input variable names in this blueprint to configurations for importing values from external sources.",
@@ -251,7 +233,7 @@ const GlobalArgsSchema = z.object({
       repo: z.string().describe(
         "Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
       ).optional(),
-    }).describe("A set of files in a Git repository.").optional(),
+    }).describe("URI of a public Git repo.").optional(),
     inputValues: z.record(
       z.string(),
       z.object({
@@ -261,7 +243,7 @@ const GlobalArgsSchema = z.object({
     ).describe("Optional. Input variable values for the Terraform blueprint.")
       .optional(),
   }).describe(
-    "TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.",
+    "A blueprint described using Terraform's HashiCorp Configuration Language as a root module.",
   ).optional(),
   tfVersionConstraint: z.string().describe(
     'The user-specified Terraform version constraint. Example: "=1.3.10".',
@@ -342,23 +324,6 @@ const InputsSchema = z.object({
   artifactsGcsBucket: z.string().describe(
     "User-defined location of Cloud Build logs and artifacts in Google Cloud Storage. Format: `gs://{bucket}/{folder}` A default bucket will be bootstrapped if the field is not set or empty. Default bucket format: `gs://--blueprint-config` Constraints: - The bucket needs to be in the same project as the deployment - The path cannot be within the path of `gcs_source` - The field cannot be updated, including changing its presence",
   ).optional(),
-  deleteResults: z.object({
-    artifacts: z.string().describe(
-      "Location of artifacts (e.g. logs) in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-    content: z.string().describe(
-      "Location of a blueprint copy and other manifests in Google Cloud Storage. Format: `gs://{bucket}/{object}`",
-    ).optional(),
-    outputs: z.record(
-      z.string(),
-      z.object({
-        sensitive: z.boolean().describe(
-          "Identifies whether Terraform has set this output as a potential sensitive value.",
-        ).optional(),
-        value: z.string().describe("Value of output.").optional(),
-      }),
-    ).describe("Map of output name to output info.").optional(),
-  }).describe("Outputs and artifacts from applying a deployment.").optional(),
   importExistingResources: z.boolean().describe(
     "By default, Infra Manager will return a failure when Terraform encounters a 409 code (resource conflict error) during actuation. If this flag is set to true, Infra Manager will instead attempt to automatically import the resource into the Terraform state (for supported resource types) and continue actuation. Not all resource types are supported, refer to documentation.",
   ).optional(),
@@ -373,7 +338,7 @@ const InputsSchema = z.object({
       .describe(
         "Optional. ProviderSource specifies the source type of the provider.",
       ).optional(),
-  }).describe("ProviderConfig contains the provider configurations.")
+  }).describe("Optional. This field specifies the provider configurations.")
     .optional(),
   quotaValidation: z.enum([
     "QUOTA_VALIDATION_UNSPECIFIED",
@@ -396,8 +361,7 @@ const InputsSchema = z.object({
           outputName: z.string().describe(
             "Required. The name of the output variable in the source deployment's latest successfully applied revision.",
           ).optional(),
-        }).describe("Configuration for a value sourced from a Deployment.")
-          .optional(),
+        }).describe("A source from a Deployment.").optional(),
       }),
     ).describe(
       "Optional. Map of input variable names in this blueprint to configurations for importing values from external sources.",
@@ -414,7 +378,7 @@ const InputsSchema = z.object({
       repo: z.string().describe(
         "Repository URL. Example: 'https://github.com/kubernetes/examples.git'",
       ).optional(),
-    }).describe("A set of files in a Git repository.").optional(),
+    }).describe("URI of a public Git repo.").optional(),
     inputValues: z.record(
       z.string(),
       z.object({
@@ -424,7 +388,7 @@ const InputsSchema = z.object({
     ).describe("Optional. Input variable values for the Terraform blueprint.")
       .optional(),
   }).describe(
-    "TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.",
+    "A blueprint described using Terraform's HashiCorp Configuration Language as a root module.",
   ).optional(),
   tfVersionConstraint: z.string().describe(
     'The user-specified Terraform version constraint. Example: "=1.3.10".',
@@ -464,7 +428,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Infrastructure Manager Deployments. Registered at `@swamp/gcp/config/deployments`. */
 export const model = {
   type: "@swamp/gcp/config/deployments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -591,6 +555,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: deleteResults",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { deleteResults: _deleteResults, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -625,9 +597,6 @@ export const model = {
         }
         if (g["artifactsGcsBucket"] !== undefined) {
           body["artifactsGcsBucket"] = g["artifactsGcsBucket"];
-        }
-        if (g["deleteResults"] !== undefined) {
-          body["deleteResults"] = g["deleteResults"];
         }
         if (g["importExistingResources"] !== undefined) {
           body["importExistingResources"] = g["importExistingResources"];
@@ -776,9 +745,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["annotations"] !== undefined) {
           body["annotations"] = g["annotations"];
-        }
-        if (g["deleteResults"] !== undefined) {
-          body["deleteResults"] = g["deleteResults"];
         }
         if (g["importExistingResources"] !== undefined) {
           body["importExistingResources"] = g["importExistingResources"];

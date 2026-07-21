@@ -235,9 +235,8 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. The Cloud KMS key name to encrypt backups in this backup vault. Must be in the same region as the vault. Some workload backups like compute disk backups may use their inherited source key instead. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}",
     ).optional(),
-  }).describe(
-    "Message describing the EncryptionConfig of backup vault. This determines how data within the vault is encrypted at rest.",
-  ).optional(),
+  }).describe("Optional. The encryption config of the backup vault.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Resource labels to represent user provided metadata. No labels currently defined:",
   ).optional(),
@@ -315,9 +314,8 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. The Cloud KMS key name to encrypt backups in this backup vault. Must be in the same region as the vault. Some workload backups like compute disk backups may use their inherited source key instead. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}",
     ).optional(),
-  }).describe(
-    "Message describing the EncryptionConfig of backup vault. This determines how data within the vault is encrypted at rest.",
-  ).optional(),
+  }).describe("Optional. The encryption config of the backup vault.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Resource labels to represent user provided metadata. No labels currently defined:",
   ).optional(),
@@ -355,7 +353,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupVaults. Registered at `@swamp/gcp/backupdr/backupvaults`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupvaults",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -462,6 +460,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -538,16 +541,7 @@ export const model = {
               "failedValues": ["ERROR"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

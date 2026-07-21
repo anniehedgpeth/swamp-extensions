@@ -168,12 +168,9 @@ const GlobalArgsSchema = z.object({
       enabled: z.boolean().describe(
         "Whether to enable controle plane node auto resizing.",
       ).optional(),
-    }).describe(
-      "Represents auto resizing configurations for the VMware user cluster.",
-    ).optional(),
-  }).describe(
-    "VmwareAdminAddonNodeConfig contains add-on node configurations for VMware admin cluster.",
-  ).optional(),
+    }).describe("VmwareAutoResizeConfig config specifies auto resize config.")
+      .optional(),
+  }).describe("The VMware admin cluster addon node configuration.").optional(),
   annotations: z.record(z.string(), z.string()).describe(
     "Annotations on the VMware admin cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.",
   ).optional(),
@@ -181,9 +178,8 @@ const GlobalArgsSchema = z.object({
     aagConfigDisabled: z.boolean().describe(
       "Spread nodes across at least three physical hosts (requires at least three hosts). Enabled by default.",
     ).optional(),
-  }).describe(
-    "Specifies anti affinity group config for the VMware user cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster anti affinity group configuration.")
+    .optional(),
   authorization: z.object({
     viewerUsers: z.array(z.object({
       username: z.string().describe(
@@ -192,14 +188,11 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "For VMware admin clusters, users will be granted the cluster-viewer role on the cluster.",
     ).optional(),
-  }).describe(
-    "VmwareAdminAuthorizationConfig represents configuration for admin cluster authorization.",
-  ).optional(),
+  }).describe("The VMware admin cluster authorization configuration.")
+    .optional(),
   autoRepairConfig: z.object({
     enabled: z.boolean().describe("Whether auto repair is enabled.").optional(),
-  }).describe(
-    "Specifies config to enable/disable auto repair. The cluster-health-controller is deployed only if Enabled is true.",
-  ).optional(),
+  }).describe("The VMware admin cluster auto repair configuration.").optional(),
   bootstrapClusterMembership: z.string().describe(
     "The bootstrap cluster this VMware admin cluster belongs to.",
   ).optional(),
@@ -213,21 +206,13 @@ const GlobalArgsSchema = z.object({
     replicas: z.string().describe(
       "The number of control plane nodes for this VMware admin cluster. (default: 1 replica).",
     ).optional(),
-  }).describe(
-    "VmwareAdminControlPlaneNodeConfig contains control plane node configuration for VMware admin cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster control plane node configuration.")
+    .optional(),
   description: z.string().describe(
     "A human readable description of this VMware admin cluster.",
   ).optional(),
   enableAdvancedCluster: z.boolean().describe("Enable advanced cluster.")
     .optional(),
-  fleet: z.object({
-    membership: z.string().describe(
-      "Output only. The name of the managed fleet Membership resource associated to this cluster. Membership names are formatted as `projects//locations//memberships/`.",
-    ).optional(),
-  }).describe(
-    "Fleet related configuration. Fleets are a Google Cloud concept for logically organizing clusters, letting you use and manage multi-cluster capabilities and apply consistent policies across your systems. See [Anthos Fleets](`https://cloud.google.com/anthos/multicluster-management/fleets`) for more details on Anthos multi-cluster capabilities using Fleets. ##",
-  ).optional(),
   imageType: z.string().describe(
     "The OS image type for the VMware admin cluster.",
   ).optional(),
@@ -241,9 +226,7 @@ const GlobalArgsSchema = z.object({
       snatPool: z.string().describe(
         "The pool name. Only necessary, if using SNAT.",
       ).optional(),
-    }).describe(
-      "VmwareAdminF5BigIpConfig represents configuration parameters for an F5 BIG-IP load balancer.",
-    ).optional(),
+    }).describe("Configuration for F5 Big IP typed load balancers.").optional(),
     manualLbConfig: z.object({
       addonsNodePort: z.number().int().describe(
         "NodePort for add-ons server in the admin cluster.",
@@ -260,12 +243,10 @@ const GlobalArgsSchema = z.object({
       konnectivityServerNodePort: z.number().int().describe(
         "NodePort for konnectivity server service running as a sidecar in each kube-apiserver pod (ex. 30564).",
       ).optional(),
-    }).optional(),
+    }).describe("Manually configured load balancers.").optional(),
     metalLbConfig: z.object({
       enabled: z.boolean().describe("Whether MetalLB is enabled.").optional(),
-    }).describe(
-      "VmwareAdminMetalLbConfig represents configuration parameters for a MetalLB load balancer. For admin clusters, currently no configurations is needed.",
-    ).optional(),
+    }).describe("MetalLB load balancers.").optional(),
     seesawConfig: z.object({
       enableHa: z.boolean().describe(
         "Enable two load balancer VMs to achieve a highly-available Seesaw load balancer.",
@@ -293,9 +274,8 @@ const GlobalArgsSchema = z.object({
       vms: z.array(z.string()).describe(
         "Names of the VMs created for this Seesaw group.",
       ).optional(),
-    }).describe(
-      "VmwareSeesawConfig represents configuration parameters for an already existing Seesaw load balancer. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update Seesaw configurations it can only bind a pre-existing configuration to a new user cluster. IMPORTANT: When attempting to create a user cluster with a pre-existing Seesaw load balancer you will need to follow some preparation steps before calling the 'CreateVmwareCluster' API method. First you will need to create the user cluster's namespace via kubectl. The namespace will need to use the following naming convention: -gke-onprem-mgmt or -gke-onprem-mgmt depending on whether you used the 'VmwareCluster.local_name' to disambiguate collisions; for more context see the documentation of 'VmwareCluster.local_name'. Once the namespace is created you will need to create a secret resource via kubectl. This secret will contain copies of your Seesaw credentials. The Secret must be called 'user-cluster-creds' and contain Seesaw's SSH and Cert credentials. The credentials must be keyed with the following names: 'seesaw-ssh-private-key', 'seesaw-ssh-public-key', 'seesaw-ssh-ca-key', 'seesaw-ssh-ca-cert'.",
-    ).optional(),
+    }).describe("Output only. Configuration for Seesaw typed load balancers.")
+      .optional(),
     vipConfig: z.object({
       addonsVip: z.string().describe(
         "The VIP to configure the load balancer for add-ons.",
@@ -303,11 +283,9 @@ const GlobalArgsSchema = z.object({
       controlPlaneVip: z.string().describe(
         "The VIP which you previously set aside for the Kubernetes API of the admin cluster.",
       ).optional(),
-    }).describe("VmwareAdminVipConfig for VMware load balancer configurations.")
-      .optional(),
-  }).describe(
-    "VmwareAdminLoadBalancerConfig contains load balancer configuration for VMware admin cluster.",
-  ).optional(),
+    }).describe("The VIPs used by the load balancer.").optional(),
+  }).describe("The VMware admin cluster load balancer configuration.")
+    .optional(),
   name: z.string().describe(
     "Immutable. The VMware admin cluster resource name.",
   ).optional(),
@@ -316,9 +294,8 @@ const GlobalArgsSchema = z.object({
       enabled: z.boolean().describe(
         "enabled is a flag to mark if DHCP IP allocation is used for VMware user clusters.",
       ).optional(),
-    }).describe(
-      "Represents the network configuration required for the VMware user clusters with DHCP IP configurations.",
-    ).optional(),
+    }).describe("Configuration settings for a DHCP IP configuration.")
+      .optional(),
     haControlPlaneConfig: z.object({
       controlPlaneIpBlock: z.object({
         gateway: z.string().describe(
@@ -337,16 +314,16 @@ const GlobalArgsSchema = z.object({
         netmask: z.string().describe(
           "The netmask used by the VMware user cluster.",
         ).optional(),
-      }).describe("Represents a collection of IP addresses to assign to nodes.")
+      }).describe("Static IP addresses for the admin control plane nodes.")
         .optional(),
-    }).describe("Specifies HA admin control plane config.").optional(),
+    }).describe("Configuration for HA admin cluster control plane.").optional(),
     hostConfig: z.object({
       dnsSearchDomains: z.array(z.string()).describe("DNS search domains.")
         .optional(),
       dnsServers: z.array(z.string()).describe("DNS servers.").optional(),
       ntpServers: z.array(z.string()).describe("NTP servers.").optional(),
     }).describe(
-      "Represents the common parameters for all the hosts irrespective of their IP address.",
+      "Represents common network settings irrespective of the host's IP address.",
     ).optional(),
     podAddressCidrBlocks: z.array(z.string()).describe(
       "Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. Only a single range is supported. This field cannot be changed after creation.",
@@ -368,15 +345,12 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Represents the configuration values for static IP allocation to nodes.",
       ).optional(),
-    }).describe(
-      "Represents the network configuration required for the VMware user clusters with Static IP configurations.",
-    ).optional(),
+    }).describe("Configuration settings for a static IP configuration.")
+      .optional(),
     vcenterNetwork: z.string().describe(
       "vcenter_network specifies vCenter network name.",
     ).optional(),
-  }).describe(
-    "VmwareAdminNetworkConfig contains network configuration for VMware admin cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster network configuration.").optional(),
   onPremVersion: z.string().describe(
     "The Anthos clusters on the VMware version for the admin cluster.",
   ).optional(),
@@ -396,11 +370,9 @@ const GlobalArgsSchema = z.object({
             "Shows the mapping of a given version to the number of machines under this version.",
           ).optional(),
         }).describe(
-          "Versions describes the mapping of a given version to the number of machines under this version.",
+          "Shows the mapping of a given version to the number of machines under this version.",
         ).optional(),
-      }).describe(
-        "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-      ).optional(),
+      }).describe("Output only. Resource status for the bundle.").optional(),
       version: z.string().describe("The version of the bundle.").optional(),
     })).describe(
       "Output only. The list of bundles installed in the admin cluster.",
@@ -449,116 +421,22 @@ const GlobalArgsSchema = z.object({
           "Shows the mapping of a given version to the number of machines under this version.",
         ).optional(),
       }).describe(
-        "Versions describes the mapping of a given version to the number of machines under this version.",
+        "Shows the mapping of a given version to the number of machines under this version.",
       ).optional(),
-    }).describe(
-      "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-    ).optional(),
-  }).describe(
-    "VmwarePlatformConfig represents configuration for the VMware platform.",
-  ).optional(),
-  preparedSecrets: z.object({
-    enabled: z.boolean().describe("Whether prepared secrets is enabled.")
-      .optional(),
-  }).describe(
-    "VmwareAdminPreparedSecretsConfig represents configuration for admin cluster prepared secrets.",
-  ).optional(),
+    }).describe("Output only. Resource status for the platform.").optional(),
+  }).describe("The VMware platform configuration.").optional(),
   privateRegistryConfig: z.object({
     address: z.string().describe("The registry address.").optional(),
     caCert: z.string().describe(
       "When the container runtime pulls an image from private registry, the registry must prove its identity by presenting a certificate. The registry's certificate is signed by a certificate authority (CA). The container runtime uses the CA's certificate to validate the registry's certificate.",
     ).optional(),
-  }).describe(
-    "VmwareAdminPrivateRegistryConfig represents configuration for admin cluster registry.",
-  ).optional(),
+  }).describe("Configuration for registry.").optional(),
   proxy: z.object({
     noProxy: z.string().describe(
       "A comma-separated list of IP addresses, IP address ranges, host names, and domain names that should not go through the proxy server. When Google Distributed Cloud sends a request to one of these addresses, hosts, or domains, the request is sent directly.",
     ).optional(),
     url: z.string().describe("The HTTP address of proxy server.").optional(),
-  }).describe(
-    "VmwareAdminProxy represents configuration for admin cluster proxy.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-  ).optional(),
-  validationCheck: z.object({
-    option: z.enum([
-      "OPTIONS_UNSPECIFIED",
-      "SKIP_VALIDATION_CHECK_BLOCKING",
-      "SKIP_VALIDATION_ALL",
-    ]).describe("Options used for the validation check").optional(),
-    scenario: z.enum(["SCENARIO_UNSPECIFIED", "CREATE", "UPDATE"]).describe(
-      "Output only. The scenario when the preflight checks were run.",
-    ).optional(),
-    status: z.object({
-      result: z.array(z.object({
-        category: z.string().describe("The category of the validation.")
-          .optional(),
-        description: z.string().describe(
-          "The description of the validation check.",
-        ).optional(),
-        details: z.string().describe(
-          "Detailed failure information, which might be unformatted.",
-        ).optional(),
-        reason: z.string().describe(
-          "A human-readable message of the check failure.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNKNOWN",
-          "STATE_FAILURE",
-          "STATE_SKIPPED",
-          "STATE_FATAL",
-          "STATE_WARNING",
-        ]).describe("The validation check state.").optional(),
-      })).describe(
-        "Individual checks which failed as part of the Preflight check execution.",
-      ).optional(),
-    }).describe(
-      "ValidationCheckStatus defines the detailed validation check status.",
-    ).optional(),
-  }).describe("ValidationCheck represents the result of preflight check.")
-    .optional(),
+  }).describe("Configuration for proxy.").optional(),
   vcenter: z.object({
     address: z.string().describe("The vCenter IP address.").optional(),
     caCertData: z.string().describe(
@@ -585,9 +463,7 @@ const GlobalArgsSchema = z.object({
     storagePolicyName: z.string().describe(
       "The name of the vCenter storage policy for the user cluster.",
     ).optional(),
-  }).describe(
-    "VmwareAdminVCenterConfig contains VCenter configuration for VMware admin cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster VCenter configuration.").optional(),
   allowPreflightFailure: z.string().describe(
     'Optional. If set to true, CLM will force CCFE to persist the cluster resource in RMS when the creation fails during standalone preflight checks. In that case the subsequent create call will fail with "cluster already exists" error and hence a update cluster is required to fix the cluster.',
   ).optional(),
@@ -803,12 +679,9 @@ const InputsSchema = z.object({
       enabled: z.boolean().describe(
         "Whether to enable controle plane node auto resizing.",
       ).optional(),
-    }).describe(
-      "Represents auto resizing configurations for the VMware user cluster.",
-    ).optional(),
-  }).describe(
-    "VmwareAdminAddonNodeConfig contains add-on node configurations for VMware admin cluster.",
-  ).optional(),
+    }).describe("VmwareAutoResizeConfig config specifies auto resize config.")
+      .optional(),
+  }).describe("The VMware admin cluster addon node configuration.").optional(),
   annotations: z.record(z.string(), z.string()).describe(
     "Annotations on the VMware admin cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.",
   ).optional(),
@@ -816,9 +689,8 @@ const InputsSchema = z.object({
     aagConfigDisabled: z.boolean().describe(
       "Spread nodes across at least three physical hosts (requires at least three hosts). Enabled by default.",
     ).optional(),
-  }).describe(
-    "Specifies anti affinity group config for the VMware user cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster anti affinity group configuration.")
+    .optional(),
   authorization: z.object({
     viewerUsers: z.array(z.object({
       username: z.string().describe(
@@ -827,14 +699,11 @@ const InputsSchema = z.object({
     })).describe(
       "For VMware admin clusters, users will be granted the cluster-viewer role on the cluster.",
     ).optional(),
-  }).describe(
-    "VmwareAdminAuthorizationConfig represents configuration for admin cluster authorization.",
-  ).optional(),
+  }).describe("The VMware admin cluster authorization configuration.")
+    .optional(),
   autoRepairConfig: z.object({
     enabled: z.boolean().describe("Whether auto repair is enabled.").optional(),
-  }).describe(
-    "Specifies config to enable/disable auto repair. The cluster-health-controller is deployed only if Enabled is true.",
-  ).optional(),
+  }).describe("The VMware admin cluster auto repair configuration.").optional(),
   bootstrapClusterMembership: z.string().describe(
     "The bootstrap cluster this VMware admin cluster belongs to.",
   ).optional(),
@@ -848,21 +717,13 @@ const InputsSchema = z.object({
     replicas: z.string().describe(
       "The number of control plane nodes for this VMware admin cluster. (default: 1 replica).",
     ).optional(),
-  }).describe(
-    "VmwareAdminControlPlaneNodeConfig contains control plane node configuration for VMware admin cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster control plane node configuration.")
+    .optional(),
   description: z.string().describe(
     "A human readable description of this VMware admin cluster.",
   ).optional(),
   enableAdvancedCluster: z.boolean().describe("Enable advanced cluster.")
     .optional(),
-  fleet: z.object({
-    membership: z.string().describe(
-      "Output only. The name of the managed fleet Membership resource associated to this cluster. Membership names are formatted as `projects//locations//memberships/`.",
-    ).optional(),
-  }).describe(
-    "Fleet related configuration. Fleets are a Google Cloud concept for logically organizing clusters, letting you use and manage multi-cluster capabilities and apply consistent policies across your systems. See [Anthos Fleets](`https://cloud.google.com/anthos/multicluster-management/fleets`) for more details on Anthos multi-cluster capabilities using Fleets. ##",
-  ).optional(),
   imageType: z.string().describe(
     "The OS image type for the VMware admin cluster.",
   ).optional(),
@@ -876,9 +737,7 @@ const InputsSchema = z.object({
       snatPool: z.string().describe(
         "The pool name. Only necessary, if using SNAT.",
       ).optional(),
-    }).describe(
-      "VmwareAdminF5BigIpConfig represents configuration parameters for an F5 BIG-IP load balancer.",
-    ).optional(),
+    }).describe("Configuration for F5 Big IP typed load balancers.").optional(),
     manualLbConfig: z.object({
       addonsNodePort: z.number().int().describe(
         "NodePort for add-ons server in the admin cluster.",
@@ -895,12 +754,10 @@ const InputsSchema = z.object({
       konnectivityServerNodePort: z.number().int().describe(
         "NodePort for konnectivity server service running as a sidecar in each kube-apiserver pod (ex. 30564).",
       ).optional(),
-    }).optional(),
+    }).describe("Manually configured load balancers.").optional(),
     metalLbConfig: z.object({
       enabled: z.boolean().describe("Whether MetalLB is enabled.").optional(),
-    }).describe(
-      "VmwareAdminMetalLbConfig represents configuration parameters for a MetalLB load balancer. For admin clusters, currently no configurations is needed.",
-    ).optional(),
+    }).describe("MetalLB load balancers.").optional(),
     seesawConfig: z.object({
       enableHa: z.boolean().describe(
         "Enable two load balancer VMs to achieve a highly-available Seesaw load balancer.",
@@ -928,9 +785,8 @@ const InputsSchema = z.object({
       vms: z.array(z.string()).describe(
         "Names of the VMs created for this Seesaw group.",
       ).optional(),
-    }).describe(
-      "VmwareSeesawConfig represents configuration parameters for an already existing Seesaw load balancer. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update Seesaw configurations it can only bind a pre-existing configuration to a new user cluster. IMPORTANT: When attempting to create a user cluster with a pre-existing Seesaw load balancer you will need to follow some preparation steps before calling the 'CreateVmwareCluster' API method. First you will need to create the user cluster's namespace via kubectl. The namespace will need to use the following naming convention: -gke-onprem-mgmt or -gke-onprem-mgmt depending on whether you used the 'VmwareCluster.local_name' to disambiguate collisions; for more context see the documentation of 'VmwareCluster.local_name'. Once the namespace is created you will need to create a secret resource via kubectl. This secret will contain copies of your Seesaw credentials. The Secret must be called 'user-cluster-creds' and contain Seesaw's SSH and Cert credentials. The credentials must be keyed with the following names: 'seesaw-ssh-private-key', 'seesaw-ssh-public-key', 'seesaw-ssh-ca-key', 'seesaw-ssh-ca-cert'.",
-    ).optional(),
+    }).describe("Output only. Configuration for Seesaw typed load balancers.")
+      .optional(),
     vipConfig: z.object({
       addonsVip: z.string().describe(
         "The VIP to configure the load balancer for add-ons.",
@@ -938,11 +794,9 @@ const InputsSchema = z.object({
       controlPlaneVip: z.string().describe(
         "The VIP which you previously set aside for the Kubernetes API of the admin cluster.",
       ).optional(),
-    }).describe("VmwareAdminVipConfig for VMware load balancer configurations.")
-      .optional(),
-  }).describe(
-    "VmwareAdminLoadBalancerConfig contains load balancer configuration for VMware admin cluster.",
-  ).optional(),
+    }).describe("The VIPs used by the load balancer.").optional(),
+  }).describe("The VMware admin cluster load balancer configuration.")
+    .optional(),
   name: z.string().describe(
     "Immutable. The VMware admin cluster resource name.",
   ).optional(),
@@ -951,9 +805,8 @@ const InputsSchema = z.object({
       enabled: z.boolean().describe(
         "enabled is a flag to mark if DHCP IP allocation is used for VMware user clusters.",
       ).optional(),
-    }).describe(
-      "Represents the network configuration required for the VMware user clusters with DHCP IP configurations.",
-    ).optional(),
+    }).describe("Configuration settings for a DHCP IP configuration.")
+      .optional(),
     haControlPlaneConfig: z.object({
       controlPlaneIpBlock: z.object({
         gateway: z.string().describe(
@@ -972,16 +825,16 @@ const InputsSchema = z.object({
         netmask: z.string().describe(
           "The netmask used by the VMware user cluster.",
         ).optional(),
-      }).describe("Represents a collection of IP addresses to assign to nodes.")
+      }).describe("Static IP addresses for the admin control plane nodes.")
         .optional(),
-    }).describe("Specifies HA admin control plane config.").optional(),
+    }).describe("Configuration for HA admin cluster control plane.").optional(),
     hostConfig: z.object({
       dnsSearchDomains: z.array(z.string()).describe("DNS search domains.")
         .optional(),
       dnsServers: z.array(z.string()).describe("DNS servers.").optional(),
       ntpServers: z.array(z.string()).describe("NTP servers.").optional(),
     }).describe(
-      "Represents the common parameters for all the hosts irrespective of their IP address.",
+      "Represents common network settings irrespective of the host's IP address.",
     ).optional(),
     podAddressCidrBlocks: z.array(z.string()).describe(
       "Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. Only a single range is supported. This field cannot be changed after creation.",
@@ -1003,15 +856,12 @@ const InputsSchema = z.object({
       })).describe(
         "Represents the configuration values for static IP allocation to nodes.",
       ).optional(),
-    }).describe(
-      "Represents the network configuration required for the VMware user clusters with Static IP configurations.",
-    ).optional(),
+    }).describe("Configuration settings for a static IP configuration.")
+      .optional(),
     vcenterNetwork: z.string().describe(
       "vcenter_network specifies vCenter network name.",
     ).optional(),
-  }).describe(
-    "VmwareAdminNetworkConfig contains network configuration for VMware admin cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster network configuration.").optional(),
   onPremVersion: z.string().describe(
     "The Anthos clusters on the VMware version for the admin cluster.",
   ).optional(),
@@ -1031,11 +881,9 @@ const InputsSchema = z.object({
             "Shows the mapping of a given version to the number of machines under this version.",
           ).optional(),
         }).describe(
-          "Versions describes the mapping of a given version to the number of machines under this version.",
+          "Shows the mapping of a given version to the number of machines under this version.",
         ).optional(),
-      }).describe(
-        "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-      ).optional(),
+      }).describe("Output only. Resource status for the bundle.").optional(),
       version: z.string().describe("The version of the bundle.").optional(),
     })).describe(
       "Output only. The list of bundles installed in the admin cluster.",
@@ -1084,116 +932,22 @@ const InputsSchema = z.object({
           "Shows the mapping of a given version to the number of machines under this version.",
         ).optional(),
       }).describe(
-        "Versions describes the mapping of a given version to the number of machines under this version.",
+        "Shows the mapping of a given version to the number of machines under this version.",
       ).optional(),
-    }).describe(
-      "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-    ).optional(),
-  }).describe(
-    "VmwarePlatformConfig represents configuration for the VMware platform.",
-  ).optional(),
-  preparedSecrets: z.object({
-    enabled: z.boolean().describe("Whether prepared secrets is enabled.")
-      .optional(),
-  }).describe(
-    "VmwareAdminPreparedSecretsConfig represents configuration for admin cluster prepared secrets.",
-  ).optional(),
+    }).describe("Output only. Resource status for the platform.").optional(),
+  }).describe("The VMware platform configuration.").optional(),
   privateRegistryConfig: z.object({
     address: z.string().describe("The registry address.").optional(),
     caCert: z.string().describe(
       "When the container runtime pulls an image from private registry, the registry must prove its identity by presenting a certificate. The registry's certificate is signed by a certificate authority (CA). The container runtime uses the CA's certificate to validate the registry's certificate.",
     ).optional(),
-  }).describe(
-    "VmwareAdminPrivateRegistryConfig represents configuration for admin cluster registry.",
-  ).optional(),
+  }).describe("Configuration for registry.").optional(),
   proxy: z.object({
     noProxy: z.string().describe(
       "A comma-separated list of IP addresses, IP address ranges, host names, and domain names that should not go through the proxy server. When Google Distributed Cloud sends a request to one of these addresses, hosts, or domains, the request is sent directly.",
     ).optional(),
     url: z.string().describe("The HTTP address of proxy server.").optional(),
-  }).describe(
-    "VmwareAdminProxy represents configuration for admin cluster proxy.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-  ).optional(),
-  validationCheck: z.object({
-    option: z.enum([
-      "OPTIONS_UNSPECIFIED",
-      "SKIP_VALIDATION_CHECK_BLOCKING",
-      "SKIP_VALIDATION_ALL",
-    ]).describe("Options used for the validation check").optional(),
-    scenario: z.enum(["SCENARIO_UNSPECIFIED", "CREATE", "UPDATE"]).describe(
-      "Output only. The scenario when the preflight checks were run.",
-    ).optional(),
-    status: z.object({
-      result: z.array(z.object({
-        category: z.string().describe("The category of the validation.")
-          .optional(),
-        description: z.string().describe(
-          "The description of the validation check.",
-        ).optional(),
-        details: z.string().describe(
-          "Detailed failure information, which might be unformatted.",
-        ).optional(),
-        reason: z.string().describe(
-          "A human-readable message of the check failure.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNKNOWN",
-          "STATE_FAILURE",
-          "STATE_SKIPPED",
-          "STATE_FATAL",
-          "STATE_WARNING",
-        ]).describe("The validation check state.").optional(),
-      })).describe(
-        "Individual checks which failed as part of the Preflight check execution.",
-      ).optional(),
-    }).describe(
-      "ValidationCheckStatus defines the detailed validation check status.",
-    ).optional(),
-  }).describe("ValidationCheck represents the result of preflight check.")
-    .optional(),
+  }).describe("Configuration for proxy.").optional(),
   vcenter: z.object({
     address: z.string().describe("The vCenter IP address.").optional(),
     caCertData: z.string().describe(
@@ -1220,9 +974,7 @@ const InputsSchema = z.object({
     storagePolicyName: z.string().describe(
       "The name of the vCenter storage policy for the user cluster.",
     ).optional(),
-  }).describe(
-    "VmwareAdminVCenterConfig contains VCenter configuration for VMware admin cluster.",
-  ).optional(),
+  }).describe("The VMware admin cluster VCenter configuration.").optional(),
   allowPreflightFailure: z.string().describe(
     'Optional. If set to true, CLM will force CCFE to persist the cluster resource in RMS when the creation fails during standalone preflight checks. In that case the subsequent create call will fail with "cluster already exists" error and hence a update cluster is required to fix the cluster.',
   ).optional(),
@@ -1260,7 +1012,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE On-Prem VmwareAdminClusters. Registered at `@swamp/gcp/gkeonprem/vmwareadminclusters`. */
 export const model = {
   type: "@swamp/gcp/gkeonprem/vmwareadminclusters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1372,6 +1124,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: fleet, preparedSecrets, status, validationCheck",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          fleet: _fleet,
+          preparedSecrets: _preparedSecrets,
+          status: _status,
+          validationCheck: _validationCheck,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1425,7 +1191,6 @@ export const model = {
         if (g["enableAdvancedCluster"] !== undefined) {
           body["enableAdvancedCluster"] = g["enableAdvancedCluster"];
         }
-        if (g["fleet"] !== undefined) body["fleet"] = g["fleet"];
         if (g["imageType"] !== undefined) body["imageType"] = g["imageType"];
         if (g["loadBalancer"] !== undefined) {
           body["loadBalancer"] = g["loadBalancer"];
@@ -1440,17 +1205,10 @@ export const model = {
         if (g["platformConfig"] !== undefined) {
           body["platformConfig"] = g["platformConfig"];
         }
-        if (g["preparedSecrets"] !== undefined) {
-          body["preparedSecrets"] = g["preparedSecrets"];
-        }
         if (g["privateRegistryConfig"] !== undefined) {
           body["privateRegistryConfig"] = g["privateRegistryConfig"];
         }
         if (g["proxy"] !== undefined) body["proxy"] = g["proxy"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
-        if (g["validationCheck"] !== undefined) {
-          body["validationCheck"] = g["validationCheck"];
-        }
         if (g["vcenter"] !== undefined) body["vcenter"] = g["vcenter"];
         if (g["allowPreflightFailure"] !== undefined) {
           params["allowPreflightFailure"] = String(g["allowPreflightFailure"]);
@@ -1604,7 +1362,6 @@ export const model = {
         if (g["enableAdvancedCluster"] !== undefined) {
           body["enableAdvancedCluster"] = g["enableAdvancedCluster"];
         }
-        if (g["fleet"] !== undefined) body["fleet"] = g["fleet"];
         if (g["imageType"] !== undefined) body["imageType"] = g["imageType"];
         if (g["loadBalancer"] !== undefined) {
           body["loadBalancer"] = g["loadBalancer"];
@@ -1618,17 +1375,10 @@ export const model = {
         if (g["platformConfig"] !== undefined) {
           body["platformConfig"] = g["platformConfig"];
         }
-        if (g["preparedSecrets"] !== undefined) {
-          body["preparedSecrets"] = g["preparedSecrets"];
-        }
         if (g["privateRegistryConfig"] !== undefined) {
           body["privateRegistryConfig"] = g["privateRegistryConfig"];
         }
         if (g["proxy"] !== undefined) body["proxy"] = g["proxy"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
-        if (g["validationCheck"] !== undefined) {
-          body["validationCheck"] = g["validationCheck"];
-        }
         if (g["vcenter"] !== undefined) body["vcenter"] = g["vcenter"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

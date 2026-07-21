@@ -150,7 +150,7 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Output only. The name of the session. This is always system-assigned.",
     ).optional(),
-  }).describe("A session in the Cloud Spanner API.").optional(),
+  }).describe("Required. The session to create.").optional(),
   database: z.string().describe(
     "Required. The database in which the new session is created.",
   ),
@@ -192,7 +192,7 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Output only. The name of the session. This is always system-assigned.",
     ).optional(),
-  }).describe("A session in the Cloud Spanner API.").optional(),
+  }).describe("Required. The session to create.").optional(),
   database: z.string().describe(
     "Required. The database in which the new session is created.",
   ).optional(),
@@ -221,7 +221,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner Instances.Databases.Sessions. Registered at `@swamp/gcp/spanner/instances-databases-sessions`. */
 export const model = {
   type: "@swamp/gcp/spanner/instances-databases-sessions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -318,6 +318,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -351,12 +356,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "database": String(g["database"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

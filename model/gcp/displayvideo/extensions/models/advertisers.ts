@@ -174,21 +174,24 @@ const GlobalArgsSchema = z.object({
         "Whether or not to include DV360 data in CM360 data transfer reports.",
       ).optional(),
     }).describe(
-      "Settings for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.",
+      "The configuration for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.",
     ).optional(),
     thirdPartyOnlyConfig: z.object({
       pixelOrderIdReportingEnabled: z.boolean().describe(
         "Whether or not order ID reporting for pixels is enabled. This value cannot be changed once set to `true`.",
       ).optional(),
     }).describe(
-      "Settings for advertisers that use third-party ad servers only.",
+      "The configuration for advertisers that use third-party ad servers only.",
     ).optional(),
-  }).describe("Ad server related settings of an advertiser.").optional(),
+  }).describe(
+    "Required. Immutable. Ad server related settings of the advertiser.",
+  ).optional(),
   billingConfig: z.object({
     billingProfileId: z.string().describe(
       "Required. The ID of a billing profile assigned to the advertiser.",
     ).optional(),
-  }).describe("Billing related settings of an advertiser.").optional(),
+  }).describe("Required. Billing related settings of the advertiser.")
+    .optional(),
   containsEuPoliticalAds: z.enum([
     "EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN",
     "CONTAINS_EU_POLITICAL_ADVERTISING",
@@ -209,7 +212,8 @@ const GlobalArgsSchema = z.object({
     videoCreativeDataSharingAuthorized: z.boolean().describe(
       "By setting this field to `true`, you, on behalf of your company, authorize Google to use video creatives associated with this Display & Video 360 advertiser to provide reporting and features related to the advertiser's television campaigns. Applicable only when the advertiser has a CM360 hybrid ad server configuration.",
     ).optional(),
-  }).describe("Creatives related settings of an advertiser.").optional(),
+  }).describe("Required. Creative related settings of the advertiser.")
+    .optional(),
   dataAccessConfig: z.object({
     sdfConfig: z.object({
       overridePartnerSdfConfig: z.boolean().describe(
@@ -241,12 +245,14 @@ const GlobalArgsSchema = z.object({
           "SDF_VERSION_9_2",
           "SDF_VERSION_10",
         ]).describe("Required. The version of SDF being used.").optional(),
-      }).describe("Structured Data File (SDF) related settings.").optional(),
-    }).describe("Structured Data Files (SDF) settings of an advertiser.")
-      .optional(),
-  }).describe(
-    "Settings that control how advertiser related data may be accessed.",
-  ).optional(),
+      }).describe(
+        "The SDF configuration for the advertiser. * Required when overridePartnerSdfConfig is `true`. * Output only when overridePartnerSdfConfig is `false`.",
+      ).optional(),
+    }).describe(
+      "Structured Data Files (SDF) settings for the advertiser. If not specified, the SDF settings of the parent partner are used.",
+    ).optional(),
+  }).describe("Settings that control how advertiser data may be accessed.")
+    .optional(),
   defaultBusinessName: z.string().describe(
     "Optional. The default business name for the advertiser. This is the value used by YouTube and Demand Gen ads under this advertiser if a business name is not provided.",
   ).optional(),
@@ -276,7 +282,7 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       "Output only. The standard TZ database name of the advertiser's time zone. For example, `America/New_York`. See more at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones For CM360 hybrid advertisers, the time zone is the same as that of the associated CM360 account; for third-party only advertisers, the time zone is the same as that of the parent partner.",
     ).optional(),
-  }).describe("General settings of an advertiser.").optional(),
+  }).describe("Required. General settings of the advertiser.").optional(),
   integrationDetails: z.object({
     details: z.string().describe(
       "Additional details of the entry in string format. Must be UTF-8 encoded with a length of no more than 1000 characters.",
@@ -284,7 +290,9 @@ const GlobalArgsSchema = z.object({
     integrationCode: z.string().describe(
       "An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.",
     ).optional(),
-  }).describe("Integration details of an entry.").optional(),
+  }).describe(
+    "Integration details of the advertiser. Only integrationCode is currently applicable to advertiser. Other fields of IntegrationDetails are not supported and will be ignored if provided.",
+  ).optional(),
   partnerId: z.string().describe(
     "Required. Immutable. The unique ID of the partner that the advertiser belongs to.",
   ).optional(),
@@ -295,7 +303,7 @@ const GlobalArgsSchema = z.object({
     exemptTvFromViewabilityTargeting: z.boolean().describe(
       "Whether or not connected TV devices are exempt from viewability targeting for all video line items under the advertiser.",
     ).optional(),
-  }).describe("Targeting settings related to ad serving of an advertiser.")
+  }).describe("Targeting settings related to ad serving of the advertiser.")
     .optional(),
 });
 
@@ -388,21 +396,24 @@ const InputsSchema = z.object({
         "Whether or not to include DV360 data in CM360 data transfer reports.",
       ).optional(),
     }).describe(
-      "Settings for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.",
+      "The configuration for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.",
     ).optional(),
     thirdPartyOnlyConfig: z.object({
       pixelOrderIdReportingEnabled: z.boolean().describe(
         "Whether or not order ID reporting for pixels is enabled. This value cannot be changed once set to `true`.",
       ).optional(),
     }).describe(
-      "Settings for advertisers that use third-party ad servers only.",
+      "The configuration for advertisers that use third-party ad servers only.",
     ).optional(),
-  }).describe("Ad server related settings of an advertiser.").optional(),
+  }).describe(
+    "Required. Immutable. Ad server related settings of the advertiser.",
+  ).optional(),
   billingConfig: z.object({
     billingProfileId: z.string().describe(
       "Required. The ID of a billing profile assigned to the advertiser.",
     ).optional(),
-  }).describe("Billing related settings of an advertiser.").optional(),
+  }).describe("Required. Billing related settings of the advertiser.")
+    .optional(),
   containsEuPoliticalAds: z.enum([
     "EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN",
     "CONTAINS_EU_POLITICAL_ADVERTISING",
@@ -423,7 +434,8 @@ const InputsSchema = z.object({
     videoCreativeDataSharingAuthorized: z.boolean().describe(
       "By setting this field to `true`, you, on behalf of your company, authorize Google to use video creatives associated with this Display & Video 360 advertiser to provide reporting and features related to the advertiser's television campaigns. Applicable only when the advertiser has a CM360 hybrid ad server configuration.",
     ).optional(),
-  }).describe("Creatives related settings of an advertiser.").optional(),
+  }).describe("Required. Creative related settings of the advertiser.")
+    .optional(),
   dataAccessConfig: z.object({
     sdfConfig: z.object({
       overridePartnerSdfConfig: z.boolean().describe(
@@ -455,12 +467,14 @@ const InputsSchema = z.object({
           "SDF_VERSION_9_2",
           "SDF_VERSION_10",
         ]).describe("Required. The version of SDF being used.").optional(),
-      }).describe("Structured Data File (SDF) related settings.").optional(),
-    }).describe("Structured Data Files (SDF) settings of an advertiser.")
-      .optional(),
-  }).describe(
-    "Settings that control how advertiser related data may be accessed.",
-  ).optional(),
+      }).describe(
+        "The SDF configuration for the advertiser. * Required when overridePartnerSdfConfig is `true`. * Output only when overridePartnerSdfConfig is `false`.",
+      ).optional(),
+    }).describe(
+      "Structured Data Files (SDF) settings for the advertiser. If not specified, the SDF settings of the parent partner are used.",
+    ).optional(),
+  }).describe("Settings that control how advertiser data may be accessed.")
+    .optional(),
   defaultBusinessName: z.string().describe(
     "Optional. The default business name for the advertiser. This is the value used by YouTube and Demand Gen ads under this advertiser if a business name is not provided.",
   ).optional(),
@@ -490,7 +504,7 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       "Output only. The standard TZ database name of the advertiser's time zone. For example, `America/New_York`. See more at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones For CM360 hybrid advertisers, the time zone is the same as that of the associated CM360 account; for third-party only advertisers, the time zone is the same as that of the parent partner.",
     ).optional(),
-  }).describe("General settings of an advertiser.").optional(),
+  }).describe("Required. General settings of the advertiser.").optional(),
   integrationDetails: z.object({
     details: z.string().describe(
       "Additional details of the entry in string format. Must be UTF-8 encoded with a length of no more than 1000 characters.",
@@ -498,7 +512,9 @@ const InputsSchema = z.object({
     integrationCode: z.string().describe(
       "An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.",
     ).optional(),
-  }).describe("Integration details of an entry.").optional(),
+  }).describe(
+    "Integration details of the advertiser. Only integrationCode is currently applicable to advertiser. Other fields of IntegrationDetails are not supported and will be ignored if provided.",
+  ).optional(),
   partnerId: z.string().describe(
     "Required. Immutable. The unique ID of the partner that the advertiser belongs to.",
   ).optional(),
@@ -509,7 +525,7 @@ const InputsSchema = z.object({
     exemptTvFromViewabilityTargeting: z.boolean().describe(
       "Whether or not connected TV devices are exempt from viewability targeting for all video line items under the advertiser.",
     ).optional(),
-  }).describe("Targeting settings related to ad serving of an advertiser.")
+  }).describe("Targeting settings related to ad serving of the advertiser.")
     .optional(),
 });
 
@@ -536,7 +552,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers. Registered at `@swamp/gcp/displayvideo/advertisers`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -653,6 +669,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: defaultBusinessName, defaultLogoAssetId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -803,9 +824,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         params["advertiserId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["adServerConfig"] !== undefined) {
-          body["adServerConfig"] = g["adServerConfig"];
-        }
         if (g["billingConfig"] !== undefined) {
           body["billingConfig"] = g["billingConfig"];
         }

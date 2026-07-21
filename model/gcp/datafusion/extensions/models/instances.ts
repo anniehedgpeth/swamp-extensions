@@ -169,7 +169,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The name of the key which is used to encrypt/decrypt customer data. For key in Cloud KMS, the key should be in the format of `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
   }).describe(
-    "The crypto key configuration. This field is used by the Customer-managed encryption keys (CMEK) feature.",
+    "Optional. The crypto key configuration. This field is used by the Customer-Managed Encryption Keys (CMEK) feature.",
   ).optional(),
   dataplexDataLineageIntegrationEnabled: z.boolean().describe(
     "Optional. Option to enable the Dataplex Lineage Integration feature.",
@@ -197,7 +197,9 @@ const GlobalArgsSchema = z.object({
     topic: z.string().describe(
       "Required. The resource name of the Pub/Sub topic. Format: projects/{project_id}/topics/{topic_id}",
     ).optional(),
-  }).describe("Confirguration of PubSubEventWriter.").optional(),
+  }).describe(
+    "Optional. Option to enable and pass metadata for event publishing.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The resource labels for instance to use to annotate any related underlying resources such as Compute Engine VMs. The character '=' is not allowed to be used within the labels.",
   ).optional(),
@@ -208,7 +210,9 @@ const GlobalArgsSchema = z.object({
     instanceCloudLoggingDisabled: z.boolean().describe(
       "Optional. Option to determine whether instance logs should be written to Cloud Logging. By default, instance logs are written to Cloud Logging.",
     ).optional(),
-  }).describe("Logging configuration for a Data Fusion instance.").optional(),
+  }).describe(
+    "Optional. The logging configuration for this instance. This field is supported only in CDF versions 6.11.0 and above.",
+  ).optional(),
   maintenancePolicy: z.object({
     maintenanceExclusionWindow: z.object({
       endTime: z.string().describe(
@@ -217,7 +221,8 @@ const GlobalArgsSchema = z.object({
       startTime: z.string().describe(
         'Required. The start time of the time window provided in [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. Example: "2024-01-01T12:04:06-04:00"',
       ).optional(),
-    }).describe("Represents an arbitrary window of time.").optional(),
+    }).describe("Optional. The maintenance exclusion window of the instance.")
+      .optional(),
     maintenanceWindow: z.object({
       recurringTimeWindow: z.object({
         recurrence: z.string().describe(
@@ -230,16 +235,20 @@ const GlobalArgsSchema = z.object({
           startTime: z.string().describe(
             'Required. The start time of the time window provided in [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. Example: "2024-01-01T12:04:06-04:00"',
           ).optional(),
-        }).describe("Represents an arbitrary window of time.").optional(),
-      }).describe("Represents an arbitrary window of time that recurs.")
-        .optional(),
-    }).describe("Maintenance window of the instance.").optional(),
-  }).describe("Maintenance policy of the instance.").optional(),
+        }).describe(
+          "Required. The window representing the start and end time of recurrences. This field ignores the date components of the provided timestamps. Only the time of day and duration between start and end time are relevant.",
+        ).optional(),
+      }).describe(
+        "Required. The recurring time window of the maintenance window.",
+      ).optional(),
+    }).describe("Optional. The maintenance window of the instance.").optional(),
+  }).describe("Optional. Configure the maintenance policy for this instance.")
+    .optional(),
   monitoringConfig: z.object({
     enableInstanceV2Metrics: z.boolean().describe(
       "Optional. Option to enable the instance v2 metrics for this instance. This field is supported only in CDF versions 6.11.1.1 and above.",
     ).optional(),
-  }).describe("Monitoring configuration for a Data Fusion instance.")
+  }).describe("Optional. The monitoring configuration for this instance.")
     .optional(),
   networkConfig: z.object({
     connectionType: z.enum([
@@ -266,10 +275,10 @@ const GlobalArgsSchema = z.object({
         "Optional. Input only. The CIDR block to which the CDF instance can't route traffic to in the consumer project VPC. The size of this block should be at least /25. This range should not overlap with the primary address range of any subnetwork used by the network attachment. This range can be used for other purposes in the consumer VPC as long as there is no requirement for CDF to reach destinations using these addresses. If this value is not provided, the server chooses a non RFC 1918 address range. The format of this field is governed by RFC 4632. Example: 192.168.0.0/25",
       ).optional(),
     }).describe(
-      "Configuration for using Private Service Connect to establish connectivity between the Data Fusion consumer project and the corresponding tenant project.",
+      "Optional. Configuration for Private Service Connect. This is required only when using connection type PRIVATE_SERVICE_CONNECT_INTERFACES.",
     ).optional(),
   }).describe(
-    "Network configuration for a Data Fusion instance. These configurations are used for peering with the customer network. Configurations are optional when a public Data Fusion instance is to be created. However, providing these configurations allows several benefits, such as reduced network latency while accessing the customer resources from managed Data Fusion instance nodes, as well as access to the customer on-prem resources.",
+    "Optional. Network configuration options. These are required when a private Data Fusion instance is to be created.",
   ).optional(),
   options: z.record(z.string(), z.string()).describe(
     "Optional. Map of additional options used to configure the behavior of Data Fusion instance.",
@@ -400,7 +409,7 @@ const InputsSchema = z.object({
       "Optional. The name of the key which is used to encrypt/decrypt customer data. For key in Cloud KMS, the key should be in the format of `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
   }).describe(
-    "The crypto key configuration. This field is used by the Customer-managed encryption keys (CMEK) feature.",
+    "Optional. The crypto key configuration. This field is used by the Customer-Managed Encryption Keys (CMEK) feature.",
   ).optional(),
   dataplexDataLineageIntegrationEnabled: z.boolean().describe(
     "Optional. Option to enable the Dataplex Lineage Integration feature.",
@@ -428,7 +437,9 @@ const InputsSchema = z.object({
     topic: z.string().describe(
       "Required. The resource name of the Pub/Sub topic. Format: projects/{project_id}/topics/{topic_id}",
     ).optional(),
-  }).describe("Confirguration of PubSubEventWriter.").optional(),
+  }).describe(
+    "Optional. Option to enable and pass metadata for event publishing.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The resource labels for instance to use to annotate any related underlying resources such as Compute Engine VMs. The character '=' is not allowed to be used within the labels.",
   ).optional(),
@@ -439,7 +450,9 @@ const InputsSchema = z.object({
     instanceCloudLoggingDisabled: z.boolean().describe(
       "Optional. Option to determine whether instance logs should be written to Cloud Logging. By default, instance logs are written to Cloud Logging.",
     ).optional(),
-  }).describe("Logging configuration for a Data Fusion instance.").optional(),
+  }).describe(
+    "Optional. The logging configuration for this instance. This field is supported only in CDF versions 6.11.0 and above.",
+  ).optional(),
   maintenancePolicy: z.object({
     maintenanceExclusionWindow: z.object({
       endTime: z.string().describe(
@@ -448,7 +461,8 @@ const InputsSchema = z.object({
       startTime: z.string().describe(
         'Required. The start time of the time window provided in [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. Example: "2024-01-01T12:04:06-04:00"',
       ).optional(),
-    }).describe("Represents an arbitrary window of time.").optional(),
+    }).describe("Optional. The maintenance exclusion window of the instance.")
+      .optional(),
     maintenanceWindow: z.object({
       recurringTimeWindow: z.object({
         recurrence: z.string().describe(
@@ -461,16 +475,20 @@ const InputsSchema = z.object({
           startTime: z.string().describe(
             'Required. The start time of the time window provided in [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) format. Example: "2024-01-01T12:04:06-04:00"',
           ).optional(),
-        }).describe("Represents an arbitrary window of time.").optional(),
-      }).describe("Represents an arbitrary window of time that recurs.")
-        .optional(),
-    }).describe("Maintenance window of the instance.").optional(),
-  }).describe("Maintenance policy of the instance.").optional(),
+        }).describe(
+          "Required. The window representing the start and end time of recurrences. This field ignores the date components of the provided timestamps. Only the time of day and duration between start and end time are relevant.",
+        ).optional(),
+      }).describe(
+        "Required. The recurring time window of the maintenance window.",
+      ).optional(),
+    }).describe("Optional. The maintenance window of the instance.").optional(),
+  }).describe("Optional. Configure the maintenance policy for this instance.")
+    .optional(),
   monitoringConfig: z.object({
     enableInstanceV2Metrics: z.boolean().describe(
       "Optional. Option to enable the instance v2 metrics for this instance. This field is supported only in CDF versions 6.11.1.1 and above.",
     ).optional(),
-  }).describe("Monitoring configuration for a Data Fusion instance.")
+  }).describe("Optional. The monitoring configuration for this instance.")
     .optional(),
   networkConfig: z.object({
     connectionType: z.enum([
@@ -497,10 +515,10 @@ const InputsSchema = z.object({
         "Optional. Input only. The CIDR block to which the CDF instance can't route traffic to in the consumer project VPC. The size of this block should be at least /25. This range should not overlap with the primary address range of any subnetwork used by the network attachment. This range can be used for other purposes in the consumer VPC as long as there is no requirement for CDF to reach destinations using these addresses. If this value is not provided, the server chooses a non RFC 1918 address range. The format of this field is governed by RFC 4632. Example: 192.168.0.0/25",
       ).optional(),
     }).describe(
-      "Configuration for using Private Service Connect to establish connectivity between the Data Fusion consumer project and the corresponding tenant project.",
+      "Optional. Configuration for Private Service Connect. This is required only when using connection type PRIVATE_SERVICE_CONNECT_INTERFACES.",
     ).optional(),
   }).describe(
-    "Network configuration for a Data Fusion instance. These configurations are used for peering with the customer network. Configurations are optional when a public Data Fusion instance is to be created. However, providing these configurations allows several benefits, such as reduced network latency while accessing the customer resources from managed Data Fusion instance nodes, as well as access to the customer on-prem resources.",
+    "Optional. Network configuration options. These are required when a private Data Fusion instance is to be created.",
   ).optional(),
   options: z.record(z.string(), z.string()).describe(
     "Optional. Map of additional options used to configure the behavior of Data Fusion instance.",
@@ -553,7 +571,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Fusion Instances. Registered at `@swamp/gcp/datafusion/instances`. */
 export const model = {
   type: "@swamp/gcp/datafusion/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -662,6 +680,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

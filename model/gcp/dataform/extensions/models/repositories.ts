@@ -164,11 +164,6 @@ const GlobalArgsSchema = z.object({
   containingFolder: z.string().describe(
     "Optional. The name of the containing folder of the repository. The field is immutable and it can be modified via a MoveRepository operation. Format: `projects/*/locations/*/folders/*`. or `projects/*/locations/*/teamFolders/*`.",
   ).optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
   displayName: z.string().describe(
     "Optional. The repository's user-friendly name.",
   ).optional(),
@@ -192,8 +187,9 @@ const GlobalArgsSchema = z.object({
       userPrivateKeySecretVersion: z.string().describe(
         "Required. The name of the Secret Manager secret version to use as a ssh private key for Git operations. Must be in the format `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Configures fields for performing SSH authentication.")
-      .optional(),
+    }).describe(
+      "Optional. Authentication fields for remote uris using SSH protocol.",
+    ).optional(),
     tokenStatus: z.enum([
       "TOKEN_STATUS_UNSPECIFIED",
       "NOT_FOUND",
@@ -203,7 +199,9 @@ const GlobalArgsSchema = z.object({
       "Output only. Deprecated: The field does not contain any token status information.",
     ).optional(),
     url: z.string().describe("Required. The Git remote's URL.").optional(),
-  }).describe("Controls Git remote configuration for a repository.").optional(),
+  }).describe(
+    "Optional. If set, configures this repository to be linked to a Git remote.",
+  ).optional(),
   kmsKeyName: z.string().describe(
     "Optional. The reference to a KMS encryption key. If provided, it will be used to encrypt user data in the repository and all child resources. It is not possible to add or update the encryption key after the repository is created. Example: `projects/{kms_project}/locations/{location}/keyRings/{key_location}/cryptoKeys/{key}`",
   ).optional(),
@@ -230,8 +228,9 @@ const GlobalArgsSchema = z.object({
     tablePrefix: z.string().describe(
       "Optional. The prefix that should be prepended to all table names.",
     ).optional(),
-  }).describe("Configures workspace compilation overrides for a repository.")
-    .optional(),
+  }).describe(
+    "Optional. If set, fields of `workspace_compilation_overrides` override the default compilation settings that are specified in dataform.json when creating workspace-scoped compilation results. See documentation for `WorkspaceCompilationOverrides` for more information.",
+  ).optional(),
   repositoryId: z.string().describe(
     "Required. The ID to use for the repository, which will become the final component of the repository's resource name.",
   ).optional(),
@@ -284,11 +283,6 @@ const InputsSchema = z.object({
   containingFolder: z.string().describe(
     "Optional. The name of the containing folder of the repository. The field is immutable and it can be modified via a MoveRepository operation. Format: `projects/*/locations/*/folders/*`. or `projects/*/locations/*/teamFolders/*`.",
   ).optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
   displayName: z.string().describe(
     "Optional. The repository's user-friendly name.",
   ).optional(),
@@ -312,8 +306,9 @@ const InputsSchema = z.object({
       userPrivateKeySecretVersion: z.string().describe(
         "Required. The name of the Secret Manager secret version to use as a ssh private key for Git operations. Must be in the format `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("Configures fields for performing SSH authentication.")
-      .optional(),
+    }).describe(
+      "Optional. Authentication fields for remote uris using SSH protocol.",
+    ).optional(),
     tokenStatus: z.enum([
       "TOKEN_STATUS_UNSPECIFIED",
       "NOT_FOUND",
@@ -323,7 +318,9 @@ const InputsSchema = z.object({
       "Output only. Deprecated: The field does not contain any token status information.",
     ).optional(),
     url: z.string().describe("Required. The Git remote's URL.").optional(),
-  }).describe("Controls Git remote configuration for a repository.").optional(),
+  }).describe(
+    "Optional. If set, configures this repository to be linked to a Git remote.",
+  ).optional(),
   kmsKeyName: z.string().describe(
     "Optional. The reference to a KMS encryption key. If provided, it will be used to encrypt user data in the repository and all child resources. It is not possible to add or update the encryption key after the repository is created. Example: `projects/{kms_project}/locations/{location}/keyRings/{key_location}/cryptoKeys/{key}`",
   ).optional(),
@@ -350,8 +347,9 @@ const InputsSchema = z.object({
     tablePrefix: z.string().describe(
       "Optional. The prefix that should be prepended to all table names.",
     ).optional(),
-  }).describe("Configures workspace compilation overrides for a repository.")
-    .optional(),
+  }).describe(
+    "Optional. If set, fields of `workspace_compilation_overrides` override the default compilation settings that are specified in dataform.json when creating workspace-scoped compilation results. See documentation for `WorkspaceCompilationOverrides` for more information.",
+  ).optional(),
   repositoryId: z.string().describe(
     "Required. The ID to use for the repository, which will become the final component of the repository's resource name.",
   ).optional(),
@@ -383,7 +381,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories. Registered at `@swamp/gcp/dataform/repositories`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -535,6 +533,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: dataEncryptionState",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { dataEncryptionState: _dataEncryptionState, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -561,9 +567,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["containingFolder"] !== undefined) {
           body["containingFolder"] = g["containingFolder"];
-        }
-        if (g["dataEncryptionState"] !== undefined) {
-          body["dataEncryptionState"] = g["dataEncryptionState"];
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
@@ -697,9 +700,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["dataEncryptionState"] !== undefined) {
-          body["dataEncryptionState"] = g["dataEncryptionState"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }

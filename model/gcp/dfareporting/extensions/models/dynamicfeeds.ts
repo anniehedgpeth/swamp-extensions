@@ -107,12 +107,16 @@ const GlobalArgsSchema = z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The creation timestamp of the content source. This is a read-only field.",
+      ).optional(),
       lastModifiedInfo: z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The last modified timestamp of the content source. This is a read-only field.",
+      ).optional(),
       metaData: z.object({
         charset: z.string().describe(
           "Output only. The charset of the content source.",
@@ -127,7 +131,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The separator of the content source.",
         ).optional(),
       }).describe(
-        "Contains the meta data of the content source. This is a read-only field.",
+        "Output only. Metadata of the content source. It contains the number of rows and the column names from resource link. This is a read-only field.",
       ).optional(),
       resourceLink: z.string().describe(
         "Required. The link to the file of the content source.",
@@ -138,12 +142,16 @@ const GlobalArgsSchema = z.object({
         "RESOURCE_TYPE_REMOTE_FILE",
       ]).describe("Required. The resource type of the content source.")
         .optional(),
-    }).describe("Contains the content source of the dynamic feed.").optional(),
+    }).describe(
+      "Required. The content source of the dynamic feed. This is a required field.",
+    ).optional(),
     createInfo: z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The creation timestamp of the dynamic feed. This is a read-only field.",
+    ).optional(),
     dynamicFeedId: z.string().describe(
       "Output only. Unique ID of this dynamic feed. This is a read-only, auto-generated field.",
     ).optional(),
@@ -158,7 +166,9 @@ const GlobalArgsSchema = z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The creation timestamp of the element. This is a read-only field.",
+      ).optional(),
       defaultFieldId: z.number().int().describe(
         "Optional. The field ID to specify the field that represents the default field in the feed.",
       ).optional(),
@@ -235,7 +245,9 @@ const GlobalArgsSchema = z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The last modified timestamp of the element. This is a read-only field.",
+      ).optional(),
       proximityTargetingFieldId: z.number().int().describe(
         "Optional. The field ID that specify field used for proximity targeting.",
       ).optional(),
@@ -245,7 +257,9 @@ const GlobalArgsSchema = z.object({
       startTimestampFieldId: z.number().int().describe(
         "Optional. The field ID to specify the field that represents the start timestamp. Only applicable if you're planning to use scheduling in your dynamic creative.",
       ).optional(),
-    }).describe("Contains the element of the dynamic feed.").optional(),
+    }).describe(
+      "Required. The element of the dynamic feed that is to specify the schema of the feed. This is a required field.",
+    ).optional(),
     feedIngestionStatus: z.object({
       ingestionErrorRecords: z.array(z.object({
         errors: z.array(z.unknown()).describe(
@@ -272,8 +286,7 @@ const GlobalArgsSchema = z.object({
         numWarningsTotal: z.string().describe(
           "Output only. The total number of warnings in the feed.",
         ).optional(),
-      }).describe("Contains the ingestion status of the dynamic feed.")
-        .optional(),
+      }).describe("Output only. The ingestion status of the feed.").optional(),
       state: z.enum([
         "FEED_PROCESSING_STATE_UNKNOWN",
         "CANCELLED",
@@ -287,7 +300,7 @@ const GlobalArgsSchema = z.object({
         "PUBLISHED_FAILURE",
       ]).describe("Output only. The processing state of the feed.").optional(),
     }).describe(
-      "Contains the ingestion status of the dynamic feed. Feed ingestion is an asynchronous process. If the feed create request is successful, feed ingestion will be processed in the background, including validation, assets retrieval, and saving the data from the resource link. The processing time is dependent on the data size in the resource link. This read-only status field contains the current stage of that processing and its ingestion state.",
+      "Output only. The ingestion status of the dynamic feed. This is a read-only field.",
     ).optional(),
     feedSchedule: z.object({
       repeatValue: z.string().describe(
@@ -305,7 +318,9 @@ const GlobalArgsSchema = z.object({
       timeZone: z.string().describe(
         'Optional. The time zone to schedule the feed. It is applicable if the repeat value is equal to 1. Default value is "America/Los_Angeles".',
       ).optional(),
-    }).describe("Contains the schedule of the dynamic feed.").optional(),
+    }).describe(
+      "Optional. The schedule of the dynamic feed. It can be set if the feed is published.",
+    ).optional(),
     hasPublished: z.boolean().describe(
       "Output only. Indicates whether the dynamic feed has a published version. This is a read-only field.",
     ).optional(),
@@ -313,7 +328,9 @@ const GlobalArgsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The last modified timestamp of the dynamic feed. This is a read-only field.",
+    ).optional(),
     status: z.enum(["STATUS_UNKNOWN", "ACTIVE", "INACTIVE", "DELETED"])
       .describe(
         "Output only. The status of the feed. It is a read-only field that depends on the the feed ingestion status. The default value is INACTIVE, and it will be updated to ACTIVE once the feed is ingested successfully.",
@@ -321,9 +338,7 @@ const GlobalArgsSchema = z.object({
     studioAdvertiserId: z.string().describe(
       "Required. Advertiser ID of this dynamic feed. This is a required field.",
     ).optional(),
-  }).describe(
-    "*Beta:* This API resource is available only to a very limited number of customers. If you'd like to use this resource, please reach out to your Google sales representative. Contains dynamic feed information.",
-  ).optional(),
+  }).describe("Required. Dynamic feed to insert.").optional(),
   dynamicProfileId: z.string().describe(
     "Required. Dynamic profile ID of the inserted dynamic feed.",
   ).optional(),
@@ -335,12 +350,16 @@ const GlobalArgsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The creation timestamp of the content source. This is a read-only field.",
+    ).optional(),
     lastModifiedInfo: z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The last modified timestamp of the content source. This is a read-only field.",
+    ).optional(),
     metaData: z.object({
       charset: z.string().describe(
         "Output only. The charset of the content source.",
@@ -355,7 +374,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The separator of the content source.",
       ).optional(),
     }).describe(
-      "Contains the meta data of the content source. This is a read-only field.",
+      "Output only. Metadata of the content source. It contains the number of rows and the column names from resource link. This is a read-only field.",
     ).optional(),
     resourceLink: z.string().describe(
       "Required. The link to the file of the content source.",
@@ -366,12 +385,16 @@ const GlobalArgsSchema = z.object({
       "RESOURCE_TYPE_REMOTE_FILE",
     ]).describe("Required. The resource type of the content source.")
       .optional(),
-  }).describe("Contains the content source of the dynamic feed.").optional(),
+  }).describe(
+    "Required. The content source of the dynamic feed. This is a required field.",
+  ).optional(),
   createInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Output only. The creation timestamp of the dynamic feed. This is a read-only field.",
+  ).optional(),
   dynamicFeedId: z.string().describe(
     "Output only. Unique ID of this dynamic feed. This is a read-only, auto-generated field.",
   ).optional(),
@@ -386,7 +409,9 @@ const GlobalArgsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The creation timestamp of the element. This is a read-only field.",
+    ).optional(),
     defaultFieldId: z.number().int().describe(
       "Optional. The field ID to specify the field that represents the default field in the feed.",
     ).optional(),
@@ -462,7 +487,9 @@ const GlobalArgsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The last modified timestamp of the element. This is a read-only field.",
+    ).optional(),
     proximityTargetingFieldId: z.number().int().describe(
       "Optional. The field ID that specify field used for proximity targeting.",
     ).optional(),
@@ -472,7 +499,9 @@ const GlobalArgsSchema = z.object({
     startTimestampFieldId: z.number().int().describe(
       "Optional. The field ID to specify the field that represents the start timestamp. Only applicable if you're planning to use scheduling in your dynamic creative.",
     ).optional(),
-  }).describe("Contains the element of the dynamic feed.").optional(),
+  }).describe(
+    "Required. The element of the dynamic feed that is to specify the schema of the feed. This is a required field.",
+  ).optional(),
   feedIngestionStatus: z.object({
     ingestionErrorRecords: z.array(z.object({
       errors: z.array(z.object({
@@ -513,8 +542,7 @@ const GlobalArgsSchema = z.object({
       numWarningsTotal: z.string().describe(
         "Output only. The total number of warnings in the feed.",
       ).optional(),
-    }).describe("Contains the ingestion status of the dynamic feed.")
-      .optional(),
+    }).describe("Output only. The ingestion status of the feed.").optional(),
     state: z.enum([
       "FEED_PROCESSING_STATE_UNKNOWN",
       "CANCELLED",
@@ -528,7 +556,7 @@ const GlobalArgsSchema = z.object({
       "PUBLISHED_FAILURE",
     ]).describe("Output only. The processing state of the feed.").optional(),
   }).describe(
-    "Contains the ingestion status of the dynamic feed. Feed ingestion is an asynchronous process. If the feed create request is successful, feed ingestion will be processed in the background, including validation, assets retrieval, and saving the data from the resource link. The processing time is dependent on the data size in the resource link. This read-only status field contains the current stage of that processing and its ingestion state.",
+    "Output only. The ingestion status of the dynamic feed. This is a read-only field.",
   ).optional(),
   feedSchedule: z.object({
     repeatValue: z.string().describe(
@@ -546,7 +574,9 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       'Optional. The time zone to schedule the feed. It is applicable if the repeat value is equal to 1. Default value is "America/Los_Angeles".',
     ).optional(),
-  }).describe("Contains the schedule of the dynamic feed.").optional(),
+  }).describe(
+    "Optional. The schedule of the dynamic feed. It can be set if the feed is published.",
+  ).optional(),
   hasPublished: z.boolean().describe(
     "Output only. Indicates whether the dynamic feed has a published version. This is a read-only field.",
   ).optional(),
@@ -554,7 +584,9 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Output only. The last modified timestamp of the dynamic feed. This is a read-only field.",
+  ).optional(),
   status: z.enum(["STATUS_UNKNOWN", "ACTIVE", "INACTIVE", "DELETED"]).describe(
     "Output only. The status of the feed. It is a read-only field that depends on the the feed ingestion status. The default value is INACTIVE, and it will be updated to ACTIVE once the feed is ingested successfully.",
   ).optional(),
@@ -664,12 +696,16 @@ const InputsSchema = z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The creation timestamp of the content source. This is a read-only field.",
+      ).optional(),
       lastModifiedInfo: z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The last modified timestamp of the content source. This is a read-only field.",
+      ).optional(),
       metaData: z.object({
         charset: z.string().describe(
           "Output only. The charset of the content source.",
@@ -684,7 +720,7 @@ const InputsSchema = z.object({
           "Output only. The separator of the content source.",
         ).optional(),
       }).describe(
-        "Contains the meta data of the content source. This is a read-only field.",
+        "Output only. Metadata of the content source. It contains the number of rows and the column names from resource link. This is a read-only field.",
       ).optional(),
       resourceLink: z.string().describe(
         "Required. The link to the file of the content source.",
@@ -695,12 +731,16 @@ const InputsSchema = z.object({
         "RESOURCE_TYPE_REMOTE_FILE",
       ]).describe("Required. The resource type of the content source.")
         .optional(),
-    }).describe("Contains the content source of the dynamic feed.").optional(),
+    }).describe(
+      "Required. The content source of the dynamic feed. This is a required field.",
+    ).optional(),
     createInfo: z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The creation timestamp of the dynamic feed. This is a read-only field.",
+    ).optional(),
     dynamicFeedId: z.string().describe(
       "Output only. Unique ID of this dynamic feed. This is a read-only, auto-generated field.",
     ).optional(),
@@ -715,7 +755,9 @@ const InputsSchema = z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The creation timestamp of the element. This is a read-only field.",
+      ).optional(),
       defaultFieldId: z.number().int().describe(
         "Optional. The field ID to specify the field that represents the default field in the feed.",
       ).optional(),
@@ -792,7 +834,9 @@ const InputsSchema = z.object({
         time: z.string().describe(
           "Timestamp of the last change in milliseconds since epoch.",
         ).optional(),
-      }).describe("Modification timestamp.").optional(),
+      }).describe(
+        "Output only. The last modified timestamp of the element. This is a read-only field.",
+      ).optional(),
       proximityTargetingFieldId: z.number().int().describe(
         "Optional. The field ID that specify field used for proximity targeting.",
       ).optional(),
@@ -802,7 +846,9 @@ const InputsSchema = z.object({
       startTimestampFieldId: z.number().int().describe(
         "Optional. The field ID to specify the field that represents the start timestamp. Only applicable if you're planning to use scheduling in your dynamic creative.",
       ).optional(),
-    }).describe("Contains the element of the dynamic feed.").optional(),
+    }).describe(
+      "Required. The element of the dynamic feed that is to specify the schema of the feed. This is a required field.",
+    ).optional(),
     feedIngestionStatus: z.object({
       ingestionErrorRecords: z.array(z.object({
         errors: z.array(z.unknown()).describe(
@@ -829,8 +875,7 @@ const InputsSchema = z.object({
         numWarningsTotal: z.string().describe(
           "Output only. The total number of warnings in the feed.",
         ).optional(),
-      }).describe("Contains the ingestion status of the dynamic feed.")
-        .optional(),
+      }).describe("Output only. The ingestion status of the feed.").optional(),
       state: z.enum([
         "FEED_PROCESSING_STATE_UNKNOWN",
         "CANCELLED",
@@ -844,7 +889,7 @@ const InputsSchema = z.object({
         "PUBLISHED_FAILURE",
       ]).describe("Output only. The processing state of the feed.").optional(),
     }).describe(
-      "Contains the ingestion status of the dynamic feed. Feed ingestion is an asynchronous process. If the feed create request is successful, feed ingestion will be processed in the background, including validation, assets retrieval, and saving the data from the resource link. The processing time is dependent on the data size in the resource link. This read-only status field contains the current stage of that processing and its ingestion state.",
+      "Output only. The ingestion status of the dynamic feed. This is a read-only field.",
     ).optional(),
     feedSchedule: z.object({
       repeatValue: z.string().describe(
@@ -862,7 +907,9 @@ const InputsSchema = z.object({
       timeZone: z.string().describe(
         'Optional. The time zone to schedule the feed. It is applicable if the repeat value is equal to 1. Default value is "America/Los_Angeles".',
       ).optional(),
-    }).describe("Contains the schedule of the dynamic feed.").optional(),
+    }).describe(
+      "Optional. The schedule of the dynamic feed. It can be set if the feed is published.",
+    ).optional(),
     hasPublished: z.boolean().describe(
       "Output only. Indicates whether the dynamic feed has a published version. This is a read-only field.",
     ).optional(),
@@ -870,7 +917,9 @@ const InputsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The last modified timestamp of the dynamic feed. This is a read-only field.",
+    ).optional(),
     status: z.enum(["STATUS_UNKNOWN", "ACTIVE", "INACTIVE", "DELETED"])
       .describe(
         "Output only. The status of the feed. It is a read-only field that depends on the the feed ingestion status. The default value is INACTIVE, and it will be updated to ACTIVE once the feed is ingested successfully.",
@@ -878,9 +927,7 @@ const InputsSchema = z.object({
     studioAdvertiserId: z.string().describe(
       "Required. Advertiser ID of this dynamic feed. This is a required field.",
     ).optional(),
-  }).describe(
-    "*Beta:* This API resource is available only to a very limited number of customers. If you'd like to use this resource, please reach out to your Google sales representative. Contains dynamic feed information.",
-  ).optional(),
+  }).describe("Required. Dynamic feed to insert.").optional(),
   dynamicProfileId: z.string().describe(
     "Required. Dynamic profile ID of the inserted dynamic feed.",
   ).optional(),
@@ -892,12 +939,16 @@ const InputsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The creation timestamp of the content source. This is a read-only field.",
+    ).optional(),
     lastModifiedInfo: z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The last modified timestamp of the content source. This is a read-only field.",
+    ).optional(),
     metaData: z.object({
       charset: z.string().describe(
         "Output only. The charset of the content source.",
@@ -912,7 +963,7 @@ const InputsSchema = z.object({
         "Output only. The separator of the content source.",
       ).optional(),
     }).describe(
-      "Contains the meta data of the content source. This is a read-only field.",
+      "Output only. Metadata of the content source. It contains the number of rows and the column names from resource link. This is a read-only field.",
     ).optional(),
     resourceLink: z.string().describe(
       "Required. The link to the file of the content source.",
@@ -923,12 +974,16 @@ const InputsSchema = z.object({
       "RESOURCE_TYPE_REMOTE_FILE",
     ]).describe("Required. The resource type of the content source.")
       .optional(),
-  }).describe("Contains the content source of the dynamic feed.").optional(),
+  }).describe(
+    "Required. The content source of the dynamic feed. This is a required field.",
+  ).optional(),
   createInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Output only. The creation timestamp of the dynamic feed. This is a read-only field.",
+  ).optional(),
   dynamicFeedId: z.string().describe(
     "Output only. Unique ID of this dynamic feed. This is a read-only, auto-generated field.",
   ).optional(),
@@ -943,7 +998,9 @@ const InputsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The creation timestamp of the element. This is a read-only field.",
+    ).optional(),
     defaultFieldId: z.number().int().describe(
       "Optional. The field ID to specify the field that represents the default field in the feed.",
     ).optional(),
@@ -1019,7 +1076,9 @@ const InputsSchema = z.object({
       time: z.string().describe(
         "Timestamp of the last change in milliseconds since epoch.",
       ).optional(),
-    }).describe("Modification timestamp.").optional(),
+    }).describe(
+      "Output only. The last modified timestamp of the element. This is a read-only field.",
+    ).optional(),
     proximityTargetingFieldId: z.number().int().describe(
       "Optional. The field ID that specify field used for proximity targeting.",
     ).optional(),
@@ -1029,7 +1088,9 @@ const InputsSchema = z.object({
     startTimestampFieldId: z.number().int().describe(
       "Optional. The field ID to specify the field that represents the start timestamp. Only applicable if you're planning to use scheduling in your dynamic creative.",
     ).optional(),
-  }).describe("Contains the element of the dynamic feed.").optional(),
+  }).describe(
+    "Required. The element of the dynamic feed that is to specify the schema of the feed. This is a required field.",
+  ).optional(),
   feedIngestionStatus: z.object({
     ingestionErrorRecords: z.array(z.object({
       errors: z.array(z.object({
@@ -1070,8 +1131,7 @@ const InputsSchema = z.object({
       numWarningsTotal: z.string().describe(
         "Output only. The total number of warnings in the feed.",
       ).optional(),
-    }).describe("Contains the ingestion status of the dynamic feed.")
-      .optional(),
+    }).describe("Output only. The ingestion status of the feed.").optional(),
     state: z.enum([
       "FEED_PROCESSING_STATE_UNKNOWN",
       "CANCELLED",
@@ -1085,7 +1145,7 @@ const InputsSchema = z.object({
       "PUBLISHED_FAILURE",
     ]).describe("Output only. The processing state of the feed.").optional(),
   }).describe(
-    "Contains the ingestion status of the dynamic feed. Feed ingestion is an asynchronous process. If the feed create request is successful, feed ingestion will be processed in the background, including validation, assets retrieval, and saving the data from the resource link. The processing time is dependent on the data size in the resource link. This read-only status field contains the current stage of that processing and its ingestion state.",
+    "Output only. The ingestion status of the dynamic feed. This is a read-only field.",
   ).optional(),
   feedSchedule: z.object({
     repeatValue: z.string().describe(
@@ -1103,7 +1163,9 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       'Optional. The time zone to schedule the feed. It is applicable if the repeat value is equal to 1. Default value is "America/Los_Angeles".',
     ).optional(),
-  }).describe("Contains the schedule of the dynamic feed.").optional(),
+  }).describe(
+    "Optional. The schedule of the dynamic feed. It can be set if the feed is published.",
+  ).optional(),
   hasPublished: z.boolean().describe(
     "Output only. Indicates whether the dynamic feed has a published version. This is a read-only field.",
   ).optional(),
@@ -1111,7 +1173,9 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Output only. The last modified timestamp of the dynamic feed. This is a read-only field.",
+  ).optional(),
   status: z.enum(["STATUS_UNKNOWN", "ACTIVE", "INACTIVE", "DELETED"]).describe(
     "Output only. The status of the feed. It is a read-only field that depends on the the feed ingestion status. The default value is INACTIVE, and it will be updated to ACTIVE once the feed is ingested successfully.",
   ).optional(),
@@ -1143,7 +1207,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 DynamicFeeds. Registered at `@swamp/gcp/dfareporting/dynamicfeeds`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/dynamicfeeds",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1232,6 +1296,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

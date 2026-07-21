@@ -150,14 +150,14 @@ const GlobalArgsSchema = z.object({
     sortOrder: z.number().describe(
       "Output only. The decimal sort order of this PolicyQuery. The value is relative to all other policies with the same setting type for the customer. (There are no duplicates within this set).",
     ).optional(),
-  }).describe("PolicyQuery").optional(),
+  }).describe("Required. The PolicyQuery the Setting applies to.").optional(),
   setting: z.object({
     type: z.string().describe("Required. Immutable. The type of the Setting..")
       .optional(),
     value: z.record(z.string(), z.string()).describe(
       "Required. The value of the Setting.",
     ).optional(),
-  }).describe("Setting").optional(),
+  }).describe("Required. The Setting configured by this Policy.").optional(),
 });
 
 const StateSchema = z.object({
@@ -200,14 +200,14 @@ const InputsSchema = z.object({
     sortOrder: z.number().describe(
       "Output only. The decimal sort order of this PolicyQuery. The value is relative to all other policies with the same setting type for the customer. (There are no duplicates within this set).",
     ).optional(),
-  }).describe("PolicyQuery").optional(),
+  }).describe("Required. The PolicyQuery the Setting applies to.").optional(),
   setting: z.object({
     type: z.string().describe("Required. Immutable. The type of the Setting..")
       .optional(),
     value: z.record(z.string(), z.string()).describe(
       "Required. The value of the Setting.",
     ).optional(),
-  }).describe("Setting").optional(),
+  }).describe("Required. The Setting configured by this Policy.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -233,7 +233,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Policies. Registered at `@swamp/gcp/cloudidentity/policies`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/policies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -402,6 +402,11 @@ export const model = {
       description: "Added: customer, policyQuery, setting",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -437,12 +442,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

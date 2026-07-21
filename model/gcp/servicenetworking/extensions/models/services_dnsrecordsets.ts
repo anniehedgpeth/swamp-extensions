@@ -157,7 +157,7 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe(
       "Required. The identifier of a supported record type.",
     ).optional(),
-  }).describe("Represents a DNS record set resource.").optional(),
+  }).describe("Required. The existing DNS record set to update.").optional(),
   newDnsRecordSet: z.object({
     data: z.array(z.string()).describe(
       "Required. As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) for examples see https://cloud.google.com/dns/records/json-record.",
@@ -171,7 +171,9 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe(
       "Required. The identifier of a supported record type.",
     ).optional(),
-  }).describe("Represents a DNS record set resource.").optional(),
+  }).describe(
+    "Required. The new values that the DNS record set should be updated to hold.",
+  ).optional(),
   zone: z.string().describe(
     "Required. The name of the private DNS zone in the shared producer host project from which the record set will be removed.",
   ).optional(),
@@ -211,7 +213,7 @@ const InputsSchema = z.object({
     type: z.string().describe(
       "Required. The identifier of a supported record type.",
     ).optional(),
-  }).describe("Represents a DNS record set resource.").optional(),
+  }).describe("Required. The existing DNS record set to update.").optional(),
   newDnsRecordSet: z.object({
     data: z.array(z.string()).describe(
       "Required. As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) for examples see https://cloud.google.com/dns/records/json-record.",
@@ -225,7 +227,9 @@ const InputsSchema = z.object({
     type: z.string().describe(
       "Required. The identifier of a supported record type.",
     ).optional(),
-  }).describe("Represents a DNS record set resource.").optional(),
+  }).describe(
+    "Required. The new values that the DNS record set should be updated to hold.",
+  ).optional(),
   zone: z.string().describe(
     "Required. The name of the private DNS zone in the shared producer host project from which the record set will be removed.",
   ).optional(),
@@ -257,7 +261,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Networking Services.DnsRecordSets. Registered at `@swamp/gcp/servicenetworking/services-dnsrecordsets`. */
 export const model = {
   type: "@swamp/gcp/servicenetworking/services-dnsrecordsets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -346,6 +350,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

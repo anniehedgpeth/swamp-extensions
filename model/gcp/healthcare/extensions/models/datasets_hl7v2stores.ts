@@ -209,7 +209,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Determines how unexpected segments (segments not matched to the schema) are handled.",
       ).optional(),
     }).describe(
-      "A schema package contains a set of schemas and type definitions.",
+      "Optional. Schemas used to parse messages in this store, if schematized parsing is desired.",
     ).optional(),
     segmentTerminator: z.string().describe(
       "Optional. Byte(s) to use as the segment terminator. If this is unset, '\\r' is used as segment terminator, matching the HL7 version 2 specification.",
@@ -218,7 +218,7 @@ const GlobalArgsSchema = z.object({
       "Immutable. Determines the version of both the default parser to be used when `schema` is not given, as well as the schematized parser used when `schema` is specified. This field is immutable after HL7v2 store creation.",
     ).optional(),
   }).describe(
-    "The configuration for the parser. It determines how the server parses the messages.",
+    "Optional. The configuration for the parser. It determines how the server parses the messages.",
   ).optional(),
   rejectDuplicateMessage: z.boolean().describe(
     "Optional. Determines whether to reject duplicate messages. A duplicate message is a message with the same raw bytes as a message that has already been ingested/created in this HL7v2 store. The default value is false, meaning that the store accepts the duplicate messages and it also returns the same ACK message in the IngestMessageResponse as has been returned previously. Note that only one resource is created in the store. When this field is set to true, CreateMessage/IngestMessage requests with a duplicate message will be rejected by the store, and IngestMessageErrorDetail returns a NACK message upon rejection.",
@@ -328,7 +328,7 @@ const InputsSchema = z.object({
         "Optional. Determines how unexpected segments (segments not matched to the schema) are handled.",
       ).optional(),
     }).describe(
-      "A schema package contains a set of schemas and type definitions.",
+      "Optional. Schemas used to parse messages in this store, if schematized parsing is desired.",
     ).optional(),
     segmentTerminator: z.string().describe(
       "Optional. Byte(s) to use as the segment terminator. If this is unset, '\\r' is used as segment terminator, matching the HL7 version 2 specification.",
@@ -337,7 +337,7 @@ const InputsSchema = z.object({
       "Immutable. Determines the version of both the default parser to be used when `schema` is not given, as well as the schematized parser used when `schema` is specified. This field is immutable after HL7v2 store creation.",
     ).optional(),
   }).describe(
-    "The configuration for the parser. It determines how the server parses the messages.",
+    "Optional. The configuration for the parser. It determines how the server parses the messages.",
   ).optional(),
   rejectDuplicateMessage: z.boolean().describe(
     "Optional. Determines whether to reject duplicate messages. A duplicate message is a message with the same raw bytes as a message that has already been ingested/created in this HL7v2 store. The default value is false, meaning that the store accepts the duplicate messages and it also returns the same ACK message in the IngestMessageResponse as has been returned previously. Note that only one resource is created in the store. When this field is set to true, CreateMessage/IngestMessage requests with a duplicate message will be rejected by the store, and IngestMessageErrorDetail returns a NACK message upon rejection.",
@@ -376,7 +376,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Healthcare Datasets.Hl7V2Stores. Registered at `@swamp/gcp/healthcare/datasets-hl7v2stores`. */
 export const model = {
   type: "@swamp/gcp/healthcare/datasets-hl7v2stores",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -485,6 +485,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

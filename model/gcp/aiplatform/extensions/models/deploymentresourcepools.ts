@@ -212,12 +212,14 @@ const GlobalArgsSchema = z.object({
             "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
           ).optional(),
         }).describe(
-          "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+          "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
         ).optional(),
         tpuTopology: z.string().describe(
           'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
         ).optional(),
-      }).describe("Specification of a single machine.").optional(),
+      }).describe(
+        "Required. Immutable. The specification of a single machine being used.",
+      ).optional(),
       maxReplicaCount: z.number().int().describe(
         "Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, will use min_replica_count as the default value. The value of this field impacts the charge against Agent Platform CPU and GPU quotas. Specifically, you will be charged for (max_replica_count * number of cores in the selected machine type) and (max_replica_count * number of GPUs per replica in the selected machine type).",
       ).optional(),
@@ -231,7 +233,7 @@ const GlobalArgsSchema = z.object({
         "Optional. If true, schedule the deployment workload on [spot VMs](https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms).",
       ).optional(),
     }).describe(
-      "A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.",
+      "Required. The underlying DedicatedResources that the DeploymentResourcePool uses.",
     ).optional(),
     disableContainerLogging: z.boolean().describe(
       "If the DeploymentResourcePool is deployed with custom-trained Models or AutoML Tabular Models, the container(s) of the DeploymentResourcePool will send `stderr` and `stdout` streams to Cloud Logging by default. Please note that the logs incur cost, which are subject to [Cloud Logging pricing](https://cloud.google.com/logging/pricing). User can disable container logging by setting this flag to true.",
@@ -241,7 +243,7 @@ const GlobalArgsSchema = z.object({
         "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
       ).optional(),
     }).describe(
-      "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+      "Customer-managed encryption key spec for a DeploymentResourcePool. If set, this DeploymentResourcePool will be secured by this key. Endpoints and the DeploymentResourcePool they deploy in need to have the same EncryptionSpec.",
     ).optional(),
     name: z.string().describe(
       "Immutable. The resource name of the DeploymentResourcePool. Format: `projects/{project}/locations/{location}/deploymentResourcePools/{deployment_resource_pool}`",
@@ -253,9 +255,7 @@ const GlobalArgsSchema = z.object({
     serviceAccount: z.string().describe(
       "The service account that the DeploymentResourcePool's container(s) run as. Specify the email address of the service account. If this service account is not specified, the container(s) run as a service account that doesn't have access to the resource project. Users deploying the Models to this DeploymentResourcePool must have the `iam.serviceAccounts.actAs` permission on this service account.",
     ).optional(),
-  }).describe(
-    "A description of resources that can be shared by multiple DeployedModels, whose underlying specification consists of a DedicatedResources.",
-  ).optional(),
+  }).describe("Required. The DeploymentResourcePool to create.").optional(),
   deploymentResourcePoolId: z.string().describe(
     "Required. The ID to use for the DeploymentResourcePool, which will become the final component of the DeploymentResourcePool's resource name. The maximum length is 63 characters, and valid characters are `/^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/`.",
   ).optional(),
@@ -321,12 +321,14 @@ const GlobalArgsSchema = z.object({
           "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
         ).optional(),
       }).describe(
-        "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+        "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
       ).optional(),
       tpuTopology: z.string().describe(
         'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
       ).optional(),
-    }).describe("Specification of a single machine.").optional(),
+    }).describe(
+      "Required. Immutable. The specification of a single machine being used.",
+    ).optional(),
     maxReplicaCount: z.number().int().describe(
       "Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, will use min_replica_count as the default value. The value of this field impacts the charge against Agent Platform CPU and GPU quotas. Specifically, you will be charged for (max_replica_count * number of cores in the selected machine type) and (max_replica_count * number of GPUs per replica in the selected machine type).",
     ).optional(),
@@ -340,7 +342,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If true, schedule the deployment workload on [spot VMs](https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms).",
     ).optional(),
   }).describe(
-    "A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.",
+    "Required. The underlying DedicatedResources that the DeploymentResourcePool uses.",
   ).optional(),
   disableContainerLogging: z.boolean().describe(
     "If the DeploymentResourcePool is deployed with custom-trained Models or AutoML Tabular Models, the container(s) of the DeploymentResourcePool will send `stderr` and `stdout` streams to Cloud Logging by default. Please note that the logs incur cost, which are subject to [Cloud Logging pricing](https://cloud.google.com/logging/pricing). User can disable container logging by setting this flag to true.",
@@ -350,7 +352,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for a DeploymentResourcePool. If set, this DeploymentResourcePool will be secured by this key. Endpoints and the DeploymentResourcePool they deploy in need to have the same EncryptionSpec.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the DeploymentResourcePool. Format: `projects/{project}/locations/{location}/deploymentResourcePools/{deployment_resource_pool}`",
@@ -471,12 +473,14 @@ const InputsSchema = z.object({
             "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
           ).optional(),
         }).describe(
-          "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+          "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
         ).optional(),
         tpuTopology: z.string().describe(
           'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
         ).optional(),
-      }).describe("Specification of a single machine.").optional(),
+      }).describe(
+        "Required. Immutable. The specification of a single machine being used.",
+      ).optional(),
       maxReplicaCount: z.number().int().describe(
         "Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, will use min_replica_count as the default value. The value of this field impacts the charge against Agent Platform CPU and GPU quotas. Specifically, you will be charged for (max_replica_count * number of cores in the selected machine type) and (max_replica_count * number of GPUs per replica in the selected machine type).",
       ).optional(),
@@ -490,7 +494,7 @@ const InputsSchema = z.object({
         "Optional. If true, schedule the deployment workload on [spot VMs](https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms).",
       ).optional(),
     }).describe(
-      "A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.",
+      "Required. The underlying DedicatedResources that the DeploymentResourcePool uses.",
     ).optional(),
     disableContainerLogging: z.boolean().describe(
       "If the DeploymentResourcePool is deployed with custom-trained Models or AutoML Tabular Models, the container(s) of the DeploymentResourcePool will send `stderr` and `stdout` streams to Cloud Logging by default. Please note that the logs incur cost, which are subject to [Cloud Logging pricing](https://cloud.google.com/logging/pricing). User can disable container logging by setting this flag to true.",
@@ -500,7 +504,7 @@ const InputsSchema = z.object({
         "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
       ).optional(),
     }).describe(
-      "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+      "Customer-managed encryption key spec for a DeploymentResourcePool. If set, this DeploymentResourcePool will be secured by this key. Endpoints and the DeploymentResourcePool they deploy in need to have the same EncryptionSpec.",
     ).optional(),
     name: z.string().describe(
       "Immutable. The resource name of the DeploymentResourcePool. Format: `projects/{project}/locations/{location}/deploymentResourcePools/{deployment_resource_pool}`",
@@ -512,9 +516,7 @@ const InputsSchema = z.object({
     serviceAccount: z.string().describe(
       "The service account that the DeploymentResourcePool's container(s) run as. Specify the email address of the service account. If this service account is not specified, the container(s) run as a service account that doesn't have access to the resource project. Users deploying the Models to this DeploymentResourcePool must have the `iam.serviceAccounts.actAs` permission on this service account.",
     ).optional(),
-  }).describe(
-    "A description of resources that can be shared by multiple DeployedModels, whose underlying specification consists of a DedicatedResources.",
-  ).optional(),
+  }).describe("Required. The DeploymentResourcePool to create.").optional(),
   deploymentResourcePoolId: z.string().describe(
     "Required. The ID to use for the DeploymentResourcePool, which will become the final component of the DeploymentResourcePool's resource name. The maximum length is 63 characters, and valid characters are `/^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/`.",
   ).optional(),
@@ -580,12 +582,14 @@ const InputsSchema = z.object({
           "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
         ).optional(),
       }).describe(
-        "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+        "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
       ).optional(),
       tpuTopology: z.string().describe(
         'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
       ).optional(),
-    }).describe("Specification of a single machine.").optional(),
+    }).describe(
+      "Required. Immutable. The specification of a single machine being used.",
+    ).optional(),
     maxReplicaCount: z.number().int().describe(
       "Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, will use min_replica_count as the default value. The value of this field impacts the charge against Agent Platform CPU and GPU quotas. Specifically, you will be charged for (max_replica_count * number of cores in the selected machine type) and (max_replica_count * number of GPUs per replica in the selected machine type).",
     ).optional(),
@@ -599,7 +603,7 @@ const InputsSchema = z.object({
       "Optional. If true, schedule the deployment workload on [spot VMs](https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms).",
     ).optional(),
   }).describe(
-    "A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.",
+    "Required. The underlying DedicatedResources that the DeploymentResourcePool uses.",
   ).optional(),
   disableContainerLogging: z.boolean().describe(
     "If the DeploymentResourcePool is deployed with custom-trained Models or AutoML Tabular Models, the container(s) of the DeploymentResourcePool will send `stderr` and `stdout` streams to Cloud Logging by default. Please note that the logs incur cost, which are subject to [Cloud Logging pricing](https://cloud.google.com/logging/pricing). User can disable container logging by setting this flag to true.",
@@ -609,7 +613,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for a DeploymentResourcePool. If set, this DeploymentResourcePool will be secured by this key. Endpoints and the DeploymentResourcePool they deploy in need to have the same EncryptionSpec.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the DeploymentResourcePool. Format: `projects/{project}/locations/{location}/deploymentResourcePools/{deployment_resource_pool}`",
@@ -649,7 +653,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform DeploymentResourcePools. Registered at `@swamp/gcp/aiplatform/deploymentresourcepools`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/deploymentresourcepools",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -793,6 +797,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

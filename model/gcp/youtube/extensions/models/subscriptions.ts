@@ -164,8 +164,9 @@ const GlobalArgsSchema = z.object({
     totalItemCount: z.number().int().describe(
       "The approximate number of items that the subscription points to.",
     ).optional(),
-  }).describe("Details about the content to witch a subscription refers.")
-    .optional(),
+  }).describe(
+    "The contentDetails object contains basic statistics about the subscription.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the subscription.",
   ).optional(),
@@ -189,7 +190,7 @@ const GlobalArgsSchema = z.object({
         "The ID that YouTube uses to uniquely identify the referred resource, if that resource is a video. This property is only present if the resourceId.kind value is youtube#video.",
       ).optional(),
     }).describe(
-      "A resource id is a generic reference that points to another YouTube resource.",
+      "The id object contains information about the channel that the user subscribed to.",
     ).optional(),
     thumbnails: z.object({
       default: z.object({
@@ -200,8 +201,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -210,8 +210,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -220,7 +219,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -230,8 +229,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -240,13 +238,13 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe("The subscription's title.").optional(),
   }).describe(
-    "Basic details about a subscription, including title, description and thumbnails of the subscribed item.",
+    "The snippet object contains basic details about the subscription, including its title and the channel that the user subscribed to.",
   ).optional(),
   subscriberSnippet: z.object({
     channelId: z.string().describe("The channel ID of the subscriber.")
@@ -262,8 +260,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -272,8 +269,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -282,7 +278,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -292,8 +288,7 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -302,13 +297,11 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe("Thumbnails for this subscriber.").optional(),
     title: z.string().describe("The title of the subscriber.").optional(),
   }).describe(
-    "Basic details about a subscription's subscriber including title, description, channel ID and thumbnails.",
+    "The subscriberSnippet object contains basic details about the subscriber.",
   ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
@@ -419,8 +412,9 @@ const InputsSchema = z.object({
     totalItemCount: z.number().int().describe(
       "The approximate number of items that the subscription points to.",
     ).optional(),
-  }).describe("Details about the content to witch a subscription refers.")
-    .optional(),
+  }).describe(
+    "The contentDetails object contains basic statistics about the subscription.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube uses to uniquely identify the subscription.",
   ).optional(),
@@ -444,7 +438,7 @@ const InputsSchema = z.object({
         "The ID that YouTube uses to uniquely identify the referred resource, if that resource is a video. This property is only present if the resourceId.kind value is youtube#video.",
       ).optional(),
     }).describe(
-      "A resource id is a generic reference that points to another YouTube resource.",
+      "The id object contains information about the channel that the user subscribed to.",
     ).optional(),
     thumbnails: z.object({
       default: z.object({
@@ -455,8 +449,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -465,8 +458,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -475,7 +467,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -485,8 +477,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -495,13 +486,13 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe(
+      "A map of thumbnail images associated with the video. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail.",
+    ).optional(),
     title: z.string().describe("The subscription's title.").optional(),
   }).describe(
-    "Basic details about a subscription, including title, description and thumbnails of the subscribed item.",
+    "The snippet object contains basic details about the subscription, including its title and the channel that the user subscribed to.",
   ).optional(),
   subscriberSnippet: z.object({
     channelId: z.string().describe("The channel ID of the subscriber.")
@@ -517,8 +508,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The default image for this resource.").optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -527,8 +517,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The high quality image for this resource.").optional(),
       maxres: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -537,7 +526,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
+      }).describe("The maximum resolution quality image for this resource.")
         .optional(),
       medium: z.object({
         height: z.number().int().describe(
@@ -547,8 +536,7 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
+      }).describe("The medium quality image for this resource.").optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -557,13 +545,11 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "(Optional) Width of the thumbnail image.",
         ).optional(),
-      }).describe("A thumbnail is an image representing a YouTube resource.")
-        .optional(),
-    }).describe("Internal representation of thumbnails for a YouTube resource.")
-      .optional(),
+      }).describe("The standard quality image for this resource.").optional(),
+    }).describe("Thumbnails for this subscriber.").optional(),
     title: z.string().describe("The title of the subscriber.").optional(),
   }).describe(
-    "Basic details about a subscription's subscriber including title, description, channel ID and thumbnails.",
+    "The subscriberSnippet object contains basic details about the subscriber.",
   ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include.",
@@ -593,7 +579,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Subscriptions. Registered at `@swamp/gcp/youtube/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/youtube/subscriptions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -680,6 +666,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -718,12 +709,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

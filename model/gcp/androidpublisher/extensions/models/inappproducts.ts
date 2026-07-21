@@ -191,7 +191,9 @@ const GlobalArgsSchema = z.object({
     priceMicros: z.string().describe(
       "Price in 1/million of the currency base unit, represented as a string.",
     ).optional(),
-  }).describe("Definition of a price, i.e. currency and units.").optional(),
+  }).describe(
+    "Default price. Cannot be zero, as in-app products are never free. Always in the developer's Checkout merchant currency.",
+  ).optional(),
   gracePeriod: z.string().describe(
     "Grace period of the subscription, specified in ISO 8601 format. Allows developers to give their subscribers a grace period when the payment for the new recurrence period is declined. Acceptable values are P0D (zero days), P3D (three days), P7D (seven days), P14D (14 days), and P30D (30 days).",
   ).optional(),
@@ -269,7 +271,7 @@ const GlobalArgsSchema = z.object({
       'A mapping from region code to tax rate details. The keys are region codes as defined by Unicode\'s "CLDR".',
     ).optional(),
   }).describe(
-    "Details about taxation and legal compliance for managed products.",
+    "Details about taxes and legal compliance. Only applicable to managed products.",
   ).optional(),
   packageName: z.string().describe("Package name of the parent app.")
     .optional(),
@@ -362,7 +364,7 @@ const GlobalArgsSchema = z.object({
       'A mapping from region code to tax rate details. The keys are region codes as defined by Unicode\'s "CLDR".',
     ).optional(),
   }).describe(
-    "Details about taxation, Google Play policy, and legal compliance for subscription products.",
+    "Details about taxes and legal compliance. Only applicable to subscription products.",
   ).optional(),
   trialPeriod: z.string().describe(
     "Trial period, specified in ISO 8601 format. Acceptable values are anything between P7D (seven days) and P999D (999 days).",
@@ -427,7 +429,9 @@ const InputsSchema = z.object({
     priceMicros: z.string().describe(
       "Price in 1/million of the currency base unit, represented as a string.",
     ).optional(),
-  }).describe("Definition of a price, i.e. currency and units.").optional(),
+  }).describe(
+    "Default price. Cannot be zero, as in-app products are never free. Always in the developer's Checkout merchant currency.",
+  ).optional(),
   gracePeriod: z.string().describe(
     "Grace period of the subscription, specified in ISO 8601 format. Allows developers to give their subscribers a grace period when the payment for the new recurrence period is declined. Acceptable values are P0D (zero days), P3D (three days), P7D (seven days), P14D (14 days), and P30D (30 days).",
   ).optional(),
@@ -505,7 +509,7 @@ const InputsSchema = z.object({
       'A mapping from region code to tax rate details. The keys are region codes as defined by Unicode\'s "CLDR".',
     ).optional(),
   }).describe(
-    "Details about taxation and legal compliance for managed products.",
+    "Details about taxes and legal compliance. Only applicable to managed products.",
   ).optional(),
   packageName: z.string().describe("Package name of the parent app.")
     .optional(),
@@ -598,7 +602,7 @@ const InputsSchema = z.object({
       'A mapping from region code to tax rate details. The keys are region codes as defined by Unicode\'s "CLDR".',
     ).optional(),
   }).describe(
-    "Details about taxation, Google Play policy, and legal compliance for subscription products.",
+    "Details about taxes and legal compliance. Only applicable to subscription products.",
   ).optional(),
   trialPeriod: z.string().describe(
     "Trial period, specified in ISO 8601 format. Acceptable values are anything between P7D (seven days) and P999D (999 days).",
@@ -631,7 +635,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Inappproducts. Registered at `@swamp/gcp/androidpublisher/inappproducts`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/inappproducts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -723,6 +727,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -790,12 +799,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "packageName": String(g["packageName"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

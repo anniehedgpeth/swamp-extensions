@@ -176,7 +176,7 @@ const GlobalArgsSchema = z.object({
     enabled: z.boolean().describe(
       "Whether this campaign has enabled ad blocking. When true, ad blocking is enabled for placements in the campaign, but this may be overridden by site and placement settings. When false, ad blocking is disabled for all placements under the campaign, regardless of site and placement settings.",
     ).optional(),
-  }).describe("Campaign ad blocking settings.").optional(),
+  }).describe("Ad blocking settings for this campaign.").optional(),
   additionalCreativeOptimizationConfigurations: z.array(z.object({
     id: z.string().describe(
       "ID of this creative optimization config. This field is auto-generated when the campaign is inserted or updated. It can be null for existing campaigns.",
@@ -204,7 +204,9 @@ const GlobalArgsSchema = z.object({
           "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
         ).optional(),
         value: z.unknown().describe("The value of the dimension.").optional(),
-      }).describe("Represents a DimensionValue resource.").optional(),
+      }).describe(
+        "Dimension value for the ID of the floodlight activity. This is a read-only, auto-generated field.",
+      ).optional(),
       weight: z.number().int().describe(
         "Weight associated with this optimization. The weight assigned will be understood in proportion to the weights assigned to the other optimization activities. Value must be greater than or equal to 1.",
       ).optional(),
@@ -245,7 +247,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the advertiser ID of this campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   archived: z.boolean().describe("Whether this campaign has been archived.")
     .optional(),
   audienceSegmentGroups: z.array(z.object({
@@ -281,7 +285,8 @@ const GlobalArgsSchema = z.object({
     overrideInheritedSuffix: z.boolean().describe(
       "Whether this entity should override the inherited click-through URL suffix with its own defined value.",
     ).optional(),
-  }).describe("Click Through URL Suffix settings.").optional(),
+  }).describe("Click-through URL suffix override properties for this campaign.")
+    .optional(),
   comment: z.string().describe(
     "Arbitrary comments about this campaign. Must be less than 256 characters long.",
   ).optional(),
@@ -289,7 +294,9 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this campaign. This is a read-only field.",
+  ).optional(),
   creativeGroupIds: z.array(z.string()).describe(
     "List of creative group IDs that are assigned to the campaign.",
   ).optional(),
@@ -325,7 +332,9 @@ const GlobalArgsSchema = z.object({
           "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
         ).optional(),
         value: z.string().describe("The value of the dimension.").optional(),
-      }).describe("Represents a DimensionValue resource.").optional(),
+      }).describe(
+        "Dimension value for the ID of the floodlight activity. This is a read-only, auto-generated field.",
+      ).optional(),
       weight: z.number().int().describe(
         "Weight associated with this optimization. The weight assigned will be understood in proportion to the weights assigned to the other optimization activities. Value must be greater than or equal to 1.",
       ).optional(),
@@ -339,7 +348,8 @@ const GlobalArgsSchema = z.object({
       "POST_CLICK_AND_IMPRESSION",
       "VIDEO_COMPLETION",
     ]).describe("Optimization model for this configuration.").optional(),
-  }).describe("Creative optimization settings.").optional(),
+  }).describe("Creative optimization configuration for the campaign.")
+    .optional(),
   defaultClickThroughEventTagProperties: z.object({
     defaultClickThroughEventTagId: z.string().describe(
       "ID of the click-through event tag to apply to all ads in this entity's scope.",
@@ -348,7 +358,7 @@ const GlobalArgsSchema = z.object({
       "Whether this entity should override the inherited default click-through event tag with its own defined value.",
     ).optional(),
   }).describe(
-    "Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign's setting further.",
+    "Click-through event tag ID override properties for this campaign.",
   ).optional(),
   defaultLandingPageId: z.string().describe(
     "The default landing page ID for this campaign.",
@@ -391,12 +401,16 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this campaign. This is a read-only field.",
+  ).optional(),
   measurementPartnerLink: z.object({
     linkStatus: z.enum([
       "MEASUREMENT_PARTNER_UNLINKED",
@@ -414,7 +428,7 @@ const GlobalArgsSchema = z.object({
     partnerCampaignId: z.string().describe(
       "Partner campaign ID needed for establishing linking with Measurement partner.",
     ).optional(),
-  }).optional(),
+  }).describe("Measurement partner campaign link for tag wrapping.").optional(),
   name: z.string().describe(
     "Name of this campaign. This is a required field and must be less than 512 characters long and unique among campaigns of the same advertiser.",
   ).optional(),
@@ -545,7 +559,7 @@ const InputsSchema = z.object({
     enabled: z.boolean().describe(
       "Whether this campaign has enabled ad blocking. When true, ad blocking is enabled for placements in the campaign, but this may be overridden by site and placement settings. When false, ad blocking is disabled for all placements under the campaign, regardless of site and placement settings.",
     ).optional(),
-  }).describe("Campaign ad blocking settings.").optional(),
+  }).describe("Ad blocking settings for this campaign.").optional(),
   additionalCreativeOptimizationConfigurations: z.array(z.object({
     id: z.string().describe(
       "ID of this creative optimization config. This field is auto-generated when the campaign is inserted or updated. It can be null for existing campaigns.",
@@ -573,7 +587,9 @@ const InputsSchema = z.object({
           "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
         ).optional(),
         value: z.unknown().describe("The value of the dimension.").optional(),
-      }).describe("Represents a DimensionValue resource.").optional(),
+      }).describe(
+        "Dimension value for the ID of the floodlight activity. This is a read-only, auto-generated field.",
+      ).optional(),
       weight: z.number().int().describe(
         "Weight associated with this optimization. The weight assigned will be understood in proportion to the weights assigned to the other optimization activities. Value must be greater than or equal to 1.",
       ).optional(),
@@ -614,7 +630,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the advertiser ID of this campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   archived: z.boolean().describe("Whether this campaign has been archived.")
     .optional(),
   audienceSegmentGroups: z.array(z.object({
@@ -650,7 +668,8 @@ const InputsSchema = z.object({
     overrideInheritedSuffix: z.boolean().describe(
       "Whether this entity should override the inherited click-through URL suffix with its own defined value.",
     ).optional(),
-  }).describe("Click Through URL Suffix settings.").optional(),
+  }).describe("Click-through URL suffix override properties for this campaign.")
+    .optional(),
   comment: z.string().describe(
     "Arbitrary comments about this campaign. Must be less than 256 characters long.",
   ).optional(),
@@ -658,7 +677,9 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this campaign. This is a read-only field.",
+  ).optional(),
   creativeGroupIds: z.array(z.string()).describe(
     "List of creative group IDs that are assigned to the campaign.",
   ).optional(),
@@ -694,7 +715,9 @@ const InputsSchema = z.object({
           "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
         ).optional(),
         value: z.string().describe("The value of the dimension.").optional(),
-      }).describe("Represents a DimensionValue resource.").optional(),
+      }).describe(
+        "Dimension value for the ID of the floodlight activity. This is a read-only, auto-generated field.",
+      ).optional(),
       weight: z.number().int().describe(
         "Weight associated with this optimization. The weight assigned will be understood in proportion to the weights assigned to the other optimization activities. Value must be greater than or equal to 1.",
       ).optional(),
@@ -708,7 +731,8 @@ const InputsSchema = z.object({
       "POST_CLICK_AND_IMPRESSION",
       "VIDEO_COMPLETION",
     ]).describe("Optimization model for this configuration.").optional(),
-  }).describe("Creative optimization settings.").optional(),
+  }).describe("Creative optimization configuration for the campaign.")
+    .optional(),
   defaultClickThroughEventTagProperties: z.object({
     defaultClickThroughEventTagId: z.string().describe(
       "ID of the click-through event tag to apply to all ads in this entity's scope.",
@@ -717,7 +741,7 @@ const InputsSchema = z.object({
       "Whether this entity should override the inherited default click-through event tag with its own defined value.",
     ).optional(),
   }).describe(
-    "Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign's setting further.",
+    "Click-through event tag ID override properties for this campaign.",
   ).optional(),
   defaultLandingPageId: z.string().describe(
     "The default landing page ID for this campaign.",
@@ -760,12 +784,16 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   lastModifiedInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this campaign. This is a read-only field.",
+  ).optional(),
   measurementPartnerLink: z.object({
     linkStatus: z.enum([
       "MEASUREMENT_PARTNER_UNLINKED",
@@ -783,7 +811,7 @@ const InputsSchema = z.object({
     partnerCampaignId: z.string().describe(
       "Partner campaign ID needed for establishing linking with Measurement partner.",
     ).optional(),
-  }).optional(),
+  }).describe("Measurement partner campaign link for tag wrapping.").optional(),
   name: z.string().describe(
     "Name of this campaign. This is a required field and must be less than 512 characters long and unique among campaigns of the same advertiser.",
   ).optional(),
@@ -819,7 +847,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Campaigns. Registered at `@swamp/gcp/dfareporting/campaigns`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/campaigns",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -913,6 +941,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

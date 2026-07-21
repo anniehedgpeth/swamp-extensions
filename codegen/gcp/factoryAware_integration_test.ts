@@ -5,8 +5,8 @@
 
 import { assertEquals, assertRejects } from "@std/assert";
 import {
-  generateGcpExtensionModel,
   type GcpExtensionModelInput,
+  generateGcpExtensionModel,
 } from "./extensionModelGenerator.ts";
 import { generateGcpLibFile } from "./libGenerator.ts";
 import type { GcpMethodConfig, GcpParsedResource } from "./pipeline.ts";
@@ -32,7 +32,9 @@ function createMockGcpServer(): {
   const instances = new Map<string, MockInstance>();
   const state = {
     instances,
-    lastRequest: null as { method: string; path: string; body?: unknown } | null,
+    lastRequest: null as
+      | { method: string; path: string; body?: unknown }
+      | null,
   };
 
   const server = Deno.serve({ port: 0, onListen() {} }, async (req) => {
@@ -89,7 +91,9 @@ function createMockGcpServer(): {
       if (method === "DELETE") {
         const existed = instances.has(instanceName);
         instances.delete(instanceName);
-        return Response.json(existed ? { status: "DONE" } : { status: "NOT_FOUND" });
+        return Response.json(
+          existed ? { status: "DONE" } : { status: "NOT_FOUND" },
+        );
       }
     }
 
@@ -338,7 +342,8 @@ function createMockContext(globalArgs: Record<string, unknown>) {
 // The generated model dynamically imports the lib which creates connections
 // that outlive the test scope. sanitizeResources: false is required.
 Deno.test({
-  name: "factory-aware: list writes per-resource artifacts, update targets by identifier",
+  name:
+    "factory-aware: list writes per-resource artifacts, update targets by identifier",
   sanitizeResources: false,
   async fn() {
     const origToken = Deno.env.get("GCP_ACCESS_TOKEN");
@@ -388,9 +393,21 @@ Deno.test({
         (listResult as { result: { count: number } }).result.count,
         3,
       );
-      assertEquals(listArtifacts.has("web-1"), true, "list should write artifact for web-1");
-      assertEquals(listArtifacts.has("web-2"), true, "list should write artifact for web-2");
-      assertEquals(listArtifacts.has("web-3"), true, "list should write artifact for web-3");
+      assertEquals(
+        listArtifacts.has("web-1"),
+        true,
+        "list should write artifact for web-1",
+      );
+      assertEquals(
+        listArtifacts.has("web-2"),
+        true,
+        "list should write artifact for web-2",
+      );
+      assertEquals(
+        listArtifacts.has("web-3"),
+        true,
+        "list should write artifact for web-3",
+      );
 
       // --- Step 2: Update web-2 by identifier ---
       // Seed the data repo with list-written artifacts

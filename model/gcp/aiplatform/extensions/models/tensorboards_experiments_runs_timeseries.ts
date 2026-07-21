@@ -174,17 +174,6 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Required. User provided name of this TensorboardTimeSeries. This value should be unique among all TensorboardTimeSeries resources belonging to the same TensorboardRun resource (parent resource).",
   ).optional(),
-  metadata: z.object({
-    maxBlobSequenceLength: z.string().describe(
-      "Output only. The largest blob sequence length (number of blobs) of all data points in this time series, if its ValueType is BLOB_SEQUENCE.",
-    ).optional(),
-    maxStep: z.string().describe(
-      "Output only. Max step index of all data points within a TensorboardTimeSeries.",
-    ).optional(),
-    maxWallTime: z.string().describe(
-      "Output only. Max wall clock timestamp of all data points within a TensorboardTimeSeries.",
-    ).optional(),
-  }).describe("Describes metadata for a TensorboardTimeSeries.").optional(),
   pluginData: z.string().describe(
     "Data of the current plugin, with the size limited to 65KB.",
   ).optional(),
@@ -239,17 +228,6 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "Required. User provided name of this TensorboardTimeSeries. This value should be unique among all TensorboardTimeSeries resources belonging to the same TensorboardRun resource (parent resource).",
   ).optional(),
-  metadata: z.object({
-    maxBlobSequenceLength: z.string().describe(
-      "Output only. The largest blob sequence length (number of blobs) of all data points in this time series, if its ValueType is BLOB_SEQUENCE.",
-    ).optional(),
-    maxStep: z.string().describe(
-      "Output only. Max step index of all data points within a TensorboardTimeSeries.",
-    ).optional(),
-    maxWallTime: z.string().describe(
-      "Output only. Max wall clock timestamp of all data points within a TensorboardTimeSeries.",
-    ).optional(),
-  }).describe("Describes metadata for a TensorboardTimeSeries.").optional(),
   pluginData: z.string().describe(
     "Data of the current plugin, with the size limited to 65KB.",
   ).optional(),
@@ -297,7 +275,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Tensorboards.Experiments.Runs.TimeSeries. Registered at `@swamp/gcp/aiplatform/tensorboards-experiments-runs-timeseries`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/tensorboards-experiments-runs-timeseries",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -429,6 +407,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: metadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { metadata: _metadata, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -458,7 +444,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["pluginData"] !== undefined) body["pluginData"] = g["pluginData"];
         if (g["pluginName"] !== undefined) body["pluginName"] = g["pluginName"];
         if (g["valueType"] !== undefined) body["valueType"] = g["valueType"];
@@ -578,7 +563,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["pluginData"] !== undefined) body["pluginData"] = g["pluginData"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

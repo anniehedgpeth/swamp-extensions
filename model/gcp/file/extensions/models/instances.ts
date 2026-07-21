@@ -187,11 +187,9 @@ const GlobalArgsSchema = z.object({
       usersOu: z.string().describe(
         "Optional. The users Organizational Unit (OU) is optional. This parameter is a hint to allow faster lookup in the LDAP namespace. In case that this parameter is not provided, Filestore instance will query the whole LDAP namespace.",
       ).optional(),
-    }).describe(
-      "LdapConfig contains all the parameters for connecting to LDAP servers.",
-    ).optional(),
+    }).describe("Configuration for LDAP servers.").optional(),
   }).describe(
-    "Directory Services configuration for Kerberos-based authentication.",
+    'Optional. Directory Services configuration for Kerberos-based authentication. Should only be set if protocol is "NFS_V4_1".',
   ).optional(),
   fileShares: z.array(z.object({
     capacityGb: z.string().describe(
@@ -265,7 +263,9 @@ const GlobalArgsSchema = z.object({
       endpointProject: z.string().describe(
         "Optional. Consumer service project in which the Private Service Connect endpoint would be set up. This is optional, and only relevant in case the network is a shared VPC. If this is not specified, the endpoint would be setup in the VPC host project.",
       ).optional(),
-    }).describe("Private Service Connect configuration.").optional(),
+    }).describe(
+      "Optional. Private Service Connect configuration. Should only be set when connect_mode is PRIVATE_SERVICE_CONNECT.",
+    ).optional(),
     reservedIpRange: z.string().describe(
       "Optional, reserved_ip_range can have one of the following two types of values. * CIDR range value when using DIRECT_PEERING connect mode. * [Allocated IP address range](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-internal-ip-address) when using PRIVATE_SERVICE_ACCESS connect mode. When the name of an allocated IP address range is specified, it must be one of the ranges associated with the private service access connection. When specified as a direct CIDR value, it must be a /29 CIDR block for Basic tier, a /24 CIDR block for High Scale tier, or a /26 CIDR block for Enterprise tier in one of the [internal IP address ranges](https://www.arin.net/reference/research/statistics/address_filters/) that identifies the range of IP addresses reserved for this instance. For example, 10.0.0.0/29, 192.168.0.0/24 or 192.168.0.0/26, respectively. The range you specify can't overlap with either existing subnets or assigned IP address ranges for other Filestore instances in the selected VPC network.",
     ).optional(),
@@ -275,31 +275,16 @@ const GlobalArgsSchema = z.object({
   performanceConfig: z.object({
     fixedIops: z.object({
       maxIops: z.string().describe("Required. Maximum IOPS.").optional(),
-    }).describe("Fixed IOPS (input/output operations per second) parameters.")
-      .optional(),
+    }).describe(
+      "Choose a fixed provisioned IOPS value for the instance, which will remain constant regardless of instance capacity. Value must be a multiple of 1000. If the chosen value is outside the supported range for the instance's capacity during instance creation, instance creation will fail with an `InvalidArgument` error. Similarly, if an instance capacity update would result in a value outside the supported range, the update will fail with an `InvalidArgument` error.",
+    ).optional(),
     iopsPerTb: z.object({
       maxIopsPerTb: z.string().describe("Required. Maximum IOPS per TiB.")
         .optional(),
-    }).describe("IOPS per TB. Filestore defines TB as 1024^4 bytes (TiB).")
-      .optional(),
-  }).describe(
-    "Used for setting the performance configuration. If the user doesn't specify PerformanceConfig, automatically provision the default performance settings as described in https://cloud.google.com/filestore/docs/performance. Larger instances will be linearly set to more IOPS. If the instance's capacity is increased or decreased, its performance will be automatically adjusted upwards or downwards accordingly (respectively).",
-  ).optional(),
-  performanceLimits: z.object({
-    maxIops: z.string().describe("Output only. The maximum IOPS.").optional(),
-    maxReadIops: z.string().describe("Output only. The maximum read IOPS.")
-      .optional(),
-    maxReadThroughputBps: z.string().describe(
-      "Output only. The maximum read throughput in bytes per second.",
+    }).describe(
+      "Provision IOPS dynamically based on the capacity of the instance. Provisioned IOPS will be calculated by multiplying the capacity of the instance in TiB by the `iops_per_tb` value. For example, for a 2 TiB instance with an `iops_per_tb` value of 17000 the provisioned IOPS will be 34000. If the calculated value is outside the supported range for the instance's capacity during instance creation, instance creation will fail with an `InvalidArgument` error. Similarly, if an instance capacity update would result in a value outside the supported range, the update will fail with an `InvalidArgument` error.",
     ).optional(),
-    maxWriteIops: z.string().describe("Output only. The maximum write IOPS.")
-      .optional(),
-    maxWriteThroughputBps: z.string().describe(
-      "Output only. The maximum write throughput in bytes per second.",
-    ).optional(),
-  }).describe(
-    "The enforced performance limits, calculated from the instance's performance configuration.",
-  ).optional(),
+  }).describe("Optional. Used to configure performance.").optional(),
   protocol: z.enum(["FILE_PROTOCOL_UNSPECIFIED", "NFS_V3", "NFS_V4_1"])
     .describe(
       "Immutable. The protocol indicates the access protocol for all shares in the instance. This field is immutable and it cannot be changed after the instance has been created. Default value: `NFS_V3`.",
@@ -343,8 +328,7 @@ const GlobalArgsSchema = z.object({
     role: z.enum(["ROLE_UNSPECIFIED", "ACTIVE", "STANDBY"]).describe(
       "Optional. The replication role. When creating a new replica, this field must be set to `STANDBY`.",
     ).optional(),
-  }).describe("Optional. The configuration used to replicate an instance.")
-    .optional(),
+  }).describe("Optional. Replication configuration.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag key-value pairs bound to this resource. Each key must be a namespaced name and each value a short name. Example: "123456789012/environment": "production", "123456789013/costCenter": "marketing" See the documentation for more information: - Namespaced name: https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing#retrieving_tag_key - Short name: https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing#retrieving_tag_value',
   ).optional(),
@@ -478,11 +462,9 @@ const InputsSchema = z.object({
       usersOu: z.string().describe(
         "Optional. The users Organizational Unit (OU) is optional. This parameter is a hint to allow faster lookup in the LDAP namespace. In case that this parameter is not provided, Filestore instance will query the whole LDAP namespace.",
       ).optional(),
-    }).describe(
-      "LdapConfig contains all the parameters for connecting to LDAP servers.",
-    ).optional(),
+    }).describe("Configuration for LDAP servers.").optional(),
   }).describe(
-    "Directory Services configuration for Kerberos-based authentication.",
+    'Optional. Directory Services configuration for Kerberos-based authentication. Should only be set if protocol is "NFS_V4_1".',
   ).optional(),
   fileShares: z.array(z.object({
     capacityGb: z.string().describe(
@@ -556,7 +538,9 @@ const InputsSchema = z.object({
       endpointProject: z.string().describe(
         "Optional. Consumer service project in which the Private Service Connect endpoint would be set up. This is optional, and only relevant in case the network is a shared VPC. If this is not specified, the endpoint would be setup in the VPC host project.",
       ).optional(),
-    }).describe("Private Service Connect configuration.").optional(),
+    }).describe(
+      "Optional. Private Service Connect configuration. Should only be set when connect_mode is PRIVATE_SERVICE_CONNECT.",
+    ).optional(),
     reservedIpRange: z.string().describe(
       "Optional, reserved_ip_range can have one of the following two types of values. * CIDR range value when using DIRECT_PEERING connect mode. * [Allocated IP address range](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-internal-ip-address) when using PRIVATE_SERVICE_ACCESS connect mode. When the name of an allocated IP address range is specified, it must be one of the ranges associated with the private service access connection. When specified as a direct CIDR value, it must be a /29 CIDR block for Basic tier, a /24 CIDR block for High Scale tier, or a /26 CIDR block for Enterprise tier in one of the [internal IP address ranges](https://www.arin.net/reference/research/statistics/address_filters/) that identifies the range of IP addresses reserved for this instance. For example, 10.0.0.0/29, 192.168.0.0/24 or 192.168.0.0/26, respectively. The range you specify can't overlap with either existing subnets or assigned IP address ranges for other Filestore instances in the selected VPC network.",
     ).optional(),
@@ -566,31 +550,16 @@ const InputsSchema = z.object({
   performanceConfig: z.object({
     fixedIops: z.object({
       maxIops: z.string().describe("Required. Maximum IOPS.").optional(),
-    }).describe("Fixed IOPS (input/output operations per second) parameters.")
-      .optional(),
+    }).describe(
+      "Choose a fixed provisioned IOPS value for the instance, which will remain constant regardless of instance capacity. Value must be a multiple of 1000. If the chosen value is outside the supported range for the instance's capacity during instance creation, instance creation will fail with an `InvalidArgument` error. Similarly, if an instance capacity update would result in a value outside the supported range, the update will fail with an `InvalidArgument` error.",
+    ).optional(),
     iopsPerTb: z.object({
       maxIopsPerTb: z.string().describe("Required. Maximum IOPS per TiB.")
         .optional(),
-    }).describe("IOPS per TB. Filestore defines TB as 1024^4 bytes (TiB).")
-      .optional(),
-  }).describe(
-    "Used for setting the performance configuration. If the user doesn't specify PerformanceConfig, automatically provision the default performance settings as described in https://cloud.google.com/filestore/docs/performance. Larger instances will be linearly set to more IOPS. If the instance's capacity is increased or decreased, its performance will be automatically adjusted upwards or downwards accordingly (respectively).",
-  ).optional(),
-  performanceLimits: z.object({
-    maxIops: z.string().describe("Output only. The maximum IOPS.").optional(),
-    maxReadIops: z.string().describe("Output only. The maximum read IOPS.")
-      .optional(),
-    maxReadThroughputBps: z.string().describe(
-      "Output only. The maximum read throughput in bytes per second.",
+    }).describe(
+      "Provision IOPS dynamically based on the capacity of the instance. Provisioned IOPS will be calculated by multiplying the capacity of the instance in TiB by the `iops_per_tb` value. For example, for a 2 TiB instance with an `iops_per_tb` value of 17000 the provisioned IOPS will be 34000. If the calculated value is outside the supported range for the instance's capacity during instance creation, instance creation will fail with an `InvalidArgument` error. Similarly, if an instance capacity update would result in a value outside the supported range, the update will fail with an `InvalidArgument` error.",
     ).optional(),
-    maxWriteIops: z.string().describe("Output only. The maximum write IOPS.")
-      .optional(),
-    maxWriteThroughputBps: z.string().describe(
-      "Output only. The maximum write throughput in bytes per second.",
-    ).optional(),
-  }).describe(
-    "The enforced performance limits, calculated from the instance's performance configuration.",
-  ).optional(),
+  }).describe("Optional. Used to configure performance.").optional(),
   protocol: z.enum(["FILE_PROTOCOL_UNSPECIFIED", "NFS_V3", "NFS_V4_1"])
     .describe(
       "Immutable. The protocol indicates the access protocol for all shares in the instance. This field is immutable and it cannot be changed after the instance has been created. Default value: `NFS_V3`.",
@@ -634,8 +603,7 @@ const InputsSchema = z.object({
     role: z.enum(["ROLE_UNSPECIFIED", "ACTIVE", "STANDBY"]).describe(
       "Optional. The replication role. When creating a new replica, this field must be set to `STANDBY`.",
     ).optional(),
-  }).describe("Optional. The configuration used to replicate an instance.")
-    .optional(),
+  }).describe("Optional. Replication configuration.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag key-value pairs bound to this resource. Each key must be a namespaced name and each value a short name. Example: "123456789012/environment": "production", "123456789013/costCenter": "marketing" See the documentation for more information: - Namespaced name: https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing#retrieving_tag_key - Short name: https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing#retrieving_tag_value',
   ).optional(),
@@ -681,7 +649,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Filestore Instances. Registered at `@swamp/gcp/file/instances`. */
 export const model = {
   type: "@swamp/gcp/file/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -793,6 +761,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: performanceLimits",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { performanceLimits: _performanceLimits, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -840,9 +816,6 @@ export const model = {
         if (g["performanceConfig"] !== undefined) {
           body["performanceConfig"] = g["performanceConfig"];
         }
-        if (g["performanceLimits"] !== undefined) {
-          body["performanceLimits"] = g["performanceLimits"];
-        }
         if (g["protocol"] !== undefined) body["protocol"] = g["protocol"];
         if (g["replication"] !== undefined) {
           body["replication"] = g["replication"];
@@ -871,16 +844,7 @@ export const model = {
               "failedValues": ["ERROR"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -989,9 +953,6 @@ export const model = {
         if (g["networks"] !== undefined) body["networks"] = g["networks"];
         if (g["performanceConfig"] !== undefined) {
           body["performanceConfig"] = g["performanceConfig"];
-        }
-        if (g["performanceLimits"] !== undefined) {
-          body["performanceLimits"] = g["performanceLimits"];
         }
         if (g["replication"] !== undefined) {
           body["replication"] = g["replication"];

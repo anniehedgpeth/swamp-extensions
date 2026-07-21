@@ -194,9 +194,7 @@ const GlobalArgsSchema = z.object({
       "networkReceived",
       "graphicsFrameRate",
     ]).optional(),
-  }).describe(
-    "Encapsulates the metadata for basic sample series represented by a line chart",
-  ).optional(),
+  }).describe("Basic series represented by a line chart").optional(),
   executionId: z.string().describe("A tool results execution ID. @OutputOnly")
     .optional(),
   historyId: z.string().describe("A tool results history ID. @OutputOnly")
@@ -259,9 +257,7 @@ const InputsSchema = z.object({
       "networkReceived",
       "graphicsFrameRate",
     ]).optional(),
-  }).describe(
-    "Encapsulates the metadata for basic sample series represented by a line chart",
-  ).optional(),
+  }).describe("Basic series represented by a line chart").optional(),
   executionId: z.string().describe("A tool results execution ID. @OutputOnly")
     .optional(),
   historyId: z.string().describe("A tool results history ID. @OutputOnly")
@@ -295,7 +291,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tool Results Histories.Executions.Steps.PerfSampleSeries. Registered at `@swamp/gcp/toolresults/histories-executions-steps-perfsampleseries`. */
 export const model = {
   type: "@swamp/gcp/toolresults/histories-executions-steps-perfsampleseries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -387,6 +383,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -432,17 +433,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "historyId": String(g["historyId"] ?? ""),
-              "executionId": String(g["executionId"] ?? ""),
-              "stepId": String(g["stepId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

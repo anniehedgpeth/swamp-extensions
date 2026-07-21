@@ -187,7 +187,7 @@ const GlobalArgsSchema = z.object({
           "Set ID for segments that can be in a set. This can be empty if it's missing or isn't applicable.",
         ).optional(),
       })).optional(),
-    }).describe("The content of a HL7v2 message in a structured format.")
+    }).describe("Output only. The parsed version of the raw message data.")
       .optional(),
     patientIds: z.array(z.object({
       type: z.string().describe("ID type. For example, MRN or NHS.").optional(),
@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
       data: z.string().describe("JSON output of the parser.").optional(),
       error: z.string().describe("The error output of the parser.").optional(),
     }).describe(
-      "The content of an HL7v2 message in a structured format as specified by a schema.",
+      "Output only. The parsed version of the raw message data schematized according to this store's schemas and type definitions.",
     ).optional(),
     sendFacility: z.string().describe(
       "Output only. The hospital that this message came from. MSH-4.",
@@ -207,9 +207,7 @@ const GlobalArgsSchema = z.object({
     sendTime: z.string().describe(
       "Output only. The datetime the sending application sent this message. MSH-7.",
     ).optional(),
-  }).describe(
-    "A complete HL7v2 message. See [Introduction to HL7 Standards] (https://www.hl7.org/implement/standards/index.cfm?ref=common) for details on the standard.",
-  ).optional(),
+  }).describe("Required. HL7v2 message.").optional(),
   createTime: z.string().describe(
     "Output only. The datetime when the message was created. Set by the server.",
   ).optional(),
@@ -235,7 +233,7 @@ const GlobalArgsSchema = z.object({
         "Set ID for segments that can be in a set. This can be empty if it's missing or isn't applicable.",
       ).optional(),
     })).optional(),
-  }).describe("The content of a HL7v2 message in a structured format.")
+  }).describe("Output only. The parsed version of the raw message data.")
     .optional(),
   patientIds: z.array(z.object({
     type: z.string().describe("ID type. For example, MRN or NHS.").optional(),
@@ -247,7 +245,7 @@ const GlobalArgsSchema = z.object({
     data: z.string().describe("JSON output of the parser.").optional(),
     error: z.string().describe("The error output of the parser.").optional(),
   }).describe(
-    "The content of an HL7v2 message in a structured format as specified by a schema.",
+    "Output only. The parsed version of the raw message data schematized according to this store's schemas and type definitions.",
   ).optional(),
   sendFacility: z.string().describe(
     "Output only. The hospital that this message came from. MSH-4.",
@@ -321,7 +319,7 @@ const InputsSchema = z.object({
           "Set ID for segments that can be in a set. This can be empty if it's missing or isn't applicable.",
         ).optional(),
       })).optional(),
-    }).describe("The content of a HL7v2 message in a structured format.")
+    }).describe("Output only. The parsed version of the raw message data.")
       .optional(),
     patientIds: z.array(z.object({
       type: z.string().describe("ID type. For example, MRN or NHS.").optional(),
@@ -333,7 +331,7 @@ const InputsSchema = z.object({
       data: z.string().describe("JSON output of the parser.").optional(),
       error: z.string().describe("The error output of the parser.").optional(),
     }).describe(
-      "The content of an HL7v2 message in a structured format as specified by a schema.",
+      "Output only. The parsed version of the raw message data schematized according to this store's schemas and type definitions.",
     ).optional(),
     sendFacility: z.string().describe(
       "Output only. The hospital that this message came from. MSH-4.",
@@ -341,9 +339,7 @@ const InputsSchema = z.object({
     sendTime: z.string().describe(
       "Output only. The datetime the sending application sent this message. MSH-7.",
     ).optional(),
-  }).describe(
-    "A complete HL7v2 message. See [Introduction to HL7 Standards] (https://www.hl7.org/implement/standards/index.cfm?ref=common) for details on the standard.",
-  ).optional(),
+  }).describe("Required. HL7v2 message.").optional(),
   createTime: z.string().describe(
     "Output only. The datetime when the message was created. Set by the server.",
   ).optional(),
@@ -369,7 +365,7 @@ const InputsSchema = z.object({
         "Set ID for segments that can be in a set. This can be empty if it's missing or isn't applicable.",
       ).optional(),
     })).optional(),
-  }).describe("The content of a HL7v2 message in a structured format.")
+  }).describe("Output only. The parsed version of the raw message data.")
     .optional(),
   patientIds: z.array(z.object({
     type: z.string().describe("ID type. For example, MRN or NHS.").optional(),
@@ -381,7 +377,7 @@ const InputsSchema = z.object({
     data: z.string().describe("JSON output of the parser.").optional(),
     error: z.string().describe("The error output of the parser.").optional(),
   }).describe(
-    "The content of an HL7v2 message in a structured format as specified by a schema.",
+    "Output only. The parsed version of the raw message data schematized according to this store's schemas and type definitions.",
   ).optional(),
   sendFacility: z.string().describe(
     "Output only. The hospital that this message came from. MSH-4.",
@@ -420,7 +416,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Healthcare Datasets.Hl7V2Stores.Messages. Registered at `@swamp/gcp/healthcare/datasets-hl7v2stores-messages`. */
 export const model = {
   type: "@swamp/gcp/healthcare/datasets-hl7v2stores-messages",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -529,6 +525,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

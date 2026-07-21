@@ -176,15 +176,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  accessUrls: z.object({
-    caCertificateAccessUrl: z.string().describe(
-      "The URL where this CertificateAuthority's CA certificate is published. This will only be set for CAs that have been activated.",
-    ).optional(),
-    crlAccessUrls: z.array(z.string()).describe(
-      "The URLs where this CertificateAuthority's CRLs are published. This will only be set for CAs that have been activated.",
-    ).optional(),
-  }).describe("URLs where a CertificateAuthority will publish content.")
-    .optional(),
   config: z.object({
     publicKey: z.object({
       format: z.enum(["KEY_FORMAT_UNSPECIFIED", "PEM"]).describe(
@@ -193,7 +184,9 @@ const GlobalArgsSchema = z.object({
       key: z.string().describe(
         "Required. A public key. The padding and encoding must match with the `KeyFormat` value specified for the `format` field.",
       ).optional(),
-    }).describe("A PublicKey describes a public key.").optional(),
+    }).describe(
+      "Optional. The public key that corresponds to this config. This is, for example, used when issuing Certificates, but not when creating a self-signed CertificateAuthority or CertificateAuthority CSR.",
+    ).optional(),
     subjectConfig: z.object({
       subject: z.object({
         commonName: z.string().describe('The "common name" of the subject.')
@@ -222,7 +215,7 @@ const GlobalArgsSchema = z.object({
         streetAddress: z.string().describe("The street address of the subject.")
           .optional(),
       }).describe(
-        "Subject describes parts of a distinguished name that, in turn, describes the subject of the certificate.",
+        "Optional. Contains distinguished name fields such as the common name, location and organization.",
       ).optional(),
       subjectAltName: z.object({
         customSans: z.array(z.object({
@@ -230,7 +223,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Indicates whether or not this extension is critical (i.e., if the client does not know how to handle this extension, the client should consider this to be an error).",
           ).optional(),
           objectId: z.unknown().describe(
-            "An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.",
+            "Required. The OID for this X.509 extension.",
           ).optional(),
           value: z.unknown().describe(
             "Required. The value of this X.509 extension.",
@@ -249,18 +242,16 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         uris: z.array(z.string()).describe("Contains only valid RFC 3986 URIs.")
           .optional(),
-      }).describe(
-        'SubjectAltNames corresponds to a more modern way of listing what the asserted identity is in a certificate (i.e., compared to the "common name" in the distinguished name).',
-      ).optional(),
+      }).describe("Optional. The subject alternative name fields.").optional(),
     }).describe(
-      "These values are used to create the distinguished name and subject alternative name fields in an X.509 certificate.",
+      "Required. Specifies some of the values in a certificate that are related to the subject.",
     ).optional(),
     subjectKeyId: z.object({
       keyId: z.string().describe(
         "Required. The value of this KeyId encoded in lowercase hexadecimal. This is most likely the 160 bit SHA-1 hash of the public key.",
       ).optional(),
     }).describe(
-      "A KeyId identifies a specific public key, usually by hashing the public key.",
+      "Optional. When specified this provides a custom SKI to be used in the certificate. This should only be used to maintain a SKI of an existing CA originally created outside CA service, which was not generated using method (1) described in RFC 5280 section 4.2.1.2.",
     ).optional(),
     x509Config: z.object({
       additionalExtensions: z.array(z.object({
@@ -271,9 +262,7 @@ const GlobalArgsSchema = z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
           ).optional(),
-        }).describe(
-          "An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.",
-        ).optional(),
+        }).describe("Required. The OID for this X.509 extension.").optional(),
         value: z.string().describe(
           "Required. The value of this X.509 extension.",
         ).optional(),
@@ -289,7 +278,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Refers to the path length constraint field in the X.509 extension. For a CA certificate, this value describes the depth of subordinate CA certificates that are allowed. If this value is less than 0, the request will fail. If this value is missing, the max path length will be omitted from the certificate.",
         ).optional(),
       }).describe(
-        "Describes the X.509 basic constraints extension, per [RFC 5280 section 4.2.1.9](https://tools.ietf.org/html/rfc5280#section-4.2.1.9)",
+        "Optional. Describes options in this X509Parameters that are relevant in a CA certificate. If not specified, a default basic constraints extension with `is_ca=false` will be added for leaf certificates.",
       ).optional(),
       keyUsage: z.object({
         baseKeyUsage: z.object({
@@ -320,9 +309,8 @@ const GlobalArgsSchema = z.object({
           keyEncipherment: z.boolean().describe(
             "The key may be used to encipher other keys.",
           ).optional(),
-        }).describe(
-          "KeyUsage.KeyUsageOptions corresponds to the key usage values described in https://tools.ietf.org/html/rfc5280#section-4.2.1.3.",
-        ).optional(),
+        }).describe("Describes high-level ways in which a key may be used.")
+          .optional(),
         extendedKeyUsage: z.object({
           clientAuth: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.2. Officially described as "TLS WWW client authentication", though regularly used for non-WWW TLS.',
@@ -342,9 +330,8 @@ const GlobalArgsSchema = z.object({
           timeStamping: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.8. Officially described as "Binding the hash of an object to a time".',
           ).optional(),
-        }).describe(
-          "KeyUsage.ExtendedKeyUsageOptions has fields that correspond to certain common OIDs that could be specified as an extended key usage value.",
-        ).optional(),
+        }).describe("Detailed scenarios in which a key may be used.")
+          .optional(),
         unknownExtendedKeyUsages: z.array(z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -353,7 +340,7 @@ const GlobalArgsSchema = z.object({
           "Used to describe extended key usages that are not listed in the KeyUsage.ExtendedKeyUsageOptions message.",
         ).optional(),
       }).describe(
-        "A KeyUsage describes key usage values that may appear in an X.509 certificate.",
+        "Optional. Indicates the intended use for keys that correspond to a certificate.",
       ).optional(),
       nameConstraints: z.object({
         critical: z.boolean().describe(
@@ -383,9 +370,8 @@ const GlobalArgsSchema = z.object({
         permittedUris: z.array(z.string()).describe(
           "Contains the permitted URIs that apply to the host part of the name. The value can be a hostname or a domain with a leading period (like `.example.com`)",
         ).optional(),
-      }).describe(
-        "Describes the X.509 name constraints extension, per https://tools.ietf.org/html/rfc5280#section-4.2.1.10",
-      ).optional(),
+      }).describe("Optional. Describes the X.509 name constraints extension.")
+        .optional(),
       policyIds: z.array(z.object({
         objectIdPath: z.array(z.unknown()).describe(
           "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -394,10 +380,10 @@ const GlobalArgsSchema = z.object({
         "Optional. Describes the X.509 certificate policy object identifiers, per https://tools.ietf.org/html/rfc5280#section-4.2.1.4.",
       ).optional(),
     }).describe(
-      "An X509Parameters is used to describe certain fields of an X.509 certificate, such as the key usage fields, fields specific to CA certificates, certificate policy extensions and custom extensions.",
+      "Required. Describes how some of the technical X.509 fields in a certificate should be populated.",
     ).optional(),
   }).describe(
-    "A CertificateConfig describes an X.509 certificate or CSR that is to be created, as an alternative to using ASN.1.",
+    "Required. Immutable. The config used to create a self-signed X.509 certificate or CSR.",
   ).optional(),
   gcsBucket: z.string().describe(
     "Immutable. The name of a Cloud Storage bucket where this CertificateAuthority will publish content, such as the CA certificate and CRLs. This must be a bucket name, without any prefixes (such as `gs://`) or suffixes (such as `.googleapis.com`). For example, to use a bucket named `my-bucket`, you would simply specify `my-bucket`. If not specified, a managed bucket will be created.",
@@ -420,7 +406,7 @@ const GlobalArgsSchema = z.object({
       "The resource name for an existing Cloud KMS CryptoKeyVersion in the format `projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*`. This option enables full flexibility in the key's capabilities and properties.",
     ).optional(),
   }).describe(
-    "A Cloud KMS key configuration that a CertificateAuthority will use.",
+    "Required. Immutable. Used when issuing certificates for this CertificateAuthority. If this CertificateAuthority is a self-signed CertificateAuthority, this key is also used to sign the self-signed CA certificate. Otherwise, it is used to sign a CSR.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels with user-defined metadata.",
@@ -440,10 +426,10 @@ const GlobalArgsSchema = z.object({
         "Required. Expected to be in leaf-to-root order according to RFC 5246.",
       ).optional(),
     }).describe(
-      "This message describes a subordinate CA's issuer certificate chain. This wrapper exists for compatibility reasons.",
+      "Required. Contains the PEM certificate chain for the issuers of this CertificateAuthority, but not pem certificate for this CA itself.",
     ).optional(),
   }).describe(
-    "Describes a subordinate CA's issuers. This is either a resource name to a known issuing CertificateAuthority, or a PEM issuer certificate chain.",
+    "Optional. If this is a subordinate CertificateAuthority, this field will be set with the subordinate configuration, which describes its issuers. This may be updated, but this CertificateAuthority must continue to validate.",
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "SELF_SIGNED", "SUBORDINATE"]).describe(
     "Required. Immutable. The Type of this CertificateAuthority.",
@@ -456,7 +442,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A list of URLs where to obtain CRL information, i.e. the DistributionPoint.fullName described by https://tools.ietf.org/html/rfc5280#section-4.2.1.13. If specified, the default Cloud Storage URLs will be omitted.",
     ).optional(),
   }).describe(
-    "User-defined URLs for accessing content published by this CertificateAuthority.",
+    "Optional. User-defined URLs for CA certificate and CRLs. The service does not publish content to these URLs. It is up to the user to mirror content to these URLs.",
   ).optional(),
   certificateAuthorityId: z.string().describe(
     "Required. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`",
@@ -691,15 +677,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  accessUrls: z.object({
-    caCertificateAccessUrl: z.string().describe(
-      "The URL where this CertificateAuthority's CA certificate is published. This will only be set for CAs that have been activated.",
-    ).optional(),
-    crlAccessUrls: z.array(z.string()).describe(
-      "The URLs where this CertificateAuthority's CRLs are published. This will only be set for CAs that have been activated.",
-    ).optional(),
-  }).describe("URLs where a CertificateAuthority will publish content.")
-    .optional(),
   config: z.object({
     publicKey: z.object({
       format: z.enum(["KEY_FORMAT_UNSPECIFIED", "PEM"]).describe(
@@ -708,7 +685,9 @@ const InputsSchema = z.object({
       key: z.string().describe(
         "Required. A public key. The padding and encoding must match with the `KeyFormat` value specified for the `format` field.",
       ).optional(),
-    }).describe("A PublicKey describes a public key.").optional(),
+    }).describe(
+      "Optional. The public key that corresponds to this config. This is, for example, used when issuing Certificates, but not when creating a self-signed CertificateAuthority or CertificateAuthority CSR.",
+    ).optional(),
     subjectConfig: z.object({
       subject: z.object({
         commonName: z.string().describe('The "common name" of the subject.')
@@ -737,7 +716,7 @@ const InputsSchema = z.object({
         streetAddress: z.string().describe("The street address of the subject.")
           .optional(),
       }).describe(
-        "Subject describes parts of a distinguished name that, in turn, describes the subject of the certificate.",
+        "Optional. Contains distinguished name fields such as the common name, location and organization.",
       ).optional(),
       subjectAltName: z.object({
         customSans: z.array(z.object({
@@ -745,7 +724,7 @@ const InputsSchema = z.object({
             "Optional. Indicates whether or not this extension is critical (i.e., if the client does not know how to handle this extension, the client should consider this to be an error).",
           ).optional(),
           objectId: z.unknown().describe(
-            "An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.",
+            "Required. The OID for this X.509 extension.",
           ).optional(),
           value: z.unknown().describe(
             "Required. The value of this X.509 extension.",
@@ -764,18 +743,16 @@ const InputsSchema = z.object({
         ).optional(),
         uris: z.array(z.string()).describe("Contains only valid RFC 3986 URIs.")
           .optional(),
-      }).describe(
-        'SubjectAltNames corresponds to a more modern way of listing what the asserted identity is in a certificate (i.e., compared to the "common name" in the distinguished name).',
-      ).optional(),
+      }).describe("Optional. The subject alternative name fields.").optional(),
     }).describe(
-      "These values are used to create the distinguished name and subject alternative name fields in an X.509 certificate.",
+      "Required. Specifies some of the values in a certificate that are related to the subject.",
     ).optional(),
     subjectKeyId: z.object({
       keyId: z.string().describe(
         "Required. The value of this KeyId encoded in lowercase hexadecimal. This is most likely the 160 bit SHA-1 hash of the public key.",
       ).optional(),
     }).describe(
-      "A KeyId identifies a specific public key, usually by hashing the public key.",
+      "Optional. When specified this provides a custom SKI to be used in the certificate. This should only be used to maintain a SKI of an existing CA originally created outside CA service, which was not generated using method (1) described in RFC 5280 section 4.2.1.2.",
     ).optional(),
     x509Config: z.object({
       additionalExtensions: z.array(z.object({
@@ -786,9 +763,7 @@ const InputsSchema = z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
           ).optional(),
-        }).describe(
-          "An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.",
-        ).optional(),
+        }).describe("Required. The OID for this X.509 extension.").optional(),
         value: z.string().describe(
           "Required. The value of this X.509 extension.",
         ).optional(),
@@ -804,7 +779,7 @@ const InputsSchema = z.object({
           "Optional. Refers to the path length constraint field in the X.509 extension. For a CA certificate, this value describes the depth of subordinate CA certificates that are allowed. If this value is less than 0, the request will fail. If this value is missing, the max path length will be omitted from the certificate.",
         ).optional(),
       }).describe(
-        "Describes the X.509 basic constraints extension, per [RFC 5280 section 4.2.1.9](https://tools.ietf.org/html/rfc5280#section-4.2.1.9)",
+        "Optional. Describes options in this X509Parameters that are relevant in a CA certificate. If not specified, a default basic constraints extension with `is_ca=false` will be added for leaf certificates.",
       ).optional(),
       keyUsage: z.object({
         baseKeyUsage: z.object({
@@ -835,9 +810,8 @@ const InputsSchema = z.object({
           keyEncipherment: z.boolean().describe(
             "The key may be used to encipher other keys.",
           ).optional(),
-        }).describe(
-          "KeyUsage.KeyUsageOptions corresponds to the key usage values described in https://tools.ietf.org/html/rfc5280#section-4.2.1.3.",
-        ).optional(),
+        }).describe("Describes high-level ways in which a key may be used.")
+          .optional(),
         extendedKeyUsage: z.object({
           clientAuth: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.2. Officially described as "TLS WWW client authentication", though regularly used for non-WWW TLS.',
@@ -857,9 +831,8 @@ const InputsSchema = z.object({
           timeStamping: z.boolean().describe(
             'Corresponds to OID 1.3.6.1.5.5.7.3.8. Officially described as "Binding the hash of an object to a time".',
           ).optional(),
-        }).describe(
-          "KeyUsage.ExtendedKeyUsageOptions has fields that correspond to certain common OIDs that could be specified as an extended key usage value.",
-        ).optional(),
+        }).describe("Detailed scenarios in which a key may be used.")
+          .optional(),
         unknownExtendedKeyUsages: z.array(z.object({
           objectIdPath: z.unknown().describe(
             "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -868,7 +841,7 @@ const InputsSchema = z.object({
           "Used to describe extended key usages that are not listed in the KeyUsage.ExtendedKeyUsageOptions message.",
         ).optional(),
       }).describe(
-        "A KeyUsage describes key usage values that may appear in an X.509 certificate.",
+        "Optional. Indicates the intended use for keys that correspond to a certificate.",
       ).optional(),
       nameConstraints: z.object({
         critical: z.boolean().describe(
@@ -898,9 +871,8 @@ const InputsSchema = z.object({
         permittedUris: z.array(z.string()).describe(
           "Contains the permitted URIs that apply to the host part of the name. The value can be a hostname or a domain with a leading period (like `.example.com`)",
         ).optional(),
-      }).describe(
-        "Describes the X.509 name constraints extension, per https://tools.ietf.org/html/rfc5280#section-4.2.1.10",
-      ).optional(),
+      }).describe("Optional. Describes the X.509 name constraints extension.")
+        .optional(),
       policyIds: z.array(z.object({
         objectIdPath: z.array(z.unknown()).describe(
           "Required. The parts of an OID path. The most significant parts of the path come first.",
@@ -909,10 +881,10 @@ const InputsSchema = z.object({
         "Optional. Describes the X.509 certificate policy object identifiers, per https://tools.ietf.org/html/rfc5280#section-4.2.1.4.",
       ).optional(),
     }).describe(
-      "An X509Parameters is used to describe certain fields of an X.509 certificate, such as the key usage fields, fields specific to CA certificates, certificate policy extensions and custom extensions.",
+      "Required. Describes how some of the technical X.509 fields in a certificate should be populated.",
     ).optional(),
   }).describe(
-    "A CertificateConfig describes an X.509 certificate or CSR that is to be created, as an alternative to using ASN.1.",
+    "Required. Immutable. The config used to create a self-signed X.509 certificate or CSR.",
   ).optional(),
   gcsBucket: z.string().describe(
     "Immutable. The name of a Cloud Storage bucket where this CertificateAuthority will publish content, such as the CA certificate and CRLs. This must be a bucket name, without any prefixes (such as `gs://`) or suffixes (such as `.googleapis.com`). For example, to use a bucket named `my-bucket`, you would simply specify `my-bucket`. If not specified, a managed bucket will be created.",
@@ -935,7 +907,7 @@ const InputsSchema = z.object({
       "The resource name for an existing Cloud KMS CryptoKeyVersion in the format `projects/*/locations/*/keyRings/*/cryptoKeys/*/cryptoKeyVersions/*`. This option enables full flexibility in the key's capabilities and properties.",
     ).optional(),
   }).describe(
-    "A Cloud KMS key configuration that a CertificateAuthority will use.",
+    "Required. Immutable. Used when issuing certificates for this CertificateAuthority. If this CertificateAuthority is a self-signed CertificateAuthority, this key is also used to sign the self-signed CA certificate. Otherwise, it is used to sign a CSR.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels with user-defined metadata.",
@@ -955,10 +927,10 @@ const InputsSchema = z.object({
         "Required. Expected to be in leaf-to-root order according to RFC 5246.",
       ).optional(),
     }).describe(
-      "This message describes a subordinate CA's issuer certificate chain. This wrapper exists for compatibility reasons.",
+      "Required. Contains the PEM certificate chain for the issuers of this CertificateAuthority, but not pem certificate for this CA itself.",
     ).optional(),
   }).describe(
-    "Describes a subordinate CA's issuers. This is either a resource name to a known issuing CertificateAuthority, or a PEM issuer certificate chain.",
+    "Optional. If this is a subordinate CertificateAuthority, this field will be set with the subordinate configuration, which describes its issuers. This may be updated, but this CertificateAuthority must continue to validate.",
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "SELF_SIGNED", "SUBORDINATE"]).describe(
     "Required. Immutable. The Type of this CertificateAuthority.",
@@ -971,7 +943,7 @@ const InputsSchema = z.object({
       "Optional. A list of URLs where to obtain CRL information, i.e. the DistributionPoint.fullName described by https://tools.ietf.org/html/rfc5280#section-4.2.1.13. If specified, the default Cloud Storage URLs will be omitted.",
     ).optional(),
   }).describe(
-    "User-defined URLs for accessing content published by this CertificateAuthority.",
+    "Optional. User-defined URLs for CA certificate and CRLs. The service does not publish content to these URLs. It is up to the user to mirror content to these URLs.",
   ).optional(),
   certificateAuthorityId: z.string().describe(
     "Required. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`",
@@ -1010,7 +982,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Certificate Authority CaPools.CertificateAuthorities. Registered at `@swamp/gcp/privateca/capools-certificateauthorities`. */
 export const model = {
   type: "@swamp/gcp/privateca/capools-certificateauthorities",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1122,6 +1094,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: accessUrls",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { accessUrls: _accessUrls, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1149,7 +1129,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["accessUrls"] !== undefined) body["accessUrls"] = g["accessUrls"];
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["gcsBucket"] !== undefined) body["gcsBucket"] = g["gcsBucket"];
         if (g["keySpec"] !== undefined) body["keySpec"] = g["keySpec"];
@@ -1289,9 +1268,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["accessUrls"] !== undefined) body["accessUrls"] = g["accessUrls"];
-        if (g["config"] !== undefined) body["config"] = g["config"];
-        if (g["keySpec"] !== undefined) body["keySpec"] = g["keySpec"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["subordinateConfig"] !== undefined) {
           body["subordinateConfig"] = g["subordinateConfig"];

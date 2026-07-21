@@ -159,36 +159,6 @@ const GlobalArgsSchema = z.object({
   disableConcurrencyQuotaOverflowBuffering: z.boolean().describe(
     "Optional. If set to true, the execution will not be backlogged when the concurrency quota is exhausted. The backlog execution starts when the concurrency quota becomes available.",
   ).optional(),
-  error: z.object({
-    context: z.string().describe("Human-readable stack trace string.")
-      .optional(),
-    payload: z.string().describe(
-      "Error message and data returned represented as a JSON string.",
-    ).optional(),
-    stackTrace: z.object({
-      elements: z.array(z.object({
-        position: z.object({
-          column: z.unknown().describe(
-            "The source code column position (of the line) the current instruction was generated from.",
-          ).optional(),
-          length: z.unknown().describe(
-            "The number of bytes of source code making up this stack trace element.",
-          ).optional(),
-          line: z.unknown().describe(
-            "The source code line number the current instruction was generated from.",
-          ).optional(),
-        }).describe(
-          "Position contains source position information about the stack trace element such as line number, column number and length of the code block in bytes.",
-        ).optional(),
-        routine: z.string().describe("The routine where the error occurred.")
-          .optional(),
-        step: z.string().describe("The step the error occurred at.").optional(),
-      })).describe("An array of stack elements.").optional(),
-    }).describe(
-      "A collection of stack elements (frames) where an error occurred.",
-    ).optional(),
-  }).describe("Error describes why the execution was abnormally terminated.")
-    .optional(),
   executionHistoryLevel: z.enum([
     "EXECUTION_HISTORY_LEVEL_UNSPECIFIED",
     "EXECUTION_HISTORY_BASIC",
@@ -199,25 +169,6 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Labels associated with this execution. Labels can contain at most 64 entries. Keys and values can be no longer than 63 characters and can only contain lowercase letters, numeric characters, underscores, and dashes. Label keys must start with a letter. International characters are allowed. By default, labels are inherited from the workflow but are overridden by any labels associated with the execution.",
   ).optional(),
-  stateError: z.object({
-    details: z.string().describe("Provides specifics about the error.")
-      .optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "KMS_ERROR"]).describe(
-      "The type of this state error.",
-    ).optional(),
-  }).describe(
-    "Describes an error related to the current state of the Execution resource.",
-  ).optional(),
-  status: z.object({
-    currentSteps: z.array(z.object({
-      routine: z.string().describe("Name of a routine within the workflow.")
-        .optional(),
-      step: z.string().describe("Name of a step within the routine.")
-        .optional(),
-    })).describe(
-      "A list of currently executing or last executed step names for the workflow execution currently running. If the workflow has succeeded or failed, this is the last attempted or executed step. Presently, if the current step is inside a subworkflow, the list only includes that step. In the future, the list will contain items for each step in the call stack, starting with the outermost step in the `main` subworkflow, and ending with the most deeply nested step.",
-    ).optional(),
-  }).describe("Represents the current status of this execution.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -288,36 +239,6 @@ const InputsSchema = z.object({
   disableConcurrencyQuotaOverflowBuffering: z.boolean().describe(
     "Optional. If set to true, the execution will not be backlogged when the concurrency quota is exhausted. The backlog execution starts when the concurrency quota becomes available.",
   ).optional(),
-  error: z.object({
-    context: z.string().describe("Human-readable stack trace string.")
-      .optional(),
-    payload: z.string().describe(
-      "Error message and data returned represented as a JSON string.",
-    ).optional(),
-    stackTrace: z.object({
-      elements: z.array(z.object({
-        position: z.object({
-          column: z.unknown().describe(
-            "The source code column position (of the line) the current instruction was generated from.",
-          ).optional(),
-          length: z.unknown().describe(
-            "The number of bytes of source code making up this stack trace element.",
-          ).optional(),
-          line: z.unknown().describe(
-            "The source code line number the current instruction was generated from.",
-          ).optional(),
-        }).describe(
-          "Position contains source position information about the stack trace element such as line number, column number and length of the code block in bytes.",
-        ).optional(),
-        routine: z.string().describe("The routine where the error occurred.")
-          .optional(),
-        step: z.string().describe("The step the error occurred at.").optional(),
-      })).describe("An array of stack elements.").optional(),
-    }).describe(
-      "A collection of stack elements (frames) where an error occurred.",
-    ).optional(),
-  }).describe("Error describes why the execution was abnormally terminated.")
-    .optional(),
   executionHistoryLevel: z.enum([
     "EXECUTION_HISTORY_LEVEL_UNSPECIFIED",
     "EXECUTION_HISTORY_BASIC",
@@ -328,25 +249,6 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Labels associated with this execution. Labels can contain at most 64 entries. Keys and values can be no longer than 63 characters and can only contain lowercase letters, numeric characters, underscores, and dashes. Label keys must start with a letter. International characters are allowed. By default, labels are inherited from the workflow but are overridden by any labels associated with the execution.",
   ).optional(),
-  stateError: z.object({
-    details: z.string().describe("Provides specifics about the error.")
-      .optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "KMS_ERROR"]).describe(
-      "The type of this state error.",
-    ).optional(),
-  }).describe(
-    "Describes an error related to the current state of the Execution resource.",
-  ).optional(),
-  status: z.object({
-    currentSteps: z.array(z.object({
-      routine: z.string().describe("Name of a routine within the workflow.")
-        .optional(),
-      step: z.string().describe("Name of a step within the routine.")
-        .optional(),
-    })).describe(
-      "A list of currently executing or last executed step names for the workflow execution currently running. If the workflow has succeeded or failed, this is the last attempted or executed step. Presently, if the current step is inside a subworkflow, the list only includes that step. In the future, the list will contain items for each step in the call stack, starting with the outermost step in the `main` subworkflow, and ending with the most deeply nested step.",
-    ).optional(),
-  }).describe("Represents the current status of this execution.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -378,7 +280,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workflow Executions Workflows.Executions. Registered at `@swamp/gcp/workflowexecutions/workflows-executions`. */
 export const model = {
   type: "@swamp/gcp/workflowexecutions/workflows-executions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -485,6 +387,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, stateError, status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          error: _error,
+          stateError: _stateError,
+          status: _status,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -520,13 +435,10 @@ export const model = {
           body["disableConcurrencyQuotaOverflowBuffering"] =
             g["disableConcurrencyQuotaOverflowBuffering"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["executionHistoryLevel"] !== undefined) {
           body["executionHistoryLevel"] = g["executionHistoryLevel"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["stateError"] !== undefined) body["stateError"] = g["stateError"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -546,14 +458,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

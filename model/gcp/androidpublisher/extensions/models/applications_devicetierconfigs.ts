@@ -132,7 +132,7 @@ const GlobalArgsSchema = z.object({
           .optional(),
         minBytes: z.unknown().describe("Minimum RAM in bytes (bound included).")
           .optional(),
-      }).describe("Conditions about a device's RAM capabilities.").optional(),
+      }).describe("Conditions on the device's RAM.").optional(),
       excludedDeviceIds: z.array(z.unknown()).describe(
         "Device models excluded by this selector, even if they match all other conditions.",
       ).optional(),
@@ -162,9 +162,7 @@ const GlobalArgsSchema = z.object({
         "The priority level of the tier. Tiers are evaluated in descending order of level: the highest level tier has the highest priority. The highest tier matching a given device is selected for that device. You should use a contiguous range of levels for your tiers in a tier set; tier levels in a tier set must be unique. For instance, if your tier set has 4 tiers (including the global fallback), you should define tiers 1, 2 and 3 in this configuration. Note: tier 0 is implicitly defined as a global fallback and selected for devices that don't match any of the tiers explicitly defined here. You mustn't define level 0 explicitly in this configuration.",
       ).optional(),
     })).describe("Device tiers belonging to the set.").optional(),
-  }).describe(
-    "A set of device tiers. A tier set determines what variation of app content gets served to a specific device, for device-targeted content. You should assign a priority level to each tier, which determines the ordering by which they are evaluated by Play. See the documentation of DeviceTier.level for more details.",
-  ).optional(),
+  }).describe("Definition of the set of device tiers for the app.").optional(),
   userCountrySets: z.array(z.object({
     countryCodes: z.array(z.string()).describe(
       'List of country codes representing countries. A Country code is represented in ISO 3166 alpha-2 format. For Example:- "IT" for Italy, "GE" for Georgia.',
@@ -220,7 +218,7 @@ const InputsSchema = z.object({
           .optional(),
         minBytes: z.unknown().describe("Minimum RAM in bytes (bound included).")
           .optional(),
-      }).describe("Conditions about a device's RAM capabilities.").optional(),
+      }).describe("Conditions on the device's RAM.").optional(),
       excludedDeviceIds: z.array(z.unknown()).describe(
         "Device models excluded by this selector, even if they match all other conditions.",
       ).optional(),
@@ -250,9 +248,7 @@ const InputsSchema = z.object({
         "The priority level of the tier. Tiers are evaluated in descending order of level: the highest level tier has the highest priority. The highest tier matching a given device is selected for that device. You should use a contiguous range of levels for your tiers in a tier set; tier levels in a tier set must be unique. For instance, if your tier set has 4 tiers (including the global fallback), you should define tiers 1, 2 and 3 in this configuration. Note: tier 0 is implicitly defined as a global fallback and selected for devices that don't match any of the tiers explicitly defined here. You mustn't define level 0 explicitly in this configuration.",
       ).optional(),
     })).describe("Device tiers belonging to the set.").optional(),
-  }).describe(
-    "A set of device tiers. A tier set determines what variation of app content gets served to a specific device, for device-targeted content. You should assign a priority level to each tier, which determines the ordering by which they are evaluated by Play. See the documentation of DeviceTier.level for more details.",
-  ).optional(),
+  }).describe("Definition of the set of device tiers for the app.").optional(),
   userCountrySets: z.array(z.object({
     countryCodes: z.array(z.string()).describe(
       'List of country codes representing countries. A Country code is represented in ISO 3166 alpha-2 format. For Example:- "IT" for Italy, "GE" for Georgia.',
@@ -288,7 +284,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Applications.DeviceTierConfigs. Registered at `@swamp/gcp/androidpublisher/applications-devicetierconfigs`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/applications-devicetierconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -385,6 +381,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -432,12 +433,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "packageName": String(g["packageName"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

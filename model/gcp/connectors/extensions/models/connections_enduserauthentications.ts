@@ -176,8 +176,7 @@ const GlobalArgsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("EUASecret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Value is a secret").optional(),
     stringValue: z.string().describe("Value is a string.").optional(),
   })).describe("Optional. Config variables for the EndUserAuthentication.")
     .optional(),
@@ -209,9 +208,7 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
-      ).optional(),
+      }).describe("Value is a secret").optional(),
       stringValue: z.string().describe("Value is a string.").optional(),
     })).describe("Optional. List containing additional auth configs.")
       .optional(),
@@ -243,9 +240,8 @@ const GlobalArgsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
-      ).optional(),
+      }).describe("Optional. Client secret for user-provided OAuth app.")
+        .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
       ).optional(),
@@ -257,9 +253,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
+        }).describe("Optional. Access token for the connection.").optional(),
         createTime: z.string().describe(
           "Optional. Timestamp when the access token was created.",
         ).optional(),
@@ -273,12 +267,8 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
-      }).describe(
-        "pass only at create and not update using updateMask Auth Code Data",
-      ).optional(),
+        }).describe("Optional. Refresh token for the connection.").optional(),
+      }).describe("Optional. Auth Code Data").optional(),
       pkceVerifier: z.string().describe(
         "Optional. PKCE verifier to be used during the auth code exchange.",
       ).optional(),
@@ -288,9 +278,7 @@ const GlobalArgsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -303,9 +291,7 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
+        }).describe("Optional. Access token for the connection.").optional(),
         createTime: z.string().describe(
           "Optional. Timestamp when the access token was created.",
         ).optional(),
@@ -319,21 +305,15 @@ const GlobalArgsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
-      }).describe(
-        "pass only at create and not update using updateMask Auth Code Data",
-      ).optional(),
+        }).describe("Optional. Refresh token for the connection.").optional(),
+      }).describe("Auth Code Data").optional(),
       redirectUri: z.string().describe(
         "Optional. Redirect URI to be provided during the auth code exchange.",
       ).optional(),
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("The client identifier.").optional(),
       clientSecret: z.object({
@@ -344,11 +324,9 @@ const GlobalArgsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. string value or secret version containing the client secret.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretValue: z.string().describe(
@@ -358,17 +336,15 @@ const GlobalArgsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. secret version/value reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/strings/*/versions/*`.",
       ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Value for the "aud" claim.').optional(),
         issuer: z.string().describe('Value for the "iss" claim.').optional(),
         subject: z.string().describe('Value for the "sub" claim.').optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Format of SSH Client cert.").optional(),
       sshClientCert: z.object({
@@ -379,7 +355,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. SSH Client Cert. It should contain both public and private key.",
       ).optional(),
       sshClientCertPass: z.object({
         secretValue: z.string().describe(
@@ -389,12 +365,11 @@ const GlobalArgsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. Password (passphrase) for ssh client certificate if it has one.",
       ).optional(),
       username: z.string().describe("The user account used to authenticate.")
         .optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretValue: z.string().describe(
@@ -404,13 +379,12 @@ const GlobalArgsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. string value or secret version reference containing the password.",
       ).optional(),
       username: z.string().describe("Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
+    }).describe("UserPassword.").optional(),
   }).describe(
-    "EndUserAuthenticationConfig defines details of a authentication configuration for EUC",
+    "Optional. The EndUserAuthenticationConfig for the EndUserAuthentication.",
   ).optional(),
   labels: z.array(z.string()).describe(
     "Optional. Labels for the EndUserAuthentication.",
@@ -428,7 +402,7 @@ const GlobalArgsSchema = z.object({
       })).describe("Optional. List of Header to be added to the Endpoint.")
         .optional(),
     }).describe(
-      "Endpoint message includes details of the Destination endpoint.",
+      "Optional. OPTION 1: Hit an endpoint when the refresh token is expired.",
     ).optional(),
     serviceAccount: z.string().describe(
       "Required. Service account needed for runtime plane to notify the backend.",
@@ -436,9 +410,8 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "ENDPOINT"]).describe(
       "Required. type of the destination",
     ).optional(),
-  }).describe(
-    "Message for NotifyEndpointDestination Destination to hit when the refresh token is expired.",
-  ).optional(),
+  }).describe("Optional. The destination to hit when we receive an event")
+    .optional(),
   roles: z.array(
     z.enum(["ROLE_UNSPECIFIED", "READER", "READER_DOMAIN_WIDE_ACCESSIBLE"]),
   ).describe("Optional. Roles for the EndUserAuthentication.").optional(),
@@ -448,9 +421,7 @@ const GlobalArgsSchema = z.object({
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "ERROR"]).describe(
       "Output only. State of Event Subscription resource.",
     ).optional(),
-  }).describe(
-    "EndUserAuthentication Status denotes the status of the EndUserAuthentication resource.",
-  ).optional(),
+  }).describe("Optional. Status of the EndUserAuthentication.").optional(),
   userId: z.string().describe("Optional. The user id of the user.").optional(),
   endUserAuthenticationId: z.string().describe(
     "Required. Identifier to assign to the EndUserAuthentication. Must be unique within scope of the parent resource.",
@@ -617,8 +588,7 @@ const InputsSchema = z.object({
       secretVersion: z.string().describe(
         "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
       ).optional(),
-    }).describe("EUASecret provides a reference to entries in Secret Manager.")
-      .optional(),
+    }).describe("Value is a secret").optional(),
     stringValue: z.string().describe("Value is a string.").optional(),
   })).describe("Optional. Config variables for the EndUserAuthentication.")
     .optional(),
@@ -650,9 +620,7 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
-      ).optional(),
+      }).describe("Value is a secret").optional(),
       stringValue: z.string().describe("Value is a string.").optional(),
     })).describe("Optional. List containing additional auth configs.")
       .optional(),
@@ -684,9 +652,8 @@ const InputsSchema = z.object({
         secretVersion: z.string().describe(
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
-      }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
-      ).optional(),
+      }).describe("Optional. Client secret for user-provided OAuth app.")
+        .optional(),
       enablePkce: z.boolean().describe(
         "Optional. Whether to enable PKCE when the user performs the auth code flow.",
       ).optional(),
@@ -698,9 +665,7 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
+        }).describe("Optional. Access token for the connection.").optional(),
         createTime: z.string().describe(
           "Optional. Timestamp when the access token was created.",
         ).optional(),
@@ -714,12 +679,8 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
-      }).describe(
-        "pass only at create and not update using updateMask Auth Code Data",
-      ).optional(),
+        }).describe("Optional. Refresh token for the connection.").optional(),
+      }).describe("Optional. Auth Code Data").optional(),
       pkceVerifier: z.string().describe(
         "Optional. PKCE verifier to be used during the auth code exchange.",
       ).optional(),
@@ -729,9 +690,7 @@ const InputsSchema = z.object({
       scopes: z.array(z.string()).describe(
         "Optional. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlow.").optional(),
     oauth2AuthCodeFlowGoogleManaged: z.object({
       authCode: z.string().describe(
         "Optional. Authorization code to be exchanged for access and refresh tokens.",
@@ -744,9 +703,7 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
+        }).describe("Optional. Access token for the connection.").optional(),
         createTime: z.string().describe(
           "Optional. Timestamp when the access token was created.",
         ).optional(),
@@ -760,21 +717,15 @@ const InputsSchema = z.object({
           secretVersion: z.string().describe(
             "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
           ).optional(),
-        }).describe(
-          "EUASecret provides a reference to entries in Secret Manager.",
-        ).optional(),
-      }).describe(
-        "pass only at create and not update using updateMask Auth Code Data",
-      ).optional(),
+        }).describe("Optional. Refresh token for the connection.").optional(),
+      }).describe("Auth Code Data").optional(),
       redirectUri: z.string().describe(
         "Optional. Redirect URI to be provided during the auth code exchange.",
       ).optional(),
       scopes: z.array(z.string()).describe(
         "Required. Scopes the connection will request when the user performs the auth code flow.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.",
-    ).optional(),
+    }).describe("Oauth2AuthCodeFlowGoogleManaged.").optional(),
     oauth2ClientCredentials: z.object({
       clientId: z.string().describe("The client identifier.").optional(),
       clientSecret: z.object({
@@ -785,11 +736,9 @@ const InputsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. string value or secret version containing the client secret.",
       ).optional(),
-    }).describe(
-      "Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.",
-    ).optional(),
+    }).describe("Oauth2ClientCredentials.").optional(),
     oauth2JwtBearer: z.object({
       clientKey: z.object({
         secretValue: z.string().describe(
@@ -799,17 +748,15 @@ const InputsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. secret version/value reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: `projects/*/strings/*/versions/*`.",
       ).optional(),
       jwtClaims: z.object({
         audience: z.string().describe('Value for the "aud" claim.').optional(),
         issuer: z.string().describe('Value for the "iss" claim.').optional(),
         subject: z.string().describe('Value for the "sub" claim.').optional(),
-      }).describe("JWT claims used for the jwt-bearer authorization grant.")
+      }).describe("JwtClaims providers fields to generate the token.")
         .optional(),
-    }).describe(
-      "Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.",
-    ).optional(),
+    }).describe("Oauth2JwtBearer.").optional(),
     sshPublicKey: z.object({
       certType: z.string().describe("Format of SSH Client cert.").optional(),
       sshClientCert: z.object({
@@ -820,7 +767,7 @@ const InputsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. SSH Client Cert. It should contain both public and private key.",
       ).optional(),
       sshClientCertPass: z.object({
         secretValue: z.string().describe(
@@ -830,12 +777,11 @@ const InputsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. Password (passphrase) for ssh client certificate if it has one.",
       ).optional(),
       username: z.string().describe("The user account used to authenticate.")
         .optional(),
-    }).describe("Parameters to support Ssh public key Authentication.")
-      .optional(),
+    }).describe("SSH Public Key.").optional(),
     userPassword: z.object({
       password: z.object({
         secretValue: z.string().describe(
@@ -845,13 +791,12 @@ const InputsSchema = z.object({
           "Optional. The resource name of the secret version in the format, format as: `projects/*/secrets/*/versions/*`.",
         ).optional(),
       }).describe(
-        "EUASecret provides a reference to entries in Secret Manager.",
+        "Required. string value or secret version reference containing the password.",
       ).optional(),
       username: z.string().describe("Username.").optional(),
-    }).describe("Parameters to support Username and Password Authentication.")
-      .optional(),
+    }).describe("UserPassword.").optional(),
   }).describe(
-    "EndUserAuthenticationConfig defines details of a authentication configuration for EUC",
+    "Optional. The EndUserAuthenticationConfig for the EndUserAuthentication.",
   ).optional(),
   labels: z.array(z.string()).describe(
     "Optional. Labels for the EndUserAuthentication.",
@@ -869,7 +814,7 @@ const InputsSchema = z.object({
       })).describe("Optional. List of Header to be added to the Endpoint.")
         .optional(),
     }).describe(
-      "Endpoint message includes details of the Destination endpoint.",
+      "Optional. OPTION 1: Hit an endpoint when the refresh token is expired.",
     ).optional(),
     serviceAccount: z.string().describe(
       "Required. Service account needed for runtime plane to notify the backend.",
@@ -877,9 +822,8 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "ENDPOINT"]).describe(
       "Required. type of the destination",
     ).optional(),
-  }).describe(
-    "Message for NotifyEndpointDestination Destination to hit when the refresh token is expired.",
-  ).optional(),
+  }).describe("Optional. The destination to hit when we receive an event")
+    .optional(),
   roles: z.array(
     z.enum(["ROLE_UNSPECIFIED", "READER", "READER_DOMAIN_WIDE_ACCESSIBLE"]),
   ).describe("Optional. Roles for the EndUserAuthentication.").optional(),
@@ -889,9 +833,7 @@ const InputsSchema = z.object({
     state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "ERROR"]).describe(
       "Output only. State of Event Subscription resource.",
     ).optional(),
-  }).describe(
-    "EndUserAuthentication Status denotes the status of the EndUserAuthentication resource.",
-  ).optional(),
+  }).describe("Optional. Status of the EndUserAuthentication.").optional(),
   userId: z.string().describe("Optional. The user id of the user.").optional(),
   endUserAuthenticationId: z.string().describe(
     "Required. Identifier to assign to the EndUserAuthentication. Must be unique within scope of the parent resource.",
@@ -927,7 +869,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Connectors Connections.EndUserAuthentications. Registered at `@swamp/gcp/connectors/connections-enduserauthentications`. */
 export const model = {
   type: "@swamp/gcp/connectors/connections-enduserauthentications",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

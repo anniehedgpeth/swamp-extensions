@@ -208,8 +208,9 @@ const GlobalArgsSchema = z.object({
         serviceAccount: z.string().describe(
           "Required. The service account to be used for authenticating request. The `iam.serviceAccounts.getAccessToken` permission should be granted on this service account to the impersonator service account.",
         ).optional(),
-      }).describe("Config for Google service account authentication.")
-        .optional(),
+      }).describe(
+        "Optional. The service account of the plugin hosting service. This service account should be granted the required permissions on the Auth Config parameters provided while creating the plugin instances corresponding to this plugin. For example, if the plugin instance auth config requires a secret manager secret, the service account should be granted the secretmanager.versions.access permission on the corresponding secret, if the plugin instance auth config contains a service account, the service account should be granted the iam.serviceAccounts.getAccessToken permission on the corresponding service account.",
+      ).optional(),
       supportedAuthTypes: z.array(
         z.enum([
           "AUTH_TYPE_UNSPECIFIED",
@@ -222,12 +223,10 @@ const GlobalArgsSchema = z.object({
       ).describe(
         "Required. The list of authentication types supported by the plugin.",
       ).optional(),
-    }).describe(
-      "AuthConfigTemplate represents the authentication template for a plugin.",
-    ).optional(),
-  }).describe(
-    "ConfigTemplate represents the configuration template for a plugin.",
-  ).optional(),
+    }).describe("Optional. The authentication template for the plugin.")
+      .optional(),
+  }).describe("Optional. The configuration template for the plugin.")
+    .optional(),
   description: z.string().describe(
     "Optional. The plugin description. Max length is 2000 characters (Unicode code points).",
   ).optional(),
@@ -238,7 +237,9 @@ const GlobalArgsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe(
+    "Optional. The documentation of the plugin, that explains how to set up and use the plugin.",
+  ).optional(),
   gatewayType: z.enum([
     "GATEWAY_TYPE_UNSPECIFIED",
     "APIGEE_X_AND_HYBRID",
@@ -254,7 +255,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The URI of the service implemented by the plugin developer, used to invoke the plugin's functionality. This information is only required for user defined plugins.",
     ).optional(),
   }).describe(
-    "The information related to the service implemented by the plugin developer, used to invoke the plugin's functionality.",
+    "Optional. This field is optional. It is used to notify the plugin hosting service for any lifecycle changes of the plugin instance and trigger execution of plugin instance actions in case of API hub managed actions. This field should be provided if the plugin instance lifecycle of the developed plugin needs to be managed from API hub. Also, in this case the plugin hosting service interface needs to be implemented. This field should not be provided if the plugin wants to manage plugin instance lifecycle events outside of hub interface and use plugin framework for only registering of plugin and plugin instances to capture the source of data into hub. Note, in this case the plugin hosting service interface is not required to be implemented. Also, the plugin instance lifecycle actions will be disabled from API hub's UI.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The name of the plugin. Format: `projects/{project}/locations/{location}/plugins/{plugin}`",
@@ -287,23 +288,33 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The type of the API. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-plugin-type` attribute. The number of allowed values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute. Note this field is not required for plugins developed via plugin framework.",
+  ).optional(),
   pluginId: z.string().describe(
     "Optional. The ID to use for the Plugin resource, which will become the final component of the Plugin's resource name. This field is optional. * If provided, the same will be used. The service will throw an error if the specified id is already used by another Plugin resource in the API hub instance. * If not provided, a system generated id will be used. This value should be 4-63 characters, overall resource name which will be of format `projects/{project}/locations/{location}/plugins/{plugin}`, its length is limited to 1000 characters and valid characters are /a-z[0-9]-_/.",
   ).optional(),
@@ -460,8 +471,9 @@ const InputsSchema = z.object({
         serviceAccount: z.string().describe(
           "Required. The service account to be used for authenticating request. The `iam.serviceAccounts.getAccessToken` permission should be granted on this service account to the impersonator service account.",
         ).optional(),
-      }).describe("Config for Google service account authentication.")
-        .optional(),
+      }).describe(
+        "Optional. The service account of the plugin hosting service. This service account should be granted the required permissions on the Auth Config parameters provided while creating the plugin instances corresponding to this plugin. For example, if the plugin instance auth config requires a secret manager secret, the service account should be granted the secretmanager.versions.access permission on the corresponding secret, if the plugin instance auth config contains a service account, the service account should be granted the iam.serviceAccounts.getAccessToken permission on the corresponding service account.",
+      ).optional(),
       supportedAuthTypes: z.array(
         z.enum([
           "AUTH_TYPE_UNSPECIFIED",
@@ -474,12 +486,10 @@ const InputsSchema = z.object({
       ).describe(
         "Required. The list of authentication types supported by the plugin.",
       ).optional(),
-    }).describe(
-      "AuthConfigTemplate represents the authentication template for a plugin.",
-    ).optional(),
-  }).describe(
-    "ConfigTemplate represents the configuration template for a plugin.",
-  ).optional(),
+    }).describe("Optional. The authentication template for the plugin.")
+      .optional(),
+  }).describe("Optional. The configuration template for the plugin.")
+    .optional(),
   description: z.string().describe(
     "Optional. The plugin description. Max length is 2000 characters (Unicode code points).",
   ).optional(),
@@ -490,7 +500,9 @@ const InputsSchema = z.object({
     externalUri: z.string().describe(
       "Optional. The uri of the externally hosted documentation.",
     ).optional(),
-  }).describe("Documentation details.").optional(),
+  }).describe(
+    "Optional. The documentation of the plugin, that explains how to set up and use the plugin.",
+  ).optional(),
   gatewayType: z.enum([
     "GATEWAY_TYPE_UNSPECIFIED",
     "APIGEE_X_AND_HYBRID",
@@ -506,7 +518,7 @@ const InputsSchema = z.object({
       "Optional. The URI of the service implemented by the plugin developer, used to invoke the plugin's functionality. This information is only required for user defined plugins.",
     ).optional(),
   }).describe(
-    "The information related to the service implemented by the plugin developer, used to invoke the plugin's functionality.",
+    "Optional. This field is optional. It is used to notify the plugin hosting service for any lifecycle changes of the plugin instance and trigger execution of plugin instance actions in case of API hub managed actions. This field should be provided if the plugin instance lifecycle of the developed plugin needs to be managed from API hub. Also, in this case the plugin hosting service interface needs to be implemented. This field should not be provided if the plugin wants to manage plugin instance lifecycle events outside of hub interface and use plugin framework for only registering of plugin and plugin instances to capture the source of data into hub. Note, in this case the plugin hosting service interface is not required to be implemented. Also, the plugin instance lifecycle actions will be disabled from API hub's UI.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The name of the plugin. Format: `projects/{project}/locations/{location}/plugins/{plugin}`",
@@ -539,23 +551,33 @@ const InputsSchema = z.object({
       })).describe(
         "Required. The attribute values in case attribute data type is enum.",
       ).optional(),
-    }).describe("The attribute values of data type enum.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is enum.",
+    ).optional(),
     jsonValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is JSON.",
+    ).optional(),
     stringValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is string.",
+    ).optional(),
     uriValues: z.object({
       values: z.array(z.string()).describe(
         "Required. The attribute values in case attribute data type is string or JSON.",
       ).optional(),
-    }).describe("The attribute values of data type string or JSON.").optional(),
-  }).describe("The attribute values associated with resource.").optional(),
+    }).describe(
+      "The attribute values associated with a resource in case attribute data type is URL, URI or IP, like gs://bucket-name/object-name.",
+    ).optional(),
+  }).describe(
+    "Optional. The type of the API. This maps to the following system defined attribute: `projects/{project}/locations/{location}/attributes/system-plugin-type` attribute. The number of allowed values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute. Note this field is not required for plugins developed via plugin framework.",
+  ).optional(),
   pluginId: z.string().describe(
     "Optional. The ID to use for the Plugin resource, which will become the final component of the Plugin's resource name. This field is optional. * If provided, the same will be used. The service will throw an error if the specified id is already used by another Plugin resource in the API hub instance. * If not provided, a system generated id will be used. This value should be 4-63 characters, overall resource name which will be of format `projects/{project}/locations/{location}/plugins/{plugin}`, its length is limited to 1000 characters and valid characters are /a-z[0-9]-_/.",
   ).optional(),
@@ -587,7 +609,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Plugins. Registered at `@swamp/gcp/apihub/plugins`. */
 export const model = {
   type: "@swamp/gcp/apihub/plugins",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -696,6 +718,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

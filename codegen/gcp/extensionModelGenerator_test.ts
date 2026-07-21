@@ -136,7 +136,7 @@ Deno.test("resolveGcpMatchField - prefers displayName when in insertProperties",
       parent: { type: "string" },
     },
   });
-  assertEquals(resolveGcpMatchField(resource, "name"), "displayName");
+  assertEquals(resolveGcpMatchField(resource, "name", true), "displayName");
 });
 
 Deno.test("resolveGcpMatchField - prefers shortName when displayName absent", () => {
@@ -149,7 +149,7 @@ Deno.test("resolveGcpMatchField - prefers shortName when displayName absent", ()
       parent: { type: "string" },
     },
   });
-  assertEquals(resolveGcpMatchField(resource, "name"), "shortName");
+  assertEquals(resolveGcpMatchField(resource, "name", false), "shortName");
 });
 
 Deno.test("resolveGcpMatchField - displayName wins over shortName when both present", () => {
@@ -161,10 +161,10 @@ Deno.test("resolveGcpMatchField - displayName wins over shortName when both pres
       shortName: { type: "string" },
     },
   });
-  assertEquals(resolveGcpMatchField(resource, "name"), "displayName");
+  assertEquals(resolveGcpMatchField(resource, "name", false), "displayName");
 });
 
-Deno.test("resolveGcpMatchField - falls back to namingField when neither present", () => {
+Deno.test("resolveGcpMatchField - falls back to namingField when not synthetic", () => {
   const resource = makeResource({
     resourcePath: ["instances"],
     insertProperties: new Set(["name", "zone"]),
@@ -173,7 +173,77 @@ Deno.test("resolveGcpMatchField - falls back to namingField when neither present
       zone: { type: "string" },
     },
   });
-  assertEquals(resolveGcpMatchField(resource, "name"), "name");
+  assertEquals(resolveGcpMatchField(resource, "name", false), "name");
+});
+
+Deno.test("resolveGcpMatchField - synthetic name with nested identity returns dotted path", () => {
+  const resource = makeResource({
+    resourcePath: ["memberships"],
+    insertProperties: new Set(["preferredMemberKey", "roles"]),
+    domainProperties: {
+      preferredMemberKey: {
+        type: "object",
+        description: "Immutable. The `EntityKey` of the member.",
+        properties: {
+          id: { type: "string", description: "The ID of the entity." },
+          namespace: { type: "string", description: "The namespace." },
+        },
+      },
+      roles: { type: "array", items: { type: "object" } },
+    },
+  });
+  assertEquals(
+    resolveGcpMatchField(resource, "name", true),
+    "preferredMemberKey.id",
+  );
+});
+
+Deno.test("resolveGcpMatchField - synthetic name with no nested identity returns undefined", () => {
+  const resource = makeResource({
+    resourcePath: ["operations"],
+    insertProperties: new Set(["config", "zone"]),
+    domainProperties: {
+      config: { type: "string" },
+      zone: { type: "string" },
+    },
+  });
+  assertEquals(resolveGcpMatchField(resource, "name", true), undefined);
+});
+
+Deno.test("resolveGcpMatchField - synthetic name with multiple nested identity candidates returns undefined", () => {
+  const resource = makeResource({
+    resourcePath: ["things"],
+    insertProperties: new Set(["keyA", "keyB"]),
+    domainProperties: {
+      keyA: {
+        type: "object",
+        properties: { id: { type: "string", description: "Key A ID." } },
+      },
+      keyB: {
+        type: "object",
+        properties: { id: { type: "string", description: "Key B ID." } },
+      },
+    },
+  });
+  assertEquals(resolveGcpMatchField(resource, "name", true), undefined);
+});
+
+Deno.test("resolveGcpMatchField - synthetic name skips output-only nested identity", () => {
+  const resource = makeResource({
+    resourcePath: ["memberships"],
+    insertProperties: new Set(["memberKey", "roles"]),
+    domainProperties: {
+      memberKey: {
+        type: "object",
+        description: "Output only. The member key.",
+        properties: {
+          id: { type: "string", description: "The ID." },
+        },
+      },
+      roles: { type: "array", items: { type: "object" } },
+    },
+  });
+  assertEquals(resolveGcpMatchField(resource, "name", true), undefined);
 });
 
 // ---------------------------------------------------------------------------

@@ -178,9 +178,8 @@ const GlobalArgsSchema = z.object({
     webhookSecretVersionName: z.string().describe(
       "Required. Immutable. The resource name for the webhook secret's secret version. Once this field has been set, it cannot be changed. If you need to change it, please create another BitbucketServerConfig.",
     ).optional(),
-  }).describe(
-    "BitbucketServerSecrets represents the secrets in Secret Manager for a Bitbucket Server.",
-  ).optional(),
+  }).describe("Required. Secret Manager secrets needed by the config.")
+    .optional(),
   sslCa: z.string().describe(
     "Optional. SSL certificate to use for requests to Bitbucket Server. The format should be PEM format but the extension can be one of.pem,.cer, or.crt.",
   ).optional(),
@@ -250,9 +249,8 @@ const InputsSchema = z.object({
     webhookSecretVersionName: z.string().describe(
       "Required. Immutable. The resource name for the webhook secret's secret version. Once this field has been set, it cannot be changed. If you need to change it, please create another BitbucketServerConfig.",
     ).optional(),
-  }).describe(
-    "BitbucketServerSecrets represents the secrets in Secret Manager for a Bitbucket Server.",
-  ).optional(),
+  }).describe("Required. Secret Manager secrets needed by the config.")
+    .optional(),
   sslCa: z.string().describe(
     "Optional. SSL certificate to use for requests to Bitbucket Server. The format should be PEM format but the extension can be one of.pem,.cer, or.crt.",
   ).optional(),
@@ -290,7 +288,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build BitbucketServerConfigs. Registered at `@swamp/gcp/cloudbuild/bitbucketserverconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/bitbucketserverconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

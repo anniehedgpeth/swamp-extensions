@@ -116,53 +116,6 @@ const GlobalArgsSchema = z.object({
   captureTimeOverride: z.string().describe(
     "Optional. Absolute time when the photo sequence starts to be captured. If the photo sequence is a video, this is the start time of the video. If this field is populated in input, it overrides the capture time in the video or XDM file.",
   ).optional(),
-  failureDetails: z.object({
-    gpsDataGapDetails: z.object({
-      gapDuration: z.string().describe(
-        "The duration of the gap in GPS data that was found.",
-      ).optional(),
-      gapStartTime: z.string().describe(
-        "Relative time (from the start of the video stream) when the gap started.",
-      ).optional(),
-    }).describe(
-      "Details related to ProcessingFailureReason#GPS_DATA_GAP. If there are multiple GPS data gaps, only the one with the largest duration is reported here.",
-    ).optional(),
-    imuDataGapDetails: z.object({
-      gapDuration: z.string().describe(
-        "The duration of the gap in IMU data that was found.",
-      ).optional(),
-      gapStartTime: z.string().describe(
-        "Relative time (from the start of the video stream) when the gap started.",
-      ).optional(),
-    }).describe(
-      "Details related to ProcessingFailureReason#IMU_DATA_GAP. If there are multiple IMU data gaps, only the one with the largest duration is reported here.",
-    ).optional(),
-    insufficientGpsDetails: z.object({
-      gpsPointsFound: z.number().int().describe(
-        "The number of GPS points that were found in the video.",
-      ).optional(),
-    }).describe("Details related to ProcessingFailureReason#INSUFFICIENT_GPS.")
-      .optional(),
-    noOverlapGpsDetails: z.object({
-      gpsEndTime: z.string().describe("Time of last recorded GPS point.")
-        .optional(),
-      gpsStartTime: z.string().describe("Time of first recorded GPS point.")
-        .optional(),
-      videoEndTime: z.string().describe("End time of video.").optional(),
-      videoStartTime: z.string().describe("Start time of video.").optional(),
-    }).describe(
-      "Details related to PhotoSequenceProcessingFailureReason#NO_OVERLAP_GPS.",
-    ).optional(),
-    notOutdoorsDetails: z.object({
-      startTime: z.string().describe(
-        "Relative time (from the start of the video stream) when an indoor frame was found.",
-      ).optional(),
-    }).describe(
-      "Details related to ProcessingFailureReason#NOT_OUTDOORS. If there are multiple indoor frames found, the first frame is recorded here.",
-    ).optional(),
-  }).describe(
-    "Additional details to accompany the ProcessingFailureReason enum. This message is always expected to be used in conjunction with ProcessingFailureReason, and the oneof value set in this message should match the FailureReason.",
-  ).optional(),
   gpsSource: z.enum(["PHOTO_SEQUENCE", "CAMERA_MOTION_METADATA_TRACK"])
     .describe(
       "Input only. If both raw_gps_timeline and the Camera Motion Metadata Track (CAMM) contain GPS measurements, indicate which takes precedence.",
@@ -204,7 +157,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "The magnetometer measurements of the magnetic field in microtesla (uT) with increasing timestamps from devices.",
     ).optional(),
-  }).describe("IMU data from the device sensors.").optional(),
+  }).describe(
+    "Input only. Three axis IMU data for the collection. If this data is too large to put in the request, then it should be put in the CAMM track for the video. This data always takes precedence over the equivalent CAMM data, if it exists.",
+  ).optional(),
   rawGpsTimeline: z.array(z.object({
     accuracyMeters: z.number().describe(
       "The estimated horizontal accuracy of this pose in meters with 68% confidence (one standard deviation). For example, on Android, this value is available from this method: https://developer.android.com/reference/android/location/Location#getAccuracy(). Other platforms have different methods of obtaining similar accuracy estimations.",
@@ -226,7 +181,7 @@ const GlobalArgsSchema = z.object({
         "The longitude in degrees. It must be in the range [-180.0, +180.0].",
       ).optional(),
     }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+      "Latitude and longitude pair of the pose, as explained here: https://cloud.google.com/datastore/docs/reference/rest/Shared.Types/LatLng When creating a Photo, if the latitude and longitude pair are not provided, the geolocation from the exif header is used. A latitude and longitude pair not provided in the photo or exif header causes the photo process to fail.",
     ).optional(),
     level: z.object({
       name: z.string().describe(
@@ -236,7 +191,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.",
       ).optional(),
     }).describe(
-      "Level information containing level number and its corresponding name.",
+      "Level (the floor in a building) used to configure vertical navigation.",
     ).optional(),
     pitch: z.number().describe(
       "Pitch, measured at the center of the photo in degrees. Value must be >=-90 and <= 90. A value of -90 means looking directly down, and a value of 90 means looking directly up. NaN indicates an unmeasured quantity.",
@@ -247,33 +202,13 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Input only. Raw GPS measurements with increasing timestamps from the device that aren't time synced with each photo. These raw measurements will be used to infer the pose of each frame. Required in input when InputType is VIDEO and raw GPS measurements are not in Camera Motion Metadata Track (CAMM). User can indicate which takes precedence using gps_source if raw GPS measurements are provided in both raw_gps_timeline and Camera Motion Metadata Track (CAMM).",
   ).optional(),
-  sequenceBounds: z.object({
-    northeast: z.object({
-      latitude: z.number().describe(
-        "The latitude in degrees. It must be in the range [-90.0, +90.0].",
-      ).optional(),
-      longitude: z.number().describe(
-        "The longitude in degrees. It must be in the range [-180.0, +180.0].",
-      ).optional(),
-    }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-    ).optional(),
-    southwest: z.object({
-      latitude: z.number().describe(
-        "The latitude in degrees. It must be in the range [-90.0, +90.0].",
-      ).optional(),
-      longitude: z.number().describe(
-        "The longitude in degrees. It must be in the range [-180.0, +180.0].",
-      ).optional(),
-    }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-    ).optional(),
-  }).describe("A rectangle in geographical coordinates.").optional(),
   uploadReference: z.object({
     uploadUrl: z.string().describe(
       'An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"',
     ).optional(),
-  }).describe("Upload reference for media files.").optional(),
+  }).describe(
+    "Input only. Required when creating photo sequence. The resource name where the bytes of the photo sequence (in the form of video) are uploaded.",
+  ).optional(),
   inputType: z.string().describe("Required. The input form of PhotoSequence.")
     .optional(),
 });
@@ -301,53 +236,6 @@ const InputsSchema = z.object({
   captureTimeOverride: z.string().describe(
     "Optional. Absolute time when the photo sequence starts to be captured. If the photo sequence is a video, this is the start time of the video. If this field is populated in input, it overrides the capture time in the video or XDM file.",
   ).optional(),
-  failureDetails: z.object({
-    gpsDataGapDetails: z.object({
-      gapDuration: z.string().describe(
-        "The duration of the gap in GPS data that was found.",
-      ).optional(),
-      gapStartTime: z.string().describe(
-        "Relative time (from the start of the video stream) when the gap started.",
-      ).optional(),
-    }).describe(
-      "Details related to ProcessingFailureReason#GPS_DATA_GAP. If there are multiple GPS data gaps, only the one with the largest duration is reported here.",
-    ).optional(),
-    imuDataGapDetails: z.object({
-      gapDuration: z.string().describe(
-        "The duration of the gap in IMU data that was found.",
-      ).optional(),
-      gapStartTime: z.string().describe(
-        "Relative time (from the start of the video stream) when the gap started.",
-      ).optional(),
-    }).describe(
-      "Details related to ProcessingFailureReason#IMU_DATA_GAP. If there are multiple IMU data gaps, only the one with the largest duration is reported here.",
-    ).optional(),
-    insufficientGpsDetails: z.object({
-      gpsPointsFound: z.number().int().describe(
-        "The number of GPS points that were found in the video.",
-      ).optional(),
-    }).describe("Details related to ProcessingFailureReason#INSUFFICIENT_GPS.")
-      .optional(),
-    noOverlapGpsDetails: z.object({
-      gpsEndTime: z.string().describe("Time of last recorded GPS point.")
-        .optional(),
-      gpsStartTime: z.string().describe("Time of first recorded GPS point.")
-        .optional(),
-      videoEndTime: z.string().describe("End time of video.").optional(),
-      videoStartTime: z.string().describe("Start time of video.").optional(),
-    }).describe(
-      "Details related to PhotoSequenceProcessingFailureReason#NO_OVERLAP_GPS.",
-    ).optional(),
-    notOutdoorsDetails: z.object({
-      startTime: z.string().describe(
-        "Relative time (from the start of the video stream) when an indoor frame was found.",
-      ).optional(),
-    }).describe(
-      "Details related to ProcessingFailureReason#NOT_OUTDOORS. If there are multiple indoor frames found, the first frame is recorded here.",
-    ).optional(),
-  }).describe(
-    "Additional details to accompany the ProcessingFailureReason enum. This message is always expected to be used in conjunction with ProcessingFailureReason, and the oneof value set in this message should match the FailureReason.",
-  ).optional(),
   gpsSource: z.enum(["PHOTO_SEQUENCE", "CAMERA_MOTION_METADATA_TRACK"])
     .describe(
       "Input only. If both raw_gps_timeline and the Camera Motion Metadata Track (CAMM) contain GPS measurements, indicate which takes precedence.",
@@ -389,7 +277,9 @@ const InputsSchema = z.object({
     })).describe(
       "The magnetometer measurements of the magnetic field in microtesla (uT) with increasing timestamps from devices.",
     ).optional(),
-  }).describe("IMU data from the device sensors.").optional(),
+  }).describe(
+    "Input only. Three axis IMU data for the collection. If this data is too large to put in the request, then it should be put in the CAMM track for the video. This data always takes precedence over the equivalent CAMM data, if it exists.",
+  ).optional(),
   rawGpsTimeline: z.array(z.object({
     accuracyMeters: z.number().describe(
       "The estimated horizontal accuracy of this pose in meters with 68% confidence (one standard deviation). For example, on Android, this value is available from this method: https://developer.android.com/reference/android/location/Location#getAccuracy(). Other platforms have different methods of obtaining similar accuracy estimations.",
@@ -411,7 +301,7 @@ const InputsSchema = z.object({
         "The longitude in degrees. It must be in the range [-180.0, +180.0].",
       ).optional(),
     }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+      "Latitude and longitude pair of the pose, as explained here: https://cloud.google.com/datastore/docs/reference/rest/Shared.Types/LatLng When creating a Photo, if the latitude and longitude pair are not provided, the geolocation from the exif header is used. A latitude and longitude pair not provided in the photo or exif header causes the photo process to fail.",
     ).optional(),
     level: z.object({
       name: z.string().describe(
@@ -421,7 +311,7 @@ const InputsSchema = z.object({
         "Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.",
       ).optional(),
     }).describe(
-      "Level information containing level number and its corresponding name.",
+      "Level (the floor in a building) used to configure vertical navigation.",
     ).optional(),
     pitch: z.number().describe(
       "Pitch, measured at the center of the photo in degrees. Value must be >=-90 and <= 90. A value of -90 means looking directly down, and a value of 90 means looking directly up. NaN indicates an unmeasured quantity.",
@@ -432,33 +322,13 @@ const InputsSchema = z.object({
   })).describe(
     "Input only. Raw GPS measurements with increasing timestamps from the device that aren't time synced with each photo. These raw measurements will be used to infer the pose of each frame. Required in input when InputType is VIDEO and raw GPS measurements are not in Camera Motion Metadata Track (CAMM). User can indicate which takes precedence using gps_source if raw GPS measurements are provided in both raw_gps_timeline and Camera Motion Metadata Track (CAMM).",
   ).optional(),
-  sequenceBounds: z.object({
-    northeast: z.object({
-      latitude: z.number().describe(
-        "The latitude in degrees. It must be in the range [-90.0, +90.0].",
-      ).optional(),
-      longitude: z.number().describe(
-        "The longitude in degrees. It must be in the range [-180.0, +180.0].",
-      ).optional(),
-    }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-    ).optional(),
-    southwest: z.object({
-      latitude: z.number().describe(
-        "The latitude in degrees. It must be in the range [-90.0, +90.0].",
-      ).optional(),
-      longitude: z.number().describe(
-        "The longitude in degrees. It must be in the range [-180.0, +180.0].",
-      ).optional(),
-    }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-    ).optional(),
-  }).describe("A rectangle in geographical coordinates.").optional(),
   uploadReference: z.object({
     uploadUrl: z.string().describe(
       'An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"',
     ).optional(),
-  }).describe("Upload reference for media files.").optional(),
+  }).describe(
+    "Input only. Required when creating photo sequence. The resource name where the bytes of the photo sequence (in the form of video) are uploaded.",
+  ).optional(),
   inputType: z.string().describe("Required. The input form of PhotoSequence.")
     .optional(),
 });
@@ -486,7 +356,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Street View Publish PhotoSequence. Registered at `@swamp/gcp/streetviewpublish/photosequence`. */
 export const model = {
   type: "@swamp/gcp/streetviewpublish/photosequence",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -578,6 +448,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: failureDetails, sequenceBounds",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          failureDetails: _failureDetails,
+          sequenceBounds: _sequenceBounds,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -603,16 +485,10 @@ export const model = {
         if (g["captureTimeOverride"] !== undefined) {
           body["captureTimeOverride"] = g["captureTimeOverride"];
         }
-        if (g["failureDetails"] !== undefined) {
-          body["failureDetails"] = g["failureDetails"];
-        }
         if (g["gpsSource"] !== undefined) body["gpsSource"] = g["gpsSource"];
         if (g["imu"] !== undefined) body["imu"] = g["imu"];
         if (g["rawGpsTimeline"] !== undefined) {
           body["rawGpsTimeline"] = g["rawGpsTimeline"];
-        }
-        if (g["sequenceBounds"] !== undefined) {
-          body["sequenceBounds"] = g["sequenceBounds"];
         }
         if (g["uploadReference"] !== undefined) {
           body["uploadReference"] = g["uploadReference"];

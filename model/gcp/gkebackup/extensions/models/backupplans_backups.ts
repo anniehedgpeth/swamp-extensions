@@ -170,75 +170,17 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  clusterMetadata: z.object({
-    anthosVersion: z.string().describe("Output only. Anthos version")
-      .optional(),
-    backupCrdVersions: z.record(z.string(), z.string()).describe(
-      "Output only. A list of the Backup for GKE CRD versions found in the cluster.",
-    ).optional(),
-    cluster: z.string().describe(
-      "Output only. The source cluster from which this Backup was created. Valid formats: - `projects/*/locations/*/clusters/*` - `projects/*/zones/*/clusters/*` This is inherited from the parent BackupPlan's cluster field.",
-    ).optional(),
-    gkeVersion: z.string().describe("Output only. GKE version").optional(),
-    k8sVersion: z.string().describe(
-      "Output only. The Kubernetes server version of the source cluster.",
-    ).optional(),
-  }).describe(
-    "Information about the GKE cluster from which this Backup was created.",
-  ).optional(),
   deleteLockDays: z.number().int().describe(
     'Optional. Minimum age for this Backup (in days). If this field is set to a non-zero value, the Backup will be "locked" against deletion (either manual or automatic deletion) for the number of days provided (measured from the creation time of the Backup). MUST be an integer value between 0-90 (inclusive). Defaults to parent BackupPlan\'s backup_delete_lock_days setting and may only be increased (either at creation time or in a subsequent update).',
   ).optional(),
   description: z.string().describe(
     "Optional. User specified descriptive string for this Backup.",
   ).optional(),
-  encryptionKey: z.object({
-    gcpKmsEncryptionKey: z.string().describe(
-      "Optional. Google Cloud KMS encryption key. Format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`",
-    ).optional(),
-  }).describe(
-    "Defined a customer managed encryption key that will be used to encrypt Backup artifacts.",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. A set of custom labels supplied by user.",
   ).optional(),
   retainDays: z.number().int().describe(
     "Optional. The age (in days) after which this Backup will be automatically deleted. Must be an integer value >= 0: - If 0, no automatic deletion will occur for this Backup. - If not 0, this must be >= delete_lock_days and <= 365. Once a Backup is created, this value may only be increased. Defaults to the parent BackupPlan's backup_retain_days value.",
-  ).optional(),
-  selectedApplications: z.object({
-    namespacedNames: z.array(z.object({
-      name: z.string().describe(
-        "Optional. The name of the Kubernetes resource.",
-      ).optional(),
-      namespace: z.string().describe(
-        "Optional. The Namespace of the Kubernetes resource.",
-      ).optional(),
-    })).describe("Optional. A list of namespaced Kubernetes resources.")
-      .optional(),
-  }).describe("A list of namespaced Kubernetes resources.").optional(),
-  selectedNamespaceLabels: z.object({
-    resourceLabels: z.array(z.object({
-      key: z.string().describe("Optional. The key/name of the label.")
-        .optional(),
-      value: z.string().describe("Optional. The value of the label.")
-        .optional(),
-    })).describe("Optional. A list of Kubernetes label-value pairs.")
-      .optional(),
-  }).describe("A list of Kubernetes labels.").optional(),
-  selectedNamespaces: z.object({
-    namespaces: z.array(z.string()).describe(
-      "Optional. A list of Kubernetes Namespaces.",
-    ).optional(),
-  }).describe("A list of Kubernetes Namespaces.").optional(),
-  troubleshootingInfo: z.object({
-    stateReasonCode: z.string().describe(
-      "Output only. Unique code for each backup/restore operation failure message which helps user identify the failure.",
-    ).optional(),
-    stateReasonUri: z.string().describe(
-      "Output only. URL for the troubleshooting doc which will help the user fix the failing backup/restore operation.",
-    ).optional(),
-  }).describe(
-    "Stores information about troubleshooting doc for debugging a particular state of an operation (eg - backup/restore). This will be used by the end user to debug their operation failure scenario easily.",
   ).optional(),
   backupId: z.string().describe(
     "Optional. The client-provided short name for the Backup resource. This name must: - be between 1 and 63 characters long (inclusive) - consist of only lower-case ASCII letters, numbers, and dashes - start with a lower-case letter - end with a lower-case letter or number - be unique within the set of Backups in this BackupPlan",
@@ -318,75 +260,17 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  clusterMetadata: z.object({
-    anthosVersion: z.string().describe("Output only. Anthos version")
-      .optional(),
-    backupCrdVersions: z.record(z.string(), z.string()).describe(
-      "Output only. A list of the Backup for GKE CRD versions found in the cluster.",
-    ).optional(),
-    cluster: z.string().describe(
-      "Output only. The source cluster from which this Backup was created. Valid formats: - `projects/*/locations/*/clusters/*` - `projects/*/zones/*/clusters/*` This is inherited from the parent BackupPlan's cluster field.",
-    ).optional(),
-    gkeVersion: z.string().describe("Output only. GKE version").optional(),
-    k8sVersion: z.string().describe(
-      "Output only. The Kubernetes server version of the source cluster.",
-    ).optional(),
-  }).describe(
-    "Information about the GKE cluster from which this Backup was created.",
-  ).optional(),
   deleteLockDays: z.number().int().describe(
     'Optional. Minimum age for this Backup (in days). If this field is set to a non-zero value, the Backup will be "locked" against deletion (either manual or automatic deletion) for the number of days provided (measured from the creation time of the Backup). MUST be an integer value between 0-90 (inclusive). Defaults to parent BackupPlan\'s backup_delete_lock_days setting and may only be increased (either at creation time or in a subsequent update).',
   ).optional(),
   description: z.string().describe(
     "Optional. User specified descriptive string for this Backup.",
   ).optional(),
-  encryptionKey: z.object({
-    gcpKmsEncryptionKey: z.string().describe(
-      "Optional. Google Cloud KMS encryption key. Format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`",
-    ).optional(),
-  }).describe(
-    "Defined a customer managed encryption key that will be used to encrypt Backup artifacts.",
-  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. A set of custom labels supplied by user.",
   ).optional(),
   retainDays: z.number().int().describe(
     "Optional. The age (in days) after which this Backup will be automatically deleted. Must be an integer value >= 0: - If 0, no automatic deletion will occur for this Backup. - If not 0, this must be >= delete_lock_days and <= 365. Once a Backup is created, this value may only be increased. Defaults to the parent BackupPlan's backup_retain_days value.",
-  ).optional(),
-  selectedApplications: z.object({
-    namespacedNames: z.array(z.object({
-      name: z.string().describe(
-        "Optional. The name of the Kubernetes resource.",
-      ).optional(),
-      namespace: z.string().describe(
-        "Optional. The Namespace of the Kubernetes resource.",
-      ).optional(),
-    })).describe("Optional. A list of namespaced Kubernetes resources.")
-      .optional(),
-  }).describe("A list of namespaced Kubernetes resources.").optional(),
-  selectedNamespaceLabels: z.object({
-    resourceLabels: z.array(z.object({
-      key: z.string().describe("Optional. The key/name of the label.")
-        .optional(),
-      value: z.string().describe("Optional. The value of the label.")
-        .optional(),
-    })).describe("Optional. A list of Kubernetes label-value pairs.")
-      .optional(),
-  }).describe("A list of Kubernetes labels.").optional(),
-  selectedNamespaces: z.object({
-    namespaces: z.array(z.string()).describe(
-      "Optional. A list of Kubernetes Namespaces.",
-    ).optional(),
-  }).describe("A list of Kubernetes Namespaces.").optional(),
-  troubleshootingInfo: z.object({
-    stateReasonCode: z.string().describe(
-      "Output only. Unique code for each backup/restore operation failure message which helps user identify the failure.",
-    ).optional(),
-    stateReasonUri: z.string().describe(
-      "Output only. URL for the troubleshooting doc which will help the user fix the failing backup/restore operation.",
-    ).optional(),
-  }).describe(
-    "Stores information about troubleshooting doc for debugging a particular state of an operation (eg - backup/restore). This will be used by the end user to debug their operation failure scenario easily.",
   ).optional(),
   backupId: z.string().describe(
     "Optional. The client-provided short name for the Backup resource. This name must: - be between 1 and 63 characters long (inclusive) - consist of only lower-case ASCII letters, numbers, and dashes - start with a lower-case letter - end with a lower-case letter or number - be unique within the set of Backups in this BackupPlan",
@@ -422,7 +306,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup for GKE BackupPlans.Backups. Registered at `@swamp/gcp/gkebackup/backupplans-backups`. */
 export const model = {
   type: "@swamp/gcp/gkebackup/backupplans-backups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -529,6 +413,23 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: clusterMetadata, encryptionKey, selectedApplications, selectedNamespaceLabels, selectedNamespaces, troubleshootingInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          clusterMetadata: _clusterMetadata,
+          encryptionKey: _encryptionKey,
+          selectedApplications: _selectedApplications,
+          selectedNamespaceLabels: _selectedNamespaceLabels,
+          selectedNamespaces: _selectedNamespaces,
+          troubleshootingInfo: _troubleshootingInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -556,32 +457,14 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["clusterMetadata"] !== undefined) {
-          body["clusterMetadata"] = g["clusterMetadata"];
-        }
         if (g["deleteLockDays"] !== undefined) {
           body["deleteLockDays"] = g["deleteLockDays"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["encryptionKey"] !== undefined) {
-          body["encryptionKey"] = g["encryptionKey"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["retainDays"] !== undefined) body["retainDays"] = g["retainDays"];
-        if (g["selectedApplications"] !== undefined) {
-          body["selectedApplications"] = g["selectedApplications"];
-        }
-        if (g["selectedNamespaceLabels"] !== undefined) {
-          body["selectedNamespaceLabels"] = g["selectedNamespaceLabels"];
-        }
-        if (g["selectedNamespaces"] !== undefined) {
-          body["selectedNamespaces"] = g["selectedNamespaces"];
-        }
-        if (g["troubleshootingInfo"] !== undefined) {
-          body["troubleshootingInfo"] = g["troubleshootingInfo"];
-        }
         if (g["backupId"] !== undefined) {
           params["backupId"] = String(g["backupId"]);
         }
@@ -604,14 +487,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -702,32 +578,14 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["clusterMetadata"] !== undefined) {
-          body["clusterMetadata"] = g["clusterMetadata"];
-        }
         if (g["deleteLockDays"] !== undefined) {
           body["deleteLockDays"] = g["deleteLockDays"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["encryptionKey"] !== undefined) {
-          body["encryptionKey"] = g["encryptionKey"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["retainDays"] !== undefined) body["retainDays"] = g["retainDays"];
-        if (g["selectedApplications"] !== undefined) {
-          body["selectedApplications"] = g["selectedApplications"];
-        }
-        if (g["selectedNamespaceLabels"] !== undefined) {
-          body["selectedNamespaceLabels"] = g["selectedNamespaceLabels"];
-        }
-        if (g["selectedNamespaces"] !== undefined) {
-          body["selectedNamespaces"] = g["selectedNamespaces"];
-        }
-        if (g["troubleshootingInfo"] !== undefined) {
-          body["troubleshootingInfo"] = g["troubleshootingInfo"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

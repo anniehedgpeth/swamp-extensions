@@ -158,7 +158,7 @@ const GlobalArgsSchema = z.object({
         compositeFilter: z.unknown().optional(),
         valueFilter: z.unknown().optional(),
       }).describe(
-        "A generic way of expressing filters in a query, which supports two approaches: **1. Setting a ValueFilter.** The name must match an operator_name defined in the schema for your data source. **2. Setting a CompositeFilter.** The filters are evaluated using the logical operator. The top-level operators can only be either an AND or a NOT. AND can appear only at the top-most level. OR can appear only under a top-level AND.",
+        "Generic filter to restrict the search, such as `lang:en`, `site:xyz`.",
       ).optional(),
       objectType: z.string().describe(
         "If object_type is set, only objects of that type are returned. This should correspond to the name of the object that was registered within the definition of schema. The maximum length is 256 characters.",
@@ -181,7 +181,7 @@ const GlobalArgsSchema = z.object({
         "GOOGLE_CALENDAR",
         "GOOGLE_KEEP",
       ]).describe("Predefined content source for Google Apps.").optional(),
-    }).describe("Defines sources for the suggest/search APIs.").optional(),
+    }).describe("The source of restriction.").optional(),
   })).describe(
     "Retrictions applied to the configurations. The maximum number of elements is 10.",
   ).optional(),
@@ -190,7 +190,9 @@ const GlobalArgsSchema = z.object({
       integerBuckets: z.array(z.string()).describe(
         "Buckets for given integer values should be in strictly ascending order. For example, if values supplied are (1,5,10,100), the following facet buckets will be formed {=100}.",
       ).optional(),
-    }).describe("Used to specify integer faceting options.").optional(),
+    }).describe(
+      "If set, describes integer faceting options for the given integer property. The corresponding integer property in the schema should be marked isFacetable. The number of buckets returned would be minimum of this and num_facet_buckets.",
+    ).optional(),
     numFacetBuckets: z.number().int().describe(
       "Maximum number of facet buckets that should be returned for this facet. Defaults to 10. Maximum value is 100.",
     ).optional(),
@@ -213,7 +215,7 @@ const GlobalArgsSchema = z.object({
     sortOrder: z.enum(["ASCENDING", "DESCENDING"]).describe(
       "Ascending is the default sort order",
     ).optional(),
-  }).optional(),
+  }).describe("The default options for sorting the search results").optional(),
   displayName: z.string().describe(
     "Display name of the Search Application. The maximum length is 300 characters.",
   ).optional(),
@@ -230,7 +232,7 @@ const GlobalArgsSchema = z.object({
     forceVerbatimMode: z.boolean().describe(
       "Enable this flag to turn off all internal optimizations like natural language (NL) interpretation of queries, supplemental results retrieval, and usage of synonyms including custom ones. If this flag is set to True, it will take precedence over the option set at Query level. For the default value of False, query level flag will set the correct interpretation for verbatim mode.",
     ).optional(),
-  }).describe("Default options to interpret user query.").optional(),
+  }).describe("The default options for query interpretation").optional(),
   returnResultThumbnailUrls: z.boolean().describe(
     "With each result we should return the URI for its thumbnail (when applicable)",
   ).optional(),
@@ -241,9 +243,7 @@ const GlobalArgsSchema = z.object({
     disablePersonalization: z.boolean().describe(
       "Whether to personalize the results. By default, personal signals will be used to boost results.",
     ).optional(),
-  }).describe(
-    "Scoring configurations for a source while processing a Search or Suggest request.",
-  ).optional(),
+  }).describe("Configuration for ranking results.").optional(),
   sourceConfig: z.array(z.object({
     crowdingConfig: z.object({
       numResults: z.number().int().describe(
@@ -252,16 +252,12 @@ const GlobalArgsSchema = z.object({
       numSuggestions: z.number().int().describe(
         "Maximum number of suggestions allowed from a source. No limits will be set on results if this value is less than or equal to 0.",
       ).optional(),
-    }).describe(
-      'Set search results crowding limits. Crowding is a situation in which multiple results from the same source or host "crowd out" other results, diminishing the quality of search for users. To foster better search quality and source diversity in search results, you can set a condition to reduce repetitive results by source.',
-    ).optional(),
+    }).describe("The crowding configuration for the source.").optional(),
     scoringConfig: z.object({
       sourceImportance: z.enum(["DEFAULT", "LOW", "HIGH"]).describe(
         "Importance of the source.",
       ).optional(),
-    }).describe(
-      "Set the scoring configuration. This allows modifying the ranking of results for a source.",
-    ).optional(),
+    }).describe("The scoring configuration for the source.").optional(),
     source: z.object({
       name: z.string().describe(
         "Source name for content indexed by the Indexing API.",
@@ -277,7 +273,8 @@ const GlobalArgsSchema = z.object({
         "GOOGLE_CALENDAR",
         "GOOGLE_KEEP",
       ]).describe("Predefined content source for Google Apps.").optional(),
-    }).describe("Defines sources for the suggest/search APIs.").optional(),
+    }).describe("The source for which this configuration is to be used.")
+      .optional(),
   })).describe(
     "Configuration for a sources specified in data_source_restrictions.",
   ).optional(),
@@ -351,7 +348,7 @@ const InputsSchema = z.object({
         compositeFilter: z.unknown().optional(),
         valueFilter: z.unknown().optional(),
       }).describe(
-        "A generic way of expressing filters in a query, which supports two approaches: **1. Setting a ValueFilter.** The name must match an operator_name defined in the schema for your data source. **2. Setting a CompositeFilter.** The filters are evaluated using the logical operator. The top-level operators can only be either an AND or a NOT. AND can appear only at the top-most level. OR can appear only under a top-level AND.",
+        "Generic filter to restrict the search, such as `lang:en`, `site:xyz`.",
       ).optional(),
       objectType: z.string().describe(
         "If object_type is set, only objects of that type are returned. This should correspond to the name of the object that was registered within the definition of schema. The maximum length is 256 characters.",
@@ -374,7 +371,7 @@ const InputsSchema = z.object({
         "GOOGLE_CALENDAR",
         "GOOGLE_KEEP",
       ]).describe("Predefined content source for Google Apps.").optional(),
-    }).describe("Defines sources for the suggest/search APIs.").optional(),
+    }).describe("The source of restriction.").optional(),
   })).describe(
     "Retrictions applied to the configurations. The maximum number of elements is 10.",
   ).optional(),
@@ -383,7 +380,9 @@ const InputsSchema = z.object({
       integerBuckets: z.array(z.string()).describe(
         "Buckets for given integer values should be in strictly ascending order. For example, if values supplied are (1,5,10,100), the following facet buckets will be formed {=100}.",
       ).optional(),
-    }).describe("Used to specify integer faceting options.").optional(),
+    }).describe(
+      "If set, describes integer faceting options for the given integer property. The corresponding integer property in the schema should be marked isFacetable. The number of buckets returned would be minimum of this and num_facet_buckets.",
+    ).optional(),
     numFacetBuckets: z.number().int().describe(
       "Maximum number of facet buckets that should be returned for this facet. Defaults to 10. Maximum value is 100.",
     ).optional(),
@@ -406,7 +405,7 @@ const InputsSchema = z.object({
     sortOrder: z.enum(["ASCENDING", "DESCENDING"]).describe(
       "Ascending is the default sort order",
     ).optional(),
-  }).optional(),
+  }).describe("The default options for sorting the search results").optional(),
   displayName: z.string().describe(
     "Display name of the Search Application. The maximum length is 300 characters.",
   ).optional(),
@@ -423,7 +422,7 @@ const InputsSchema = z.object({
     forceVerbatimMode: z.boolean().describe(
       "Enable this flag to turn off all internal optimizations like natural language (NL) interpretation of queries, supplemental results retrieval, and usage of synonyms including custom ones. If this flag is set to True, it will take precedence over the option set at Query level. For the default value of False, query level flag will set the correct interpretation for verbatim mode.",
     ).optional(),
-  }).describe("Default options to interpret user query.").optional(),
+  }).describe("The default options for query interpretation").optional(),
   returnResultThumbnailUrls: z.boolean().describe(
     "With each result we should return the URI for its thumbnail (when applicable)",
   ).optional(),
@@ -434,9 +433,7 @@ const InputsSchema = z.object({
     disablePersonalization: z.boolean().describe(
       "Whether to personalize the results. By default, personal signals will be used to boost results.",
     ).optional(),
-  }).describe(
-    "Scoring configurations for a source while processing a Search or Suggest request.",
-  ).optional(),
+  }).describe("Configuration for ranking results.").optional(),
   sourceConfig: z.array(z.object({
     crowdingConfig: z.object({
       numResults: z.number().int().describe(
@@ -445,16 +442,12 @@ const InputsSchema = z.object({
       numSuggestions: z.number().int().describe(
         "Maximum number of suggestions allowed from a source. No limits will be set on results if this value is less than or equal to 0.",
       ).optional(),
-    }).describe(
-      'Set search results crowding limits. Crowding is a situation in which multiple results from the same source or host "crowd out" other results, diminishing the quality of search for users. To foster better search quality and source diversity in search results, you can set a condition to reduce repetitive results by source.',
-    ).optional(),
+    }).describe("The crowding configuration for the source.").optional(),
     scoringConfig: z.object({
       sourceImportance: z.enum(["DEFAULT", "LOW", "HIGH"]).describe(
         "Importance of the source.",
       ).optional(),
-    }).describe(
-      "Set the scoring configuration. This allows modifying the ranking of results for a source.",
-    ).optional(),
+    }).describe("The scoring configuration for the source.").optional(),
     source: z.object({
       name: z.string().describe(
         "Source name for content indexed by the Indexing API.",
@@ -470,7 +463,8 @@ const InputsSchema = z.object({
         "GOOGLE_CALENDAR",
         "GOOGLE_KEEP",
       ]).describe("Predefined content source for Google Apps.").optional(),
-    }).describe("Defines sources for the suggest/search APIs.").optional(),
+    }).describe("The source for which this configuration is to be used.")
+      .optional(),
   })).describe(
     "Configuration for a sources specified in data_source_restrictions.",
   ).optional(),
@@ -499,7 +493,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Settings.Searchapplications. Registered at `@swamp/gcp/cloudsearch/settings-searchapplications`. */
 export const model = {
   type: "@swamp/gcp/cloudsearch/settings-searchapplications",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -598,6 +592,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

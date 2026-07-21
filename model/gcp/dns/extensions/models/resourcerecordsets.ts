@@ -235,7 +235,7 @@ const GlobalArgsSchema = z.object({
             "Configuration for internal load balancers to be health checked.",
           ).optional(),
         }).describe(
-          "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+          "For A and AAAA types only. Endpoints to return in the query result only if they are healthy. These can be specified along with `rrdata` within this item.",
         ).optional(),
         kind: z.string().optional(),
         location: z.string().describe(
@@ -263,7 +263,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         items: z.array(z.object({
           healthCheckedTargets: z.unknown().describe(
-            "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+            "For A and AAAA types only. Endpoints to return in the query result only if they are healthy. These can be specified along with `rrdata` within this item.",
           ).optional(),
           kind: z.unknown().optional(),
           location: z.unknown().describe(
@@ -278,7 +278,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         kind: z.string().optional(),
       }).describe(
-        "Configures a `RRSetRoutingPolicy` that routes based on the geo location of the querying user.",
+        "Backup targets provide a regional failover policy for the otherwise global primary targets. If serving state is set to `BACKUP`, this policy essentially becomes a geo routing policy.",
       ).optional(),
       kind: z.string().optional(),
       primaryTargets: z.object({
@@ -312,7 +312,7 @@ const GlobalArgsSchema = z.object({
           "Configuration for internal load balancers to be health checked.",
         ).optional(),
       }).describe(
-        "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+        "Endpoints that are health checked before making the routing decision. Unhealthy endpoints are omitted from the results. If all endpoints are unhealthy, we serve a response based on the `backup_geo_targets`.",
       ).optional(),
       trickleTraffic: z.number().describe(
         "When serving state is `PRIMARY`, this field provides the option of sending a small percentage of the traffic to the backup targets.",
@@ -330,7 +330,7 @@ const GlobalArgsSchema = z.object({
             "Configuration for internal load balancers to be health checked.",
           ).optional(),
         }).describe(
-          "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+          "Endpoints that are health checked before making the routing decision. The unhealthy endpoints are omitted from the result. If all endpoints within a bucket are unhealthy, we choose a different bucket (sampled with respect to its weight) for responding. If DNSSEC is enabled for this zone, only one of `rrdata` or `health_checked_targets` can be set.",
         ).optional(),
         kind: z.string().optional(),
         rrdatas: z.array(z.unknown()).optional(),
@@ -346,7 +346,7 @@ const GlobalArgsSchema = z.object({
       "Configures a RRSetRoutingPolicy that routes in a weighted round robin fashion.",
     ).optional(),
   }).describe(
-    "A RRSetRoutingPolicy represents ResourceRecordSet data that is returned dynamically with the response varying based on configured properties such as geolocation or by weighted random selection.",
+    "Configures dynamic query responses based on either the geo location of the querying user or a weighted round robin based routing policy. A valid `ResourceRecordSet` contains only `rrdata` (for static resolution) or a `routing_policy` (for dynamic resolution).",
   ).optional(),
   rrdatas: z.array(z.string()).describe(
     "As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples.",
@@ -458,7 +458,7 @@ const InputsSchema = z.object({
             "Configuration for internal load balancers to be health checked.",
           ).optional(),
         }).describe(
-          "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+          "For A and AAAA types only. Endpoints to return in the query result only if they are healthy. These can be specified along with `rrdata` within this item.",
         ).optional(),
         kind: z.string().optional(),
         location: z.string().describe(
@@ -486,7 +486,7 @@ const InputsSchema = z.object({
         ).optional(),
         items: z.array(z.object({
           healthCheckedTargets: z.unknown().describe(
-            "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+            "For A and AAAA types only. Endpoints to return in the query result only if they are healthy. These can be specified along with `rrdata` within this item.",
           ).optional(),
           kind: z.unknown().optional(),
           location: z.unknown().describe(
@@ -501,7 +501,7 @@ const InputsSchema = z.object({
         ).optional(),
         kind: z.string().optional(),
       }).describe(
-        "Configures a `RRSetRoutingPolicy` that routes based on the geo location of the querying user.",
+        "Backup targets provide a regional failover policy for the otherwise global primary targets. If serving state is set to `BACKUP`, this policy essentially becomes a geo routing policy.",
       ).optional(),
       kind: z.string().optional(),
       primaryTargets: z.object({
@@ -535,7 +535,7 @@ const InputsSchema = z.object({
           "Configuration for internal load balancers to be health checked.",
         ).optional(),
       }).describe(
-        "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+        "Endpoints that are health checked before making the routing decision. Unhealthy endpoints are omitted from the results. If all endpoints are unhealthy, we serve a response based on the `backup_geo_targets`.",
       ).optional(),
       trickleTraffic: z.number().describe(
         "When serving state is `PRIMARY`, this field provides the option of sending a small percentage of the traffic to the backup targets.",
@@ -553,7 +553,7 @@ const InputsSchema = z.object({
             "Configuration for internal load balancers to be health checked.",
           ).optional(),
         }).describe(
-          "HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either `internal_load_balancer` or `external_endpoints`. Do not set both.",
+          "Endpoints that are health checked before making the routing decision. The unhealthy endpoints are omitted from the result. If all endpoints within a bucket are unhealthy, we choose a different bucket (sampled with respect to its weight) for responding. If DNSSEC is enabled for this zone, only one of `rrdata` or `health_checked_targets` can be set.",
         ).optional(),
         kind: z.string().optional(),
         rrdatas: z.array(z.unknown()).optional(),
@@ -569,7 +569,7 @@ const InputsSchema = z.object({
       "Configures a RRSetRoutingPolicy that routes in a weighted round robin fashion.",
     ).optional(),
   }).describe(
-    "A RRSetRoutingPolicy represents ResourceRecordSet data that is returned dynamically with the response varying based on configured properties such as geolocation or by weighted random selection.",
+    "Configures dynamic query responses based on either the geo location of the querying user or a weighted round robin based routing policy. A valid `ResourceRecordSet` contains only `rrdata` (for static resolution) or a `routing_policy` (for dynamic resolution).",
   ).optional(),
   rrdatas: z.array(z.string()).describe(
     "As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples.",
@@ -614,7 +614,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud DNS ResourceRecordSets. Registered at `@swamp/gcp/dns/resourcerecordsets`. */
 export const model = {
   type: "@swamp/gcp/dns/resourcerecordsets",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -728,6 +728,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

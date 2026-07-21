@@ -199,8 +199,7 @@ const GlobalArgsSchema = z.object({
     versionNumber: z.number().int().describe(
       "The version number on which this deployment is based.",
     ).optional(),
-  }).describe("Metadata the defines how a deployment is configured.")
-    .optional(),
+  }).describe("The deployment configuration.").optional(),
 });
 
 const StateSchema = z.object({
@@ -264,8 +263,7 @@ const InputsSchema = z.object({
     versionNumber: z.number().int().describe(
       "The version number on which this deployment is based.",
     ).optional(),
-  }).describe("Metadata the defines how a deployment is configured.")
-    .optional(),
+  }).describe("The deployment configuration.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -291,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apps Script Deployments. Registered at `@swamp/gcp/script/deployments`. */
 export const model = {
   type: "@swamp/gcp/script/deployments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -378,6 +376,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -419,12 +422,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "scriptId": String(g["scriptId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

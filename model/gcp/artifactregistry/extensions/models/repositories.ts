@@ -180,9 +180,7 @@ const GlobalArgsSchema = z.object({
         versionNamePrefixes: z.array(z.string()).describe(
           "Match versions by version name prefix. Applied on any prefix match.",
         ).optional(),
-      }).describe(
-        "CleanupPolicyCondition is a set of conditions attached to a CleanupPolicy. If multiple entries are set, all must be satisfied for the condition to be satisfied.",
-      ).optional(),
+      }).describe("Policy condition for matching versions.").optional(),
       id: z.string().describe("The user-provided ID of the cleanup policy.")
         .optional(),
       mostRecentVersions: z.object({
@@ -193,7 +191,7 @@ const GlobalArgsSchema = z.object({
           "List of package name prefixes that will apply this rule.",
         ).optional(),
       }).describe(
-        "CleanupPolicyMostRecentVersions is an alternate condition of a CleanupPolicy for retaining a minimum number of versions.",
+        "Policy condition for retaining a minimum number of versions. May only be specified with a Keep action.",
       ).optional(),
     }),
   ).describe(
@@ -213,7 +211,7 @@ const GlobalArgsSchema = z.object({
       "The repository which enabled this flag prevents all tags from being modified, moved or deleted. This does not prevent tags from being created.",
     ).optional(),
   }).describe(
-    "DockerRepositoryConfig is docker related repository details. Provides additional configuration details for repositories of the docker format type.",
+    "Docker repository config contains repository level configuration for the repositories of docker type.",
   ).optional(),
   format: z.enum([
     "FORMAT_UNSPECIFIED",
@@ -246,7 +244,7 @@ const GlobalArgsSchema = z.object({
         "Version policy defines the versions that the registry will accept.",
       ).optional(),
   }).describe(
-    "MavenRepositoryConfig is maven related repository details. Provides additional configuration details for repositories of the maven format type.",
+    "Maven repository config contains repository level configuration for the repositories of maven type.",
   ).optional(),
   mode: z.enum([
     "MODE_UNSPECIFIED",
@@ -277,16 +275,14 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Optional. The severity level for the logs. Logs will be generated if their severity level is >= than the value of the severity level mentioned here.",
     ).optional(),
-  }).describe("The platform logs config for a project or a repository.")
-    .optional(),
+  }).describe("Optional. Configuration for platform logs.").optional(),
   remoteRepositoryConfig: z.object({
     aptRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.apt.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.object({
         repositoryBase: z.enum([
           "REPOSITORY_BASE_UNSPECIFIED",
@@ -298,14 +294,16 @@ const GlobalArgsSchema = z.object({
           "A custom field to define a path to a specific repository from the base.",
         ).optional(),
       }).describe(
-        "Publicly available Apt repositories constructed from a common repository base and a custom repository path.",
+        "One of the publicly available Apt repositories supported by Artifact Registry.",
       ).optional(),
-    }).describe("Configuration for an Apt remote repository.").optional(),
+    }).describe("Specific settings for an Apt remote repository.").optional(),
     commonRepository: z.object({
       uri: z.string().describe(
         "Required. A common public repository base for remote repository.",
       ).optional(),
-    }).describe("Common remote repository settings type.").optional(),
+    }).describe(
+      "Common remote repository settings. Used as the remote repository upstream URL.",
+    ).optional(),
     description: z.string().describe("The description of the remote source.")
       .optional(),
     disableUpstreamValidation: z.boolean().describe(
@@ -316,54 +314,50 @@ const GlobalArgsSchema = z.object({
         uri: z.string().describe(
           'An http/https uri reference to the custom remote repository, for ex: "https://registry-1.docker.io".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum(["PUBLIC_REPOSITORY_UNSPECIFIED", "DOCKER_HUB"])
         .describe(
           "One of the publicly available Docker repositories supported by Artifact Registry.",
         ).optional(),
-    }).describe("Configuration for a Docker remote repository.").optional(),
+    }).describe("Specific settings for a Docker remote repository.").optional(),
     mavenRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.maven.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum([
         "PUBLIC_REPOSITORY_UNSPECIFIED",
         "MAVEN_CENTRAL",
       ]).describe(
         "One of the publicly available Maven repositories supported by Artifact Registry.",
       ).optional(),
-    }).describe("Configuration for a Maven remote repository.").optional(),
+    }).describe("Specific settings for a Maven remote repository.").optional(),
     noCache: z.object({}).describe(
-      "The configuration for the no-cache fetching mode, which acts as a non-caching proxy.",
+      "The remote repository will act as a non-caching proxy.",
     ).optional(),
     npmRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.npm.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum(["PUBLIC_REPOSITORY_UNSPECIFIED", "NPMJS"])
         .describe(
           "One of the publicly available Npm repositories supported by Artifact Registry.",
         ).optional(),
-    }).describe("Configuration for a Npm remote repository.").optional(),
+    }).describe("Specific settings for an Npm remote repository.").optional(),
     pythonRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.python.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum(["PUBLIC_REPOSITORY_UNSPECIFIED", "PYPI"])
         .describe(
           "One of the publicly available Python repositories supported by Artifact Registry.",
         ).optional(),
-    }).describe("Configuration for a Python remote repository.").optional(),
+    }).describe("Specific settings for a Python remote repository.").optional(),
     upstreamCredentials: z.object({
       usernamePasswordCredentials: z.object({
         passwordSecretVersion: z.string().describe(
@@ -372,15 +366,17 @@ const GlobalArgsSchema = z.object({
         username: z.string().describe(
           "The username to access the remote repository.",
         ).optional(),
-      }).describe("Username and password credentials.").optional(),
-    }).describe("The credentials to access the remote repository.").optional(),
+      }).describe("Use username and password to access the remote repository.")
+        .optional(),
+    }).describe(
+      "Optional. The credentials used to access the remote repository.",
+    ).optional(),
     yumRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.yum.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.object({
         repositoryBase: z.enum([
           "REPOSITORY_BASE_UNSPECIFIED",
@@ -395,10 +391,10 @@ const GlobalArgsSchema = z.object({
           "A custom field to define a path to a specific repository from the base.",
         ).optional(),
       }).describe(
-        "Publicly available Yum repositories constructed from a common repository base and a custom repository path.",
+        "One of the publicly available Yum repositories supported by Artifact Registry.",
       ).optional(),
-    }).describe("Configuration for a Yum remote repository.").optional(),
-  }).describe("Remote repository configuration.").optional(),
+    }).describe("Specific settings for a Yum remote repository.").optional(),
+  }).describe("Configuration specific for a Remote Repository.").optional(),
   virtualRepositoryConfig: z.object({
     upstreamPolicies: z.array(z.object({
       id: z.string().describe("The user-provided ID of the upstream policy.")
@@ -412,7 +408,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Policies that configure the upstream artifacts distributed by the Virtual Repository. Upstream policies cannot be set on a standard repository.",
     ).optional(),
-  }).describe("Virtual repository configuration.").optional(),
+  }).describe("Configuration specific for a Virtual Repository.").optional(),
   vulnerabilityScanningConfig: z.object({
     enablementConfig: z.enum([
       "ENABLEMENT_CONFIG_UNSPECIFIED",
@@ -436,7 +432,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The last time this repository config was enabled.",
     ).optional(),
   }).describe(
-    "Config on whether to perform vulnerability scanning for resources in this repository, as well as output fields describing current state.",
+    "Optional. Config and state for vulnerability scanning of resources within this Repository.",
   ).optional(),
   repositoryId: z.string().describe(
     "Required. The repository id to use for this repository.",
@@ -573,9 +569,7 @@ const InputsSchema = z.object({
         versionNamePrefixes: z.array(z.string()).describe(
           "Match versions by version name prefix. Applied on any prefix match.",
         ).optional(),
-      }).describe(
-        "CleanupPolicyCondition is a set of conditions attached to a CleanupPolicy. If multiple entries are set, all must be satisfied for the condition to be satisfied.",
-      ).optional(),
+      }).describe("Policy condition for matching versions.").optional(),
       id: z.string().describe("The user-provided ID of the cleanup policy.")
         .optional(),
       mostRecentVersions: z.object({
@@ -586,7 +580,7 @@ const InputsSchema = z.object({
           "List of package name prefixes that will apply this rule.",
         ).optional(),
       }).describe(
-        "CleanupPolicyMostRecentVersions is an alternate condition of a CleanupPolicy for retaining a minimum number of versions.",
+        "Policy condition for retaining a minimum number of versions. May only be specified with a Keep action.",
       ).optional(),
     }),
   ).describe(
@@ -606,7 +600,7 @@ const InputsSchema = z.object({
       "The repository which enabled this flag prevents all tags from being modified, moved or deleted. This does not prevent tags from being created.",
     ).optional(),
   }).describe(
-    "DockerRepositoryConfig is docker related repository details. Provides additional configuration details for repositories of the docker format type.",
+    "Docker repository config contains repository level configuration for the repositories of docker type.",
   ).optional(),
   format: z.enum([
     "FORMAT_UNSPECIFIED",
@@ -639,7 +633,7 @@ const InputsSchema = z.object({
         "Version policy defines the versions that the registry will accept.",
       ).optional(),
   }).describe(
-    "MavenRepositoryConfig is maven related repository details. Provides additional configuration details for repositories of the maven format type.",
+    "Maven repository config contains repository level configuration for the repositories of maven type.",
   ).optional(),
   mode: z.enum([
     "MODE_UNSPECIFIED",
@@ -670,16 +664,14 @@ const InputsSchema = z.object({
     ]).describe(
       "Optional. The severity level for the logs. Logs will be generated if their severity level is >= than the value of the severity level mentioned here.",
     ).optional(),
-  }).describe("The platform logs config for a project or a repository.")
-    .optional(),
+  }).describe("Optional. Configuration for platform logs.").optional(),
   remoteRepositoryConfig: z.object({
     aptRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.apt.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.object({
         repositoryBase: z.enum([
           "REPOSITORY_BASE_UNSPECIFIED",
@@ -691,14 +683,16 @@ const InputsSchema = z.object({
           "A custom field to define a path to a specific repository from the base.",
         ).optional(),
       }).describe(
-        "Publicly available Apt repositories constructed from a common repository base and a custom repository path.",
+        "One of the publicly available Apt repositories supported by Artifact Registry.",
       ).optional(),
-    }).describe("Configuration for an Apt remote repository.").optional(),
+    }).describe("Specific settings for an Apt remote repository.").optional(),
     commonRepository: z.object({
       uri: z.string().describe(
         "Required. A common public repository base for remote repository.",
       ).optional(),
-    }).describe("Common remote repository settings type.").optional(),
+    }).describe(
+      "Common remote repository settings. Used as the remote repository upstream URL.",
+    ).optional(),
     description: z.string().describe("The description of the remote source.")
       .optional(),
     disableUpstreamValidation: z.boolean().describe(
@@ -709,54 +703,50 @@ const InputsSchema = z.object({
         uri: z.string().describe(
           'An http/https uri reference to the custom remote repository, for ex: "https://registry-1.docker.io".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum(["PUBLIC_REPOSITORY_UNSPECIFIED", "DOCKER_HUB"])
         .describe(
           "One of the publicly available Docker repositories supported by Artifact Registry.",
         ).optional(),
-    }).describe("Configuration for a Docker remote repository.").optional(),
+    }).describe("Specific settings for a Docker remote repository.").optional(),
     mavenRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.maven.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum([
         "PUBLIC_REPOSITORY_UNSPECIFIED",
         "MAVEN_CENTRAL",
       ]).describe(
         "One of the publicly available Maven repositories supported by Artifact Registry.",
       ).optional(),
-    }).describe("Configuration for a Maven remote repository.").optional(),
+    }).describe("Specific settings for a Maven remote repository.").optional(),
     noCache: z.object({}).describe(
-      "The configuration for the no-cache fetching mode, which acts as a non-caching proxy.",
+      "The remote repository will act as a non-caching proxy.",
     ).optional(),
     npmRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.npm.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum(["PUBLIC_REPOSITORY_UNSPECIFIED", "NPMJS"])
         .describe(
           "One of the publicly available Npm repositories supported by Artifact Registry.",
         ).optional(),
-    }).describe("Configuration for a Npm remote repository.").optional(),
+    }).describe("Specific settings for an Npm remote repository.").optional(),
     pythonRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.python.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.enum(["PUBLIC_REPOSITORY_UNSPECIFIED", "PYPI"])
         .describe(
           "One of the publicly available Python repositories supported by Artifact Registry.",
         ).optional(),
-    }).describe("Configuration for a Python remote repository.").optional(),
+    }).describe("Specific settings for a Python remote repository.").optional(),
     upstreamCredentials: z.object({
       usernamePasswordCredentials: z.object({
         passwordSecretVersion: z.string().describe(
@@ -765,15 +755,17 @@ const InputsSchema = z.object({
         username: z.string().describe(
           "The username to access the remote repository.",
         ).optional(),
-      }).describe("Username and password credentials.").optional(),
-    }).describe("The credentials to access the remote repository.").optional(),
+      }).describe("Use username and password to access the remote repository.")
+        .optional(),
+    }).describe(
+      "Optional. The credentials used to access the remote repository.",
+    ).optional(),
     yumRepository: z.object({
       customRepository: z.object({
         uri: z.string().describe(
           'An http/https uri reference to the upstream remote repository, for ex: "https://my.yum.registry/".',
         ).optional(),
-      }).describe("Customer-specified publicly available remote repository.")
-        .optional(),
+      }).describe("Customer-specified remote repository.").optional(),
       publicRepository: z.object({
         repositoryBase: z.enum([
           "REPOSITORY_BASE_UNSPECIFIED",
@@ -788,10 +780,10 @@ const InputsSchema = z.object({
           "A custom field to define a path to a specific repository from the base.",
         ).optional(),
       }).describe(
-        "Publicly available Yum repositories constructed from a common repository base and a custom repository path.",
+        "One of the publicly available Yum repositories supported by Artifact Registry.",
       ).optional(),
-    }).describe("Configuration for a Yum remote repository.").optional(),
-  }).describe("Remote repository configuration.").optional(),
+    }).describe("Specific settings for a Yum remote repository.").optional(),
+  }).describe("Configuration specific for a Remote Repository.").optional(),
   virtualRepositoryConfig: z.object({
     upstreamPolicies: z.array(z.object({
       id: z.string().describe("The user-provided ID of the upstream policy.")
@@ -805,7 +797,7 @@ const InputsSchema = z.object({
     })).describe(
       "Policies that configure the upstream artifacts distributed by the Virtual Repository. Upstream policies cannot be set on a standard repository.",
     ).optional(),
-  }).describe("Virtual repository configuration.").optional(),
+  }).describe("Configuration specific for a Virtual Repository.").optional(),
   vulnerabilityScanningConfig: z.object({
     enablementConfig: z.enum([
       "ENABLEMENT_CONFIG_UNSPECIFIED",
@@ -829,7 +821,7 @@ const InputsSchema = z.object({
       "Output only. The last time this repository config was enabled.",
     ).optional(),
   }).describe(
-    "Config on whether to perform vulnerability scanning for resources in this repository, as well as output fields describing current state.",
+    "Optional. Config and state for vulnerability scanning of resources within this Repository.",
   ).optional(),
   repositoryId: z.string().describe(
     "Required. The repository id to use for this repository.",
@@ -862,7 +854,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Artifact Registry Repositories. Registered at `@swamp/gcp/artifactregistry/repositories`. */
 export const model = {
   type: "@swamp/gcp/artifactregistry/repositories",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -986,6 +978,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

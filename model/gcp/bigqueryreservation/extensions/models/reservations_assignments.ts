@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If present and > 0, the reservation will attempt to limit the slot consumption of queries running for any particular project within it to the given value. This feature is not yet generally available.",
     ).optional(),
   }).describe(
-    "The scheduling policy controls how a reservation's resources are distributed.",
+    "Optional. The scheduling policy to use for jobs and queries of this assignee when running under the associated reservation. The scheduling policy controls how the reservation's resources are distributed. This overrides the default scheduling policy specified on the reservation. This feature is not yet generally available.",
   ).optional(),
   assignmentId: z.string().describe(
     "The optional assignment ID. Assignment name will be generated automatically if this field is empty. This field must only contain lower case alphanumeric characters or dashes. Max length is 64 characters.",
@@ -223,7 +223,7 @@ const InputsSchema = z.object({
       "Optional. If present and > 0, the reservation will attempt to limit the slot consumption of queries running for any particular project within it to the given value. This feature is not yet generally available.",
     ).optional(),
   }).describe(
-    "The scheduling policy controls how a reservation's resources are distributed.",
+    "Optional. The scheduling policy to use for jobs and queries of this assignee when running under the associated reservation. The scheduling policy controls how the reservation's resources are distributed. This overrides the default scheduling policy specified on the reservation. This feature is not yet generally available.",
   ).optional(),
   assignmentId: z.string().describe(
     "The optional assignment ID. Assignment name will be generated automatically if this field is empty. This field must only contain lower case alphanumeric characters or dashes. Max length is 64 characters.",
@@ -259,7 +259,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation Reservations.Assignments. Registered at `@swamp/gcp/bigqueryreservation/reservations-assignments`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/reservations-assignments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -401,6 +401,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -450,14 +455,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

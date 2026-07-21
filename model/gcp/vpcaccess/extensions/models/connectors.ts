@@ -175,7 +175,9 @@ const GlobalArgsSchema = z.object({
     projectId: z.string().describe(
       "Optional. Project in which the subnet exists. If not set, this project is assumed to be the project for which the connector create request was issued.",
     ).optional(),
-  }).describe("The subnet in which to house the connector").optional(),
+  }).describe(
+    "Optional. The subnet in which to house the VPC Access Connector.",
+  ).optional(),
   connectorId: z.string().describe(
     "Required. The ID to use for this connector.",
   ).optional(),
@@ -231,7 +233,9 @@ const InputsSchema = z.object({
     projectId: z.string().describe(
       "Optional. Project in which the subnet exists. If not set, this project is assumed to be the project for which the connector create request was issued.",
     ).optional(),
-  }).describe("The subnet in which to house the connector").optional(),
+  }).describe(
+    "Optional. The subnet in which to house the VPC Access Connector.",
+  ).optional(),
   connectorId: z.string().describe(
     "Required. The ID to use for this connector.",
   ).optional(),
@@ -263,7 +267,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Serverless VPC Access Connectors. Registered at `@swamp/gcp/vpcaccess/connectors`. */
 export const model = {
   type: "@swamp/gcp/vpcaccess/connectors",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -367,6 +371,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

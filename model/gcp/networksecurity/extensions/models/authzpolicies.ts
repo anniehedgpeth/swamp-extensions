@@ -177,13 +177,13 @@ const GlobalArgsSchema = z.object({
         "Required. A list of references to authorization extensions that will be invoked for requests matching this policy. Limited to 1 custom provider.",
       ).optional(),
     }).describe(
-      "Optional. Delegate authorization decision to user authored extension. Only one of cloudIap or authzExtension can be specified.",
+      "Optional. Delegate authorization decision to user authored Service Extension. Only one of cloudIap or authzExtension can be specified.",
     ).optional(),
     cloudIap: z.object({}).describe(
       "Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.",
     ).optional(),
   }).describe(
-    "Allows delegating authorization decisions to Cloud IAP or to Service Extensions.",
+    "Optional. Required if the action is `CUSTOM`. Allows delegating authorization decisions to Cloud IAP or to Service Extensions. One of `cloudIap` or `authzExtension` must be specified.",
   ).optional(),
   description: z.string().describe(
     "Optional. A human-readable description of the resource.",
@@ -216,18 +216,18 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Describes the properties of a request's sources. At least one of sources or notSources must be specified. Limited to 1 source. A match occurs when ANY source (in sources or notSources) matches the request. Within a single source, the match follows AND semantics across fields and OR semantics within a single field, i.e. a match occurs when ANY principal matches AND ANY ipBlocks match.",
       ).optional(),
-    }).describe("Describes properties of one or more sources of a request.")
+    }).describe("Optional. Describes properties of a source of a request.")
       .optional(),
     to: z.object({
       notOperations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -243,13 +243,13 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       operations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -263,7 +263,7 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Describes properties of one or more targets of a request. At least one of operations or notOperations must be specified. Limited to 1 operation. A match occurs when ANY operation (in operations or notOperations) matches. Within an operation, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches.",
       ).optional(),
-    }).describe("Describes properties of one or more targets of a request.")
+    }).describe("Optional. Describes properties of a target of a request.")
       .optional(),
     when: z.string().describe(
       "Optional. CEL expression that describes the conditions to be satisfied for the action. The result of the CEL expression is ANDed with the from and to. Refer to the CEL language reference for a list of available attributes.",
@@ -305,18 +305,18 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Describes the properties of a request's sources. At least one of sources or notSources must be specified. Limited to 1 source. A match occurs when ANY source (in sources or notSources) matches the request. Within a single source, the match follows AND semantics across fields and OR semantics within a single field, i.e. a match occurs when ANY principal matches AND ANY ipBlocks match.",
       ).optional(),
-    }).describe("Describes properties of one or more sources of a request.")
+    }).describe("Optional. Describes properties of a source of a request.")
       .optional(),
     to: z.object({
       notOperations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -332,13 +332,13 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       operations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -352,7 +352,7 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Describes properties of one or more targets of a request. At least one of operations or notOperations must be specified. Limited to 1 operation. A match occurs when ANY operation (in operations or notOperations) matches. Within an operation, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches.",
       ).optional(),
-    }).describe("Describes properties of one or more targets of a request.")
+    }).describe("Optional. Describes properties of a target of a request.")
       .optional(),
     when: z.string().describe(
       "Optional. CEL expression that describes the conditions to be satisfied for the action. The result of the CEL expression is ANDed with the from and to. Refer to the CEL language reference for a list of available attributes.",
@@ -380,7 +380,7 @@ const GlobalArgsSchema = z.object({
       "Required. A list of references to the Forwarding Rules, Secure Web Proxy Gateways, or Agent Gateways on which this policy will be applied.",
     ).optional(),
   }).describe(
-    "Specifies the set of targets to which this policy should be applied to.",
+    "Required. Specifies the set of resources to which this policy should be applied to.",
   ).optional(),
   authzPolicyId: z.string().describe(
     "Required. User-provided ID of the `AuthzPolicy` resource to be created.",
@@ -496,13 +496,13 @@ const InputsSchema = z.object({
         "Required. A list of references to authorization extensions that will be invoked for requests matching this policy. Limited to 1 custom provider.",
       ).optional(),
     }).describe(
-      "Optional. Delegate authorization decision to user authored extension. Only one of cloudIap or authzExtension can be specified.",
+      "Optional. Delegate authorization decision to user authored Service Extension. Only one of cloudIap or authzExtension can be specified.",
     ).optional(),
     cloudIap: z.object({}).describe(
       "Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.",
     ).optional(),
   }).describe(
-    "Allows delegating authorization decisions to Cloud IAP or to Service Extensions.",
+    "Optional. Required if the action is `CUSTOM`. Allows delegating authorization decisions to Cloud IAP or to Service Extensions. One of `cloudIap` or `authzExtension` must be specified.",
   ).optional(),
   description: z.string().describe(
     "Optional. A human-readable description of the resource.",
@@ -535,18 +535,18 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Describes the properties of a request's sources. At least one of sources or notSources must be specified. Limited to 1 source. A match occurs when ANY source (in sources or notSources) matches the request. Within a single source, the match follows AND semantics across fields and OR semantics within a single field, i.e. a match occurs when ANY principal matches AND ANY ipBlocks match.",
       ).optional(),
-    }).describe("Describes properties of one or more sources of a request.")
+    }).describe("Optional. Describes properties of a source of a request.")
       .optional(),
     to: z.object({
       notOperations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -562,13 +562,13 @@ const InputsSchema = z.object({
       ).optional(),
       operations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -582,7 +582,7 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Describes properties of one or more targets of a request. At least one of operations or notOperations must be specified. Limited to 1 operation. A match occurs when ANY operation (in operations or notOperations) matches. Within an operation, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches.",
       ).optional(),
-    }).describe("Describes properties of one or more targets of a request.")
+    }).describe("Optional. Describes properties of a target of a request.")
       .optional(),
     when: z.string().describe(
       "Optional. CEL expression that describes the conditions to be satisfied for the action. The result of the CEL expression is ANDed with the from and to. Refer to the CEL language reference for a list of available attributes.",
@@ -624,18 +624,18 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Describes the properties of a request's sources. At least one of sources or notSources must be specified. Limited to 1 source. A match occurs when ANY source (in sources or notSources) matches the request. Within a single source, the match follows AND semantics across fields and OR semantics within a single field, i.e. a match occurs when ANY principal matches AND ANY ipBlocks match.",
       ).optional(),
-    }).describe("Describes properties of one or more sources of a request.")
+    }).describe("Optional. Describes properties of a source of a request.")
       .optional(),
     to: z.object({
       notOperations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -651,13 +651,13 @@ const InputsSchema = z.object({
       ).optional(),
       operations: z.array(z.object({
         headerSet: z.unknown().describe(
-          "Describes a set of HTTP headers to match against.",
+          "Optional. A list of headers to match against in http header.",
         ).optional(),
         hosts: z.unknown().describe(
           "Optional. A list of HTTP Hosts to match against. The match can be one of exact, prefix, suffix, or contains (substring match). Matches are always case sensitive unless the ignoreCase is set. Limited to 10 hosts per Authorization Policy.",
         ).optional(),
         mcp: z.unknown().describe(
-          "Describes a set of MCP protocol attributes to match against for a given MCP request.",
+          "Optional. Defines the MCP protocol attributes to match on. If the MCP payload in the request body cannot be successfully parsed, the request will be denied. This field can be set only for AuthzPolicies targeting AgentGateway resources.",
         ).optional(),
         methods: z.unknown().describe(
           "Optional. A list of HTTP methods to match against. Each entry must be a valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It only allows exact match and is always case sensitive. Limited to 10 methods per Authorization Policy.",
@@ -671,7 +671,7 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Describes properties of one or more targets of a request. At least one of operations or notOperations must be specified. Limited to 1 operation. A match occurs when ANY operation (in operations or notOperations) matches. Within an operation, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches.",
       ).optional(),
-    }).describe("Describes properties of one or more targets of a request.")
+    }).describe("Optional. Describes properties of a target of a request.")
       .optional(),
     when: z.string().describe(
       "Optional. CEL expression that describes the conditions to be satisfied for the action. The result of the CEL expression is ANDed with the from and to. Refer to the CEL language reference for a list of available attributes.",
@@ -699,7 +699,7 @@ const InputsSchema = z.object({
       "Required. A list of references to the Forwarding Rules, Secure Web Proxy Gateways, or Agent Gateways on which this policy will be applied.",
     ).optional(),
   }).describe(
-    "Specifies the set of targets to which this policy should be applied to.",
+    "Required. Specifies the set of resources to which this policy should be applied to.",
   ).optional(),
   authzPolicyId: z.string().describe(
     "Required. User-provided ID of the `AuthzPolicy` resource to be created.",
@@ -735,7 +735,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security AuthzPolicies. Registered at `@swamp/gcp/networksecurity/authzpolicies`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/authzpolicies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -891,6 +891,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: networkRules",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

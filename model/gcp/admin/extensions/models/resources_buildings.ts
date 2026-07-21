@@ -188,7 +188,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     sublocality: z.string().describe("Optional. Sublocality of the address.")
       .optional(),
-  }).describe("Public API: Resources.buildings").optional(),
+  }).describe(
+    "The postal address of the building. See [`PostalAddress`](/my-business/reference/rest/v4/PostalAddress) for details. Note that only a single address line and region code are required.",
+  ).optional(),
   buildingId: z.string().describe(
     "Unique identifier for the building. The maximum length is 100 characters.",
   ).optional(),
@@ -198,7 +200,9 @@ const GlobalArgsSchema = z.object({
   coordinates: z.object({
     latitude: z.number().describe("Latitude in decimal degrees.").optional(),
     longitude: z.number().describe("Longitude in decimal degrees.").optional(),
-  }).describe("Public API: Resources.buildings").optional(),
+  }).describe(
+    "The geographic coordinates of the center of the building, expressed as latitude and longitude in decimal degrees.",
+  ).optional(),
   description: z.string().describe(
     'A brief description of the building. For example, "Chelsea Market".',
   ).optional(),
@@ -264,7 +268,9 @@ const InputsSchema = z.object({
     ).optional(),
     sublocality: z.string().describe("Optional. Sublocality of the address.")
       .optional(),
-  }).describe("Public API: Resources.buildings").optional(),
+  }).describe(
+    "The postal address of the building. See [`PostalAddress`](/my-business/reference/rest/v4/PostalAddress) for details. Note that only a single address line and region code are required.",
+  ).optional(),
   buildingId: z.string().describe(
     "Unique identifier for the building. The maximum length is 100 characters.",
   ).optional(),
@@ -274,7 +280,9 @@ const InputsSchema = z.object({
   coordinates: z.object({
     latitude: z.number().describe("Latitude in decimal degrees.").optional(),
     longitude: z.number().describe("Longitude in decimal degrees.").optional(),
-  }).describe("Public API: Resources.buildings").optional(),
+  }).describe(
+    "The geographic coordinates of the center of the building, expressed as latitude and longitude in decimal degrees.",
+  ).optional(),
   description: z.string().describe(
     'A brief description of the building. For example, "Chelsea Market".',
   ).optional(),
@@ -313,7 +321,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Resources.Buildings. Registered at `@swamp/gcp/admin/resources-buildings`. */
 export const model = {
   type: "@swamp/gcp/admin/resources-buildings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -361,12 +376,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "customer": String(g["customer"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

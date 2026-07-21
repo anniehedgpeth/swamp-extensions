@@ -141,7 +141,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   analyticsDataSharingEnabled: z.boolean().describe(
     "Whether advertiser data is shared with Google Analytics.",
   ).optional(),
@@ -159,13 +161,12 @@ const GlobalArgsSchema = z.object({
       viewabilityPercent: z.number().int().describe(
         "The percentage of video that must be on screen for the Custom Viewability Metric to count an impression.",
       ).optional(),
-    }).describe(
-      "The attributes, like playtime and percent onscreen, that define the Custom Viewability Metric.",
-    ).optional(),
+    }).describe("Configuration of the custom viewability metric.").optional(),
     id: z.string().describe("ID of the custom viewability metric.").optional(),
     name: z.string().describe("Name of the custom viewability metric.")
       .optional(),
-  }).describe("Custom Viewability Metric").optional(),
+  }).describe("Custom Viewability metric for the floodlight configuration.")
+    .optional(),
   exposureToConversionEnabled: z.boolean().describe(
     "Whether the exposure-to-conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting.",
   ).optional(),
@@ -191,7 +192,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this floodlight configuration. This is a read-only, auto-generated field.",
+  ).optional(),
   inAppAttributionTrackingEnabled: z.boolean().describe(
     "Whether in-app attribution tracking is enabled.",
   ).optional(),
@@ -205,7 +208,8 @@ const GlobalArgsSchema = z.object({
     postImpressionActivitiesDuration: z.number().int().describe(
       "Lookback window, in days, from the last time a given user viewed one of your ads. If you enter 0, impressions will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.",
     ).optional(),
-  }).describe("Lookback configuration settings.").optional(),
+  }).describe("Lookback window settings for this floodlight configuration.")
+    .optional(),
   naturalSearchConversionAttributionOption: z.enum([
     "EXCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION",
     "INCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION",
@@ -219,7 +223,7 @@ const GlobalArgsSchema = z.object({
     omnitureIntegrationEnabled: z.boolean().describe(
       'Whether Omniture integration is enabled. This property can be enabled only when the "Advanced Ad Serving" account setting is enabled.',
     ).optional(),
-  }).describe("Omniture Integration Settings.").optional(),
+  }).describe("Settings for Campaign Manager Omniture integration.").optional(),
   subaccountId: z.string().describe(
     "Subaccount ID of this floodlight configuration. This is a read-only field that can be left blank.",
   ).optional(),
@@ -229,7 +233,8 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     imageTagEnabled: z.boolean().describe("Whether image tags are enabled.")
       .optional(),
-  }).describe("Dynamic and Image Tag Settings.").optional(),
+  }).describe("Configuration settings for dynamic and image floodlight tags.")
+    .optional(),
   thirdPartyAuthenticationTokens: z.array(z.object({
     name: z.string().describe("Name of the third-party authentication token.")
       .optional(),
@@ -447,7 +452,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   analyticsDataSharingEnabled: z.boolean().describe(
     "Whether advertiser data is shared with Google Analytics.",
   ).optional(),
@@ -465,13 +472,12 @@ const InputsSchema = z.object({
       viewabilityPercent: z.number().int().describe(
         "The percentage of video that must be on screen for the Custom Viewability Metric to count an impression.",
       ).optional(),
-    }).describe(
-      "The attributes, like playtime and percent onscreen, that define the Custom Viewability Metric.",
-    ).optional(),
+    }).describe("Configuration of the custom viewability metric.").optional(),
     id: z.string().describe("ID of the custom viewability metric.").optional(),
     name: z.string().describe("Name of the custom viewability metric.")
       .optional(),
-  }).describe("Custom Viewability Metric").optional(),
+  }).describe("Custom Viewability metric for the floodlight configuration.")
+    .optional(),
   exposureToConversionEnabled: z.boolean().describe(
     "Whether the exposure-to-conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting.",
   ).optional(),
@@ -497,7 +503,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this floodlight configuration. This is a read-only, auto-generated field.",
+  ).optional(),
   inAppAttributionTrackingEnabled: z.boolean().describe(
     "Whether in-app attribution tracking is enabled.",
   ).optional(),
@@ -511,7 +519,8 @@ const InputsSchema = z.object({
     postImpressionActivitiesDuration: z.number().int().describe(
       "Lookback window, in days, from the last time a given user viewed one of your ads. If you enter 0, impressions will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.",
     ).optional(),
-  }).describe("Lookback configuration settings.").optional(),
+  }).describe("Lookback window settings for this floodlight configuration.")
+    .optional(),
   naturalSearchConversionAttributionOption: z.enum([
     "EXCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION",
     "INCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION",
@@ -525,7 +534,7 @@ const InputsSchema = z.object({
     omnitureIntegrationEnabled: z.boolean().describe(
       'Whether Omniture integration is enabled. This property can be enabled only when the "Advanced Ad Serving" account setting is enabled.',
     ).optional(),
-  }).describe("Omniture Integration Settings.").optional(),
+  }).describe("Settings for Campaign Manager Omniture integration.").optional(),
   subaccountId: z.string().describe(
     "Subaccount ID of this floodlight configuration. This is a read-only field that can be left blank.",
   ).optional(),
@@ -535,7 +544,8 @@ const InputsSchema = z.object({
     ).optional(),
     imageTagEnabled: z.boolean().describe("Whether image tags are enabled.")
       .optional(),
-  }).describe("Dynamic and Image Tag Settings.").optional(),
+  }).describe("Configuration settings for dynamic and image floodlight tags.")
+    .optional(),
   thirdPartyAuthenticationTokens: z.array(z.object({
     name: z.string().describe("Name of the third-party authentication token.")
       .optional(),
@@ -685,7 +695,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 FloodlightConfigurations. Registered at `@swamp/gcp/dfareporting/floodlightconfigurations`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/floodlightconfigurations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -779,6 +789,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -176,46 +176,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  aggregatedData: z.object({
-    customRangesCount: z.number().int().describe(
-      "Output only. Number of CustomRanges in the Realm.",
-    ).optional(),
-    discoveredRangesCount: z.number().int().describe(
-      "Output only. Number of DiscoveredRanges in the Realm.",
-    ).optional(),
-  }).describe("Aggregated data for the Realm.").optional(),
-  discoveryMetadata: z.object({
-    createTime: z.string().describe(
-      "Output only. The time when the resource was created.",
-    ).optional(),
-    eventTime: z.string().describe(
-      "Output only. The time when the event happened.",
-    ).optional(),
-    resource: z.string().describe(
-      'Output only. The resource name of the discovered resource, should be API-agnostic. Example: "projects/{project_number}/networks/{network_id}".',
-    ).optional(),
-    resourceUri: z.string().describe(
-      "Output only. The resource uri of the discovered resource.",
-    ).optional(),
-    sourceId: z.string().describe(
-      "Output only. The canonical google.aip.dev/122 name of the source resource.",
-    ).optional(),
-    sourceSubId: z.string().describe(
-      'Output only. A single source resource can be the source of multiple CNR resources. This sub_id is used to distinguish between the different CNR resources derived from the same upstream resource. For example, a single subnetwork can be the source of multiple Ranges, one for each protocol. In this case, the sub_id could be "private-ipv4" or "private-ipv6".',
-    ).optional(),
-    state: z.enum([
-      "RESOURCE_STATE_UNSPECIFIED",
-      "INVALID",
-      "EXISTS",
-      "DOES_NOT_EXIST",
-      "ERROR",
-    ]).describe("Output only. The state of the resource.").optional(),
-    updateTime: z.string().describe(
-      "Output only. The time when the resource was last modified.",
-    ).optional(),
-  }).describe(
-    "Metadata about a discovered resource, tracking event times, state, and source information.",
-  ).optional(),
   ipVersion: z.enum(["IP_VERSION_UNSPECIFIED", "IPV4", "IPV6"]).describe(
     "Optional. IP version of the Realm.",
   ).optional(),
@@ -280,46 +240,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  aggregatedData: z.object({
-    customRangesCount: z.number().int().describe(
-      "Output only. Number of CustomRanges in the Realm.",
-    ).optional(),
-    discoveredRangesCount: z.number().int().describe(
-      "Output only. Number of DiscoveredRanges in the Realm.",
-    ).optional(),
-  }).describe("Aggregated data for the Realm.").optional(),
-  discoveryMetadata: z.object({
-    createTime: z.string().describe(
-      "Output only. The time when the resource was created.",
-    ).optional(),
-    eventTime: z.string().describe(
-      "Output only. The time when the event happened.",
-    ).optional(),
-    resource: z.string().describe(
-      'Output only. The resource name of the discovered resource, should be API-agnostic. Example: "projects/{project_number}/networks/{network_id}".',
-    ).optional(),
-    resourceUri: z.string().describe(
-      "Output only. The resource uri of the discovered resource.",
-    ).optional(),
-    sourceId: z.string().describe(
-      "Output only. The canonical google.aip.dev/122 name of the source resource.",
-    ).optional(),
-    sourceSubId: z.string().describe(
-      'Output only. A single source resource can be the source of multiple CNR resources. This sub_id is used to distinguish between the different CNR resources derived from the same upstream resource. For example, a single subnetwork can be the source of multiple Ranges, one for each protocol. In this case, the sub_id could be "private-ipv4" or "private-ipv6".',
-    ).optional(),
-    state: z.enum([
-      "RESOURCE_STATE_UNSPECIFIED",
-      "INVALID",
-      "EXISTS",
-      "DOES_NOT_EXIST",
-      "ERROR",
-    ]).describe("Output only. The state of the resource.").optional(),
-    updateTime: z.string().describe(
-      "Output only. The time when the resource was last modified.",
-    ).optional(),
-  }).describe(
-    "Metadata about a discovered resource, tracking event times, state, and source information.",
-  ).optional(),
   ipVersion: z.enum(["IP_VERSION_UNSPECIFIED", "IPV4", "IPV6"]).describe(
     "Optional. IP version of the Realm.",
   ).optional(),
@@ -375,7 +295,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Number Registry Realms. Registered at `@swamp/gcp/cloudnumberregistry/realms`. */
 export const model = {
   type: "@swamp/gcp/cloudnumberregistry/realms",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.05.19.1",
@@ -457,6 +377,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: aggregatedData, discoveryMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          aggregatedData: _aggregatedData,
+          discoveryMetadata: _discoveryMetadata,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -482,12 +414,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["aggregatedData"] !== undefined) {
-          body["aggregatedData"] = g["aggregatedData"];
-        }
-        if (g["discoveryMetadata"] !== undefined) {
-          body["discoveryMetadata"] = g["discoveryMetadata"];
-        }
         if (g["ipVersion"] !== undefined) body["ipVersion"] = g["ipVersion"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["managementType"] !== undefined) {
@@ -612,12 +538,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["aggregatedData"] !== undefined) {
-          body["aggregatedData"] = g["aggregatedData"];
-        }
-        if (g["discoveryMetadata"] !== undefined) {
-          body["discoveryMetadata"] = g["discoveryMetadata"];
-        }
         if (g["ipVersion"] !== undefined) body["ipVersion"] = g["ipVersion"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["managementType"] !== undefined) {

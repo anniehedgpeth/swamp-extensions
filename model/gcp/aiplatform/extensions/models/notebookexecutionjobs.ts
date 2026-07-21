@@ -197,12 +197,13 @@ const GlobalArgsSchema = z.object({
           "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
         ).optional(),
       }).describe(
-        "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+        "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
       ).optional(),
       tpuTopology: z.string().describe(
         'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
       ).optional(),
-    }).describe("Specification of a single machine.").optional(),
+    }).describe("The specification of a single machine for the execution job.")
+      .optional(),
     networkSpec: z.object({
       enableInternetAccess: z.boolean().describe(
         "Whether to enable public internet access. Default false.",
@@ -213,7 +214,8 @@ const GlobalArgsSchema = z.object({
       subnetwork: z.string().describe(
         "The name of the subnet that this instance is in. Format: `projects/{project_id_or_number}/regions/{region}/subnetworks/{subnetwork_id}`",
       ).optional(),
-    }).describe("Network spec.").optional(),
+    }).describe("The network configuration to use for the execution job.")
+      .optional(),
     persistentDiskSpec: z.object({
       diskSizeGb: z.string().describe(
         "Size in GB of the disk (default is 100GB).",
@@ -221,9 +223,11 @@ const GlobalArgsSchema = z.object({
       diskType: z.string().describe(
         'Type of the disk (default is "pd-standard"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) "pd-standard" (Persistent Disk Hard Disk Drive) "pd-balanced" (Balanced Persistent Disk) "pd-extreme" (Extreme Persistent Disk) "hyperdisk-balanced" (Hyperdisk Balanced) "hyperdisk-extreme" (Hyperdisk Extreme) "hyperdisk-balanced-high-availability" (Hyperdisk Balanced High Availability) "hyperdisk-ml" (Hyperdisk ML) "hyperdisk-throughput" (Hyperdisk Throughput)',
       ).optional(),
-    }).describe("Represents the spec of persistent disk and hyperdisk options.")
-      .optional(),
-  }).describe("Compute configuration to use for an execution job.").optional(),
+    }).describe(
+      "The specification of a persistent disk to attach for the execution job.",
+    ).optional(),
+  }).describe("The custom compute configuration for an execution job.")
+    .optional(),
   dataformRepositorySource: z.object({
     commitSha: z.string().describe(
       "The commit SHA to read repository with. If unset, the file will be read at HEAD.",
@@ -231,13 +235,14 @@ const GlobalArgsSchema = z.object({
     dataformRepositoryResourceName: z.string().describe(
       "The resource name of the Dataform Repository. Format: `projects/{project_id}/locations/{location}/repositories/{repository_id}`",
     ).optional(),
-  }).describe("The Dataform Repository containing the input notebook.")
-    .optional(),
+  }).describe(
+    "The Dataform Repository pointing to a single file notebook repository.",
+  ).optional(),
   directNotebookSource: z.object({
     content: z.string().describe(
       "The base64-encoded contents of the input notebook file.",
     ).optional(),
-  }).describe("The content of the input notebook in ipynb format.").optional(),
+  }).describe("The contents of an input notebook file.").optional(),
   displayName: z.string().describe(
     "The display name of the NotebookExecutionJob. The name can be up to 128 characters long and can consist of any UTF-8 characters.",
   ).optional(),
@@ -246,7 +251,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for the notebook execution job. This field is auto-populated if the NotebookRuntimeTemplate has an encryption spec.",
   ).optional(),
   executionTimeout: z.string().describe(
     "Max running time of the execution job in seconds (default 86400s / 24 hrs).",
@@ -261,7 +266,9 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "The Cloud Storage uri pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
     ).optional(),
-  }).describe("The Cloud Storage uri for the input notebook.").optional(),
+  }).describe(
+    "The Cloud Storage url pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
+  ).optional(),
   gcsOutputUri: z.string().describe(
     "The Cloud Storage location to upload the result to. Format: `gs://bucket-name`",
   ).optional(),
@@ -280,21 +287,8 @@ const GlobalArgsSchema = z.object({
   serviceAccount: z.string().describe(
     "The service account to run the execution as.",
   ).optional(),
-  status: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   workbenchRuntime: z.object({}).describe(
-    "Configuration for a Workbench Instances-based environment.",
+    "The Workbench runtime configuration to use for the notebook execution.",
   ).optional(),
   notebookExecutionJobId: z.string().describe(
     "Optional. User specified ID for the NotebookExecutionJob.",
@@ -420,12 +414,13 @@ const InputsSchema = z.object({
           "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
         ).optional(),
       }).describe(
-        "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+        "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
       ).optional(),
       tpuTopology: z.string().describe(
         'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
       ).optional(),
-    }).describe("Specification of a single machine.").optional(),
+    }).describe("The specification of a single machine for the execution job.")
+      .optional(),
     networkSpec: z.object({
       enableInternetAccess: z.boolean().describe(
         "Whether to enable public internet access. Default false.",
@@ -436,7 +431,8 @@ const InputsSchema = z.object({
       subnetwork: z.string().describe(
         "The name of the subnet that this instance is in. Format: `projects/{project_id_or_number}/regions/{region}/subnetworks/{subnetwork_id}`",
       ).optional(),
-    }).describe("Network spec.").optional(),
+    }).describe("The network configuration to use for the execution job.")
+      .optional(),
     persistentDiskSpec: z.object({
       diskSizeGb: z.string().describe(
         "Size in GB of the disk (default is 100GB).",
@@ -444,9 +440,11 @@ const InputsSchema = z.object({
       diskType: z.string().describe(
         'Type of the disk (default is "pd-standard"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) "pd-standard" (Persistent Disk Hard Disk Drive) "pd-balanced" (Balanced Persistent Disk) "pd-extreme" (Extreme Persistent Disk) "hyperdisk-balanced" (Hyperdisk Balanced) "hyperdisk-extreme" (Hyperdisk Extreme) "hyperdisk-balanced-high-availability" (Hyperdisk Balanced High Availability) "hyperdisk-ml" (Hyperdisk ML) "hyperdisk-throughput" (Hyperdisk Throughput)',
       ).optional(),
-    }).describe("Represents the spec of persistent disk and hyperdisk options.")
-      .optional(),
-  }).describe("Compute configuration to use for an execution job.").optional(),
+    }).describe(
+      "The specification of a persistent disk to attach for the execution job.",
+    ).optional(),
+  }).describe("The custom compute configuration for an execution job.")
+    .optional(),
   dataformRepositorySource: z.object({
     commitSha: z.string().describe(
       "The commit SHA to read repository with. If unset, the file will be read at HEAD.",
@@ -454,13 +452,14 @@ const InputsSchema = z.object({
     dataformRepositoryResourceName: z.string().describe(
       "The resource name of the Dataform Repository. Format: `projects/{project_id}/locations/{location}/repositories/{repository_id}`",
     ).optional(),
-  }).describe("The Dataform Repository containing the input notebook.")
-    .optional(),
+  }).describe(
+    "The Dataform Repository pointing to a single file notebook repository.",
+  ).optional(),
   directNotebookSource: z.object({
     content: z.string().describe(
       "The base64-encoded contents of the input notebook file.",
     ).optional(),
-  }).describe("The content of the input notebook in ipynb format.").optional(),
+  }).describe("The contents of an input notebook file.").optional(),
   displayName: z.string().describe(
     "The display name of the NotebookExecutionJob. The name can be up to 128 characters long and can consist of any UTF-8 characters.",
   ).optional(),
@@ -469,7 +468,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for the notebook execution job. This field is auto-populated if the NotebookRuntimeTemplate has an encryption spec.",
   ).optional(),
   executionTimeout: z.string().describe(
     "Max running time of the execution job in seconds (default 86400s / 24 hrs).",
@@ -484,7 +483,9 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "The Cloud Storage uri pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
     ).optional(),
-  }).describe("The Cloud Storage uri for the input notebook.").optional(),
+  }).describe(
+    "The Cloud Storage url pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
+  ).optional(),
   gcsOutputUri: z.string().describe(
     "The Cloud Storage location to upload the result to. Format: `gs://bucket-name`",
   ).optional(),
@@ -503,21 +504,8 @@ const InputsSchema = z.object({
   serviceAccount: z.string().describe(
     "The service account to run the execution as.",
   ).optional(),
-  status: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-  ).optional(),
   workbenchRuntime: z.object({}).describe(
-    "Configuration for a Workbench Instances-based environment.",
+    "The Workbench runtime configuration to use for the notebook execution.",
   ).optional(),
   notebookExecutionJobId: z.string().describe(
     "Optional. User specified ID for the NotebookExecutionJob.",
@@ -550,7 +538,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform NotebookExecutionJobs. Registered at `@swamp/gcp/aiplatform/notebookexecutionjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/notebookexecutionjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -687,6 +675,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -751,7 +747,6 @@ export const model = {
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["workbenchRuntime"] !== undefined) {
           body["workbenchRuntime"] = g["workbenchRuntime"];
         }

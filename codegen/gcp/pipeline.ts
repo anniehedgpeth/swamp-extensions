@@ -946,7 +946,13 @@ function dereferenceSchema(
     visited.add(schema.$ref);
     const referencedSchema = allSchemas[schema.$ref];
     if (referencedSchema) {
-      return dereferenceSchema(referencedSchema, allSchemas, visited);
+      const resolved = dereferenceSchema(referencedSchema, allSchemas, visited);
+      // Preserve property-level description when following $ref — GCP schemas
+      // annotate properties with "Read-only." etc. at the reference site
+      if (schema.description && schema.description !== resolved.description) {
+        return { ...resolved, description: schema.description };
+      }
+      return resolved;
     }
   }
 

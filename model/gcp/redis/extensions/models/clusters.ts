@@ -198,15 +198,15 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. The start time of every automated backup in UTC. It must be set to the start of an hour. This field is required.",
       ).optional(),
-    }).describe(
-      "This schedule allows the backup to be triggered at a fixed frequency (currently only daily is supported).",
-    ).optional(),
+    }).describe("Optional. Trigger automated backups at a fixed frequency.")
+      .optional(),
     retention: z.string().describe(
       "Optional. How long to keep automated backups before the backups are deleted. The value should be between 1 day and 365 days. If not specified, the default value is 35 days.",
     ).optional(),
-  }).describe("The automated backup config for a cluster.").optional(),
+  }).describe("Optional. The automated backup config for the cluster.")
+    .optional(),
   clusterEndpoints: z.array(z.object({
     connections: z.array(z.object({
       pscAutoConnection: z.object({
@@ -235,7 +235,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.",
         ).optional(),
       }).describe(
-        "Details of consumer resources in a PSC connection that is created through Service Connectivity Automation.",
+        "Detailed information of a PSC connection that is created through service connectivity automation.",
       ).optional(),
       pscConnection: z.object({
         address: z.unknown().describe(
@@ -265,8 +265,9 @@ const GlobalArgsSchema = z.object({
         serviceAttachment: z.unknown().describe(
           "Required. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.",
         ).optional(),
-      }).describe("Details of consumer resources in a PSC connection.")
-        .optional(),
+      }).describe(
+        "Detailed information of a PSC connection that is created by the customer who owns the cluster.",
+      ).optional(),
     })).describe(
       "Required. A group of PSC connections. They are created in the same VPC network, one for each service attachment in the cluster.",
     ).optional(),
@@ -289,7 +290,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The unique identifier of the remote cluster.",
         ).optional(),
       }).describe(
-        "Details of the remote cluster associated with this cluster in a cross cluster replication setup.",
+        "Output only. The primary cluster that acts as the source of replication for the secondary clusters.",
       ).optional(),
       secondaryClusters: z.array(z.object({
         cluster: z.string().describe(
@@ -302,7 +303,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The list of secondary clusters replicating from the primary cluster.",
       ).optional(),
     }).describe(
-      "An output only view of all the member clusters participating in the cross cluster replication.",
+      "Output only. An output only view of all the member clusters participating in the cross cluster replication. This view will be provided by every member cluster irrespective of its cluster role(primary or secondary). A primary cluster can provide information about all the secondary clusters replicating from it. However, a secondary cluster only knows about the primary cluster from which it is replicating. However, for scenarios, where the primary cluster is unavailable(e.g. regional outage), a GetCluster request can be sent to any other member cluster and this field will list all the member clusters participating in cross cluster replication.",
     ).optional(),
     primaryCluster: z.object({
       cluster: z.string().describe(
@@ -312,7 +313,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The unique identifier of the remote cluster.",
       ).optional(),
     }).describe(
-      "Details of the remote cluster associated with this cluster in a cross cluster replication setup.",
+      "Details of the primary cluster that is used as the replication source for this secondary cluster. This field is only set for a secondary cluster.",
     ).optional(),
     secondaryClusters: z.array(z.object({
       cluster: z.string().describe(
@@ -327,44 +328,16 @@ const GlobalArgsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. The last time cross cluster replication config was updated.",
     ).optional(),
-  }).describe("Cross cluster replication config.").optional(),
+  }).describe("Optional. Cross cluster replication config.").optional(),
   deletionProtectionEnabled: z.boolean().describe(
     "Optional. The delete operation will fail when the value is set to true.",
-  ).optional(),
-  encryptionInfo: z.object({
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. Type of encryption.").optional(),
-    kmsKeyPrimaryState: z.enum([
-      "KMS_KEY_STATE_UNSPECIFIED",
-      "ENABLED",
-      "PERMISSION_DENIED",
-      "DISABLED",
-      "DESTROYED",
-      "DESTROY_SCHEDULED",
-      "EKM_KEY_UNREACHABLE_DETECTED",
-      "BILLING_DISABLED",
-      "UNKNOWN_FAILURE",
-    ]).describe(
-      "Output only. The state of the primary version of the KMS key perceived by the system. This field is not populated in backups.",
-    ).optional(),
-    kmsKeyVersions: z.array(z.string()).describe(
-      "Output only. KMS key versions that are being used to protect the data at-rest.",
-    ).optional(),
-    lastUpdateTime: z.string().describe(
-      "Output only. The most recent time when the encryption info was updated.",
-    ).optional(),
-  }).describe(
-    "EncryptionInfo describes the encryption information of a cluster or a backup.",
   ).optional(),
   gcsSource: z.object({
     uris: z.array(z.string()).describe(
       "Optional. URIs of the Cloud Storage objects to import. Example: gs://bucket1/object1, gs://bucket2/folder2/object2",
     ).optional(),
   }).describe(
-    "Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters.",
+    "Optional. Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters. Read permission is required to import from the provided Cloud Storage objects.",
   ).optional(),
   kmsKey: z.string().describe(
     "Optional. The KMS key used to encrypt the at-rest data of the cluster.",
@@ -405,21 +378,13 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Optional. Start time of the window in UTC.").optional(),
     })).describe(
       "Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_window is expected to be one.",
     ).optional(),
-  }).describe("Maintenance policy per cluster.").optional(),
-  maintenanceSchedule: z.object({
-    endTime: z.string().describe(
-      "Output only. The end time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Output only. The start time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-  }).describe("Upcoming maintenance schedule.").optional(),
+  }).describe(
+    "Optional. ClusterMaintenancePolicy determines when to allow or deny updates.",
+  ).optional(),
   maintenanceVersion: z.string().describe(
     "Optional. This field can be used to trigger self service update to indicate the desired maintenance version. The input to this field can be determined by the available_maintenance_versions field.",
   ).optional(),
@@ -427,7 +392,8 @@ const GlobalArgsSchema = z.object({
     backup: z.string().describe(
       "Optional. Example: //redis.googleapis.com/projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup} A shorter version (without the prefix) of the backup name is also supported, like projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup_id} In this case, it assumes the backup is under redis.googleapis.com.",
     ).optional(),
-  }).describe("Backups that generated and managed by memorystore.").optional(),
+  }).describe("Optional. Backups generated and managed by memorystore service.")
+    .optional(),
   name: z.string().describe(
     "Required. Identifier. Unique name of the resource in this scope including project and location using the form: `projects/{project_id}/locations/{location_id}/clusters/{cluster_id}`",
   ).optional(),
@@ -451,7 +417,9 @@ const GlobalArgsSchema = z.object({
         "EVERYSEC",
         "ALWAYS",
       ]).describe("Optional. fsync configuration.").optional(),
-    }).describe("Configuration of the AOF based persistence.").optional(),
+    }).describe(
+      "Optional. AOF configuration. This field will be ignored if mode is not AOF.",
+    ).optional(),
     mode: z.enum(["PERSISTENCE_MODE_UNSPECIFIED", "DISABLED", "RDB", "AOF"])
       .describe("Optional. The mode of persistence.").optional(),
     rdbConfig: z.object({
@@ -465,8 +433,11 @@ const GlobalArgsSchema = z.object({
       rdbSnapshotStartTime: z.string().describe(
         "Optional. The time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.",
       ).optional(),
-    }).describe("Configuration of the RDB based persistence.").optional(),
-  }).describe("Configuration of the persistence functionality.").optional(),
+    }).describe(
+      "Optional. RDB configuration. This field will be ignored if mode is not RDB.",
+    ).optional(),
+  }).describe("Optional. Persistence config (RDB, AOF) for the cluster.")
+    .optional(),
   pscConfigs: z.array(z.object({
     network: z.string().describe(
       "Required. The network where the IP address of the discovery endpoint will be reserved, in the form of projects/{network_project}/global/networks/{network_id}.",
@@ -498,28 +469,6 @@ const GlobalArgsSchema = z.object({
   simulateMaintenanceEvent: z.boolean().describe(
     "Optional. Input only. Simulate a maintenance event.",
   ).optional(),
-  stateInfo: z.object({
-    updateInfo: z.object({
-      targetNodeType: z.enum([
-        "NODE_TYPE_UNSPECIFIED",
-        "REDIS_SHARED_CORE_NANO",
-        "REDIS_HIGHMEM_MEDIUM",
-        "REDIS_HIGHMEM_XLARGE",
-        "REDIS_STANDARD_SMALL",
-        "REDIS_HIGHCPU_MEDIUM",
-        "REDIS_STANDARD_LARGE",
-        "REDIS_HIGHMEM_2XLARGE",
-      ]).describe("Target node type for redis cluster.").optional(),
-      targetReplicaCount: z.number().int().describe(
-        "Target number of replica nodes per shard.",
-      ).optional(),
-      targetShardCount: z.number().int().describe(
-        "Target number of shards for redis cluster",
-      ).optional(),
-    }).describe("Represents information about an updating cluster.").optional(),
-  }).describe(
-    "Represents additional information about the state of the cluster.",
-  ).optional(),
   transitEncryptionMode: z.enum([
     "TRANSIT_ENCRYPTION_MODE_UNSPECIFIED",
     "TRANSIT_ENCRYPTION_MODE_DISABLED",
@@ -541,8 +490,9 @@ const GlobalArgsSchema = z.object({
     zones: z.array(z.string()).describe(
       "Optional. Specify the zones of a multi-zone cluster where Redis Cluster allocates resources. This flag isn't applicable for single-zone clusters.",
     ).optional(),
-  }).describe("Zone distribution config for allocation of cluster resources.")
-    .optional(),
+  }).describe(
+    "Optional. This config will be used to determine how the customer wants us to distribute cluster resources within the region.",
+  ).optional(),
   clusterId: z.string().describe(
     "Required. The logical name of the Redis cluster in the customer project with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the customer project / location",
   ).optional(),
@@ -765,15 +715,15 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. The start time of every automated backup in UTC. It must be set to the start of an hour. This field is required.",
       ).optional(),
-    }).describe(
-      "This schedule allows the backup to be triggered at a fixed frequency (currently only daily is supported).",
-    ).optional(),
+    }).describe("Optional. Trigger automated backups at a fixed frequency.")
+      .optional(),
     retention: z.string().describe(
       "Optional. How long to keep automated backups before the backups are deleted. The value should be between 1 day and 365 days. If not specified, the default value is 35 days.",
     ).optional(),
-  }).describe("The automated backup config for a cluster.").optional(),
+  }).describe("Optional. The automated backup config for the cluster.")
+    .optional(),
   clusterEndpoints: z.array(z.object({
     connections: z.array(z.object({
       pscAutoConnection: z.object({
@@ -802,7 +752,7 @@ const InputsSchema = z.object({
           "Output only. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.",
         ).optional(),
       }).describe(
-        "Details of consumer resources in a PSC connection that is created through Service Connectivity Automation.",
+        "Detailed information of a PSC connection that is created through service connectivity automation.",
       ).optional(),
       pscConnection: z.object({
         address: z.unknown().describe(
@@ -832,8 +782,9 @@ const InputsSchema = z.object({
         serviceAttachment: z.unknown().describe(
           "Required. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.",
         ).optional(),
-      }).describe("Details of consumer resources in a PSC connection.")
-        .optional(),
+      }).describe(
+        "Detailed information of a PSC connection that is created by the customer who owns the cluster.",
+      ).optional(),
     })).describe(
       "Required. A group of PSC connections. They are created in the same VPC network, one for each service attachment in the cluster.",
     ).optional(),
@@ -856,7 +807,7 @@ const InputsSchema = z.object({
           "Output only. The unique identifier of the remote cluster.",
         ).optional(),
       }).describe(
-        "Details of the remote cluster associated with this cluster in a cross cluster replication setup.",
+        "Output only. The primary cluster that acts as the source of replication for the secondary clusters.",
       ).optional(),
       secondaryClusters: z.array(z.object({
         cluster: z.string().describe(
@@ -869,7 +820,7 @@ const InputsSchema = z.object({
         "Output only. The list of secondary clusters replicating from the primary cluster.",
       ).optional(),
     }).describe(
-      "An output only view of all the member clusters participating in the cross cluster replication.",
+      "Output only. An output only view of all the member clusters participating in the cross cluster replication. This view will be provided by every member cluster irrespective of its cluster role(primary or secondary). A primary cluster can provide information about all the secondary clusters replicating from it. However, a secondary cluster only knows about the primary cluster from which it is replicating. However, for scenarios, where the primary cluster is unavailable(e.g. regional outage), a GetCluster request can be sent to any other member cluster and this field will list all the member clusters participating in cross cluster replication.",
     ).optional(),
     primaryCluster: z.object({
       cluster: z.string().describe(
@@ -879,7 +830,7 @@ const InputsSchema = z.object({
         "Output only. The unique identifier of the remote cluster.",
       ).optional(),
     }).describe(
-      "Details of the remote cluster associated with this cluster in a cross cluster replication setup.",
+      "Details of the primary cluster that is used as the replication source for this secondary cluster. This field is only set for a secondary cluster.",
     ).optional(),
     secondaryClusters: z.array(z.object({
       cluster: z.string().describe(
@@ -894,44 +845,16 @@ const InputsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. The last time cross cluster replication config was updated.",
     ).optional(),
-  }).describe("Cross cluster replication config.").optional(),
+  }).describe("Optional. Cross cluster replication config.").optional(),
   deletionProtectionEnabled: z.boolean().describe(
     "Optional. The delete operation will fail when the value is set to true.",
-  ).optional(),
-  encryptionInfo: z.object({
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. Type of encryption.").optional(),
-    kmsKeyPrimaryState: z.enum([
-      "KMS_KEY_STATE_UNSPECIFIED",
-      "ENABLED",
-      "PERMISSION_DENIED",
-      "DISABLED",
-      "DESTROYED",
-      "DESTROY_SCHEDULED",
-      "EKM_KEY_UNREACHABLE_DETECTED",
-      "BILLING_DISABLED",
-      "UNKNOWN_FAILURE",
-    ]).describe(
-      "Output only. The state of the primary version of the KMS key perceived by the system. This field is not populated in backups.",
-    ).optional(),
-    kmsKeyVersions: z.array(z.string()).describe(
-      "Output only. KMS key versions that are being used to protect the data at-rest.",
-    ).optional(),
-    lastUpdateTime: z.string().describe(
-      "Output only. The most recent time when the encryption info was updated.",
-    ).optional(),
-  }).describe(
-    "EncryptionInfo describes the encryption information of a cluster or a backup.",
   ).optional(),
   gcsSource: z.object({
     uris: z.array(z.string()).describe(
       "Optional. URIs of the Cloud Storage objects to import. Example: gs://bucket1/object1, gs://bucket2/folder2/object2",
     ).optional(),
   }).describe(
-    "Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters.",
+    "Optional. Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters. Read permission is required to import from the provided Cloud Storage objects.",
   ).optional(),
   kmsKey: z.string().describe(
     "Optional. The KMS key used to encrypt the at-rest data of the cluster.",
@@ -972,21 +895,13 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Optional. Start time of the window in UTC.").optional(),
     })).describe(
       "Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_window is expected to be one.",
     ).optional(),
-  }).describe("Maintenance policy per cluster.").optional(),
-  maintenanceSchedule: z.object({
-    endTime: z.string().describe(
-      "Output only. The end time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Output only. The start time of any upcoming scheduled maintenance for this instance.",
-    ).optional(),
-  }).describe("Upcoming maintenance schedule.").optional(),
+  }).describe(
+    "Optional. ClusterMaintenancePolicy determines when to allow or deny updates.",
+  ).optional(),
   maintenanceVersion: z.string().describe(
     "Optional. This field can be used to trigger self service update to indicate the desired maintenance version. The input to this field can be determined by the available_maintenance_versions field.",
   ).optional(),
@@ -994,7 +909,8 @@ const InputsSchema = z.object({
     backup: z.string().describe(
       "Optional. Example: //redis.googleapis.com/projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup} A shorter version (without the prefix) of the backup name is also supported, like projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup_id} In this case, it assumes the backup is under redis.googleapis.com.",
     ).optional(),
-  }).describe("Backups that generated and managed by memorystore.").optional(),
+  }).describe("Optional. Backups generated and managed by memorystore service.")
+    .optional(),
   name: z.string().describe(
     "Required. Identifier. Unique name of the resource in this scope including project and location using the form: `projects/{project_id}/locations/{location_id}/clusters/{cluster_id}`",
   ).optional(),
@@ -1018,7 +934,9 @@ const InputsSchema = z.object({
         "EVERYSEC",
         "ALWAYS",
       ]).describe("Optional. fsync configuration.").optional(),
-    }).describe("Configuration of the AOF based persistence.").optional(),
+    }).describe(
+      "Optional. AOF configuration. This field will be ignored if mode is not AOF.",
+    ).optional(),
     mode: z.enum(["PERSISTENCE_MODE_UNSPECIFIED", "DISABLED", "RDB", "AOF"])
       .describe("Optional. The mode of persistence.").optional(),
     rdbConfig: z.object({
@@ -1032,8 +950,11 @@ const InputsSchema = z.object({
       rdbSnapshotStartTime: z.string().describe(
         "Optional. The time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.",
       ).optional(),
-    }).describe("Configuration of the RDB based persistence.").optional(),
-  }).describe("Configuration of the persistence functionality.").optional(),
+    }).describe(
+      "Optional. RDB configuration. This field will be ignored if mode is not RDB.",
+    ).optional(),
+  }).describe("Optional. Persistence config (RDB, AOF) for the cluster.")
+    .optional(),
   pscConfigs: z.array(z.object({
     network: z.string().describe(
       "Required. The network where the IP address of the discovery endpoint will be reserved, in the form of projects/{network_project}/global/networks/{network_id}.",
@@ -1065,28 +986,6 @@ const InputsSchema = z.object({
   simulateMaintenanceEvent: z.boolean().describe(
     "Optional. Input only. Simulate a maintenance event.",
   ).optional(),
-  stateInfo: z.object({
-    updateInfo: z.object({
-      targetNodeType: z.enum([
-        "NODE_TYPE_UNSPECIFIED",
-        "REDIS_SHARED_CORE_NANO",
-        "REDIS_HIGHMEM_MEDIUM",
-        "REDIS_HIGHMEM_XLARGE",
-        "REDIS_STANDARD_SMALL",
-        "REDIS_HIGHCPU_MEDIUM",
-        "REDIS_STANDARD_LARGE",
-        "REDIS_HIGHMEM_2XLARGE",
-      ]).describe("Target node type for redis cluster.").optional(),
-      targetReplicaCount: z.number().int().describe(
-        "Target number of replica nodes per shard.",
-      ).optional(),
-      targetShardCount: z.number().int().describe(
-        "Target number of shards for redis cluster",
-      ).optional(),
-    }).describe("Represents information about an updating cluster.").optional(),
-  }).describe(
-    "Represents additional information about the state of the cluster.",
-  ).optional(),
   transitEncryptionMode: z.enum([
     "TRANSIT_ENCRYPTION_MODE_UNSPECIFIED",
     "TRANSIT_ENCRYPTION_MODE_DISABLED",
@@ -1108,8 +1007,9 @@ const InputsSchema = z.object({
     zones: z.array(z.string()).describe(
       "Optional. Specify the zones of a multi-zone cluster where Redis Cluster allocates resources. This flag isn't applicable for single-zone clusters.",
     ).optional(),
-  }).describe("Zone distribution config for allocation of cluster resources.")
-    .optional(),
+  }).describe(
+    "Optional. This config will be used to determine how the customer wants us to distribute cluster resources within the region.",
+  ).optional(),
   clusterId: z.string().describe(
     "Required. The logical name of the Redis cluster in the customer project with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the customer project / location",
   ).optional(),
@@ -1143,7 +1043,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Memorystore for Redis Clusters. Registered at `@swamp/gcp/redis/clusters`. */
 export const model = {
   type: "@swamp/gcp/redis/clusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1285,6 +1185,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: encryptionInfo, maintenanceSchedule, stateInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          encryptionInfo: _encryptionInfo,
+          maintenanceSchedule: _maintenanceSchedule,
+          stateInfo: _stateInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1334,17 +1247,11 @@ export const model = {
         if (g["deletionProtectionEnabled"] !== undefined) {
           body["deletionProtectionEnabled"] = g["deletionProtectionEnabled"];
         }
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["gcsSource"] !== undefined) body["gcsSource"] = g["gcsSource"];
         if (g["kmsKey"] !== undefined) body["kmsKey"] = g["kmsKey"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["maintenancePolicy"] !== undefined) {
           body["maintenancePolicy"] = g["maintenancePolicy"];
-        }
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
         }
         if (g["maintenanceVersion"] !== undefined) {
           body["maintenanceVersion"] = g["maintenanceVersion"];
@@ -1377,7 +1284,6 @@ export const model = {
         if (g["simulateMaintenanceEvent"] !== undefined) {
           body["simulateMaintenanceEvent"] = g["simulateMaintenanceEvent"];
         }
-        if (g["stateInfo"] !== undefined) body["stateInfo"] = g["stateInfo"];
         if (g["transitEncryptionMode"] !== undefined) {
           body["transitEncryptionMode"] = g["transitEncryptionMode"];
         }
@@ -1529,17 +1435,11 @@ export const model = {
         if (g["deletionProtectionEnabled"] !== undefined) {
           body["deletionProtectionEnabled"] = g["deletionProtectionEnabled"];
         }
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["gcsSource"] !== undefined) body["gcsSource"] = g["gcsSource"];
         if (g["kmsKey"] !== undefined) body["kmsKey"] = g["kmsKey"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["maintenancePolicy"] !== undefined) {
           body["maintenancePolicy"] = g["maintenancePolicy"];
-        }
-        if (g["maintenanceSchedule"] !== undefined) {
-          body["maintenanceSchedule"] = g["maintenanceSchedule"];
         }
         if (g["maintenanceVersion"] !== undefined) {
           body["maintenanceVersion"] = g["maintenanceVersion"];
@@ -1571,7 +1471,6 @@ export const model = {
         if (g["simulateMaintenanceEvent"] !== undefined) {
           body["simulateMaintenanceEvent"] = g["simulateMaintenanceEvent"];
         }
-        if (g["stateInfo"] !== undefined) body["stateInfo"] = g["stateInfo"];
         if (g["transitEncryptionMode"] !== undefined) {
           body["transitEncryptionMode"] = g["transitEncryptionMode"];
         }

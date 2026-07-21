@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
       "NO_RETURNS",
       "LIFETIME_RETURNS",
     ]).describe("Policy type.").optional(),
-  }).describe("The available policies.").optional(),
+  }).describe("Optional. The return policy.").optional(),
   processRefundDays: z.number().int().describe(
     "Optional. The field specifies the number of days it takes for business to process refunds.",
   ).optional(),
@@ -175,12 +175,13 @@ const GlobalArgsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe("Fixed restocking fee.").optional(),
     microPercent: z.number().int().describe(
       "Percent of total price in micros. 15,000,000 means 15% of the total price would be charged.",
     ).optional(),
-  }).describe("The restocking fee. This can be a flat fee or a micro percent.")
-    .optional(),
+  }).describe(
+    "Optional. The restocking fee that applies to all return reason categories. This would be treated as a free restocking fee if the value is not set.",
+  ).optional(),
   returnLabelSource: z.enum([
     "RETURN_LABEL_SOURCE_UNSPECIFIED",
     "DOWNLOAD_AND_PRINT",
@@ -204,11 +205,13 @@ const GlobalArgsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe(
+      "Fixed return shipping fee amount. This value is only applicable when type is `FIXED`. We will treat the return shipping fee as free if type is `FIXED` and this value is not set.",
+    ).optional(),
     type: z.enum(["TYPE_UNSPECIFIED", "FIXED", "CUSTOMER_PAYING_ACTUAL_FEE"])
       .describe("Required. Type of return shipping fee.").optional(),
   }).describe(
-    "The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.",
+    "Optional. The return shipping fee. Should be set only when customer need to download and print the return label.",
   ).optional(),
   seasonalOverrides: z.array(z.object({
     endDate: z.object({
@@ -221,9 +224,7 @@ const GlobalArgsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. seasonal override end date (inclusive).").optional(),
     label: z.string().describe(
       "Required. Display name of this seasonal override in Merchant Center.",
     ).optional(),
@@ -240,9 +241,8 @@ const GlobalArgsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Fixed end date until which the product can be returned.")
+      .optional(),
     startDate: z.object({
       day: z.number().int().describe(
         "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -254,7 +254,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Defines the date range when this seasonal override applies. Both start_date and end_date are inclusive. The dates of the seasonal overrides should not overlap.",
     ).optional(),
   })).describe(
     "Optional. Overrides to the general policy for orders placed during a specific set of time intervals.",
@@ -351,7 +351,7 @@ const InputsSchema = z.object({
       "NO_RETURNS",
       "LIFETIME_RETURNS",
     ]).describe("Policy type.").optional(),
-  }).describe("The available policies.").optional(),
+  }).describe("Optional. The return policy.").optional(),
   processRefundDays: z.number().int().describe(
     "Optional. The field specifies the number of days it takes for business to process refunds.",
   ).optional(),
@@ -363,12 +363,13 @@ const InputsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe("Fixed restocking fee.").optional(),
     microPercent: z.number().int().describe(
       "Percent of total price in micros. 15,000,000 means 15% of the total price would be charged.",
     ).optional(),
-  }).describe("The restocking fee. This can be a flat fee or a micro percent.")
-    .optional(),
+  }).describe(
+    "Optional. The restocking fee that applies to all return reason categories. This would be treated as a free restocking fee if the value is not set.",
+  ).optional(),
   returnLabelSource: z.enum([
     "RETURN_LABEL_SOURCE_UNSPECIFIED",
     "DOWNLOAD_AND_PRINT",
@@ -392,11 +393,13 @@ const InputsSchema = z.object({
       currencyCode: z.string().describe(
         "The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).",
       ).optional(),
-    }).describe("The price represented as a number and currency.").optional(),
+    }).describe(
+      "Fixed return shipping fee amount. This value is only applicable when type is `FIXED`. We will treat the return shipping fee as free if type is `FIXED` and this value is not set.",
+    ).optional(),
     type: z.enum(["TYPE_UNSPECIFIED", "FIXED", "CUSTOMER_PAYING_ACTUAL_FEE"])
       .describe("Required. Type of return shipping fee.").optional(),
   }).describe(
-    "The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.",
+    "Optional. The return shipping fee. Should be set only when customer need to download and print the return label.",
   ).optional(),
   seasonalOverrides: z.array(z.object({
     endDate: z.object({
@@ -409,9 +412,7 @@ const InputsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. seasonal override end date (inclusive).").optional(),
     label: z.string().describe(
       "Required. Display name of this seasonal override in Merchant Center.",
     ).optional(),
@@ -428,9 +429,8 @@ const InputsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Fixed end date until which the product can be returned.")
+      .optional(),
     startDate: z.object({
       day: z.number().int().describe(
         "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -442,7 +442,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Required. Defines the date range when this seasonal override applies. Both start_date and end_date are inclusive. The dates of the seasonal overrides should not overlap.",
     ).optional(),
   })).describe(
     "Optional. Overrides to the general policy for orders placed during a specific set of time intervals.",
@@ -475,7 +475,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.OnlineReturnPolicies. Registered at `@swamp/gcp/merchantapi/accounts-onlinereturnpolicies`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-onlinereturnpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

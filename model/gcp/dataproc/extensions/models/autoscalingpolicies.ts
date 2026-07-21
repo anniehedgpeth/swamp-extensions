@@ -172,7 +172,7 @@ const GlobalArgsSchema = z.object({
       scaleUpMinWorkerFraction: z.number().describe(
         "Optional. Minimum scale-up threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2-worker scale-up for the cluster to scale. A threshold of 0 means the autoscaler will scale up on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.",
       ).optional(),
-    }).describe("Basic autoscaling configurations for Spark Standalone.")
+    }).describe("Optional. Spark Standalone autoscaling configuration")
       .optional(),
     yarnConfig: z.object({
       gracefulDecommissionTimeout: z.string().describe(
@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
       scaleUpMinWorkerFraction: z.number().describe(
         "Optional. Minimum scale-up threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2-worker scale-up for the cluster to scale. A threshold of 0 means the autoscaler will scale up on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.",
       ).optional(),
-    }).describe("Basic autoscaling configurations for YARN.").optional(),
+    }).describe("Optional. YARN autoscaling configuration.").optional(),
   }).describe("Basic algorithm for autoscaling.").optional(),
   clusterType: z.enum(["CLUSTER_TYPE_UNSPECIFIED", "STANDARD", "ZERO_SCALE"])
     .describe(
@@ -213,7 +213,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Weight for the instance group, which is used to determine the fraction of total workers in the cluster from this instance group. For example, if primary workers have weight 2, and secondary workers have weight 1, the cluster will have approximately 2 primary workers for each secondary worker.The cluster may not reach the specified balance if constrained by min/max bounds or other autoscaling settings. For example, if max_instances for secondary workers is 0, then only primary workers will be added. The cluster can also be out of balance when created.If weight is not set on any instance group, the cluster will default to equal weight for all groups: the cluster will attempt to maintain an equal number of workers in each group within the configured size bounds for each group. If weight is set for one group only, the cluster will default to zero weight on the unset group. For example if weight is set only on primary workers, the cluster will use primary workers only and no secondary workers.",
     ).optional(),
   }).describe(
-    "Configuration for the size bounds of an instance group, including its proportional size to other groups.",
+    "Optional. Describes how the autoscaler will operate for secondary workers.",
   ).optional(),
   workerConfig: z.object({
     maxInstances: z.number().int().describe(
@@ -226,7 +226,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Weight for the instance group, which is used to determine the fraction of total workers in the cluster from this instance group. For example, if primary workers have weight 2, and secondary workers have weight 1, the cluster will have approximately 2 primary workers for each secondary worker.The cluster may not reach the specified balance if constrained by min/max bounds or other autoscaling settings. For example, if max_instances for secondary workers is 0, then only primary workers will be added. The cluster can also be out of balance when created.If weight is not set on any instance group, the cluster will default to equal weight for all groups: the cluster will attempt to maintain an equal number of workers in each group within the configured size bounds for each group. If weight is set for one group only, the cluster will default to zero weight on the unset group. For example if weight is set only on primary workers, the cluster will use primary workers only and no secondary workers.",
     ).optional(),
   }).describe(
-    "Configuration for the size bounds of an instance group, including its proportional size to other groups.",
+    "Required. Describes how the autoscaler will operate for primary workers.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -299,7 +299,7 @@ const InputsSchema = z.object({
       scaleUpMinWorkerFraction: z.number().describe(
         "Optional. Minimum scale-up threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2-worker scale-up for the cluster to scale. A threshold of 0 means the autoscaler will scale up on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.",
       ).optional(),
-    }).describe("Basic autoscaling configurations for Spark Standalone.")
+    }).describe("Optional. Spark Standalone autoscaling configuration")
       .optional(),
     yarnConfig: z.object({
       gracefulDecommissionTimeout: z.string().describe(
@@ -317,7 +317,7 @@ const InputsSchema = z.object({
       scaleUpMinWorkerFraction: z.number().describe(
         "Optional. Minimum scale-up threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2-worker scale-up for the cluster to scale. A threshold of 0 means the autoscaler will scale up on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.",
       ).optional(),
-    }).describe("Basic autoscaling configurations for YARN.").optional(),
+    }).describe("Optional. YARN autoscaling configuration.").optional(),
   }).describe("Basic algorithm for autoscaling.").optional(),
   clusterType: z.enum(["CLUSTER_TYPE_UNSPECIFIED", "STANDARD", "ZERO_SCALE"])
     .describe(
@@ -340,7 +340,7 @@ const InputsSchema = z.object({
       "Optional. Weight for the instance group, which is used to determine the fraction of total workers in the cluster from this instance group. For example, if primary workers have weight 2, and secondary workers have weight 1, the cluster will have approximately 2 primary workers for each secondary worker.The cluster may not reach the specified balance if constrained by min/max bounds or other autoscaling settings. For example, if max_instances for secondary workers is 0, then only primary workers will be added. The cluster can also be out of balance when created.If weight is not set on any instance group, the cluster will default to equal weight for all groups: the cluster will attempt to maintain an equal number of workers in each group within the configured size bounds for each group. If weight is set for one group only, the cluster will default to zero weight on the unset group. For example if weight is set only on primary workers, the cluster will use primary workers only and no secondary workers.",
     ).optional(),
   }).describe(
-    "Configuration for the size bounds of an instance group, including its proportional size to other groups.",
+    "Optional. Describes how the autoscaler will operate for secondary workers.",
   ).optional(),
   workerConfig: z.object({
     maxInstances: z.number().int().describe(
@@ -353,7 +353,7 @@ const InputsSchema = z.object({
       "Optional. Weight for the instance group, which is used to determine the fraction of total workers in the cluster from this instance group. For example, if primary workers have weight 2, and secondary workers have weight 1, the cluster will have approximately 2 primary workers for each secondary worker.The cluster may not reach the specified balance if constrained by min/max bounds or other autoscaling settings. For example, if max_instances for secondary workers is 0, then only primary workers will be added. The cluster can also be out of balance when created.If weight is not set on any instance group, the cluster will default to equal weight for all groups: the cluster will attempt to maintain an equal number of workers in each group within the configured size bounds for each group. If weight is set for one group only, the cluster will default to zero weight on the unset group. For example if weight is set only on primary workers, the cluster will use primary workers only and no secondary workers.",
     ).optional(),
   }).describe(
-    "Configuration for the size bounds of an instance group, including its proportional size to other groups.",
+    "Required. Describes how the autoscaler will operate for primary workers.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -383,7 +383,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc AutoscalingPolicies. Registered at `@swamp/gcp/dataproc/autoscalingpolicies`. */
 export const model = {
   type: "@swamp/gcp/dataproc/autoscalingpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -485,6 +485,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -537,16 +542,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

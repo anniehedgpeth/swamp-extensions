@@ -137,7 +137,7 @@ const GlobalArgsSchema = z.object({
       'Optional. IANA Time Zone Database version number. For example "2019a".',
     ).optional(),
   }).describe(
-    "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+    "Required. The IANA TZ timezone code of this account. For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. This field is used for reporting. It is recommended to set it to the same value for all child accounts.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -180,7 +180,7 @@ const InputsSchema = z.object({
       'Optional. IANA Time Zone Database version number. For example "2019a".',
     ).optional(),
   }).describe(
-    "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
+    "Required. The IANA TZ timezone code of this account. For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. This field is used for reporting. It is recommended to set it to the same value for all child accounts.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -210,7 +210,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AdSense Platform Platforms.Accounts. Registered at `@swamp/gcp/adsenseplatform/platforms-accounts`. */
 export const model = {
   type: "@swamp/gcp/adsenseplatform/platforms-accounts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -299,6 +299,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

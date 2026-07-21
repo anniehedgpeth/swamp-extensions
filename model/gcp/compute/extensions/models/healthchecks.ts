@@ -293,9 +293,7 @@ const GlobalArgsSchema = z.object({
     enable: z.boolean().describe(
       "Indicates whether or not to export logs. This is false by default, which means no health check logging will be done.",
     ).optional(),
-  }).describe(
-    "Configuration of logging on a health check. If logging is enabled, logs will be exported to Stackdriver.",
-  ).optional(),
+  }).describe("Configure logging on this health check.").optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. For example, a name that is 1-63 characters long, matches the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?`, and otherwise complies with RFC1035. This regular expression describes a name where the first character is a lowercase letter, and all following characters are a dash, lowercase letter, or digit, except the last character, which isn't a dash.",
@@ -569,9 +567,7 @@ const InputsSchema = z.object({
     enable: z.boolean().describe(
       "Indicates whether or not to export logs. This is false by default, which means no health check logging will be done.",
     ).optional(),
-  }).describe(
-    "Configuration of logging on a health check. If logging is enabled, logs will be exported to Stackdriver.",
-  ).optional(),
+  }).describe("Configure logging on this health check.").optional(),
   name: z.string().regex(new RegExp("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"))
     .describe(
       "Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply withRFC1035. For example, a name that is 1-63 characters long, matches the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?`, and otherwise complies with RFC1035. This regular expression describes a name where the first character is a lowercase letter, and all following characters are a dash, lowercase letter, or digit, except the last character, which isn't a dash.",
@@ -669,7 +665,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine HealthChecks. Registered at `@swamp/gcp/compute/healthchecks`. */
 export const model = {
   type: "@swamp/gcp/compute/healthchecks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -773,6 +769,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

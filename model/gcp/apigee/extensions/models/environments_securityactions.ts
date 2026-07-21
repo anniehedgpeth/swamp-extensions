@@ -156,7 +156,7 @@ const GlobalArgsSchema = z.object({
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
   allow: z.object({}).describe(
-    "Message that should be set in case of an Allow Action. This does not have any fields.",
+    "Allow a request through if it matches this SecurityAction.",
   ).optional(),
   apiProxies: z.array(z.string()).describe(
     "Optional. If unset, this would apply to all proxies in the environment. If set, this action is enforced only if at least one proxy in the repeated list is deployed at the time of enforcement. If set, several restrictions are enforced on SecurityActions. There can be at most 100 enabled actions with proxies set in an env. Several other restrictions apply on conditions and are detailed later.",
@@ -196,13 +196,13 @@ const GlobalArgsSchema = z.object({
       "Optional. A list of user agents to deny. We look for exact matches. Limit 50 per action.",
     ).optional(),
   }).describe(
-    'The following are a list of conditions. A valid SecurityAction must contain at least one condition. Within a condition, each element is ORed. Across conditions elements are ANDed. For example if a SecurityAction has the following: ip_address_ranges: ["ip1", "ip2"] and bot_reasons: ["Flooder", "Robot Abuser"] then this is interpreted as: enforce the action if the incoming request has ((ip_address_ranges = "ip1" OR ip_address_ranges = "ip2") AND (bot_reasons="Flooder" OR bot_reasons="Robot Abuser")). Conditions other than ip_address_ranges and bot_reasons cannot be ANDed.',
+    "Required. A valid SecurityAction must contain at least one condition.",
   ).optional(),
   deny: z.object({
     responseCode: z.number().int().describe(
       "Optional. The HTTP response code if the Action = DENY.",
     ).optional(),
-  }).describe("Message that should be set in case of a Deny Action.")
+  }).describe("Deny a request through if it matches this SecurityAction.")
     .optional(),
   description: z.string().describe(
     "Optional. An optional user provided description of the SecurityAction.",
@@ -218,7 +218,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. A list of HTTP headers to be sent to the target in case of a FLAG SecurityAction. Limit 5 headers per SecurityAction. At least one is mandatory.",
     ).optional(),
-  }).describe("The message that should be set in the case of a Flag action.")
+  }).describe("Flag a request through if it matches this SecurityAction.")
     .optional(),
   name: z.string().describe(
     "Immutable. This field is ignored during creation as per AIP-133. Please set the `security_action_id` field in the CreateSecurityActionRequest when creating a new SecurityAction. Format: organizations/{org}/environments/{env}/securityActions/{security_action}",
@@ -278,7 +278,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   allow: z.object({}).describe(
-    "Message that should be set in case of an Allow Action. This does not have any fields.",
+    "Allow a request through if it matches this SecurityAction.",
   ).optional(),
   apiProxies: z.array(z.string()).describe(
     "Optional. If unset, this would apply to all proxies in the environment. If set, this action is enforced only if at least one proxy in the repeated list is deployed at the time of enforcement. If set, several restrictions are enforced on SecurityActions. There can be at most 100 enabled actions with proxies set in an env. Several other restrictions apply on conditions and are detailed later.",
@@ -318,13 +318,13 @@ const InputsSchema = z.object({
       "Optional. A list of user agents to deny. We look for exact matches. Limit 50 per action.",
     ).optional(),
   }).describe(
-    'The following are a list of conditions. A valid SecurityAction must contain at least one condition. Within a condition, each element is ORed. Across conditions elements are ANDed. For example if a SecurityAction has the following: ip_address_ranges: ["ip1", "ip2"] and bot_reasons: ["Flooder", "Robot Abuser"] then this is interpreted as: enforce the action if the incoming request has ((ip_address_ranges = "ip1" OR ip_address_ranges = "ip2") AND (bot_reasons="Flooder" OR bot_reasons="Robot Abuser")). Conditions other than ip_address_ranges and bot_reasons cannot be ANDed.',
+    "Required. A valid SecurityAction must contain at least one condition.",
   ).optional(),
   deny: z.object({
     responseCode: z.number().int().describe(
       "Optional. The HTTP response code if the Action = DENY.",
     ).optional(),
-  }).describe("Message that should be set in case of a Deny Action.")
+  }).describe("Deny a request through if it matches this SecurityAction.")
     .optional(),
   description: z.string().describe(
     "Optional. An optional user provided description of the SecurityAction.",
@@ -340,7 +340,7 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. A list of HTTP headers to be sent to the target in case of a FLAG SecurityAction. Limit 5 headers per SecurityAction. At least one is mandatory.",
     ).optional(),
-  }).describe("The message that should be set in the case of a Flag action.")
+  }).describe("Flag a request through if it matches this SecurityAction.")
     .optional(),
   name: z.string().describe(
     "Immutable. This field is ignored during creation as per AIP-133. Please set the `security_action_id` field in the CreateSecurityActionRequest when creating a new SecurityAction. Format: organizations/{org}/environments/{env}/securityActions/{security_action}",
@@ -381,7 +381,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments.SecurityActions. Registered at `@swamp/gcp/apigee/environments-securityactions`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments-securityactions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -480,6 +480,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -204,7 +204,7 @@ const GlobalArgsSchema = z.object({
         "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
       ).optional(),
     }).describe(
-      "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+      "The modifiable kubelet configurations for the bare metal machines.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -234,52 +234,7 @@ const GlobalArgsSchema = z.object({
         .optional(),
     })).describe("The initial taints assigned to nodes of this node pool.")
       .optional(),
-  }).describe(
-    "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-  ).optional(),
+  }).describe("Required. Node pool configuration.").optional(),
   upgradePolicy: z.object({
     parallelUpgradeConfig: z.object({
       concurrentNodes: z.number().int().describe(
@@ -288,12 +243,9 @@ const GlobalArgsSchema = z.object({
       minimumAvailableNodes: z.number().int().describe(
         "The minimum number of nodes that should be healthy and available during an upgrade. If set to the default value of 0, it is possible that none of the nodes will be available during an upgrade.",
       ).optional(),
-    }).describe(
-      "BareMetalParallelUpgradeConfig defines the parallel upgrade settings for worker node pools.",
-    ).optional(),
-  }).describe(
-    "BareMetalNodePoolUpgradePolicy defines the node pool upgrade policy.",
-  ).optional(),
+    }).describe("The parallel upgrade settings for worker node pools.")
+      .optional(),
+  }).describe("The worker node pool upgrade policy.").optional(),
   bareMetalNodePoolId: z.string().describe(
     "The ID to use for the node pool, which will become the final component of the node pool's resource name. This value must be up to 63 characters, and valid characters are /a-z-/. The value must not be permitted to be a UUID (or UUID-like: anything matching /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i).",
   ).optional(),
@@ -387,7 +339,7 @@ const InputsSchema = z.object({
         "Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version < 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.",
       ).optional(),
     }).describe(
-      "KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).",
+      "The modifiable kubelet configurations for the bare metal machines.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       'The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.',
@@ -417,52 +369,7 @@ const InputsSchema = z.object({
         .optional(),
     })).describe("The initial taints assigned to nodes of this node pool.")
       .optional(),
-  }).describe(
-    "BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
-  ).optional(),
+  }).describe("Required. Node pool configuration.").optional(),
   upgradePolicy: z.object({
     parallelUpgradeConfig: z.object({
       concurrentNodes: z.number().int().describe(
@@ -471,12 +378,9 @@ const InputsSchema = z.object({
       minimumAvailableNodes: z.number().int().describe(
         "The minimum number of nodes that should be healthy and available during an upgrade. If set to the default value of 0, it is possible that none of the nodes will be available during an upgrade.",
       ).optional(),
-    }).describe(
-      "BareMetalParallelUpgradeConfig defines the parallel upgrade settings for worker node pools.",
-    ).optional(),
-  }).describe(
-    "BareMetalNodePoolUpgradePolicy defines the node pool upgrade policy.",
-  ).optional(),
+    }).describe("The parallel upgrade settings for worker node pools.")
+      .optional(),
+  }).describe("The worker node pool upgrade policy.").optional(),
   bareMetalNodePoolId: z.string().describe(
     "The ID to use for the node pool, which will become the final component of the node pool's resource name. This value must be up to 63 characters, and valid characters are /a-z-/. The value must not be permitted to be a UUID (or UUID-like: anything matching /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i).",
   ).optional(),
@@ -511,7 +415,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE On-Prem BareMetalClusters.BareMetalNodePools. Registered at `@swamp/gcp/gkeonprem/baremetalclusters-baremetalnodepools`. */
 export const model = {
   type: "@swamp/gcp/gkeonprem/baremetalclusters-baremetalnodepools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -618,6 +522,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -654,7 +566,6 @@ export const model = {
         if (g["nodePoolConfig"] !== undefined) {
           body["nodePoolConfig"] = g["nodePoolConfig"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["upgradePolicy"] !== undefined) {
           body["upgradePolicy"] = g["upgradePolicy"];
         }
@@ -786,7 +697,6 @@ export const model = {
         if (g["nodePoolConfig"] !== undefined) {
           body["nodePoolConfig"] = g["nodePoolConfig"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["upgradePolicy"] !== undefined) {
           body["upgradePolicy"] = g["upgradePolicy"];
         }

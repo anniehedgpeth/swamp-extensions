@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
     primaryGuestEmail: z.string().describe(
       "Immutable. The guest's external email.",
     ).optional(),
-  }).describe("Account info specific to Guest users.").optional(),
+  }).describe("Immutable. Additional guest-related metadata fields").optional(),
   hashFunction: z.string().describe(
     "Stores the hash format of the `password` property. The following `hashFunction` values are allowed: * `MD5` - Accepts simple hex-encoded values. * `SHA-1` - Accepts simple hex-encoded values. * `crypt` - Compliant with the [C crypt library](https://en.wikipedia.org/wiki/Crypt_%28C%29). Supports the DES, MD5 (hash prefix `$1$`), SHA-256 (hash prefix `$5$`), and SHA-512 (hash prefix `$6$`) hash algorithms. If rounds are specified as part of the prefix, they must be 10,000 or fewer.",
   ).optional(),
@@ -242,7 +242,9 @@ const GlobalArgsSchema = z.object({
     givenName: z.string().describe(
       "The user's first name. Required when creating a user account.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Holds the given and family names of the user, and the read-only `fullName` value. The maximum number of characters in the `givenName` and in the `familyName` values is 60. In addition, name values support unicode/UTF-8 characters, and can contain spaces, letters (a-z), numbers (0-9), dashes (-), forward slashes (/), and periods (.). For more information about character usage rules, see the [administration help center](https://support.google.com/a/answer/9193374). Maximum allowed data size for this field is 1KB.",
+  ).optional(),
   notes: z.string().describe("Notes for the user.").optional(),
   orgUnitPath: z.string().describe(
     "The full path of the parent organization associated with the user. If the parent organization is the top-level, it is represented as a forward slash (`/`).",
@@ -372,7 +374,7 @@ const InputsSchema = z.object({
     primaryGuestEmail: z.string().describe(
       "Immutable. The guest's external email.",
     ).optional(),
-  }).describe("Account info specific to Guest users.").optional(),
+  }).describe("Immutable. Additional guest-related metadata fields").optional(),
   hashFunction: z.string().describe(
     "Stores the hash format of the `password` property. The following `hashFunction` values are allowed: * `MD5` - Accepts simple hex-encoded values. * `SHA-1` - Accepts simple hex-encoded values. * `crypt` - Compliant with the [C crypt library](https://en.wikipedia.org/wiki/Crypt_%28C%29). Supports the DES, MD5 (hash prefix `$1$`), SHA-256 (hash prefix `$5$`), and SHA-512 (hash prefix `$6$`) hash algorithms. If rounds are specified as part of the prefix, they must be 10,000 or fewer.",
   ).optional(),
@@ -415,7 +417,9 @@ const InputsSchema = z.object({
     givenName: z.string().describe(
       "The user's first name. Required when creating a user account.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Holds the given and family names of the user, and the read-only `fullName` value. The maximum number of characters in the `givenName` and in the `familyName` values is 60. In addition, name values support unicode/UTF-8 characters, and can contain spaces, letters (a-z), numbers (0-9), dashes (-), forward slashes (/), and periods (.). For more information about character usage rules, see the [administration help center](https://support.google.com/a/answer/9193374). Maximum allowed data size for this field is 1KB.",
+  ).optional(),
   notes: z.string().describe("Notes for the user.").optional(),
   orgUnitPath: z.string().describe(
     "The full path of the parent organization associated with the user. If the parent organization is the top-level, it is represented as a forward slash (`/`).",
@@ -473,7 +477,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Users. Registered at `@swamp/gcp/admin/users`. */
 export const model = {
   type: "@swamp/gcp/admin/users",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -675,9 +686,6 @@ export const model = {
           body["externalIds"] = g["externalIds"];
         }
         if (g["gender"] !== undefined) body["gender"] = g["gender"];
-        if (g["guestAccountInfo"] !== undefined) {
-          body["guestAccountInfo"] = g["guestAccountInfo"];
-        }
         if (g["hashFunction"] !== undefined) {
           body["hashFunction"] = g["hashFunction"];
         }

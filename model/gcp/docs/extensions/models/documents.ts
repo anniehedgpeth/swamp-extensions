@@ -97,574 +97,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  body: z.object({
-    content: z.array(z.object({
-      endIndex: z.number().int().describe(
-        "The zero-based end index of this structural element, exclusive, in UTF-16 code units.",
-      ).optional(),
-      paragraph: z.object({
-        bullet: z.object({
-          listId: z.unknown().describe(
-            "The ID of the list this paragraph belongs to.",
-          ).optional(),
-          nestingLevel: z.unknown().describe(
-            "The nesting level of this paragraph in the list.",
-          ).optional(),
-          textStyle: z.unknown().describe(
-            "Represents the styling that can be applied to text. Inherited text styles are represented as unset fields in this message. A text style's parent depends on where the text style is defined: * The TextStyle of text in a Paragraph inherits from the paragraph's corresponding named style type. * The TextStyle on a named style inherits from the normal text named style. * The TextStyle of the normal text named style inherits from the default text style in the Docs editor. * The TextStyle on a Paragraph element that's contained in a table may inherit its text style from the table style. If the text style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-          ).optional(),
-        }).describe("Describes the bullet of a paragraph.").optional(),
-        elements: z.array(z.unknown()).describe(
-          "The content of the paragraph, broken down into its component parts.",
-        ).optional(),
-        paragraphStyle: z.object({
-          alignment: z.unknown().describe(
-            "The text alignment for this paragraph.",
-          ).optional(),
-          avoidWidowAndOrphan: z.unknown().describe(
-            "Whether to avoid widows and orphans for the paragraph. If unset, the value is inherited from the parent.",
-          ).optional(),
-          borderBetween: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderBottom: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderLeft: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderRight: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderTop: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          direction: z.unknown().describe(
-            "The text direction of this paragraph. If unset, the value defaults to LEFT_TO_RIGHT since paragraph direction is not inherited.",
-          ).optional(),
-          headingId: z.unknown().describe(
-            "The heading ID of the paragraph. If empty, then this paragraph is not a heading. This property is read-only.",
-          ).optional(),
-          indentEnd: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          indentFirstLine: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          indentStart: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          keepLinesTogether: z.unknown().describe(
-            "Whether all lines of the paragraph should be laid out on the same page or column if possible. If unset, the value is inherited from the parent.",
-          ).optional(),
-          keepWithNext: z.unknown().describe(
-            "Whether at least a part of this paragraph should be laid out on the same page or column as the next paragraph if possible. If unset, the value is inherited from the parent.",
-          ).optional(),
-          lineSpacing: z.unknown().describe(
-            "The amount of space between lines, as a percentage of normal, where normal is represented as 100.0. If unset, the value is inherited from the parent.",
-          ).optional(),
-          namedStyleType: z.unknown().describe(
-            "The named style type of the paragraph. Since updating the named style type affects other properties within ParagraphStyle, the named style type is applied before the other properties are updated.",
-          ).optional(),
-          pageBreakBefore: z.unknown().describe(
-            "Whether the current paragraph should always start at the beginning of a page. If unset, the value is inherited from the parent. Attempting to update page_break_before for paragraphs in unsupported regions, including Table, Header, Footer and Footnote, can result in an invalid document state that returns a 400 bad request error.",
-          ).optional(),
-          shading: z.unknown().describe("The shading of a paragraph.")
-            .optional(),
-          spaceAbove: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          spaceBelow: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          spacingMode: z.unknown().describe(
-            "The spacing mode for the paragraph.",
-          ).optional(),
-          tabStops: z.unknown().describe(
-            "A list of the tab stops for this paragraph. The list of tab stops is not inherited. This property is read-only.",
-          ).optional(),
-        }).describe(
-          "Styles that apply to a whole paragraph. Inherited paragraph styles are represented as unset fields in this message. A paragraph style's parent depends on where the paragraph style is defined: * The ParagraphStyle on a Paragraph inherits from the paragraph's corresponding named style type. * The ParagraphStyle on a named style inherits from the normal text named style. * The ParagraphStyle of the normal text named style inherits from the default paragraph style in the Docs editor. * The ParagraphStyle on a Paragraph element that's contained in a table may inherit its paragraph style from the table style. If the paragraph style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-        ).optional(),
-        positionedObjectIds: z.array(z.unknown()).describe(
-          "The IDs of the positioned objects tethered to this paragraph.",
-        ).optional(),
-        suggestedBulletChanges: z.record(z.string(), z.unknown()).describe(
-          "The suggested changes to this paragraph's bullet.",
-        ).optional(),
-        suggestedParagraphStyleChanges: z.record(z.string(), z.unknown())
-          .describe(
-            "The suggested paragraph style changes to this paragraph, keyed by suggestion ID.",
-          ).optional(),
-        suggestedPositionedObjectIds: z.record(z.string(), z.unknown())
-          .describe(
-            "The IDs of the positioned objects suggested to be attached to this paragraph, keyed by suggestion ID.",
-          ).optional(),
-      }).describe(
-        "A StructuralElement representing a paragraph. A paragraph is a range of content that's terminated with a newline character.",
-      ).optional(),
-      sectionBreak: z.object({
-        sectionStyle: z.object({
-          columnProperties: z.unknown().describe(
-            "The section's columns properties. If empty, the section contains one column with the default properties in the Docs editor. A section can be updated to have no more than 3 columns. When updating this property, setting a concrete value is required. Unsetting this property will result in a 400 bad request error.",
-          ).optional(),
-          columnSeparatorStyle: z.unknown().describe(
-            "The style of column separators. This style can be set even when there's one column in the section. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          contentDirection: z.unknown().describe(
-            "The content direction of this section. If unset, the value defaults to LEFT_TO_RIGHT. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          defaultFooterId: z.unknown().describe(
-            "The ID of the default footer. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's default_footer_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          defaultHeaderId: z.unknown().describe(
-            "The ID of the default header. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's default_header_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          evenPageFooterId: z.unknown().describe(
-            "The ID of the footer used only for even pages. If the value of DocumentStyle's use_even_page_header_footer is true, this value is used for the footers on even pages in the section. If it is false, the footers on even pages use the default_footer_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's even_page_footer_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          evenPageHeaderId: z.unknown().describe(
-            "The ID of the header used only for even pages. If the value of DocumentStyle's use_even_page_header_footer is true, this value is used for the headers on even pages in the section. If it is false, the headers on even pages use the default_header_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's even_page_header_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          firstPageFooterId: z.unknown().describe(
-            "The ID of the footer used only for the first page of the section. If use_first_page_header_footer is true, this value is used for the footer on the first page of the section. If it's false, the footer on the first page of the section uses the default_footer_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's first_page_footer_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          firstPageHeaderId: z.unknown().describe(
-            "The ID of the header used only for the first page of the section. If use_first_page_header_footer is true, this value is used for the header on the first page of the section. If it's false, the header on the first page of the section uses the default_header_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's first_page_header_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          flipPageOrientation: z.unknown().describe(
-            "Optional. Indicates whether to flip the dimensions of DocumentStyle's page_size for this section, which allows changing the page orientation between portrait and landscape. If unset, the value inherits from DocumentStyle's flip_page_orientation. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          marginBottom: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginFooter: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginHeader: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginLeft: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginRight: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginTop: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          pageNumberStart: z.unknown().describe(
-            "The page number from which to start counting the number of pages for this section. If unset, page numbering continues from the previous section. If the value is unset in the first SectionBreak, refer to DocumentStyle's page_number_start. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          sectionType: z.unknown().describe("Output only. The type of section.")
-            .optional(),
-          useFirstPageHeaderFooter: z.unknown().describe(
-            "Indicates whether to use the first page header / footer IDs for the first page of the section. If unset, it inherits from DocumentStyle's use_first_page_header_footer for the first section. If the value is unset for subsequent sectors, it should be interpreted as false. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-        }).describe("The styling that applies to a section.").optional(),
-        suggestedDeletionIds: z.array(z.unknown()).describe(
-          "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
-        ).optional(),
-        suggestedInsertionIds: z.array(z.unknown()).describe(
-          "The suggested insertion IDs. A SectionBreak may have multiple insertion IDs if it's a nested suggested change. If empty, then this is not a suggested insertion.",
-        ).optional(),
-      }).describe(
-        "A StructuralElement representing a section break. A section is a range of content that has the same SectionStyle. A section break represents the start of a new section, and the section style applies to the section after the section break. The document body always begins with a section break.",
-      ).optional(),
-      startIndex: z.number().int().describe(
-        "The zero-based start index of this structural element, in UTF-16 code units.",
-      ).optional(),
-      table: z.object({
-        columns: z.number().int().describe(
-          "Number of columns in the table. It's possible for a table to be non-rectangular, so some rows may have a different number of cells.",
-        ).optional(),
-        rows: z.number().int().describe("Number of rows in the table.")
-          .optional(),
-        suggestedDeletionIds: z.array(z.unknown()).describe(
-          "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
-        ).optional(),
-        suggestedInsertionIds: z.array(z.unknown()).describe(
-          "The suggested insertion IDs. A Table may have multiple insertion IDs if it's a nested suggested change. If empty, then this is not a suggested insertion.",
-        ).optional(),
-        tableRows: z.array(z.unknown()).describe(
-          "The contents and style of each row.",
-        ).optional(),
-        tableStyle: z.object({
-          tableColumnProperties: z.unknown().describe(
-            "The properties of each column. Note that in Docs, tables contain rows and rows contain cells, similar to HTML. So the properties for a row can be found on the row's table_row_style.",
-          ).optional(),
-        }).describe("Styles that apply to a table.").optional(),
-      }).describe("A StructuralElement representing a table.").optional(),
-      tableOfContents: z.object({
-        content: z.array(z.unknown()).describe(
-          "The content of the table of contents.",
-        ).optional(),
-        suggestedDeletionIds: z.array(z.unknown()).describe(
-          "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
-        ).optional(),
-        suggestedInsertionIds: z.array(z.unknown()).describe(
-          "The suggested insertion IDs. A TableOfContents may have multiple insertion IDs if it is a nested suggested change. If empty, then this is not a suggested insertion.",
-        ).optional(),
-      }).describe("A StructuralElement representing a table of contents.")
-        .optional(),
-    })).describe(
-      "The contents of the body. The indexes for the body's content begin at zero.",
-    ).optional(),
-  }).describe(
-    "The document body. The body typically contains the full document contents except for headers, footers, and footnotes.",
-  ).optional(),
-  documentStyle: z.object({
-    background: z.object({
-      color: z.object({
-        color: z.object({
-          rgbColor: z.object({
-            blue: z.unknown().describe(
-              "The blue component of the color, from 0.0 to 1.0.",
-            ).optional(),
-            green: z.unknown().describe(
-              "The green component of the color, from 0.0 to 1.0.",
-            ).optional(),
-            red: z.unknown().describe(
-              "The red component of the color, from 0.0 to 1.0.",
-            ).optional(),
-          }).describe("An RGB color.").optional(),
-        }).describe("A solid color.").optional(),
-      }).describe(
-        "A color that can either be fully opaque or fully transparent.",
-      ).optional(),
-    }).describe("Represents the background of a document.").optional(),
-    defaultFooterId: z.string().describe(
-      "The ID of the default footer. If not set, there's no default footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    defaultHeaderId: z.string().describe(
-      "The ID of the default header. If not set, there's no default header. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    documentFormat: z.object({
-      documentMode: z.enum(["DOCUMENT_MODE_UNSPECIFIED", "PAGES", "PAGELESS"])
-        .describe("Whether the document has pages or is pageless.").optional(),
-    }).describe("Represents document-level format settings.").optional(),
-    evenPageFooterId: z.string().describe(
-      "The ID of the footer used only for even pages. The value of use_even_page_header_footer determines whether to use the default_footer_id or this value for the footer on even pages. If not set, there's no even page footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    evenPageHeaderId: z.string().describe(
-      "The ID of the header used only for even pages. The value of use_even_page_header_footer determines whether to use the default_header_id or this value for the header on even pages. If not set, there's no even page header. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    firstPageFooterId: z.string().describe(
-      "The ID of the footer used only for the first page. If not set then a unique footer for the first page does not exist. The value of use_first_page_header_footer determines whether to use the default_footer_id or this value for the footer on the first page. If not set, there's no first page footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    firstPageHeaderId: z.string().describe(
-      "The ID of the header used only for the first page. If not set then a unique header for the first page does not exist. The value of use_first_page_header_footer determines whether to use the default_header_id or this value for the header on the first page. If not set, there's no first page header. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    flipPageOrientation: z.boolean().describe(
-      "Optional. Indicates whether to flip the dimensions of the page_size, which allows changing the page orientation between portrait and landscape. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-    marginBottom: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginFooter: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginHeader: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginLeft: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginRight: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginTop: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    pageNumberStart: z.number().int().describe(
-      "The page number from which to start counting the number of pages. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-    pageSize: z.object({
-      height: z.object({
-        magnitude: z.number().describe("The magnitude.").optional(),
-        unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-          "The units for magnitude.",
-        ).optional(),
-      }).describe("A magnitude in a single direction in the specified units.")
-        .optional(),
-      width: z.object({
-        magnitude: z.number().describe("The magnitude.").optional(),
-        unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-          "The units for magnitude.",
-        ).optional(),
-      }).describe("A magnitude in a single direction in the specified units.")
-        .optional(),
-    }).describe("A width and height.").optional(),
-    useCustomHeaderFooterMargins: z.boolean().describe(
-      "Indicates whether DocumentStyle margin_header, SectionStyle margin_header and DocumentStyle margin_footer, SectionStyle margin_footer are respected. When false, the default values in the Docs editor for header and footer margin is used. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    useEvenPageHeaderFooter: z.boolean().describe(
-      "Indicates whether to use the even page header / footer IDs for the even pages. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-    useFirstPageHeaderFooter: z.boolean().describe(
-      "Indicates whether to use the first page header / footer IDs for the first page. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-  }).describe("The style of the document.").optional(),
-  namedStyles: z.object({
-    styles: z.array(z.object({
-      namedStyleType: z.enum([
-        "NAMED_STYLE_TYPE_UNSPECIFIED",
-        "NORMAL_TEXT",
-        "TITLE",
-        "SUBTITLE",
-        "HEADING_1",
-        "HEADING_2",
-        "HEADING_3",
-        "HEADING_4",
-        "HEADING_5",
-        "HEADING_6",
-      ]).describe("The type of this named style.").optional(),
-      paragraphStyle: z.object({
-        alignment: z.enum([
-          "ALIGNMENT_UNSPECIFIED",
-          "START",
-          "CENTER",
-          "END",
-          "JUSTIFIED",
-        ]).describe("The text alignment for this paragraph.").optional(),
-        avoidWidowAndOrphan: z.boolean().describe(
-          "Whether to avoid widows and orphans for the paragraph. If unset, the value is inherited from the parent.",
-        ).optional(),
-        borderBetween: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderBottom: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderLeft: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderRight: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderTop: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        direction: z.enum([
-          "CONTENT_DIRECTION_UNSPECIFIED",
-          "LEFT_TO_RIGHT",
-          "RIGHT_TO_LEFT",
-        ]).describe(
-          "The text direction of this paragraph. If unset, the value defaults to LEFT_TO_RIGHT since paragraph direction is not inherited.",
-        ).optional(),
-        headingId: z.string().describe(
-          "The heading ID of the paragraph. If empty, then this paragraph is not a heading. This property is read-only.",
-        ).optional(),
-        indentEnd: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        indentFirstLine: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        indentStart: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        keepLinesTogether: z.boolean().describe(
-          "Whether all lines of the paragraph should be laid out on the same page or column if possible. If unset, the value is inherited from the parent.",
-        ).optional(),
-        keepWithNext: z.boolean().describe(
-          "Whether at least a part of this paragraph should be laid out on the same page or column as the next paragraph if possible. If unset, the value is inherited from the parent.",
-        ).optional(),
-        lineSpacing: z.number().describe(
-          "The amount of space between lines, as a percentage of normal, where normal is represented as 100.0. If unset, the value is inherited from the parent.",
-        ).optional(),
-        namedStyleType: z.enum([
-          "NAMED_STYLE_TYPE_UNSPECIFIED",
-          "NORMAL_TEXT",
-          "TITLE",
-          "SUBTITLE",
-          "HEADING_1",
-          "HEADING_2",
-          "HEADING_3",
-          "HEADING_4",
-          "HEADING_5",
-          "HEADING_6",
-        ]).describe(
-          "The named style type of the paragraph. Since updating the named style type affects other properties within ParagraphStyle, the named style type is applied before the other properties are updated.",
-        ).optional(),
-        pageBreakBefore: z.boolean().describe(
-          "Whether the current paragraph should always start at the beginning of a page. If unset, the value is inherited from the parent. Attempting to update page_break_before for paragraphs in unsupported regions, including Table, Header, Footer and Footnote, can result in an invalid document state that returns a 400 bad request error.",
-        ).optional(),
-        shading: z.object({
-          backgroundColor: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-        }).describe("The shading of a paragraph.").optional(),
-        spaceAbove: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        spaceBelow: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        spacingMode: z.enum([
-          "SPACING_MODE_UNSPECIFIED",
-          "NEVER_COLLAPSE",
-          "COLLAPSE_LISTS",
-        ]).describe("The spacing mode for the paragraph.").optional(),
-        tabStops: z.array(z.unknown()).describe(
-          "A list of the tab stops for this paragraph. The list of tab stops is not inherited. This property is read-only.",
-        ).optional(),
-      }).describe(
-        "Styles that apply to a whole paragraph. Inherited paragraph styles are represented as unset fields in this message. A paragraph style's parent depends on where the paragraph style is defined: * The ParagraphStyle on a Paragraph inherits from the paragraph's corresponding named style type. * The ParagraphStyle on a named style inherits from the normal text named style. * The ParagraphStyle of the normal text named style inherits from the default paragraph style in the Docs editor. * The ParagraphStyle on a Paragraph element that's contained in a table may inherit its paragraph style from the table style. If the paragraph style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-      ).optional(),
-      textStyle: z.object({
-        backgroundColor: z.object({
-          color: z.unknown().describe("A solid color.").optional(),
-        }).describe(
-          "A color that can either be fully opaque or fully transparent.",
-        ).optional(),
-        baselineOffset: z.enum([
-          "BASELINE_OFFSET_UNSPECIFIED",
-          "NONE",
-          "SUPERSCRIPT",
-          "SUBSCRIPT",
-        ]).describe(
-          "The text's vertical offset from its normal position. Text with `SUPERSCRIPT` or `SUBSCRIPT` baseline offsets is automatically rendered in a smaller font size, computed based on the `font_size` field. Changes in this field don't affect the `font_size`.",
-        ).optional(),
-        bold: z.boolean().describe(
-          "Whether or not the text is rendered as bold.",
-        ).optional(),
-        fontSize: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        foregroundColor: z.object({
-          color: z.unknown().describe("A solid color.").optional(),
-        }).describe(
-          "A color that can either be fully opaque or fully transparent.",
-        ).optional(),
-        italic: z.boolean().describe("Whether or not the text is italicized.")
-          .optional(),
-        link: z.object({
-          bookmark: z.unknown().describe(
-            "A reference to a bookmark in this document.",
-          ).optional(),
-          bookmarkId: z.unknown().describe(
-            "The ID of a bookmark in this document. Legacy field: Instead, set includeTabsContent to `true` and use Link.bookmark for read and write operations. This field is only returned when includeTabsContent is set to `false` in documents containing a single tab and links to a bookmark within the singular tab. Otherwise, Link.bookmark is returned. If this field is used in a write request, the bookmark is considered to be from the tab ID specified in the request. If a tab ID is not specified in the request, it is considered to be from the first tab in the document.",
-          ).optional(),
-          heading: z.unknown().describe(
-            "A reference to a heading in this document.",
-          ).optional(),
-          headingId: z.unknown().describe(
-            "The ID of a heading in this document. Legacy field: Instead, set includeTabsContent to `true` and use Link.heading for read and write operations. This field is only returned when includeTabsContent is set to `false` in documents containing a single tab and links to a heading within the singular tab. Otherwise, Link.heading is returned. If this field is used in a write request, the heading is considered to be from the tab ID specified in the request. If a tab ID is not specified in the request, it is considered to be from the first tab in the document.",
-          ).optional(),
-          tabId: z.unknown().describe("The ID of a tab in this document.")
-            .optional(),
-          url: z.unknown().describe("An external URL.").optional(),
-        }).describe(
-          "A reference to another portion of a document or an external URL resource.",
-        ).optional(),
-        smallCaps: z.boolean().describe(
-          "Whether or not the text is in small capital letters.",
-        ).optional(),
-        strikethrough: z.boolean().describe(
-          "Whether or not the text is struck through.",
-        ).optional(),
-        underline: z.boolean().describe(
-          "Whether or not the text is underlined.",
-        ).optional(),
-        weightedFontFamily: z.object({
-          fontFamily: z.unknown().describe(
-            "The font family of the text. The font family can be any font from the Font menu in Docs or from [Google Fonts] (https://fonts.google.com/). If the font name is unrecognized, the text is rendered in `Arial`.",
-          ).optional(),
-          weight: z.unknown().describe(
-            "The weight of the font. This field can have any value that's a multiple of `100` between `100` and `900`, inclusive. This range corresponds to the numerical values described in the CSS 2.1 Specification, [section 15.6](https://www.w3.org/TR/CSS21/fonts.html#font-boldness), with non-numerical values disallowed. The default value is `400` (\"normal\"). The font weight makes up just one component of the rendered font weight. A combination of the `weight` and the text style's resolved `bold` value determine the rendered weight, after accounting for inheritance: * If the text is bold and the weight is less than `400`, the rendered weight is 400. * If the text is bold and the weight is greater than or equal to `400` but is less than `700`, the rendered weight is `700`. * If the weight is greater than or equal to `700`, the rendered weight is equal to the weight. * If the text is not bold, the rendered weight is equal to the weight.",
-          ).optional(),
-        }).describe("Represents a font family and weight of text.").optional(),
-      }).describe(
-        "Represents the styling that can be applied to text. Inherited text styles are represented as unset fields in this message. A text style's parent depends on where the text style is defined: * The TextStyle of text in a Paragraph inherits from the paragraph's corresponding named style type. * The TextStyle on a named style inherits from the normal text named style. * The TextStyle of the normal text named style inherits from the default text style in the Docs editor. * The TextStyle on a Paragraph element that's contained in a table may inherit its text style from the table style. If the text style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-      ).optional(),
-    })).describe(
-      "The named styles. There's an entry for each of the possible named style types.",
-    ).optional(),
-  }).describe(
-    "The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.",
-  ).optional(),
   tabs: z.array(z.object({
     childTabs: z.array(z.record(z.string(), z.unknown())).describe(
       "The child tabs nested within this tab.",
@@ -674,15 +106,13 @@ const GlobalArgsSchema = z.object({
         content: z.array(z.unknown()).describe(
           "The contents of the body. The indexes for the body's content begin at zero.",
         ).optional(),
-      }).describe(
-        "The document body. The body typically contains the full document contents except for headers, footers, and footnotes.",
-      ).optional(),
+      }).describe("The main body of the document tab.").optional(),
       documentStyle: z.object({
         background: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-        }).describe("Represents the background of a document.").optional(),
+          color: z.unknown().describe("The background color.").optional(),
+        }).describe(
+          "The background of the document. Documents cannot have a transparent background color.",
+        ).optional(),
         defaultFooterId: z.string().describe(
           "The ID of the default footer. If not set, there's no default footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
         ).optional(),
@@ -693,7 +123,9 @@ const GlobalArgsSchema = z.object({
           documentMode: z.unknown().describe(
             "Whether the document has pages or is pageless.",
           ).optional(),
-        }).describe("Represents document-level format settings.").optional(),
+        }).describe(
+          "Specifies document-level format settings, such as the document mode (pages vs pageless).",
+        ).optional(),
         evenPageFooterId: z.string().describe(
           "The ID of the footer used only for even pages. The value of use_even_page_header_footer determines whether to use the default_footer_id or this value for the footer on even pages. If not set, there's no even page footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
         ).optional(),
@@ -712,44 +144,48 @@ const GlobalArgsSchema = z.object({
         marginBottom: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The bottom page margin. Updating the bottom page margin on the document style clears the bottom page margin on all section styles. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginFooter: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The amount of space between the bottom of the page and the contents of the footer. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginHeader: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The amount of space between the top of the page and the contents of the header. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginLeft: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The left page margin. Updating the left page margin on the document style clears the left page margin on all section styles. It may also cause columns to resize in all sections. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginRight: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The right page margin. Updating the right page margin on the document style clears the right page margin on all section styles. It may also cause columns to resize in all sections. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginTop: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The top page margin. Updating the top page margin on the document style clears the top page margin on all section styles. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         pageNumberStart: z.number().int().describe(
           "The page number from which to start counting the number of pages. If DocumentMode is PAGELESS, this property will not be rendered.",
         ).optional(),
         pageSize: z.object({
-          height: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A width and height.").optional(),
+          height: z.unknown().describe("The height of the object.").optional(),
+          width: z.unknown().describe("The width of the object.").optional(),
+        }).describe(
+          "The size of a page in the document. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         useCustomHeaderFooterMargins: z.boolean().describe(
           "Indicates whether DocumentStyle margin_header, SectionStyle margin_header and DocumentStyle margin_footer, SectionStyle margin_footer are respected. When false, the default values in the Docs editor for header and footer margin is used. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
         ).optional(),
@@ -759,7 +195,7 @@ const GlobalArgsSchema = z.object({
         useFirstPageHeaderFooter: z.boolean().describe(
           "Indicates whether to use the first page header / footer IDs for the first page. If DocumentMode is PAGELESS, this property will not be rendered.",
         ).optional(),
-      }).describe("The style of the document.").optional(),
+      }).describe("The style of the document tab.").optional(),
       footers: z.record(
         z.string(),
         z.object({
@@ -795,7 +231,7 @@ const GlobalArgsSchema = z.object({
         z.string(),
         z.object({
           inlineObjectProperties: z.unknown().describe(
-            "Properties of an InlineObject.",
+            "The properties of this inline object.",
           ).optional(),
           objectId: z.unknown().describe(
             "The ID of this inline object. Can be used to update an object’s properties.",
@@ -815,9 +251,8 @@ const GlobalArgsSchema = z.object({
       lists: z.record(
         z.string(),
         z.object({
-          listProperties: z.unknown().describe(
-            "The properties of a list that describe the look and feel of bullets belonging to paragraphs associated with a list.",
-          ).optional(),
+          listProperties: z.unknown().describe("The properties of the list.")
+            .optional(),
           suggestedDeletionIds: z.unknown().describe(
             "The suggested deletion IDs. If empty, then there are no suggested deletions of this list.",
           ).optional(),
@@ -845,16 +280,14 @@ const GlobalArgsSchema = z.object({
         styles: z.array(z.unknown()).describe(
           "The named styles. There's an entry for each of the possible named style types.",
         ).optional(),
-      }).describe(
-        "The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.",
-      ).optional(),
+      }).describe("The named styles of the document tab.").optional(),
       positionedObjects: z.record(
         z.string(),
         z.object({
           objectId: z.unknown().describe("The ID of this positioned object.")
             .optional(),
           positionedObjectProperties: z.unknown().describe(
-            "Properties of a PositionedObject.",
+            "The properties of this positioned object.",
           ).optional(),
           suggestedDeletionIds: z.unknown().describe(
             "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
@@ -872,10 +305,11 @@ const GlobalArgsSchema = z.object({
       suggestedDocumentStyleChanges: z.record(
         z.string(),
         z.object({
-          documentStyle: z.unknown().describe("The style of the document.")
-            .optional(),
+          documentStyle: z.unknown().describe(
+            "A DocumentStyle that only includes the changes made in this suggestion. This can be used along with the document_style_suggestion_state to see which fields have changed and their new values.",
+          ).optional(),
           documentStyleSuggestionState: z.unknown().describe(
-            "A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion. For any field set to true, there's a new suggested value.",
+            "A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion.",
           ).optional(),
         }),
       ).describe(
@@ -885,16 +319,17 @@ const GlobalArgsSchema = z.object({
         z.string(),
         z.object({
           namedStyles: z.unknown().describe(
-            "The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.",
+            "A NamedStyles that only includes the changes made in this suggestion. This can be used along with the named_styles_suggestion_state to see which fields have changed and their new values.",
           ).optional(),
           namedStylesSuggestionState: z.unknown().describe(
-            "The suggestion state of a NamedStyles message.",
+            "A mask that indicates which of the fields on the base NamedStyles have been changed in this suggestion.",
           ).optional(),
         }),
       ).describe(
         "The suggested changes to the named styles of the document tab, keyed by suggestion ID.",
       ).optional(),
-    }).describe("A tab with document contents.").optional(),
+    }).describe("A tab with document contents, like text and images.")
+      .optional(),
     tabProperties: z.object({
       iconEmoji: z.string().describe(
         "Optional. The emoji icon displayed with the tab. A valid emoji icon is represented by a non-empty Unicode string. Any set of characters that don't represent a single emoji is invalid. If an emoji is invalid, a 400 bad request error is returned. If this value is unset or empty, the tab will display the default tab icon.",
@@ -911,7 +346,7 @@ const GlobalArgsSchema = z.object({
       tabId: z.string().describe("The immutable ID of the tab.").optional(),
       title: z.string().describe("The user-visible name of the tab.")
         .optional(),
-    }).describe("Properties of a tab.").optional(),
+    }).describe("The properties of the tab, like ID and title.").optional(),
   })).describe(
     "Tabs that are part of a document. Tabs can contain child tabs, a tab nested within another tab. Child tabs are represented by the Tab.childTabs field.",
   ).optional(),
@@ -1261,574 +696,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  body: z.object({
-    content: z.array(z.object({
-      endIndex: z.number().int().describe(
-        "The zero-based end index of this structural element, exclusive, in UTF-16 code units.",
-      ).optional(),
-      paragraph: z.object({
-        bullet: z.object({
-          listId: z.unknown().describe(
-            "The ID of the list this paragraph belongs to.",
-          ).optional(),
-          nestingLevel: z.unknown().describe(
-            "The nesting level of this paragraph in the list.",
-          ).optional(),
-          textStyle: z.unknown().describe(
-            "Represents the styling that can be applied to text. Inherited text styles are represented as unset fields in this message. A text style's parent depends on where the text style is defined: * The TextStyle of text in a Paragraph inherits from the paragraph's corresponding named style type. * The TextStyle on a named style inherits from the normal text named style. * The TextStyle of the normal text named style inherits from the default text style in the Docs editor. * The TextStyle on a Paragraph element that's contained in a table may inherit its text style from the table style. If the text style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-          ).optional(),
-        }).describe("Describes the bullet of a paragraph.").optional(),
-        elements: z.array(z.unknown()).describe(
-          "The content of the paragraph, broken down into its component parts.",
-        ).optional(),
-        paragraphStyle: z.object({
-          alignment: z.unknown().describe(
-            "The text alignment for this paragraph.",
-          ).optional(),
-          avoidWidowAndOrphan: z.unknown().describe(
-            "Whether to avoid widows and orphans for the paragraph. If unset, the value is inherited from the parent.",
-          ).optional(),
-          borderBetween: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderBottom: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderLeft: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderRight: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          borderTop: z.unknown().describe("A border around a paragraph.")
-            .optional(),
-          direction: z.unknown().describe(
-            "The text direction of this paragraph. If unset, the value defaults to LEFT_TO_RIGHT since paragraph direction is not inherited.",
-          ).optional(),
-          headingId: z.unknown().describe(
-            "The heading ID of the paragraph. If empty, then this paragraph is not a heading. This property is read-only.",
-          ).optional(),
-          indentEnd: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          indentFirstLine: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          indentStart: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          keepLinesTogether: z.unknown().describe(
-            "Whether all lines of the paragraph should be laid out on the same page or column if possible. If unset, the value is inherited from the parent.",
-          ).optional(),
-          keepWithNext: z.unknown().describe(
-            "Whether at least a part of this paragraph should be laid out on the same page or column as the next paragraph if possible. If unset, the value is inherited from the parent.",
-          ).optional(),
-          lineSpacing: z.unknown().describe(
-            "The amount of space between lines, as a percentage of normal, where normal is represented as 100.0. If unset, the value is inherited from the parent.",
-          ).optional(),
-          namedStyleType: z.unknown().describe(
-            "The named style type of the paragraph. Since updating the named style type affects other properties within ParagraphStyle, the named style type is applied before the other properties are updated.",
-          ).optional(),
-          pageBreakBefore: z.unknown().describe(
-            "Whether the current paragraph should always start at the beginning of a page. If unset, the value is inherited from the parent. Attempting to update page_break_before for paragraphs in unsupported regions, including Table, Header, Footer and Footnote, can result in an invalid document state that returns a 400 bad request error.",
-          ).optional(),
-          shading: z.unknown().describe("The shading of a paragraph.")
-            .optional(),
-          spaceAbove: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          spaceBelow: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          spacingMode: z.unknown().describe(
-            "The spacing mode for the paragraph.",
-          ).optional(),
-          tabStops: z.unknown().describe(
-            "A list of the tab stops for this paragraph. The list of tab stops is not inherited. This property is read-only.",
-          ).optional(),
-        }).describe(
-          "Styles that apply to a whole paragraph. Inherited paragraph styles are represented as unset fields in this message. A paragraph style's parent depends on where the paragraph style is defined: * The ParagraphStyle on a Paragraph inherits from the paragraph's corresponding named style type. * The ParagraphStyle on a named style inherits from the normal text named style. * The ParagraphStyle of the normal text named style inherits from the default paragraph style in the Docs editor. * The ParagraphStyle on a Paragraph element that's contained in a table may inherit its paragraph style from the table style. If the paragraph style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-        ).optional(),
-        positionedObjectIds: z.array(z.unknown()).describe(
-          "The IDs of the positioned objects tethered to this paragraph.",
-        ).optional(),
-        suggestedBulletChanges: z.record(z.string(), z.unknown()).describe(
-          "The suggested changes to this paragraph's bullet.",
-        ).optional(),
-        suggestedParagraphStyleChanges: z.record(z.string(), z.unknown())
-          .describe(
-            "The suggested paragraph style changes to this paragraph, keyed by suggestion ID.",
-          ).optional(),
-        suggestedPositionedObjectIds: z.record(z.string(), z.unknown())
-          .describe(
-            "The IDs of the positioned objects suggested to be attached to this paragraph, keyed by suggestion ID.",
-          ).optional(),
-      }).describe(
-        "A StructuralElement representing a paragraph. A paragraph is a range of content that's terminated with a newline character.",
-      ).optional(),
-      sectionBreak: z.object({
-        sectionStyle: z.object({
-          columnProperties: z.unknown().describe(
-            "The section's columns properties. If empty, the section contains one column with the default properties in the Docs editor. A section can be updated to have no more than 3 columns. When updating this property, setting a concrete value is required. Unsetting this property will result in a 400 bad request error.",
-          ).optional(),
-          columnSeparatorStyle: z.unknown().describe(
-            "The style of column separators. This style can be set even when there's one column in the section. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          contentDirection: z.unknown().describe(
-            "The content direction of this section. If unset, the value defaults to LEFT_TO_RIGHT. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          defaultFooterId: z.unknown().describe(
-            "The ID of the default footer. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's default_footer_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          defaultHeaderId: z.unknown().describe(
-            "The ID of the default header. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's default_header_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          evenPageFooterId: z.unknown().describe(
-            "The ID of the footer used only for even pages. If the value of DocumentStyle's use_even_page_header_footer is true, this value is used for the footers on even pages in the section. If it is false, the footers on even pages use the default_footer_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's even_page_footer_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          evenPageHeaderId: z.unknown().describe(
-            "The ID of the header used only for even pages. If the value of DocumentStyle's use_even_page_header_footer is true, this value is used for the headers on even pages in the section. If it is false, the headers on even pages use the default_header_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's even_page_header_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          firstPageFooterId: z.unknown().describe(
-            "The ID of the footer used only for the first page of the section. If use_first_page_header_footer is true, this value is used for the footer on the first page of the section. If it's false, the footer on the first page of the section uses the default_footer_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's first_page_footer_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          firstPageHeaderId: z.unknown().describe(
-            "The ID of the header used only for the first page of the section. If use_first_page_header_footer is true, this value is used for the header on the first page of the section. If it's false, the header on the first page of the section uses the default_header_id. If unset, the value inherits from the previous SectionBreak's SectionStyle. If the value is unset in the first SectionBreak, it inherits from DocumentStyle's first_page_header_id. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-          ).optional(),
-          flipPageOrientation: z.unknown().describe(
-            "Optional. Indicates whether to flip the dimensions of DocumentStyle's page_size for this section, which allows changing the page orientation between portrait and landscape. If unset, the value inherits from DocumentStyle's flip_page_orientation. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          marginBottom: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginFooter: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginHeader: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginLeft: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginRight: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          marginTop: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          pageNumberStart: z.unknown().describe(
-            "The page number from which to start counting the number of pages for this section. If unset, page numbering continues from the previous section. If the value is unset in the first SectionBreak, refer to DocumentStyle's page_number_start. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-          sectionType: z.unknown().describe("Output only. The type of section.")
-            .optional(),
-          useFirstPageHeaderFooter: z.unknown().describe(
-            "Indicates whether to use the first page header / footer IDs for the first page of the section. If unset, it inherits from DocumentStyle's use_first_page_header_footer for the first section. If the value is unset for subsequent sectors, it should be interpreted as false. If DocumentMode is PAGELESS, this property will not be rendered. When updating this property, setting a concrete value is required. Unsetting this property results in a 400 bad request error.",
-          ).optional(),
-        }).describe("The styling that applies to a section.").optional(),
-        suggestedDeletionIds: z.array(z.unknown()).describe(
-          "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
-        ).optional(),
-        suggestedInsertionIds: z.array(z.unknown()).describe(
-          "The suggested insertion IDs. A SectionBreak may have multiple insertion IDs if it's a nested suggested change. If empty, then this is not a suggested insertion.",
-        ).optional(),
-      }).describe(
-        "A StructuralElement representing a section break. A section is a range of content that has the same SectionStyle. A section break represents the start of a new section, and the section style applies to the section after the section break. The document body always begins with a section break.",
-      ).optional(),
-      startIndex: z.number().int().describe(
-        "The zero-based start index of this structural element, in UTF-16 code units.",
-      ).optional(),
-      table: z.object({
-        columns: z.number().int().describe(
-          "Number of columns in the table. It's possible for a table to be non-rectangular, so some rows may have a different number of cells.",
-        ).optional(),
-        rows: z.number().int().describe("Number of rows in the table.")
-          .optional(),
-        suggestedDeletionIds: z.array(z.unknown()).describe(
-          "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
-        ).optional(),
-        suggestedInsertionIds: z.array(z.unknown()).describe(
-          "The suggested insertion IDs. A Table may have multiple insertion IDs if it's a nested suggested change. If empty, then this is not a suggested insertion.",
-        ).optional(),
-        tableRows: z.array(z.unknown()).describe(
-          "The contents and style of each row.",
-        ).optional(),
-        tableStyle: z.object({
-          tableColumnProperties: z.unknown().describe(
-            "The properties of each column. Note that in Docs, tables contain rows and rows contain cells, similar to HTML. So the properties for a row can be found on the row's table_row_style.",
-          ).optional(),
-        }).describe("Styles that apply to a table.").optional(),
-      }).describe("A StructuralElement representing a table.").optional(),
-      tableOfContents: z.object({
-        content: z.array(z.unknown()).describe(
-          "The content of the table of contents.",
-        ).optional(),
-        suggestedDeletionIds: z.array(z.unknown()).describe(
-          "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
-        ).optional(),
-        suggestedInsertionIds: z.array(z.unknown()).describe(
-          "The suggested insertion IDs. A TableOfContents may have multiple insertion IDs if it is a nested suggested change. If empty, then this is not a suggested insertion.",
-        ).optional(),
-      }).describe("A StructuralElement representing a table of contents.")
-        .optional(),
-    })).describe(
-      "The contents of the body. The indexes for the body's content begin at zero.",
-    ).optional(),
-  }).describe(
-    "The document body. The body typically contains the full document contents except for headers, footers, and footnotes.",
-  ).optional(),
-  documentStyle: z.object({
-    background: z.object({
-      color: z.object({
-        color: z.object({
-          rgbColor: z.object({
-            blue: z.unknown().describe(
-              "The blue component of the color, from 0.0 to 1.0.",
-            ).optional(),
-            green: z.unknown().describe(
-              "The green component of the color, from 0.0 to 1.0.",
-            ).optional(),
-            red: z.unknown().describe(
-              "The red component of the color, from 0.0 to 1.0.",
-            ).optional(),
-          }).describe("An RGB color.").optional(),
-        }).describe("A solid color.").optional(),
-      }).describe(
-        "A color that can either be fully opaque or fully transparent.",
-      ).optional(),
-    }).describe("Represents the background of a document.").optional(),
-    defaultFooterId: z.string().describe(
-      "The ID of the default footer. If not set, there's no default footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    defaultHeaderId: z.string().describe(
-      "The ID of the default header. If not set, there's no default header. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    documentFormat: z.object({
-      documentMode: z.enum(["DOCUMENT_MODE_UNSPECIFIED", "PAGES", "PAGELESS"])
-        .describe("Whether the document has pages or is pageless.").optional(),
-    }).describe("Represents document-level format settings.").optional(),
-    evenPageFooterId: z.string().describe(
-      "The ID of the footer used only for even pages. The value of use_even_page_header_footer determines whether to use the default_footer_id or this value for the footer on even pages. If not set, there's no even page footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    evenPageHeaderId: z.string().describe(
-      "The ID of the header used only for even pages. The value of use_even_page_header_footer determines whether to use the default_header_id or this value for the header on even pages. If not set, there's no even page header. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    firstPageFooterId: z.string().describe(
-      "The ID of the footer used only for the first page. If not set then a unique footer for the first page does not exist. The value of use_first_page_header_footer determines whether to use the default_footer_id or this value for the footer on the first page. If not set, there's no first page footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    firstPageHeaderId: z.string().describe(
-      "The ID of the header used only for the first page. If not set then a unique header for the first page does not exist. The value of use_first_page_header_footer determines whether to use the default_header_id or this value for the header on the first page. If not set, there's no first page header. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    flipPageOrientation: z.boolean().describe(
-      "Optional. Indicates whether to flip the dimensions of the page_size, which allows changing the page orientation between portrait and landscape. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-    marginBottom: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginFooter: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginHeader: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginLeft: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginRight: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    marginTop: z.object({
-      magnitude: z.number().describe("The magnitude.").optional(),
-      unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-        "The units for magnitude.",
-      ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-    pageNumberStart: z.number().int().describe(
-      "The page number from which to start counting the number of pages. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-    pageSize: z.object({
-      height: z.object({
-        magnitude: z.number().describe("The magnitude.").optional(),
-        unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-          "The units for magnitude.",
-        ).optional(),
-      }).describe("A magnitude in a single direction in the specified units.")
-        .optional(),
-      width: z.object({
-        magnitude: z.number().describe("The magnitude.").optional(),
-        unit: z.enum(["UNIT_UNSPECIFIED", "PT"]).describe(
-          "The units for magnitude.",
-        ).optional(),
-      }).describe("A magnitude in a single direction in the specified units.")
-        .optional(),
-    }).describe("A width and height.").optional(),
-    useCustomHeaderFooterMargins: z.boolean().describe(
-      "Indicates whether DocumentStyle margin_header, SectionStyle margin_header and DocumentStyle margin_footer, SectionStyle margin_footer are respected. When false, the default values in the Docs editor for header and footer margin is used. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
-    ).optional(),
-    useEvenPageHeaderFooter: z.boolean().describe(
-      "Indicates whether to use the even page header / footer IDs for the even pages. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-    useFirstPageHeaderFooter: z.boolean().describe(
-      "Indicates whether to use the first page header / footer IDs for the first page. If DocumentMode is PAGELESS, this property will not be rendered.",
-    ).optional(),
-  }).describe("The style of the document.").optional(),
-  namedStyles: z.object({
-    styles: z.array(z.object({
-      namedStyleType: z.enum([
-        "NAMED_STYLE_TYPE_UNSPECIFIED",
-        "NORMAL_TEXT",
-        "TITLE",
-        "SUBTITLE",
-        "HEADING_1",
-        "HEADING_2",
-        "HEADING_3",
-        "HEADING_4",
-        "HEADING_5",
-        "HEADING_6",
-      ]).describe("The type of this named style.").optional(),
-      paragraphStyle: z.object({
-        alignment: z.enum([
-          "ALIGNMENT_UNSPECIFIED",
-          "START",
-          "CENTER",
-          "END",
-          "JUSTIFIED",
-        ]).describe("The text alignment for this paragraph.").optional(),
-        avoidWidowAndOrphan: z.boolean().describe(
-          "Whether to avoid widows and orphans for the paragraph. If unset, the value is inherited from the parent.",
-        ).optional(),
-        borderBetween: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderBottom: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderLeft: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderRight: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        borderTop: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-          dashStyle: z.unknown().describe("The dash style of the border.")
-            .optional(),
-          padding: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A border around a paragraph.").optional(),
-        direction: z.enum([
-          "CONTENT_DIRECTION_UNSPECIFIED",
-          "LEFT_TO_RIGHT",
-          "RIGHT_TO_LEFT",
-        ]).describe(
-          "The text direction of this paragraph. If unset, the value defaults to LEFT_TO_RIGHT since paragraph direction is not inherited.",
-        ).optional(),
-        headingId: z.string().describe(
-          "The heading ID of the paragraph. If empty, then this paragraph is not a heading. This property is read-only.",
-        ).optional(),
-        indentEnd: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        indentFirstLine: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        indentStart: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        keepLinesTogether: z.boolean().describe(
-          "Whether all lines of the paragraph should be laid out on the same page or column if possible. If unset, the value is inherited from the parent.",
-        ).optional(),
-        keepWithNext: z.boolean().describe(
-          "Whether at least a part of this paragraph should be laid out on the same page or column as the next paragraph if possible. If unset, the value is inherited from the parent.",
-        ).optional(),
-        lineSpacing: z.number().describe(
-          "The amount of space between lines, as a percentage of normal, where normal is represented as 100.0. If unset, the value is inherited from the parent.",
-        ).optional(),
-        namedStyleType: z.enum([
-          "NAMED_STYLE_TYPE_UNSPECIFIED",
-          "NORMAL_TEXT",
-          "TITLE",
-          "SUBTITLE",
-          "HEADING_1",
-          "HEADING_2",
-          "HEADING_3",
-          "HEADING_4",
-          "HEADING_5",
-          "HEADING_6",
-        ]).describe(
-          "The named style type of the paragraph. Since updating the named style type affects other properties within ParagraphStyle, the named style type is applied before the other properties are updated.",
-        ).optional(),
-        pageBreakBefore: z.boolean().describe(
-          "Whether the current paragraph should always start at the beginning of a page. If unset, the value is inherited from the parent. Attempting to update page_break_before for paragraphs in unsupported regions, including Table, Header, Footer and Footnote, can result in an invalid document state that returns a 400 bad request error.",
-        ).optional(),
-        shading: z.object({
-          backgroundColor: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-        }).describe("The shading of a paragraph.").optional(),
-        spaceAbove: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        spaceBelow: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        spacingMode: z.enum([
-          "SPACING_MODE_UNSPECIFIED",
-          "NEVER_COLLAPSE",
-          "COLLAPSE_LISTS",
-        ]).describe("The spacing mode for the paragraph.").optional(),
-        tabStops: z.array(z.unknown()).describe(
-          "A list of the tab stops for this paragraph. The list of tab stops is not inherited. This property is read-only.",
-        ).optional(),
-      }).describe(
-        "Styles that apply to a whole paragraph. Inherited paragraph styles are represented as unset fields in this message. A paragraph style's parent depends on where the paragraph style is defined: * The ParagraphStyle on a Paragraph inherits from the paragraph's corresponding named style type. * The ParagraphStyle on a named style inherits from the normal text named style. * The ParagraphStyle of the normal text named style inherits from the default paragraph style in the Docs editor. * The ParagraphStyle on a Paragraph element that's contained in a table may inherit its paragraph style from the table style. If the paragraph style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-      ).optional(),
-      textStyle: z.object({
-        backgroundColor: z.object({
-          color: z.unknown().describe("A solid color.").optional(),
-        }).describe(
-          "A color that can either be fully opaque or fully transparent.",
-        ).optional(),
-        baselineOffset: z.enum([
-          "BASELINE_OFFSET_UNSPECIFIED",
-          "NONE",
-          "SUPERSCRIPT",
-          "SUBSCRIPT",
-        ]).describe(
-          "The text's vertical offset from its normal position. Text with `SUPERSCRIPT` or `SUBSCRIPT` baseline offsets is automatically rendered in a smaller font size, computed based on the `font_size` field. Changes in this field don't affect the `font_size`.",
-        ).optional(),
-        bold: z.boolean().describe(
-          "Whether or not the text is rendered as bold.",
-        ).optional(),
-        fontSize: z.object({
-          magnitude: z.unknown().describe("The magnitude.").optional(),
-          unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-        foregroundColor: z.object({
-          color: z.unknown().describe("A solid color.").optional(),
-        }).describe(
-          "A color that can either be fully opaque or fully transparent.",
-        ).optional(),
-        italic: z.boolean().describe("Whether or not the text is italicized.")
-          .optional(),
-        link: z.object({
-          bookmark: z.unknown().describe(
-            "A reference to a bookmark in this document.",
-          ).optional(),
-          bookmarkId: z.unknown().describe(
-            "The ID of a bookmark in this document. Legacy field: Instead, set includeTabsContent to `true` and use Link.bookmark for read and write operations. This field is only returned when includeTabsContent is set to `false` in documents containing a single tab and links to a bookmark within the singular tab. Otherwise, Link.bookmark is returned. If this field is used in a write request, the bookmark is considered to be from the tab ID specified in the request. If a tab ID is not specified in the request, it is considered to be from the first tab in the document.",
-          ).optional(),
-          heading: z.unknown().describe(
-            "A reference to a heading in this document.",
-          ).optional(),
-          headingId: z.unknown().describe(
-            "The ID of a heading in this document. Legacy field: Instead, set includeTabsContent to `true` and use Link.heading for read and write operations. This field is only returned when includeTabsContent is set to `false` in documents containing a single tab and links to a heading within the singular tab. Otherwise, Link.heading is returned. If this field is used in a write request, the heading is considered to be from the tab ID specified in the request. If a tab ID is not specified in the request, it is considered to be from the first tab in the document.",
-          ).optional(),
-          tabId: z.unknown().describe("The ID of a tab in this document.")
-            .optional(),
-          url: z.unknown().describe("An external URL.").optional(),
-        }).describe(
-          "A reference to another portion of a document or an external URL resource.",
-        ).optional(),
-        smallCaps: z.boolean().describe(
-          "Whether or not the text is in small capital letters.",
-        ).optional(),
-        strikethrough: z.boolean().describe(
-          "Whether or not the text is struck through.",
-        ).optional(),
-        underline: z.boolean().describe(
-          "Whether or not the text is underlined.",
-        ).optional(),
-        weightedFontFamily: z.object({
-          fontFamily: z.unknown().describe(
-            "The font family of the text. The font family can be any font from the Font menu in Docs or from [Google Fonts] (https://fonts.google.com/). If the font name is unrecognized, the text is rendered in `Arial`.",
-          ).optional(),
-          weight: z.unknown().describe(
-            "The weight of the font. This field can have any value that's a multiple of `100` between `100` and `900`, inclusive. This range corresponds to the numerical values described in the CSS 2.1 Specification, [section 15.6](https://www.w3.org/TR/CSS21/fonts.html#font-boldness), with non-numerical values disallowed. The default value is `400` (\"normal\"). The font weight makes up just one component of the rendered font weight. A combination of the `weight` and the text style's resolved `bold` value determine the rendered weight, after accounting for inheritance: * If the text is bold and the weight is less than `400`, the rendered weight is 400. * If the text is bold and the weight is greater than or equal to `400` but is less than `700`, the rendered weight is `700`. * If the weight is greater than or equal to `700`, the rendered weight is equal to the weight. * If the text is not bold, the rendered weight is equal to the weight.",
-          ).optional(),
-        }).describe("Represents a font family and weight of text.").optional(),
-      }).describe(
-        "Represents the styling that can be applied to text. Inherited text styles are represented as unset fields in this message. A text style's parent depends on where the text style is defined: * The TextStyle of text in a Paragraph inherits from the paragraph's corresponding named style type. * The TextStyle on a named style inherits from the normal text named style. * The TextStyle of the normal text named style inherits from the default text style in the Docs editor. * The TextStyle on a Paragraph element that's contained in a table may inherit its text style from the table style. If the text style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.",
-      ).optional(),
-    })).describe(
-      "The named styles. There's an entry for each of the possible named style types.",
-    ).optional(),
-  }).describe(
-    "The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.",
-  ).optional(),
   tabs: z.array(z.object({
     childTabs: z.array(z.record(z.string(), z.unknown())).describe(
       "The child tabs nested within this tab.",
@@ -1838,15 +705,13 @@ const InputsSchema = z.object({
         content: z.array(z.unknown()).describe(
           "The contents of the body. The indexes for the body's content begin at zero.",
         ).optional(),
-      }).describe(
-        "The document body. The body typically contains the full document contents except for headers, footers, and footnotes.",
-      ).optional(),
+      }).describe("The main body of the document tab.").optional(),
       documentStyle: z.object({
         background: z.object({
-          color: z.unknown().describe(
-            "A color that can either be fully opaque or fully transparent.",
-          ).optional(),
-        }).describe("Represents the background of a document.").optional(),
+          color: z.unknown().describe("The background color.").optional(),
+        }).describe(
+          "The background of the document. Documents cannot have a transparent background color.",
+        ).optional(),
         defaultFooterId: z.string().describe(
           "The ID of the default footer. If not set, there's no default footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
         ).optional(),
@@ -1857,7 +722,9 @@ const InputsSchema = z.object({
           documentMode: z.unknown().describe(
             "Whether the document has pages or is pageless.",
           ).optional(),
-        }).describe("Represents document-level format settings.").optional(),
+        }).describe(
+          "Specifies document-level format settings, such as the document mode (pages vs pageless).",
+        ).optional(),
         evenPageFooterId: z.string().describe(
           "The ID of the footer used only for even pages. The value of use_even_page_header_footer determines whether to use the default_footer_id or this value for the footer on even pages. If not set, there's no even page footer. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
         ).optional(),
@@ -1876,44 +743,48 @@ const InputsSchema = z.object({
         marginBottom: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The bottom page margin. Updating the bottom page margin on the document style clears the bottom page margin on all section styles. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginFooter: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The amount of space between the bottom of the page and the contents of the footer. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginHeader: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The amount of space between the top of the page and the contents of the header. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginLeft: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The left page margin. Updating the left page margin on the document style clears the left page margin on all section styles. It may also cause columns to resize in all sections. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginRight: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The right page margin. Updating the right page margin on the document style clears the right page margin on all section styles. It may also cause columns to resize in all sections. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         marginTop: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe(
+          "The top page margin. Updating the top page margin on the document style clears the top page margin on all section styles. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         pageNumberStart: z.number().int().describe(
           "The page number from which to start counting the number of pages. If DocumentMode is PAGELESS, this property will not be rendered.",
         ).optional(),
         pageSize: z.object({
-          height: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-          width: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe("A width and height.").optional(),
+          height: z.unknown().describe("The height of the object.").optional(),
+          width: z.unknown().describe("The width of the object.").optional(),
+        }).describe(
+          "The size of a page in the document. If DocumentMode is PAGELESS, this property will not be rendered.",
+        ).optional(),
         useCustomHeaderFooterMargins: z.boolean().describe(
           "Indicates whether DocumentStyle margin_header, SectionStyle margin_header and DocumentStyle margin_footer, SectionStyle margin_footer are respected. When false, the default values in the Docs editor for header and footer margin is used. If DocumentMode is PAGELESS, this property will not be rendered. This property is read-only.",
         ).optional(),
@@ -1923,7 +794,7 @@ const InputsSchema = z.object({
         useFirstPageHeaderFooter: z.boolean().describe(
           "Indicates whether to use the first page header / footer IDs for the first page. If DocumentMode is PAGELESS, this property will not be rendered.",
         ).optional(),
-      }).describe("The style of the document.").optional(),
+      }).describe("The style of the document tab.").optional(),
       footers: z.record(
         z.string(),
         z.object({
@@ -1959,7 +830,7 @@ const InputsSchema = z.object({
         z.string(),
         z.object({
           inlineObjectProperties: z.unknown().describe(
-            "Properties of an InlineObject.",
+            "The properties of this inline object.",
           ).optional(),
           objectId: z.unknown().describe(
             "The ID of this inline object. Can be used to update an object’s properties.",
@@ -1979,9 +850,8 @@ const InputsSchema = z.object({
       lists: z.record(
         z.string(),
         z.object({
-          listProperties: z.unknown().describe(
-            "The properties of a list that describe the look and feel of bullets belonging to paragraphs associated with a list.",
-          ).optional(),
+          listProperties: z.unknown().describe("The properties of the list.")
+            .optional(),
           suggestedDeletionIds: z.unknown().describe(
             "The suggested deletion IDs. If empty, then there are no suggested deletions of this list.",
           ).optional(),
@@ -2009,16 +879,14 @@ const InputsSchema = z.object({
         styles: z.array(z.unknown()).describe(
           "The named styles. There's an entry for each of the possible named style types.",
         ).optional(),
-      }).describe(
-        "The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.",
-      ).optional(),
+      }).describe("The named styles of the document tab.").optional(),
       positionedObjects: z.record(
         z.string(),
         z.object({
           objectId: z.unknown().describe("The ID of this positioned object.")
             .optional(),
           positionedObjectProperties: z.unknown().describe(
-            "Properties of a PositionedObject.",
+            "The properties of this positioned object.",
           ).optional(),
           suggestedDeletionIds: z.unknown().describe(
             "The suggested deletion IDs. If empty, then there are no suggested deletions of this content.",
@@ -2036,10 +904,11 @@ const InputsSchema = z.object({
       suggestedDocumentStyleChanges: z.record(
         z.string(),
         z.object({
-          documentStyle: z.unknown().describe("The style of the document.")
-            .optional(),
+          documentStyle: z.unknown().describe(
+            "A DocumentStyle that only includes the changes made in this suggestion. This can be used along with the document_style_suggestion_state to see which fields have changed and their new values.",
+          ).optional(),
           documentStyleSuggestionState: z.unknown().describe(
-            "A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion. For any field set to true, there's a new suggested value.",
+            "A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion.",
           ).optional(),
         }),
       ).describe(
@@ -2049,16 +918,17 @@ const InputsSchema = z.object({
         z.string(),
         z.object({
           namedStyles: z.unknown().describe(
-            "The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.",
+            "A NamedStyles that only includes the changes made in this suggestion. This can be used along with the named_styles_suggestion_state to see which fields have changed and their new values.",
           ).optional(),
           namedStylesSuggestionState: z.unknown().describe(
-            "The suggestion state of a NamedStyles message.",
+            "A mask that indicates which of the fields on the base NamedStyles have been changed in this suggestion.",
           ).optional(),
         }),
       ).describe(
         "The suggested changes to the named styles of the document tab, keyed by suggestion ID.",
       ).optional(),
-    }).describe("A tab with document contents.").optional(),
+    }).describe("A tab with document contents, like text and images.")
+      .optional(),
     tabProperties: z.object({
       iconEmoji: z.string().describe(
         "Optional. The emoji icon displayed with the tab. A valid emoji icon is represented by a non-empty Unicode string. Any set of characters that don't represent a single emoji is invalid. If an emoji is invalid, a 400 bad request error is returned. If this value is unset or empty, the tab will display the default tab icon.",
@@ -2075,7 +945,7 @@ const InputsSchema = z.object({
       tabId: z.string().describe("The immutable ID of the tab.").optional(),
       title: z.string().describe("The user-visible name of the tab.")
         .optional(),
-    }).describe("Properties of a tab.").optional(),
+    }).describe("The properties of the tab, like ID and title.").optional(),
   })).describe(
     "Tabs that are part of a document. Tabs can contain child tabs, a tab nested within another tab. Child tabs are represented by the Tab.childTabs field.",
   ).optional(),
@@ -2105,7 +975,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Docs Documents. Registered at `@swamp/gcp/docs/documents`. */
 export const model = {
   type: "@swamp/gcp/docs/documents",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2202,6 +1072,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: body, documentStyle, namedStyles",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          body: _body,
+          documentStyle: _documentStyle,
+          namedStyles: _namedStyles,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2223,13 +1106,6 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
-        if (g["body"] !== undefined) body["body"] = g["body"];
-        if (g["documentStyle"] !== undefined) {
-          body["documentStyle"] = g["documentStyle"];
-        }
-        if (g["namedStyles"] !== undefined) {
-          body["namedStyles"] = g["namedStyles"];
-        }
         if (g["tabs"] !== undefined) body["tabs"] = g["tabs"];
         if (g["title"] !== undefined) body["title"] = g["title"];
         if (g["name"] !== undefined) params["documentId"] = String(g["name"]);

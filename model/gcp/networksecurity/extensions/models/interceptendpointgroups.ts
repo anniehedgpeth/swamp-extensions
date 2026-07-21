@@ -167,22 +167,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  connectedDeploymentGroup: z.object({
-    locations: z.array(z.object({
-      location: z.string().describe(
-        'Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".',
-      ).optional(),
-      state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "OUT_OF_SYNC"]).describe(
-        "Output only. The current state of the association in this location.",
-      ).optional(),
-    })).describe(
-      "Output only. The list of locations where the deployment group is present.",
-    ).optional(),
-    name: z.string().describe(
-      "Output only. The connected deployment group's resource name, for example: `projects/123456789/locations/global/interceptDeploymentGroups/my-dg`. See https://google.aip.dev/124.",
-    ).optional(),
-  }).describe("The endpoint group's view of a connected deployment group.")
-    .optional(),
   description: z.string().describe(
     "Optional. User-provided description of the endpoint group. Used as additional context for the endpoint group.",
   ).optional(),
@@ -236,22 +220,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  connectedDeploymentGroup: z.object({
-    locations: z.array(z.object({
-      location: z.string().describe(
-        'Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".',
-      ).optional(),
-      state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "OUT_OF_SYNC"]).describe(
-        "Output only. The current state of the association in this location.",
-      ).optional(),
-    })).describe(
-      "Output only. The list of locations where the deployment group is present.",
-    ).optional(),
-    name: z.string().describe(
-      "Output only. The connected deployment group's resource name, for example: `projects/123456789/locations/global/interceptDeploymentGroups/my-dg`. See https://google.aip.dev/124.",
-    ).optional(),
-  }).describe("The endpoint group's view of a connected deployment group.")
-    .optional(),
   description: z.string().describe(
     "Optional. User-provided description of the endpoint group. Used as additional context for the endpoint group.",
   ).optional(),
@@ -298,7 +266,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security InterceptEndpointGroups. Registered at `@swamp/gcp/networksecurity/interceptendpointgroups`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/interceptendpointgroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -405,6 +373,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: connectedDeploymentGroup",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { connectedDeploymentGroup: _connectedDeploymentGroup, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -434,9 +411,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["connectedDeploymentGroup"] !== undefined) {
-          body["connectedDeploymentGroup"] = g["connectedDeploymentGroup"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -573,9 +547,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["connectedDeploymentGroup"] !== undefined) {
-          body["connectedDeploymentGroup"] = g["connectedDeploymentGroup"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

@@ -213,8 +213,10 @@ const GlobalArgsSchema = z.object({
       allowYoutubeStream: z.boolean().describe(
         "Whether the ad group is opted-in to YouTube in-stream inventory.",
       ).optional(),
-    }).describe("The inventory control of the ad group.").optional(),
-  }).describe("The inventory control of the ad group.").optional(),
+    }).describe("The selected inventories.").optional(),
+  }).describe(
+    "Optional. Required for Demand Gen ad groups. Specifies the inventory control of the ad group.",
+  ).optional(),
   advertiserId: z.string().describe(
     "Output only. The unique ID of the advertiser the ad group belongs to.",
   ).optional(),
@@ -244,13 +246,13 @@ const GlobalArgsSchema = z.object({
         "Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS` Value of this field is in micros of the advertiser's currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for Demand Gen resources.",
+      "A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.",
     ).optional(),
     fixedBid: z.object({
       bidAmountMicros: z.string().describe(
         "The fixed bid amount, in micros of the advertiser's currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.",
       ).optional(),
-    }).describe("A strategy that uses a fixed bidding price.").optional(),
+    }).describe("A strategy that uses a fixed bid price.").optional(),
     maximizeSpendAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
         "The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.",
@@ -275,7 +277,7 @@ const GlobalArgsSchema = z.object({
         "Whether the strategy takes deal floor prices into account.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.",
+      "A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`, `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` only allow for `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH` only allows for `LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP` line items.",
     ).optional(),
     performanceGoalAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
@@ -301,7 +303,7 @@ const GlobalArgsSchema = z.object({
         "Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal.",
+      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.",
     ).optional(),
     youtubeAndPartnersBid: z.object({
       adGroupEffectiveTargetCpaSource: z.enum([
@@ -331,10 +333,10 @@ const GlobalArgsSchema = z.object({
         "The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for YouTube and Partners resources.",
+      "A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.",
     ).optional(),
   }).describe(
-    "Settings that control the bid strategy. Bid strategy determines the bid price.",
+    "Optional. The bidding strategy used by the ad group. Only the youtubeAndPartnersBid and demandGenBid field can be used in the bidding strategy.",
   ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the ad group. Must be UTF-8 encoded with a maximum size of 255 bytes.",
@@ -367,7 +369,8 @@ const GlobalArgsSchema = z.object({
           "CUSTOM_LABEL_KEY_4",
         ]).describe("The key of the label.").optional(),
         value: z.string().describe("The value of the label.").optional(),
-      }).describe("The key and value of a custom label.").optional(),
+      }).describe("The custom label to match all the products with the label.")
+        .optional(),
       productOfferId: z.string().describe(
         "The ID of the product offer to match with a product with the same offer ID.",
       ).optional(),
@@ -378,7 +381,8 @@ const GlobalArgsSchema = z.object({
       "PRODUCT_MATCH_TYPE_SPECIFIC_PRODUCTS",
       "PRODUCT_MATCH_TYPE_CUSTOM_LABEL",
     ]).describe("How products are selected by the product feed.").optional(),
-  }).describe("The details of product feed.").optional(),
+  }).describe("Optional. The settings of the product feed in this ad group.")
+    .optional(),
   targetingExpansion: z.object({
     audienceExpansionLevel: z.enum([
       "UNKNOWN",
@@ -399,7 +403,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups.",
     ).optional(),
   }).describe(
-    "Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.",
+    "Optional. The [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the ad group.",
   ).optional(),
 });
 
@@ -516,8 +520,10 @@ const InputsSchema = z.object({
       allowYoutubeStream: z.boolean().describe(
         "Whether the ad group is opted-in to YouTube in-stream inventory.",
       ).optional(),
-    }).describe("The inventory control of the ad group.").optional(),
-  }).describe("The inventory control of the ad group.").optional(),
+    }).describe("The selected inventories.").optional(),
+  }).describe(
+    "Optional. Required for Demand Gen ad groups. Specifies the inventory control of the ad group.",
+  ).optional(),
   advertiserId: z.string().describe(
     "Output only. The unique ID of the advertiser the ad group belongs to.",
   ).optional(),
@@ -547,13 +553,13 @@ const InputsSchema = z.object({
         "Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS` Value of this field is in micros of the advertiser's currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for Demand Gen resources.",
+      "A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.",
     ).optional(),
     fixedBid: z.object({
       bidAmountMicros: z.string().describe(
         "The fixed bid amount, in micros of the advertiser's currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.",
       ).optional(),
-    }).describe("A strategy that uses a fixed bidding price.").optional(),
+    }).describe("A strategy that uses a fixed bid price.").optional(),
     maximizeSpendAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
         "The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.",
@@ -578,7 +584,7 @@ const InputsSchema = z.object({
         "Whether the strategy takes deal floor prices into account.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.",
+      "A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`, `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` only allow for `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH` only allows for `LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP` line items.",
     ).optional(),
     performanceGoalAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
@@ -604,7 +610,7 @@ const InputsSchema = z.object({
         "Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal.",
+      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.",
     ).optional(),
     youtubeAndPartnersBid: z.object({
       adGroupEffectiveTargetCpaSource: z.enum([
@@ -634,10 +640,10 @@ const InputsSchema = z.object({
         "The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for YouTube and Partners resources.",
+      "A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.",
     ).optional(),
   }).describe(
-    "Settings that control the bid strategy. Bid strategy determines the bid price.",
+    "Optional. The bidding strategy used by the ad group. Only the youtubeAndPartnersBid and demandGenBid field can be used in the bidding strategy.",
   ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the ad group. Must be UTF-8 encoded with a maximum size of 255 bytes.",
@@ -670,7 +676,8 @@ const InputsSchema = z.object({
           "CUSTOM_LABEL_KEY_4",
         ]).describe("The key of the label.").optional(),
         value: z.string().describe("The value of the label.").optional(),
-      }).describe("The key and value of a custom label.").optional(),
+      }).describe("The custom label to match all the products with the label.")
+        .optional(),
       productOfferId: z.string().describe(
         "The ID of the product offer to match with a product with the same offer ID.",
       ).optional(),
@@ -681,7 +688,8 @@ const InputsSchema = z.object({
       "PRODUCT_MATCH_TYPE_SPECIFIC_PRODUCTS",
       "PRODUCT_MATCH_TYPE_CUSTOM_LABEL",
     ]).describe("How products are selected by the product feed.").optional(),
-  }).describe("The details of product feed.").optional(),
+  }).describe("Optional. The settings of the product feed in this ad group.")
+    .optional(),
   targetingExpansion: z.object({
     audienceExpansionLevel: z.enum([
       "UNKNOWN",
@@ -702,7 +710,7 @@ const InputsSchema = z.object({
       "Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups.",
     ).optional(),
   }).describe(
-    "Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.",
+    "Optional. The [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the ad group.",
   ).optional(),
 });
 
@@ -729,7 +737,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.AdGroups. Registered at `@swamp/gcp/displayvideo/advertisers-adgroups`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-adgroups",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -878,6 +886,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

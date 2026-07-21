@@ -133,13 +133,13 @@ const GlobalArgsSchema = z.object({
           "A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area (for example [070* - 078*] results in the range [07000 - 07899]). It must have the same length as `firstPostalCode`: if `firstPostalCode` is a postal code then `lastPostalCode` must be a postal code too; if firstPostalCode is a pattern then `lastPostalCode` must be a pattern with the same prefix length. Ignored if not set, then the area is defined as being all the postal codes matching `firstPostalCode`.",
         ).optional(),
       }).describe(
-        "A range of postal codes that defines the delivery area. Only set `firstPostalCode` when specifying a single postal code.",
+        "A postal code, postal code range or postal code prefix that defines this area. Limited to US and AUS.",
       ).optional(),
       regionCode: z.string().describe(
         'A state, territory, or prefecture. This is supported for the United States, Australia, and Japan. Provide a subdivision code from the ISO 3166-2 code tables ([US](https://en.wikipedia.org/wiki/ISO_3166-2:US), [AU](https://en.wikipedia.org/wiki/ISO_3166-2:AU), or [JP](https://en.wikipedia.org/wiki/ISO_3166-2:JP)) without country prefix (for example, `"NY"`, `"NSW"`, `"03"`).',
       ).optional(),
     }).describe(
-      "A delivery area for the product. Only one of `countryCode` or `postalCodeRange` must be set.",
+      "Required. The delivery area associated with `deliveryTime` for this product.",
     ).optional(),
     deliveryTime: z.object({
       maxHandlingTimeDays: z.number().int().describe(
@@ -154,7 +154,9 @@ const GlobalArgsSchema = z.object({
       minTransitTimeDays: z.number().int().describe(
         "Required. The minimum number of business days (inclusive) between when the product ships and when the product is delivered.",
       ).optional(),
-    }).describe("A delivery time for this product.").optional(),
+    }).describe(
+      "Required. The delivery time associated with `deliveryArea` for this product.",
+    ).optional(),
   })).describe(
     "Required. A set of associations between `DeliveryArea` and `DeliveryTime` entries. The total number of `areaDeliveryTimes` can be at most 100.",
   ).optional(),
@@ -162,7 +164,7 @@ const GlobalArgsSchema = z.object({
     productId: z.string().describe(
       "The Content API ID of the product, in the form `channel:contentLanguage:targetCountry:offerId`.",
     ).optional(),
-  }).describe("The Content API ID of the product.").optional(),
+  }).describe("Required. The `id` of the product.").optional(),
   merchantId: z.string().describe(
     "The Google merchant ID of the account that contains the product. This account cannot be a multi-client account.",
   ),
@@ -211,13 +213,13 @@ const InputsSchema = z.object({
           "A postal code or a pattern of the form prefix* denoting the inclusive upper bound of the range defining the area (for example [070* - 078*] results in the range [07000 - 07899]). It must have the same length as `firstPostalCode`: if `firstPostalCode` is a postal code then `lastPostalCode` must be a postal code too; if firstPostalCode is a pattern then `lastPostalCode` must be a pattern with the same prefix length. Ignored if not set, then the area is defined as being all the postal codes matching `firstPostalCode`.",
         ).optional(),
       }).describe(
-        "A range of postal codes that defines the delivery area. Only set `firstPostalCode` when specifying a single postal code.",
+        "A postal code, postal code range or postal code prefix that defines this area. Limited to US and AUS.",
       ).optional(),
       regionCode: z.string().describe(
         'A state, territory, or prefecture. This is supported for the United States, Australia, and Japan. Provide a subdivision code from the ISO 3166-2 code tables ([US](https://en.wikipedia.org/wiki/ISO_3166-2:US), [AU](https://en.wikipedia.org/wiki/ISO_3166-2:AU), or [JP](https://en.wikipedia.org/wiki/ISO_3166-2:JP)) without country prefix (for example, `"NY"`, `"NSW"`, `"03"`).',
       ).optional(),
     }).describe(
-      "A delivery area for the product. Only one of `countryCode` or `postalCodeRange` must be set.",
+      "Required. The delivery area associated with `deliveryTime` for this product.",
     ).optional(),
     deliveryTime: z.object({
       maxHandlingTimeDays: z.number().int().describe(
@@ -232,7 +234,9 @@ const InputsSchema = z.object({
       minTransitTimeDays: z.number().int().describe(
         "Required. The minimum number of business days (inclusive) between when the product ships and when the product is delivered.",
       ).optional(),
-    }).describe("A delivery time for this product.").optional(),
+    }).describe(
+      "Required. The delivery time associated with `deliveryArea` for this product.",
+    ).optional(),
   })).describe(
     "Required. A set of associations between `DeliveryArea` and `DeliveryTime` entries. The total number of `areaDeliveryTimes` can be at most 100.",
   ).optional(),
@@ -240,7 +244,7 @@ const InputsSchema = z.object({
     productId: z.string().describe(
       "The Content API ID of the product, in the form `channel:contentLanguage:targetCountry:offerId`.",
     ).optional(),
-  }).describe("The Content API ID of the product.").optional(),
+  }).describe("Required. The `id` of the product.").optional(),
   merchantId: z.string().describe(
     "The Google merchant ID of the account that contains the product. This account cannot be a multi-client account.",
   ).optional(),
@@ -269,7 +273,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Productdeliverytime. Registered at `@swamp/gcp/content/productdeliverytime`. */
 export const model = {
   type: "@swamp/gcp/content/productdeliverytime",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -353,6 +357,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -155,9 +155,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       relativePath: z.string().describe("The relative path to redirect to.")
         .optional(),
-    }).describe("The redirect action to be taken when the chart is clicked.")
-      .optional(),
-  }).describe("The action to be taken when the chart is clicked.").optional(),
+    }).describe("Redirect action.").optional(),
+  }).describe("Optional action to be taken when the chart is clicked.")
+    .optional(),
   chartVisualizationType: z.enum([
     "CHART_VISUALIZATION_TYPE_UNSPECIFIED",
     "BAR",
@@ -178,7 +178,8 @@ const GlobalArgsSchema = z.object({
           .optional(),
         sessionId: z.string().describe("The session id of the chart.")
           .optional(),
-      }).describe("The current chart checkpoint state.").optional(),
+      }).describe("The chart checkpoint used to generate the chart.")
+        .optional(),
       chartConversations: z.array(z.object({
         conversationId: z.string().describe("The conversation id of the chart.")
           .optional(),
@@ -201,12 +202,11 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       sqlQuery: z.string().describe("SQL query used to generate the chart.")
         .optional(),
-    }).describe(
-      "Request that use natural language query to generate the chart.",
-    ).optional(),
+    }).describe("Use natural language query to generate the chart.").optional(),
     queryMetrics: z.object({
       request: z.record(z.string(), z.string()).optional(),
-    }).describe("Request data that use the existing QueryMetrics.").optional(),
+    }).describe("Use the existing QueryMetrics to generate the chart.")
+      .optional(),
   }).describe("The request data for visualizing the dataset in the chart.")
     .optional(),
   dateRangeConfig: z.object({
@@ -216,7 +216,7 @@ const GlobalArgsSchema = z.object({
       startTime: z.string().describe(
         "Required. The start time of the time window.",
       ).optional(),
-    }).describe("A time window for querying conversations.").optional(),
+    }).describe("An absolute date range.").optional(),
     relativeDateRange: z.object({
       quantity: z.string().describe(
         "Required. The quantity of units in the past.",
@@ -229,8 +229,8 @@ const GlobalArgsSchema = z.object({
         "QUARTER",
         "YEAR",
       ]).describe("Required. The unit of time.").optional(),
-    }).describe("Relative date range configuration.").optional(),
-  }).describe("Date range configuration for dashboard charts.").optional(),
+    }).describe("A relative date range.").optional(),
+  }).describe("Date range config applied to the chart.").optional(),
   description: z.string().describe("Chart description").optional(),
   displayName: z.string().describe("User provided display name of the chart.")
     .optional(),
@@ -322,9 +322,9 @@ const InputsSchema = z.object({
       ).optional(),
       relativePath: z.string().describe("The relative path to redirect to.")
         .optional(),
-    }).describe("The redirect action to be taken when the chart is clicked.")
-      .optional(),
-  }).describe("The action to be taken when the chart is clicked.").optional(),
+    }).describe("Redirect action.").optional(),
+  }).describe("Optional action to be taken when the chart is clicked.")
+    .optional(),
   chartVisualizationType: z.enum([
     "CHART_VISUALIZATION_TYPE_UNSPECIFIED",
     "BAR",
@@ -345,7 +345,8 @@ const InputsSchema = z.object({
           .optional(),
         sessionId: z.string().describe("The session id of the chart.")
           .optional(),
-      }).describe("The current chart checkpoint state.").optional(),
+      }).describe("The chart checkpoint used to generate the chart.")
+        .optional(),
       chartConversations: z.array(z.object({
         conversationId: z.string().describe("The conversation id of the chart.")
           .optional(),
@@ -368,12 +369,11 @@ const InputsSchema = z.object({
       ).optional(),
       sqlQuery: z.string().describe("SQL query used to generate the chart.")
         .optional(),
-    }).describe(
-      "Request that use natural language query to generate the chart.",
-    ).optional(),
+    }).describe("Use natural language query to generate the chart.").optional(),
     queryMetrics: z.object({
       request: z.record(z.string(), z.string()).optional(),
-    }).describe("Request data that use the existing QueryMetrics.").optional(),
+    }).describe("Use the existing QueryMetrics to generate the chart.")
+      .optional(),
   }).describe("The request data for visualizing the dataset in the chart.")
     .optional(),
   dateRangeConfig: z.object({
@@ -383,7 +383,7 @@ const InputsSchema = z.object({
       startTime: z.string().describe(
         "Required. The start time of the time window.",
       ).optional(),
-    }).describe("A time window for querying conversations.").optional(),
+    }).describe("An absolute date range.").optional(),
     relativeDateRange: z.object({
       quantity: z.string().describe(
         "Required. The quantity of units in the past.",
@@ -396,8 +396,8 @@ const InputsSchema = z.object({
         "QUARTER",
         "YEAR",
       ]).describe("Required. The unit of time.").optional(),
-    }).describe("Relative date range configuration.").optional(),
-  }).describe("Date range configuration for dashboard charts.").optional(),
+    }).describe("A relative date range.").optional(),
+  }).describe("Date range config applied to the chart.").optional(),
   description: z.string().describe("Chart description").optional(),
   displayName: z.string().describe("User provided display name of the chart.")
     .optional(),
@@ -445,7 +445,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Dashboards.Charts. Registered at `@swamp/gcp/contactcenterinsights/dashboards-charts`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/dashboards-charts",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -607,6 +607,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: action",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

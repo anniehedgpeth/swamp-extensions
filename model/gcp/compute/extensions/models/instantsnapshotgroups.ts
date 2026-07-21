@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
     sourceInfo: z.object({
       consistencyGroup: z.string().optional(),
       consistencyGroupId: z.string().optional(),
-    }).optional(),
+    }).describe("Output only. [Output Only]").optional(),
   }).optional(),
   sourceConsistencyGroup: z.string().optional(),
   zone: z.string().describe(
@@ -242,7 +242,7 @@ const InputsSchema = z.object({
     sourceInfo: z.object({
       consistencyGroup: z.string().optional(),
       consistencyGroupId: z.string().optional(),
-    }).optional(),
+    }).describe("Output only. [Output Only]").optional(),
   }).optional(),
   sourceConsistencyGroup: z.string().optional(),
   zone: z.string().describe(
@@ -276,7 +276,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstantSnapshotGroups. Registered at `@swamp/gcp/compute/instantsnapshotgroups`. */
 export const model = {
   type: "@swamp/gcp/compute/instantsnapshotgroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

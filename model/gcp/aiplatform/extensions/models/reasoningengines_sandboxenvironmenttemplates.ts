@@ -142,7 +142,7 @@ const GlobalArgsSchema = z.object({
       imageUri: z.string().describe(
         "Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.",
       ).optional(),
-    }).describe("Specification for deploying from a custom container image.")
+    }).describe("The specification of the custom container environment.")
       .optional(),
     ports: z.array(z.object({
       port: z.number().int().describe(
@@ -159,10 +159,8 @@ const GlobalArgsSchema = z.object({
       requests: z.record(z.string(), z.string()).describe(
         'Optional. The requested amounts of compute resources. Keys are resource names (e.g., "cpu", "memory"). Values are quantities (e.g., "250m", "512Mi").',
       ).optional(),
-    }).describe(
-      "Message to define resource requests and limits (mirroring Kubernetes) for each sandbox instance created from this template.",
-    ).optional(),
-  }).describe("The customized sandbox runtime environment for BYOC.")
+    }).describe("Resource requests and limits for the container.").optional(),
+  }).describe("The sandbox environment for custom container workloads.")
     .optional(),
   defaultContainerEnvironment: z.object({
     defaultContainerCategory: z.enum([
@@ -178,11 +176,10 @@ const GlobalArgsSchema = z.object({
         'Optional. The requested amounts of compute resources. Keys are resource names (e.g., "cpu", "memory"). Values are quantities (e.g., "250m", "512Mi").',
       ).optional(),
     }).describe(
-      "Message to define resource requests and limits (mirroring Kubernetes) for each sandbox instance created from this template.",
+      "Optional. Resource requests and limits for the default container.",
     ).optional(),
-  }).describe(
-    "The default sandbox runtime environment for default container workloads.",
-  ).optional(),
+  }).describe("The sandbox environment for default container workloads.")
+    .optional(),
   displayName: z.string().describe(
     "Required. The display name of the SandboxEnvironmentTemplate.",
   ).optional(),
@@ -190,8 +187,9 @@ const GlobalArgsSchema = z.object({
     internetAccess: z.boolean().describe(
       "Optional. Whether to allow internet access.",
     ).optional(),
-  }).describe("Configuration for egress control of sandbox instances.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration for egress control of this template.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the SandboxEnvironmentTemplate. Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sandboxEnvironmentTemplates/{sandbox_environment_template}`",
   ).optional(),
@@ -246,7 +244,7 @@ const InputsSchema = z.object({
       imageUri: z.string().describe(
         "Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.",
       ).optional(),
-    }).describe("Specification for deploying from a custom container image.")
+    }).describe("The specification of the custom container environment.")
       .optional(),
     ports: z.array(z.object({
       port: z.number().int().describe(
@@ -263,10 +261,8 @@ const InputsSchema = z.object({
       requests: z.record(z.string(), z.string()).describe(
         'Optional. The requested amounts of compute resources. Keys are resource names (e.g., "cpu", "memory"). Values are quantities (e.g., "250m", "512Mi").',
       ).optional(),
-    }).describe(
-      "Message to define resource requests and limits (mirroring Kubernetes) for each sandbox instance created from this template.",
-    ).optional(),
-  }).describe("The customized sandbox runtime environment for BYOC.")
+    }).describe("Resource requests and limits for the container.").optional(),
+  }).describe("The sandbox environment for custom container workloads.")
     .optional(),
   defaultContainerEnvironment: z.object({
     defaultContainerCategory: z.enum([
@@ -282,11 +278,10 @@ const InputsSchema = z.object({
         'Optional. The requested amounts of compute resources. Keys are resource names (e.g., "cpu", "memory"). Values are quantities (e.g., "250m", "512Mi").',
       ).optional(),
     }).describe(
-      "Message to define resource requests and limits (mirroring Kubernetes) for each sandbox instance created from this template.",
+      "Optional. Resource requests and limits for the default container.",
     ).optional(),
-  }).describe(
-    "The default sandbox runtime environment for default container workloads.",
-  ).optional(),
+  }).describe("The sandbox environment for default container workloads.")
+    .optional(),
   displayName: z.string().describe(
     "Required. The display name of the SandboxEnvironmentTemplate.",
   ).optional(),
@@ -294,8 +289,9 @@ const InputsSchema = z.object({
     internetAccess: z.boolean().describe(
       "Optional. Whether to allow internet access.",
     ).optional(),
-  }).describe("Configuration for egress control of sandbox instances.")
-    .optional(),
+  }).describe(
+    "Optional. The configuration for egress control of this template.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the SandboxEnvironmentTemplate. Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sandboxEnvironmentTemplates/{sandbox_environment_template}`",
   ).optional(),
@@ -330,7 +326,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironmentTemplates. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

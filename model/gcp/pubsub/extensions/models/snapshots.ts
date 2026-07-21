@@ -161,9 +161,7 @@ const GlobalArgsSchema = z.object({
     topic: z.string().describe(
       "Optional. The name of the topic from which this snapshot is retaining messages.",
     ).optional(),
-  }).describe(
-    "A snapshot resource. Snapshots are used in [Seek](https://cloud.google.com/pubsub/docs/replay-overview) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.",
-  ).optional(),
+  }).describe("Required. The updated snapshot object.").optional(),
   updateMask: z.string().describe(
     "Required. Indicates which fields in the provided snapshot to update. Must be specified and non-empty.",
   ).optional(),
@@ -206,9 +204,7 @@ const InputsSchema = z.object({
     topic: z.string().describe(
       "Optional. The name of the topic from which this snapshot is retaining messages.",
     ).optional(),
-  }).describe(
-    "A snapshot resource. Snapshots are used in [Seek](https://cloud.google.com/pubsub/docs/replay-overview) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.",
-  ).optional(),
+  }).describe("Required. The updated snapshot object.").optional(),
   updateMask: z.string().describe(
     "Required. Indicates which fields in the provided snapshot to update. Must be specified and non-empty.",
   ).optional(),
@@ -240,7 +236,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Pub/Sub Snapshots. Registered at `@swamp/gcp/pubsub/snapshots`. */
 export const model = {
   type: "@swamp/gcp/pubsub/snapshots",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -379,6 +375,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -163,7 +163,7 @@ const GlobalArgsSchema = z.object({
         "TPU_V3",
       ]).describe("Type of this accelerator.").optional(),
     }).describe(
-      "Definition of a hardware accelerator. Note that not all combinations of `type` and `core_count` are valid. See [GPUs on Compute Engine](https://cloud.google.com/compute/docs/gpus) to find a valid combination. TPUs are not supported.",
+      "Configuration (count and accelerator type) for hardware running notebook execution.",
     ).optional(),
     containerImageUri: z.string().describe(
       "Container Image URI to a DLVM Example: 'gcr.io/deeplearning-platform-release/base-cu100' More examples can be found at: https://cloud.google.com/ai-platform/deep-learning-containers/docs/choosing-container",
@@ -222,7 +222,8 @@ const GlobalArgsSchema = z.object({
         "The full name of the Compute Engine [network](https://cloud.google.com/compute/docs/networks-and-firewalls#networks) to which the Job should be peered. For example, `projects/12345/global/networks/myVPC`. [Format](https://cloud.google.com/compute/docs/reference/rest/v1/networks/insert) is of the form `projects/{project}/global/networks/{network}`. Where `{project}` is a project number, as in `12345`, and `{network}` is a network name. Private services access must already be configured for the network. If left unspecified, the job is not peered with any network.",
       ).optional(),
     }).describe("Parameters used in Vertex AI JobType executions.").optional(),
-  }).describe("The description a notebook execution workload.").optional(),
+  }).describe("Notebook Execution Template corresponding to this schedule.")
+    .optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "ENABLED",
@@ -343,7 +344,7 @@ const InputsSchema = z.object({
         "TPU_V3",
       ]).describe("Type of this accelerator.").optional(),
     }).describe(
-      "Definition of a hardware accelerator. Note that not all combinations of `type` and `core_count` are valid. See [GPUs on Compute Engine](https://cloud.google.com/compute/docs/gpus) to find a valid combination. TPUs are not supported.",
+      "Configuration (count and accelerator type) for hardware running notebook execution.",
     ).optional(),
     containerImageUri: z.string().describe(
       "Container Image URI to a DLVM Example: 'gcr.io/deeplearning-platform-release/base-cu100' More examples can be found at: https://cloud.google.com/ai-platform/deep-learning-containers/docs/choosing-container",
@@ -402,7 +403,8 @@ const InputsSchema = z.object({
         "The full name of the Compute Engine [network](https://cloud.google.com/compute/docs/networks-and-firewalls#networks) to which the Job should be peered. For example, `projects/12345/global/networks/myVPC`. [Format](https://cloud.google.com/compute/docs/reference/rest/v1/networks/insert) is of the form `projects/{project}/global/networks/{network}`. Where `{project}` is a project number, as in `12345`, and `{network}` is a network name. Private services access must already be configured for the network. If left unspecified, the job is not peered with any network.",
       ).optional(),
     }).describe("Parameters used in Vertex AI JobType executions.").optional(),
-  }).describe("The description a notebook execution workload.").optional(),
+  }).describe("Notebook Execution Template corresponding to this schedule.")
+    .optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "ENABLED",
@@ -446,7 +448,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Schedules. Registered at `@swamp/gcp/notebooks/schedules`. */
 export const model = {
   type: "@swamp/gcp/notebooks/schedules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -507,16 +516,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

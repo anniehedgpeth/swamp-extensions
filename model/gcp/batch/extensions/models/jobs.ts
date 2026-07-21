@@ -186,7 +186,7 @@ const GlobalArgsSchema = z.object({
             'Disk type as shown in `gcloud compute disk-types list`. For example, local SSD uses type "local-ssd". Persistent disks and boot disks use "pd-balanced", "pd-extreme", "pd-ssd" or "pd-standard". If not specified, "pd-standard" will be used as the default type for non-boot disks, "pd-balanced" will be used as the default type for boot disks.',
           ).optional(),
         }).describe(
-          "A new persistent disk or a local ssd. A VM can only have one local SSD setting but multiple local SSD partitions. See https://cloud.google.com/compute/docs/disks#pdspecs and https://cloud.google.com/compute/docs/disks#localssds.",
+          "Boot disk to be created and attached to each VM by this InstancePolicy. Boot disk will be deleted when the VM is deleted. Batch API now only supports booting from image.",
         ).optional(),
         disks: z.array(z.unknown()).describe(
           "Non-boot disks to be attached for each VM created by this InstancePolicy. New disks will be deleted when the VM is deleted. A non-boot disk is a disk that can be of a device with a file system or a raw storage drive that is not ready for data storage and accessing.",
@@ -207,9 +207,7 @@ const GlobalArgsSchema = z.object({
         reservation: z.string().describe(
           'Optional. If not specified (default), VMs will consume any applicable reservation. If "NO_RESERVATION" is specified, VMs will not consume any reservation. Otherwise, if specified, VMs will consume only the specified reservation.',
         ).optional(),
-      }).describe(
-        "InstancePolicy describes an instance type and resources attached to each VM created by this InstancePolicy.",
-      ).optional(),
+      }).describe("InstancePolicy.").optional(),
     })).describe(
       "Describe instances that can be created by this AllocationPolicy. Only instances[0] is supported now.",
     ).optional(),
@@ -220,7 +218,9 @@ const GlobalArgsSchema = z.object({
       allowedLocations: z.array(z.string()).describe(
         'A list of allowed location names represented by internal URLs. Each location can be a region or a zone. Only one region or multiple zones in one region is supported now. For example, ["regions/us-central1"] allow VMs in any zones in region us-central1. ["zones/us-central1-a", "zones/us-central1-c"] only allow VMs in zones us-central1-a and us-central1-c. Mixing locations from different regions would cause errors. For example, ["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"] contains locations from two distinct regions: us-central1 and us-west1. This combination will trigger an error.',
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Location where compute resources should be allocated for the Job.",
+    ).optional(),
     network: z.object({
       networkInterfaces: z.array(z.object({
         network: z.string().describe(
@@ -233,8 +233,9 @@ const GlobalArgsSchema = z.object({
           "The URL of an existing subnetwork resource in the network. You can specify the subnetwork as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/subnetworks/{subnetwork} * projects/{project}/regions/{region}/subnetworks/{subnetwork} * regions/{region}/subnetworks/{subnetwork}",
         ).optional(),
       })).describe("Network configurations.").optional(),
-    }).describe("NetworkPolicy describes VM instance network configurations.")
-      .optional(),
+    }).describe(
+      "The network policy. If you define an instance template in the `InstancePolicyOrTemplate` field, Batch will use the network settings in the instance template instead of this field.",
+    ).optional(),
     placement: z.object({
       collocation: z.string().describe(
         "UNSPECIFIED vs. COLLOCATED (default UNSPECIFIED). Use COLLOCATED when you want VMs to be located close to each other for low network latency between the VMs. No placement policy will be generated when collocation is UNSPECIFIED.",
@@ -242,23 +243,21 @@ const GlobalArgsSchema = z.object({
       maxDistance: z.string().describe(
         "When specified, causes the job to fail if more than max_distance logical switches are required between VMs. Batch uses the most compact possible placement of VMs even when max_distance is not specified. An explicit max_distance makes that level of compactness a strict requirement. Not yet implemented",
       ).optional(),
-    }).describe(
-      "PlacementPolicy describes a group placement policy for the VMs controlled by this AllocationPolicy.",
-    ).optional(),
+    }).describe("The placement policy.").optional(),
     serviceAccount: z.object({
       email: z.string().describe("Email address of the service account.")
         .optional(),
       scopes: z.array(z.string()).describe(
         "List of scopes to be enabled for this service account.",
       ).optional(),
-    }).describe("Carries information about a Google Cloud service account.")
-      .optional(),
+    }).describe(
+      "Defines the service account for Batch-created VMs. If omitted, the [default Compute Engine service account](https://cloud.google.com/compute/docs/access/service-accounts#default_service_account) is used. Must match the service account specified in any used instance template configured in the Batch job. Includes the following fields: * email: The service account's email address. If not set, the default Compute Engine service account is used. * scopes: Additional OAuth scopes to grant the service account, beyond the default cloud-platform scope. (list of strings)",
+    ).optional(),
     tags: z.array(z.string()).describe(
       "Optional. Tags applied to the VM instances. The tags identify valid sources or targets for network firewalls. Each tag must be 1-63 characters long, and comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt).",
     ).optional(),
-  }).describe(
-    "A Job's resource allocation policy describes when, where, and how compute resources should be allocated for the Job.",
-  ).optional(),
+  }).describe("Compute resource allocation for all TaskGroups in the Job.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Custom labels to apply to the job and any Cloud Logging [LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry) that it generates. Use labels to group and describe the resources they are applied to. Batch automatically applies predefined labels and supports multiple `labels` fields for each job, which each let you apply custom labels to various resources. Label names that start with "goog-" or "google-" are reserved for predefined labels. For more information about labels with Batch, see [Organize resources using labels](https://cloud.google.com/batch/docs/organize-resources-using-labels).',
   ).optional(),
@@ -268,16 +267,14 @@ const GlobalArgsSchema = z.object({
         "Optional. Set this field to `true` to change the [monitored resource type](https://cloud.google.com/monitoring/api/resources) for Cloud Logging logs generated by this Batch job from the [`batch.googleapis.com/Job`](https://cloud.google.com/monitoring/api/resources#tag_batch.googleapis.com/Job) type to the formerly used [`generic_task`](https://cloud.google.com/monitoring/api/resources#tag_generic_task) type.",
       ).optional(),
     }).describe(
-      "`CloudLoggingOption` contains additional settings for Cloud Logging logs generated by Batch job.",
+      "Optional. When `destination` is set to `CLOUD_LOGGING`, you can optionally set this field to configure additional settings for Cloud Logging.",
     ).optional(),
     destination: z.enum(["DESTINATION_UNSPECIFIED", "CLOUD_LOGGING", "PATH"])
       .describe("If and where logs should be saved.").optional(),
     logsPath: z.string().describe(
       "When `destination` is set to `PATH`, you must set this field to the path where you want logs to be saved. This path can point to a local directory on the VM or (if congifured) a directory under the mount path of any Cloud Storage bucket, network file system (NFS), or writable persistent disk that is mounted to the job. For example, if the job has a bucket with `mountPath` set to `/mnt/disks/my-bucket`, you can write logs to the root directory of the `remotePath` of that bucket by setting this field to `/mnt/disks/my-bucket/`.",
     ).optional(),
-  }).describe(
-    "LogsPolicy describes if and how a job's logs are preserved. Logs include information that is automatically written by the Batch service agent and any information that you configured the job's runnables to write to the `stdout` or `stderr` streams.",
-  ).optional(),
+  }).describe("Log preservation policy for the Job.").optional(),
   notifications: z.array(z.object({
     message: z.object({
       newJobState: z.enum([
@@ -306,7 +303,7 @@ const GlobalArgsSchema = z.object({
         "TASK_STATE_CHANGED",
       ]).describe("The message type.").optional(),
     }).describe(
-      "Message details. Describe the conditions under which messages will be sent. If no attribute is defined, no message will be sent by default. One message should specify either the job or the task level attributes, but not both. For example, job level: JOB_STATE_CHANGED and/or a specified new_job_state; task level: TASK_STATE_CHANGED and/or a specified new_task_state.",
+      "The attribute requirements of messages to be sent to this Pub/Sub topic. Without this field, no message will be sent.",
     ).optional(),
     pubsubTopic: z.string().describe(
       "The Pub/Sub topic where notifications for the job, like state changes, will be published. If undefined, no Pub/Sub notifications are sent for this job. Specify the topic using the following format: `projects/{project}/topics/{topic}`. Notably, if you want to specify a Pub/Sub topic that is in a different project than the job, your administrator must grant your project's Batch service agent permission to publish to that topic. For more information about configuring Pub/Sub notifications for a job, see https://cloud.google.com/batch/docs/enable-notifications.",
@@ -315,70 +312,6 @@ const GlobalArgsSchema = z.object({
   priority: z.string().describe(
     "Priority of the Job. The valid value range is [0, 100). Default value is 0. Higher value indicates higher priority. A job with higher priority value is more likely to run earlier if all other requirements are satisfied.",
   ).optional(),
-  status: z.object({
-    runDuration: z.string().describe(
-      "The duration of time that the Job spent in status RUNNING.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "QUEUED",
-      "SCHEDULED",
-      "RUNNING",
-      "SUCCEEDED",
-      "FAILED",
-      "DELETION_IN_PROGRESS",
-      "CANCELLATION_IN_PROGRESS",
-      "CANCELLED",
-    ]).describe("Job state").optional(),
-    statusEvents: z.array(z.object({
-      description: z.string().describe("Description of the event.").optional(),
-      eventTime: z.string().describe("The time this event occurred.")
-        .optional(),
-      taskExecution: z.object({
-        exitCode: z.number().int().describe(
-          "The exit code of a finished task. If the task succeeded, the exit code will be 0. If the task failed but not due to the following reasons, the exit code will be 50000. Otherwise, it can be from different sources: * Batch known failures: https://cloud.google.com/batch/docs/troubleshooting#reserved-exit-codes. * Batch runnable execution failures; you can rely on Batch logs to further diagnose: https://cloud.google.com/batch/docs/analyze-job-using-logs. If there are multiple runnables failures, Batch only exposes the first error.",
-        ).optional(),
-      }).describe(
-        "This Task Execution field includes detail information for task execution procedures, based on StatusEvent types.",
-      ).optional(),
-      taskState: z.enum([
-        "STATE_UNSPECIFIED",
-        "PENDING",
-        "ASSIGNED",
-        "RUNNING",
-        "FAILED",
-        "SUCCEEDED",
-        "UNEXECUTED",
-      ]).describe(
-        "Task State. This field is only defined for task-level status events.",
-      ).optional(),
-      type: z.string().describe("Type of the event.").optional(),
-    })).describe("Job status events").optional(),
-    taskGroups: z.record(
-      z.string(),
-      z.object({
-        counts: z.record(z.string(), z.string()).describe(
-          "Count of task in each state in the TaskGroup. The map key is task state name.",
-        ).optional(),
-        instances: z.array(z.object({
-          bootDisk: z.unknown().describe(
-            "A new persistent disk or a local ssd. A VM can only have one local SSD setting but multiple local SSD partitions. See https://cloud.google.com/compute/docs/disks#pdspecs and https://cloud.google.com/compute/docs/disks#localssds.",
-          ).optional(),
-          machineType: z.unknown().describe("The Compute Engine machine type.")
-            .optional(),
-          provisioningModel: z.unknown().describe(
-            "The VM instance provisioning model.",
-          ).optional(),
-          taskPack: z.unknown().describe(
-            "The max number of tasks can be assigned to this instance type.",
-          ).optional(),
-        })).describe("Status of instances allocated for the TaskGroup.")
-          .optional(),
-      }),
-    ).describe(
-      "Aggregated task status for each TaskGroup in the Job. The map key is TaskGroup ID.",
-    ).optional(),
-  }).describe("Job status.").optional(),
   taskGroups: z.array(z.object({
     name: z.string().describe(
       'Output only. TaskGroup name. The system generates this field based on parent Job name. For example: "projects/123456/locations/us-west1/jobs/job01/taskGroups/group01".',
@@ -416,7 +349,9 @@ const GlobalArgsSchema = z.object({
         keyName: z.unknown().describe(
           "The name of the KMS key that will be used to decrypt the cipher text.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.",
+      ).optional(),
       secretVariables: z.record(z.string(), z.unknown()).describe(
         "A map of environment variable names to Secret Manager secret names. The VM will access the named secrets to set the value of each environment variable.",
       ).optional(),
@@ -437,9 +372,7 @@ const GlobalArgsSchema = z.object({
         memoryMib: z.string().describe(
           "Memory in MiB. `memoryMib` defines the amount of memory per task in MiB units. If undefined, the default value is `2000`. If you also define the VM's machine type using the `machineType` in [InstancePolicy](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicy) field or inside the `instanceTemplate` in the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure the memory resources for both fields are compatible with each other and with how many tasks you want to allow to run on the same VM at the same time. For example, if you specify the `n2-standard-2` machine type, which has 8 GiB each, you are recommended to set `memoryMib` to no more than `8192`, or you are recommended to run two tasks on the same VM if you set `memoryMib` to `4096` or less.",
         ).optional(),
-      }).describe(
-        "Compute resource requirements. ComputeResource defines the amount of resources required for each task. Make sure your tasks have enough resources to successfully run. If you also define the types of resources for a job to use with the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure both fields are compatible with each other.",
-      ).optional(),
+      }).describe("ComputeResource requirements.").optional(),
       environment: z.object({
         encryptedVariables: z.object({
           cipherText: z.unknown().describe(
@@ -448,16 +381,17 @@ const GlobalArgsSchema = z.object({
           keyName: z.unknown().describe(
             "The name of the KMS key that will be used to decrypt the cipher text.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.",
+        ).optional(),
         secretVariables: z.record(z.string(), z.unknown()).describe(
           "A map of environment variable names to Secret Manager secret names. The VM will access the named secrets to set the value of each environment variable.",
         ).optional(),
         variables: z.record(z.string(), z.unknown()).describe(
           "A map of environment variable names to values.",
         ).optional(),
-      }).describe(
-        "An Environment describes a collection of environment variables to set when executing Tasks.",
-      ).optional(),
+      }).describe("Environment variables to set before running the Task.")
+        .optional(),
       environments: z.record(z.string(), z.string()).describe(
         "Deprecated: please use environment(non-plural) instead.",
       ).optional(),
@@ -466,7 +400,7 @@ const GlobalArgsSchema = z.object({
           "Action to execute when ActionCondition is true. When RETRY_TASK is specified, we will retry failed tasks if we notice any exit code match and fail tasks if no match is found. Likewise, when FAIL_TASK is specified, we will fail tasks if we notice any exit code match and retry tasks if no match is found.",
         ).optional(),
         actionCondition: z.unknown().describe(
-          "Conditions for actions to deal with task failures.",
+          "Conditions that decide why a task failure is dealt with a specific action.",
         ).optional(),
       })).describe(
         "Lifecycle management schema when any task in a task group is failed. Currently we only support one lifecycle policy. When the lifecycle policy condition is met, the action in the policy will execute. If task execution result does not meet with the defined lifecycle policy, we consider it as the default policy. Default policy means if the exit code is 0, exit task. If task ends with non-zero exit code, retry the task with max_retry_count.",
@@ -484,15 +418,13 @@ const GlobalArgsSchema = z.object({
         background: z.unknown().describe(
           "Normally, a runnable that doesn't exit causes its task to fail. However, you can set this field to `true` to configure a background runnable. Background runnables are allowed continue running in the background while the task executes subsequent runnables. For example, background runnables are useful for providing services to other runnables or providing debugging-support tools like SSH servers. Specifically, background runnables are killed automatically (if they have not already exited) a short time after all foreground runnables have completed. Even though this is likely to result in a non-zero exit status for the background runnable, these automatic kills are not treated as task failures.",
         ).optional(),
-        barrier: z.unknown().describe(
-          "A barrier runnable automatically blocks the execution of subsequent runnables until all the tasks in the task group reach the barrier.",
-        ).optional(),
+        barrier: z.unknown().describe("Barrier runnable.").optional(),
         container: z.unknown().describe("Container runnable.").optional(),
         displayName: z.unknown().describe(
           "Optional. DisplayName is an optional field that can be provided by the caller. If provided, it will be used in logs and other outputs to identify the script, making it easier for users to understand the logs. If not provided the index of the runnable will be used for outputs.",
         ).optional(),
         environment: z.unknown().describe(
-          "An Environment describes a collection of environment variables to set when executing Tasks.",
+          "Environment variables for this Runnable (overrides variables set for the whole Task or TaskGroup).",
         ).optional(),
         ignoreExitStatus: z.unknown().describe(
           "Normally, a runnable that returns a non-zero exit status fails and causes the task to fail. However, you can set this field to `true` to allow the task to continue executing its other runnables even if this runnable fails.",
@@ -507,7 +439,7 @@ const GlobalArgsSchema = z.object({
         deviceName: z.unknown().describe(
           "Device name of an attached disk volume, which should align with a device_name specified by job.allocation_policy.instances[0].policy.disks[i].device_name or defined by the given instance template in job.allocation_policy.instances[0].instance_template.",
         ).optional(),
-        gcs: z.unknown().describe("Represents a Google Cloud Storage volume.")
+        gcs: z.unknown().describe("A Google Cloud Storage (GCS) volume.")
           .optional(),
         mountOptions: z.unknown().describe(
           "Mount options vary based on the type of storage volume: * For a Cloud Storage bucket, all the mount options provided by the [`gcsfuse` tool](https://cloud.google.com/storage/docs/gcsfuse-cli) are supported. * For an existing persistent disk, all mount options provided by the [`mount` command](https://man7.org/linux/man-pages/man8/mount.8.html) except writing are supported. This is due to restrictions of [multi-writer mode](https://cloud.google.com/compute/docs/disks/sharing-disks-between-vms). * For any other disk or a Network File System (NFS), all the mount options provided by the `mount` command are supported.",
@@ -515,10 +447,13 @@ const GlobalArgsSchema = z.object({
         mountPath: z.unknown().describe(
           "The mount path for the volume, e.g. /mnt/disks/share.",
         ).optional(),
-        nfs: z.unknown().describe("Represents an NFS volume.").optional(),
+        nfs: z.unknown().describe(
+          "A Network File System (NFS) volume. For example, a Filestore file share.",
+        ).optional(),
       })).describe("Volumes to mount before running Tasks using this TaskSpec.")
         .optional(),
-    }).describe("Spec of a task").optional(),
+    }).describe("Required. Tasks in the group share the same task spec.")
+      .optional(),
   })).describe(
     "Required. TaskGroups in the Job. Only one TaskGroup is supported now.",
   ).optional(),
@@ -716,7 +651,7 @@ const InputsSchema = z.object({
             'Disk type as shown in `gcloud compute disk-types list`. For example, local SSD uses type "local-ssd". Persistent disks and boot disks use "pd-balanced", "pd-extreme", "pd-ssd" or "pd-standard". If not specified, "pd-standard" will be used as the default type for non-boot disks, "pd-balanced" will be used as the default type for boot disks.',
           ).optional(),
         }).describe(
-          "A new persistent disk or a local ssd. A VM can only have one local SSD setting but multiple local SSD partitions. See https://cloud.google.com/compute/docs/disks#pdspecs and https://cloud.google.com/compute/docs/disks#localssds.",
+          "Boot disk to be created and attached to each VM by this InstancePolicy. Boot disk will be deleted when the VM is deleted. Batch API now only supports booting from image.",
         ).optional(),
         disks: z.array(z.unknown()).describe(
           "Non-boot disks to be attached for each VM created by this InstancePolicy. New disks will be deleted when the VM is deleted. A non-boot disk is a disk that can be of a device with a file system or a raw storage drive that is not ready for data storage and accessing.",
@@ -737,9 +672,7 @@ const InputsSchema = z.object({
         reservation: z.string().describe(
           'Optional. If not specified (default), VMs will consume any applicable reservation. If "NO_RESERVATION" is specified, VMs will not consume any reservation. Otherwise, if specified, VMs will consume only the specified reservation.',
         ).optional(),
-      }).describe(
-        "InstancePolicy describes an instance type and resources attached to each VM created by this InstancePolicy.",
-      ).optional(),
+      }).describe("InstancePolicy.").optional(),
     })).describe(
       "Describe instances that can be created by this AllocationPolicy. Only instances[0] is supported now.",
     ).optional(),
@@ -750,7 +683,9 @@ const InputsSchema = z.object({
       allowedLocations: z.array(z.string()).describe(
         'A list of allowed location names represented by internal URLs. Each location can be a region or a zone. Only one region or multiple zones in one region is supported now. For example, ["regions/us-central1"] allow VMs in any zones in region us-central1. ["zones/us-central1-a", "zones/us-central1-c"] only allow VMs in zones us-central1-a and us-central1-c. Mixing locations from different regions would cause errors. For example, ["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"] contains locations from two distinct regions: us-central1 and us-west1. This combination will trigger an error.',
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Location where compute resources should be allocated for the Job.",
+    ).optional(),
     network: z.object({
       networkInterfaces: z.array(z.object({
         network: z.string().describe(
@@ -763,8 +698,9 @@ const InputsSchema = z.object({
           "The URL of an existing subnetwork resource in the network. You can specify the subnetwork as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/subnetworks/{subnetwork} * projects/{project}/regions/{region}/subnetworks/{subnetwork} * regions/{region}/subnetworks/{subnetwork}",
         ).optional(),
       })).describe("Network configurations.").optional(),
-    }).describe("NetworkPolicy describes VM instance network configurations.")
-      .optional(),
+    }).describe(
+      "The network policy. If you define an instance template in the `InstancePolicyOrTemplate` field, Batch will use the network settings in the instance template instead of this field.",
+    ).optional(),
     placement: z.object({
       collocation: z.string().describe(
         "UNSPECIFIED vs. COLLOCATED (default UNSPECIFIED). Use COLLOCATED when you want VMs to be located close to each other for low network latency between the VMs. No placement policy will be generated when collocation is UNSPECIFIED.",
@@ -772,23 +708,21 @@ const InputsSchema = z.object({
       maxDistance: z.string().describe(
         "When specified, causes the job to fail if more than max_distance logical switches are required between VMs. Batch uses the most compact possible placement of VMs even when max_distance is not specified. An explicit max_distance makes that level of compactness a strict requirement. Not yet implemented",
       ).optional(),
-    }).describe(
-      "PlacementPolicy describes a group placement policy for the VMs controlled by this AllocationPolicy.",
-    ).optional(),
+    }).describe("The placement policy.").optional(),
     serviceAccount: z.object({
       email: z.string().describe("Email address of the service account.")
         .optional(),
       scopes: z.array(z.string()).describe(
         "List of scopes to be enabled for this service account.",
       ).optional(),
-    }).describe("Carries information about a Google Cloud service account.")
-      .optional(),
+    }).describe(
+      "Defines the service account for Batch-created VMs. If omitted, the [default Compute Engine service account](https://cloud.google.com/compute/docs/access/service-accounts#default_service_account) is used. Must match the service account specified in any used instance template configured in the Batch job. Includes the following fields: * email: The service account's email address. If not set, the default Compute Engine service account is used. * scopes: Additional OAuth scopes to grant the service account, beyond the default cloud-platform scope. (list of strings)",
+    ).optional(),
     tags: z.array(z.string()).describe(
       "Optional. Tags applied to the VM instances. The tags identify valid sources or targets for network firewalls. Each tag must be 1-63 characters long, and comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt).",
     ).optional(),
-  }).describe(
-    "A Job's resource allocation policy describes when, where, and how compute resources should be allocated for the Job.",
-  ).optional(),
+  }).describe("Compute resource allocation for all TaskGroups in the Job.")
+    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Custom labels to apply to the job and any Cloud Logging [LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry) that it generates. Use labels to group and describe the resources they are applied to. Batch automatically applies predefined labels and supports multiple `labels` fields for each job, which each let you apply custom labels to various resources. Label names that start with "goog-" or "google-" are reserved for predefined labels. For more information about labels with Batch, see [Organize resources using labels](https://cloud.google.com/batch/docs/organize-resources-using-labels).',
   ).optional(),
@@ -798,16 +732,14 @@ const InputsSchema = z.object({
         "Optional. Set this field to `true` to change the [monitored resource type](https://cloud.google.com/monitoring/api/resources) for Cloud Logging logs generated by this Batch job from the [`batch.googleapis.com/Job`](https://cloud.google.com/monitoring/api/resources#tag_batch.googleapis.com/Job) type to the formerly used [`generic_task`](https://cloud.google.com/monitoring/api/resources#tag_generic_task) type.",
       ).optional(),
     }).describe(
-      "`CloudLoggingOption` contains additional settings for Cloud Logging logs generated by Batch job.",
+      "Optional. When `destination` is set to `CLOUD_LOGGING`, you can optionally set this field to configure additional settings for Cloud Logging.",
     ).optional(),
     destination: z.enum(["DESTINATION_UNSPECIFIED", "CLOUD_LOGGING", "PATH"])
       .describe("If and where logs should be saved.").optional(),
     logsPath: z.string().describe(
       "When `destination` is set to `PATH`, you must set this field to the path where you want logs to be saved. This path can point to a local directory on the VM or (if congifured) a directory under the mount path of any Cloud Storage bucket, network file system (NFS), or writable persistent disk that is mounted to the job. For example, if the job has a bucket with `mountPath` set to `/mnt/disks/my-bucket`, you can write logs to the root directory of the `remotePath` of that bucket by setting this field to `/mnt/disks/my-bucket/`.",
     ).optional(),
-  }).describe(
-    "LogsPolicy describes if and how a job's logs are preserved. Logs include information that is automatically written by the Batch service agent and any information that you configured the job's runnables to write to the `stdout` or `stderr` streams.",
-  ).optional(),
+  }).describe("Log preservation policy for the Job.").optional(),
   notifications: z.array(z.object({
     message: z.object({
       newJobState: z.enum([
@@ -836,7 +768,7 @@ const InputsSchema = z.object({
         "TASK_STATE_CHANGED",
       ]).describe("The message type.").optional(),
     }).describe(
-      "Message details. Describe the conditions under which messages will be sent. If no attribute is defined, no message will be sent by default. One message should specify either the job or the task level attributes, but not both. For example, job level: JOB_STATE_CHANGED and/or a specified new_job_state; task level: TASK_STATE_CHANGED and/or a specified new_task_state.",
+      "The attribute requirements of messages to be sent to this Pub/Sub topic. Without this field, no message will be sent.",
     ).optional(),
     pubsubTopic: z.string().describe(
       "The Pub/Sub topic where notifications for the job, like state changes, will be published. If undefined, no Pub/Sub notifications are sent for this job. Specify the topic using the following format: `projects/{project}/topics/{topic}`. Notably, if you want to specify a Pub/Sub topic that is in a different project than the job, your administrator must grant your project's Batch service agent permission to publish to that topic. For more information about configuring Pub/Sub notifications for a job, see https://cloud.google.com/batch/docs/enable-notifications.",
@@ -845,70 +777,6 @@ const InputsSchema = z.object({
   priority: z.string().describe(
     "Priority of the Job. The valid value range is [0, 100). Default value is 0. Higher value indicates higher priority. A job with higher priority value is more likely to run earlier if all other requirements are satisfied.",
   ).optional(),
-  status: z.object({
-    runDuration: z.string().describe(
-      "The duration of time that the Job spent in status RUNNING.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "QUEUED",
-      "SCHEDULED",
-      "RUNNING",
-      "SUCCEEDED",
-      "FAILED",
-      "DELETION_IN_PROGRESS",
-      "CANCELLATION_IN_PROGRESS",
-      "CANCELLED",
-    ]).describe("Job state").optional(),
-    statusEvents: z.array(z.object({
-      description: z.string().describe("Description of the event.").optional(),
-      eventTime: z.string().describe("The time this event occurred.")
-        .optional(),
-      taskExecution: z.object({
-        exitCode: z.number().int().describe(
-          "The exit code of a finished task. If the task succeeded, the exit code will be 0. If the task failed but not due to the following reasons, the exit code will be 50000. Otherwise, it can be from different sources: * Batch known failures: https://cloud.google.com/batch/docs/troubleshooting#reserved-exit-codes. * Batch runnable execution failures; you can rely on Batch logs to further diagnose: https://cloud.google.com/batch/docs/analyze-job-using-logs. If there are multiple runnables failures, Batch only exposes the first error.",
-        ).optional(),
-      }).describe(
-        "This Task Execution field includes detail information for task execution procedures, based on StatusEvent types.",
-      ).optional(),
-      taskState: z.enum([
-        "STATE_UNSPECIFIED",
-        "PENDING",
-        "ASSIGNED",
-        "RUNNING",
-        "FAILED",
-        "SUCCEEDED",
-        "UNEXECUTED",
-      ]).describe(
-        "Task State. This field is only defined for task-level status events.",
-      ).optional(),
-      type: z.string().describe("Type of the event.").optional(),
-    })).describe("Job status events").optional(),
-    taskGroups: z.record(
-      z.string(),
-      z.object({
-        counts: z.record(z.string(), z.string()).describe(
-          "Count of task in each state in the TaskGroup. The map key is task state name.",
-        ).optional(),
-        instances: z.array(z.object({
-          bootDisk: z.unknown().describe(
-            "A new persistent disk or a local ssd. A VM can only have one local SSD setting but multiple local SSD partitions. See https://cloud.google.com/compute/docs/disks#pdspecs and https://cloud.google.com/compute/docs/disks#localssds.",
-          ).optional(),
-          machineType: z.unknown().describe("The Compute Engine machine type.")
-            .optional(),
-          provisioningModel: z.unknown().describe(
-            "The VM instance provisioning model.",
-          ).optional(),
-          taskPack: z.unknown().describe(
-            "The max number of tasks can be assigned to this instance type.",
-          ).optional(),
-        })).describe("Status of instances allocated for the TaskGroup.")
-          .optional(),
-      }),
-    ).describe(
-      "Aggregated task status for each TaskGroup in the Job. The map key is TaskGroup ID.",
-    ).optional(),
-  }).describe("Job status.").optional(),
   taskGroups: z.array(z.object({
     name: z.string().describe(
       'Output only. TaskGroup name. The system generates this field based on parent Job name. For example: "projects/123456/locations/us-west1/jobs/job01/taskGroups/group01".',
@@ -946,7 +814,9 @@ const InputsSchema = z.object({
         keyName: z.unknown().describe(
           "The name of the KMS key that will be used to decrypt the cipher text.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.",
+      ).optional(),
       secretVariables: z.record(z.string(), z.unknown()).describe(
         "A map of environment variable names to Secret Manager secret names. The VM will access the named secrets to set the value of each environment variable.",
       ).optional(),
@@ -967,9 +837,7 @@ const InputsSchema = z.object({
         memoryMib: z.string().describe(
           "Memory in MiB. `memoryMib` defines the amount of memory per task in MiB units. If undefined, the default value is `2000`. If you also define the VM's machine type using the `machineType` in [InstancePolicy](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicy) field or inside the `instanceTemplate` in the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure the memory resources for both fields are compatible with each other and with how many tasks you want to allow to run on the same VM at the same time. For example, if you specify the `n2-standard-2` machine type, which has 8 GiB each, you are recommended to set `memoryMib` to no more than `8192`, or you are recommended to run two tasks on the same VM if you set `memoryMib` to `4096` or less.",
         ).optional(),
-      }).describe(
-        "Compute resource requirements. ComputeResource defines the amount of resources required for each task. Make sure your tasks have enough resources to successfully run. If you also define the types of resources for a job to use with the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure both fields are compatible with each other.",
-      ).optional(),
+      }).describe("ComputeResource requirements.").optional(),
       environment: z.object({
         encryptedVariables: z.object({
           cipherText: z.unknown().describe(
@@ -978,16 +846,17 @@ const InputsSchema = z.object({
           keyName: z.unknown().describe(
             "The name of the KMS key that will be used to decrypt the cipher text.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.",
+        ).optional(),
         secretVariables: z.record(z.string(), z.unknown()).describe(
           "A map of environment variable names to Secret Manager secret names. The VM will access the named secrets to set the value of each environment variable.",
         ).optional(),
         variables: z.record(z.string(), z.unknown()).describe(
           "A map of environment variable names to values.",
         ).optional(),
-      }).describe(
-        "An Environment describes a collection of environment variables to set when executing Tasks.",
-      ).optional(),
+      }).describe("Environment variables to set before running the Task.")
+        .optional(),
       environments: z.record(z.string(), z.string()).describe(
         "Deprecated: please use environment(non-plural) instead.",
       ).optional(),
@@ -996,7 +865,7 @@ const InputsSchema = z.object({
           "Action to execute when ActionCondition is true. When RETRY_TASK is specified, we will retry failed tasks if we notice any exit code match and fail tasks if no match is found. Likewise, when FAIL_TASK is specified, we will fail tasks if we notice any exit code match and retry tasks if no match is found.",
         ).optional(),
         actionCondition: z.unknown().describe(
-          "Conditions for actions to deal with task failures.",
+          "Conditions that decide why a task failure is dealt with a specific action.",
         ).optional(),
       })).describe(
         "Lifecycle management schema when any task in a task group is failed. Currently we only support one lifecycle policy. When the lifecycle policy condition is met, the action in the policy will execute. If task execution result does not meet with the defined lifecycle policy, we consider it as the default policy. Default policy means if the exit code is 0, exit task. If task ends with non-zero exit code, retry the task with max_retry_count.",
@@ -1014,15 +883,13 @@ const InputsSchema = z.object({
         background: z.unknown().describe(
           "Normally, a runnable that doesn't exit causes its task to fail. However, you can set this field to `true` to configure a background runnable. Background runnables are allowed continue running in the background while the task executes subsequent runnables. For example, background runnables are useful for providing services to other runnables or providing debugging-support tools like SSH servers. Specifically, background runnables are killed automatically (if they have not already exited) a short time after all foreground runnables have completed. Even though this is likely to result in a non-zero exit status for the background runnable, these automatic kills are not treated as task failures.",
         ).optional(),
-        barrier: z.unknown().describe(
-          "A barrier runnable automatically blocks the execution of subsequent runnables until all the tasks in the task group reach the barrier.",
-        ).optional(),
+        barrier: z.unknown().describe("Barrier runnable.").optional(),
         container: z.unknown().describe("Container runnable.").optional(),
         displayName: z.unknown().describe(
           "Optional. DisplayName is an optional field that can be provided by the caller. If provided, it will be used in logs and other outputs to identify the script, making it easier for users to understand the logs. If not provided the index of the runnable will be used for outputs.",
         ).optional(),
         environment: z.unknown().describe(
-          "An Environment describes a collection of environment variables to set when executing Tasks.",
+          "Environment variables for this Runnable (overrides variables set for the whole Task or TaskGroup).",
         ).optional(),
         ignoreExitStatus: z.unknown().describe(
           "Normally, a runnable that returns a non-zero exit status fails and causes the task to fail. However, you can set this field to `true` to allow the task to continue executing its other runnables even if this runnable fails.",
@@ -1037,7 +904,7 @@ const InputsSchema = z.object({
         deviceName: z.unknown().describe(
           "Device name of an attached disk volume, which should align with a device_name specified by job.allocation_policy.instances[0].policy.disks[i].device_name or defined by the given instance template in job.allocation_policy.instances[0].instance_template.",
         ).optional(),
-        gcs: z.unknown().describe("Represents a Google Cloud Storage volume.")
+        gcs: z.unknown().describe("A Google Cloud Storage (GCS) volume.")
           .optional(),
         mountOptions: z.unknown().describe(
           "Mount options vary based on the type of storage volume: * For a Cloud Storage bucket, all the mount options provided by the [`gcsfuse` tool](https://cloud.google.com/storage/docs/gcsfuse-cli) are supported. * For an existing persistent disk, all mount options provided by the [`mount` command](https://man7.org/linux/man-pages/man8/mount.8.html) except writing are supported. This is due to restrictions of [multi-writer mode](https://cloud.google.com/compute/docs/disks/sharing-disks-between-vms). * For any other disk or a Network File System (NFS), all the mount options provided by the `mount` command are supported.",
@@ -1045,10 +912,13 @@ const InputsSchema = z.object({
         mountPath: z.unknown().describe(
           "The mount path for the volume, e.g. /mnt/disks/share.",
         ).optional(),
-        nfs: z.unknown().describe("Represents an NFS volume.").optional(),
+        nfs: z.unknown().describe(
+          "A Network File System (NFS) volume. For example, a Filestore file share.",
+        ).optional(),
       })).describe("Volumes to mount before running Tasks using this TaskSpec.")
         .optional(),
-    }).describe("Spec of a task").optional(),
+    }).describe("Required. Tasks in the group share the same task spec.")
+      .optional(),
   })).describe(
     "Required. TaskGroups in the Job. Only one TaskGroup is supported now.",
   ).optional(),
@@ -1086,7 +956,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Batch Jobs. Registered at `@swamp/gcp/batch/jobs`. */
 export const model = {
   type: "@swamp/gcp/batch/jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1193,6 +1063,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1226,7 +1104,6 @@ export const model = {
           body["notifications"] = g["notifications"];
         }
         if (g["priority"] !== undefined) body["priority"] = g["priority"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["taskGroups"] !== undefined) body["taskGroups"] = g["taskGroups"];
         if (g["jobId"] !== undefined) params["jobId"] = String(g["jobId"]);
         if (g["requestId"] !== undefined) {
@@ -1245,16 +1122,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

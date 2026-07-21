@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
       peeredNetworkIpRange: z.string().describe(
         "Immutable. Subnet IP range within the peered network. This is specified in CIDR notation with a slash and the subnet prefix size. You can optionally specify an IP address before the subnet prefix value. e.g. `192.168.0.0/29` would specify an IP range starting at 192.168.0.0 with a prefix size of 29 bits. `/16` would specify a prefix size of 16 bits, with an automatically determined IP within the peered VPC. If unspecified, a value of `/24` will be used.",
       ).optional(),
-    }).describe("Defines the network configuration for the pool.").optional(),
+    }).describe("Network configuration for the pool.").optional(),
     privateServiceConnect: z.object({
       networkAttachment: z.string().describe(
         "Required. Immutable. The network attachment that the worker network interface is peered to. Must be in the format `projects/{project}/regions/{region}/networkAttachments/{networkAttachment}`. The region of network attachment must be the same as the worker pool. See [Network Attachments](https://cloud.google.com/vpc/docs/about-network-attachments)",
@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
         "Immutable. Route all traffic through PSC interface. Enable this if you want full control of traffic in the private pool. Configure Cloud NAT for the subnet of network attachment if you need to access public Internet. If false, Only route RFC 1918 (10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16) and RFC 6598 (100.64.0.0/10) through PSC interface.",
       ).optional(),
     }).describe(
-      "Defines the Private Service Connect network configuration for the pool.",
+      "Immutable. Private Service Connect(PSC) Network configuration for the pool.",
     ).optional(),
     workerConfig: z.object({
       diskSizeGb: z.string().describe(
@@ -214,10 +214,9 @@ const GlobalArgsSchema = z.object({
       machineType: z.string().describe(
         "Optional. Machine type of a worker, such as `e2-medium`. See [Worker pool config file](https://cloud.google.com/build/docs/private-pools/worker-pool-config-file-schema). If left blank, Cloud Build will use a sensible default.",
       ).optional(),
-    }).describe(
-      "Defines the configuration to be used for creating workers in the pool.",
-    ).optional(),
-  }).describe("Configuration for a V1 `PrivatePool`.").optional(),
+    }).describe("Machine configuration for the workers in the pool.")
+      .optional(),
+  }).describe("Private Pool configuration.").optional(),
   workerPoolId: z.string().describe(
     "Required. Immutable. The ID to use for the `WorkerPool`, which will become the final component of the resource name. This value should be 1-63 characters, and valid characters are /a-z-/.",
   ).optional(),
@@ -283,7 +282,7 @@ const InputsSchema = z.object({
       peeredNetworkIpRange: z.string().describe(
         "Immutable. Subnet IP range within the peered network. This is specified in CIDR notation with a slash and the subnet prefix size. You can optionally specify an IP address before the subnet prefix value. e.g. `192.168.0.0/29` would specify an IP range starting at 192.168.0.0 with a prefix size of 29 bits. `/16` would specify a prefix size of 16 bits, with an automatically determined IP within the peered VPC. If unspecified, a value of `/24` will be used.",
       ).optional(),
-    }).describe("Defines the network configuration for the pool.").optional(),
+    }).describe("Network configuration for the pool.").optional(),
     privateServiceConnect: z.object({
       networkAttachment: z.string().describe(
         "Required. Immutable. The network attachment that the worker network interface is peered to. Must be in the format `projects/{project}/regions/{region}/networkAttachments/{networkAttachment}`. The region of network attachment must be the same as the worker pool. See [Network Attachments](https://cloud.google.com/vpc/docs/about-network-attachments)",
@@ -295,7 +294,7 @@ const InputsSchema = z.object({
         "Immutable. Route all traffic through PSC interface. Enable this if you want full control of traffic in the private pool. Configure Cloud NAT for the subnet of network attachment if you need to access public Internet. If false, Only route RFC 1918 (10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16) and RFC 6598 (100.64.0.0/10) through PSC interface.",
       ).optional(),
     }).describe(
-      "Defines the Private Service Connect network configuration for the pool.",
+      "Immutable. Private Service Connect(PSC) Network configuration for the pool.",
     ).optional(),
     workerConfig: z.object({
       diskSizeGb: z.string().describe(
@@ -307,10 +306,9 @@ const InputsSchema = z.object({
       machineType: z.string().describe(
         "Optional. Machine type of a worker, such as `e2-medium`. See [Worker pool config file](https://cloud.google.com/build/docs/private-pools/worker-pool-config-file-schema). If left blank, Cloud Build will use a sensible default.",
       ).optional(),
-    }).describe(
-      "Defines the configuration to be used for creating workers in the pool.",
-    ).optional(),
-  }).describe("Configuration for a V1 `PrivatePool`.").optional(),
+    }).describe("Machine configuration for the workers in the pool.")
+      .optional(),
+  }).describe("Private Pool configuration.").optional(),
   workerPoolId: z.string().describe(
     "Required. Immutable. The ID to use for the `WorkerPool`, which will become the final component of the resource name. This value should be 1-63 characters, and valid characters are /a-z-/.",
   ).optional(),
@@ -342,7 +340,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build WorkerPools. Registered at `@swamp/gcp/cloudbuild/workerpools`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/workerpools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

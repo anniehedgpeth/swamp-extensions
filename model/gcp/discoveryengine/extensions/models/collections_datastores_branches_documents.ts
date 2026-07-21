@@ -176,7 +176,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("List of principals.").optional(),
     })).describe("Readers of the document.").optional(),
-  }).describe("ACL Information of the Document.").optional(),
+  }).describe("Access control information for the document.").optional(),
   content: z.object({
     mimeType: z.string().describe(
       "The MIME type of the content. Supported types: * `application/pdf` (PDF, only native PDFs are supported for now) * `text/html` (HTML) * `text/plain` (TXT) * `application/xml` or `text/xml` (XML) * `application/json` (JSON) * `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (DOCX) * `application/vnd.openxmlformats-officedocument.presentationml.presentation` (PPTX) * `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (XLSX) * `application/vnd.ms-excel.sheet.macroenabled.12` (XLSM) The following types are supported only if layout parser is enabled in the data store: * `image/bmp` (BMP) * `image/gif` (GIF) * `image/jpeg` (JPEG) * `image/png` (PNG) * `image/tiff` (TIFF) See https://www.iana.org/assignments/media-types/media-types.xhtml.",
@@ -187,31 +187,12 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "The URI of the content. Only Cloud Storage URIs (e.g. `gs://bucket-name/path/to/file`) are supported. The maximum file size is 2.5 MB for text-based formats, 200 MB for other formats.",
     ).optional(),
-  }).describe("Unstructured data linked to this document.").optional(),
+  }).describe(
+    "The unstructured data linked to this document. Content can only be set and must be set if this document is under a `CONTENT_REQUIRED` data store.",
+  ).optional(),
   id: z.string().describe(
     "Immutable. The identifier of the document. Id should conform to [RFC-1034](https://tools.ietf.org/html/rfc1034) standard with a length limit of 128 characters.",
   ).optional(),
-  indexStatus: z.object({
-    errorSamples: z.array(z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.unknown())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    })).describe(
-      "A sample of errors encountered while indexing the document. If this field is populated, the document is not indexed due to errors.",
-    ).optional(),
-    indexTime: z.string().describe(
-      "The time when the document was indexed. If this field is populated, it means the document has been indexed. While documents typically become searchable within seconds of indexing, it can sometimes take up to a few hours.",
-    ).optional(),
-    pendingMessage: z.string().describe(
-      "Immutable. The message indicates the document index is in progress. If this field is populated, the document index is pending.",
-    ).optional(),
-  }).describe("Index status of the document.").optional(),
   jsonData: z.string().describe(
     "The JSON string representation of the document. It should conform to the registered Schema or an `INVALID_ARGUMENT` error is thrown.",
   ).optional(),
@@ -296,7 +277,7 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("List of principals.").optional(),
     })).describe("Readers of the document.").optional(),
-  }).describe("ACL Information of the Document.").optional(),
+  }).describe("Access control information for the document.").optional(),
   content: z.object({
     mimeType: z.string().describe(
       "The MIME type of the content. Supported types: * `application/pdf` (PDF, only native PDFs are supported for now) * `text/html` (HTML) * `text/plain` (TXT) * `application/xml` or `text/xml` (XML) * `application/json` (JSON) * `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (DOCX) * `application/vnd.openxmlformats-officedocument.presentationml.presentation` (PPTX) * `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (XLSX) * `application/vnd.ms-excel.sheet.macroenabled.12` (XLSM) The following types are supported only if layout parser is enabled in the data store: * `image/bmp` (BMP) * `image/gif` (GIF) * `image/jpeg` (JPEG) * `image/png` (PNG) * `image/tiff` (TIFF) See https://www.iana.org/assignments/media-types/media-types.xhtml.",
@@ -307,31 +288,12 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "The URI of the content. Only Cloud Storage URIs (e.g. `gs://bucket-name/path/to/file`) are supported. The maximum file size is 2.5 MB for text-based formats, 200 MB for other formats.",
     ).optional(),
-  }).describe("Unstructured data linked to this document.").optional(),
+  }).describe(
+    "The unstructured data linked to this document. Content can only be set and must be set if this document is under a `CONTENT_REQUIRED` data store.",
+  ).optional(),
   id: z.string().describe(
     "Immutable. The identifier of the document. Id should conform to [RFC-1034](https://tools.ietf.org/html/rfc1034) standard with a length limit of 128 characters.",
   ).optional(),
-  indexStatus: z.object({
-    errorSamples: z.array(z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.unknown())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    })).describe(
-      "A sample of errors encountered while indexing the document. If this field is populated, the document is not indexed due to errors.",
-    ).optional(),
-    indexTime: z.string().describe(
-      "The time when the document was indexed. If this field is populated, it means the document has been indexed. While documents typically become searchable within seconds of indexing, it can sometimes take up to a few hours.",
-    ).optional(),
-    pendingMessage: z.string().describe(
-      "Immutable. The message indicates the document index is in progress. If this field is populated, the document index is pending.",
-    ).optional(),
-  }).describe("Index status of the document.").optional(),
   jsonData: z.string().describe(
     "The JSON string representation of the document. It should conform to the registered Schema or an `INVALID_ARGUMENT` error is thrown.",
   ).optional(),
@@ -381,7 +343,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores.Branches.Documents. Registered at `@swamp/gcp/discoveryengine/collections-datastores-branches-documents`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores-branches-documents",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -493,6 +455,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: indexStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { indexStatus: _indexStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -519,9 +489,6 @@ export const model = {
         if (g["aclInfo"] !== undefined) body["aclInfo"] = g["aclInfo"];
         if (g["content"] !== undefined) body["content"] = g["content"];
         if (g["id"] !== undefined) body["id"] = g["id"];
-        if (g["indexStatus"] !== undefined) {
-          body["indexStatus"] = g["indexStatus"];
-        }
         if (g["jsonData"] !== undefined) body["jsonData"] = g["jsonData"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["parentDocumentId"] !== undefined) {
@@ -638,9 +605,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["aclInfo"] !== undefined) body["aclInfo"] = g["aclInfo"];
         if (g["content"] !== undefined) body["content"] = g["content"];
-        if (g["indexStatus"] !== undefined) {
-          body["indexStatus"] = g["indexStatus"];
-        }
         if (g["jsonData"] !== undefined) body["jsonData"] = g["jsonData"];
         if (g["parentDocumentId"] !== undefined) {
           body["parentDocumentId"] = g["parentDocumentId"];

@@ -193,7 +193,7 @@ const GlobalArgsSchema = z.object({
         "The stream name that YouTube assigns to the video stream.",
       ).optional(),
     }).describe(
-      "Describes information necessary for ingesting an RTMP, HTTP, or SRT stream.",
+      "The ingestionInfo object contains information that YouTube provides that you need to transmit your RTMP or HTTP stream to YouTube.",
     ).optional(),
     ingestionType: z.enum(["rtmp", "dash", "webrtc", "hls"]).describe(
       "The method or protocol used to transmit the video stream.",
@@ -208,7 +208,9 @@ const GlobalArgsSchema = z.object({
       "2160p",
       "variable",
     ]).describe("The resolution of the inbound video data.").optional(),
-  }).describe("Brief description of the live stream cdn settings.").optional(),
+  }).describe(
+    "The cdn object defines the live stream's content delivery network (CDN) settings. These settings provide details about the manner in which you stream your content to YouTube.",
+  ).optional(),
   contentDetails: z.object({
     closedCaptionsIngestionUrl: z.string().describe(
       "The ingestion URL where the closed captions of this stream are sent.",
@@ -216,7 +218,9 @@ const GlobalArgsSchema = z.object({
     isReusable: z.boolean().describe(
       "Indicates whether the stream is reusable, which means that it can be bound to multiple broadcasts. It is common for broadcasters to reuse the same stream for many different broadcasts if those broadcasts occur at different times. If you set this value to false, then the stream will not be reusable, which means that it can only be bound to one broadcast. Non-reusable streams differ from reusable streams in the following ways: - A non-reusable stream can only be bound to one broadcast. - A non-reusable stream might be deleted by an automated process after the broadcast ends. - The liveStreams.list method does not list non-reusable streams if you call the method and set the mine parameter to true. The only way to use that method to retrieve the resource for a non-reusable stream is to use the id parameter to identify the stream.",
     ).optional(),
-  }).describe("Detailed settings of a stream.").optional(),
+  }).describe(
+    "The content_details object contains information about the stream, including the closed captions ingestion URL.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube assigns to uniquely identify the stream.",
   ).optional(),
@@ -234,7 +238,9 @@ const GlobalArgsSchema = z.object({
     title: z.string().describe(
       "The stream's title. The value must be between 1 and 128 characters long.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The snippet object contains basic details about the stream, including its channel, title, and description.",
+  ).optional(),
   status: z.object({
     healthStatus: z.object({
       configurationIssues: z.array(z.object({
@@ -289,10 +295,12 @@ const GlobalArgsSchema = z.object({
       status: z.enum(["good", "ok", "bad", "noData", "revoked"]).describe(
         "The status code of this stream",
       ).optional(),
-    }).optional(),
+    }).describe("The health status of the stream.").optional(),
     streamStatus: z.enum(["created", "ready", "active", "inactive", "error"])
       .optional(),
-  }).describe("Brief description of the live stream status.").optional(),
+  }).describe(
+    "The status object contains information about live stream's status.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. The part properties that you can include in the parameter value are id, snippet, cdn, content_details, and status.",
   ),
@@ -379,7 +387,7 @@ const InputsSchema = z.object({
         "The stream name that YouTube assigns to the video stream.",
       ).optional(),
     }).describe(
-      "Describes information necessary for ingesting an RTMP, HTTP, or SRT stream.",
+      "The ingestionInfo object contains information that YouTube provides that you need to transmit your RTMP or HTTP stream to YouTube.",
     ).optional(),
     ingestionType: z.enum(["rtmp", "dash", "webrtc", "hls"]).describe(
       "The method or protocol used to transmit the video stream.",
@@ -394,7 +402,9 @@ const InputsSchema = z.object({
       "2160p",
       "variable",
     ]).describe("The resolution of the inbound video data.").optional(),
-  }).describe("Brief description of the live stream cdn settings.").optional(),
+  }).describe(
+    "The cdn object defines the live stream's content delivery network (CDN) settings. These settings provide details about the manner in which you stream your content to YouTube.",
+  ).optional(),
   contentDetails: z.object({
     closedCaptionsIngestionUrl: z.string().describe(
       "The ingestion URL where the closed captions of this stream are sent.",
@@ -402,7 +412,9 @@ const InputsSchema = z.object({
     isReusable: z.boolean().describe(
       "Indicates whether the stream is reusable, which means that it can be bound to multiple broadcasts. It is common for broadcasters to reuse the same stream for many different broadcasts if those broadcasts occur at different times. If you set this value to false, then the stream will not be reusable, which means that it can only be bound to one broadcast. Non-reusable streams differ from reusable streams in the following ways: - A non-reusable stream can only be bound to one broadcast. - A non-reusable stream might be deleted by an automated process after the broadcast ends. - The liveStreams.list method does not list non-reusable streams if you call the method and set the mine parameter to true. The only way to use that method to retrieve the resource for a non-reusable stream is to use the id parameter to identify the stream.",
     ).optional(),
-  }).describe("Detailed settings of a stream.").optional(),
+  }).describe(
+    "The content_details object contains information about the stream, including the closed captions ingestion URL.",
+  ).optional(),
   id: z.string().describe(
     "The ID that YouTube assigns to uniquely identify the stream.",
   ).optional(),
@@ -420,7 +432,9 @@ const InputsSchema = z.object({
     title: z.string().describe(
       "The stream's title. The value must be between 1 and 128 characters long.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The snippet object contains basic details about the stream, including its channel, title, and description.",
+  ).optional(),
   status: z.object({
     healthStatus: z.object({
       configurationIssues: z.array(z.object({
@@ -475,10 +489,12 @@ const InputsSchema = z.object({
       status: z.enum(["good", "ok", "bad", "noData", "revoked"]).describe(
         "The status code of this stream",
       ).optional(),
-    }).optional(),
+    }).describe("The health status of the stream.").optional(),
     streamStatus: z.enum(["created", "ready", "active", "inactive", "error"])
       .optional(),
-  }).describe("Brief description of the live stream status.").optional(),
+  }).describe(
+    "The status object contains information about live stream's status.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. The part properties that you can include in the parameter value are id, snippet, cdn, content_details, and status.",
   ).optional(),
@@ -513,7 +529,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveStreams. Registered at `@swamp/gcp/youtube/livestreams`. */
 export const model = {
   type: "@swamp/gcp/youtube/livestreams",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -605,6 +621,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -651,12 +672,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

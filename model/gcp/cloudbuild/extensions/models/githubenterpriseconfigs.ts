@@ -203,9 +203,7 @@ const GlobalArgsSchema = z.object({
     webhookSecretVersionName: z.string().describe(
       "The resource name for the webhook secret secret version in Secret Manager.",
     ).optional(),
-  }).describe(
-    "GitHubEnterpriseSecrets represents the names of all necessary secrets in Secret Manager for a GitHub Enterprise server. Format is: projects//secrets/.",
-  ).optional(),
+  }).describe("Optional. Names of secrets in Secret Manager.").optional(),
   sslCa: z.string().describe(
     "Optional. SSL certificate to use for requests to GitHub Enterprise.",
   ).optional(),
@@ -287,9 +285,7 @@ const InputsSchema = z.object({
     webhookSecretVersionName: z.string().describe(
       "The resource name for the webhook secret secret version in Secret Manager.",
     ).optional(),
-  }).describe(
-    "GitHubEnterpriseSecrets represents the names of all necessary secrets in Secret Manager for a GitHub Enterprise server. Format is: projects//secrets/.",
-  ).optional(),
+  }).describe("Optional. Names of secrets in Secret Manager.").optional(),
   sslCa: z.string().describe(
     "Optional. SSL certificate to use for requests to GitHub Enterprise.",
   ).optional(),
@@ -327,7 +323,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build GithubEnterpriseConfigs. Registered at `@swamp/gcp/cloudbuild/githubenterpriseconfigs`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/githubenterpriseconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -164,14 +164,6 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "Required. Immutable. The creation mode of the AutomatedDnsRecord. This field is immutable.",
   ).optional(),
-  currentConfig: z.object({
-    rrdatas: z.array(z.string()).describe(
-      'Required. The list of resource record data strings. The content and format of these strings depend on the AutomatedDnsRecord.type. For many common record types, this list may contain multiple strings. As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples. Examples: A record: ["192.0.2.1"] or ["192.0.2.1", "192.0.2.2"] TXT record: ["This is a text record"] CNAME record: ["target.example.com."] AAAA record: ["::1"] or ["2001:0db8:85a3:0000:0000:8a2e:0370:7334", "2001:0db8:85a3:0000:0000:8a2e:0370:7335"]',
-    ).optional(),
-    ttl: z.string().describe(
-      "Required. Number of seconds that this DNS record can be cached by resolvers.",
-    ).optional(),
-  }).describe("Defines the configuration of a DNS record.").optional(),
   description: z.string().describe(
     "A human-readable description of the record.",
   ).optional(),
@@ -194,7 +186,9 @@ const GlobalArgsSchema = z.object({
     ttl: z.string().describe(
       "Required. Number of seconds that this DNS record can be cached by resolvers.",
     ).optional(),
-  }).describe("Defines the configuration of a DNS record.").optional(),
+  }).describe(
+    "Required. Immutable. The configuration settings used to create this DNS record. These settings define the desired state of the record as specified by the producer.",
+  ).optional(),
   recordType: z.enum(["RECORD_TYPE_UNSPECIFIED", "A", "AAAA", "TXT", "CNAME"])
     .describe("Required. Immutable. The identifier of a supported record type.")
     .optional(),
@@ -259,14 +253,6 @@ const InputsSchema = z.object({
   ]).describe(
     "Required. Immutable. The creation mode of the AutomatedDnsRecord. This field is immutable.",
   ).optional(),
-  currentConfig: z.object({
-    rrdatas: z.array(z.string()).describe(
-      'Required. The list of resource record data strings. The content and format of these strings depend on the AutomatedDnsRecord.type. For many common record types, this list may contain multiple strings. As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples. Examples: A record: ["192.0.2.1"] or ["192.0.2.1", "192.0.2.2"] TXT record: ["This is a text record"] CNAME record: ["target.example.com."] AAAA record: ["::1"] or ["2001:0db8:85a3:0000:0000:8a2e:0370:7334", "2001:0db8:85a3:0000:0000:8a2e:0370:7335"]',
-    ).optional(),
-    ttl: z.string().describe(
-      "Required. Number of seconds that this DNS record can be cached by resolvers.",
-    ).optional(),
-  }).describe("Defines the configuration of a DNS record.").optional(),
   description: z.string().describe(
     "A human-readable description of the record.",
   ).optional(),
@@ -289,7 +275,9 @@ const InputsSchema = z.object({
     ttl: z.string().describe(
       "Required. Number of seconds that this DNS record can be cached by resolvers.",
     ).optional(),
-  }).describe("Defines the configuration of a DNS record.").optional(),
+  }).describe(
+    "Required. Immutable. The configuration settings used to create this DNS record. These settings define the desired state of the record as specified by the producer.",
+  ).optional(),
   recordType: z.enum(["RECORD_TYPE_UNSPECIFIED", "A", "AAAA", "TXT", "CNAME"])
     .describe("Required. Immutable. The identifier of a supported record type.")
     .optional(),
@@ -333,7 +321,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity AutomatedDnsRecords. Registered at `@swamp/gcp/networkconnectivity/automateddnsrecords`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/automateddnsrecords",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -460,6 +448,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: currentConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { currentConfig: _currentConfig, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -490,9 +486,6 @@ export const model = {
         }
         if (g["creationMode"] !== undefined) {
           body["creationMode"] = g["creationMode"];
-        }
-        if (g["currentConfig"] !== undefined) {
-          body["currentConfig"] = g["currentConfig"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];

@@ -195,7 +195,7 @@ const GlobalArgsSchema = z.object({
         'Immutable. Unordered list. List of different conversion types a conversion event can be classified as. A standard "purchase" type will be automatically created if this list is empty at creation time.',
       ).optional(),
     }).describe(
-      "Represents attribution settings for conversion sources receiving pre-attribution data.",
+      "Output only. Attribution settings for the linked Google Analytics property.",
     ).optional(),
     propertyId: z.string().describe(
       "Required. Immutable. ID of the Google Analytics property the merchant is linked to.",
@@ -204,7 +204,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Name of the Google Analytics property the merchant is linked to.",
     ).optional(),
   }).describe(
-    '"Google Analytics Link" sources can be used to get conversion data from an existing Google Analytics property into the linked Merchant Center account.',
+    'Immutable. Conversion Source of type "Link to Google Analytics Property".',
   ).optional(),
   merchantCenterDestination: z.object({
     attributionSettings: z.object({
@@ -232,7 +232,7 @@ const GlobalArgsSchema = z.object({
         'Immutable. Unordered list. List of different conversion types a conversion event can be classified as. A standard "purchase" type will be automatically created if this list is empty at creation time.',
       ).optional(),
     }).describe(
-      "Represents attribution settings for conversion sources receiving pre-attribution data.",
+      "Required. Attribution settings being used for the Merchant Center Destination.",
     ).optional(),
     currencyCode: z.string().describe(
       "Required. Three-letter currency code (ISO 4217). The currency code defines in which currency the conversions sent to this destination will be reported in Merchant Center.",
@@ -243,9 +243,8 @@ const GlobalArgsSchema = z.object({
     displayName: z.string().describe(
       "Required. Merchant-specified display name for the destination. This is the name that identifies the conversion source within the Merchant Center UI. Limited to 64 characters.",
     ).optional(),
-  }).describe(
-    '"Merchant Center Destination" sources can be used to send conversion events from a website using a Google tag directly to a Merchant Center account where the source is created.',
-  ).optional(),
+  }).describe('Conversion Source of type "Merchant Center Tag Destination".')
+    .optional(),
   merchantId: z.string().describe(
     "Required. The ID of the account that owns the new conversion source.",
   ),
@@ -316,7 +315,7 @@ const InputsSchema = z.object({
         'Immutable. Unordered list. List of different conversion types a conversion event can be classified as. A standard "purchase" type will be automatically created if this list is empty at creation time.',
       ).optional(),
     }).describe(
-      "Represents attribution settings for conversion sources receiving pre-attribution data.",
+      "Output only. Attribution settings for the linked Google Analytics property.",
     ).optional(),
     propertyId: z.string().describe(
       "Required. Immutable. ID of the Google Analytics property the merchant is linked to.",
@@ -325,7 +324,7 @@ const InputsSchema = z.object({
       "Output only. Name of the Google Analytics property the merchant is linked to.",
     ).optional(),
   }).describe(
-    '"Google Analytics Link" sources can be used to get conversion data from an existing Google Analytics property into the linked Merchant Center account.',
+    'Immutable. Conversion Source of type "Link to Google Analytics Property".',
   ).optional(),
   merchantCenterDestination: z.object({
     attributionSettings: z.object({
@@ -353,7 +352,7 @@ const InputsSchema = z.object({
         'Immutable. Unordered list. List of different conversion types a conversion event can be classified as. A standard "purchase" type will be automatically created if this list is empty at creation time.',
       ).optional(),
     }).describe(
-      "Represents attribution settings for conversion sources receiving pre-attribution data.",
+      "Required. Attribution settings being used for the Merchant Center Destination.",
     ).optional(),
     currencyCode: z.string().describe(
       "Required. Three-letter currency code (ISO 4217). The currency code defines in which currency the conversions sent to this destination will be reported in Merchant Center.",
@@ -364,9 +363,8 @@ const InputsSchema = z.object({
     displayName: z.string().describe(
       "Required. Merchant-specified display name for the destination. This is the name that identifies the conversion source within the Merchant Center UI. Limited to 64 characters.",
     ).optional(),
-  }).describe(
-    '"Merchant Center Destination" sources can be used to send conversion events from a website using a Google tag directly to a Merchant Center account where the source is created.',
-  ).optional(),
+  }).describe('Conversion Source of type "Merchant Center Tag Destination".')
+    .optional(),
   merchantId: z.string().describe(
     "Required. The ID of the account that owns the new conversion source.",
   ).optional(),
@@ -395,7 +393,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Conversionsources. Registered at `@swamp/gcp/content/conversionsources`. */
 export const model = {
   type: "@swamp/gcp/content/conversionsources",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -487,6 +485,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -538,12 +541,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "merchantId": String(g["merchantId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -631,9 +629,6 @@ export const model = {
         }
         params["conversionSourceId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["googleAnalyticsLink"] !== undefined) {
-          body["googleAnalyticsLink"] = g["googleAnalyticsLink"];
-        }
         if (g["merchantCenterDestination"] !== undefined) {
           body["merchantCenterDestination"] = g["merchantCenterDestination"];
         }

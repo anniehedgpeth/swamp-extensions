@@ -207,7 +207,7 @@ const GlobalArgsSchema = z.object({
         "Required. Name of the outputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Output variables whose values will be passed on to dependencies",
+      "Optional. Output variables which will get their values from dependencies",
     ).optional(),
     to: z.object({
       dependency: z.string().describe(
@@ -220,7 +220,7 @@ const GlobalArgsSchema = z.object({
         "Required. Name of the inputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Input variables whose values will be passed on to dependencies",
+      "Optional. Input variables whose values will be passed on to dependencies.",
     ).optional(),
     variable: z.string().describe("Required. name of the variable").optional(),
   })).describe(
@@ -241,7 +241,7 @@ const GlobalArgsSchema = z.object({
         "Required. Name of the outputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Output variables whose values will be passed on to dependencies",
+      "Optional. Output variables which will get their values from dependencies",
     ).optional(),
     to: z.object({
       dependency: z.string().describe(
@@ -254,7 +254,7 @@ const GlobalArgsSchema = z.object({
         "Required. Name of the inputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Input variables whose values will be passed on to dependencies",
+      "Optional. Input variables whose values will be passed on to dependencies.",
     ).optional(),
     variable: z.string().describe("Required. name of the variable").optional(),
   })).describe(
@@ -351,7 +351,7 @@ const InputsSchema = z.object({
         "Required. Name of the outputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Output variables whose values will be passed on to dependencies",
+      "Optional. Output variables which will get their values from dependencies",
     ).optional(),
     to: z.object({
       dependency: z.string().describe(
@@ -364,7 +364,7 @@ const InputsSchema = z.object({
         "Required. Name of the inputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Input variables whose values will be passed on to dependencies",
+      "Optional. Input variables whose values will be passed on to dependencies.",
     ).optional(),
     variable: z.string().describe("Required. name of the variable").optional(),
   })).describe(
@@ -385,7 +385,7 @@ const InputsSchema = z.object({
         "Required. Name of the outputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Output variables whose values will be passed on to dependencies",
+      "Optional. Output variables which will get their values from dependencies",
     ).optional(),
     to: z.object({
       dependency: z.string().describe(
@@ -398,7 +398,7 @@ const InputsSchema = z.object({
         "Required. Name of the inputVariable on the dependency",
       ).optional(),
     }).describe(
-      "Input variables whose values will be passed on to dependencies",
+      "Optional. Input variables whose values will be passed on to dependencies.",
     ).optional(),
     variable: z.string().describe("Required. name of the variable").optional(),
   })).describe(
@@ -441,7 +441,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Lifecycle Manager UnitKinds. Registered at `@swamp/gcp/saasservicemgmt/unitkinds`. */
 export const model = {
   type: "@swamp/gcp/saasservicemgmt/unitkinds",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -593,6 +593,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: defaultFlagRevisions",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

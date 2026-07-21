@@ -167,8 +167,8 @@ const GlobalArgsSchema = z.object({
         qaScorecardRevisions: z.array(z.string()).describe(
           "List of QaScorecardRevisions.",
         ).optional(),
-      }).describe("Container for a list of scorecards.").optional(),
-    }).describe("Configuration for the QA feature.").optional(),
+      }).describe("A manual list of scorecards to score.").optional(),
+    }).describe("Configuration for the QA annotator.").optional(),
     runAutoLabelingAnnotator: z.boolean().describe(
       "Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.",
     ).optional(),
@@ -210,9 +210,9 @@ const GlobalArgsSchema = z.object({
         "BASELINE_MODEL",
         "BASELINE_MODEL_V2_0",
       ]).describe("Default summarization model to be used.").optional(),
-    }).describe("Configuration for summarization.").optional(),
+    }).describe("Configuration for the summarization annotator.").optional(),
   }).describe(
-    "Selector of all available annotators and phrase matchers to run.",
+    "Selector of annotators to run and the phrase matchers to use for conversations that matches the conversation_filter. If not specified, NO annotators will be run.",
   ).optional(),
   conversationFilter: z.string().describe(
     "Filter for the conversations that should apply this analysis rule. An empty filter means this analysis rule applies to all conversations. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.",
@@ -286,8 +286,8 @@ const InputsSchema = z.object({
         qaScorecardRevisions: z.array(z.string()).describe(
           "List of QaScorecardRevisions.",
         ).optional(),
-      }).describe("Container for a list of scorecards.").optional(),
-    }).describe("Configuration for the QA feature.").optional(),
+      }).describe("A manual list of scorecards to score.").optional(),
+    }).describe("Configuration for the QA annotator.").optional(),
     runAutoLabelingAnnotator: z.boolean().describe(
       "Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.",
     ).optional(),
@@ -329,9 +329,9 @@ const InputsSchema = z.object({
         "BASELINE_MODEL",
         "BASELINE_MODEL_V2_0",
       ]).describe("Default summarization model to be used.").optional(),
-    }).describe("Configuration for summarization.").optional(),
+    }).describe("Configuration for the summarization annotator.").optional(),
   }).describe(
-    "Selector of all available annotators and phrase matchers to run.",
+    "Selector of annotators to run and the phrase matchers to use for conversations that matches the conversation_filter. If not specified, NO annotators will be run.",
   ).optional(),
   conversationFilter: z.string().describe(
     "Filter for the conversations that should apply this analysis rule. An empty filter means this analysis rule applies to all conversations. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.",
@@ -369,7 +369,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights AnalysisRules. Registered at `@swamp/gcp/contactcenterinsights/analysisrules`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/analysisrules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -473,6 +473,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

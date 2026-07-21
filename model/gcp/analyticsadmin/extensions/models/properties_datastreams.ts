@@ -161,7 +161,9 @@ const GlobalArgsSchema = z.object({
     packageName: z.string().describe(
       'Immutable. The package name for the app being measured. Example: "com.example.myandroidapp"',
     ).optional(),
-  }).describe("Data specific to Android app streams.").optional(),
+  }).describe(
+    "Data specific to Android app streams. Must be populated if type is ANDROID_APP_DATA_STREAM.",
+  ).optional(),
   displayName: z.string().describe(
     "Human-readable display name for the Data Stream. Required for web data streams. The max allowed display name length is 255 UTF-16 code units.",
   ).optional(),
@@ -172,7 +174,9 @@ const GlobalArgsSchema = z.object({
     firebaseAppId: z.string().describe(
       "Output only. ID of the corresponding iOS app in Firebase, if any. This ID can change if the iOS app is deleted and recreated.",
     ).optional(),
-  }).describe("Data specific to iOS app streams.").optional(),
+  }).describe(
+    "Data specific to iOS app streams. Must be populated if type is IOS_APP_DATA_STREAM.",
+  ).optional(),
   name: z.string().describe(
     'Identifier. Resource name of this Data Stream. Format: properties/{property_id}/dataStreams/{stream_id} Example: "properties/1000/dataStreams/2000"',
   ).optional(),
@@ -193,7 +197,9 @@ const GlobalArgsSchema = z.object({
     measurementId: z.string().describe(
       'Output only. Analytics Measurement ID. Example: "G-1A2BCD345E"',
     ).optional(),
-  }).describe("Data specific to web streams.").optional(),
+  }).describe(
+    "Data specific to web streams. Must be populated if type is WEB_DATA_STREAM.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -234,7 +240,9 @@ const InputsSchema = z.object({
     packageName: z.string().describe(
       'Immutable. The package name for the app being measured. Example: "com.example.myandroidapp"',
     ).optional(),
-  }).describe("Data specific to Android app streams.").optional(),
+  }).describe(
+    "Data specific to Android app streams. Must be populated if type is ANDROID_APP_DATA_STREAM.",
+  ).optional(),
   displayName: z.string().describe(
     "Human-readable display name for the Data Stream. Required for web data streams. The max allowed display name length is 255 UTF-16 code units.",
   ).optional(),
@@ -245,7 +253,9 @@ const InputsSchema = z.object({
     firebaseAppId: z.string().describe(
       "Output only. ID of the corresponding iOS app in Firebase, if any. This ID can change if the iOS app is deleted and recreated.",
     ).optional(),
-  }).describe("Data specific to iOS app streams.").optional(),
+  }).describe(
+    "Data specific to iOS app streams. Must be populated if type is IOS_APP_DATA_STREAM.",
+  ).optional(),
   name: z.string().describe(
     'Identifier. Resource name of this Data Stream. Format: properties/{property_id}/dataStreams/{stream_id} Example: "properties/1000/dataStreams/2000"',
   ).optional(),
@@ -266,7 +276,9 @@ const InputsSchema = z.object({
     measurementId: z.string().describe(
       'Output only. Analytics Measurement ID. Example: "G-1A2BCD345E"',
     ).optional(),
-  }).describe("Data specific to web streams.").optional(),
+  }).describe(
+    "Data specific to web streams. Must be populated if type is WEB_DATA_STREAM.",
+  ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -295,7 +307,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Analytics Admin Properties.DataStreams. Registered at `@swamp/gcp/analyticsadmin/properties-datastreams`. */
 export const model = {
   type: "@swamp/gcp/analyticsadmin/properties-datastreams",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -414,6 +426,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

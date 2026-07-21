@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
       "Customizable online prediction request timeout.",
     ).optional(),
   }).describe(
-    "Configurations (e.g. inference timeout) that are applied on your endpoints.",
+    "Configurations that are applied to the endpoint for online prediction.",
   ).optional(),
   dedicatedEndpointEnabled: z.boolean().describe(
     "If true, the endpoint will be exposed through a dedicated DNS [Endpoint.dedicated_endpoint_dns]. Your request to the dedicated DNS will be isolated from other users' traffic and will have better performance and reliability. Note: Once you enabled dedicated endpoint, you won't be able to send request to the shared DNS {region}-aiplatform.googleapis.com. The limitation will be removed soon.",
@@ -181,13 +181,15 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for an Endpoint. If set, this Endpoint and all sub-resources of this Endpoint will be secured by this key.",
   ).optional(),
   gdcConfig: z.object({
     zone: z.string().describe(
       "GDC zone. A cluster will be designated for the Vertex AI workload in this zone.",
     ).optional(),
-  }).describe("Google Distributed Cloud (GDC) config.").optional(),
+  }).describe(
+    "Configures the Google Distributed Cloud (GDC) environment for online prediction. Only set this field when the Endpoint is to be deployed in a GDC environment.",
+  ).optional(),
   genAiAdvancedFeaturesConfig: z.object({
     ragConfig: z.object({
       enableRag: z.boolean().describe(
@@ -195,7 +197,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Configuration for Retrieval Augmented Generation feature.")
       .optional(),
-  }).describe("Configuration for GenAiAdvancedFeatures.").optional(),
+  }).describe(
+    "Optional. Configuration for GenAiAdvancedFeatures. If the endpoint is serving GenAI models, advanced features like native RAG integration can be configured. Currently, only Model Garden models are supported.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize your Endpoints. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
@@ -209,12 +213,14 @@ const GlobalArgsSchema = z.object({
       outputUri: z.string().describe(
         "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
       ).optional(),
-    }).describe("The BigQuery location for the output content.").optional(),
+    }).describe(
+      "BigQuery table for logging. If only given a project, a new dataset will be created with name `logging__` where will be made BigQuery-dataset-name compatible (e.g. most special characters will become underscores). If no table name is given, a new table will be created with name `request_response_logging`",
+    ).optional(),
     enabled: z.boolean().describe("If logging is enabled or not.").optional(),
     samplingRate: z.number().describe(
       "Percentage of requests to be logged, expressed as a fraction in range(0,1].",
     ).optional(),
-  }).describe("Configuration for logging request-response to a BigQuery table.")
+  }).describe("Configures the request-response logging for online prediction.")
     .optional(),
   privateServiceConnectConfig: z.object({
     enablePrivateServiceConnect: z.boolean().describe(
@@ -251,8 +257,9 @@ const GlobalArgsSchema = z.object({
     serviceAttachment: z.string().describe(
       "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
     ).optional(),
-  }).describe("Represents configuration for private service connect.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for private service connect. network and private_service_connect_config are mutually exclusive.",
+  ).optional(),
   trafficSplit: z.record(z.string(), z.number().int()).describe(
     "A map from a DeployedModel's ID to the percentage of this Endpoint's traffic that should be forwarded to that DeployedModel. If a DeployedModel's ID is not listed in this map, then it receives no traffic. The traffic percentage values must add up to 100, or map must be empty if the Endpoint is to not accept any traffic at a moment.",
   ).optional(),
@@ -262,7 +269,7 @@ const GlobalArgsSchema = z.object({
         "Customizable online prediction request timeout.",
       ).optional(),
     }).describe(
-      "Configurations (e.g. inference timeout) that are applied on your endpoints.",
+      "Configurations that are applied to the endpoint for online prediction.",
     ).optional(),
     createTime: z.string().describe(
       "Output only. Timestamp when this Endpoint was created.",
@@ -282,7 +289,7 @@ const GlobalArgsSchema = z.object({
           "Immutable. The minimum number of replicas that will be always deployed on. If traffic against it increases, it may dynamically be deployed onto more replicas up to max_replica_count, and as traffic decreases, some of these extra replicas may be freed. If the requested value is too large, the deployment will error.",
         ).optional(),
       }).describe(
-        "A description of resources that to large degree are decided by Agent Platform, and require only a modest additional configuration. Each Model supporting these resources documents its specific guidelines.",
+        "A description of resources that to large degree are decided by Vertex AI, and require only a modest additional configuration.",
       ).optional(),
       checkpointId: z.string().describe("The checkpoint id of the model.")
         .optional(),
@@ -307,12 +314,14 @@ const GlobalArgsSchema = z.object({
             "Immutable. The type of the machine. See the [list of machine types supported for prediction](https://cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/configure-compute#machine-types) See the [list of machine types supported for custom training](https://cloud.google.com/gemini-enterprise-agent-platform/machine-learning/training/configure-compute#machine-types). For DeployedModel this field is optional, and the default value is `n1-standard-2`. For BatchPredictionJob or as part of WorkerPoolSpec this field is required.",
           ).optional(),
           reservationAffinity: z.unknown().describe(
-            "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+            "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
           ).optional(),
           tpuTopology: z.unknown().describe(
             'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
           ).optional(),
-        }).describe("Specification of a single machine.").optional(),
+        }).describe(
+          "Required. Immutable. The specification of a single machine being used.",
+        ).optional(),
         maxReplicaCount: z.number().int().describe(
           "Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, will use min_replica_count as the default value. The value of this field impacts the charge against Agent Platform CPU and GPU quotas. Specifically, you will be charged for (max_replica_count * number of cores in the selected machine type) and (max_replica_count * number of GPUs per replica in the selected machine type).",
         ).optional(),
@@ -326,7 +335,7 @@ const GlobalArgsSchema = z.object({
           "Optional. If true, schedule the deployment workload on [spot VMs](https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms).",
         ).optional(),
       }).describe(
-        "A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.",
+        "A description of resources that are dedicated to the DeployedModel, and that need a higher degree of manual configuration.",
       ).optional(),
       disableContainerLogging: z.boolean().describe(
         "For custom-trained Models and AutoML Tabular Models, the container of the DeployedModel instances will send `stderr` and `stdout` streams to Cloud Logging by default. Please note that the logs incur cost, which are subject to [Cloud Logging pricing](https://cloud.google.com/logging/pricing). User can disable container logging by setting this flag to true.",
@@ -355,31 +364,33 @@ const GlobalArgsSchema = z.object({
             "Required. Map from output names to output metadata. For Vertex AI-provided Tensorflow images, keys can be any user defined string that consists of any UTF-8 characters. For custom images, keys are the name of the output field in the prediction to be explained. Currently only one key is allowed.",
           ).optional(),
         }).describe(
-          "Metadata describing the Model's input and output for explanation.",
+          "Optional. Metadata describing the Model's input and output for explanation.",
         ).optional(),
         parameters: z.object({
           examples: z.unknown().describe(
-            "Example-based explainability that returns the nearest neighbors from the provided dataset.",
+            "Example-based explanations that returns the nearest neighbors from the provided dataset.",
           ).optional(),
           integratedGradientsAttribution: z.unknown().describe(
-            "An attribution method that computes the Aumann-Shapley value taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
+            "An attribution method that computes Aumann-Shapley values taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
           ).optional(),
           outputIndices: z.unknown().describe(
             "If populated, only returns attributions that have output_index contained in output_indices. It must be an ndarray of integers, with the same shape of the output it's explaining. If not populated, returns attributions for top_k indices of outputs. If neither top_k nor output_indices is populated, returns the argmax index of the outputs. Only applicable to Models that predict multiple outputs (e,g, multi-class Models that predict multiple classes).",
           ).optional(),
           sampledShapleyAttribution: z.unknown().describe(
-            "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features.",
+            "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features. Refer to this paper for model details: https://arxiv.org/abs/1306.4265.",
           ).optional(),
           topK: z.unknown().describe(
             "If populated, returns attributions for top K indices of outputs (defaults to 1). Only applies to Models that predicts more than one outputs (e,g, multi-class Models). When set to -1, returns explanations for all outputs.",
           ).optional(),
           xraiAttribution: z.unknown().describe(
-            "An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Supported only by image Models.",
+            "An attribution method that redistributes Integrated Gradients attribution to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 XRAI currently performs better on natural images, like a picture of a house or an animal. If the images are taken in artificial environments, like a lab or manufacturing line, or from diagnostic equipment, like x-rays or quality-control cameras, use Integrated Gradients instead.",
           ).optional(),
         }).describe(
-          "Parameters to configure explaining for Model's predictions.",
+          "Required. Parameters that configure explaining of the Model's predictions.",
         ).optional(),
-      }).describe("Specification of Model explanation.").optional(),
+      }).describe(
+        "Explanation configuration for this DeployedModel. When deploying a Model using EndpointService.DeployModel, this value overrides the value of Model.explanation_spec. All fields of explanation_spec are optional in the request. If a field of explanation_spec is not populated, the value of the same field of Model.explanation_spec is inherited. If the corresponding Model.explanation_spec is not populated, all fields of the explanation_spec will be used for the explanation configuration.",
+      ).optional(),
       fasterDeploymentConfig: z.object({
         fastTryoutEnabled: z.boolean().describe(
           "If true, enable fast tryout feature for this deployed model.",
@@ -411,7 +422,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The name of the service attachment resource. Populated if private service connect is enabled.",
         ).optional(),
       }).describe(
-        "PrivateEndpoints proto is used to provide paths for users to send requests privately. To send request via private service access, use predict_http_uri, explain_http_uri or health_http_uri. To send request via private service connect, use service_attachment.",
+        "Output only. Provide paths for users to send predict/explain/health requests directly to the deployed model services running on Cloud via private services access. This field is populated if network is configured.",
       ).optional(),
       serviceAccount: z.string().describe(
         "The service account that the DeployedModel's container runs as. Specify the email address of the service account. If this service account is not specified, the container runs as a service account that doesn't have access to the resource project. Users deploying the Model must have the `iam.serviceAccounts.actAs` permission on this service account.",
@@ -424,20 +435,17 @@ const GlobalArgsSchema = z.object({
           draftModel: z.unknown().describe(
             "Required. The resource name of the draft model.",
           ).optional(),
-        }).describe(
-          "Draft model speculation works by using the smaller model to generate candidate tokens for speculative decoding.",
-        ).optional(),
+        }).describe("draft model speculation.").optional(),
         ngramSpeculation: z.object({
           ngramSize: z.unknown().describe(
             "The number of last N input tokens used as ngram to search/match against the previous prompt sequence. This is equal to the N in N-Gram. The default value is 3 if not specified.",
           ).optional(),
-        }).describe(
-          "N-Gram speculation works by trying to find matching tokens in the previous prompt sequence and use those as speculation for generating new tokens.",
-        ).optional(),
+        }).describe("N-Gram speculation.").optional(),
         speculativeTokenCount: z.number().int().describe(
           "The number of speculative tokens to generate at each step.",
         ).optional(),
-      }).describe("Configuration for Speculative Decoding.").optional(),
+      }).describe("Optional. Spec for configuring speculative decoding.")
+        .optional(),
       status: z.object({
         availableReplicaCount: z.number().int().describe(
           "Output only. The number of available replicas of the deployed model.",
@@ -448,7 +456,8 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "Output only. The latest deployed model's status message (if any).",
         ).optional(),
-      }).describe("Runtime status of the deployed model.").optional(),
+      }).describe("Output only. Runtime status of the deployed model.")
+        .optional(),
       systemLabels: z.record(z.string(), z.string()).describe(
         "System labels to apply to Model Garden deployments. System labels are managed by Google for internal use only.",
       ).optional(),
@@ -468,7 +477,7 @@ const GlobalArgsSchema = z.object({
         "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
       ).optional(),
     }).describe(
-      "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+      "Customer-managed encryption key spec for an Endpoint. If set, this Endpoint and all sub-resources of this Endpoint will be secured by this key.",
     ).optional(),
     etag: z.string().describe(
       'Used to perform consistent read-modify-write updates. If not set, a blind "overwrite" update happens.',
@@ -477,7 +486,9 @@ const GlobalArgsSchema = z.object({
       zone: z.string().describe(
         "GDC zone. A cluster will be designated for the Vertex AI workload in this zone.",
       ).optional(),
-    }).describe("Google Distributed Cloud (GDC) config.").optional(),
+    }).describe(
+      "Configures the Google Distributed Cloud (GDC) environment for online prediction. Only set this field when the Endpoint is to be deployed in a GDC environment.",
+    ).optional(),
     genAiAdvancedFeaturesConfig: z.object({
       ragConfig: z.object({
         enableRag: z.boolean().describe(
@@ -485,7 +496,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Configuration for Retrieval Augmented Generation feature.")
         .optional(),
-    }).describe("Configuration for GenAiAdvancedFeatures.").optional(),
+    }).describe(
+      "Optional. Configuration for GenAiAdvancedFeatures. If the endpoint is serving GenAI models, advanced features like native RAG integration can be configured. Currently, only Model Garden models are supported.",
+    ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "The labels with user-defined metadata to organize your Endpoints. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
     ).optional(),
@@ -502,13 +515,15 @@ const GlobalArgsSchema = z.object({
         outputUri: z.string().describe(
           "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
         ).optional(),
-      }).describe("The BigQuery location for the output content.").optional(),
+      }).describe(
+        "BigQuery table for logging. If only given a project, a new dataset will be created with name `logging__` where will be made BigQuery-dataset-name compatible (e.g. most special characters will become underscores). If no table name is given, a new table will be created with name `request_response_logging`",
+      ).optional(),
       enabled: z.boolean().describe("If logging is enabled or not.").optional(),
       samplingRate: z.number().describe(
         "Percentage of requests to be logged, expressed as a fraction in range(0,1].",
       ).optional(),
     }).describe(
-      "Configuration for logging request-response to a BigQuery table.",
+      "Configures the request-response logging for online prediction.",
     ).optional(),
     privateServiceConnectConfig: z.object({
       enablePrivateServiceConnect: z.boolean().describe(
@@ -545,8 +560,9 @@ const GlobalArgsSchema = z.object({
       serviceAttachment: z.string().describe(
         "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
       ).optional(),
-    }).describe("Represents configuration for private service connect.")
-      .optional(),
+    }).describe(
+      "Optional. Configuration for private service connect. network and private_service_connect_config are mutually exclusive.",
+    ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
     satisfiesPzs: z.boolean().describe("Output only. Reserved for future use.")
@@ -558,7 +574,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Timestamp when this Endpoint was last updated.",
     ).optional(),
   }).describe(
-    "Models are deployed into it, and afterwards Endpoint is called to obtain predictions and explanations.",
+    "Required. The Endpoint which replaces the resource on the server. Currently we only support updating the `client_connection_config` field, all the other fields' update will be blocked.",
   ).optional(),
   endpointId: z.string().describe(
     "Immutable. The ID to use for endpoint, which will become the final component of the endpoint resource name. If not provided, Vertex AI will generate a value for this ID. If the first character is a letter, this value may be up to 63 characters, and valid characters are `[a-z0-9-]`. The last character must be a letter or number. If the first character is a number, this value may be up to 9 characters, and valid characters are `[0-9]` with no leading zeros. When using HTTP/JSON, this field is populated based on a query string argument, such as `?endpoint_id=12345`. This is the fallback for fields that are not included in either the URI or the body.",
@@ -727,7 +743,7 @@ const InputsSchema = z.object({
       "Customizable online prediction request timeout.",
     ).optional(),
   }).describe(
-    "Configurations (e.g. inference timeout) that are applied on your endpoints.",
+    "Configurations that are applied to the endpoint for online prediction.",
   ).optional(),
   dedicatedEndpointEnabled: z.boolean().describe(
     "If true, the endpoint will be exposed through a dedicated DNS [Endpoint.dedicated_endpoint_dns]. Your request to the dedicated DNS will be isolated from other users' traffic and will have better performance and reliability. Note: Once you enabled dedicated endpoint, you won't be able to send request to the shared DNS {region}-aiplatform.googleapis.com. The limitation will be removed soon.",
@@ -742,13 +758,15 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Customer-managed encryption key spec for an Endpoint. If set, this Endpoint and all sub-resources of this Endpoint will be secured by this key.",
   ).optional(),
   gdcConfig: z.object({
     zone: z.string().describe(
       "GDC zone. A cluster will be designated for the Vertex AI workload in this zone.",
     ).optional(),
-  }).describe("Google Distributed Cloud (GDC) config.").optional(),
+  }).describe(
+    "Configures the Google Distributed Cloud (GDC) environment for online prediction. Only set this field when the Endpoint is to be deployed in a GDC environment.",
+  ).optional(),
   genAiAdvancedFeaturesConfig: z.object({
     ragConfig: z.object({
       enableRag: z.boolean().describe(
@@ -756,7 +774,9 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Configuration for Retrieval Augmented Generation feature.")
       .optional(),
-  }).describe("Configuration for GenAiAdvancedFeatures.").optional(),
+  }).describe(
+    "Optional. Configuration for GenAiAdvancedFeatures. If the endpoint is serving GenAI models, advanced features like native RAG integration can be configured. Currently, only Model Garden models are supported.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize your Endpoints. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
@@ -770,12 +790,14 @@ const InputsSchema = z.object({
       outputUri: z.string().describe(
         "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
       ).optional(),
-    }).describe("The BigQuery location for the output content.").optional(),
+    }).describe(
+      "BigQuery table for logging. If only given a project, a new dataset will be created with name `logging__` where will be made BigQuery-dataset-name compatible (e.g. most special characters will become underscores). If no table name is given, a new table will be created with name `request_response_logging`",
+    ).optional(),
     enabled: z.boolean().describe("If logging is enabled or not.").optional(),
     samplingRate: z.number().describe(
       "Percentage of requests to be logged, expressed as a fraction in range(0,1].",
     ).optional(),
-  }).describe("Configuration for logging request-response to a BigQuery table.")
+  }).describe("Configures the request-response logging for online prediction.")
     .optional(),
   privateServiceConnectConfig: z.object({
     enablePrivateServiceConnect: z.boolean().describe(
@@ -812,8 +834,9 @@ const InputsSchema = z.object({
     serviceAttachment: z.string().describe(
       "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
     ).optional(),
-  }).describe("Represents configuration for private service connect.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for private service connect. network and private_service_connect_config are mutually exclusive.",
+  ).optional(),
   trafficSplit: z.record(z.string(), z.number().int()).describe(
     "A map from a DeployedModel's ID to the percentage of this Endpoint's traffic that should be forwarded to that DeployedModel. If a DeployedModel's ID is not listed in this map, then it receives no traffic. The traffic percentage values must add up to 100, or map must be empty if the Endpoint is to not accept any traffic at a moment.",
   ).optional(),
@@ -823,7 +846,7 @@ const InputsSchema = z.object({
         "Customizable online prediction request timeout.",
       ).optional(),
     }).describe(
-      "Configurations (e.g. inference timeout) that are applied on your endpoints.",
+      "Configurations that are applied to the endpoint for online prediction.",
     ).optional(),
     createTime: z.string().describe(
       "Output only. Timestamp when this Endpoint was created.",
@@ -843,7 +866,7 @@ const InputsSchema = z.object({
           "Immutable. The minimum number of replicas that will be always deployed on. If traffic against it increases, it may dynamically be deployed onto more replicas up to max_replica_count, and as traffic decreases, some of these extra replicas may be freed. If the requested value is too large, the deployment will error.",
         ).optional(),
       }).describe(
-        "A description of resources that to large degree are decided by Agent Platform, and require only a modest additional configuration. Each Model supporting these resources documents its specific guidelines.",
+        "A description of resources that to large degree are decided by Vertex AI, and require only a modest additional configuration.",
       ).optional(),
       checkpointId: z.string().describe("The checkpoint id of the model.")
         .optional(),
@@ -868,12 +891,14 @@ const InputsSchema = z.object({
             "Immutable. The type of the machine. See the [list of machine types supported for prediction](https://cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/configure-compute#machine-types) See the [list of machine types supported for custom training](https://cloud.google.com/gemini-enterprise-agent-platform/machine-learning/training/configure-compute#machine-types). For DeployedModel this field is optional, and the default value is `n1-standard-2`. For BatchPredictionJob or as part of WorkerPoolSpec this field is required.",
           ).optional(),
           reservationAffinity: z.unknown().describe(
-            "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+            "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
           ).optional(),
           tpuTopology: z.unknown().describe(
             'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
           ).optional(),
-        }).describe("Specification of a single machine.").optional(),
+        }).describe(
+          "Required. Immutable. The specification of a single machine being used.",
+        ).optional(),
         maxReplicaCount: z.number().int().describe(
           "Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, will use min_replica_count as the default value. The value of this field impacts the charge against Agent Platform CPU and GPU quotas. Specifically, you will be charged for (max_replica_count * number of cores in the selected machine type) and (max_replica_count * number of GPUs per replica in the selected machine type).",
         ).optional(),
@@ -887,7 +912,7 @@ const InputsSchema = z.object({
           "Optional. If true, schedule the deployment workload on [spot VMs](https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms).",
         ).optional(),
       }).describe(
-        "A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.",
+        "A description of resources that are dedicated to the DeployedModel, and that need a higher degree of manual configuration.",
       ).optional(),
       disableContainerLogging: z.boolean().describe(
         "For custom-trained Models and AutoML Tabular Models, the container of the DeployedModel instances will send `stderr` and `stdout` streams to Cloud Logging by default. Please note that the logs incur cost, which are subject to [Cloud Logging pricing](https://cloud.google.com/logging/pricing). User can disable container logging by setting this flag to true.",
@@ -916,31 +941,33 @@ const InputsSchema = z.object({
             "Required. Map from output names to output metadata. For Vertex AI-provided Tensorflow images, keys can be any user defined string that consists of any UTF-8 characters. For custom images, keys are the name of the output field in the prediction to be explained. Currently only one key is allowed.",
           ).optional(),
         }).describe(
-          "Metadata describing the Model's input and output for explanation.",
+          "Optional. Metadata describing the Model's input and output for explanation.",
         ).optional(),
         parameters: z.object({
           examples: z.unknown().describe(
-            "Example-based explainability that returns the nearest neighbors from the provided dataset.",
+            "Example-based explanations that returns the nearest neighbors from the provided dataset.",
           ).optional(),
           integratedGradientsAttribution: z.unknown().describe(
-            "An attribution method that computes the Aumann-Shapley value taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
+            "An attribution method that computes Aumann-Shapley values taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365",
           ).optional(),
           outputIndices: z.unknown().describe(
             "If populated, only returns attributions that have output_index contained in output_indices. It must be an ndarray of integers, with the same shape of the output it's explaining. If not populated, returns attributions for top_k indices of outputs. If neither top_k nor output_indices is populated, returns the argmax index of the outputs. Only applicable to Models that predict multiple outputs (e,g, multi-class Models that predict multiple classes).",
           ).optional(),
           sampledShapleyAttribution: z.unknown().describe(
-            "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features.",
+            "An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features. Refer to this paper for model details: https://arxiv.org/abs/1306.4265.",
           ).optional(),
           topK: z.unknown().describe(
             "If populated, returns attributions for top K indices of outputs (defaults to 1). Only applies to Models that predicts more than one outputs (e,g, multi-class Models). When set to -1, returns explanations for all outputs.",
           ).optional(),
           xraiAttribution: z.unknown().describe(
-            "An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Supported only by image Models.",
+            "An attribution method that redistributes Integrated Gradients attribution to segmented regions, taking advantage of the model's fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 XRAI currently performs better on natural images, like a picture of a house or an animal. If the images are taken in artificial environments, like a lab or manufacturing line, or from diagnostic equipment, like x-rays or quality-control cameras, use Integrated Gradients instead.",
           ).optional(),
         }).describe(
-          "Parameters to configure explaining for Model's predictions.",
+          "Required. Parameters that configure explaining of the Model's predictions.",
         ).optional(),
-      }).describe("Specification of Model explanation.").optional(),
+      }).describe(
+        "Explanation configuration for this DeployedModel. When deploying a Model using EndpointService.DeployModel, this value overrides the value of Model.explanation_spec. All fields of explanation_spec are optional in the request. If a field of explanation_spec is not populated, the value of the same field of Model.explanation_spec is inherited. If the corresponding Model.explanation_spec is not populated, all fields of the explanation_spec will be used for the explanation configuration.",
+      ).optional(),
       fasterDeploymentConfig: z.object({
         fastTryoutEnabled: z.boolean().describe(
           "If true, enable fast tryout feature for this deployed model.",
@@ -972,7 +999,7 @@ const InputsSchema = z.object({
           "Output only. The name of the service attachment resource. Populated if private service connect is enabled.",
         ).optional(),
       }).describe(
-        "PrivateEndpoints proto is used to provide paths for users to send requests privately. To send request via private service access, use predict_http_uri, explain_http_uri or health_http_uri. To send request via private service connect, use service_attachment.",
+        "Output only. Provide paths for users to send predict/explain/health requests directly to the deployed model services running on Cloud via private services access. This field is populated if network is configured.",
       ).optional(),
       serviceAccount: z.string().describe(
         "The service account that the DeployedModel's container runs as. Specify the email address of the service account. If this service account is not specified, the container runs as a service account that doesn't have access to the resource project. Users deploying the Model must have the `iam.serviceAccounts.actAs` permission on this service account.",
@@ -985,20 +1012,17 @@ const InputsSchema = z.object({
           draftModel: z.unknown().describe(
             "Required. The resource name of the draft model.",
           ).optional(),
-        }).describe(
-          "Draft model speculation works by using the smaller model to generate candidate tokens for speculative decoding.",
-        ).optional(),
+        }).describe("draft model speculation.").optional(),
         ngramSpeculation: z.object({
           ngramSize: z.unknown().describe(
             "The number of last N input tokens used as ngram to search/match against the previous prompt sequence. This is equal to the N in N-Gram. The default value is 3 if not specified.",
           ).optional(),
-        }).describe(
-          "N-Gram speculation works by trying to find matching tokens in the previous prompt sequence and use those as speculation for generating new tokens.",
-        ).optional(),
+        }).describe("N-Gram speculation.").optional(),
         speculativeTokenCount: z.number().int().describe(
           "The number of speculative tokens to generate at each step.",
         ).optional(),
-      }).describe("Configuration for Speculative Decoding.").optional(),
+      }).describe("Optional. Spec for configuring speculative decoding.")
+        .optional(),
       status: z.object({
         availableReplicaCount: z.number().int().describe(
           "Output only. The number of available replicas of the deployed model.",
@@ -1009,7 +1033,8 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "Output only. The latest deployed model's status message (if any).",
         ).optional(),
-      }).describe("Runtime status of the deployed model.").optional(),
+      }).describe("Output only. Runtime status of the deployed model.")
+        .optional(),
       systemLabels: z.record(z.string(), z.string()).describe(
         "System labels to apply to Model Garden deployments. System labels are managed by Google for internal use only.",
       ).optional(),
@@ -1029,7 +1054,7 @@ const InputsSchema = z.object({
         "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
       ).optional(),
     }).describe(
-      "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+      "Customer-managed encryption key spec for an Endpoint. If set, this Endpoint and all sub-resources of this Endpoint will be secured by this key.",
     ).optional(),
     etag: z.string().describe(
       'Used to perform consistent read-modify-write updates. If not set, a blind "overwrite" update happens.',
@@ -1038,7 +1063,9 @@ const InputsSchema = z.object({
       zone: z.string().describe(
         "GDC zone. A cluster will be designated for the Vertex AI workload in this zone.",
       ).optional(),
-    }).describe("Google Distributed Cloud (GDC) config.").optional(),
+    }).describe(
+      "Configures the Google Distributed Cloud (GDC) environment for online prediction. Only set this field when the Endpoint is to be deployed in a GDC environment.",
+    ).optional(),
     genAiAdvancedFeaturesConfig: z.object({
       ragConfig: z.object({
         enableRag: z.boolean().describe(
@@ -1046,7 +1073,9 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Configuration for Retrieval Augmented Generation feature.")
         .optional(),
-    }).describe("Configuration for GenAiAdvancedFeatures.").optional(),
+    }).describe(
+      "Optional. Configuration for GenAiAdvancedFeatures. If the endpoint is serving GenAI models, advanced features like native RAG integration can be configured. Currently, only Model Garden models are supported.",
+    ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "The labels with user-defined metadata to organize your Endpoints. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
     ).optional(),
@@ -1063,13 +1092,15 @@ const InputsSchema = z.object({
         outputUri: z.string().describe(
           "Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: `bq://projectId` or `bq://projectId.bqDatasetId` or `bq://projectId.bqDatasetId.bqTableId`.",
         ).optional(),
-      }).describe("The BigQuery location for the output content.").optional(),
+      }).describe(
+        "BigQuery table for logging. If only given a project, a new dataset will be created with name `logging__` where will be made BigQuery-dataset-name compatible (e.g. most special characters will become underscores). If no table name is given, a new table will be created with name `request_response_logging`",
+      ).optional(),
       enabled: z.boolean().describe("If logging is enabled or not.").optional(),
       samplingRate: z.number().describe(
         "Percentage of requests to be logged, expressed as a fraction in range(0,1].",
       ).optional(),
     }).describe(
-      "Configuration for logging request-response to a BigQuery table.",
+      "Configures the request-response logging for online prediction.",
     ).optional(),
     privateServiceConnectConfig: z.object({
       enablePrivateServiceConnect: z.boolean().describe(
@@ -1106,8 +1137,9 @@ const InputsSchema = z.object({
       serviceAttachment: z.string().describe(
         "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
       ).optional(),
-    }).describe("Represents configuration for private service connect.")
-      .optional(),
+    }).describe(
+      "Optional. Configuration for private service connect. network and private_service_connect_config are mutually exclusive.",
+    ).optional(),
     satisfiesPzi: z.boolean().describe("Output only. Reserved for future use.")
       .optional(),
     satisfiesPzs: z.boolean().describe("Output only. Reserved for future use.")
@@ -1119,7 +1151,7 @@ const InputsSchema = z.object({
       "Output only. Timestamp when this Endpoint was last updated.",
     ).optional(),
   }).describe(
-    "Models are deployed into it, and afterwards Endpoint is called to obtain predictions and explanations.",
+    "Required. The Endpoint which replaces the resource on the server. Currently we only support updating the `client_connection_config` field, all the other fields' update will be blocked.",
   ).optional(),
   endpointId: z.string().describe(
     "Immutable. The ID to use for endpoint, which will become the final component of the endpoint resource name. If not provided, Vertex AI will generate a value for this ID. If the first character is a letter, this value may be up to 63 characters, and valid characters are `[a-z0-9-]`. The last character must be a letter or number. If the first character is a number, this value may be up to 9 characters, and valid characters are `[0-9]` with no leading zeros. When using HTTP/JSON, this field is populated based on a query string argument, such as `?endpoint_id=12345`. This is the fallback for fields that are not included in either the URI or the body.",
@@ -1152,7 +1184,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Endpoints. Registered at `@swamp/gcp/aiplatform/endpoints`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/endpoints",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1291,6 +1323,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

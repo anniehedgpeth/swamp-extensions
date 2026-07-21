@@ -198,93 +198,9 @@ const GlobalArgsSchema = z.object({
       "Optional. Display name of the review author.",
     ).optional(),
     title: z.string().describe("Optional. The title of the review.").optional(),
-  }).describe("Attributes.").optional(),
+  }).describe("Optional. A list of merchant review attributes.").optional(),
   merchantReviewId: z.string().describe(
     "Required. The user provided merchant review ID to uniquely identify the merchant review.",
-  ).optional(),
-  merchantReviewStatus: z.object({
-    createTime: z.string().describe(
-      "Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-    destinationStatuses: z.array(z.object({
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The name of the reporting context.").optional(),
-    })).describe(
-      "Output only. The intended destinations for the merchant review.",
-    ).optional(),
-    itemLevelIssues: z.array(z.object({
-      attribute: z.string().describe(
-        "Output only. The attribute's name, if the issue is caused by a single attribute.",
-      ).optional(),
-      code: z.string().describe("Output only. The error code of the issue.")
-        .optional(),
-      description: z.string().describe(
-        "Output only. A short issue description in English.",
-      ).optional(),
-      detail: z.string().describe(
-        "Output only. A detailed issue description in English.",
-      ).optional(),
-      documentation: z.string().describe(
-        "Output only. The URL of a web page to help with resolving this issue.",
-      ).optional(),
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The reporting context the issue applies to.")
-        .optional(),
-      resolution: z.string().describe(
-        "Output only. Whether the issue can be resolved by the merchant.",
-      ).optional(),
-      severity: z.enum(["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"])
-        .describe(
-          "Output only. How this issue affects serving of the merchant review.",
-        ).optional(),
-    })).describe(
-      "Output only. A list of all issues associated with the merchant review.",
-    ).optional(),
-    lastUpdateTime: z.string().describe(
-      "Output only. Date on which the item has been last updated, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-  }).describe(
-    "The status of a merchant review, data validation issues, that is, information about a merchant review computed asynchronously.",
   ).optional(),
   name: z.string().describe(
     'Identifier. The name of the merchant review. Format: `"{merchantreview.name=accounts/{account}/merchantReviews/{merchantReview}}"`',
@@ -408,93 +324,9 @@ const InputsSchema = z.object({
       "Optional. Display name of the review author.",
     ).optional(),
     title: z.string().describe("Optional. The title of the review.").optional(),
-  }).describe("Attributes.").optional(),
+  }).describe("Optional. A list of merchant review attributes.").optional(),
   merchantReviewId: z.string().describe(
     "Required. The user provided merchant review ID to uniquely identify the merchant review.",
-  ).optional(),
-  merchantReviewStatus: z.object({
-    createTime: z.string().describe(
-      "Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-    destinationStatuses: z.array(z.object({
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The name of the reporting context.").optional(),
-    })).describe(
-      "Output only. The intended destinations for the merchant review.",
-    ).optional(),
-    itemLevelIssues: z.array(z.object({
-      attribute: z.string().describe(
-        "Output only. The attribute's name, if the issue is caused by a single attribute.",
-      ).optional(),
-      code: z.string().describe("Output only. The error code of the issue.")
-        .optional(),
-      description: z.string().describe(
-        "Output only. A short issue description in English.",
-      ).optional(),
-      detail: z.string().describe(
-        "Output only. A detailed issue description in English.",
-      ).optional(),
-      documentation: z.string().describe(
-        "Output only. The URL of a web page to help with resolving this issue.",
-      ).optional(),
-      reportingContext: z.enum([
-        "REPORTING_CONTEXT_ENUM_UNSPECIFIED",
-        "SHOPPING_ADS",
-        "DISCOVERY_ADS",
-        "DEMAND_GEN_ADS",
-        "DEMAND_GEN_ADS_DISCOVER_SURFACE",
-        "VIDEO_ADS",
-        "DISPLAY_ADS",
-        "LOCAL_INVENTORY_ADS",
-        "VEHICLE_INVENTORY_ADS",
-        "FREE_LISTINGS",
-        "FREE_LISTINGS_UCP_CHECKOUT",
-        "FREE_LOCAL_LISTINGS",
-        "FREE_LOCAL_VEHICLE_LISTINGS",
-        "YOUTUBE_AFFILIATE",
-        "YOUTUBE_SHOPPING",
-        "CLOUD_RETAIL",
-        "LOCAL_CLOUD_RETAIL",
-        "PRODUCT_REVIEWS",
-        "MERCHANT_REVIEWS",
-        "YOUTUBE_CHECKOUT",
-      ]).describe("Output only. The reporting context the issue applies to.")
-        .optional(),
-      resolution: z.string().describe(
-        "Output only. Whether the issue can be resolved by the merchant.",
-      ).optional(),
-      severity: z.enum(["SEVERITY_UNSPECIFIED", "NOT_IMPACTED", "DISAPPROVED"])
-        .describe(
-          "Output only. How this issue affects serving of the merchant review.",
-        ).optional(),
-    })).describe(
-      "Output only. A list of all issues associated with the merchant review.",
-    ).optional(),
-    lastUpdateTime: z.string().describe(
-      "Output only. Date on which the item has been last updated, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.",
-    ).optional(),
-  }).describe(
-    "The status of a merchant review, data validation issues, that is, information about a merchant review computed asynchronously.",
   ).optional(),
   name: z.string().describe(
     'Identifier. The name of the merchant review. Format: `"{merchantreview.name=accounts/{account}/merchantReviews/{merchantReview}}"`',
@@ -527,7 +359,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.MerchantReviews. Registered at `@swamp/gcp/merchantapi/accounts-merchantreviews`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-merchantreviews",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -629,6 +461,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: merchantReviewStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { merchantReviewStatus: _merchantReviewStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -660,9 +500,6 @@ export const model = {
         }
         if (g["merchantReviewId"] !== undefined) {
           body["merchantReviewId"] = g["merchantReviewId"];
-        }
-        if (g["merchantReviewStatus"] !== undefined) {
-          body["merchantReviewStatus"] = g["merchantReviewStatus"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {

@@ -218,13 +218,15 @@ const GlobalArgsSchema = z.object({
         "Optional. A list of cluster-scoped resource group kinds to restore from the backup. If specified, only the selected resources will be restored. Mutually exclusive to any other field in the message.",
       ).optional(),
     }).describe(
-      'Defines the scope of cluster-scoped resources to restore. Some group kinds are not reasonable choices for a restore, and will cause an error if selected here. Any scope selection that would restore "all valid" resources automatically excludes these group kinds. - Node - ComponentStatus - gkebackup.gke.io/BackupJob - gkebackup.gke.io/RestoreJob - metrics.k8s.io/NodeMetrics - migration.k8s.io/StorageState - migration.k8s.io/StorageVersionMigration - snapshot.storage.k8s.io/VolumeSnapshotContent - storage.k8s.io/CSINode - storage.k8s.io/VolumeAttachment Some group kinds are driven by restore configuration elsewhere, and will cause an error if selected here. - Namespace - PersistentVolume',
+      "Optional. Identifies the cluster-scoped resources to restore from the Backup. Not specifying it means NO cluster resource will be restored.",
     ).optional(),
     excludedNamespaces: z.object({
       namespaces: z.array(z.string()).describe(
         "Optional. A list of Kubernetes Namespaces.",
       ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
+    }).describe(
+      "A list of selected namespaces excluded from restoration. All namespaces except those in this list will be restored.",
+    ).optional(),
     namespacedResourceRestoreMode: z.enum([
       "NAMESPACED_RESOURCE_RESTORE_MODE_UNSPECIFIED",
       "DELETE_AND_RESTORE",
@@ -248,7 +250,7 @@ const GlobalArgsSchema = z.object({
             'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
           ).optional(),
         }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+          "Required. The requiring group kind requires that the other group kind be restored first.",
         ).optional(),
         satisfying: z.object({
           resourceGroup: z.unknown().describe(
@@ -258,13 +260,13 @@ const GlobalArgsSchema = z.object({
             'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
           ).optional(),
         }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+          "Required. The satisfying group kind must be restored first in order to satisfy the dependency.",
         ).optional(),
       })).describe(
         "Optional. Contains a list of group kind dependency pairs provided by the customer, that is used by Backup for GKE to generate a group kind restore order.",
       ).optional(),
     }).describe(
-      "Allows customers to specify dependencies between resources that Backup for GKE can use to compute a resasonable restore order.",
+      "Optional. RestoreOrder contains custom ordering to use on a Restore.",
     ).optional(),
     selectedApplications: z.object({
       namespacedNames: z.array(z.object({
@@ -276,12 +278,16 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("Optional. A list of namespaced Kubernetes resources.")
         .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
+    }).describe(
+      "A list of selected ProtectedApplications to restore. The listed ProtectedApplications and all the resources to which they refer will be restored.",
+    ).optional(),
     selectedNamespaces: z.object({
       namespaces: z.array(z.string()).describe(
         "Optional. A list of Kubernetes Namespaces.",
       ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
+    }).describe(
+      "A list of selected Namespaces to restore from the Backup. The listed Namespaces and all resources contained in them will be restored.",
+    ).optional(),
     substitutionRules: z.array(z.object({
       newValue: z.string().describe(
         'Optional. This is the new value to set for any fields that pass the filtering and selection criteria. To remove a value from a Kubernetes resource, either leave this field unspecified, or set it to the empty string ("").',
@@ -339,7 +345,7 @@ const GlobalArgsSchema = z.object({
           "Optional. (Filtering parameter) Any resource subject to transformation must be contained within one of the listed Kubernetes Namespace in the Backup. If this field is not provided, no namespace filtering will be performed (all resources in all Namespaces, including all cluster-scoped resources, will be candidates for transformation).",
         ).optional(),
       }).describe(
-        "ResourceFilter specifies matching criteria to limit the scope of a change to a specific set of kubernetes resources that are selected for restoration from a backup.",
+        "Optional. This field is used to specify a set of fields that should be used to determine which resources in backup should be acted upon by the supplied transformation rule actions, and this will ensure that only specific resources are affected by transformation rule actions.",
       ).optional(),
     })).describe(
       "Optional. A list of transformation rules to be applied against Kubernetes resources as they are selected for restoration from a Backup. Rules are executed in order defined - this order matters, as changes made by a rule may impact the filtering logic of subsequent rules. An empty list means no transformation will occur.",
@@ -368,7 +374,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. A table that binds volumes by their scope to a restore policy. Bindings must have a unique scope. Any volumes not scoped in the bindings are subject to the policy defined in volume_data_restore_policy.",
     ).optional(),
-  }).describe("Configuration of a restore.").optional(),
+  }).describe(
+    "Required. Configuration of Restores created via this RestorePlan.",
+  ).optional(),
   restorePlanId: z.string().describe(
     "Required. The client-provided short name for the RestorePlan resource. This name must: - be between 1 and 63 characters long (inclusive) - consist of only lower-case ASCII letters, numbers, and dashes - start with a lower-case letter - end with a lower-case letter or number - be unique within the set of RestorePlans in this location",
   ).optional(),
@@ -522,13 +530,15 @@ const InputsSchema = z.object({
         "Optional. A list of cluster-scoped resource group kinds to restore from the backup. If specified, only the selected resources will be restored. Mutually exclusive to any other field in the message.",
       ).optional(),
     }).describe(
-      'Defines the scope of cluster-scoped resources to restore. Some group kinds are not reasonable choices for a restore, and will cause an error if selected here. Any scope selection that would restore "all valid" resources automatically excludes these group kinds. - Node - ComponentStatus - gkebackup.gke.io/BackupJob - gkebackup.gke.io/RestoreJob - metrics.k8s.io/NodeMetrics - migration.k8s.io/StorageState - migration.k8s.io/StorageVersionMigration - snapshot.storage.k8s.io/VolumeSnapshotContent - storage.k8s.io/CSINode - storage.k8s.io/VolumeAttachment Some group kinds are driven by restore configuration elsewhere, and will cause an error if selected here. - Namespace - PersistentVolume',
+      "Optional. Identifies the cluster-scoped resources to restore from the Backup. Not specifying it means NO cluster resource will be restored.",
     ).optional(),
     excludedNamespaces: z.object({
       namespaces: z.array(z.string()).describe(
         "Optional. A list of Kubernetes Namespaces.",
       ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
+    }).describe(
+      "A list of selected namespaces excluded from restoration. All namespaces except those in this list will be restored.",
+    ).optional(),
     namespacedResourceRestoreMode: z.enum([
       "NAMESPACED_RESOURCE_RESTORE_MODE_UNSPECIFIED",
       "DELETE_AND_RESTORE",
@@ -552,7 +562,7 @@ const InputsSchema = z.object({
             'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
           ).optional(),
         }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+          "Required. The requiring group kind requires that the other group kind be restored first.",
         ).optional(),
         satisfying: z.object({
           resourceGroup: z.unknown().describe(
@@ -562,13 +572,13 @@ const InputsSchema = z.object({
             'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
           ).optional(),
         }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+          "Required. The satisfying group kind must be restored first in order to satisfy the dependency.",
         ).optional(),
       })).describe(
         "Optional. Contains a list of group kind dependency pairs provided by the customer, that is used by Backup for GKE to generate a group kind restore order.",
       ).optional(),
     }).describe(
-      "Allows customers to specify dependencies between resources that Backup for GKE can use to compute a resasonable restore order.",
+      "Optional. RestoreOrder contains custom ordering to use on a Restore.",
     ).optional(),
     selectedApplications: z.object({
       namespacedNames: z.array(z.object({
@@ -580,12 +590,16 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("Optional. A list of namespaced Kubernetes resources.")
         .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
+    }).describe(
+      "A list of selected ProtectedApplications to restore. The listed ProtectedApplications and all the resources to which they refer will be restored.",
+    ).optional(),
     selectedNamespaces: z.object({
       namespaces: z.array(z.string()).describe(
         "Optional. A list of Kubernetes Namespaces.",
       ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
+    }).describe(
+      "A list of selected Namespaces to restore from the Backup. The listed Namespaces and all resources contained in them will be restored.",
+    ).optional(),
     substitutionRules: z.array(z.object({
       newValue: z.string().describe(
         'Optional. This is the new value to set for any fields that pass the filtering and selection criteria. To remove a value from a Kubernetes resource, either leave this field unspecified, or set it to the empty string ("").',
@@ -643,7 +657,7 @@ const InputsSchema = z.object({
           "Optional. (Filtering parameter) Any resource subject to transformation must be contained within one of the listed Kubernetes Namespace in the Backup. If this field is not provided, no namespace filtering will be performed (all resources in all Namespaces, including all cluster-scoped resources, will be candidates for transformation).",
         ).optional(),
       }).describe(
-        "ResourceFilter specifies matching criteria to limit the scope of a change to a specific set of kubernetes resources that are selected for restoration from a backup.",
+        "Optional. This field is used to specify a set of fields that should be used to determine which resources in backup should be acted upon by the supplied transformation rule actions, and this will ensure that only specific resources are affected by transformation rule actions.",
       ).optional(),
     })).describe(
       "Optional. A list of transformation rules to be applied against Kubernetes resources as they are selected for restoration from a Backup. Rules are executed in order defined - this order matters, as changes made by a rule may impact the filtering logic of subsequent rules. An empty list means no transformation will occur.",
@@ -672,7 +686,9 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. A table that binds volumes by their scope to a restore policy. Bindings must have a unique scope. Any volumes not scoped in the bindings are subject to the policy defined in volume_data_restore_policy.",
     ).optional(),
-  }).describe("Configuration of a restore.").optional(),
+  }).describe(
+    "Required. Configuration of Restores created via this RestorePlan.",
+  ).optional(),
   restorePlanId: z.string().describe(
     "Required. The client-provided short name for the RestorePlan resource. This name must: - be between 1 and 63 characters long (inclusive) - consist of only lower-case ASCII letters, numbers, and dashes - start with a lower-case letter - end with a lower-case letter or number - be unique within the set of RestorePlans in this location",
   ).optional(),
@@ -704,7 +720,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup for GKE RestorePlans. Registered at `@swamp/gcp/gkebackup/restoreplans`. */
 export const model = {
   type: "@swamp/gcp/gkebackup/restoreplans",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -816,6 +832,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -876,16 +897,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

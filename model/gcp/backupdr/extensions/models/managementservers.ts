@@ -154,14 +154,6 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Resource labels to represent user provided metadata. Labels currently defined: 1. migrate_from_go= If set to true, the MS is created in migration ready mode.",
   ).optional(),
-  managementUri: z.object({
-    api: z.string().describe(
-      "Output only. The ManagementServer AGM/RD API URL.",
-    ).optional(),
-    webUi: z.string().describe(
-      "Output only. The ManagementServer AGM/RD WebUI URL.",
-    ).optional(),
-  }).describe("ManagementURI for the Management Server resource.").optional(),
   networks: z.array(z.object({
     network: z.string().describe(
       "Optional. The resource name of the Google Compute Engine VPC network to which the ManagementServer instance is connected.",
@@ -175,26 +167,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   type: z.enum(["INSTANCE_TYPE_UNSPECIFIED", "BACKUP_RESTORE"]).describe(
     "Optional. The type of the ManagementServer resource.",
-  ).optional(),
-  workforceIdentityBasedManagementUri: z.object({
-    firstPartyManagementUri: z.string().describe(
-      "Output only. First party Management URI for Google Identities.",
-    ).optional(),
-    thirdPartyManagementUri: z.string().describe(
-      "Output only. Third party Management URI for External Identity Providers.",
-    ).optional(),
-  }).describe(
-    "ManagementURI depending on the Workforce Identity i.e. either 1p or 3p.",
-  ).optional(),
-  workforceIdentityBasedOauth2ClientId: z.object({
-    firstPartyOauth2ClientId: z.string().describe(
-      "Output only. First party OAuth Client ID for Google Identities.",
-    ).optional(),
-    thirdPartyOauth2ClientId: z.string().describe(
-      "Output only. Third party OAuth Client ID for External Identity Providers.",
-    ).optional(),
-  }).describe(
-    "OAuth Client ID depending on the Workforce Identity i.e. either 1p or 3p,",
   ).optional(),
   managementServerId: z.string().describe(
     "Required. The name of the management server to create. The name must be unique for the specified project and location.",
@@ -252,14 +224,6 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Resource labels to represent user provided metadata. Labels currently defined: 1. migrate_from_go= If set to true, the MS is created in migration ready mode.",
   ).optional(),
-  managementUri: z.object({
-    api: z.string().describe(
-      "Output only. The ManagementServer AGM/RD API URL.",
-    ).optional(),
-    webUi: z.string().describe(
-      "Output only. The ManagementServer AGM/RD WebUI URL.",
-    ).optional(),
-  }).describe("ManagementURI for the Management Server resource.").optional(),
   networks: z.array(z.object({
     network: z.string().describe(
       "Optional. The resource name of the Google Compute Engine VPC network to which the ManagementServer instance is connected.",
@@ -273,26 +237,6 @@ const InputsSchema = z.object({
   ).optional(),
   type: z.enum(["INSTANCE_TYPE_UNSPECIFIED", "BACKUP_RESTORE"]).describe(
     "Optional. The type of the ManagementServer resource.",
-  ).optional(),
-  workforceIdentityBasedManagementUri: z.object({
-    firstPartyManagementUri: z.string().describe(
-      "Output only. First party Management URI for Google Identities.",
-    ).optional(),
-    thirdPartyManagementUri: z.string().describe(
-      "Output only. Third party Management URI for External Identity Providers.",
-    ).optional(),
-  }).describe(
-    "ManagementURI depending on the Workforce Identity i.e. either 1p or 3p.",
-  ).optional(),
-  workforceIdentityBasedOauth2ClientId: z.object({
-    firstPartyOauth2ClientId: z.string().describe(
-      "Output only. First party OAuth Client ID for Google Identities.",
-    ).optional(),
-    thirdPartyOauth2ClientId: z.string().describe(
-      "Output only. Third party OAuth Client ID for External Identity Providers.",
-    ).optional(),
-  }).describe(
-    "OAuth Client ID depending on the Workforce Identity i.e. either 1p or 3p,",
   ).optional(),
   managementServerId: z.string().describe(
     "Required. The name of the management server to create. The name must be unique for the specified project and location.",
@@ -328,7 +272,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service ManagementServers. Registered at `@swamp/gcp/backupdr/managementservers`. */
 export const model = {
   type: "@swamp/gcp/backupdr/managementservers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -430,6 +374,22 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: managementUri, workforceIdentityBasedManagementUri, workforceIdentityBasedOauth2ClientId",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          managementUri: _managementUri,
+          workforceIdentityBasedManagementUri:
+            _workforceIdentityBasedManagementUri,
+          workforceIdentityBasedOauth2ClientId:
+            _workforceIdentityBasedOauth2ClientId,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -463,19 +423,8 @@ export const model = {
           body["description"] = g["description"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["managementUri"] !== undefined) {
-          body["managementUri"] = g["managementUri"];
-        }
         if (g["networks"] !== undefined) body["networks"] = g["networks"];
         if (g["type"] !== undefined) body["type"] = g["type"];
-        if (g["workforceIdentityBasedManagementUri"] !== undefined) {
-          body["workforceIdentityBasedManagementUri"] =
-            g["workforceIdentityBasedManagementUri"];
-        }
-        if (g["workforceIdentityBasedOauth2ClientId"] !== undefined) {
-          body["workforceIdentityBasedOauth2ClientId"] =
-            g["workforceIdentityBasedOauth2ClientId"];
-        }
         if (g["managementServerId"] !== undefined) {
           params["managementServerId"] = String(g["managementServerId"]);
         }
@@ -501,16 +450,7 @@ export const model = {
               "failedValues": ["ERROR"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

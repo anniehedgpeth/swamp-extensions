@@ -254,7 +254,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   allowOnYoutube: z.boolean().describe(
     "Optional. Whether the placement is enabled for YouTube integration.",
   ).optional(),
@@ -279,7 +281,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   comment: z.string().describe("Comments for this placement.").optional(),
   compatibility: z.enum([
     "DISPLAY",
@@ -299,12 +303,15 @@ const GlobalArgsSchema = z.object({
       conversionDomainId: z.string().optional(),
       conversionDomainValue: z.string().optional(),
     })).optional(),
-  }).optional(),
+  }).describe("Optional. Conversion domain overrides for a placement.")
+    .optional(),
   createInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this placement. This is a read-only field.",
+  ).optional(),
   directorySiteId: z.string().describe(
     "Directory site ID of this placement. On insert, you must set either this field or the siteId field to specify the site associated with this placement. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -326,7 +333,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the directory site. This is a read-only, auto-generated field.",
+  ).optional(),
   externalId: z.string().describe("External ID for this placement.").optional(),
   id: z.string().describe(
     "ID of this placement. This is a read-only, auto-generated field.",
@@ -349,7 +358,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this placement. This is a read-only, auto-generated field.",
+  ).optional(),
   keyName: z.string().describe(
     "Key name of this placement. This is a read-only, auto-generated field.",
   ).optional(),
@@ -357,7 +368,9 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this placement. This is a read-only field.",
+  ).optional(),
   lookbackConfiguration: z.object({
     clickDuration: z.number().int().describe(
       "Lookback window, in days, from the last time a given user clicked on one of your ads. If you enter 0, clicks will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.",
@@ -365,7 +378,7 @@ const GlobalArgsSchema = z.object({
     postImpressionActivitiesDuration: z.number().int().describe(
       "Lookback window, in days, from the last time a given user viewed one of your ads. If you enter 0, impressions will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.",
     ).optional(),
-  }).describe("Lookback configuration settings.").optional(),
+  }).describe("Lookback window settings for this placement.").optional(),
   name: z.string().describe(
     "Name of this placement.This is a required field and must be less than or equal to 512 characters long.",
   ).optional(),
@@ -405,7 +418,8 @@ const GlobalArgsSchema = z.object({
     wrappedTag: z.string().describe(
       "Tag provided by the measurement partner during wrapping.",
     ).optional(),
-  }).describe("Placement tag wrapping").optional(),
+  }).describe("Measurement partner provided settings for a wrapped placement.")
+    .optional(),
   paymentApproved: z.boolean().describe(
     "Whether payment was approved for this placement. This is a read-only field relevant only to publisher-paid placements.",
   ).optional(),
@@ -434,7 +448,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the placement group. This is a read-only, auto-generated field.",
+  ).optional(),
   placementStrategyId: z.string().describe(
     "ID of the placement strategy assigned to this placement.",
   ).optional(),
@@ -474,7 +490,9 @@ const GlobalArgsSchema = z.object({
       .optional(),
     startDate: z.string().optional(),
     testingStartDate: z.string().optional(),
-  }).describe("Pricing Schedule").optional(),
+  }).describe(
+    "Pricing schedule of this placement. This field is required on insertion, specifically subfields startDate, endDate and pricingType.",
+  ).optional(),
   primary: z.boolean().describe(
     "Whether this placement is the primary placement of a roadblock (placement group). You cannot change this field from true to false. Setting this field to true will automatically set the primary field on the original primary placement of the roadblock to false, and it will automatically set the roadblock's primaryPlacementId field to the ID of this placement.",
   ).optional(),
@@ -482,7 +500,9 @@ const GlobalArgsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the last publisher update. This is a read-only field.",
+  ).optional(),
   siteId: z.string().describe(
     "Site ID associated with this placement. On insert, you must set either this field or the directorySiteId field to specify the site associated with this placement. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -504,7 +524,9 @@ const GlobalArgsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the site. This is a read-only, auto-generated field.",
+  ).optional(),
   siteServed: z.boolean().describe(
     "Optional. Whether the ads in the placement are served by another platform and CM is only used for tracking or they are served by CM. A false value indicates the ad is served by CM.",
   ).optional(),
@@ -525,7 +547,7 @@ const GlobalArgsSchema = z.object({
       "Width of this size. Acceptable values are 0 to 32767, inclusive.",
     ).optional(),
   }).describe(
-    "Represents the dimensions of ads, placements, creatives, or creative assets.",
+    "Size associated with this placement. When inserting or updating a placement, only the size ID field is used. This field is required on insertion.",
   ).optional(),
   sslRequired: z.boolean().describe(
     "Whether creatives assigned to this placement must be SSL-compliant.",
@@ -587,7 +609,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Option specifying how keywords are embedded in ad tags. This setting can be used to specify whether keyword placeholders are inserted in placement tags for this site. Publishers can then add keywords to those placeholders.",
     ).optional(),
-  }).describe("Tag Settings").optional(),
+  }).describe("Tag settings for this placement.").optional(),
   videoActiveViewOptOut: z.boolean().describe(
     "Whether Verification and ActiveView are disabled for in-stream video creatives for this placement. The same setting videoActiveViewOptOut exists on the site level -- the opt out occurs if either of these settings are true. These settings are distinct from DirectorySites.settings.activeViewOptOut or Sites.siteSettings.activeViewOptOut which only apply to display ads. However, Accounts.activeViewOptOut opts out both video traffic, as well as display ads, from Verification and ActiveView.",
   ).optional(),
@@ -621,7 +643,9 @@ const GlobalArgsSchema = z.object({
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string "dfareporting#companionSetting".',
       ).optional(),
-    }).describe("Companion Settings").optional(),
+    }).describe(
+      "Settings for the companion creatives of video creatives served to this placement.",
+    ).optional(),
     durationSeconds: z.number().int().describe(
       "Duration of a video placement in seconds.",
     ).optional(),
@@ -663,16 +687,16 @@ const GlobalArgsSchema = z.object({
         width: z.number().int().describe(
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
-      }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
-      ).optional(),
+      }).describe("OBA icon size.").optional(),
       xPosition: z.string().describe(
         "OBA icon x coordinate position. Accepted values are left or right.",
       ).optional(),
       yPosition: z.string().describe(
         "OBA icon y coordinate position. Accepted values are top or bottom.",
       ).optional(),
-    }).describe("Online Behavioral Advertiser icon.").optional(),
+    }).describe(
+      "Settings for the OBA icon of video creatives served to this placement. If this object is provided, the creative-level OBA settings will be overridden.",
+    ).optional(),
     orientation: z.enum(["ANY", "LANDSCAPE", "PORTRAIT"]).describe(
       "Orientation of a video placement. If this value is set, placement will return assets matching the specified orientation.",
     ).optional(),
@@ -690,7 +714,9 @@ const GlobalArgsSchema = z.object({
         offsetSeconds: z.number().int().describe(
           "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
         ).optional(),
-      }).describe("Video Offset").optional(),
+      }).describe(
+        "Amount of time to play videos served to this placement before counting a view. Applicable when skippable is true.",
+      ).optional(),
       skipOffset: z.object({
         offsetPercentage: z.number().int().describe(
           "Duration, as a percentage of video duration. Do not set when offsetSeconds is set. Acceptable values are 0 to 100, inclusive.",
@@ -698,11 +724,15 @@ const GlobalArgsSchema = z.object({
         offsetSeconds: z.number().int().describe(
           "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
         ).optional(),
-      }).describe("Video Offset").optional(),
+      }).describe(
+        "Amount of time to play videos served to this placement before the skip button should appear. Applicable when skippable is true.",
+      ).optional(),
       skippable: z.boolean().describe(
         "Whether the user can skip creatives served to this placement.",
       ).optional(),
-    }).describe("Skippable Settings").optional(),
+    }).describe(
+      "Settings for the skippability of video creatives served to this placement. If this object is provided, the creative-level skippable settings will be overridden.",
+    ).optional(),
     transcodeSettings: z.object({
       enabledVideoFormats: z.array(z.number().int()).describe(
         "Allowlist of video formats to be served to this placement. Set this list to null or empty to serve all video formats.",
@@ -710,8 +740,12 @@ const GlobalArgsSchema = z.object({
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string "dfareporting#transcodeSetting".',
       ).optional(),
-    }).describe("Transcode Settings").optional(),
-  }).describe("Video Settings").optional(),
+    }).describe(
+      "Settings for the transcodes of video creatives served to this placement. If this object is provided, the creative-level transcode settings will be overridden.",
+    ).optional(),
+  }).describe(
+    "A collection of settings which affect video creatives served through this placement. Applicable to placements with IN_STREAM_VIDEO compatibility.",
+  ).optional(),
   vpaidAdapterChoice: z.enum(["DEFAULT", "FLASH", "HTML5", "BOTH"]).describe(
     "VPAID adapter setting for this placement. Controls which VPAID format the measurement adapter will use for in-stream video creatives assigned to this placement. *Note:* Flash is no longer supported. This field now defaults to HTML5 when the following values are provided: FLASH, BOTH.",
   ).optional(),
@@ -763,7 +797,9 @@ const GlobalArgsSchema = z.object({
     longHeadlines: z.array(z.string()).describe(
       "Optional. The long headlines. Currently only one long headline is supported.",
     ).optional(),
-  }).describe("Contains the YouTube settings.").optional(),
+  }).describe(
+    "Optional. YouTube settings for the placement. The placement must be enabled for YouTube to use this field.",
+  ).optional(),
   profileId: z.string().describe(
     "User profile ID associated with this request.",
   ),
@@ -1036,7 +1072,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the advertiser. This is a read-only, auto-generated field.",
+  ).optional(),
   allowOnYoutube: z.boolean().describe(
     "Optional. Whether the placement is enabled for YouTube integration.",
   ).optional(),
@@ -1061,7 +1099,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the campaign. This is a read-only, auto-generated field.",
+  ).optional(),
   comment: z.string().describe("Comments for this placement.").optional(),
   compatibility: z.enum([
     "DISPLAY",
@@ -1081,12 +1121,15 @@ const InputsSchema = z.object({
       conversionDomainId: z.string().optional(),
       conversionDomainValue: z.string().optional(),
     })).optional(),
-  }).optional(),
+  }).describe("Optional. Conversion domain overrides for a placement.")
+    .optional(),
   createInfo: z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the creation of this placement. This is a read-only field.",
+  ).optional(),
   directorySiteId: z.string().describe(
     "Directory site ID of this placement. On insert, you must set either this field or the siteId field to specify the site associated with this placement. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -1108,7 +1151,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the directory site. This is a read-only, auto-generated field.",
+  ).optional(),
   externalId: z.string().describe("External ID for this placement.").optional(),
   id: z.string().describe(
     "ID of this placement. This is a read-only, auto-generated field.",
@@ -1131,7 +1176,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of this placement. This is a read-only, auto-generated field.",
+  ).optional(),
   keyName: z.string().describe(
     "Key name of this placement. This is a read-only, auto-generated field.",
   ).optional(),
@@ -1139,7 +1186,9 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the most recent modification of this placement. This is a read-only field.",
+  ).optional(),
   lookbackConfiguration: z.object({
     clickDuration: z.number().int().describe(
       "Lookback window, in days, from the last time a given user clicked on one of your ads. If you enter 0, clicks will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.",
@@ -1147,7 +1196,7 @@ const InputsSchema = z.object({
     postImpressionActivitiesDuration: z.number().int().describe(
       "Lookback window, in days, from the last time a given user viewed one of your ads. If you enter 0, impressions will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.",
     ).optional(),
-  }).describe("Lookback configuration settings.").optional(),
+  }).describe("Lookback window settings for this placement.").optional(),
   name: z.string().describe(
     "Name of this placement.This is a required field and must be less than or equal to 512 characters long.",
   ).optional(),
@@ -1187,7 +1236,8 @@ const InputsSchema = z.object({
     wrappedTag: z.string().describe(
       "Tag provided by the measurement partner during wrapping.",
     ).optional(),
-  }).describe("Placement tag wrapping").optional(),
+  }).describe("Measurement partner provided settings for a wrapped placement.")
+    .optional(),
   paymentApproved: z.boolean().describe(
     "Whether payment was approved for this placement. This is a read-only field relevant only to publisher-paid placements.",
   ).optional(),
@@ -1216,7 +1266,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the placement group. This is a read-only, auto-generated field.",
+  ).optional(),
   placementStrategyId: z.string().describe(
     "ID of the placement strategy assigned to this placement.",
   ).optional(),
@@ -1256,7 +1308,9 @@ const InputsSchema = z.object({
       .optional(),
     startDate: z.string().optional(),
     testingStartDate: z.string().optional(),
-  }).describe("Pricing Schedule").optional(),
+  }).describe(
+    "Pricing schedule of this placement. This field is required on insertion, specifically subfields startDate, endDate and pricingType.",
+  ).optional(),
   primary: z.boolean().describe(
     "Whether this placement is the primary placement of a roadblock (placement group). You cannot change this field from true to false. Setting this field to true will automatically set the primary field on the original primary placement of the roadblock to false, and it will automatically set the roadblock's primaryPlacementId field to the ID of this placement.",
   ).optional(),
@@ -1264,7 +1318,9 @@ const InputsSchema = z.object({
     time: z.string().describe(
       "Timestamp of the last change in milliseconds since epoch.",
     ).optional(),
-  }).describe("Modification timestamp.").optional(),
+  }).describe(
+    "Information about the last publisher update. This is a read-only field.",
+  ).optional(),
   siteId: z.string().describe(
     "Site ID associated with this placement. On insert, you must set either this field or the directorySiteId field to specify the site associated with this placement. This is a required field that is read-only after insertion.",
   ).optional(),
@@ -1286,7 +1342,9 @@ const InputsSchema = z.object({
       "Determines how the 'value' field is matched when filtering. If not specified, defaults to EXACT. If set to WILDCARD_EXPRESSION, '*' is allowed as a placeholder for variable length character sequences, and it can be escaped with a backslash. Note, only paid search dimensions ('dfa:paidSearch*') allow a matchType other than EXACT.",
     ).optional(),
     value: z.string().describe("The value of the dimension.").optional(),
-  }).describe("Represents a DimensionValue resource.").optional(),
+  }).describe(
+    "Dimension value for the ID of the site. This is a read-only, auto-generated field.",
+  ).optional(),
   siteServed: z.boolean().describe(
     "Optional. Whether the ads in the placement are served by another platform and CM is only used for tracking or they are served by CM. A false value indicates the ad is served by CM.",
   ).optional(),
@@ -1307,7 +1365,7 @@ const InputsSchema = z.object({
       "Width of this size. Acceptable values are 0 to 32767, inclusive.",
     ).optional(),
   }).describe(
-    "Represents the dimensions of ads, placements, creatives, or creative assets.",
+    "Size associated with this placement. When inserting or updating a placement, only the size ID field is used. This field is required on insertion.",
   ).optional(),
   sslRequired: z.boolean().describe(
     "Whether creatives assigned to this placement must be SSL-compliant.",
@@ -1369,7 +1427,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Option specifying how keywords are embedded in ad tags. This setting can be used to specify whether keyword placeholders are inserted in placement tags for this site. Publishers can then add keywords to those placeholders.",
     ).optional(),
-  }).describe("Tag Settings").optional(),
+  }).describe("Tag settings for this placement.").optional(),
   videoActiveViewOptOut: z.boolean().describe(
     "Whether Verification and ActiveView are disabled for in-stream video creatives for this placement. The same setting videoActiveViewOptOut exists on the site level -- the opt out occurs if either of these settings are true. These settings are distinct from DirectorySites.settings.activeViewOptOut or Sites.siteSettings.activeViewOptOut which only apply to display ads. However, Accounts.activeViewOptOut opts out both video traffic, as well as display ads, from Verification and ActiveView.",
   ).optional(),
@@ -1403,7 +1461,9 @@ const InputsSchema = z.object({
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string "dfareporting#companionSetting".',
       ).optional(),
-    }).describe("Companion Settings").optional(),
+    }).describe(
+      "Settings for the companion creatives of video creatives served to this placement.",
+    ).optional(),
     durationSeconds: z.number().int().describe(
       "Duration of a video placement in seconds.",
     ).optional(),
@@ -1445,16 +1505,16 @@ const InputsSchema = z.object({
         width: z.number().int().describe(
           "Width of this size. Acceptable values are 0 to 32767, inclusive.",
         ).optional(),
-      }).describe(
-        "Represents the dimensions of ads, placements, creatives, or creative assets.",
-      ).optional(),
+      }).describe("OBA icon size.").optional(),
       xPosition: z.string().describe(
         "OBA icon x coordinate position. Accepted values are left or right.",
       ).optional(),
       yPosition: z.string().describe(
         "OBA icon y coordinate position. Accepted values are top or bottom.",
       ).optional(),
-    }).describe("Online Behavioral Advertiser icon.").optional(),
+    }).describe(
+      "Settings for the OBA icon of video creatives served to this placement. If this object is provided, the creative-level OBA settings will be overridden.",
+    ).optional(),
     orientation: z.enum(["ANY", "LANDSCAPE", "PORTRAIT"]).describe(
       "Orientation of a video placement. If this value is set, placement will return assets matching the specified orientation.",
     ).optional(),
@@ -1472,7 +1532,9 @@ const InputsSchema = z.object({
         offsetSeconds: z.number().int().describe(
           "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
         ).optional(),
-      }).describe("Video Offset").optional(),
+      }).describe(
+        "Amount of time to play videos served to this placement before counting a view. Applicable when skippable is true.",
+      ).optional(),
       skipOffset: z.object({
         offsetPercentage: z.number().int().describe(
           "Duration, as a percentage of video duration. Do not set when offsetSeconds is set. Acceptable values are 0 to 100, inclusive.",
@@ -1480,11 +1542,15 @@ const InputsSchema = z.object({
         offsetSeconds: z.number().int().describe(
           "Duration, in seconds. Do not set when offsetPercentage is set. Acceptable values are 0 to 86399, inclusive.",
         ).optional(),
-      }).describe("Video Offset").optional(),
+      }).describe(
+        "Amount of time to play videos served to this placement before the skip button should appear. Applicable when skippable is true.",
+      ).optional(),
       skippable: z.boolean().describe(
         "Whether the user can skip creatives served to this placement.",
       ).optional(),
-    }).describe("Skippable Settings").optional(),
+    }).describe(
+      "Settings for the skippability of video creatives served to this placement. If this object is provided, the creative-level skippable settings will be overridden.",
+    ).optional(),
     transcodeSettings: z.object({
       enabledVideoFormats: z.array(z.number().int()).describe(
         "Allowlist of video formats to be served to this placement. Set this list to null or empty to serve all video formats.",
@@ -1492,8 +1558,12 @@ const InputsSchema = z.object({
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string "dfareporting#transcodeSetting".',
       ).optional(),
-    }).describe("Transcode Settings").optional(),
-  }).describe("Video Settings").optional(),
+    }).describe(
+      "Settings for the transcodes of video creatives served to this placement. If this object is provided, the creative-level transcode settings will be overridden.",
+    ).optional(),
+  }).describe(
+    "A collection of settings which affect video creatives served through this placement. Applicable to placements with IN_STREAM_VIDEO compatibility.",
+  ).optional(),
   vpaidAdapterChoice: z.enum(["DEFAULT", "FLASH", "HTML5", "BOTH"]).describe(
     "VPAID adapter setting for this placement. Controls which VPAID format the measurement adapter will use for in-stream video creatives assigned to this placement. *Note:* Flash is no longer supported. This field now defaults to HTML5 when the following values are provided: FLASH, BOTH.",
   ).optional(),
@@ -1545,7 +1615,9 @@ const InputsSchema = z.object({
     longHeadlines: z.array(z.string()).describe(
       "Optional. The long headlines. Currently only one long headline is supported.",
     ).optional(),
-  }).describe("Contains the YouTube settings.").optional(),
+  }).describe(
+    "Optional. YouTube settings for the placement. The placement must be enabled for YouTube to use this field.",
+  ).optional(),
   profileId: z.string().describe(
     "User profile ID associated with this request.",
   ).optional(),
@@ -1574,7 +1646,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Placements. Registered at `@swamp/gcp/dfareporting/placements`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/placements",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1663,6 +1735,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

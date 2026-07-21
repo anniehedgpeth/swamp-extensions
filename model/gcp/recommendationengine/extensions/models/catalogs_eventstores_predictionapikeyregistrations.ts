@@ -118,7 +118,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   predictionApiKeyRegistration: z.object({
     apiKey: z.string().describe("The API key.").optional(),
-  }).describe("Registered Api Key.").optional(),
+  }).describe("Required. The prediction API key registration.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -141,7 +141,7 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   predictionApiKeyRegistration: z.object({
     apiKey: z.string().describe("The API key.").optional(),
-  }).describe("Registered Api Key.").optional(),
+  }).describe("Required. The prediction API key registration.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -174,7 +174,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/recommendationengine/catalogs-eventstores-predictionapikeyregistrations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -276,6 +276,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -309,14 +314,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

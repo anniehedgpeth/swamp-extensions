@@ -199,13 +199,13 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "Required. The endpoint of the HTTP GraphQL server.",
       ).optional(),
-    }).describe("Settings for HTTP GraphQL server webhook.").optional(),
+    }).describe("HTTP GraphQL server webhook configurations.").optional(),
     postgresql: z.object({
       cloudSql: z.object({
         instance: z.string().describe(
           "Required. Name of the CloudSQL instance, in the format: ` projects/{project}/locations/{location}/instances/{instance} `",
         ).optional(),
-      }).describe("Settings for CloudSQL instance configuration.").optional(),
+      }).describe("Cloud SQL configurations.").optional(),
       database: z.string().describe(
         "Required. Name of the PostgreSQL database.",
       ).optional(),
@@ -232,7 +232,7 @@ const GlobalArgsSchema = z.object({
       unlinked: z.boolean().describe(
         "No Postgres data source is linked. If set, don't allow `database` and `schema_validation` to be configured.",
       ).optional(),
-    }).describe("Settings for PostgreSQL data source.").optional(),
+    }).describe("PostgreSQL configurations.").optional(),
   })).describe("Required. The data sources linked in the schema.").optional(),
   displayName: z.string().describe(
     "Optional. Mutable human-readable name. 63 character limit.",
@@ -252,7 +252,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Required. The files that comprise the source set.")
       .optional(),
-  }).describe("Used to represent a set of source files.").optional(),
+  }).describe(
+    "Required. The source files that comprise the application schema.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -320,13 +322,13 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "Required. The endpoint of the HTTP GraphQL server.",
       ).optional(),
-    }).describe("Settings for HTTP GraphQL server webhook.").optional(),
+    }).describe("HTTP GraphQL server webhook configurations.").optional(),
     postgresql: z.object({
       cloudSql: z.object({
         instance: z.string().describe(
           "Required. Name of the CloudSQL instance, in the format: ` projects/{project}/locations/{location}/instances/{instance} `",
         ).optional(),
-      }).describe("Settings for CloudSQL instance configuration.").optional(),
+      }).describe("Cloud SQL configurations.").optional(),
       database: z.string().describe(
         "Required. Name of the PostgreSQL database.",
       ).optional(),
@@ -353,7 +355,7 @@ const InputsSchema = z.object({
       unlinked: z.boolean().describe(
         "No Postgres data source is linked. If set, don't allow `database` and `schema_validation` to be configured.",
       ).optional(),
-    }).describe("Settings for PostgreSQL data source.").optional(),
+    }).describe("PostgreSQL configurations.").optional(),
   })).describe("Required. The data sources linked in the schema.").optional(),
   displayName: z.string().describe(
     "Optional. Mutable human-readable name. 63 character limit.",
@@ -373,7 +375,9 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Required. The files that comprise the source set.")
       .optional(),
-  }).describe("Used to represent a set of source files.").optional(),
+  }).describe(
+    "Required. The source files that comprise the application schema.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -411,7 +415,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase SQL Connect Services.Schemas. Registered at `@swamp/gcp/firebasedataconnect/services-schemas`. */
 export const model = {
   type: "@swamp/gcp/firebasedataconnect/services-schemas",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -550,6 +554,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

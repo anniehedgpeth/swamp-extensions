@@ -135,217 +135,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  analysisResult: z.object({
-    callAnalysisMetadata: z.object({
-      annotations: z.array(z.object({
-        annotationEndBoundary: z.object({
-          transcriptIndex: z.unknown().describe(
-            "The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.",
-          ).optional(),
-          wordIndex: z.unknown().describe(
-            "The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.",
-          ).optional(),
-        }).describe(
-          "A point in a conversation that marks the start or the end of an annotation.",
-        ).optional(),
-        annotationStartBoundary: z.object({
-          transcriptIndex: z.unknown().describe(
-            "The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.",
-          ).optional(),
-          wordIndex: z.unknown().describe(
-            "The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.",
-          ).optional(),
-        }).describe(
-          "A point in a conversation that marks the start or the end of an annotation.",
-        ).optional(),
-        channelTag: z.number().int().describe(
-          "The channel of the audio where the annotation occurs. For single-channel audio, this field is not populated.",
-        ).optional(),
-        entityMentionData: z.object({
-          entityUniqueId: z.unknown().describe(
-            "The key of this entity in conversation entities. Can be used to retrieve the exact `Entity` this mention is attached to.",
-          ).optional(),
-          sentiment: z.unknown().describe(
-            "The data for a sentiment annotation.",
-          ).optional(),
-          type: z.unknown().describe("The type of the entity mention.")
-            .optional(),
-        }).describe(
-          "The data for an entity mention annotation. This represents a mention of an `Entity` in the conversation.",
-        ).optional(),
-        holdData: z.object({}).describe("The data for a hold annotation.")
-          .optional(),
-        intentMatchData: z.object({
-          intentUniqueId: z.unknown().describe(
-            "The id of the matched intent. Can be used to retrieve the corresponding intent information.",
-          ).optional(),
-        }).describe(
-          "The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.",
-        ).optional(),
-        interruptionData: z.object({}).describe(
-          "The data for an interruption annotation.",
-        ).optional(),
-        issueMatchData: z.object({
-          issueAssignment: z.unknown().describe("Information about the issue.")
-            .optional(),
-        }).describe("The data for an issue match annotation.").optional(),
-        phraseMatchData: z.object({
-          displayName: z.unknown().describe(
-            "The human-readable name of the phrase matcher.",
-          ).optional(),
-          phraseMatcher: z.unknown().describe(
-            "The unique identifier (the resource name) of the phrase matcher.",
-          ).optional(),
-        }).describe(
-          "The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.",
-        ).optional(),
-        sentimentData: z.object({
-          magnitude: z.unknown().describe(
-            "A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.",
-          ).optional(),
-          score: z.unknown().describe(
-            "The sentiment score between -1.0 (negative) and 1.0 (positive).",
-          ).optional(),
-        }).describe("The data for a sentiment annotation.").optional(),
-        silenceData: z.object({}).describe("The data for a silence annotation.")
-          .optional(),
-      })).describe("A list of call annotations that apply to this call.")
-        .optional(),
-      entities: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            "The representative name for the entity.",
-          ).optional(),
-          metadata: z.record(z.string(), z.unknown()).describe(
-            "Metadata associated with the entity. For most entity types, the metadata is a Wikipedia URL (`wikipedia_url`) and Knowledge Graph MID (`mid`), if they are available. For the metadata associated with other entity types, see the Type table below.",
-          ).optional(),
-          salience: z.number().describe(
-            "The salience score associated with the entity in the [0, 1.0] range. The salience score for an entity provides information about the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.",
-          ).optional(),
-          sentiment: z.object({
-            magnitude: z.unknown().describe(
-              "A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.",
-            ).optional(),
-            score: z.unknown().describe(
-              "The sentiment score between -1.0 (negative) and 1.0 (positive).",
-            ).optional(),
-          }).describe("The data for a sentiment annotation.").optional(),
-          type: z.enum([
-            "TYPE_UNSPECIFIED",
-            "PERSON",
-            "LOCATION",
-            "ORGANIZATION",
-            "EVENT",
-            "WORK_OF_ART",
-            "CONSUMER_GOOD",
-            "OTHER",
-            "PHONE_NUMBER",
-            "ADDRESS",
-            "DATE",
-            "NUMBER",
-            "PRICE",
-          ]).describe("The entity type.").optional(),
-        }),
-      ).describe("All the entities in the call.").optional(),
-      intents: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            "The human-readable name of the intent.",
-          ).optional(),
-          id: z.string().describe("The unique identifier of the intent.")
-            .optional(),
-        }),
-      ).describe("All the matched intents in the call.").optional(),
-      issueModelResult: z.object({
-        issueModel: z.string().describe(
-          "Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}",
-        ).optional(),
-        issues: z.array(z.object({
-          displayName: z.unknown().describe(
-            "Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.",
-          ).optional(),
-          issue: z.unknown().describe("Resource name of the assigned issue.")
-            .optional(),
-          score: z.unknown().describe(
-            "Score indicating the likelihood of the issue assignment. currently bounded on [0,1].",
-          ).optional(),
-        })).describe("All the matched issues.").optional(),
-      }).describe("Issue Modeling result on a conversation.").optional(),
-      phraseMatchers: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            "The human-readable name of the phrase matcher.",
-          ).optional(),
-          phraseMatcher: z.string().describe(
-            "The unique identifier (the resource name) of the phrase matcher.",
-          ).optional(),
-        }),
-      ).describe("All the matched phrase matchers in the call.").optional(),
-      qaScorecardResults: z.array(z.object({
-        agentId: z.string().describe(
-          "ID of the agent that handled the conversation.",
-        ).optional(),
-        conversation: z.string().describe(
-          "The conversation scored by this result.",
-        ).optional(),
-        createTime: z.string().describe(
-          "Output only. The timestamp that the revision was created.",
-        ).optional(),
-        name: z.string().describe(
-          "Identifier. The name of the scorecard result. Format: projects/{project}/locations/{location}/qaScorecardResults/{qa_scorecard_result}",
-        ).optional(),
-        normalizedScore: z.number().describe(
-          "The normalized score, which is the score divided by the potential score. Any manual edits are included if they exist.",
-        ).optional(),
-        potentialScore: z.number().describe(
-          "The maximum potential overall score of the scorecard. Any questions answered using `na_value` are excluded from this calculation.",
-        ).optional(),
-        qaAnswers: z.array(z.unknown()).describe(
-          "Set of QaAnswers represented in the result.",
-        ).optional(),
-        qaScorecardRevision: z.string().describe(
-          "The QaScorecardRevision scored by this result.",
-        ).optional(),
-        qaTagResults: z.array(z.unknown()).describe(
-          "Collection of tags and their scores.",
-        ).optional(),
-        score: z.number().describe(
-          "The overall numerical score of the result, incorporating any manual edits if they exist.",
-        ).optional(),
-        scoreSources: z.array(z.unknown()).describe(
-          "List of all individual score sets.",
-        ).optional(),
-      })).describe("Results of scoring QaScorecards.").optional(),
-      sentiments: z.array(z.object({
-        channelTag: z.number().int().describe(
-          "The channel of the audio that the data applies to.",
-        ).optional(),
-        sentimentData: z.object({
-          magnitude: z.unknown().describe(
-            "A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.",
-          ).optional(),
-          score: z.unknown().describe(
-            "The sentiment score between -1.0 (negative) and 1.0 (positive).",
-          ).optional(),
-        }).describe("The data for a sentiment annotation.").optional(),
-      })).describe(
-        "Overall conversation-level sentiment for each channel of the call.",
-      ).optional(),
-      silence: z.object({
-        silenceDuration: z.string().describe(
-          "Amount of time calculated to be in silence.",
-        ).optional(),
-        silencePercentage: z.number().describe(
-          "Percentage of the total conversation spent in silence.",
-        ).optional(),
-      }).describe("Conversation-level silence data.").optional(),
-    }).describe("Call-specific metadata created during analysis.").optional(),
-    endTime: z.string().describe("The time at which the analysis ended.")
-      .optional(),
-  }).describe("The result of an analysis.").optional(),
   annotatorSelector: z.object({
     issueModels: z.array(z.string()).describe(
       "The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.",
@@ -358,8 +147,8 @@ const GlobalArgsSchema = z.object({
         qaScorecardRevisions: z.array(z.string()).describe(
           "List of QaScorecardRevisions.",
         ).optional(),
-      }).describe("Container for a list of scorecards.").optional(),
-    }).describe("Configuration for the QA feature.").optional(),
+      }).describe("A manual list of scorecards to score.").optional(),
+    }).describe("Configuration for the QA annotator.").optional(),
     runAutoLabelingAnnotator: z.boolean().describe(
       "Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.",
     ).optional(),
@@ -401,9 +190,9 @@ const GlobalArgsSchema = z.object({
         "BASELINE_MODEL",
         "BASELINE_MODEL_V2_0",
       ]).describe("Default summarization model to be used.").optional(),
-    }).describe("Configuration for summarization.").optional(),
+    }).describe("Configuration for the summarization annotator.").optional(),
   }).describe(
-    "Selector of all available annotators and phrase matchers to run.",
+    "To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the analysis. Format: projects/{project}/locations/{location}/conversations/{conversation}/analyses/{analysis}",
@@ -526,217 +315,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  analysisResult: z.object({
-    callAnalysisMetadata: z.object({
-      annotations: z.array(z.object({
-        annotationEndBoundary: z.object({
-          transcriptIndex: z.unknown().describe(
-            "The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.",
-          ).optional(),
-          wordIndex: z.unknown().describe(
-            "The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.",
-          ).optional(),
-        }).describe(
-          "A point in a conversation that marks the start or the end of an annotation.",
-        ).optional(),
-        annotationStartBoundary: z.object({
-          transcriptIndex: z.unknown().describe(
-            "The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.",
-          ).optional(),
-          wordIndex: z.unknown().describe(
-            "The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.",
-          ).optional(),
-        }).describe(
-          "A point in a conversation that marks the start or the end of an annotation.",
-        ).optional(),
-        channelTag: z.number().int().describe(
-          "The channel of the audio where the annotation occurs. For single-channel audio, this field is not populated.",
-        ).optional(),
-        entityMentionData: z.object({
-          entityUniqueId: z.unknown().describe(
-            "The key of this entity in conversation entities. Can be used to retrieve the exact `Entity` this mention is attached to.",
-          ).optional(),
-          sentiment: z.unknown().describe(
-            "The data for a sentiment annotation.",
-          ).optional(),
-          type: z.unknown().describe("The type of the entity mention.")
-            .optional(),
-        }).describe(
-          "The data for an entity mention annotation. This represents a mention of an `Entity` in the conversation.",
-        ).optional(),
-        holdData: z.object({}).describe("The data for a hold annotation.")
-          .optional(),
-        intentMatchData: z.object({
-          intentUniqueId: z.unknown().describe(
-            "The id of the matched intent. Can be used to retrieve the corresponding intent information.",
-          ).optional(),
-        }).describe(
-          "The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.",
-        ).optional(),
-        interruptionData: z.object({}).describe(
-          "The data for an interruption annotation.",
-        ).optional(),
-        issueMatchData: z.object({
-          issueAssignment: z.unknown().describe("Information about the issue.")
-            .optional(),
-        }).describe("The data for an issue match annotation.").optional(),
-        phraseMatchData: z.object({
-          displayName: z.unknown().describe(
-            "The human-readable name of the phrase matcher.",
-          ).optional(),
-          phraseMatcher: z.unknown().describe(
-            "The unique identifier (the resource name) of the phrase matcher.",
-          ).optional(),
-        }).describe(
-          "The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.",
-        ).optional(),
-        sentimentData: z.object({
-          magnitude: z.unknown().describe(
-            "A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.",
-          ).optional(),
-          score: z.unknown().describe(
-            "The sentiment score between -1.0 (negative) and 1.0 (positive).",
-          ).optional(),
-        }).describe("The data for a sentiment annotation.").optional(),
-        silenceData: z.object({}).describe("The data for a silence annotation.")
-          .optional(),
-      })).describe("A list of call annotations that apply to this call.")
-        .optional(),
-      entities: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            "The representative name for the entity.",
-          ).optional(),
-          metadata: z.record(z.string(), z.unknown()).describe(
-            "Metadata associated with the entity. For most entity types, the metadata is a Wikipedia URL (`wikipedia_url`) and Knowledge Graph MID (`mid`), if they are available. For the metadata associated with other entity types, see the Type table below.",
-          ).optional(),
-          salience: z.number().describe(
-            "The salience score associated with the entity in the [0, 1.0] range. The salience score for an entity provides information about the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.",
-          ).optional(),
-          sentiment: z.object({
-            magnitude: z.unknown().describe(
-              "A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.",
-            ).optional(),
-            score: z.unknown().describe(
-              "The sentiment score between -1.0 (negative) and 1.0 (positive).",
-            ).optional(),
-          }).describe("The data for a sentiment annotation.").optional(),
-          type: z.enum([
-            "TYPE_UNSPECIFIED",
-            "PERSON",
-            "LOCATION",
-            "ORGANIZATION",
-            "EVENT",
-            "WORK_OF_ART",
-            "CONSUMER_GOOD",
-            "OTHER",
-            "PHONE_NUMBER",
-            "ADDRESS",
-            "DATE",
-            "NUMBER",
-            "PRICE",
-          ]).describe("The entity type.").optional(),
-        }),
-      ).describe("All the entities in the call.").optional(),
-      intents: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            "The human-readable name of the intent.",
-          ).optional(),
-          id: z.string().describe("The unique identifier of the intent.")
-            .optional(),
-        }),
-      ).describe("All the matched intents in the call.").optional(),
-      issueModelResult: z.object({
-        issueModel: z.string().describe(
-          "Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}",
-        ).optional(),
-        issues: z.array(z.object({
-          displayName: z.unknown().describe(
-            "Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.",
-          ).optional(),
-          issue: z.unknown().describe("Resource name of the assigned issue.")
-            .optional(),
-          score: z.unknown().describe(
-            "Score indicating the likelihood of the issue assignment. currently bounded on [0,1].",
-          ).optional(),
-        })).describe("All the matched issues.").optional(),
-      }).describe("Issue Modeling result on a conversation.").optional(),
-      phraseMatchers: z.record(
-        z.string(),
-        z.object({
-          displayName: z.string().describe(
-            "The human-readable name of the phrase matcher.",
-          ).optional(),
-          phraseMatcher: z.string().describe(
-            "The unique identifier (the resource name) of the phrase matcher.",
-          ).optional(),
-        }),
-      ).describe("All the matched phrase matchers in the call.").optional(),
-      qaScorecardResults: z.array(z.object({
-        agentId: z.string().describe(
-          "ID of the agent that handled the conversation.",
-        ).optional(),
-        conversation: z.string().describe(
-          "The conversation scored by this result.",
-        ).optional(),
-        createTime: z.string().describe(
-          "Output only. The timestamp that the revision was created.",
-        ).optional(),
-        name: z.string().describe(
-          "Identifier. The name of the scorecard result. Format: projects/{project}/locations/{location}/qaScorecardResults/{qa_scorecard_result}",
-        ).optional(),
-        normalizedScore: z.number().describe(
-          "The normalized score, which is the score divided by the potential score. Any manual edits are included if they exist.",
-        ).optional(),
-        potentialScore: z.number().describe(
-          "The maximum potential overall score of the scorecard. Any questions answered using `na_value` are excluded from this calculation.",
-        ).optional(),
-        qaAnswers: z.array(z.unknown()).describe(
-          "Set of QaAnswers represented in the result.",
-        ).optional(),
-        qaScorecardRevision: z.string().describe(
-          "The QaScorecardRevision scored by this result.",
-        ).optional(),
-        qaTagResults: z.array(z.unknown()).describe(
-          "Collection of tags and their scores.",
-        ).optional(),
-        score: z.number().describe(
-          "The overall numerical score of the result, incorporating any manual edits if they exist.",
-        ).optional(),
-        scoreSources: z.array(z.unknown()).describe(
-          "List of all individual score sets.",
-        ).optional(),
-      })).describe("Results of scoring QaScorecards.").optional(),
-      sentiments: z.array(z.object({
-        channelTag: z.number().int().describe(
-          "The channel of the audio that the data applies to.",
-        ).optional(),
-        sentimentData: z.object({
-          magnitude: z.unknown().describe(
-            "A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.",
-          ).optional(),
-          score: z.unknown().describe(
-            "The sentiment score between -1.0 (negative) and 1.0 (positive).",
-          ).optional(),
-        }).describe("The data for a sentiment annotation.").optional(),
-      })).describe(
-        "Overall conversation-level sentiment for each channel of the call.",
-      ).optional(),
-      silence: z.object({
-        silenceDuration: z.string().describe(
-          "Amount of time calculated to be in silence.",
-        ).optional(),
-        silencePercentage: z.number().describe(
-          "Percentage of the total conversation spent in silence.",
-        ).optional(),
-      }).describe("Conversation-level silence data.").optional(),
-    }).describe("Call-specific metadata created during analysis.").optional(),
-    endTime: z.string().describe("The time at which the analysis ended.")
-      .optional(),
-  }).describe("The result of an analysis.").optional(),
   annotatorSelector: z.object({
     issueModels: z.array(z.string()).describe(
       "The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.",
@@ -749,8 +327,8 @@ const InputsSchema = z.object({
         qaScorecardRevisions: z.array(z.string()).describe(
           "List of QaScorecardRevisions.",
         ).optional(),
-      }).describe("Container for a list of scorecards.").optional(),
-    }).describe("Configuration for the QA feature.").optional(),
+      }).describe("A manual list of scorecards to score.").optional(),
+    }).describe("Configuration for the QA annotator.").optional(),
     runAutoLabelingAnnotator: z.boolean().describe(
       "Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.",
     ).optional(),
@@ -792,9 +370,9 @@ const InputsSchema = z.object({
         "BASELINE_MODEL",
         "BASELINE_MODEL_V2_0",
       ]).describe("Default summarization model to be used.").optional(),
-    }).describe("Configuration for summarization.").optional(),
+    }).describe("Configuration for the summarization annotator.").optional(),
   }).describe(
-    "Selector of all available annotators and phrase matchers to run.",
+    "To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the analysis. Format: projects/{project}/locations/{location}/conversations/{conversation}/analyses/{analysis}",
@@ -830,7 +408,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Conversations.Analyses. Registered at `@swamp/gcp/contactcenterinsights/conversations-analyses`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/conversations-analyses",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -942,6 +520,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: analysisResult",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { analysisResult: _analysisResult, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -964,9 +550,6 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["analysisResult"] !== undefined) {
-          body["analysisResult"] = g["analysisResult"];
-        }
         if (g["annotatorSelector"] !== undefined) {
           body["annotatorSelector"] = g["annotatorSelector"];
         }

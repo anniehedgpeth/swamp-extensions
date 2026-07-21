@@ -184,12 +184,9 @@ const GlobalArgsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The administrative contact for the `Registration`.")
+      .optional(),
     privacy: z.enum([
       "CONTACT_PRIVACY_UNSPECIFIED",
       "PUBLIC_CONTACT_DATA",
@@ -241,11 +238,9 @@ const GlobalArgsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
     }).describe(
-      "Details required for a contact associated with a `Registration`.",
+      "Required. The registrant contact for the `Registration`. *Caution: Anyone with access to this email address, phone number, and/or postal address can take control of the domain.* *Warning: For new `Registration`s, the registrant receives an email confirmation that they must complete within 15 days to avoid domain suspension.*",
     ).optional(),
     technicalContact: z.object({
       email: z.string().describe("Required. Email address of the contact.")
@@ -290,14 +285,11 @@ const GlobalArgsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The technical contact for the `Registration`.")
+      .optional(),
   }).describe(
-    "Defines the contact information associated with a `Registration`. [ICANN](https://icann.org/) requires all domain names to have associated contact information. The `registrant_contact` is considered the domain's legal owner, and often the other contacts are identical.",
+    "Required. Settings for contact information linked to the `Registration`. You cannot update these with the `UpdateRegistration` method. To update these settings, use the `ConfigureContactSettings` method.",
   ).optional(),
   createTime: z.string().describe(
     "Output only. The creation timestamp of the `Registration` resource.",
@@ -347,7 +339,8 @@ const GlobalArgsSchema = z.object({
       nameServers: z.array(z.string()).describe(
         "Required. A list of name servers that store the DNS zone for this domain. Each name server is a domain name, with Unicode domain names expressed in Punycode format.",
       ).optional(),
-    }).describe("Configuration for an arbitrary DNS provider.").optional(),
+    }).describe("An arbitrary DNS provider identified by its name servers.")
+      .optional(),
     glueRecords: z.array(z.object({
       hostName: z.string().describe(
         "Required. Domain name of the host in Punycode format.",
@@ -413,13 +406,13 @@ const GlobalArgsSchema = z.object({
         "Output only. A list of name servers that store the DNS zone for this domain. Each name server is a domain name, with Unicode domain names expressed in Punycode format. This field is automatically populated with the name servers assigned to the Google Domains DNS zone.",
       ).optional(),
     }).describe(
-      "Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Configuration for using the free DNS zone provided by Google Domains as a `Registration`'s `dns_provider`. You cannot configure the DNS zone itself using the API. To configure the DNS zone, go to [Google Domains](https://domains.google/).",
+      "Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). The free DNS zone provided by [Google Domains](https://domains.google/).",
     ).optional(),
     googleDomainsRedirectsDataAvailable: z.boolean().describe(
       "Output only. Indicates if this `Registration` has configured one of the following deprecated Google Domains DNS features: * Domain forwarding (HTTP `301` and `302` response status codes), * Email forwarding. See https://cloud.google.com/domains/docs/deprecations/feature-deprecations for more details. If any of these features is enabled call the `RetrieveGoogleDomainsForwardingConfig` method to get details about the feature's configuration. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.",
     ).optional(),
   }).describe(
-    "Defines the DNS configuration of a `Registration`, including name servers, DNSSEC, and glue records.",
+    "Settings controlling the DNS configuration of the `Registration`. You cannot update these with the `UpdateRegistration` method. To update these settings, use the `ConfigureDnsSettings` method.",
   ).optional(),
   domainName: z.string().describe(
     "Required. Immutable. The domain name. Unicode domain names must be expressed in Punycode format.",
@@ -481,7 +474,7 @@ const GlobalArgsSchema = z.object({
       "This is the desired transfer lock state for this `Registration`. A transfer lock controls whether the domain can be transferred to another registrar. The transfer lock state of the domain is returned in the `effective_transfer_lock_state` property. The transfer lock state values might be different for the following reasons: * `transfer_lock_state` was updated only a short time ago. * Domains with the `TRANSFER_LOCK_UNSUPPORTED_BY_REGISTRY` state are in the list of `domain_properties`. These domains are always in the `UNLOCKED` state.",
     ).optional(),
   }).describe(
-    "Defines renewal, billing, and transfer settings for a `Registration`.",
+    "Settings for management of the `Registration`, including renewal, billing, and transfer. You cannot update these with the `UpdateRegistration` method. To update these settings, use the `ConfigureManagementSettings` method.",
   ).optional(),
   name: z.string().describe(
     "Output only. Name of the `Registration` resource, in the format `projects/*/locations/*/registrations/`.",
@@ -530,12 +523,9 @@ const GlobalArgsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The administrative contact for the `Registration`.")
+      .optional(),
     privacy: z.enum([
       "CONTACT_PRIVACY_UNSPECIFIED",
       "PUBLIC_CONTACT_DATA",
@@ -587,11 +577,9 @@ const GlobalArgsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
     }).describe(
-      "Details required for a contact associated with a `Registration`.",
+      "Required. The registrant contact for the `Registration`. *Caution: Anyone with access to this email address, phone number, and/or postal address can take control of the domain.* *Warning: For new `Registration`s, the registrant receives an email confirmation that they must complete within 15 days to avoid domain suspension.*",
     ).optional(),
     technicalContact: z.object({
       email: z.string().describe("Required. Email address of the contact.")
@@ -636,14 +624,11 @@ const GlobalArgsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The technical contact for the `Registration`.")
+      .optional(),
   }).describe(
-    "Defines the contact information associated with a `Registration`. [ICANN](https://icann.org/) requires all domain names to have associated contact information. The `registrant_contact` is considered the domain's legal owner, and often the other contacts are identical.",
+    "Output only. Pending contact settings for the `Registration`. Updates to the `contact_settings` field that change its `registrant_contact` or `privacy` fields require email confirmation by the `registrant_contact` before taking effect. This field is set only if there are pending updates to the `contact_settings` that have not been confirmed. To confirm the changes, the `registrant_contact` must follow the instructions in the email they receive.",
   ).optional(),
   registerFailureReason: z.enum([
     "REGISTER_FAILURE_REASON_UNSPECIFIED",
@@ -892,12 +877,9 @@ const InputsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The administrative contact for the `Registration`.")
+      .optional(),
     privacy: z.enum([
       "CONTACT_PRIVACY_UNSPECIFIED",
       "PUBLIC_CONTACT_DATA",
@@ -949,11 +931,9 @@ const InputsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
     }).describe(
-      "Details required for a contact associated with a `Registration`.",
+      "Required. The registrant contact for the `Registration`. *Caution: Anyone with access to this email address, phone number, and/or postal address can take control of the domain.* *Warning: For new `Registration`s, the registrant receives an email confirmation that they must complete within 15 days to avoid domain suspension.*",
     ).optional(),
     technicalContact: z.object({
       email: z.string().describe("Required. Email address of the contact.")
@@ -998,14 +978,11 @@ const InputsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The technical contact for the `Registration`.")
+      .optional(),
   }).describe(
-    "Defines the contact information associated with a `Registration`. [ICANN](https://icann.org/) requires all domain names to have associated contact information. The `registrant_contact` is considered the domain's legal owner, and often the other contacts are identical.",
+    "Required. Settings for contact information linked to the `Registration`. You cannot update these with the `UpdateRegistration` method. To update these settings, use the `ConfigureContactSettings` method.",
   ).optional(),
   createTime: z.string().describe(
     "Output only. The creation timestamp of the `Registration` resource.",
@@ -1055,7 +1032,8 @@ const InputsSchema = z.object({
       nameServers: z.array(z.string()).describe(
         "Required. A list of name servers that store the DNS zone for this domain. Each name server is a domain name, with Unicode domain names expressed in Punycode format.",
       ).optional(),
-    }).describe("Configuration for an arbitrary DNS provider.").optional(),
+    }).describe("An arbitrary DNS provider identified by its name servers.")
+      .optional(),
     glueRecords: z.array(z.object({
       hostName: z.string().describe(
         "Required. Domain name of the host in Punycode format.",
@@ -1121,13 +1099,13 @@ const InputsSchema = z.object({
         "Output only. A list of name servers that store the DNS zone for this domain. Each name server is a domain name, with Unicode domain names expressed in Punycode format. This field is automatically populated with the name servers assigned to the Google Domains DNS zone.",
       ).optional(),
     }).describe(
-      "Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Configuration for using the free DNS zone provided by Google Domains as a `Registration`'s `dns_provider`. You cannot configure the DNS zone itself using the API. To configure the DNS zone, go to [Google Domains](https://domains.google/).",
+      "Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). The free DNS zone provided by [Google Domains](https://domains.google/).",
     ).optional(),
     googleDomainsRedirectsDataAvailable: z.boolean().describe(
       "Output only. Indicates if this `Registration` has configured one of the following deprecated Google Domains DNS features: * Domain forwarding (HTTP `301` and `302` response status codes), * Email forwarding. See https://cloud.google.com/domains/docs/deprecations/feature-deprecations for more details. If any of these features is enabled call the `RetrieveGoogleDomainsForwardingConfig` method to get details about the feature's configuration. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.",
     ).optional(),
   }).describe(
-    "Defines the DNS configuration of a `Registration`, including name servers, DNSSEC, and glue records.",
+    "Settings controlling the DNS configuration of the `Registration`. You cannot update these with the `UpdateRegistration` method. To update these settings, use the `ConfigureDnsSettings` method.",
   ).optional(),
   domainName: z.string().describe(
     "Required. Immutable. The domain name. Unicode domain names must be expressed in Punycode format.",
@@ -1189,7 +1167,7 @@ const InputsSchema = z.object({
       "This is the desired transfer lock state for this `Registration`. A transfer lock controls whether the domain can be transferred to another registrar. The transfer lock state of the domain is returned in the `effective_transfer_lock_state` property. The transfer lock state values might be different for the following reasons: * `transfer_lock_state` was updated only a short time ago. * Domains with the `TRANSFER_LOCK_UNSUPPORTED_BY_REGISTRY` state are in the list of `domain_properties`. These domains are always in the `UNLOCKED` state.",
     ).optional(),
   }).describe(
-    "Defines renewal, billing, and transfer settings for a `Registration`.",
+    "Settings for management of the `Registration`, including renewal, billing, and transfer. You cannot update these with the `UpdateRegistration` method. To update these settings, use the `ConfigureManagementSettings` method.",
   ).optional(),
   name: z.string().describe(
     "Output only. Name of the `Registration` resource, in the format `projects/*/locations/*/registrations/`.",
@@ -1238,12 +1216,9 @@ const InputsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The administrative contact for the `Registration`.")
+      .optional(),
     privacy: z.enum([
       "CONTACT_PRIVACY_UNSPECIFIED",
       "PUBLIC_CONTACT_DATA",
@@ -1295,11 +1270,9 @@ const InputsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
     }).describe(
-      "Details required for a contact associated with a `Registration`.",
+      "Required. The registrant contact for the `Registration`. *Caution: Anyone with access to this email address, phone number, and/or postal address can take control of the domain.* *Warning: For new `Registration`s, the registrant receives an email confirmation that they must complete within 15 days to avoid domain suspension.*",
     ).optional(),
     technicalContact: z.object({
       email: z.string().describe("Required. Email address of the contact.")
@@ -1344,14 +1317,11 @@ const InputsSchema = z.object({
         sublocality: z.string().describe(
           "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
         ).optional(),
-      }).describe(
-        "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
-      ).optional(),
-    }).describe(
-      "Details required for a contact associated with a `Registration`.",
-    ).optional(),
+      }).describe("Required. Postal address of the contact.").optional(),
+    }).describe("Required. The technical contact for the `Registration`.")
+      .optional(),
   }).describe(
-    "Defines the contact information associated with a `Registration`. [ICANN](https://icann.org/) requires all domain names to have associated contact information. The `registrant_contact` is considered the domain's legal owner, and often the other contacts are identical.",
+    "Output only. Pending contact settings for the `Registration`. Updates to the `contact_settings` field that change its `registrant_contact` or `privacy` fields require email confirmation by the `registrant_contact` before taking effect. This field is set only if there are pending updates to the `contact_settings` that have not been confirmed. To confirm the changes, the `registrant_contact` must follow the instructions in the email they receive.",
   ).optional(),
   registerFailureReason: z.enum([
     "REGISTER_FAILURE_REASON_UNSPECIFIED",
@@ -1411,7 +1381,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Domains Registrations. Registered at `@swamp/gcp/domains/registrations`. */
 export const model = {
   type: "@swamp/gcp/domains/registrations",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1545,6 +1515,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

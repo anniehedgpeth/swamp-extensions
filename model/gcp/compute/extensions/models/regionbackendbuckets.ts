@@ -215,9 +215,7 @@ const GlobalArgsSchema = z.object({
       queryStringWhitelist: z.array(z.string()).describe(
         "Names of query string parameters to include in cache keys. Default parameters are always included. '&' and '=' will be percent encoded and not treated as delimiters.",
       ).optional(),
-    }).describe(
-      "Message containing what to include in the cache key for a request for Cloud CDN.",
-    ).optional(),
+    }).describe("The CacheKeyPolicy for this CdnPolicy.").optional(),
     cacheMode: z.enum([
       "CACHE_ALL_STATIC",
       "FORCE_CACHE_ALL",
@@ -260,9 +258,7 @@ const GlobalArgsSchema = z.object({
     signedUrlKeyNames: z.array(z.string()).describe(
       "[Output Only] Names of the keys for signing request URLs.",
     ).optional(),
-  }).describe(
-    "Message containing Cloud CDN configuration for a backend bucket.",
-  ).optional(),
+  }).describe("Cloud CDN configuration for this BackendBucket.").optional(),
   compressionMode: z.enum(["AUTOMATIC", "DISABLED"]).describe(
     "Compress text responses using Brotli or gzip compression, based on the client's Accept-Encoding header.",
   ).optional(),
@@ -287,7 +283,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional Backend Bucket parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   region: z.string().describe(
     "Output only. [Output Only] URL of the region where the regional backend bucket resides. This field is not applicable to global backend buckets. You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
@@ -363,9 +361,7 @@ const InputsSchema = z.object({
       queryStringWhitelist: z.array(z.string()).describe(
         "Names of query string parameters to include in cache keys. Default parameters are always included. '&' and '=' will be percent encoded and not treated as delimiters.",
       ).optional(),
-    }).describe(
-      "Message containing what to include in the cache key for a request for Cloud CDN.",
-    ).optional(),
+    }).describe("The CacheKeyPolicy for this CdnPolicy.").optional(),
     cacheMode: z.enum([
       "CACHE_ALL_STATIC",
       "FORCE_CACHE_ALL",
@@ -408,9 +404,7 @@ const InputsSchema = z.object({
     signedUrlKeyNames: z.array(z.string()).describe(
       "[Output Only] Names of the keys for signing request URLs.",
     ).optional(),
-  }).describe(
-    "Message containing Cloud CDN configuration for a backend bucket.",
-  ).optional(),
+  }).describe("Cloud CDN configuration for this BackendBucket.").optional(),
   compressionMode: z.enum(["AUTOMATIC", "DISABLED"]).describe(
     "Compress text responses using Brotli or gzip compression, based on the client's Accept-Encoding header.",
   ).optional(),
@@ -435,7 +429,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       'Tag keys/values directly bound to this resource. Tag keys and values have the same definition as resource manager tags. The field is allowed for INSERT only. The keys/values to set on the resource should be specified in either ID {: } or Namespaced format {: }. For example the following are valid inputs: * {"tagKeys/333": "tagValues/444", "tagKeys/123": "tagValues/456"} * {"123/environment": "production", "345/abc": "xyz"} Note: * Invalid combinations of ID & namespaced format is not supported. For instance: {"123/environment": "tagValues/444"} is invalid.',
     ).optional(),
-  }).describe("Additional Backend Bucket parameters.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   region: z.string().describe(
     "Output only. [Output Only] URL of the region where the regional backend bucket resides. This field is not applicable to global backend buckets. You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
@@ -467,7 +463,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionBackendBuckets. Registered at `@swamp/gcp/compute/regionbackendbuckets`. */
 export const model = {
   type: "@swamp/gcp/compute/regionbackendbuckets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

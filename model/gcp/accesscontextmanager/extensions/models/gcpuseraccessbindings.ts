@@ -200,10 +200,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Only useful for OIDC apps. When false, the OIDC max_age param, if passed in the authentication request will be ignored. When true, the re-auth period will be the minimum of the session_length field and the max_age OIDC param.",
         ).optional(),
       }).describe(
-        "Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.",
+        "Optional. Session settings applied to user access on a given AccessScope.",
       ).optional(),
     }).describe(
-      "Access settings represent the set of conditions that must be met for access to be granted. At least one of the fields must be set.",
+      "Optional. Access settings for this scoped access settings. This field may be empty if dry_run_settings is set.",
     ).optional(),
     dryRunSettings: z.object({
       accessLevels: z.array(z.string()).describe(
@@ -231,10 +231,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Only useful for OIDC apps. When false, the OIDC max_age param, if passed in the authentication request will be ignored. When true, the re-auth period will be the minimum of the session_length field and the max_age OIDC param.",
         ).optional(),
       }).describe(
-        "Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.",
+        "Optional. Session settings applied to user access on a given AccessScope.",
       ).optional(),
     }).describe(
-      "Access settings represent the set of conditions that must be met for access to be granted. At least one of the fields must be set.",
+      "Optional. Dry-run access settings for this scoped access settings. This field may be empty if active_settings is set.",
     ).optional(),
     scope: z.object({
       clientScope: z.object({
@@ -245,13 +245,12 @@ const GlobalArgsSchema = z.object({
           name: z.unknown().describe(
             'The name of the application. Example: "Cloud Console"',
           ).optional(),
-        }).describe("An application that accesses Google Cloud APIs.")
-          .optional(),
-      }).describe(
-        "Client scope represents the application, etc. subject to this binding's restrictions.",
-      ).optional(),
+        }).describe(
+          "Optional. The application that is subject to this binding's scope.",
+        ).optional(),
+      }).describe("Optional. Client scope for this access scope.").optional(),
     }).describe(
-      "Access scope represents the client scope, etc. to which the settings will be applied to.",
+      "Optional. Application, etc. to which the access settings will be applied to. Implicitly, this is the scoped access settings key; as such, it must be unique and non-empty.",
     ).optional(),
   })).describe(
     "Optional. A list of scoped access settings that set this binding's restrictions on a subset of applications. This field cannot be set if restricted_client_applications is set.",
@@ -278,7 +277,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Only useful for OIDC apps. When false, the OIDC max_age param, if passed in the authentication request will be ignored. When true, the re-auth period will be the minimum of the session_length field and the max_age OIDC param.",
     ).optional(),
   }).describe(
-    "Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.",
+    "Optional. The Google Cloud session length (GCSL) policy for the group key.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -388,10 +387,10 @@ const InputsSchema = z.object({
           "Optional. Only useful for OIDC apps. When false, the OIDC max_age param, if passed in the authentication request will be ignored. When true, the re-auth period will be the minimum of the session_length field and the max_age OIDC param.",
         ).optional(),
       }).describe(
-        "Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.",
+        "Optional. Session settings applied to user access on a given AccessScope.",
       ).optional(),
     }).describe(
-      "Access settings represent the set of conditions that must be met for access to be granted. At least one of the fields must be set.",
+      "Optional. Access settings for this scoped access settings. This field may be empty if dry_run_settings is set.",
     ).optional(),
     dryRunSettings: z.object({
       accessLevels: z.array(z.string()).describe(
@@ -419,10 +418,10 @@ const InputsSchema = z.object({
           "Optional. Only useful for OIDC apps. When false, the OIDC max_age param, if passed in the authentication request will be ignored. When true, the re-auth period will be the minimum of the session_length field and the max_age OIDC param.",
         ).optional(),
       }).describe(
-        "Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.",
+        "Optional. Session settings applied to user access on a given AccessScope.",
       ).optional(),
     }).describe(
-      "Access settings represent the set of conditions that must be met for access to be granted. At least one of the fields must be set.",
+      "Optional. Dry-run access settings for this scoped access settings. This field may be empty if active_settings is set.",
     ).optional(),
     scope: z.object({
       clientScope: z.object({
@@ -433,13 +432,12 @@ const InputsSchema = z.object({
           name: z.unknown().describe(
             'The name of the application. Example: "Cloud Console"',
           ).optional(),
-        }).describe("An application that accesses Google Cloud APIs.")
-          .optional(),
-      }).describe(
-        "Client scope represents the application, etc. subject to this binding's restrictions.",
-      ).optional(),
+        }).describe(
+          "Optional. The application that is subject to this binding's scope.",
+        ).optional(),
+      }).describe("Optional. Client scope for this access scope.").optional(),
     }).describe(
-      "Access scope represents the client scope, etc. to which the settings will be applied to.",
+      "Optional. Application, etc. to which the access settings will be applied to. Implicitly, this is the scoped access settings key; as such, it must be unique and non-empty.",
     ).optional(),
   })).describe(
     "Optional. A list of scoped access settings that set this binding's restrictions on a subset of applications. This field cannot be set if restricted_client_applications is set.",
@@ -466,7 +464,7 @@ const InputsSchema = z.object({
       "Optional. Only useful for OIDC apps. When false, the OIDC max_age param, if passed in the authentication request will be ignored. When true, the re-auth period will be the minimum of the session_length field and the max_age OIDC param.",
     ).optional(),
   }).describe(
-    "Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.",
+    "Optional. The Google Cloud session length (GCSL) policy for the group key.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -496,7 +494,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager GcpUserAccessBindings. Registered at `@swamp/gcp/accesscontextmanager/gcpuseraccessbindings`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/gcpuseraccessbindings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -600,6 +598,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

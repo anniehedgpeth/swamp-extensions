@@ -265,7 +265,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The current usage value, in bytes.",
     ).optional(),
   }).describe(
-    "Represents a data capacity with some amount of current usage in bytes.",
+    "Output only. How much disk space the device has available and is currently using.",
   ).optional(),
   diskVolumeReports: z.array(z.object({
     volumeInfo: z.array(z.object({
@@ -366,8 +366,7 @@ const GlobalArgsSchema = z.object({
     updateTime: z.string().describe(
       "Date and time of the last successful OS update.",
     ).optional(),
-  }).describe("Contains information regarding the current OS update status.")
-    .optional(),
+  }).describe("The status of the OS updates for the device.").optional(),
   osVersion: z.string().describe(
     "The Chrome device's operating system version.",
   ).optional(),
@@ -687,7 +686,7 @@ const InputsSchema = z.object({
       "Output only. The current usage value, in bytes.",
     ).optional(),
   }).describe(
-    "Represents a data capacity with some amount of current usage in bytes.",
+    "Output only. How much disk space the device has available and is currently using.",
   ).optional(),
   diskVolumeReports: z.array(z.object({
     volumeInfo: z.array(z.object({
@@ -788,8 +787,7 @@ const InputsSchema = z.object({
     updateTime: z.string().describe(
       "Date and time of the last successful OS update.",
     ).optional(),
-  }).describe("Contains information regarding the current OS update status.")
-    .optional(),
+  }).describe("The status of the OS updates for the device.").optional(),
   osVersion: z.string().describe(
     "The Chrome device's operating system version.",
   ).optional(),
@@ -880,7 +878,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Chromeosdevices. Registered at `@swamp/gcp/admin/chromeosdevices`. */
 export const model = {
   type: "@swamp/gcp/admin/chromeosdevices",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

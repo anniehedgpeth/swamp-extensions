@@ -136,19 +136,21 @@ const GlobalArgsSchema = z.object({
           text: z.unknown().describe(
             "The text of the note. The limits on this vary with the specific field using this type.",
           ).optional(),
-        }).describe("The block of text for a single text section or list item.")
-          .optional(),
+        }).describe(
+          "The text of this item. Length must be less than 1,000 characters.",
+        ).optional(),
       })).describe(
         "The items in the list. The number of items must be less than 1,000.",
       ).optional(),
-    }).describe("The list of items for a single list note.").optional(),
+    }).describe("Used if this section's content is a list.").optional(),
     text: z.object({
       text: z.string().describe(
         "The text of the note. The limits on this vary with the specific field using this type.",
       ).optional(),
-    }).describe("The block of text for a single text section or list item.")
-      .optional(),
-  }).describe("The content of the note.").optional(),
+    }).describe(
+      "Used if this section's content is a block of text. The length of the text content must be less than 20,000 characters.",
+    ).optional(),
+  }).describe("The body of the note.").optional(),
   title: z.string().describe(
     "The title of the note. Length must be less than 1,000 characters.",
   ).optional(),
@@ -215,19 +217,21 @@ const InputsSchema = z.object({
           text: z.unknown().describe(
             "The text of the note. The limits on this vary with the specific field using this type.",
           ).optional(),
-        }).describe("The block of text for a single text section or list item.")
-          .optional(),
+        }).describe(
+          "The text of this item. Length must be less than 1,000 characters.",
+        ).optional(),
       })).describe(
         "The items in the list. The number of items must be less than 1,000.",
       ).optional(),
-    }).describe("The list of items for a single list note.").optional(),
+    }).describe("Used if this section's content is a list.").optional(),
     text: z.object({
       text: z.string().describe(
         "The text of the note. The limits on this vary with the specific field using this type.",
       ).optional(),
-    }).describe("The block of text for a single text section or list item.")
-      .optional(),
-  }).describe("The content of the note.").optional(),
+    }).describe(
+      "Used if this section's content is a block of text. The length of the text content must be less than 20,000 characters.",
+    ).optional(),
+  }).describe("The body of the note.").optional(),
   title: z.string().describe(
     "The title of the note. Length must be less than 1,000 characters.",
   ).optional(),
@@ -256,7 +260,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Keep Notes. Registered at `@swamp/gcp/keep/notes`. */
 export const model = {
   type: "@swamp/gcp/keep/notes",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -353,6 +357,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -384,12 +393,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

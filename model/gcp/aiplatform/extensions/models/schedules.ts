@@ -208,12 +208,14 @@ const GlobalArgsSchema = z.object({
               "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
             ).optional(),
           }).describe(
-            "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+            "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
           ).optional(),
           tpuTopology: z.string().describe(
             'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
           ).optional(),
-        }).describe("Specification of a single machine.").optional(),
+        }).describe(
+          "The specification of a single machine for the execution job.",
+        ).optional(),
         networkSpec: z.object({
           enableInternetAccess: z.boolean().describe(
             "Whether to enable public internet access. Default false.",
@@ -224,7 +226,8 @@ const GlobalArgsSchema = z.object({
           subnetwork: z.string().describe(
             "The name of the subnet that this instance is in. Format: `projects/{project_id_or_number}/regions/{region}/subnetworks/{subnetwork_id}`",
           ).optional(),
-        }).describe("Network spec.").optional(),
+        }).describe("The network configuration to use for the execution job.")
+          .optional(),
         persistentDiskSpec: z.object({
           diskSizeGb: z.string().describe(
             "Size in GB of the disk (default is 100GB).",
@@ -233,9 +236,9 @@ const GlobalArgsSchema = z.object({
             'Type of the disk (default is "pd-standard"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) "pd-standard" (Persistent Disk Hard Disk Drive) "pd-balanced" (Balanced Persistent Disk) "pd-extreme" (Extreme Persistent Disk) "hyperdisk-balanced" (Hyperdisk Balanced) "hyperdisk-extreme" (Hyperdisk Extreme) "hyperdisk-balanced-high-availability" (Hyperdisk Balanced High Availability) "hyperdisk-ml" (Hyperdisk ML) "hyperdisk-throughput" (Hyperdisk Throughput)',
           ).optional(),
         }).describe(
-          "Represents the spec of persistent disk and hyperdisk options.",
+          "The specification of a persistent disk to attach for the execution job.",
         ).optional(),
-      }).describe("Compute configuration to use for an execution job.")
+      }).describe("The custom compute configuration for an execution job.")
         .optional(),
       dataformRepositorySource: z.object({
         commitSha: z.string().describe(
@@ -244,14 +247,14 @@ const GlobalArgsSchema = z.object({
         dataformRepositoryResourceName: z.string().describe(
           "The resource name of the Dataform Repository. Format: `projects/{project_id}/locations/{location}/repositories/{repository_id}`",
         ).optional(),
-      }).describe("The Dataform Repository containing the input notebook.")
-        .optional(),
+      }).describe(
+        "The Dataform Repository pointing to a single file notebook repository.",
+      ).optional(),
       directNotebookSource: z.object({
         content: z.string().describe(
           "The base64-encoded contents of the input notebook file.",
         ).optional(),
-      }).describe("The content of the input notebook in ipynb format.")
-        .optional(),
+      }).describe("The contents of an input notebook file.").optional(),
       displayName: z.string().describe(
         "The display name of the NotebookExecutionJob. The name can be up to 128 characters long and can consist of any UTF-8 characters.",
       ).optional(),
@@ -260,7 +263,7 @@ const GlobalArgsSchema = z.object({
           "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
         ).optional(),
       }).describe(
-        "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+        "Customer-managed encryption key spec for the notebook execution job. This field is auto-populated if the NotebookRuntimeTemplate has an encryption spec.",
       ).optional(),
       executionTimeout: z.string().describe(
         "Max running time of the execution job in seconds (default 86400s / 24 hrs).",
@@ -275,7 +278,9 @@ const GlobalArgsSchema = z.object({
         uri: z.string().describe(
           "The Cloud Storage uri pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
         ).optional(),
-      }).describe("The Cloud Storage uri for the input notebook.").optional(),
+      }).describe(
+        "The Cloud Storage url pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
+      ).optional(),
       gcsOutputUri: z.string().describe(
         "The Cloud Storage location to upload the result to. Format: `gs://bucket-name`",
       ).optional(),
@@ -323,26 +328,23 @@ const GlobalArgsSchema = z.object({
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
       }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+        "Output only. Populated when the NotebookExecutionJob is completed. When there is an error during notebook execution, the error details are populated.",
       ).optional(),
       updateTime: z.string().describe(
         "Output only. Timestamp when this NotebookExecutionJob was most recently updated.",
       ).optional(),
       workbenchRuntime: z.object({}).describe(
-        "Configuration for a Workbench Instances-based environment.",
+        "The Workbench runtime configuration to use for the notebook execution.",
       ).optional(),
-    }).describe(
-      "NotebookExecutionJob represents an instance of a notebook execution.",
-    ).optional(),
+    }).describe("Required. The NotebookExecutionJob to create.").optional(),
     notebookExecutionJobId: z.string().describe(
       "Optional. User specified ID for the NotebookExecutionJob.",
     ).optional(),
     parent: z.string().describe(
       "Required. The resource name of the Location to create the NotebookExecutionJob. Format: `projects/{project}/locations/{location}`",
     ).optional(),
-  }).describe(
-    "Request message for [NotebookService.CreateNotebookExecutionJob]",
-  ).optional(),
+  }).describe("Request for NotebookService.CreateNotebookExecutionJob.")
+    .optional(),
   createPipelineJobRequest: z.object({
     parent: z.string().describe(
       "Required. The resource name of the Location to create the PipelineJob in. Format: `projects/{project}/locations/{location}`",
@@ -358,7 +360,7 @@ const GlobalArgsSchema = z.object({
           "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
         ).optional(),
       }).describe(
-        "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+        "Customer-managed encryption key spec for a pipelineJob. If set, this PipelineJob and all of its sub-resources will be secured by this key.",
       ).optional(),
       endTime: z.string().describe("Output only. Pipeline end time.")
         .optional(),
@@ -373,7 +375,7 @@ const GlobalArgsSchema = z.object({
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
       }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+        "Output only. The error that occurred during pipeline execution. Only populated when the pipeline's state is FAILED or CANCELLED.",
       ).optional(),
       jobDetail: z.object({
         pipelineContext: z.object({
@@ -409,7 +411,7 @@ const GlobalArgsSchema = z.object({
           updateTime: z.string().describe(
             "Output only. Timestamp when this Context was last updated.",
           ).optional(),
-        }).describe("Instance of a general context.").optional(),
+        }).describe("Output only. The context of the pipeline.").optional(),
         pipelineRunContext: z.object({
           createTime: z.string().describe(
             "Output only. Timestamp when this Context was created.",
@@ -443,19 +445,21 @@ const GlobalArgsSchema = z.object({
           updateTime: z.string().describe(
             "Output only. Timestamp when this Context was last updated.",
           ).optional(),
-        }).describe("Instance of a general context.").optional(),
+        }).describe("Output only. The context of the current pipeline run.")
+          .optional(),
         taskDetails: z.array(z.object({
           createTime: z.unknown().describe("Output only. Task create time.")
             .optional(),
           endTime: z.unknown().describe("Output only. Task end time.")
             .optional(),
           error: z.unknown().describe(
-            "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+            "Output only. The error that occurred during task execution. Only populated when the task's state is FAILED or CANCELLED.",
           ).optional(),
-          execution: z.unknown().describe("Instance of a general execution.")
-            .optional(),
+          execution: z.unknown().describe(
+            "Output only. The execution metadata of the task.",
+          ).optional(),
           executorDetail: z.unknown().describe(
-            "The runtime detail of a pipeline executor.",
+            "Output only. The detailed execution info.",
           ).optional(),
           inputs: z.unknown().describe(
             "Output only. The runtime input artifacts of the task.",
@@ -485,7 +489,9 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Output only. The runtime details of the tasks under the pipeline.",
         ).optional(),
-      }).describe("The runtime detail of PipelineJob.").optional(),
+      }).describe(
+        "Output only. The details of pipeline run. Not available in the list view.",
+      ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "The labels with user-defined metadata to organize PipelineJob. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels. Note there is some reserved label key for Vertex AI Pipelines. - `vertex-ai-pipelines-run-billing-id`, user set value will get overrided.",
       ).optional(),
@@ -518,7 +524,8 @@ const GlobalArgsSchema = z.object({
         networkAttachment: z.string().describe(
           "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
         ).optional(),
-      }).describe("Configuration for PSC-I.").optional(),
+      }).describe("Optional. Configuration for PSC-I for PipelineJob.")
+        .optional(),
       reservedIpRanges: z.array(z.string()).describe(
         "A list of names for the reserved ip ranges under the VPC network that can be used for this Pipeline Job's workload. If set, we will deploy the Pipeline Job's workload within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
       ).optional(),
@@ -556,7 +563,7 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Deprecated. Use RuntimeConfig.parameter_values instead. The runtime parameters of the PipelineJob. The parameters will be passed into PipelineJob.pipeline_spec to replace the placeholders at runtime. This field is used by pipelines built using `PipelineJob.pipeline_spec.schema_version` 2.0.0 or lower, such as pipelines built using Kubeflow Pipelines SDK 1.8 or lower.",
         ).optional(),
-      }).describe("The runtime config of a PipelineJob.").optional(),
+      }).describe("Runtime config of the pipeline.").optional(),
       scheduleName: z.string().describe(
         "Output only. The schedule resource name. Only returned if the Pipeline is created by Schedule API.",
       ).optional(),
@@ -581,7 +588,7 @@ const GlobalArgsSchema = z.object({
           'The version_name in artifact registry. Will always be presented in output if the PipelineJob.template_uri is from supported template registry. Format is "sha256:abcdef123456...".',
         ).optional(),
       }).describe(
-        "Pipeline template metadata if PipelineJob.template_uri is from supported template registry. Currently, the only supported registry is Artifact Registry.",
+        "Output only. Pipeline template metadata. Will fill up fields if PipelineJob.template_uri is from supported template registry.",
       ).optional(),
       templateUri: z.string().describe(
         "A template uri from where the PipelineJob.pipeline_spec, if empty, will be downloaded. Currently, only uri from Vertex Template Registry & Gallery is supported. Reference to https://cloud.google.com/vertex-ai/docs/pipelines/create-pipeline-template.",
@@ -589,12 +596,13 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. Timestamp when this PipelineJob was most recently updated.",
       ).optional(),
-    }).describe("An instance of a machine learning PipelineJob.").optional(),
+    }).describe("Required. The PipelineJob to create.").optional(),
     pipelineJobId: z.string().describe(
       "The ID to use for the PipelineJob, which will become the final component of the PipelineJob name. If not provided, an ID will be automatically generated. This value should be less than 128 characters, and valid characters are `/a-z-/`.",
     ).optional(),
-  }).describe("Request message for PipelineService.CreatePipelineJob.")
-    .optional(),
+  }).describe(
+    "Request for PipelineService.CreatePipelineJob. CreatePipelineJobRequest.parent field is required (format: projects/{project}/locations/{location}).",
+  ).optional(),
   cron: z.string().describe(
     'Cron schedule (https://en.wikipedia.org/wiki/Cron) to launch scheduled runs. To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, "CRON_TZ=America/New_York 1 * * * *", or "TZ=America/New_York 1 * * * *".',
   ).optional(),
@@ -604,13 +612,6 @@ const GlobalArgsSchema = z.object({
   endTime: z.string().describe(
     "Optional. Timestamp after which no new runs can be scheduled. If specified, The schedule will be completed when either end_time is reached or when scheduled_run_count >= max_run_count. If not specified, new runs will keep getting scheduled until this Schedule is paused or deleted. Already scheduled runs will be allowed to complete. Unset if not specified.",
   ).optional(),
-  lastScheduledRunResponse: z.object({
-    runResponse: z.string().describe("The response of the scheduled run.")
-      .optional(),
-    scheduledRunTime: z.string().describe(
-      "The scheduled run time based on the user-specified schedule.",
-    ).optional(),
-  }).describe("Status of a scheduled run.").optional(),
   maxConcurrentActiveRunCount: z.string().describe(
     "Optional. Specifies the maximum number of active runs that can be executed concurrently for this Schedule. This limits the number of runs that can be in a non-terminal state at the same time. Currently, this field is only supported for requests of type CreatePipelineJobRequest.",
   ).optional(),
@@ -867,12 +868,14 @@ const InputsSchema = z.object({
               "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
             ).optional(),
           }).describe(
-            "A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.",
+            "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
           ).optional(),
           tpuTopology: z.string().describe(
             'Immutable. The topology of the TPUs. Corresponds to the TPU topologies available from GKE. (Example: tpu_topology: "2x2x1").',
           ).optional(),
-        }).describe("Specification of a single machine.").optional(),
+        }).describe(
+          "The specification of a single machine for the execution job.",
+        ).optional(),
         networkSpec: z.object({
           enableInternetAccess: z.boolean().describe(
             "Whether to enable public internet access. Default false.",
@@ -883,7 +886,8 @@ const InputsSchema = z.object({
           subnetwork: z.string().describe(
             "The name of the subnet that this instance is in. Format: `projects/{project_id_or_number}/regions/{region}/subnetworks/{subnetwork_id}`",
           ).optional(),
-        }).describe("Network spec.").optional(),
+        }).describe("The network configuration to use for the execution job.")
+          .optional(),
         persistentDiskSpec: z.object({
           diskSizeGb: z.string().describe(
             "Size in GB of the disk (default is 100GB).",
@@ -892,9 +896,9 @@ const InputsSchema = z.object({
             'Type of the disk (default is "pd-standard"). Valid values: "pd-ssd" (Persistent Disk Solid State Drive) "pd-standard" (Persistent Disk Hard Disk Drive) "pd-balanced" (Balanced Persistent Disk) "pd-extreme" (Extreme Persistent Disk) "hyperdisk-balanced" (Hyperdisk Balanced) "hyperdisk-extreme" (Hyperdisk Extreme) "hyperdisk-balanced-high-availability" (Hyperdisk Balanced High Availability) "hyperdisk-ml" (Hyperdisk ML) "hyperdisk-throughput" (Hyperdisk Throughput)',
           ).optional(),
         }).describe(
-          "Represents the spec of persistent disk and hyperdisk options.",
+          "The specification of a persistent disk to attach for the execution job.",
         ).optional(),
-      }).describe("Compute configuration to use for an execution job.")
+      }).describe("The custom compute configuration for an execution job.")
         .optional(),
       dataformRepositorySource: z.object({
         commitSha: z.string().describe(
@@ -903,14 +907,14 @@ const InputsSchema = z.object({
         dataformRepositoryResourceName: z.string().describe(
           "The resource name of the Dataform Repository. Format: `projects/{project_id}/locations/{location}/repositories/{repository_id}`",
         ).optional(),
-      }).describe("The Dataform Repository containing the input notebook.")
-        .optional(),
+      }).describe(
+        "The Dataform Repository pointing to a single file notebook repository.",
+      ).optional(),
       directNotebookSource: z.object({
         content: z.string().describe(
           "The base64-encoded contents of the input notebook file.",
         ).optional(),
-      }).describe("The content of the input notebook in ipynb format.")
-        .optional(),
+      }).describe("The contents of an input notebook file.").optional(),
       displayName: z.string().describe(
         "The display name of the NotebookExecutionJob. The name can be up to 128 characters long and can consist of any UTF-8 characters.",
       ).optional(),
@@ -919,7 +923,7 @@ const InputsSchema = z.object({
           "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
         ).optional(),
       }).describe(
-        "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+        "Customer-managed encryption key spec for the notebook execution job. This field is auto-populated if the NotebookRuntimeTemplate has an encryption spec.",
       ).optional(),
       executionTimeout: z.string().describe(
         "Max running time of the execution job in seconds (default 86400s / 24 hrs).",
@@ -934,7 +938,9 @@ const InputsSchema = z.object({
         uri: z.string().describe(
           "The Cloud Storage uri pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
         ).optional(),
-      }).describe("The Cloud Storage uri for the input notebook.").optional(),
+      }).describe(
+        "The Cloud Storage url pointing to the ipynb file. Format: `gs://bucket/notebook_file.ipynb`",
+      ).optional(),
       gcsOutputUri: z.string().describe(
         "The Cloud Storage location to upload the result to. Format: `gs://bucket-name`",
       ).optional(),
@@ -982,26 +988,23 @@ const InputsSchema = z.object({
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
       }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+        "Output only. Populated when the NotebookExecutionJob is completed. When there is an error during notebook execution, the error details are populated.",
       ).optional(),
       updateTime: z.string().describe(
         "Output only. Timestamp when this NotebookExecutionJob was most recently updated.",
       ).optional(),
       workbenchRuntime: z.object({}).describe(
-        "Configuration for a Workbench Instances-based environment.",
+        "The Workbench runtime configuration to use for the notebook execution.",
       ).optional(),
-    }).describe(
-      "NotebookExecutionJob represents an instance of a notebook execution.",
-    ).optional(),
+    }).describe("Required. The NotebookExecutionJob to create.").optional(),
     notebookExecutionJobId: z.string().describe(
       "Optional. User specified ID for the NotebookExecutionJob.",
     ).optional(),
     parent: z.string().describe(
       "Required. The resource name of the Location to create the NotebookExecutionJob. Format: `projects/{project}/locations/{location}`",
     ).optional(),
-  }).describe(
-    "Request message for [NotebookService.CreateNotebookExecutionJob]",
-  ).optional(),
+  }).describe("Request for NotebookService.CreateNotebookExecutionJob.")
+    .optional(),
   createPipelineJobRequest: z.object({
     parent: z.string().describe(
       "Required. The resource name of the Location to create the PipelineJob in. Format: `projects/{project}/locations/{location}`",
@@ -1017,7 +1020,7 @@ const InputsSchema = z.object({
           "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
         ).optional(),
       }).describe(
-        "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+        "Customer-managed encryption key spec for a pipelineJob. If set, this PipelineJob and all of its sub-resources will be secured by this key.",
       ).optional(),
       endTime: z.string().describe("Output only. Pipeline end time.")
         .optional(),
@@ -1032,7 +1035,7 @@ const InputsSchema = z.object({
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
       }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+        "Output only. The error that occurred during pipeline execution. Only populated when the pipeline's state is FAILED or CANCELLED.",
       ).optional(),
       jobDetail: z.object({
         pipelineContext: z.object({
@@ -1068,7 +1071,7 @@ const InputsSchema = z.object({
           updateTime: z.string().describe(
             "Output only. Timestamp when this Context was last updated.",
           ).optional(),
-        }).describe("Instance of a general context.").optional(),
+        }).describe("Output only. The context of the pipeline.").optional(),
         pipelineRunContext: z.object({
           createTime: z.string().describe(
             "Output only. Timestamp when this Context was created.",
@@ -1102,19 +1105,21 @@ const InputsSchema = z.object({
           updateTime: z.string().describe(
             "Output only. Timestamp when this Context was last updated.",
           ).optional(),
-        }).describe("Instance of a general context.").optional(),
+        }).describe("Output only. The context of the current pipeline run.")
+          .optional(),
         taskDetails: z.array(z.object({
           createTime: z.unknown().describe("Output only. Task create time.")
             .optional(),
           endTime: z.unknown().describe("Output only. Task end time.")
             .optional(),
           error: z.unknown().describe(
-            "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+            "Output only. The error that occurred during task execution. Only populated when the task's state is FAILED or CANCELLED.",
           ).optional(),
-          execution: z.unknown().describe("Instance of a general execution.")
-            .optional(),
+          execution: z.unknown().describe(
+            "Output only. The execution metadata of the task.",
+          ).optional(),
           executorDetail: z.unknown().describe(
-            "The runtime detail of a pipeline executor.",
+            "Output only. The detailed execution info.",
           ).optional(),
           inputs: z.unknown().describe(
             "Output only. The runtime input artifacts of the task.",
@@ -1144,7 +1149,9 @@ const InputsSchema = z.object({
         })).describe(
           "Output only. The runtime details of the tasks under the pipeline.",
         ).optional(),
-      }).describe("The runtime detail of PipelineJob.").optional(),
+      }).describe(
+        "Output only. The details of pipeline run. Not available in the list view.",
+      ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "The labels with user-defined metadata to organize PipelineJob. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels. Note there is some reserved label key for Vertex AI Pipelines. - `vertex-ai-pipelines-run-billing-id`, user set value will get overrided.",
       ).optional(),
@@ -1177,7 +1184,8 @@ const InputsSchema = z.object({
         networkAttachment: z.string().describe(
           "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
         ).optional(),
-      }).describe("Configuration for PSC-I.").optional(),
+      }).describe("Optional. Configuration for PSC-I for PipelineJob.")
+        .optional(),
       reservedIpRanges: z.array(z.string()).describe(
         "A list of names for the reserved ip ranges under the VPC network that can be used for this Pipeline Job's workload. If set, we will deploy the Pipeline Job's workload within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
       ).optional(),
@@ -1215,7 +1223,7 @@ const InputsSchema = z.object({
         ).describe(
           "Deprecated. Use RuntimeConfig.parameter_values instead. The runtime parameters of the PipelineJob. The parameters will be passed into PipelineJob.pipeline_spec to replace the placeholders at runtime. This field is used by pipelines built using `PipelineJob.pipeline_spec.schema_version` 2.0.0 or lower, such as pipelines built using Kubeflow Pipelines SDK 1.8 or lower.",
         ).optional(),
-      }).describe("The runtime config of a PipelineJob.").optional(),
+      }).describe("Runtime config of the pipeline.").optional(),
       scheduleName: z.string().describe(
         "Output only. The schedule resource name. Only returned if the Pipeline is created by Schedule API.",
       ).optional(),
@@ -1240,7 +1248,7 @@ const InputsSchema = z.object({
           'The version_name in artifact registry. Will always be presented in output if the PipelineJob.template_uri is from supported template registry. Format is "sha256:abcdef123456...".',
         ).optional(),
       }).describe(
-        "Pipeline template metadata if PipelineJob.template_uri is from supported template registry. Currently, the only supported registry is Artifact Registry.",
+        "Output only. Pipeline template metadata. Will fill up fields if PipelineJob.template_uri is from supported template registry.",
       ).optional(),
       templateUri: z.string().describe(
         "A template uri from where the PipelineJob.pipeline_spec, if empty, will be downloaded. Currently, only uri from Vertex Template Registry & Gallery is supported. Reference to https://cloud.google.com/vertex-ai/docs/pipelines/create-pipeline-template.",
@@ -1248,12 +1256,13 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. Timestamp when this PipelineJob was most recently updated.",
       ).optional(),
-    }).describe("An instance of a machine learning PipelineJob.").optional(),
+    }).describe("Required. The PipelineJob to create.").optional(),
     pipelineJobId: z.string().describe(
       "The ID to use for the PipelineJob, which will become the final component of the PipelineJob name. If not provided, an ID will be automatically generated. This value should be less than 128 characters, and valid characters are `/a-z-/`.",
     ).optional(),
-  }).describe("Request message for PipelineService.CreatePipelineJob.")
-    .optional(),
+  }).describe(
+    "Request for PipelineService.CreatePipelineJob. CreatePipelineJobRequest.parent field is required (format: projects/{project}/locations/{location}).",
+  ).optional(),
   cron: z.string().describe(
     'Cron schedule (https://en.wikipedia.org/wiki/Cron) to launch scheduled runs. To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, "CRON_TZ=America/New_York 1 * * * *", or "TZ=America/New_York 1 * * * *".',
   ).optional(),
@@ -1263,13 +1272,6 @@ const InputsSchema = z.object({
   endTime: z.string().describe(
     "Optional. Timestamp after which no new runs can be scheduled. If specified, The schedule will be completed when either end_time is reached or when scheduled_run_count >= max_run_count. If not specified, new runs will keep getting scheduled until this Schedule is paused or deleted. Already scheduled runs will be allowed to complete. Unset if not specified.",
   ).optional(),
-  lastScheduledRunResponse: z.object({
-    runResponse: z.string().describe("The response of the scheduled run.")
-      .optional(),
-    scheduledRunTime: z.string().describe(
-      "The scheduled run time based on the user-specified schedule.",
-    ).optional(),
-  }).describe("Status of a scheduled run.").optional(),
   maxConcurrentActiveRunCount: z.string().describe(
     "Optional. Specifies the maximum number of active runs that can be executed concurrently for this Schedule. This limits the number of runs that can be in a non-terminal state at the same time. Currently, this field is only supported for requests of type CreatePipelineJobRequest.",
   ).optional(),
@@ -1312,7 +1314,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Schedules. Registered at `@swamp/gcp/aiplatform/schedules`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/schedules",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1459,6 +1461,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: lastScheduledRunResponse",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { lastScheduledRunResponse: _lastScheduledRunResponse, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1503,9 +1514,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["endTime"] !== undefined) body["endTime"] = g["endTime"];
-        if (g["lastScheduledRunResponse"] !== undefined) {
-          body["lastScheduledRunResponse"] = g["lastScheduledRunResponse"];
-        }
         if (g["maxConcurrentActiveRunCount"] !== undefined) {
           body["maxConcurrentActiveRunCount"] =
             g["maxConcurrentActiveRunCount"];
@@ -1651,9 +1659,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["endTime"] !== undefined) body["endTime"] = g["endTime"];
-        if (g["lastScheduledRunResponse"] !== undefined) {
-          body["lastScheduledRunResponse"] = g["lastScheduledRunResponse"];
-        }
         if (g["maxConcurrentActiveRunCount"] !== undefined) {
           body["maxConcurrentActiveRunCount"] =
             g["maxConcurrentActiveRunCount"];

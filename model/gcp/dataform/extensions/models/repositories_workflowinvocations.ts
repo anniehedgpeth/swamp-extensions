@@ -142,11 +142,6 @@ const GlobalArgsSchema = z.object({
   compilationResult: z.string().describe(
     "Immutable. The name of the compilation result to use for this invocation. Must be in the format `projects/*/locations/*/repositories/*/compilationResults/*`.",
   ).optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
   invocationConfig: z.object({
     fullyRefreshIncrementalTablesEnabled: z.boolean().describe(
       "Optional. When set to true, any incremental tables will be fully refreshed.",
@@ -183,24 +178,8 @@ const GlobalArgsSchema = z.object({
       "Optional. When set to true, transitive dependents of included actions will be executed.",
     ).optional(),
   }).describe(
-    "Includes various configuration options for a workflow invocation. If both `included_targets` and `included_tags` are unset, all actions will be included.",
+    "Immutable. If left unset, a default InvocationConfig will be used.",
   ).optional(),
-  invocationTiming: z.object({
-    endTime: z.string().describe(
-      "Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
-    ).optional(),
-  }).describe(
-    "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
-  ).optional(),
-  privateResourceMetadata: z.object({
-    userScoped: z.boolean().describe(
-      "Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.",
-    ).optional(),
-  }).describe("Metadata used to identify if a resource is user scoped.")
-    .optional(),
   workflowConfig: z.string().describe(
     "Immutable. The name of the workflow config to invoke. Must be in the format `projects/*/locations/*/repositories/*/workflowConfigs/*`.",
   ).optional(),
@@ -255,11 +234,6 @@ const InputsSchema = z.object({
   compilationResult: z.string().describe(
     "Immutable. The name of the compilation result to use for this invocation. Must be in the format `projects/*/locations/*/repositories/*/compilationResults/*`.",
   ).optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
   invocationConfig: z.object({
     fullyRefreshIncrementalTablesEnabled: z.boolean().describe(
       "Optional. When set to true, any incremental tables will be fully refreshed.",
@@ -296,24 +270,8 @@ const InputsSchema = z.object({
       "Optional. When set to true, transitive dependents of included actions will be executed.",
     ).optional(),
   }).describe(
-    "Includes various configuration options for a workflow invocation. If both `included_targets` and `included_tags` are unset, all actions will be included.",
+    "Immutable. If left unset, a default InvocationConfig will be used.",
   ).optional(),
-  invocationTiming: z.object({
-    endTime: z.string().describe(
-      "Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.",
-    ).optional(),
-    startTime: z.string().describe(
-      "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
-    ).optional(),
-  }).describe(
-    "Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.",
-  ).optional(),
-  privateResourceMetadata: z.object({
-    userScoped: z.boolean().describe(
-      "Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.",
-    ).optional(),
-  }).describe("Metadata used to identify if a resource is user scoped.")
-    .optional(),
   workflowConfig: z.string().describe(
     "Immutable. The name of the workflow config to invoke. Must be in the format `projects/*/locations/*/repositories/*/workflowConfigs/*`.",
   ).optional(),
@@ -348,7 +306,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.WorkflowInvocations. Registered at `@swamp/gcp/dataform/repositories-workflowinvocations`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-workflowinvocations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -450,6 +408,20 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description:
+        "Removed: dataEncryptionState, invocationTiming, privateResourceMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          dataEncryptionState: _dataEncryptionState,
+          invocationTiming: _invocationTiming,
+          privateResourceMetadata: _privateResourceMetadata,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -479,17 +451,8 @@ export const model = {
         if (g["compilationResult"] !== undefined) {
           body["compilationResult"] = g["compilationResult"];
         }
-        if (g["dataEncryptionState"] !== undefined) {
-          body["dataEncryptionState"] = g["dataEncryptionState"];
-        }
         if (g["invocationConfig"] !== undefined) {
           body["invocationConfig"] = g["invocationConfig"];
-        }
-        if (g["invocationTiming"] !== undefined) {
-          body["invocationTiming"] = g["invocationTiming"];
-        }
-        if (g["privateResourceMetadata"] !== undefined) {
-          body["privateResourceMetadata"] = g["privateResourceMetadata"];
         }
         if (g["workflowConfig"] !== undefined) {
           body["workflowConfig"] = g["workflowConfig"];
@@ -513,14 +476,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

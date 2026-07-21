@@ -158,19 +158,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  dataCatalogTimestamps: z.object({
-    createTime: z.string().describe(
-      "Creation timestamp of the resource within the given system.",
-    ).optional(),
-    expireTime: z.string().describe(
-      "Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
-    ).optional(),
-  }).describe(
-    "Timestamps associated with this resource in a particular system.",
-  ).optional(),
   description: z.string().describe(
     "Entry group description. Can consist of several sentences or paragraphs that describe the entry group contents. Default value is an empty string.",
   ).optional(),
@@ -210,19 +197,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  dataCatalogTimestamps: z.object({
-    createTime: z.string().describe(
-      "Creation timestamp of the resource within the given system.",
-    ).optional(),
-    expireTime: z.string().describe(
-      "Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
-    ).optional(),
-  }).describe(
-    "Timestamps associated with this resource in a particular system.",
-  ).optional(),
   description: z.string().describe(
     "Entry group description. Can consist of several sentences or paragraphs that describe the entry group contents. Default value is an empty string.",
   ).optional(),
@@ -266,7 +240,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Data Catalog EntryGroups. Registered at `@swamp/gcp/datacatalog/entrygroups`. */
 export const model = {
   type: "@swamp/gcp/datacatalog/entrygroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -373,6 +347,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: dataCatalogTimestamps",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { dataCatalogTimestamps: _dataCatalogTimestamps, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -398,9 +380,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["dataCatalogTimestamps"] !== undefined) {
-          body["dataCatalogTimestamps"] = g["dataCatalogTimestamps"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -520,9 +499,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["dataCatalogTimestamps"] !== undefined) {
-          body["dataCatalogTimestamps"] = g["dataCatalogTimestamps"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

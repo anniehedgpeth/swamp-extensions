@@ -194,9 +194,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       publisherName: z.string().describe("Publisher name.").optional(),
       title: z.string().describe("Title of this mobile app.").optional(),
-    }).describe(
-      "Contains information about a mobile app. Used as a landing page deep link.",
-    ).optional(),
+    }).describe("The mobile app targeted by this deep link.").optional(),
     remarketingListIds: z.array(z.string()).describe(
       "Ads served to users on these remarketing lists will use this deep link. Applicable when mobileApp.directory is APPLE_APP_STORE.",
     ).optional(),
@@ -279,9 +277,7 @@ const InputsSchema = z.object({
       ).optional(),
       publisherName: z.string().describe("Publisher name.").optional(),
       title: z.string().describe("Title of this mobile app.").optional(),
-    }).describe(
-      "Contains information about a mobile app. Used as a landing page deep link.",
-    ).optional(),
+    }).describe("The mobile app targeted by this deep link.").optional(),
     remarketingListIds: z.array(z.string()).describe(
       "Ads served to users on these remarketing lists will use this deep link. Applicable when mobileApp.directory is APPLE_APP_STORE.",
     ).optional(),
@@ -324,7 +320,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 AdvertiserLandingPages. Registered at `@swamp/gcp/dfareporting/advertiserlandingpages`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/advertiserlandingpages",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -413,6 +409,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

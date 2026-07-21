@@ -185,25 +185,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  autoCreatedSubnetInfo: z.object({
-    delinked: z.boolean().describe(
-      "Output only. Indicates whether the subnetwork is delinked from the Service Connection Policy. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    internalRange: z.string().describe(
-      "Output only. URI of the automatically created Internal Range. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    internalRangeRef: z.string().describe(
-      "Output only. URI of the automatically created Internal Range reference. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    subnetwork: z.string().describe(
-      "Output only. URI of the automatically created subnetwork. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    subnetworkRef: z.string().describe(
-      "Output only. URI of the automatically created subnetwork reference. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-  }).describe(
-    "Information for the automatically created subnetwork and its associated IR.",
-  ).optional(),
   description: z.string().describe("A description of this resource.")
     .optional(),
   labels: z.record(z.string(), z.string()).describe("User-defined labels.")
@@ -315,25 +296,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  autoCreatedSubnetInfo: z.object({
-    delinked: z.boolean().describe(
-      "Output only. Indicates whether the subnetwork is delinked from the Service Connection Policy. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    internalRange: z.string().describe(
-      "Output only. URI of the automatically created Internal Range. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    internalRangeRef: z.string().describe(
-      "Output only. URI of the automatically created Internal Range reference. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    subnetwork: z.string().describe(
-      "Output only. URI of the automatically created subnetwork. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-    subnetworkRef: z.string().describe(
-      "Output only. URI of the automatically created subnetwork reference. Only set if the subnetwork mode is AUTO_CREATED during creation.",
-    ).optional(),
-  }).describe(
-    "Information for the automatically created subnetwork and its associated IR.",
-  ).optional(),
   description: z.string().describe("A description of this resource.")
     .optional(),
   labels: z.record(z.string(), z.string()).describe("User-defined labels.")
@@ -412,7 +374,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity ServiceConnectionPolicies. Registered at `@swamp/gcp/networkconnectivity/serviceconnectionpolicies`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/serviceconnectionpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -519,6 +481,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: autoCreatedSubnetInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { autoCreatedSubnetInfo: _autoCreatedSubnetInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -543,9 +513,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["autoCreatedSubnetInfo"] !== undefined) {
-          body["autoCreatedSubnetInfo"] = g["autoCreatedSubnetInfo"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -687,9 +654,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["autoCreatedSubnetInfo"] !== undefined) {
-          body["autoCreatedSubnetInfo"] = g["autoCreatedSubnetInfo"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

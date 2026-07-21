@@ -165,9 +165,8 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Required. Only keys in the same location as this database are allowed to be used for encryption. For Firestore's nam5 multi-region, this corresponds to Cloud KMS multi-region us. For Firestore's eur3 multi-region, this corresponds to Cloud KMS multi-region europe. See https://cloud.google.com/kms/docs/locations. The expected format is `projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
-  }).describe(
-    "The CMEK (Customer Managed Encryption Key) configuration for a Firestore database. If not present, the database is secured by the default Google encryption key.",
-  ).optional(),
+  }).describe("Optional. Presence indicates CMEK is enabled for this database.")
+    .optional(),
   concurrencyMode: z.enum([
     "CONCURRENCY_MODE_UNSPECIFIED",
     "OPTIMISTIC",
@@ -219,18 +218,6 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "Immutable. The default Realtime Updates mode to use for this database.",
   ).optional(),
-  sourceInfo: z.object({
-    backup: z.object({
-      backup: z.string().describe(
-        "The resource name of the backup that was used to restore this database. Format: `projects/{project}/locations/{location}/backups/{backup}`.",
-      ).optional(),
-    }).describe(
-      "Information about a backup that was used to restore a database.",
-    ).optional(),
-    operation: z.string().describe(
-      "The associated long-running operation. This field may not be set after the operation has completed. Format: `projects/{project}/databases/{database}/operations/{operation}`.",
-    ).optional(),
-  }).describe("Information about the provenance of this database.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
@@ -304,9 +291,8 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Required. Only keys in the same location as this database are allowed to be used for encryption. For Firestore's nam5 multi-region, this corresponds to Cloud KMS multi-region us. For Firestore's eur3 multi-region, this corresponds to Cloud KMS multi-region europe. See https://cloud.google.com/kms/docs/locations. The expected format is `projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
-  }).describe(
-    "The CMEK (Customer Managed Encryption Key) configuration for a Firestore database. If not present, the database is secured by the default Google encryption key.",
-  ).optional(),
+  }).describe("Optional. Presence indicates CMEK is enabled for this database.")
+    .optional(),
   concurrencyMode: z.enum([
     "CONCURRENCY_MODE_UNSPECIFIED",
     "OPTIMISTIC",
@@ -358,18 +344,6 @@ const InputsSchema = z.object({
   ]).describe(
     "Immutable. The default Realtime Updates mode to use for this database.",
   ).optional(),
-  sourceInfo: z.object({
-    backup: z.object({
-      backup: z.string().describe(
-        "The resource name of the backup that was used to restore this database. Format: `projects/{project}/locations/{location}/backups/{backup}`.",
-      ).optional(),
-    }).describe(
-      "Information about a backup that was used to restore a database.",
-    ).optional(),
-    operation: z.string().describe(
-      "The associated long-running operation. This field may not be set after the operation has completed. Format: `projects/{project}/databases/{database}/operations/{operation}`.",
-    ).optional(),
-  }).describe("Information about the provenance of this database.").optional(),
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"',
   ).optional(),
@@ -411,7 +385,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases. Registered at `@swamp/gcp/firestore/databases`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -563,6 +537,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: sourceInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { sourceInfo: _sourceInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -616,7 +598,6 @@ export const model = {
         if (g["realtimeUpdatesMode"] !== undefined) {
           body["realtimeUpdatesMode"] = g["realtimeUpdatesMode"];
         }
-        if (g["sourceInfo"] !== undefined) body["sourceInfo"] = g["sourceInfo"];
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
         if (g["type"] !== undefined) body["type"] = g["type"];
         if (g["databaseId"] !== undefined) {
@@ -750,7 +731,6 @@ export const model = {
           body["pointInTimeRecoveryEnablement"] =
             g["pointInTimeRecoveryEnablement"];
         }
-        if (g["sourceInfo"] !== undefined) body["sourceInfo"] = g["sourceInfo"];
         if (g["type"] !== undefined) body["type"] = g["type"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

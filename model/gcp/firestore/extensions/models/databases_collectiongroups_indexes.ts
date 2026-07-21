@@ -156,26 +156,26 @@ const GlobalArgsSchema = z.object({
           "Optional. Disables geoJSON indexing for the field. By default, geoJSON points are indexed.",
         ).optional(),
       }).describe(
-        "The specification for how to build a geo search index for a field.",
+        "Optional. The specification for building a geo search index for a field.",
       ).optional(),
       textSpec: z.object({
         indexSpecs: z.array(z.unknown()).describe(
           "Required. Specifications for how the field should be indexed. Repeated so that the field can be indexed in multiple ways.",
         ).optional(),
       }).describe(
-        "The specification for how to build a text search index for a field.",
+        "Optional. The specification for building a text search index for a field.",
       ).optional(),
-    }).describe("The configuration for how to index a field for search.")
+    }).describe("Indicates that this field supports search operations.")
       .optional(),
     vectorConfig: z.object({
       dimension: z.number().int().describe(
         "Required. The vector dimension this configuration applies to. The resulting index will only include vectors of this dimension, and can be used for vector search with the same dimension.",
       ).optional(),
-      flat: z.object({}).describe(
-        "An index that stores vectors in a flat data structure, and supports exhaustive search.",
-      ).optional(),
-    }).describe("The index configuration to support vector search operations")
-      .optional(),
+      flat: z.object({}).describe("Indicates the vector index is a flat index.")
+        .optional(),
+    }).describe(
+      "Indicates that this field supports nearest neighbor and distance operations on vector.",
+    ).optional(),
   })).describe(
     "The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.",
   ).optional(),
@@ -197,7 +197,9 @@ const GlobalArgsSchema = z.object({
     textLanguageOverrideFieldPath: z.string().describe(
       'Optional. The field in the document that specifies which language to use for that specific document. For indexes with MONGODB_COMPATIBLE_API ApiScope: if unspecified, the language is taken from the "language" field if it exists or from `text_language` if it does not.',
     ).optional(),
-  }).describe("Options for search indexes at the definition level.").optional(),
+  }).describe(
+    "Optional. Options for search indexes that are at the index definition level. This field is only currently supported for indexes with MONGODB_COMPATIBLE_API ApiScope.",
+  ).optional(),
   shardCount: z.number().int().describe(
     "Optional. The number of shards for the index.",
   ).optional(),
@@ -272,26 +274,26 @@ const InputsSchema = z.object({
           "Optional. Disables geoJSON indexing for the field. By default, geoJSON points are indexed.",
         ).optional(),
       }).describe(
-        "The specification for how to build a geo search index for a field.",
+        "Optional. The specification for building a geo search index for a field.",
       ).optional(),
       textSpec: z.object({
         indexSpecs: z.array(z.unknown()).describe(
           "Required. Specifications for how the field should be indexed. Repeated so that the field can be indexed in multiple ways.",
         ).optional(),
       }).describe(
-        "The specification for how to build a text search index for a field.",
+        "Optional. The specification for building a text search index for a field.",
       ).optional(),
-    }).describe("The configuration for how to index a field for search.")
+    }).describe("Indicates that this field supports search operations.")
       .optional(),
     vectorConfig: z.object({
       dimension: z.number().int().describe(
         "Required. The vector dimension this configuration applies to. The resulting index will only include vectors of this dimension, and can be used for vector search with the same dimension.",
       ).optional(),
-      flat: z.object({}).describe(
-        "An index that stores vectors in a flat data structure, and supports exhaustive search.",
-      ).optional(),
-    }).describe("The index configuration to support vector search operations")
-      .optional(),
+      flat: z.object({}).describe("Indicates the vector index is a flat index.")
+        .optional(),
+    }).describe(
+      "Indicates that this field supports nearest neighbor and distance operations on vector.",
+    ).optional(),
   })).describe(
     "The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.",
   ).optional(),
@@ -313,7 +315,9 @@ const InputsSchema = z.object({
     textLanguageOverrideFieldPath: z.string().describe(
       'Optional. The field in the document that specifies which language to use for that specific document. For indexes with MONGODB_COMPATIBLE_API ApiScope: if unspecified, the language is taken from the "language" field if it exists or from `text_language` if it does not.',
     ).optional(),
-  }).describe("Options for search indexes at the definition level.").optional(),
+  }).describe(
+    "Optional. Options for search indexes that are at the index definition level. This field is only currently supported for indexes with MONGODB_COMPATIBLE_API ApiScope.",
+  ).optional(),
   shardCount: z.number().int().describe(
     "Optional. The number of shards for the index.",
   ).optional(),
@@ -351,7 +355,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.CollectionGroups.Indexes. Registered at `@swamp/gcp/firestore/databases-collectiongroups-indexes`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-collectiongroups-indexes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -505,6 +509,11 @@ export const model = {
       description: "Added: searchIndexOptions",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -561,14 +570,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

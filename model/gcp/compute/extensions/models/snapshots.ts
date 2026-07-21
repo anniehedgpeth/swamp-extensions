@@ -176,7 +176,9 @@ const GlobalArgsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the snapshot. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional snapshot params.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   snapshotEncryptionKey: z.object({
     kmsKeyName: z.string().describe(
       'The name of the encryption key that is stored in Google Cloud KMS. For example: "kmsKeyName": "projects/kms_project_id/locations/region/keyRings/ key_region/cryptoKeys/key The fully-qualifed key name may be returned for resource GET requests. For example: "kmsKeyName": "projects/kms_project_id/locations/region/keyRings/ key_region/cryptoKeys/key /cryptoKeyVersions/1',
@@ -193,7 +195,9 @@ const GlobalArgsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Encrypts the snapshot using acustomer-supplied encryption key. After you encrypt a snapshot using a customer-supplied key, you must provide the same key if you use the snapshot later. For example, you must provide the encryption key when you create a disk from the encrypted snapshot in a future request. Customer-supplied encryption keys do not protect access to metadata of the snapshot. If you do not provide an encryption key when creating the snapshot, then the snapshot will be encrypted using an automatically generated key and you do not need to provide a key to use the snapshot later.",
+  ).optional(),
   snapshotType: z.enum(["ARCHIVE", "STANDARD"]).describe(
     "Indicates the type of the snapshot.",
   ).optional(),
@@ -216,7 +220,9 @@ const GlobalArgsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The customer-supplied encryption key of the source disk. Required if the source disk is protected by a customer-supplied encryption key.",
+  ).optional(),
   sourceDiskForRecoveryCheckpoint: z.string().describe(
     "The source disk whose recovery checkpoint will be used to create this snapshot.",
   ).optional(),
@@ -239,7 +245,9 @@ const GlobalArgsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Customer provided encryption key when creating Snapshot from Instant Snapshot.",
+  ).optional(),
   storageLocations: z.array(z.string()).describe(
     "Cloud Storage bucket storage location of the snapshot (regional or multi-regional).",
   ).optional(),
@@ -347,7 +355,9 @@ const InputsSchema = z.object({
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the snapshot. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
     ).optional(),
-  }).describe("Additional snapshot params.").optional(),
+  }).describe(
+    "Input only. [Input Only] Additional params passed with the request, but not persisted as part of resource payload.",
+  ).optional(),
   snapshotEncryptionKey: z.object({
     kmsKeyName: z.string().describe(
       'The name of the encryption key that is stored in Google Cloud KMS. For example: "kmsKeyName": "projects/kms_project_id/locations/region/keyRings/ key_region/cryptoKeys/key The fully-qualifed key name may be returned for resource GET requests. For example: "kmsKeyName": "projects/kms_project_id/locations/region/keyRings/ key_region/cryptoKeys/key /cryptoKeyVersions/1',
@@ -364,7 +374,9 @@ const InputsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Encrypts the snapshot using acustomer-supplied encryption key. After you encrypt a snapshot using a customer-supplied key, you must provide the same key if you use the snapshot later. For example, you must provide the encryption key when you create a disk from the encrypted snapshot in a future request. Customer-supplied encryption keys do not protect access to metadata of the snapshot. If you do not provide an encryption key when creating the snapshot, then the snapshot will be encrypted using an automatically generated key and you do not need to provide a key to use the snapshot later.",
+  ).optional(),
   snapshotType: z.enum(["ARCHIVE", "STANDARD"]).describe(
     "Indicates the type of the snapshot.",
   ).optional(),
@@ -387,7 +399,9 @@ const InputsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The customer-supplied encryption key of the source disk. Required if the source disk is protected by a customer-supplied encryption key.",
+  ).optional(),
   sourceDiskForRecoveryCheckpoint: z.string().describe(
     "The source disk whose recovery checkpoint will be used to create this snapshot.",
   ).optional(),
@@ -410,7 +424,9 @@ const InputsSchema = z.object({
     sha256: z.string().describe(
       "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Customer provided encryption key when creating Snapshot from Instant Snapshot.",
+  ).optional(),
   storageLocations: z.array(z.string()).describe(
     "Cloud Storage bucket storage location of the snapshot (regional or multi-regional).",
   ).optional(),
@@ -442,7 +458,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Snapshots. Registered at `@swamp/gcp/compute/snapshots`. */
 export const model = {
   type: "@swamp/gcp/compute/snapshots",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -611,6 +627,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

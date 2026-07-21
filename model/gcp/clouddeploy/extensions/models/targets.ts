@@ -192,7 +192,7 @@ const GlobalArgsSchema = z.object({
     membership: z.string().describe(
       "Optional. Membership of the GKE Hub-registered cluster to which to apply the Skaffold configuration. Format is `projects/{project}/locations/{location}/memberships/{membership_name}`.",
     ).optional(),
-  }).describe("Information specifying an Anthos Cluster.").optional(),
+  }).describe("Optional. Information specifying an Anthos Cluster.").optional(),
   associatedEntities: z.record(
     z.string(),
     z.object({
@@ -227,7 +227,7 @@ const GlobalArgsSchema = z.object({
     customTargetType: z.string().describe(
       "Required. The name of the CustomTargetType. Format must be `projects/{project}/locations/{location}/customTargetTypes/{custom_target_type}`.",
     ).optional(),
-  }).describe("Information specifying a Custom Target.").optional(),
+  }).describe("Optional. Information specifying a Custom Target.").optional(),
   deployParameters: z.record(z.string(), z.string()).describe(
     "Optional. The deploy parameters to use for this target.",
   ).optional(),
@@ -245,7 +245,7 @@ const GlobalArgsSchema = z.object({
       serviceAccount: z.string().describe(
         "Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) will be used.",
       ).optional(),
-    }).describe("Execution using the default Cloud Build pool.").optional(),
+    }).describe("Optional. Use default Cloud Build pool.").optional(),
     executionTimeout: z.string().describe(
       "Optional. Execution timeout for a Cloud Build Execution. This must be between 10m and 24h in seconds format. If unspecified, a default timeout of 1h is used.",
     ).optional(),
@@ -259,7 +259,7 @@ const GlobalArgsSchema = z.object({
       workerPool: z.string().describe(
         "Required. Resource name of the Cloud Build worker pool to use. The format is `projects/{project}/locations/{location}/workerPools/{pool}`.",
       ).optional(),
-    }).describe("Execution using a private Cloud Build pool.").optional(),
+    }).describe("Optional. Use private Cloud Build pool.").optional(),
     serviceAccount: z.string().describe(
       "Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) is used.",
     ).optional(),
@@ -297,7 +297,7 @@ const GlobalArgsSchema = z.object({
     proxyUrl: z.string().describe(
       "Optional. If set, used to configure a [proxy](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/#proxy) to the Kubernetes server.",
     ).optional(),
-  }).describe("Information specifying a GKE Cluster.").optional(),
+  }).describe("Optional. Information specifying a GKE Cluster.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
   ).optional(),
@@ -305,7 +305,7 @@ const GlobalArgsSchema = z.object({
     targetIds: z.array(z.string()).describe(
       "Required. The target_ids of this multiTarget.",
     ).optional(),
-  }).describe("Information specifying a multiTarget.").optional(),
+  }).describe("Optional. Information specifying a multiTarget.").optional(),
   name: z.string().describe(
     "Identifier. Name of the `Target`. Format is `projects/{project}/locations/{location}/targets/{target}`. The `target` component must match `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`",
   ).optional(),
@@ -316,7 +316,7 @@ const GlobalArgsSchema = z.object({
     location: z.string().describe(
       "Required. The location for the Cloud Run Service. Format must be `projects/{project}/locations/{location}`.",
     ).optional(),
-  }).describe("Information specifying where to deploy a Cloud Run Service.")
+  }).describe("Optional. Information specifying a Cloud Run deployment target.")
     .optional(),
   requestId: z.string().describe(
     "Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server knows to ignore the request if it has already been completed. The server guarantees that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -390,7 +390,7 @@ const InputsSchema = z.object({
     membership: z.string().describe(
       "Optional. Membership of the GKE Hub-registered cluster to which to apply the Skaffold configuration. Format is `projects/{project}/locations/{location}/memberships/{membership_name}`.",
     ).optional(),
-  }).describe("Information specifying an Anthos Cluster.").optional(),
+  }).describe("Optional. Information specifying an Anthos Cluster.").optional(),
   associatedEntities: z.record(
     z.string(),
     z.object({
@@ -425,7 +425,7 @@ const InputsSchema = z.object({
     customTargetType: z.string().describe(
       "Required. The name of the CustomTargetType. Format must be `projects/{project}/locations/{location}/customTargetTypes/{custom_target_type}`.",
     ).optional(),
-  }).describe("Information specifying a Custom Target.").optional(),
+  }).describe("Optional. Information specifying a Custom Target.").optional(),
   deployParameters: z.record(z.string(), z.string()).describe(
     "Optional. The deploy parameters to use for this target.",
   ).optional(),
@@ -443,7 +443,7 @@ const InputsSchema = z.object({
       serviceAccount: z.string().describe(
         "Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) will be used.",
       ).optional(),
-    }).describe("Execution using the default Cloud Build pool.").optional(),
+    }).describe("Optional. Use default Cloud Build pool.").optional(),
     executionTimeout: z.string().describe(
       "Optional. Execution timeout for a Cloud Build Execution. This must be between 10m and 24h in seconds format. If unspecified, a default timeout of 1h is used.",
     ).optional(),
@@ -457,7 +457,7 @@ const InputsSchema = z.object({
       workerPool: z.string().describe(
         "Required. Resource name of the Cloud Build worker pool to use. The format is `projects/{project}/locations/{location}/workerPools/{pool}`.",
       ).optional(),
-    }).describe("Execution using a private Cloud Build pool.").optional(),
+    }).describe("Optional. Use private Cloud Build pool.").optional(),
     serviceAccount: z.string().describe(
       "Optional. Google service account to use for execution. If unspecified, the project execution service account (-compute@developer.gserviceaccount.com) is used.",
     ).optional(),
@@ -495,7 +495,7 @@ const InputsSchema = z.object({
     proxyUrl: z.string().describe(
       "Optional. If set, used to configure a [proxy](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/#proxy) to the Kubernetes server.",
     ).optional(),
-  }).describe("Information specifying a GKE Cluster.").optional(),
+  }).describe("Optional. Information specifying a GKE Cluster.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels are attributes that can be set and used by both the user and by Cloud Deploy. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be <= 128 bytes.",
   ).optional(),
@@ -503,7 +503,7 @@ const InputsSchema = z.object({
     targetIds: z.array(z.string()).describe(
       "Required. The target_ids of this multiTarget.",
     ).optional(),
-  }).describe("Information specifying a multiTarget.").optional(),
+  }).describe("Optional. Information specifying a multiTarget.").optional(),
   name: z.string().describe(
     "Identifier. Name of the `Target`. Format is `projects/{project}/locations/{location}/targets/{target}`. The `target` component must match `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`",
   ).optional(),
@@ -514,7 +514,7 @@ const InputsSchema = z.object({
     location: z.string().describe(
       "Required. The location for the Cloud Run Service. Format must be `projects/{project}/locations/{location}`.",
     ).optional(),
-  }).describe("Information specifying where to deploy a Cloud Run Service.")
+  }).describe("Optional. Information specifying a Cloud Run deployment target.")
     .optional(),
   requestId: z.string().describe(
     "Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server knows to ignore the request if it has already been completed. The server guarantees that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -547,7 +547,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy Targets. Registered at `@swamp/gcp/clouddeploy/targets`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/targets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -651,6 +651,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

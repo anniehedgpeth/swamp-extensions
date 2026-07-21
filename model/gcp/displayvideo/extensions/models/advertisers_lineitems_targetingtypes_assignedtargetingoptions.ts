@@ -223,7 +223,7 @@ const GlobalArgsSchema = z.object({
       "Required. The age range of an audience. We only support targeting a continuous age range of an audience. Thus, the age range represented in this field can be 1) targeted solely, or, 2) part of a larger continuous age range. The reach of a continuous age range targeting can be expanded by also targeting an audience of an unknown age.",
     ).optional(),
   }).describe(
-    "Represents a targetable age range. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_AGE_RANGE`.",
+    "Age range details. This field will be populated when the targeting_type is `TARGETING_TYPE_AGE_RANGE`.",
   ).optional(),
   appCategoryDetails: z.object({
     displayName: z.string().describe(
@@ -236,7 +236,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_APP_CATEGORY`.",
     ).optional(),
   }).describe(
-    "Details for assigned app category targeting option. This will be populated in the app_category_details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_APP_CATEGORY`.",
+    "App category details. This field will be populated when the targeting_type is `TARGETING_TYPE_APP_CATEGORY`.",
   ).optional(),
   appDetails: z.object({
     appId: z.string().describe(
@@ -267,7 +267,7 @@ const GlobalArgsSchema = z.object({
       "Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for assigned app targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_APP`.",
+    "App details. This field will be populated when the targeting_type is `TARGETING_TYPE_APP`.",
   ).optional(),
   audienceGroupDetails: z.object({
     excludedFirstPartyAndPartnerAudienceGroup: z.object({
@@ -313,7 +313,7 @@ const GlobalArgsSchema = z.object({
         "Required. All first party and partner audience targeting settings in first party and partner audience group. Repeated settings with the same id are not allowed.",
       ).optional(),
     }).describe(
-      "Details of first party and partner audience group. All first party and partner audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The first party and partner audience ids and recencies of the excluded first party and partner audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. All items are logically ‘OR’ of each other.",
     ).optional(),
     excludedGoogleAudienceGroup: z.object({
       settings: z.array(z.object({
@@ -324,7 +324,7 @@ const GlobalArgsSchema = z.object({
         "Required. All Google audience targeting settings in Google audience group. Repeated settings with the same id will be ignored.",
       ).optional(),
     }).describe(
-      "Details of Google audience group. All Google audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The Google audience ids of the excluded Google audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. Only contains Affinity, In-market and Installed-apps type Google audiences. All items are logically ‘OR’ of each other.",
     ).optional(),
     includedCombinedAudienceGroup: z.object({
       settings: z.array(z.object({
@@ -335,7 +335,7 @@ const GlobalArgsSchema = z.object({
         "Required. All combined audience targeting settings in combined audience group. Repeated settings with the same id will be ignored. The number of combined audience settings should be no more than five, error will be thrown otherwise.",
       ).optional(),
     }).describe(
-      "Details of combined audience group. All combined audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The combined audience ids of the included combined audience group. Contains combined audience ids only.",
     ).optional(),
     includedCustomListGroup: z.object({
       settings: z.array(z.object({
@@ -346,7 +346,7 @@ const GlobalArgsSchema = z.object({
         "Required. All custom list targeting settings in custom list group. Repeated settings with the same id will be ignored.",
       ).optional(),
     }).describe(
-      "Details of custom list group. All custom list targeting settings are logically ‘OR’ of each other.",
+      "Optional. The custom list ids of the included custom list group. Contains custom list ids only.",
     ).optional(),
     includedFirstPartyAndPartnerAudienceGroups: z.array(z.object({
       settings: z.array(z.object({
@@ -371,10 +371,10 @@ const GlobalArgsSchema = z.object({
         "Required. All Google audience targeting settings in Google audience group. Repeated settings with the same id will be ignored.",
       ).optional(),
     }).describe(
-      "Details of Google audience group. All Google audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The Google audience ids of the included Google audience group. Contains Google audience ids only.",
     ).optional(),
   }).describe(
-    "Assigned audience group targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_AUDIENCE_GROUP`. The relation between each group is UNION, except for excluded_first_and_third_party_audience_group and excluded_google_audience_group, of which COMPLEMENT is used as an INTERSECTION with other groups.",
+    "Audience targeting details. This field will be populated when the targeting_type is `TARGETING_TYPE_AUDIENCE_GROUP`. You can only target one audience group option per resource.",
   ).optional(),
   audioContentTypeDetails: z.object({
     audioContentType: z.enum([
@@ -389,7 +389,7 @@ const GlobalArgsSchema = z.object({
       "AUDIO_CONTENT_TYPE_TEXT_TO_SPEECH",
     ]).describe("Required. The audio content type.").optional(),
   }).describe(
-    "Details for audio content type assigned targeting option. This will be populated in the audio_content_type_details field when targeting_type is `TARGETING_TYPE_AUDIO_CONTENT_TYPE`. Explicitly targeting all options is not supported. Remove all audio content type targeting options to achieve this effect.",
+    "Audio content type details. This field will be populated when the targeting_type is `TARGETING_TYPE_AUDIO_CONTENT_TYPE`.",
   ).optional(),
   authorizedSellerStatusDetails: z.object({
     authorizedSellerStatus: z.enum([
@@ -402,7 +402,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS`.",
     ).optional(),
   }).describe(
-    'Represents an assigned authorized seller status. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS`. If a resource does not have an `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS` assigned targeting option, it is using the "Authorized Direct Sellers and Resellers" option.',
+    "Authorized seller status details. This field will be populated when the targeting_type is `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS`. You can only target one authorized seller status option per resource. If a resource doesn't have an authorized seller status option, all authorized sellers indicated as DIRECT or RESELLER in the ads.txt file are targeted by default.",
   ).optional(),
   browserDetails: z.object({
     displayName: z.string().describe(
@@ -415,7 +415,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_BROWSER`.",
     ).optional(),
   }).describe(
-    "Details for assigned browser targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_BROWSER`.",
+    "Browser details. This field will be populated when the targeting_type is `TARGETING_TYPE_BROWSER`.",
   ).optional(),
   businessChainDetails: z.object({
     displayName: z.string().describe(
@@ -435,7 +435,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_BUSINESS_CHAIN`. Accepted business chain targeting option IDs can be retrieved using SearchTargetingOptions.",
     ).optional(),
   }).describe(
-    "Details for assigned Business chain targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_BUSINESS_CHAIN`.",
+    "Business chain details. This field will be populated when the targeting_type is `TARGETING_TYPE_BUSINESS_CHAIN`.",
   ).optional(),
   carrierAndIspDetails: z.object({
     displayName: z.string().describe(
@@ -448,7 +448,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_CARRIER_AND_ISP`.",
     ).optional(),
   }).describe(
-    "Details for assigned carrier and ISP targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_CARRIER_AND_ISP`.",
+    "Carrier and ISP details. This field will be populated when the targeting_type is `TARGETING_TYPE_CARRIER_AND_ISP`.",
   ).optional(),
   categoryDetails: z.object({
     displayName: z.string().describe(
@@ -461,7 +461,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CATEGORY`.",
     ).optional(),
   }).describe(
-    "Assigned category targeting option details. This will be populated in the category_details field when targeting_type is `TARGETING_TYPE_CATEGORY`.",
+    "Category details. This field will be populated when the targeting_type is `TARGETING_TYPE_CATEGORY`. Targeting a category will also target its subcategories. If a category is excluded from targeting and a subcategory is included, the exclusion will take precedence.",
   ).optional(),
   channelDetails: z.object({
     channelId: z.string().describe(
@@ -471,7 +471,7 @@ const GlobalArgsSchema = z.object({
       "Indicates if this option is being negatively targeted. For advertiser level assigned targeting option, this field must be true.",
     ).optional(),
   }).describe(
-    "Details for assigned channel targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_CHANNEL`.",
+    "Channel details. This field will be populated when the targeting_type is `TARGETING_TYPE_CHANNEL`.",
   ).optional(),
   contentDurationDetails: z.object({
     contentDuration: z.enum([
@@ -488,7 +488,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CONTENT_DURATION`.",
     ).optional(),
   }).describe(
-    "Details for content duration assigned targeting option. This will be populated in the content_duration_details field when targeting_type is `TARGETING_TYPE_CONTENT_DURATION`. Explicitly targeting all options is not supported. Remove all content duration targeting options to achieve this effect.",
+    "Content duration details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_DURATION`.",
   ).optional(),
   contentGenreDetails: z.object({
     displayName: z.string().describe(
@@ -501,7 +501,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CONTENT_GENRE`.",
     ).optional(),
   }).describe(
-    "Details for content genre assigned targeting option. This will be populated in the content_genre_details field when targeting_type is `TARGETING_TYPE_CONTENT_GENRE`. Explicitly targeting all options is not supported. Remove all content genre targeting options to achieve this effect.",
+    "Content genre details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_GENRE`.",
   ).optional(),
   contentInstreamPositionDetails: z.object({
     adType: z.enum([
@@ -522,7 +522,7 @@ const GlobalArgsSchema = z.object({
       "Required. The content instream position for video or audio ads.",
     ).optional(),
   }).describe(
-    "Assigned content instream position targeting option details. This will be populated in the content_instream_position_details field when targeting_type is `TARGETING_TYPE_CONTENT_INSTREAM_POSITION`.",
+    "Content instream position details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_INSTREAM_POSITION`.",
   ).optional(),
   contentOutstreamPositionDetails: z.object({
     adType: z.enum([
@@ -542,7 +542,7 @@ const GlobalArgsSchema = z.object({
       "CONTENT_OUTSTREAM_POSITION_INTERSTITIAL",
     ]).describe("Required. The content outstream position.").optional(),
   }).describe(
-    "Assigned content outstream position targeting option details. This will be populated in the content_outstream_position_details field when targeting_type is `TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION`.",
+    "Content outstream position details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION`.",
   ).optional(),
   contentStreamTypeDetails: z.object({
     contentStreamType: z.enum([
@@ -554,7 +554,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CONTENT_STREAM_TYPE`.",
     ).optional(),
   }).describe(
-    "Details for content stream type assigned targeting option. This will be populated in the content_stream_type_details field when targeting_type is `TARGETING_TYPE_CONTENT_STREAM_TYPE`. Explicitly targeting all options is not supported. Remove all content stream type targeting options to achieve this effect.",
+    "Content duration details. This field will be populated when the TargetingType is `TARGETING_TYPE_CONTENT_STREAM_TYPE`.",
   ).optional(),
   contentThemeExclusionDetails: z.object({
     contentTheme: z.enum([
@@ -588,7 +588,7 @@ const GlobalArgsSchema = z.object({
       "Required. ID of the content theme to be EXCLUDED.",
     ).optional(),
   }).describe(
-    "Targeting details for content theme. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_CONTENT_THEME_EXCLUSION`.",
+    "Content theme details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_THEME_EXCLUSION`. Content theme are targeting exclusions. Advertiser level content theme exclusions, if set, are always applied in serving (even though they aren't visible in resource settings). Resource settings can exclude content theme in addition to advertiser exclusions.",
   ).optional(),
   dayAndTimeDetails: z.object({
     dayOfWeek: z.enum([
@@ -617,7 +617,7 @@ const GlobalArgsSchema = z.object({
       "Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For Demand Gen line items, this field is always `TIME_ZONE_RESOLUTION_ADVERTISER`.",
     ).optional(),
   }).describe(
-    "Representation of a segment of time defined on a specific day of the week and with a start and end time. The time represented by `start_hour` must be before the time represented by `end_hour`.",
+    "Day and time details. This field will be populated when the targeting_type is `TARGETING_TYPE_DAY_AND_TIME`.",
   ).optional(),
   deviceMakeModelDetails: z.object({
     displayName: z.string().describe(
@@ -630,7 +630,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_DEVICE_MAKE_MODEL`.",
     ).optional(),
   }).describe(
-    "Assigned device make and model targeting option details. This will be populated in the device_make_model_details field when targeting_type is `TARGETING_TYPE_DEVICE_MAKE_MODEL`.",
+    "Device make and model details. This field will be populated when the targeting_type is `TARGETING_TYPE_DEVICE_MAKE_MODEL`.",
   ).optional(),
   deviceTypeDetails: z.object({
     deviceType: z.enum([
@@ -645,7 +645,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Bid multiplier allows you to show your ads more or less frequently based on the device type. It will apply a multiplier on the original bid price. When this field is 0, it indicates this field is not applicable instead of multiplying 0 on the original bid price. For example, if the bid price without multiplier is $10.0 and the multiplier is 1.5 for Tablet, the resulting bid price for Tablet will be $15.0. Only applicable to YouTube and Partners line items.",
     ).optional(),
   }).describe(
-    "Targeting details for device type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_DEVICE_TYPE`.",
+    "Device Type details. This field will be populated when the targeting_type is `TARGETING_TYPE_DEVICE_TYPE`.",
   ).optional(),
   digitalContentLabelExclusionDetails: z.object({
     excludedContentRatingTier: z.enum([
@@ -660,7 +660,7 @@ const GlobalArgsSchema = z.object({
       "Required. The display name of the digital content label rating tier to be EXCLUDED.",
     ).optional(),
   }).describe(
-    "Targeting details for digital content label. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION`.",
+    "Digital content label details. This field will be populated when the targeting_type is `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION`. Digital content labels are targeting exclusions. Advertiser level digital content label exclusions, if set, are always applied in serving (even though they aren't visible in resource settings). Resource settings can exclude content labels in addition to advertiser exclusions, but can't override them. A line item won't serve if all the digital content labels are excluded.",
   ).optional(),
   environmentDetails: z.object({
     environment: z.enum([
@@ -670,7 +670,7 @@ const GlobalArgsSchema = z.object({
       "ENVIRONMENT_APP",
     ]).describe("Required. The serving environment.").optional(),
   }).describe(
-    "Assigned environment targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_ENVIRONMENT`.",
+    "Environment details. This field will be populated when the targeting_type is `TARGETING_TYPE_ENVIRONMENT`.",
   ).optional(),
   exchangeDetails: z.object({
     exchange: z.enum([
@@ -766,7 +766,7 @@ const GlobalArgsSchema = z.object({
       "EXCHANGE_EXTE",
     ]).describe("Required. The enum value for the exchange.").optional(),
   }).describe(
-    "Details for assigned exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_EXCHANGE`.",
+    "Exchange details. This field will be populated when the targeting_type is `TARGETING_TYPE_EXCHANGE`.",
   ).optional(),
   genderDetails: z.object({
     gender: z.enum([
@@ -776,7 +776,7 @@ const GlobalArgsSchema = z.object({
       "GENDER_UNKNOWN",
     ]).describe("Required. The gender of the audience.").optional(),
   }).describe(
-    "Details for assigned gender targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_GENDER`.",
+    "Gender details. This field will be populated when the targeting_type is `TARGETING_TYPE_GENDER`.",
   ).optional(),
   geoRegionDetails: z.object({
     displayName: z.string().describe(
@@ -832,7 +832,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_GEO_REGION`.",
     ).optional(),
   }).describe(
-    "Details for assigned geographic region targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_GEO_REGION`.",
+    "Geographic region details. This field will be populated when the targeting_type is `TARGETING_TYPE_GEO_REGION`.",
   ).optional(),
   householdIncomeDetails: z.object({
     householdIncome: z.enum([
@@ -846,21 +846,21 @@ const GlobalArgsSchema = z.object({
       "HOUSEHOLD_INCOME_TOP_10_PERCENT",
     ]).describe("Required. The household income of the audience.").optional(),
   }).describe(
-    "Details for assigned household income targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_HOUSEHOLD_INCOME`.",
+    "Household income details. This field will be populated when the targeting_type is `TARGETING_TYPE_HOUSEHOLD_INCOME`.",
   ).optional(),
   inventorySourceDetails: z.object({
     inventorySourceId: z.string().describe(
       "Required. ID of the inventory source. Should refer to the inventory_source_id field of an InventorySource resource.",
     ).optional(),
   }).describe(
-    "Targeting details for inventory source. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE`.",
+    "Inventory source details. This field will be populated when the targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE`.",
   ).optional(),
   inventorySourceGroupDetails: z.object({
     inventorySourceGroupId: z.string().describe(
       "Required. ID of the inventory source group. Should refer to the inventory_source_group_id field of an InventorySourceGroup resource.",
     ).optional(),
   }).describe(
-    "Targeting details for inventory source group. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE_GROUP`.",
+    "Inventory source group details. This field will be populated when the targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE_GROUP`.",
   ).optional(),
   keywordDetails: z.object({
     exemptedPolicyNames: z.array(z.string()).describe(
@@ -873,7 +873,7 @@ const GlobalArgsSchema = z.object({
       "Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for assigned keyword targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_KEYWORD`.",
+    "Keyword details. This field will be populated when the targeting_type is `TARGETING_TYPE_KEYWORD`. A maximum of 5000 direct negative keywords can be assigned to a resource. No limit on number of positive keywords that can be assigned.",
   ).optional(),
   languageDetails: z.object({
     displayName: z.string().describe(
@@ -886,7 +886,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_LANGUAGE`.",
     ).optional(),
   }).describe(
-    "Details for assigned language targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_LANGUAGE`.",
+    "Language details. This field will be populated when the targeting_type is `TARGETING_TYPE_LANGUAGE`.",
   ).optional(),
   nativeContentPositionDetails: z.object({
     contentPosition: z.enum([
@@ -898,21 +898,21 @@ const GlobalArgsSchema = z.object({
       "NATIVE_CONTENT_POSITION_RECOMMENDATION",
     ]).describe("Required. The content position.").optional(),
   }).describe(
-    "Details for native content position assigned targeting option. This will be populated in the native_content_position_details field when targeting_type is `TARGETING_TYPE_NATIVE_CONTENT_POSITION`. Explicitly targeting all options is not supported. Remove all native content position targeting options to achieve this effect.",
+    "Native content position details. This field will be populated when the targeting_type is `TARGETING_TYPE_NATIVE_CONTENT_POSITION`.",
   ).optional(),
   negativeKeywordListDetails: z.object({
     negativeKeywordListId: z.string().describe(
       "Required. ID of the negative keyword list. Should refer to the negative_keyword_list_id field of a NegativeKeywordList resource.",
     ).optional(),
   }).describe(
-    "Targeting details for negative keyword list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_NEGATIVE_KEYWORD_LIST`.",
+    "Keyword details. This field will be populated when the targeting_type is `TARGETING_TYPE_NEGATIVE_KEYWORD_LIST`. A maximum of 4 negative keyword lists can be assigned to a resource.",
   ).optional(),
   omidDetails: z.object({
     omid: z.enum(["OMID_UNSPECIFIED", "OMID_FOR_MOBILE_DISPLAY_ADS"]).describe(
       "Required. The type of Open Measurement enabled inventory.",
     ).optional(),
   }).describe(
-    "Represents a targetable Open Measurement enabled inventory type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_OMID`.",
+    "Open Measurement enabled inventory details. This field will be populated when the targeting_type is `TARGETING_TYPE_OMID`.",
   ).optional(),
   onScreenPositionDetails: z.object({
     adType: z.enum([
@@ -933,7 +933,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_ON_SCREEN_POSITION`.",
     ).optional(),
   }).describe(
-    "On screen position targeting option details. This will be populated in the on_screen_position_details field when targeting_type is `TARGETING_TYPE_ON_SCREEN_POSITION`.",
+    "On screen position details. This field will be populated when the targeting_type is `TARGETING_TYPE_ON_SCREEN_POSITION`.",
   ).optional(),
   operatingSystemDetails: z.object({
     displayName: z.string().describe(
@@ -946,7 +946,7 @@ const GlobalArgsSchema = z.object({
       "Required. The targeting option ID populated in targeting_option_id field when targeting_type is `TARGETING_TYPE_OPERATING_SYSTEM`.",
     ).optional(),
   }).describe(
-    "Assigned operating system targeting option details. This will be populated in the operating_system_details field when targeting_type is `TARGETING_TYPE_OPERATING_SYSTEM`.",
+    "Operating system details. This field will be populated when the targeting_type is `TARGETING_TYPE_OPERATING_SYSTEM`.",
   ).optional(),
   parentalStatusDetails: z.object({
     parentalStatus: z.enum([
@@ -956,7 +956,7 @@ const GlobalArgsSchema = z.object({
       "PARENTAL_STATUS_UNKNOWN",
     ]).describe("Required. The parental status of the audience.").optional(),
   }).describe(
-    "Details for assigned parental status targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_PARENTAL_STATUS`.",
+    "Parental status details. This field will be populated when the targeting_type is `TARGETING_TYPE_PARENTAL_STATUS`.",
   ).optional(),
   poiDetails: z.object({
     displayName: z.string().describe(
@@ -982,7 +982,7 @@ const GlobalArgsSchema = z.object({
       'Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_POI`. Accepted POI targeting option IDs can be retrieved using `targetingTypes.targetingOptions.search`. If targeting a specific latitude/longitude coordinate removed from an address or POI name, you can generate the necessary targeting option ID by rounding the desired coordinate values to the 6th decimal place, removing the decimals, and concatenating the string values separated by a semicolon. For example, you can target the latitude/longitude pair of 40.7414691, -74.003387 using the targeting option ID "40741469;-74003387". **Upon** **creation, this field value will be updated to append a semicolon and** **alphanumerical hash value if only latitude/longitude coordinates are** **provided.**',
     ).optional(),
   }).describe(
-    "Details for assigned POI targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_POI`.",
+    "POI details. This field will be populated when the targeting_type is `TARGETING_TYPE_POI`.",
   ).optional(),
   proximityLocationListDetails: z.object({
     proximityLocationListId: z.string().describe(
@@ -997,7 +997,7 @@ const GlobalArgsSchema = z.object({
       "PROXIMITY_RADIUS_UNIT_KILOMETERS",
     ]).describe("Required. Radius distance units.").optional(),
   }).describe(
-    "Targeting details for proximity location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_PROXIMITY_LOCATION_LIST`.",
+    "Proximity location list details. This field will be populated when the targeting_type is `TARGETING_TYPE_PROXIMITY_LOCATION_LIST`.",
   ).optional(),
   regionalLocationListDetails: z.object({
     negative: z.boolean().describe(
@@ -1007,7 +1007,7 @@ const GlobalArgsSchema = z.object({
       "Required. ID of the regional location list. Should refer to the location_list_id field of a LocationList resource whose type is `TARGETING_LOCATION_TYPE_REGIONAL`.",
     ).optional(),
   }).describe(
-    "Targeting details for regional location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_REGIONAL_LOCATION_LIST`.",
+    "Regional location list details. This field will be populated when the targeting_type is `TARGETING_TYPE_REGIONAL_LOCATION_LIST`.",
   ).optional(),
   sensitiveCategoryExclusionDetails: z.object({
     excludedSensitiveCategory: z.enum([
@@ -1035,7 +1035,7 @@ const GlobalArgsSchema = z.object({
       "Required. An enum for the DV360 Sensitive category content classified to be EXCLUDED.",
     ).optional(),
   }).describe(
-    "Targeting details for sensitive category. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION`.",
+    "Sensitive category details. This field will be populated when the targeting_type is `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION`. Sensitive categories are targeting exclusions. Advertiser level sensitive category exclusions, if set, are always applied in serving (even though they aren't visible in resource settings). Resource settings can exclude sensitive categories in addition to advertiser exclusions, but can't override them.",
   ).optional(),
   sessionPositionDetails: z.object({
     sessionPosition: z.enum([
@@ -1043,14 +1043,14 @@ const GlobalArgsSchema = z.object({
       "SESSION_POSITION_FIRST_IMPRESSION",
     ]).describe("The position where the ad will show in a session.").optional(),
   }).describe(
-    "Details for session position assigned targeting option. This will be populated in the session_position_details field when targeting_type is `TARGETING_TYPE_SESSION_POSITION`.",
+    "Session position details. This field will be populated when the targeting_type is `TARGETING_TYPE_SESSION_POSITION`.",
   ).optional(),
   subExchangeDetails: z.object({
     targetingOptionId: z.string().describe(
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_SUB_EXCHANGE`.",
     ).optional(),
   }).describe(
-    "Details for assigned sub-exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_SUB_EXCHANGE`.",
+    "Sub-exchange details. This field will be populated when the targeting_type is `TARGETING_TYPE_SUB_EXCHANGE`.",
   ).optional(),
   targetingType: z.enum([
     "TARGETING_TYPE_UNSPECIFIED",
@@ -1253,7 +1253,7 @@ const GlobalArgsSchema = z.object({
       ]).describe("Optional. IAB viewability threshold for video ads.")
         .optional(),
     }).describe(
-      "Details of Scope3 (previously known as Adloox) brand safety settings.",
+      "Third party brand verifier -- Scope3 (previously known as Adloox).",
     ).optional(),
     doubleVerify: z.object({
       appStarRating: z.object({
@@ -1270,7 +1270,7 @@ const GlobalArgsSchema = z.object({
           "APP_STAR_RATE_4_LESS",
           "APP_STAR_RATE_4_POINT_5_LESS",
         ]).describe("Avoid bidding on apps with the star ratings.").optional(),
-      }).describe("Details of DoubleVerify star ratings settings.").optional(),
+      }).describe("Avoid bidding on apps with the star ratings.").optional(),
       avoidedAgeRatings: z.array(
         z.enum([
           "AGE_RATING_UNSPECIFIED",
@@ -1325,7 +1325,7 @@ const GlobalArgsSchema = z.object({
           ]),
         ).describe("Brand safety medium severity avoidance categories.")
           .optional(),
-      }).describe("Settings for brand safety controls.").optional(),
+      }).describe("DV Brand Safety Controls.").optional(),
       customSegmentId: z.string().describe(
         'The custom segment ID provided by DoubleVerify. The ID must start with "51" and consist of eight digits. Custom segment ID cannot be specified along with any of the following fields: * brand_safety_categories * avoided_age_ratings * app_star_rating * fraud_invalid_traffic',
       ).optional(),
@@ -1352,8 +1352,9 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Target web and app inventory to maximize 100% viewable duration.",
         ).optional(),
-      }).describe("Details of DoubleVerify display viewability settings.")
-        .optional(),
+      }).describe(
+        "Display viewability settings (applicable to display line items only).",
+      ).optional(),
       fraudInvalidTraffic: z.object({
         avoidInsufficientOption: z.boolean().describe(
           "Insufficient Historical Fraud & IVT Stats.",
@@ -1370,7 +1371,8 @@ const GlobalArgsSchema = z.object({
           "AD_IMPRESSION_FRAUD_2",
         ]).describe("Avoid Sites and Apps with historical Fraud & IVT.")
           .optional(),
-      }).describe("DoubleVerify Fraud & Invalid Traffic settings.").optional(),
+      }).describe("Avoid Sites and Apps with historical Fraud & IVT Rates.")
+        .optional(),
       videoViewability: z.object({
         playerImpressionRate: z.enum([
           "PLAYER_SIZE_400X300_UNSPECIFIED",
@@ -1404,9 +1406,10 @@ const GlobalArgsSchema = z.object({
           "VIEWED_PERFORMANCE_10_PERCENT_HIGHER",
         ]).describe("Target web inventory to maximize fully viewable rate.")
           .optional(),
-      }).describe("Details of DoubleVerify video viewability settings.")
-        .optional(),
-    }).describe("Details of DoubleVerify settings.").optional(),
+      }).describe(
+        "Video viewability settings (applicable to video line items only).",
+      ).optional(),
+    }).describe("Third party brand verifier -- DoubleVerify.").optional(),
     integralAdScience: z.object({
       customSegmentId: z.array(z.string()).describe(
         "The custom segment ID provided by Integral Ad Science. The ID must be between `1000001` and `1999999` or `3000001` and `3999999`, inclusive.",
@@ -1486,9 +1489,10 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Video Viewability Section (applicable to video line items only).",
       ).optional(),
-    }).describe("Details of Integral Ad Science settings.").optional(),
+    }).describe("Third party brand verifier -- Integral Ad Science.")
+      .optional(),
   }).describe(
-    "Assigned third party verifier targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_THIRD_PARTY_VERIFIER`.",
+    "Third party verification details. This field will be populated when the targeting_type is `TARGETING_TYPE_THIRD_PARTY_VERIFIER`.",
   ).optional(),
   urlDetails: z.object({
     negative: z.boolean().describe(
@@ -1498,7 +1502,7 @@ const GlobalArgsSchema = z.object({
       "Required. The URL, for example `example.com`. DV360 supports two levels of subdirectory targeting, for example `www.example.com/one-subdirectory-level/second-level`, and five levels of subdomain targeting, for example `five.four.three.two.one.example.com`.",
     ).optional(),
   }).describe(
-    "Details for assigned URL targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_URL`.",
+    "URL details. This field will be populated when the targeting_type is `TARGETING_TYPE_URL`.",
   ).optional(),
   userRewardedContentDetails: z.object({
     targetingOptionId: z.string().describe(
@@ -1511,7 +1515,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Output only. User rewarded content status for video ads.")
       .optional(),
   }).describe(
-    "User rewarded content targeting option details. This will be populated in the user_rewarded_content_details field when targeting_type is `TARGETING_TYPE_USER_REWARDED_CONTENT`.",
+    "User rewarded content details. This field will be populated when the targeting_type is `TARGETING_TYPE_USER_REWARDED_CONTENT`.",
   ).optional(),
   videoPlayerSizeDetails: z.object({
     videoPlayerSize: z.enum([
@@ -1522,7 +1526,7 @@ const GlobalArgsSchema = z.object({
       "VIDEO_PLAYER_SIZE_UNKNOWN",
     ]).describe("Required. The video player size.").optional(),
   }).describe(
-    "Video player size targeting option details. This will be populated in the video_player_size_details field when targeting_type is `TARGETING_TYPE_VIDEO_PLAYER_SIZE`. Explicitly targeting all options is not supported. Remove all video player size targeting options to achieve this effect.",
+    "Video player size details. This field will be populated when the targeting_type is `TARGETING_TYPE_VIDEO_PLAYER_SIZE`.",
   ).optional(),
   viewabilityDetails: z.object({
     viewability: z.enum([
@@ -1538,7 +1542,7 @@ const GlobalArgsSchema = z.object({
       "VIEWABILITY_90_PERCENT_OR_MORE",
     ]).describe("Required. The predicted viewability percentage.").optional(),
   }).describe(
-    "Assigned viewability targeting option details. This will be populated in the viewability_details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_VIEWABILITY`.",
+    "Viewability details. This field will be populated when the targeting_type is `TARGETING_TYPE_VIEWABILITY`. You can only target one viewability option per resource.",
   ).optional(),
   youtubeChannelDetails: z.object({
     channelId: z.string().describe(
@@ -1548,7 +1552,7 @@ const GlobalArgsSchema = z.object({
       "Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for YouTube channel assigned targeting option. This will be populated in the youtube_channel_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL`.",
+    "YouTube channel details. This field will be populated when the targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL`.",
   ).optional(),
   youtubeChannelPackDetails: z.object({
     channelPackId: z.string().describe(
@@ -1558,7 +1562,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for YouTube channel pack assigned targeting option. This will be populated in the youtube_channel_pack_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL_PACK`.",
+    "YouTube channel pack details. This field will be populated when the targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL_PACK`.",
   ).optional(),
   youtubeVideoDetails: z.object({
     negative: z.boolean().describe(
@@ -1568,7 +1572,7 @@ const GlobalArgsSchema = z.object({
       "YouTube video id as it appears on the YouTube watch page.",
     ).optional(),
   }).describe(
-    "Details for YouTube video assigned targeting option. This will be populated in the youtube_video_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_VIDEO`.",
+    "YouTube video details. This field will be populated when the targeting_type is `TARGETING_TYPE_YOUTUBE_VIDEO`.",
   ).optional(),
   advertiserId: z.string().describe(
     "Required. The ID of the advertiser the line item belongs to.",
@@ -1914,7 +1918,7 @@ const InputsSchema = z.object({
       "Required. The age range of an audience. We only support targeting a continuous age range of an audience. Thus, the age range represented in this field can be 1) targeted solely, or, 2) part of a larger continuous age range. The reach of a continuous age range targeting can be expanded by also targeting an audience of an unknown age.",
     ).optional(),
   }).describe(
-    "Represents a targetable age range. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_AGE_RANGE`.",
+    "Age range details. This field will be populated when the targeting_type is `TARGETING_TYPE_AGE_RANGE`.",
   ).optional(),
   appCategoryDetails: z.object({
     displayName: z.string().describe(
@@ -1927,7 +1931,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_APP_CATEGORY`.",
     ).optional(),
   }).describe(
-    "Details for assigned app category targeting option. This will be populated in the app_category_details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_APP_CATEGORY`.",
+    "App category details. This field will be populated when the targeting_type is `TARGETING_TYPE_APP_CATEGORY`.",
   ).optional(),
   appDetails: z.object({
     appId: z.string().describe(
@@ -1958,7 +1962,7 @@ const InputsSchema = z.object({
       "Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for assigned app targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_APP`.",
+    "App details. This field will be populated when the targeting_type is `TARGETING_TYPE_APP`.",
   ).optional(),
   audienceGroupDetails: z.object({
     excludedFirstPartyAndPartnerAudienceGroup: z.object({
@@ -2004,7 +2008,7 @@ const InputsSchema = z.object({
         "Required. All first party and partner audience targeting settings in first party and partner audience group. Repeated settings with the same id are not allowed.",
       ).optional(),
     }).describe(
-      "Details of first party and partner audience group. All first party and partner audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The first party and partner audience ids and recencies of the excluded first party and partner audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. All items are logically ‘OR’ of each other.",
     ).optional(),
     excludedGoogleAudienceGroup: z.object({
       settings: z.array(z.object({
@@ -2015,7 +2019,7 @@ const InputsSchema = z.object({
         "Required. All Google audience targeting settings in Google audience group. Repeated settings with the same id will be ignored.",
       ).optional(),
     }).describe(
-      "Details of Google audience group. All Google audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The Google audience ids of the excluded Google audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. Only contains Affinity, In-market and Installed-apps type Google audiences. All items are logically ‘OR’ of each other.",
     ).optional(),
     includedCombinedAudienceGroup: z.object({
       settings: z.array(z.object({
@@ -2026,7 +2030,7 @@ const InputsSchema = z.object({
         "Required. All combined audience targeting settings in combined audience group. Repeated settings with the same id will be ignored. The number of combined audience settings should be no more than five, error will be thrown otherwise.",
       ).optional(),
     }).describe(
-      "Details of combined audience group. All combined audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The combined audience ids of the included combined audience group. Contains combined audience ids only.",
     ).optional(),
     includedCustomListGroup: z.object({
       settings: z.array(z.object({
@@ -2037,7 +2041,7 @@ const InputsSchema = z.object({
         "Required. All custom list targeting settings in custom list group. Repeated settings with the same id will be ignored.",
       ).optional(),
     }).describe(
-      "Details of custom list group. All custom list targeting settings are logically ‘OR’ of each other.",
+      "Optional. The custom list ids of the included custom list group. Contains custom list ids only.",
     ).optional(),
     includedFirstPartyAndPartnerAudienceGroups: z.array(z.object({
       settings: z.array(z.object({
@@ -2062,10 +2066,10 @@ const InputsSchema = z.object({
         "Required. All Google audience targeting settings in Google audience group. Repeated settings with the same id will be ignored.",
       ).optional(),
     }).describe(
-      "Details of Google audience group. All Google audience targeting settings are logically ‘OR’ of each other.",
+      "Optional. The Google audience ids of the included Google audience group. Contains Google audience ids only.",
     ).optional(),
   }).describe(
-    "Assigned audience group targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_AUDIENCE_GROUP`. The relation between each group is UNION, except for excluded_first_and_third_party_audience_group and excluded_google_audience_group, of which COMPLEMENT is used as an INTERSECTION with other groups.",
+    "Audience targeting details. This field will be populated when the targeting_type is `TARGETING_TYPE_AUDIENCE_GROUP`. You can only target one audience group option per resource.",
   ).optional(),
   audioContentTypeDetails: z.object({
     audioContentType: z.enum([
@@ -2080,7 +2084,7 @@ const InputsSchema = z.object({
       "AUDIO_CONTENT_TYPE_TEXT_TO_SPEECH",
     ]).describe("Required. The audio content type.").optional(),
   }).describe(
-    "Details for audio content type assigned targeting option. This will be populated in the audio_content_type_details field when targeting_type is `TARGETING_TYPE_AUDIO_CONTENT_TYPE`. Explicitly targeting all options is not supported. Remove all audio content type targeting options to achieve this effect.",
+    "Audio content type details. This field will be populated when the targeting_type is `TARGETING_TYPE_AUDIO_CONTENT_TYPE`.",
   ).optional(),
   authorizedSellerStatusDetails: z.object({
     authorizedSellerStatus: z.enum([
@@ -2093,7 +2097,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS`.",
     ).optional(),
   }).describe(
-    'Represents an assigned authorized seller status. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS`. If a resource does not have an `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS` assigned targeting option, it is using the "Authorized Direct Sellers and Resellers" option.',
+    "Authorized seller status details. This field will be populated when the targeting_type is `TARGETING_TYPE_AUTHORIZED_SELLER_STATUS`. You can only target one authorized seller status option per resource. If a resource doesn't have an authorized seller status option, all authorized sellers indicated as DIRECT or RESELLER in the ads.txt file are targeted by default.",
   ).optional(),
   browserDetails: z.object({
     displayName: z.string().describe(
@@ -2106,7 +2110,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_BROWSER`.",
     ).optional(),
   }).describe(
-    "Details for assigned browser targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_BROWSER`.",
+    "Browser details. This field will be populated when the targeting_type is `TARGETING_TYPE_BROWSER`.",
   ).optional(),
   businessChainDetails: z.object({
     displayName: z.string().describe(
@@ -2126,7 +2130,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_BUSINESS_CHAIN`. Accepted business chain targeting option IDs can be retrieved using SearchTargetingOptions.",
     ).optional(),
   }).describe(
-    "Details for assigned Business chain targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_BUSINESS_CHAIN`.",
+    "Business chain details. This field will be populated when the targeting_type is `TARGETING_TYPE_BUSINESS_CHAIN`.",
   ).optional(),
   carrierAndIspDetails: z.object({
     displayName: z.string().describe(
@@ -2139,7 +2143,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_CARRIER_AND_ISP`.",
     ).optional(),
   }).describe(
-    "Details for assigned carrier and ISP targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_CARRIER_AND_ISP`.",
+    "Carrier and ISP details. This field will be populated when the targeting_type is `TARGETING_TYPE_CARRIER_AND_ISP`.",
   ).optional(),
   categoryDetails: z.object({
     displayName: z.string().describe(
@@ -2152,7 +2156,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CATEGORY`.",
     ).optional(),
   }).describe(
-    "Assigned category targeting option details. This will be populated in the category_details field when targeting_type is `TARGETING_TYPE_CATEGORY`.",
+    "Category details. This field will be populated when the targeting_type is `TARGETING_TYPE_CATEGORY`. Targeting a category will also target its subcategories. If a category is excluded from targeting and a subcategory is included, the exclusion will take precedence.",
   ).optional(),
   channelDetails: z.object({
     channelId: z.string().describe(
@@ -2162,7 +2166,7 @@ const InputsSchema = z.object({
       "Indicates if this option is being negatively targeted. For advertiser level assigned targeting option, this field must be true.",
     ).optional(),
   }).describe(
-    "Details for assigned channel targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_CHANNEL`.",
+    "Channel details. This field will be populated when the targeting_type is `TARGETING_TYPE_CHANNEL`.",
   ).optional(),
   contentDurationDetails: z.object({
     contentDuration: z.enum([
@@ -2179,7 +2183,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CONTENT_DURATION`.",
     ).optional(),
   }).describe(
-    "Details for content duration assigned targeting option. This will be populated in the content_duration_details field when targeting_type is `TARGETING_TYPE_CONTENT_DURATION`. Explicitly targeting all options is not supported. Remove all content duration targeting options to achieve this effect.",
+    "Content duration details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_DURATION`.",
   ).optional(),
   contentGenreDetails: z.object({
     displayName: z.string().describe(
@@ -2192,7 +2196,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CONTENT_GENRE`.",
     ).optional(),
   }).describe(
-    "Details for content genre assigned targeting option. This will be populated in the content_genre_details field when targeting_type is `TARGETING_TYPE_CONTENT_GENRE`. Explicitly targeting all options is not supported. Remove all content genre targeting options to achieve this effect.",
+    "Content genre details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_GENRE`.",
   ).optional(),
   contentInstreamPositionDetails: z.object({
     adType: z.enum([
@@ -2213,7 +2217,7 @@ const InputsSchema = z.object({
       "Required. The content instream position for video or audio ads.",
     ).optional(),
   }).describe(
-    "Assigned content instream position targeting option details. This will be populated in the content_instream_position_details field when targeting_type is `TARGETING_TYPE_CONTENT_INSTREAM_POSITION`.",
+    "Content instream position details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_INSTREAM_POSITION`.",
   ).optional(),
   contentOutstreamPositionDetails: z.object({
     adType: z.enum([
@@ -2233,7 +2237,7 @@ const InputsSchema = z.object({
       "CONTENT_OUTSTREAM_POSITION_INTERSTITIAL",
     ]).describe("Required. The content outstream position.").optional(),
   }).describe(
-    "Assigned content outstream position targeting option details. This will be populated in the content_outstream_position_details field when targeting_type is `TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION`.",
+    "Content outstream position details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION`.",
   ).optional(),
   contentStreamTypeDetails: z.object({
     contentStreamType: z.enum([
@@ -2245,7 +2249,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_CONTENT_STREAM_TYPE`.",
     ).optional(),
   }).describe(
-    "Details for content stream type assigned targeting option. This will be populated in the content_stream_type_details field when targeting_type is `TARGETING_TYPE_CONTENT_STREAM_TYPE`. Explicitly targeting all options is not supported. Remove all content stream type targeting options to achieve this effect.",
+    "Content duration details. This field will be populated when the TargetingType is `TARGETING_TYPE_CONTENT_STREAM_TYPE`.",
   ).optional(),
   contentThemeExclusionDetails: z.object({
     contentTheme: z.enum([
@@ -2279,7 +2283,7 @@ const InputsSchema = z.object({
       "Required. ID of the content theme to be EXCLUDED.",
     ).optional(),
   }).describe(
-    "Targeting details for content theme. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_CONTENT_THEME_EXCLUSION`.",
+    "Content theme details. This field will be populated when the targeting_type is `TARGETING_TYPE_CONTENT_THEME_EXCLUSION`. Content theme are targeting exclusions. Advertiser level content theme exclusions, if set, are always applied in serving (even though they aren't visible in resource settings). Resource settings can exclude content theme in addition to advertiser exclusions.",
   ).optional(),
   dayAndTimeDetails: z.object({
     dayOfWeek: z.enum([
@@ -2308,7 +2312,7 @@ const InputsSchema = z.object({
       "Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For Demand Gen line items, this field is always `TIME_ZONE_RESOLUTION_ADVERTISER`.",
     ).optional(),
   }).describe(
-    "Representation of a segment of time defined on a specific day of the week and with a start and end time. The time represented by `start_hour` must be before the time represented by `end_hour`.",
+    "Day and time details. This field will be populated when the targeting_type is `TARGETING_TYPE_DAY_AND_TIME`.",
   ).optional(),
   deviceMakeModelDetails: z.object({
     displayName: z.string().describe(
@@ -2321,7 +2325,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_DEVICE_MAKE_MODEL`.",
     ).optional(),
   }).describe(
-    "Assigned device make and model targeting option details. This will be populated in the device_make_model_details field when targeting_type is `TARGETING_TYPE_DEVICE_MAKE_MODEL`.",
+    "Device make and model details. This field will be populated when the targeting_type is `TARGETING_TYPE_DEVICE_MAKE_MODEL`.",
   ).optional(),
   deviceTypeDetails: z.object({
     deviceType: z.enum([
@@ -2336,7 +2340,7 @@ const InputsSchema = z.object({
       "Output only. Bid multiplier allows you to show your ads more or less frequently based on the device type. It will apply a multiplier on the original bid price. When this field is 0, it indicates this field is not applicable instead of multiplying 0 on the original bid price. For example, if the bid price without multiplier is $10.0 and the multiplier is 1.5 for Tablet, the resulting bid price for Tablet will be $15.0. Only applicable to YouTube and Partners line items.",
     ).optional(),
   }).describe(
-    "Targeting details for device type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_DEVICE_TYPE`.",
+    "Device Type details. This field will be populated when the targeting_type is `TARGETING_TYPE_DEVICE_TYPE`.",
   ).optional(),
   digitalContentLabelExclusionDetails: z.object({
     excludedContentRatingTier: z.enum([
@@ -2351,7 +2355,7 @@ const InputsSchema = z.object({
       "Required. The display name of the digital content label rating tier to be EXCLUDED.",
     ).optional(),
   }).describe(
-    "Targeting details for digital content label. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION`.",
+    "Digital content label details. This field will be populated when the targeting_type is `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION`. Digital content labels are targeting exclusions. Advertiser level digital content label exclusions, if set, are always applied in serving (even though they aren't visible in resource settings). Resource settings can exclude content labels in addition to advertiser exclusions, but can't override them. A line item won't serve if all the digital content labels are excluded.",
   ).optional(),
   environmentDetails: z.object({
     environment: z.enum([
@@ -2361,7 +2365,7 @@ const InputsSchema = z.object({
       "ENVIRONMENT_APP",
     ]).describe("Required. The serving environment.").optional(),
   }).describe(
-    "Assigned environment targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_ENVIRONMENT`.",
+    "Environment details. This field will be populated when the targeting_type is `TARGETING_TYPE_ENVIRONMENT`.",
   ).optional(),
   exchangeDetails: z.object({
     exchange: z.enum([
@@ -2457,7 +2461,7 @@ const InputsSchema = z.object({
       "EXCHANGE_EXTE",
     ]).describe("Required. The enum value for the exchange.").optional(),
   }).describe(
-    "Details for assigned exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_EXCHANGE`.",
+    "Exchange details. This field will be populated when the targeting_type is `TARGETING_TYPE_EXCHANGE`.",
   ).optional(),
   genderDetails: z.object({
     gender: z.enum([
@@ -2467,7 +2471,7 @@ const InputsSchema = z.object({
       "GENDER_UNKNOWN",
     ]).describe("Required. The gender of the audience.").optional(),
   }).describe(
-    "Details for assigned gender targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_GENDER`.",
+    "Gender details. This field will be populated when the targeting_type is `TARGETING_TYPE_GENDER`.",
   ).optional(),
   geoRegionDetails: z.object({
     displayName: z.string().describe(
@@ -2523,7 +2527,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_GEO_REGION`.",
     ).optional(),
   }).describe(
-    "Details for assigned geographic region targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_GEO_REGION`.",
+    "Geographic region details. This field will be populated when the targeting_type is `TARGETING_TYPE_GEO_REGION`.",
   ).optional(),
   householdIncomeDetails: z.object({
     householdIncome: z.enum([
@@ -2537,21 +2541,21 @@ const InputsSchema = z.object({
       "HOUSEHOLD_INCOME_TOP_10_PERCENT",
     ]).describe("Required. The household income of the audience.").optional(),
   }).describe(
-    "Details for assigned household income targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_HOUSEHOLD_INCOME`.",
+    "Household income details. This field will be populated when the targeting_type is `TARGETING_TYPE_HOUSEHOLD_INCOME`.",
   ).optional(),
   inventorySourceDetails: z.object({
     inventorySourceId: z.string().describe(
       "Required. ID of the inventory source. Should refer to the inventory_source_id field of an InventorySource resource.",
     ).optional(),
   }).describe(
-    "Targeting details for inventory source. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE`.",
+    "Inventory source details. This field will be populated when the targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE`.",
   ).optional(),
   inventorySourceGroupDetails: z.object({
     inventorySourceGroupId: z.string().describe(
       "Required. ID of the inventory source group. Should refer to the inventory_source_group_id field of an InventorySourceGroup resource.",
     ).optional(),
   }).describe(
-    "Targeting details for inventory source group. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE_GROUP`.",
+    "Inventory source group details. This field will be populated when the targeting_type is `TARGETING_TYPE_INVENTORY_SOURCE_GROUP`.",
   ).optional(),
   keywordDetails: z.object({
     exemptedPolicyNames: z.array(z.string()).describe(
@@ -2564,7 +2568,7 @@ const InputsSchema = z.object({
       "Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for assigned keyword targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_KEYWORD`.",
+    "Keyword details. This field will be populated when the targeting_type is `TARGETING_TYPE_KEYWORD`. A maximum of 5000 direct negative keywords can be assigned to a resource. No limit on number of positive keywords that can be assigned.",
   ).optional(),
   languageDetails: z.object({
     displayName: z.string().describe(
@@ -2577,7 +2581,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_LANGUAGE`.",
     ).optional(),
   }).describe(
-    "Details for assigned language targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_LANGUAGE`.",
+    "Language details. This field will be populated when the targeting_type is `TARGETING_TYPE_LANGUAGE`.",
   ).optional(),
   nativeContentPositionDetails: z.object({
     contentPosition: z.enum([
@@ -2589,21 +2593,21 @@ const InputsSchema = z.object({
       "NATIVE_CONTENT_POSITION_RECOMMENDATION",
     ]).describe("Required. The content position.").optional(),
   }).describe(
-    "Details for native content position assigned targeting option. This will be populated in the native_content_position_details field when targeting_type is `TARGETING_TYPE_NATIVE_CONTENT_POSITION`. Explicitly targeting all options is not supported. Remove all native content position targeting options to achieve this effect.",
+    "Native content position details. This field will be populated when the targeting_type is `TARGETING_TYPE_NATIVE_CONTENT_POSITION`.",
   ).optional(),
   negativeKeywordListDetails: z.object({
     negativeKeywordListId: z.string().describe(
       "Required. ID of the negative keyword list. Should refer to the negative_keyword_list_id field of a NegativeKeywordList resource.",
     ).optional(),
   }).describe(
-    "Targeting details for negative keyword list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_NEGATIVE_KEYWORD_LIST`.",
+    "Keyword details. This field will be populated when the targeting_type is `TARGETING_TYPE_NEGATIVE_KEYWORD_LIST`. A maximum of 4 negative keyword lists can be assigned to a resource.",
   ).optional(),
   omidDetails: z.object({
     omid: z.enum(["OMID_UNSPECIFIED", "OMID_FOR_MOBILE_DISPLAY_ADS"]).describe(
       "Required. The type of Open Measurement enabled inventory.",
     ).optional(),
   }).describe(
-    "Represents a targetable Open Measurement enabled inventory type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_OMID`.",
+    "Open Measurement enabled inventory details. This field will be populated when the targeting_type is `TARGETING_TYPE_OMID`.",
   ).optional(),
   onScreenPositionDetails: z.object({
     adType: z.enum([
@@ -2624,7 +2628,7 @@ const InputsSchema = z.object({
       "Required. The targeting_option_id field when targeting_type is `TARGETING_TYPE_ON_SCREEN_POSITION`.",
     ).optional(),
   }).describe(
-    "On screen position targeting option details. This will be populated in the on_screen_position_details field when targeting_type is `TARGETING_TYPE_ON_SCREEN_POSITION`.",
+    "On screen position details. This field will be populated when the targeting_type is `TARGETING_TYPE_ON_SCREEN_POSITION`.",
   ).optional(),
   operatingSystemDetails: z.object({
     displayName: z.string().describe(
@@ -2637,7 +2641,7 @@ const InputsSchema = z.object({
       "Required. The targeting option ID populated in targeting_option_id field when targeting_type is `TARGETING_TYPE_OPERATING_SYSTEM`.",
     ).optional(),
   }).describe(
-    "Assigned operating system targeting option details. This will be populated in the operating_system_details field when targeting_type is `TARGETING_TYPE_OPERATING_SYSTEM`.",
+    "Operating system details. This field will be populated when the targeting_type is `TARGETING_TYPE_OPERATING_SYSTEM`.",
   ).optional(),
   parentalStatusDetails: z.object({
     parentalStatus: z.enum([
@@ -2647,7 +2651,7 @@ const InputsSchema = z.object({
       "PARENTAL_STATUS_UNKNOWN",
     ]).describe("Required. The parental status of the audience.").optional(),
   }).describe(
-    "Details for assigned parental status targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_PARENTAL_STATUS`.",
+    "Parental status details. This field will be populated when the targeting_type is `TARGETING_TYPE_PARENTAL_STATUS`.",
   ).optional(),
   poiDetails: z.object({
     displayName: z.string().describe(
@@ -2673,7 +2677,7 @@ const InputsSchema = z.object({
       'Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_POI`. Accepted POI targeting option IDs can be retrieved using `targetingTypes.targetingOptions.search`. If targeting a specific latitude/longitude coordinate removed from an address or POI name, you can generate the necessary targeting option ID by rounding the desired coordinate values to the 6th decimal place, removing the decimals, and concatenating the string values separated by a semicolon. For example, you can target the latitude/longitude pair of 40.7414691, -74.003387 using the targeting option ID "40741469;-74003387". **Upon** **creation, this field value will be updated to append a semicolon and** **alphanumerical hash value if only latitude/longitude coordinates are** **provided.**',
     ).optional(),
   }).describe(
-    "Details for assigned POI targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_POI`.",
+    "POI details. This field will be populated when the targeting_type is `TARGETING_TYPE_POI`.",
   ).optional(),
   proximityLocationListDetails: z.object({
     proximityLocationListId: z.string().describe(
@@ -2688,7 +2692,7 @@ const InputsSchema = z.object({
       "PROXIMITY_RADIUS_UNIT_KILOMETERS",
     ]).describe("Required. Radius distance units.").optional(),
   }).describe(
-    "Targeting details for proximity location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_PROXIMITY_LOCATION_LIST`.",
+    "Proximity location list details. This field will be populated when the targeting_type is `TARGETING_TYPE_PROXIMITY_LOCATION_LIST`.",
   ).optional(),
   regionalLocationListDetails: z.object({
     negative: z.boolean().describe(
@@ -2698,7 +2702,7 @@ const InputsSchema = z.object({
       "Required. ID of the regional location list. Should refer to the location_list_id field of a LocationList resource whose type is `TARGETING_LOCATION_TYPE_REGIONAL`.",
     ).optional(),
   }).describe(
-    "Targeting details for regional location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_REGIONAL_LOCATION_LIST`.",
+    "Regional location list details. This field will be populated when the targeting_type is `TARGETING_TYPE_REGIONAL_LOCATION_LIST`.",
   ).optional(),
   sensitiveCategoryExclusionDetails: z.object({
     excludedSensitiveCategory: z.enum([
@@ -2726,7 +2730,7 @@ const InputsSchema = z.object({
       "Required. An enum for the DV360 Sensitive category content classified to be EXCLUDED.",
     ).optional(),
   }).describe(
-    "Targeting details for sensitive category. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION`.",
+    "Sensitive category details. This field will be populated when the targeting_type is `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION`. Sensitive categories are targeting exclusions. Advertiser level sensitive category exclusions, if set, are always applied in serving (even though they aren't visible in resource settings). Resource settings can exclude sensitive categories in addition to advertiser exclusions, but can't override them.",
   ).optional(),
   sessionPositionDetails: z.object({
     sessionPosition: z.enum([
@@ -2734,14 +2738,14 @@ const InputsSchema = z.object({
       "SESSION_POSITION_FIRST_IMPRESSION",
     ]).describe("The position where the ad will show in a session.").optional(),
   }).describe(
-    "Details for session position assigned targeting option. This will be populated in the session_position_details field when targeting_type is `TARGETING_TYPE_SESSION_POSITION`.",
+    "Session position details. This field will be populated when the targeting_type is `TARGETING_TYPE_SESSION_POSITION`.",
   ).optional(),
   subExchangeDetails: z.object({
     targetingOptionId: z.string().describe(
       "Required. The targeting_option_id of a TargetingOption of type `TARGETING_TYPE_SUB_EXCHANGE`.",
     ).optional(),
   }).describe(
-    "Details for assigned sub-exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_SUB_EXCHANGE`.",
+    "Sub-exchange details. This field will be populated when the targeting_type is `TARGETING_TYPE_SUB_EXCHANGE`.",
   ).optional(),
   targetingType: z.enum([
     "TARGETING_TYPE_UNSPECIFIED",
@@ -2944,7 +2948,7 @@ const InputsSchema = z.object({
       ]).describe("Optional. IAB viewability threshold for video ads.")
         .optional(),
     }).describe(
-      "Details of Scope3 (previously known as Adloox) brand safety settings.",
+      "Third party brand verifier -- Scope3 (previously known as Adloox).",
     ).optional(),
     doubleVerify: z.object({
       appStarRating: z.object({
@@ -2961,7 +2965,7 @@ const InputsSchema = z.object({
           "APP_STAR_RATE_4_LESS",
           "APP_STAR_RATE_4_POINT_5_LESS",
         ]).describe("Avoid bidding on apps with the star ratings.").optional(),
-      }).describe("Details of DoubleVerify star ratings settings.").optional(),
+      }).describe("Avoid bidding on apps with the star ratings.").optional(),
       avoidedAgeRatings: z.array(
         z.enum([
           "AGE_RATING_UNSPECIFIED",
@@ -3016,7 +3020,7 @@ const InputsSchema = z.object({
           ]),
         ).describe("Brand safety medium severity avoidance categories.")
           .optional(),
-      }).describe("Settings for brand safety controls.").optional(),
+      }).describe("DV Brand Safety Controls.").optional(),
       customSegmentId: z.string().describe(
         'The custom segment ID provided by DoubleVerify. The ID must start with "51" and consist of eight digits. Custom segment ID cannot be specified along with any of the following fields: * brand_safety_categories * avoided_age_ratings * app_star_rating * fraud_invalid_traffic',
       ).optional(),
@@ -3043,8 +3047,9 @@ const InputsSchema = z.object({
         ]).describe(
           "Target web and app inventory to maximize 100% viewable duration.",
         ).optional(),
-      }).describe("Details of DoubleVerify display viewability settings.")
-        .optional(),
+      }).describe(
+        "Display viewability settings (applicable to display line items only).",
+      ).optional(),
       fraudInvalidTraffic: z.object({
         avoidInsufficientOption: z.boolean().describe(
           "Insufficient Historical Fraud & IVT Stats.",
@@ -3061,7 +3066,8 @@ const InputsSchema = z.object({
           "AD_IMPRESSION_FRAUD_2",
         ]).describe("Avoid Sites and Apps with historical Fraud & IVT.")
           .optional(),
-      }).describe("DoubleVerify Fraud & Invalid Traffic settings.").optional(),
+      }).describe("Avoid Sites and Apps with historical Fraud & IVT Rates.")
+        .optional(),
       videoViewability: z.object({
         playerImpressionRate: z.enum([
           "PLAYER_SIZE_400X300_UNSPECIFIED",
@@ -3095,9 +3101,10 @@ const InputsSchema = z.object({
           "VIEWED_PERFORMANCE_10_PERCENT_HIGHER",
         ]).describe("Target web inventory to maximize fully viewable rate.")
           .optional(),
-      }).describe("Details of DoubleVerify video viewability settings.")
-        .optional(),
-    }).describe("Details of DoubleVerify settings.").optional(),
+      }).describe(
+        "Video viewability settings (applicable to video line items only).",
+      ).optional(),
+    }).describe("Third party brand verifier -- DoubleVerify.").optional(),
     integralAdScience: z.object({
       customSegmentId: z.array(z.string()).describe(
         "The custom segment ID provided by Integral Ad Science. The ID must be between `1000001` and `1999999` or `3000001` and `3999999`, inclusive.",
@@ -3177,9 +3184,10 @@ const InputsSchema = z.object({
       ]).describe(
         "Video Viewability Section (applicable to video line items only).",
       ).optional(),
-    }).describe("Details of Integral Ad Science settings.").optional(),
+    }).describe("Third party brand verifier -- Integral Ad Science.")
+      .optional(),
   }).describe(
-    "Assigned third party verifier targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_THIRD_PARTY_VERIFIER`.",
+    "Third party verification details. This field will be populated when the targeting_type is `TARGETING_TYPE_THIRD_PARTY_VERIFIER`.",
   ).optional(),
   urlDetails: z.object({
     negative: z.boolean().describe(
@@ -3189,7 +3197,7 @@ const InputsSchema = z.object({
       "Required. The URL, for example `example.com`. DV360 supports two levels of subdirectory targeting, for example `www.example.com/one-subdirectory-level/second-level`, and five levels of subdomain targeting, for example `five.four.three.two.one.example.com`.",
     ).optional(),
   }).describe(
-    "Details for assigned URL targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_URL`.",
+    "URL details. This field will be populated when the targeting_type is `TARGETING_TYPE_URL`.",
   ).optional(),
   userRewardedContentDetails: z.object({
     targetingOptionId: z.string().describe(
@@ -3202,7 +3210,7 @@ const InputsSchema = z.object({
     ]).describe("Output only. User rewarded content status for video ads.")
       .optional(),
   }).describe(
-    "User rewarded content targeting option details. This will be populated in the user_rewarded_content_details field when targeting_type is `TARGETING_TYPE_USER_REWARDED_CONTENT`.",
+    "User rewarded content details. This field will be populated when the targeting_type is `TARGETING_TYPE_USER_REWARDED_CONTENT`.",
   ).optional(),
   videoPlayerSizeDetails: z.object({
     videoPlayerSize: z.enum([
@@ -3213,7 +3221,7 @@ const InputsSchema = z.object({
       "VIDEO_PLAYER_SIZE_UNKNOWN",
     ]).describe("Required. The video player size.").optional(),
   }).describe(
-    "Video player size targeting option details. This will be populated in the video_player_size_details field when targeting_type is `TARGETING_TYPE_VIDEO_PLAYER_SIZE`. Explicitly targeting all options is not supported. Remove all video player size targeting options to achieve this effect.",
+    "Video player size details. This field will be populated when the targeting_type is `TARGETING_TYPE_VIDEO_PLAYER_SIZE`.",
   ).optional(),
   viewabilityDetails: z.object({
     viewability: z.enum([
@@ -3229,7 +3237,7 @@ const InputsSchema = z.object({
       "VIEWABILITY_90_PERCENT_OR_MORE",
     ]).describe("Required. The predicted viewability percentage.").optional(),
   }).describe(
-    "Assigned viewability targeting option details. This will be populated in the viewability_details field of an AssignedTargetingOption when targeting_type is `TARGETING_TYPE_VIEWABILITY`.",
+    "Viewability details. This field will be populated when the targeting_type is `TARGETING_TYPE_VIEWABILITY`. You can only target one viewability option per resource.",
   ).optional(),
   youtubeChannelDetails: z.object({
     channelId: z.string().describe(
@@ -3239,7 +3247,7 @@ const InputsSchema = z.object({
       "Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for YouTube channel assigned targeting option. This will be populated in the youtube_channel_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL`.",
+    "YouTube channel details. This field will be populated when the targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL`.",
   ).optional(),
   youtubeChannelPackDetails: z.object({
     channelPackId: z.string().describe(
@@ -3249,7 +3257,7 @@ const InputsSchema = z.object({
       "Optional. Indicates if this option is being negatively targeted.",
     ).optional(),
   }).describe(
-    "Details for YouTube channel pack assigned targeting option. This will be populated in the youtube_channel_pack_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL_PACK`.",
+    "YouTube channel pack details. This field will be populated when the targeting_type is `TARGETING_TYPE_YOUTUBE_CHANNEL_PACK`.",
   ).optional(),
   youtubeVideoDetails: z.object({
     negative: z.boolean().describe(
@@ -3259,7 +3267,7 @@ const InputsSchema = z.object({
       "YouTube video id as it appears on the YouTube watch page.",
     ).optional(),
   }).describe(
-    "Details for YouTube video assigned targeting option. This will be populated in the youtube_video_details field when targeting_type is `TARGETING_TYPE_YOUTUBE_VIDEO`.",
+    "YouTube video details. This field will be populated when the targeting_type is `TARGETING_TYPE_YOUTUBE_VIDEO`.",
   ).optional(),
   advertiserId: z.string().describe(
     "Required. The ID of the advertiser the line item belongs to.",
@@ -3293,7 +3301,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/advertisers-lineitems-targetingtypes-assignedtargetingoptions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3434,6 +3442,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: youtubeChannelPackDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -3631,16 +3644,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "advertiserId": String(g["advertiserId"] ?? ""),
-              "lineItemId": String(g["lineItemId"] ?? ""),
-              "targetingType": String(g["targetingType"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

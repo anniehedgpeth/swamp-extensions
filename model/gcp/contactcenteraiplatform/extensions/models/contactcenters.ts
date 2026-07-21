@@ -174,8 +174,9 @@ const GlobalArgsSchema = z.object({
     givenName: z.string().describe(
       "Optional. First/given name of the first admin user.",
     ).optional(),
-  }).describe("Message storing info about the first admin user. Next ID: 3")
-    .optional(),
+  }).describe(
+    "Optional. Info about the first admin user, such as given name and family name.",
+  ).optional(),
   advancedReportingEnabled: z.boolean().describe(
     "Optional. Whether the advanced reporting feature is enabled.",
   ).optional(),
@@ -213,7 +214,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. Daily end time of the schedule. If `end_time` is before `start_time`, the schedule will be considered as ending on the next day.",
       ).optional(),
       startTime: z.object({
         hours: z.number().int().describe(
@@ -228,29 +229,24 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Daily start time of the schedule.").optional(),
     })).describe(
       "Required. Hours during which the instance should not be updated.",
     ).optional(),
-  }).describe(
-    "Instances in this Channel will receive updates after all instances in `Normal` were updated. They also will only be updated outside of their peak hours.",
-  ).optional(),
+  }).describe("Optional. Critical release channel.").optional(),
   customerDomainPrefix: z.string().describe(
     "Required. Immutable. At least 2 and max 16 char long, must conform to [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt).",
   ).optional(),
   displayName: z.string().describe(
     "Required. A user friendly name for the ContactCenter.",
   ).optional(),
-  early: z.object({}).describe(
-    "LINT.IfChange First Channel to receive the updates. Meant to dev/test instances",
-  ).optional(),
+  early: z.object({}).describe("Optional. Early release channel.").optional(),
   featureConfig: z.object({
     agentDesktopEnabled: z.boolean().describe(
       "Optional. If true - enables the agent desktop feature. Default is false.",
     ).optional(),
-  }).optional(),
+  }).describe("Optional. Feature configuration to populate the feature flags.")
+    .optional(),
   instanceConfig: z.object({
     instanceSize: z.enum([
       "INSTANCE_SIZE_UNSPECIFIED",
@@ -272,16 +268,16 @@ const GlobalArgsSchema = z.object({
       "TIME_LIMITED_TRIAL_SMALL",
     ]).describe("The instance size of this the instance configuration.")
       .optional(),
-  }).describe("Message storing the instance configuration.").optional(),
+  }).describe(
+    "The configuration of this instance, it is currently immutable once created.",
+  ).optional(),
   kmsKey: z.string().describe(
     "Immutable. The KMS key name to encrypt the user input (`ContactCenter`).",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels as key value pairs")
     .optional(),
   name: z.string().describe("name of resource").optional(),
-  normal: z.object({}).describe(
-    "Instances in this Channel will receive updates after all instances in `Early` were updated + 2 days.",
-  ).optional(),
+  normal: z.object({}).describe("Optional. Normal release channel.").optional(),
   privateAccess: z.object({
     egressSettings: z.array(z.object({
       name: z.string().describe("Name of the component.").optional(),
@@ -307,9 +303,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The CCAIP tenant project ids.",
       ).optional(),
     }).describe("Private service connect settings.").optional(),
-  }).describe(
-    "Defines ingress and egress private traffic settings for CCAIP instances.",
-  ).optional(),
+  }).describe("Optional. VPC-SC related networking configuration.").optional(),
   samlParams: z.object({
     authenticationContexts: z.array(
       z.enum([
@@ -348,17 +342,7 @@ const GlobalArgsSchema = z.object({
     ssoUri: z.string().describe("Single sign-on URL").optional(),
     userEmail: z.string().describe("Email address of the first admin users.")
       .optional(),
-  }).describe("Message storing SAML params to enable Google as IDP.")
-    .optional(),
-  uris: z.object({
-    chatBotUri: z.string().describe("Chat Bot Uri of the ContactCenter")
-      .optional(),
-    mediaUri: z.string().describe("Media Uri of the ContactCenter.").optional(),
-    rootUri: z.string().describe("Root Uri of the ContactCenter.").optional(),
-    virtualAgentStreamingServiceUri: z.string().describe(
-      "Virtual Agent Streaming Service Uri of the ContactCenter.",
-    ).optional(),
-  }).describe("Message storing the URIs of the ContactCenter.").optional(),
+  }).describe("Optional. Params that sets up Google as IdP.").optional(),
   userEmail: z.string().describe(
     "Optional. Email address of the first admin user.",
   ).optional(),
@@ -464,8 +448,9 @@ const InputsSchema = z.object({
     givenName: z.string().describe(
       "Optional. First/given name of the first admin user.",
     ).optional(),
-  }).describe("Message storing info about the first admin user. Next ID: 3")
-    .optional(),
+  }).describe(
+    "Optional. Info about the first admin user, such as given name and family name.",
+  ).optional(),
   advancedReportingEnabled: z.boolean().describe(
     "Optional. Whether the advanced reporting feature is enabled.",
   ).optional(),
@@ -503,7 +488,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. Daily end time of the schedule. If `end_time` is before `start_time`, the schedule will be considered as ending on the next day.",
       ).optional(),
       startTime: z.object({
         hours: z.number().int().describe(
@@ -518,29 +503,24 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. Daily start time of the schedule.").optional(),
     })).describe(
       "Required. Hours during which the instance should not be updated.",
     ).optional(),
-  }).describe(
-    "Instances in this Channel will receive updates after all instances in `Normal` were updated. They also will only be updated outside of their peak hours.",
-  ).optional(),
+  }).describe("Optional. Critical release channel.").optional(),
   customerDomainPrefix: z.string().describe(
     "Required. Immutable. At least 2 and max 16 char long, must conform to [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt).",
   ).optional(),
   displayName: z.string().describe(
     "Required. A user friendly name for the ContactCenter.",
   ).optional(),
-  early: z.object({}).describe(
-    "LINT.IfChange First Channel to receive the updates. Meant to dev/test instances",
-  ).optional(),
+  early: z.object({}).describe("Optional. Early release channel.").optional(),
   featureConfig: z.object({
     agentDesktopEnabled: z.boolean().describe(
       "Optional. If true - enables the agent desktop feature. Default is false.",
     ).optional(),
-  }).optional(),
+  }).describe("Optional. Feature configuration to populate the feature flags.")
+    .optional(),
   instanceConfig: z.object({
     instanceSize: z.enum([
       "INSTANCE_SIZE_UNSPECIFIED",
@@ -562,16 +542,16 @@ const InputsSchema = z.object({
       "TIME_LIMITED_TRIAL_SMALL",
     ]).describe("The instance size of this the instance configuration.")
       .optional(),
-  }).describe("Message storing the instance configuration.").optional(),
+  }).describe(
+    "The configuration of this instance, it is currently immutable once created.",
+  ).optional(),
   kmsKey: z.string().describe(
     "Immutable. The KMS key name to encrypt the user input (`ContactCenter`).",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe("Labels as key value pairs")
     .optional(),
   name: z.string().describe("name of resource").optional(),
-  normal: z.object({}).describe(
-    "Instances in this Channel will receive updates after all instances in `Early` were updated + 2 days.",
-  ).optional(),
+  normal: z.object({}).describe("Optional. Normal release channel.").optional(),
   privateAccess: z.object({
     egressSettings: z.array(z.object({
       name: z.string().describe("Name of the component.").optional(),
@@ -597,9 +577,7 @@ const InputsSchema = z.object({
         "Output only. The CCAIP tenant project ids.",
       ).optional(),
     }).describe("Private service connect settings.").optional(),
-  }).describe(
-    "Defines ingress and egress private traffic settings for CCAIP instances.",
-  ).optional(),
+  }).describe("Optional. VPC-SC related networking configuration.").optional(),
   samlParams: z.object({
     authenticationContexts: z.array(
       z.enum([
@@ -638,17 +616,7 @@ const InputsSchema = z.object({
     ssoUri: z.string().describe("Single sign-on URL").optional(),
     userEmail: z.string().describe("Email address of the first admin users.")
       .optional(),
-  }).describe("Message storing SAML params to enable Google as IDP.")
-    .optional(),
-  uris: z.object({
-    chatBotUri: z.string().describe("Chat Bot Uri of the ContactCenter")
-      .optional(),
-    mediaUri: z.string().describe("Media Uri of the ContactCenter.").optional(),
-    rootUri: z.string().describe("Root Uri of the ContactCenter.").optional(),
-    virtualAgentStreamingServiceUri: z.string().describe(
-      "Virtual Agent Streaming Service Uri of the ContactCenter.",
-    ).optional(),
-  }).describe("Message storing the URIs of the ContactCenter.").optional(),
+  }).describe("Optional. Params that sets up Google as IdP.").optional(),
   userEmail: z.string().describe(
     "Optional. Email address of the first admin user.",
   ).optional(),
@@ -686,7 +654,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Platform ContactCenters. Registered at `@swamp/gcp/contactcenteraiplatform/contactcenters`. */
 export const model = {
   type: "@swamp/gcp/contactcenteraiplatform/contactcenters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -793,6 +761,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: uris",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { uris: _uris, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -846,7 +822,6 @@ export const model = {
           body["privateAccess"] = g["privateAccess"];
         }
         if (g["samlParams"] !== undefined) body["samlParams"] = g["samlParams"];
-        if (g["uris"] !== undefined) body["uris"] = g["uris"];
         if (g["userEmail"] !== undefined) body["userEmail"] = g["userEmail"];
         if (g["contactCenterId"] !== undefined) {
           params["contactCenterId"] = String(g["contactCenterId"]);
@@ -975,16 +950,12 @@ export const model = {
         if (g["featureConfig"] !== undefined) {
           body["featureConfig"] = g["featureConfig"];
         }
-        if (g["instanceConfig"] !== undefined) {
-          body["instanceConfig"] = g["instanceConfig"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["normal"] !== undefined) body["normal"] = g["normal"];
         if (g["privateAccess"] !== undefined) {
           body["privateAccess"] = g["privateAccess"];
         }
         if (g["samlParams"] !== undefined) body["samlParams"] = g["samlParams"];
-        if (g["uris"] !== undefined) body["uris"] = g["uris"];
         if (g["userEmail"] !== undefined) body["userEmail"] = g["userEmail"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

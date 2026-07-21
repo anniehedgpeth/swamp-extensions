@@ -236,7 +236,9 @@ const GlobalArgsSchema = z.object({
     tableId: z.string().describe(
       "Required. The ID of the table containing this row access policy.",
     ).optional(),
-  }).describe("Id path of a row access policy.").optional(),
+  }).describe(
+    "Required. Reference describing the ID of this row access policy.",
+  ).optional(),
   datasetId: z.string().describe(
     "Required. Dataset ID of the table to get the row access policy.",
   ),
@@ -286,7 +288,9 @@ const InputsSchema = z.object({
     tableId: z.string().describe(
       "Required. The ID of the table containing this row access policy.",
     ).optional(),
-  }).describe("Id path of a row access policy.").optional(),
+  }).describe(
+    "Required. Reference describing the ID of this row access policy.",
+  ).optional(),
   datasetId: z.string().describe(
     "Required. Dataset ID of the table to get the row access policy.",
   ).optional(),
@@ -318,7 +322,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery RowAccessPolicies. Registered at `@swamp/gcp/bigquery/rowaccesspolicies`. */
 export const model = {
   type: "@swamp/gcp/bigquery/rowaccesspolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -410,6 +414,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -453,16 +462,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "datasetId": String(g["datasetId"] ?? ""),
-              "tableId": String(g["tableId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

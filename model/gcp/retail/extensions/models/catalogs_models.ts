@@ -171,10 +171,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the `frequently-bought-together` type. If it isn't specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS.",
       ).optional(),
-    }).describe(
-      "Additional configs for the frequently-bought-together model type.",
-    ).optional(),
-  }).describe("Additional model features config.").optional(),
+    }).describe("Additional configs for frequently-bought-together models.")
+      .optional(),
+  }).describe("Optional. Additional model features config.").optional(),
   name: z.string().describe(
     "Required. The fully qualified resource name of the model. Format: `projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}` catalog_id has char limit of 50. recommendation_model_id has char limit of 40.",
   ).optional(),
@@ -257,10 +256,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the `frequently-bought-together` type. If it isn't specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS.",
       ).optional(),
-    }).describe(
-      "Additional configs for the frequently-bought-together model type.",
-    ).optional(),
-  }).describe("Additional model features config.").optional(),
+    }).describe("Additional configs for frequently-bought-together models.")
+      .optional(),
+  }).describe("Optional. Additional model features config.").optional(),
   name: z.string().describe(
     "Required. The fully qualified resource name of the model. Format: `projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}` catalog_id has char limit of 50. recommendation_model_id has char limit of 40.",
   ).optional(),
@@ -316,7 +314,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.Models. Registered at `@swamp/gcp/retail/catalogs-models`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs-models",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -420,6 +418,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

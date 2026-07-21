@@ -117,7 +117,8 @@ const GlobalArgsSchema = z.object({
     adPhone: z.string().describe(
       "Required. An alternate phone number to display on AdWords location extensions instead of the location's primary phone number.",
     ).optional(),
-  }).describe("Additional information that is surfaced in AdWords.").optional(),
+  }).describe("Optional. Additional information that is surfaced in AdWords.")
+    .optional(),
   categories: z.object({
     additionalCategories: z.array(z.object({
       displayName: z.string().describe(
@@ -183,11 +184,10 @@ const GlobalArgsSchema = z.object({
         "Output only. A list of all the service types that are available for this business category.",
       ).optional(),
     }).describe(
-      "A category describing what this business is (not what it does). For a list of valid category IDs, and the mappings to their human-readable names, see `categories.list`.",
+      "Required. Category that best describes the core business this location engages in.",
     ).optional(),
-  }).describe(
-    "A collection of categories that describes the business. During updates, both fields must be set. Clients are prohibited from individually updating the primary or additional categories using the update mask.",
-  ).optional(),
+  }).describe("Optional. The different categories that describe the business.")
+    .optional(),
   labels: z.array(z.string()).describe(
     "Optional. A collection of free-form strings to allow you to tag your business. These labels are NOT user facing; only you can see them. Must be between 1-255 characters per label.",
   ).optional(),
@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
       "The longitude in degrees. It must be in the range [-180.0, +180.0].",
     ).optional(),
   }).describe(
-    "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+    "Optional. User-provided latitude and longitude. When creating a location, this field is ignored if the provided address geocodes successfully. This field is only returned on get requests if the user-provided `latlng` value was accepted during create, or the `latlng` value was updated through the Google Business Profile website. This field can only be updated by approved clients.",
   ).optional(),
   metadata: z.object({
     canDelete: z.boolean().describe(
@@ -248,7 +248,7 @@ const GlobalArgsSchema = z.object({
     placeId: z.string().describe(
       "Output only. If this locationappears on Google Maps, this field is populated with the place ID for the location. This ID can be used in various Places APIs. This field can be set during Create calls, but not for Update.",
     ).optional(),
-  }).describe("Additional non-user-editable information about the location.")
+  }).describe("Output only. Additional non-user-editable information.")
     .optional(),
   moreHours: z.array(z.object({
     hoursTypeId: z.string().describe(
@@ -281,7 +281,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -309,7 +309,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open. Each period represents a range of hours when the location is open during the week.",
@@ -335,7 +335,7 @@ const GlobalArgsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Optional. The date on which the location first opened. If the exact day is not known, month and year only can be provided. The date must be in the past or be no more than one year in the future.",
     ).optional(),
     status: z.enum([
       "OPEN_FOR_BUSINESS_UNSPECIFIED",
@@ -345,8 +345,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. Indicates whether or not the Location is currently open for business. All locations are open by default, unless updated to be closed.",
     ).optional(),
-  }).describe("Information related to the opening state of the business.")
-    .optional(),
+  }).describe(
+    "Optional. A flag that indicates whether the location is currently open for business.",
+  ).optional(),
   phoneNumbers: z.object({
     additionalPhones: z.array(z.string()).describe(
       "Optional. Up to two phone numbers (mobile or landline, no fax) at which your business can be called, in addition to your primary phone number.",
@@ -355,14 +356,15 @@ const GlobalArgsSchema = z.object({
       "Required. A phone number that connects to your individual business location as directly as possible. Use a local phone number instead of a central, call center helpline number whenever possible.",
     ).optional(),
   }).describe(
-    'A collection of phone numbers for the business. During updates, both fields must be set. Clients may not update just the primary or additional phone numbers using the update mask. International phone format is preferred, such as "+1 415 555 0132", see more in (https://developers.google.com/style/phone-numbers#international-phone-numbers).',
+    "Optional. The different phone numbers that customers can use to get in touch with the business.",
   ).optional(),
   profile: z.object({
     description: z.string().describe(
       "Required. Description of the location in your own voice, not editable by anyone else.",
     ).optional(),
-  }).describe("All information pertaining to the location's profile.")
-    .optional(),
+  }).describe(
+    "Optional. Describes your business in your own voice and shares with users the unique story of your business and offerings. This field is required for all categories except lodging categories (e.g., hotels, motels, inns).",
+  ).optional(),
   regularHours: z.object({
     periods: z.array(z.object({
       closeDay: z.enum([
@@ -391,7 +393,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -419,14 +421,12 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.",
     ).optional(),
-  }).describe(
-    "Represents the time periods that this location is open for business. Holds a collection of TimePeriod instances.",
-  ).optional(),
+  }).describe("Optional. Operating hours for the business.").optional(),
   relationshipData: z.object({
     childrenLocations: z.array(z.object({
       placeId: z.string().describe(
@@ -452,12 +452,10 @@ const GlobalArgsSchema = z.object({
         "DEPARTMENT_OF",
         "INDEPENDENT_ESTABLISHMENT_IN",
       ]).describe("Required. The type of the relationship.").optional(),
-    }).describe(
-      "Information about another location that is related to current one. The relation can be any one of DEPARTMENT_OF or INDEPENDENT_ESTABLISHMENT_OF, and the location specified here can be on either side (parent/child) of the location.",
-    ).optional(),
-  }).describe(
-    "Information of all parent and children locations related to this one.",
-  ).optional(),
+    }).describe("The parent location that this location has relations with.")
+      .optional(),
+  }).describe("Optional. All locations and chain related to this one.")
+    .optional(),
   serviceArea: z.object({
     businessType: z.enum([
       "BUSINESS_TYPE_UNSPECIFIED",
@@ -476,13 +474,14 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "The areas represented by place IDs. Limited to a maximum of 20 places.",
       ).optional(),
-    }).describe("Defines the union of areas represented by a set of places.")
-      .optional(),
+    }).describe(
+      "The area that this business serves defined through a set of places.",
+    ).optional(),
     regionCode: z.string().describe(
       'Immutable. CLDR region code of the country/region that this service area business is based in. See http://cldr.unicode.org/ and http://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland. This field is required for CUSTOMER_LOCATION_ONLY businesses, and is ignored otherwise. The region specified here can be different from regions for the areas that this business serves (e.g. service area businesses that provide services in regions other than the one that they are based in). If this location requires verification after creation, the address provided for verification purposes *must* be located within this region, and the business owner or their authorized representative *must* be able to receive postal mail at the provided verification address.',
     ).optional(),
   }).describe(
-    "Service area businesses provide their service at the customer's location (for example, a locksmith or plumber).",
+    "Optional. Service area businesses provide their service at the customer's location. If this business is a service area business, this field describes the area(s) serviced by the business.",
   ).optional(),
   serviceItems: z.array(z.object({
     freeFormServiceItem: z.object({
@@ -500,10 +499,10 @@ const GlobalArgsSchema = z.object({
           "Optional. The BCP-47 language code that these strings apply for. Only one set of labels may be set per language.",
         ).optional(),
       }).describe(
-        "Label to be used when displaying the price list, section, or item.",
+        "Required. Language-tagged labels for the item. We recommend that item names be 140 characters or less, and descriptions 250 characters or less. This field should only be set if the input is a custom service item. Standardized service types should be updated using service_type_id.",
       ).optional(),
     }).describe(
-      "Represents a free-form service offered by the merchant. These are services that are not exposed as part of our structure service data. The merchant manually enters the names for such services using a geomerchant surface.",
+      "Optional. This field will be set case of free-form services data.",
     ).optional(),
     price: z.object({
       currencyCode: z.string().describe(
@@ -515,8 +514,9 @@ const GlobalArgsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe(
+      "Optional. Represents the monetary price of the service item. We recommend that currency_code and units should be set when including a price. This will be treated as a fixed price for the service item.",
+    ).optional(),
     structuredServiceItem: z.object({
       description: z.string().describe(
         "Optional. Description of structured service item. The character limit is 300.",
@@ -525,7 +525,7 @@ const GlobalArgsSchema = z.object({
         "Required. The `service_type_id` field is a Google provided unique ID that can be found in `ServiceType`. This information is provided by `BatchGetCategories` rpc service.",
       ).optional(),
     }).describe(
-      "Represents a structured service offered by the merchant. For eg: toilet_installation.",
+      "Optional. This field will be set case of structured services data.",
     ).optional(),
   })).describe(
     "Optional. List of services supported by merchants. A service can be haircut, install water heater, etc. Duplicated service items will be removed automatically.",
@@ -546,7 +546,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
       ).optional(),
       closed: z.boolean().describe(
         "Optional. If true, `end_date`, `open_time`, and `close_time` are ignored, and the date specified in `start_date` is treated as the location being closed for the entire day.",
@@ -562,7 +562,7 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Optional. The calendar date this special hour period ends on. If `end_date` field is not set, default to the date specified in `start_date`. If set, this field must be equal to or at most 1 day after `start_date`.",
       ).optional(),
       openTime: z.object({
         hours: z.number().int().describe(
@@ -578,7 +578,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. Valid values are 00:00-24:00 where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -591,13 +591,13 @@ const GlobalArgsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Required. The calendar date this special hour period starts on.",
       ).optional(),
     })).describe(
       "Required. A list of exceptions to the business's regular hours.",
     ).optional(),
   }).describe(
-    "Represents a set of time periods when a location's operational hours differ from its normal business hours.",
+    "Optional. Special hours for the business. This typically includes holiday hours, and other times outside of regular operating hours. These override regular business hours. This field cannot be set without regular hours.",
   ).optional(),
   storeCode: z.string().describe(
     "Optional. External identifier for this location, which must be unique within a given account. This is a means of associating the location with your own records.",
@@ -637,7 +637,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
     ).optional(),
   }).describe(
-    "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+    "Optional. A precise, accurate address to describe your business location. PO boxes or mailboxes located at remote locations are not acceptable. At this time, you can specify a maximum of five `address_lines` values in the address. This field should only be set for businesses that have a storefront. This field should not be set for locations of type `CUSTOMER_LOCATION_ONLY` but if set, any value provided will be discarded.",
   ).optional(),
   title: z.string().describe(
     'Required. Location name should reflect your business\'s real-world name, as used consistently on your storefront, website, and stationery, and as known to customers. Any additional information, when relevant, can be included in other fields of the resource (for example, `Address`, `Categories`). Don\'t add unnecessary information to your name (for example, prefer "Google" over "Google Inc. - Mountain View Corporate Headquarters"). Don\'t include marketing taglines, store codes, special characters, hours or closed/open status, phone numbers, website URLs, service/product information, location/address or directions, or containment information (for example, "Chase ATM in Duane Reade").',
@@ -852,7 +852,8 @@ const InputsSchema = z.object({
     adPhone: z.string().describe(
       "Required. An alternate phone number to display on AdWords location extensions instead of the location's primary phone number.",
     ).optional(),
-  }).describe("Additional information that is surfaced in AdWords.").optional(),
+  }).describe("Optional. Additional information that is surfaced in AdWords.")
+    .optional(),
   categories: z.object({
     additionalCategories: z.array(z.object({
       displayName: z.string().describe(
@@ -918,11 +919,10 @@ const InputsSchema = z.object({
         "Output only. A list of all the service types that are available for this business category.",
       ).optional(),
     }).describe(
-      "A category describing what this business is (not what it does). For a list of valid category IDs, and the mappings to their human-readable names, see `categories.list`.",
+      "Required. Category that best describes the core business this location engages in.",
     ).optional(),
-  }).describe(
-    "A collection of categories that describes the business. During updates, both fields must be set. Clients are prohibited from individually updating the primary or additional categories using the update mask.",
-  ).optional(),
+  }).describe("Optional. The different categories that describe the business.")
+    .optional(),
   labels: z.array(z.string()).describe(
     "Optional. A collection of free-form strings to allow you to tag your business. These labels are NOT user facing; only you can see them. Must be between 1-255 characters per label.",
   ).optional(),
@@ -937,7 +937,7 @@ const InputsSchema = z.object({
       "The longitude in degrees. It must be in the range [-180.0, +180.0].",
     ).optional(),
   }).describe(
-    "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+    "Optional. User-provided latitude and longitude. When creating a location, this field is ignored if the provided address geocodes successfully. This field is only returned on get requests if the user-provided `latlng` value was accepted during create, or the `latlng` value was updated through the Google Business Profile website. This field can only be updated by approved clients.",
   ).optional(),
   metadata: z.object({
     canDelete: z.boolean().describe(
@@ -983,7 +983,7 @@ const InputsSchema = z.object({
     placeId: z.string().describe(
       "Output only. If this locationappears on Google Maps, this field is populated with the place ID for the location. This ID can be used in various Places APIs. This field can be set during Create calls, but not for Update.",
     ).optional(),
-  }).describe("Additional non-user-editable information about the location.")
+  }).describe("Output only. Additional non-user-editable information.")
     .optional(),
   moreHours: z.array(z.object({
     hoursTypeId: z.string().describe(
@@ -1016,7 +1016,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -1044,7 +1044,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open. Each period represents a range of hours when the location is open during the week.",
@@ -1070,7 +1070,7 @@ const InputsSchema = z.object({
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
     }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+      "Optional. The date on which the location first opened. If the exact day is not known, month and year only can be provided. The date must be in the past or be no more than one year in the future.",
     ).optional(),
     status: z.enum([
       "OPEN_FOR_BUSINESS_UNSPECIFIED",
@@ -1080,8 +1080,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. Indicates whether or not the Location is currently open for business. All locations are open by default, unless updated to be closed.",
     ).optional(),
-  }).describe("Information related to the opening state of the business.")
-    .optional(),
+  }).describe(
+    "Optional. A flag that indicates whether the location is currently open for business.",
+  ).optional(),
   phoneNumbers: z.object({
     additionalPhones: z.array(z.string()).describe(
       "Optional. Up to two phone numbers (mobile or landline, no fax) at which your business can be called, in addition to your primary phone number.",
@@ -1090,14 +1091,15 @@ const InputsSchema = z.object({
       "Required. A phone number that connects to your individual business location as directly as possible. Use a local phone number instead of a central, call center helpline number whenever possible.",
     ).optional(),
   }).describe(
-    'A collection of phone numbers for the business. During updates, both fields must be set. Clients may not update just the primary or additional phone numbers using the update mask. International phone format is preferred, such as "+1 415 555 0132", see more in (https://developers.google.com/style/phone-numbers#international-phone-numbers).',
+    "Optional. The different phone numbers that customers can use to get in touch with the business.",
   ).optional(),
   profile: z.object({
     description: z.string().describe(
       "Required. Description of the location in your own voice, not editable by anyone else.",
     ).optional(),
-  }).describe("All information pertaining to the location's profile.")
-    .optional(),
+  }).describe(
+    "Optional. Describes your business in your own voice and shares with users the unique story of your business and offerings. This field is required for all categories except lodging categories (e.g., hotels, motels, inns).",
+  ).optional(),
   regularHours: z.object({
     periods: z.array(z.object({
       closeDay: z.enum([
@@ -1126,7 +1128,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -1154,14 +1156,12 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.",
     ).optional(),
-  }).describe(
-    "Represents the time periods that this location is open for business. Holds a collection of TimePeriod instances.",
-  ).optional(),
+  }).describe("Optional. Operating hours for the business.").optional(),
   relationshipData: z.object({
     childrenLocations: z.array(z.object({
       placeId: z.string().describe(
@@ -1187,12 +1187,10 @@ const InputsSchema = z.object({
         "DEPARTMENT_OF",
         "INDEPENDENT_ESTABLISHMENT_IN",
       ]).describe("Required. The type of the relationship.").optional(),
-    }).describe(
-      "Information about another location that is related to current one. The relation can be any one of DEPARTMENT_OF or INDEPENDENT_ESTABLISHMENT_OF, and the location specified here can be on either side (parent/child) of the location.",
-    ).optional(),
-  }).describe(
-    "Information of all parent and children locations related to this one.",
-  ).optional(),
+    }).describe("The parent location that this location has relations with.")
+      .optional(),
+  }).describe("Optional. All locations and chain related to this one.")
+    .optional(),
   serviceArea: z.object({
     businessType: z.enum([
       "BUSINESS_TYPE_UNSPECIFIED",
@@ -1211,13 +1209,14 @@ const InputsSchema = z.object({
       })).describe(
         "The areas represented by place IDs. Limited to a maximum of 20 places.",
       ).optional(),
-    }).describe("Defines the union of areas represented by a set of places.")
-      .optional(),
+    }).describe(
+      "The area that this business serves defined through a set of places.",
+    ).optional(),
     regionCode: z.string().describe(
       'Immutable. CLDR region code of the country/region that this service area business is based in. See http://cldr.unicode.org/ and http://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland. This field is required for CUSTOMER_LOCATION_ONLY businesses, and is ignored otherwise. The region specified here can be different from regions for the areas that this business serves (e.g. service area businesses that provide services in regions other than the one that they are based in). If this location requires verification after creation, the address provided for verification purposes *must* be located within this region, and the business owner or their authorized representative *must* be able to receive postal mail at the provided verification address.',
     ).optional(),
   }).describe(
-    "Service area businesses provide their service at the customer's location (for example, a locksmith or plumber).",
+    "Optional. Service area businesses provide their service at the customer's location. If this business is a service area business, this field describes the area(s) serviced by the business.",
   ).optional(),
   serviceItems: z.array(z.object({
     freeFormServiceItem: z.object({
@@ -1235,10 +1234,10 @@ const InputsSchema = z.object({
           "Optional. The BCP-47 language code that these strings apply for. Only one set of labels may be set per language.",
         ).optional(),
       }).describe(
-        "Label to be used when displaying the price list, section, or item.",
+        "Required. Language-tagged labels for the item. We recommend that item names be 140 characters or less, and descriptions 250 characters or less. This field should only be set if the input is a custom service item. Standardized service types should be updated using service_type_id.",
       ).optional(),
     }).describe(
-      "Represents a free-form service offered by the merchant. These are services that are not exposed as part of our structure service data. The merchant manually enters the names for such services using a geomerchant surface.",
+      "Optional. This field will be set case of free-form services data.",
     ).optional(),
     price: z.object({
       currencyCode: z.string().describe(
@@ -1250,8 +1249,9 @@ const InputsSchema = z.object({
       units: z.string().describe(
         'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
       ).optional(),
-    }).describe("Represents an amount of money with its currency type.")
-      .optional(),
+    }).describe(
+      "Optional. Represents the monetary price of the service item. We recommend that currency_code and units should be set when including a price. This will be treated as a fixed price for the service item.",
+    ).optional(),
     structuredServiceItem: z.object({
       description: z.string().describe(
         "Optional. Description of structured service item. The character limit is 300.",
@@ -1260,7 +1260,7 @@ const InputsSchema = z.object({
         "Required. The `service_type_id` field is a Google provided unique ID that can be found in `ServiceType`. This information is provided by `BatchGetCategories` rpc service.",
       ).optional(),
     }).describe(
-      "Represents a structured service offered by the merchant. For eg: toilet_installation.",
+      "Optional. This field will be set case of structured services data.",
     ).optional(),
   })).describe(
     "Optional. List of services supported by merchants. A service can be haircut, install water heater, etc. Duplicated service items will be removed automatically.",
@@ -1281,7 +1281,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
       ).optional(),
       closed: z.boolean().describe(
         "Optional. If true, `end_date`, `open_time`, and `close_time` are ignored, and the date specified in `start_date` is treated as the location being closed for the entire day.",
@@ -1297,7 +1297,7 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Optional. The calendar date this special hour period ends on. If `end_date` field is not set, default to the date specified in `start_date`. If set, this field must be equal to or at most 1 day after `start_date`.",
       ).optional(),
       openTime: z.object({
         hours: z.number().int().describe(
@@ -1313,7 +1313,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+        "Optional. Valid values are 00:00-24:00 where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -1326,13 +1326,13 @@ const InputsSchema = z.object({
           "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
         ).optional(),
       }).describe(
-        "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+        "Required. The calendar date this special hour period starts on.",
       ).optional(),
     })).describe(
       "Required. A list of exceptions to the business's regular hours.",
     ).optional(),
   }).describe(
-    "Represents a set of time periods when a location's operational hours differ from its normal business hours.",
+    "Optional. Special hours for the business. This typically includes holiday hours, and other times outside of regular operating hours. These override regular business hours. This field cannot be set without regular hours.",
   ).optional(),
   storeCode: z.string().describe(
     "Optional. External identifier for this location, which must be unique within a given account. This is a means of associating the location with your own records.",
@@ -1372,7 +1372,7 @@ const InputsSchema = z.object({
       "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
     ).optional(),
   }).describe(
-    "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+    "Optional. A precise, accurate address to describe your business location. PO boxes or mailboxes located at remote locations are not acceptable. At this time, you can specify a maximum of five `address_lines` values in the address. This field should only be set for businesses that have a storefront. This field should not be set for locations of type `CUSTOMER_LOCATION_ONLY` but if set, any value provided will be discarded.",
   ).optional(),
   title: z.string().describe(
     'Required. Location name should reflect your business\'s real-world name, as used consistently on your storefront, website, and stationery, and as known to customers. Any additional information, when relevant, can be included in other fields of the resource (for example, `Address`, `Categories`). Don\'t add unnecessary information to your name (for example, prefer "Google" over "Google Inc. - Mountain View Corporate Headquarters"). Don\'t include marketing taglines, store codes, special characters, hours or closed/open status, phone numbers, website URLs, service/product information, location/address or directions, or containment information (for example, "Chase ATM in Duane Reade").',
@@ -1405,7 +1405,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud My Business Business Information Locations. Registered at `@swamp/gcp/mybusinessbusinessinformation/locations`. */
 export const model = {
   type: "@swamp/gcp/mybusinessbusinessinformation/locations",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1534,6 +1534,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

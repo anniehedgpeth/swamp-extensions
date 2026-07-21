@@ -220,8 +220,9 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. SSL mode. Specifies client-server SSL/TLS connection behavior.",
       ).optional(),
-    }).describe("SSL configuration.").optional(),
-  }).describe("Client connection configuration").optional(),
+    }).describe("Optional. SSL configuration option for this instance.")
+      .optional(),
+  }).describe("Optional. Client connection specific configurations").optional(),
   connectionPoolConfig: z.object({
     authproxyPoolerCount: z.number().int().describe(
       "Output only. The number of running AuthProxy poolers per instance.",
@@ -248,7 +249,8 @@ const GlobalArgsSchema = z.object({
       "POOLER_MACHINE_SIZED",
       "POOLER_MANUAL_OVERRIDE",
     ]).describe("Optional. The scaling type of the regular pooler.").optional(),
-  }).describe("Configuration for Managed Connection Pool (MCP).").optional(),
+  }).describe("Optional. The configuration for Managed Connection Pool (MCP).")
+    .optional(),
   dataApiAccess: z.enum([
     "DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES",
     "DISABLED",
@@ -281,8 +283,9 @@ const GlobalArgsSchema = z.object({
     machineType: z.string().describe(
       'Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.',
     ).optional(),
-  }).describe("MachineConfig describes the configuration of a machine.")
-    .optional(),
+  }).describe(
+    "Configurations for the machines that host the underlying database engine.",
+  ).optional(),
   networkConfig: z.object({
     allocatedIpRangeOverride: z.string().describe(
       'Optional. Name of the allocated IP range for the private IP AlloyDB instance, for example: "google-managed-services-default". If set, the instance IPs will be created from this allocated range and will override the IP range used by the parent cluster. The range name must comply with [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?.',
@@ -303,8 +306,7 @@ const GlobalArgsSchema = z.object({
     network: z.string().describe(
       "Output only. The resource link for the VPC network in which instance resources are created and from which they are accessible via Private IP. This will be the same value as the parent cluster's network. It is specified in the form: // `projects/{project_number}/global/networks/{network_id}`.",
     ).optional(),
-  }).describe("Metadata related to instance-level network configuration.")
-    .optional(),
+  }).describe("Optional. Instance-level network configuration.").optional(),
   observabilityConfig: z.object({
     enabled: z.boolean().describe(
       'Observability feature status for an instance. This flag is turned "off" by default.',
@@ -330,7 +332,7 @@ const GlobalArgsSchema = z.object({
     trackWaitEvents: z.boolean().describe(
       'Track wait events during query execution for an instance. This flag is turned "on" by default but tracking is enabled only after observability enabled flag is also turned on.',
     ).optional(),
-  }).describe("Observability Instance specific configuration.").optional(),
+  }).describe("Configuration for observability.").optional(),
   pscInstanceConfig: z.object({
     allowedConsumerProjects: z.array(z.string()).describe(
       "Optional. List of consumer projects that are allowed to create PSC endpoints to service-attachments to this instance.",
@@ -368,7 +370,7 @@ const GlobalArgsSchema = z.object({
       "Output only. The service attachment created when Private Service Connect (PSC) is enabled for the instance. The name of the resource will be in the format of `projects//regions//serviceAttachments/`",
     ).optional(),
   }).describe(
-    "PscInstanceConfig contains PSC related configuration at an instance level.",
+    "Optional. The configuration for Private Service Connect (PSC) for the instance.",
   ).optional(),
   queryInsightsConfig: z.object({
     queryPlansPerMinute: z.number().int().describe(
@@ -383,30 +385,13 @@ const GlobalArgsSchema = z.object({
     recordClientAddress: z.boolean().describe(
       'Record client address for an instance. Client address is PII information. This flag is turned "on" by default.',
     ).optional(),
-  }).describe("QueryInsights Instance specific configuration.").optional(),
+  }).describe("Configuration for query insights.").optional(),
   readPoolConfig: z.object({
     nodeCount: z.number().int().describe(
       "Read capacity, i.e. number of nodes in a read pool instance.",
     ).optional(),
-  }).describe("Configuration for a read pool instance.").optional(),
-  writableNode: z.object({
-    id: z.string().describe(
-      'Output only. The identifier of the VM e.g. "test-read-0601-407e52be-ms3l".',
-    ).optional(),
-    ip: z.string().describe(
-      'Output only. The private IP address of the VM e.g. "10.57.0.34".',
-    ).optional(),
-    isHotStandby: z.boolean().describe(
-      "Output only. Indicates whether the node set up to be configured as a hot standby.",
-    ).optional(),
-    state: z.string().describe(
-      "Output only. Determined by state of the compute VM and postgres-service health. Compute VM state can have values listed in https://cloud.google.com/compute/docs/instances/instance-life-cycle and postgres-service health can have values: HEALTHY and UNHEALTHY.",
-    ).optional(),
-    zoneId: z.string().describe(
-      'Output only. The Compute Engine zone of the VM e.g. "us-central1-b".',
-    ).optional(),
   }).describe(
-    "Details of a single node in the instance. Nodes in an AlloyDB instance are ephemeral, they can change during update, failover, autohealing and resize operations.",
+    "Read pool instance configuration. This is required if the value of instanceType is READ_POOL.",
   ).optional(),
   instanceId: z.string().describe("Required. ID of the requesting object.")
     .optional(),
@@ -562,8 +547,9 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. SSL mode. Specifies client-server SSL/TLS connection behavior.",
       ).optional(),
-    }).describe("SSL configuration.").optional(),
-  }).describe("Client connection configuration").optional(),
+    }).describe("Optional. SSL configuration option for this instance.")
+      .optional(),
+  }).describe("Optional. Client connection specific configurations").optional(),
   connectionPoolConfig: z.object({
     authproxyPoolerCount: z.number().int().describe(
       "Output only. The number of running AuthProxy poolers per instance.",
@@ -590,7 +576,8 @@ const InputsSchema = z.object({
       "POOLER_MACHINE_SIZED",
       "POOLER_MANUAL_OVERRIDE",
     ]).describe("Optional. The scaling type of the regular pooler.").optional(),
-  }).describe("Configuration for Managed Connection Pool (MCP).").optional(),
+  }).describe("Optional. The configuration for Managed Connection Pool (MCP).")
+    .optional(),
   dataApiAccess: z.enum([
     "DEFAULT_DATA_API_ENABLED_FOR_GOOGLE_CLOUD_SERVICES",
     "DISABLED",
@@ -623,8 +610,9 @@ const InputsSchema = z.object({
     machineType: z.string().describe(
       'Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.',
     ).optional(),
-  }).describe("MachineConfig describes the configuration of a machine.")
-    .optional(),
+  }).describe(
+    "Configurations for the machines that host the underlying database engine.",
+  ).optional(),
   networkConfig: z.object({
     allocatedIpRangeOverride: z.string().describe(
       'Optional. Name of the allocated IP range for the private IP AlloyDB instance, for example: "google-managed-services-default". If set, the instance IPs will be created from this allocated range and will override the IP range used by the parent cluster. The range name must comply with [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?.',
@@ -645,8 +633,7 @@ const InputsSchema = z.object({
     network: z.string().describe(
       "Output only. The resource link for the VPC network in which instance resources are created and from which they are accessible via Private IP. This will be the same value as the parent cluster's network. It is specified in the form: // `projects/{project_number}/global/networks/{network_id}`.",
     ).optional(),
-  }).describe("Metadata related to instance-level network configuration.")
-    .optional(),
+  }).describe("Optional. Instance-level network configuration.").optional(),
   observabilityConfig: z.object({
     enabled: z.boolean().describe(
       'Observability feature status for an instance. This flag is turned "off" by default.',
@@ -672,7 +659,7 @@ const InputsSchema = z.object({
     trackWaitEvents: z.boolean().describe(
       'Track wait events during query execution for an instance. This flag is turned "on" by default but tracking is enabled only after observability enabled flag is also turned on.',
     ).optional(),
-  }).describe("Observability Instance specific configuration.").optional(),
+  }).describe("Configuration for observability.").optional(),
   pscInstanceConfig: z.object({
     allowedConsumerProjects: z.array(z.string()).describe(
       "Optional. List of consumer projects that are allowed to create PSC endpoints to service-attachments to this instance.",
@@ -710,7 +697,7 @@ const InputsSchema = z.object({
       "Output only. The service attachment created when Private Service Connect (PSC) is enabled for the instance. The name of the resource will be in the format of `projects//regions//serviceAttachments/`",
     ).optional(),
   }).describe(
-    "PscInstanceConfig contains PSC related configuration at an instance level.",
+    "Optional. The configuration for Private Service Connect (PSC) for the instance.",
   ).optional(),
   queryInsightsConfig: z.object({
     queryPlansPerMinute: z.number().int().describe(
@@ -725,30 +712,13 @@ const InputsSchema = z.object({
     recordClientAddress: z.boolean().describe(
       'Record client address for an instance. Client address is PII information. This flag is turned "on" by default.',
     ).optional(),
-  }).describe("QueryInsights Instance specific configuration.").optional(),
+  }).describe("Configuration for query insights.").optional(),
   readPoolConfig: z.object({
     nodeCount: z.number().int().describe(
       "Read capacity, i.e. number of nodes in a read pool instance.",
     ).optional(),
-  }).describe("Configuration for a read pool instance.").optional(),
-  writableNode: z.object({
-    id: z.string().describe(
-      'Output only. The identifier of the VM e.g. "test-read-0601-407e52be-ms3l".',
-    ).optional(),
-    ip: z.string().describe(
-      'Output only. The private IP address of the VM e.g. "10.57.0.34".',
-    ).optional(),
-    isHotStandby: z.boolean().describe(
-      "Output only. Indicates whether the node set up to be configured as a hot standby.",
-    ).optional(),
-    state: z.string().describe(
-      "Output only. Determined by state of the compute VM and postgres-service health. Compute VM state can have values listed in https://cloud.google.com/compute/docs/instances/instance-life-cycle and postgres-service health can have values: HEALTHY and UNHEALTHY.",
-    ).optional(),
-    zoneId: z.string().describe(
-      'Output only. The Compute Engine zone of the VM e.g. "us-central1-b".',
-    ).optional(),
   }).describe(
-    "Details of a single node in the instance. Nodes in an AlloyDB instance are ephemeral, they can change during update, failover, autohealing and resize operations.",
+    "Read pool instance configuration. This is required if the value of instanceType is READ_POOL.",
   ).optional(),
   instanceId: z.string().describe("Required. ID of the requesting object.")
     .optional(),
@@ -786,7 +756,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB Clusters.Instances. Registered at `@swamp/gcp/alloydb/clusters-instances`. */
 export const model = {
   type: "@swamp/gcp/alloydb/clusters-instances",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -928,6 +898,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: writableNode",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { writableNode: _writableNode, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1001,9 +979,6 @@ export const model = {
         }
         if (g["readPoolConfig"] !== undefined) {
           body["readPoolConfig"] = g["readPoolConfig"];
-        }
-        if (g["writableNode"] !== undefined) {
-          body["writableNode"] = g["writableNode"];
         }
         if (g["instanceId"] !== undefined) {
           params["instanceId"] = String(g["instanceId"]);
@@ -1168,9 +1143,6 @@ export const model = {
         }
         if (g["readPoolConfig"] !== undefined) {
           body["readPoolConfig"] = g["readPoolConfig"];
-        }
-        if (g["writableNode"] !== undefined) {
-          body["writableNode"] = g["writableNode"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

@@ -248,7 +248,7 @@ const GlobalArgsSchema = z.object({
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
   }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+    "Date, in UTC, that work on this attachment is due. This must be specified if `due_time` is specified.",
   ).optional(),
   dueTime: z.object({
     hours: z.number().int().describe(
@@ -264,7 +264,7 @@ const GlobalArgsSchema = z.object({
       "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
     ).optional(),
   }).describe(
-    "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+    "Time of day, in UTC, that work on this attachment is due. This must be specified if `due_date` is specified.",
   ).optional(),
   id: z.string().describe(
     "Immutable. Classroom-assigned identifier for this attachment, unique per post.",
@@ -279,20 +279,23 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.",
     ).optional(),
-  }).describe("URI to be iframed after being populated with query parameters.")
-    .optional(),
+  }).describe(
+    "Required. URI to show the student view of the attachment. The URI will be opened in an iframe with the `courseId`, `itemId`, `itemType`, and `attachmentId` query parameters set.",
+  ).optional(),
   studentWorkReviewUri: z.object({
     uri: z.string().describe(
       "Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.",
     ).optional(),
-  }).describe("URI to be iframed after being populated with query parameters.")
-    .optional(),
+  }).describe(
+    "URI for the teacher to see student work on the attachment, if applicable. The URI will be opened in an iframe with the `courseId`, `itemId`, `itemType`, `attachmentId`, and `submissionId` query parameters set. This is the same `submissionId` returned in the [`AddOnContext.studentContext`](/workspace/classroom/reference/rest/v1/AddOnContext#StudentContext) field when a student views the attachment. If the URI is omitted or removed, `max_points` will also be discarded.",
+  ).optional(),
   teacherViewUri: z.object({
     uri: z.string().describe(
       "Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.",
     ).optional(),
-  }).describe("URI to be iframed after being populated with query parameters.")
-    .optional(),
+  }).describe(
+    "Required. URI to show the teacher view of the attachment. The URI will be opened in an iframe with the `courseId`, `itemId`, `itemType`, and `attachmentId` query parameters set.",
+  ).optional(),
   title: z.string().describe(
     "Required. Title of this attachment. The title must be between 1 and 1000 characters.",
   ).optional(),
@@ -357,7 +360,7 @@ const InputsSchema = z.object({
       "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
     ).optional(),
   }).describe(
-    "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+    "Date, in UTC, that work on this attachment is due. This must be specified if `due_time` is specified.",
   ).optional(),
   dueTime: z.object({
     hours: z.number().int().describe(
@@ -373,7 +376,7 @@ const InputsSchema = z.object({
       "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
     ).optional(),
   }).describe(
-    "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+    "Time of day, in UTC, that work on this attachment is due. This must be specified if `due_date` is specified.",
   ).optional(),
   id: z.string().describe(
     "Immutable. Classroom-assigned identifier for this attachment, unique per post.",
@@ -388,20 +391,23 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.",
     ).optional(),
-  }).describe("URI to be iframed after being populated with query parameters.")
-    .optional(),
+  }).describe(
+    "Required. URI to show the student view of the attachment. The URI will be opened in an iframe with the `courseId`, `itemId`, `itemType`, and `attachmentId` query parameters set.",
+  ).optional(),
   studentWorkReviewUri: z.object({
     uri: z.string().describe(
       "Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.",
     ).optional(),
-  }).describe("URI to be iframed after being populated with query parameters.")
-    .optional(),
+  }).describe(
+    "URI for the teacher to see student work on the attachment, if applicable. The URI will be opened in an iframe with the `courseId`, `itemId`, `itemType`, `attachmentId`, and `submissionId` query parameters set. This is the same `submissionId` returned in the [`AddOnContext.studentContext`](/workspace/classroom/reference/rest/v1/AddOnContext#StudentContext) field when a student views the attachment. If the URI is omitted or removed, `max_points` will also be discarded.",
+  ).optional(),
   teacherViewUri: z.object({
     uri: z.string().describe(
       "Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.",
     ).optional(),
-  }).describe("URI to be iframed after being populated with query parameters.")
-    .optional(),
+  }).describe(
+    "Required. URI to show the teacher view of the attachment. The URI will be opened in an iframe with the `courseId`, `itemId`, `itemType`, and `attachmentId` query parameters set.",
+  ).optional(),
   title: z.string().describe(
     "Required. Title of this attachment. The title must be between 1 and 1000 characters.",
   ).optional(),
@@ -433,7 +439,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.Posts.AddOnAttachments. Registered at `@swamp/gcp/classroom/courses-posts-addonattachments`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-posts-addonattachments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -530,6 +536,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -581,15 +592,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "courseId": String(g["courseId"] ?? ""),
-              "postId": String(g["postId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

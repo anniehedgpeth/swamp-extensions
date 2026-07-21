@@ -181,7 +181,7 @@ const GlobalArgsSchema = z.object({
       "Optional. This field must be set only when allocation_strategy is set to RANDOM_FIRST_N_AVAILABLE. The value should be the maximum expected parallelism of range creation requests issued to the same space of peered netwroks.",
     ).optional(),
   }).describe(
-    "Range auto-allocation options, to be optionally used when CIDR block is not explicitly set.",
+    "Optional. Range auto-allocation options, may be set only when auto-allocation is selected by not setting ip_cidr_range (and setting prefix_length).",
   ).optional(),
   description: z.string().describe("Optional. A description of this resource.")
     .optional(),
@@ -203,9 +203,8 @@ const GlobalArgsSchema = z.object({
     target: z.string().describe(
       "Immutable. Resource path of the target resource. The target project can be different, as in the cases when migrating to peer networks. For example: /projects/{project}/regions/{region}/subnetworks/{subnet}",
     ).optional(),
-  }).describe(
-    "Specification for migration with source and target resource names.",
-  ).optional(),
+  }).describe("Optional. Must be present if usage is set to FOR_MIGRATION.")
+    .optional(),
   name: z.string().describe(
     "Identifier. The name of an internal range. Format: projects/{project}/locations/{location}/internalRanges/{internal_range} See: https://google.aip.dev/122#fields-representing-resource-names",
   ).optional(),
@@ -295,7 +294,7 @@ const InputsSchema = z.object({
       "Optional. This field must be set only when allocation_strategy is set to RANDOM_FIRST_N_AVAILABLE. The value should be the maximum expected parallelism of range creation requests issued to the same space of peered netwroks.",
     ).optional(),
   }).describe(
-    "Range auto-allocation options, to be optionally used when CIDR block is not explicitly set.",
+    "Optional. Range auto-allocation options, may be set only when auto-allocation is selected by not setting ip_cidr_range (and setting prefix_length).",
   ).optional(),
   description: z.string().describe("Optional. A description of this resource.")
     .optional(),
@@ -317,9 +316,8 @@ const InputsSchema = z.object({
     target: z.string().describe(
       "Immutable. Resource path of the target resource. The target project can be different, as in the cases when migrating to peer networks. For example: /projects/{project}/regions/{region}/subnetworks/{subnet}",
     ).optional(),
-  }).describe(
-    "Specification for migration with source and target resource names.",
-  ).optional(),
+  }).describe("Optional. Must be present if usage is set to FOR_MIGRATION.")
+    .optional(),
   name: z.string().describe(
     "Identifier. The name of an internal range. Format: projects/{project}/locations/{location}/internalRanges/{internal_range} See: https://google.aip.dev/122#fields-representing-resource-names",
   ).optional(),
@@ -385,7 +383,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity InternalRanges. Registered at `@swamp/gcp/networkconnectivity/internalranges`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/internalranges",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -489,6 +487,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

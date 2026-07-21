@@ -39,6 +39,7 @@ import {
   deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
+  isAlreadyExistsError,
   isResourceNotFoundError,
   listResources,
   readResource,
@@ -143,15 +144,15 @@ const GlobalArgsSchema = z.object({
     namespace: z.string().describe(
       "The namespace in which the entity exists. If not specified, the `EntityKey` represents a Google-managed entity such as a Google user or a Google Group. If specified, the `EntityKey` represents an external-identity-mapped group. The namespace must correspond to an identity source created in Admin Console and must be in the form of `identitysources/{identity_source}`.",
     ).optional(),
-  }).describe(
-    "A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional `namespace` or a user without a `namespace`. The combination of `id` and `namespace` must be unique; however, the same `id` can be used with different `namespace`s.",
-  ).optional(),
+  }).describe("Required. Immutable. The `EntityKey` of the member.").optional(),
   roles: z.array(z.object({
     expiryDetail: z.object({
       expireTime: z.string().describe(
         "The time at which the `MembershipRole` will expire.",
       ).optional(),
-    }).describe("The `MembershipRole` expiry details.").optional(),
+    }).describe(
+      "The expiry details of the `MembershipRole`. Expiry details are only supported for `MEMBER` `MembershipRoles`. May be set if `name` is `MEMBER`. Must not be set if `name` is any other value.",
+    ).optional(),
     name: z.string().describe(
       "The name of the `MembershipRole`. Must be one of `OWNER`, `MANAGER`, `MEMBER`.",
     ).optional(),
@@ -165,7 +166,9 @@ const GlobalArgsSchema = z.object({
           "EVALUATING",
         ]).describe("Output only. The current state of the restriction")
           .optional(),
-      }).describe("The evaluated state of this restriction.").optional(),
+      }).describe(
+        "Evaluation of the member restriction applied to this membership. Empty if the user lacks permission to view the restriction evaluation.",
+      ).optional(),
     }).describe(
       "Evaluations of restrictions applied to parent group on this membership.",
     ).optional(),
@@ -215,15 +218,15 @@ const InputsSchema = z.object({
     namespace: z.string().describe(
       "The namespace in which the entity exists. If not specified, the `EntityKey` represents a Google-managed entity such as a Google user or a Google Group. If specified, the `EntityKey` represents an external-identity-mapped group. The namespace must correspond to an identity source created in Admin Console and must be in the form of `identitysources/{identity_source}`.",
     ).optional(),
-  }).describe(
-    "A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional `namespace` or a user without a `namespace`. The combination of `id` and `namespace` must be unique; however, the same `id` can be used with different `namespace`s.",
-  ).optional(),
+  }).describe("Required. Immutable. The `EntityKey` of the member.").optional(),
   roles: z.array(z.object({
     expiryDetail: z.object({
       expireTime: z.string().describe(
         "The time at which the `MembershipRole` will expire.",
       ).optional(),
-    }).describe("The `MembershipRole` expiry details.").optional(),
+    }).describe(
+      "The expiry details of the `MembershipRole`. Expiry details are only supported for `MEMBER` `MembershipRoles`. May be set if `name` is `MEMBER`. Must not be set if `name` is any other value.",
+    ).optional(),
     name: z.string().describe(
       "The name of the `MembershipRole`. Must be one of `OWNER`, `MANAGER`, `MEMBER`.",
     ).optional(),
@@ -237,7 +240,9 @@ const InputsSchema = z.object({
           "EVALUATING",
         ]).describe("Output only. The current state of the restriction")
           .optional(),
-      }).describe("The evaluated state of this restriction.").optional(),
+      }).describe(
+        "Evaluation of the member restriction applied to this membership. Empty if the user lacks permission to view the restriction evaluation.",
+      ).optional(),
     }).describe(
       "Evaluations of restrictions applied to parent group on this membership.",
     ).optional(),
@@ -272,7 +277,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Groups.Memberships. Registered at `@swamp/gcp/cloudidentity/groups-memberships`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/groups-memberships",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -369,6 +374,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -402,23 +412,35 @@ export const model = {
             String(g["name"]),
           );
         }
-        const result = await createResource(
-          BASE_URL,
-          INSERT_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
-          credentials,
-        ) as StateData;
+        let result: StateData;
+        try {
+          result = await createResource(
+            BASE_URL,
+            INSERT_CONFIG,
+            params,
+            body,
+            GET_CONFIG,
+            undefined,
+            undefined,
+            credentials,
+          ) as StateData;
+        } catch (createErr) {
+          if (!isAlreadyExistsError(createErr)) throw createErr;
+          const matchValue = String(g["preferredMemberKey"]?.id ?? "");
+          const { items } = await listResources(
+            BASE_URL,
+            LIST_CONFIG,
+            { "parent": String(body["parent"] ?? g["parent"] ?? "") },
+            "memberships",
+            100,
+            credentials,
+          );
+          const existing = items.find((item: any) =>
+            item?.preferredMemberKey?.id === matchValue
+          );
+          if (existing) result = existing as StateData;
+          else throw createErr;
+        }
         const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",

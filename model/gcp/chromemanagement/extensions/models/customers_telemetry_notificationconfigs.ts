@@ -152,16 +152,18 @@ const GlobalArgsSchema = z.object({
       ).describe(
         "Only sends the notifications for events of these types. Must not be empty.",
       ).optional(),
-    }).describe("Configures how the telemetry events should be filtered.")
-      .optional(),
+    }).describe(
+      "Only sends notifications for the telemetry events matching this filter.",
+    ).optional(),
     userEmail: z.string().describe(
       "If set, only sends notifications for telemetry data coming from devices owned by this user.",
     ).optional(),
     userOrgUnitId: z.string().describe(
       "If set, only sends notifications for telemetry data coming from devices owned by users in this org unit.",
     ).optional(),
-  }).describe("Configures how the telemetry data should be filtered.")
-    .optional(),
+  }).describe(
+    "Only send notifications for telemetry data matching this filter.",
+  ).optional(),
   googleCloudPubsubTopic: z.string().describe(
     "The pubsub topic to which notifications are published to.",
   ).optional(),
@@ -222,16 +224,18 @@ const InputsSchema = z.object({
       ).describe(
         "Only sends the notifications for events of these types. Must not be empty.",
       ).optional(),
-    }).describe("Configures how the telemetry events should be filtered.")
-      .optional(),
+    }).describe(
+      "Only sends notifications for the telemetry events matching this filter.",
+    ).optional(),
     userEmail: z.string().describe(
       "If set, only sends notifications for telemetry data coming from devices owned by this user.",
     ).optional(),
     userOrgUnitId: z.string().describe(
       "If set, only sends notifications for telemetry data coming from devices owned by users in this org unit.",
     ).optional(),
-  }).describe("Configures how the telemetry data should be filtered.")
-    .optional(),
+  }).describe(
+    "Only send notifications for telemetry data matching this filter.",
+  ).optional(),
   googleCloudPubsubTopic: z.string().describe(
     "The pubsub topic to which notifications are published to.",
   ).optional(),
@@ -263,7 +267,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Chrome Management Customers.Telemetry.NotificationConfigs. Registered at `@swamp/gcp/chromemanagement/customers-telemetry-notificationconfigs`. */
 export const model = {
   type: "@swamp/gcp/chromemanagement/customers-telemetry-notificationconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -355,6 +359,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -388,14 +397,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

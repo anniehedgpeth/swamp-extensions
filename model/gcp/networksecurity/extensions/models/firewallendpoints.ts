@@ -177,7 +177,7 @@ const GlobalArgsSchema = z.object({
     jumboFramesEnabled: z.boolean().describe(
       "Optional. Immutable. Indicates whether Jumbo Frames are enabled. Default value is false.",
     ).optional(),
-  }).describe("Settings for the endpoint.").optional(),
+  }).describe("Optional. Settings for the endpoint.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs",
   ).optional(),
@@ -232,7 +232,7 @@ const InputsSchema = z.object({
     jumboFramesEnabled: z.boolean().describe(
       "Optional. Immutable. Indicates whether Jumbo Frames are enabled. Default value is false.",
     ).optional(),
-  }).describe("Settings for the endpoint.").optional(),
+  }).describe("Optional. Settings for the endpoint.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Labels as key value pairs",
   ).optional(),
@@ -272,7 +272,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security FirewallEndpoints. Registered at `@swamp/gcp/networksecurity/firewallendpoints`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/firewallendpoints",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -381,6 +381,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

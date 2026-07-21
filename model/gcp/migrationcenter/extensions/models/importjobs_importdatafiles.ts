@@ -169,9 +169,8 @@ const GlobalArgsSchema = z.object({
     uriExpirationTime: z.string().describe(
       "Output only. Expiration time of the upload URI.",
     ).optional(),
-  }).describe(
-    "A resource that contains a URI to which a data file can be uploaded.",
-  ).optional(),
+  }).describe("Information about a file that is uploaded to a storage service.")
+    .optional(),
   importDataFileId: z.string().describe(
     "Required. The ID of the new data file.",
   ).optional(),
@@ -228,9 +227,8 @@ const InputsSchema = z.object({
     uriExpirationTime: z.string().describe(
       "Output only. Expiration time of the upload URI.",
     ).optional(),
-  }).describe(
-    "A resource that contains a URI to which a data file can be uploaded.",
-  ).optional(),
+  }).describe("Information about a file that is uploaded to a storage service.")
+    .optional(),
   importDataFileId: z.string().describe(
     "Required. The ID of the new data file.",
   ).optional(),
@@ -268,7 +266,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center ImportJobs.ImportDataFiles. Registered at `@swamp/gcp/migrationcenter/importjobs-importdatafiles`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/importjobs-importdatafiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -367,6 +365,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the leaderboard name.").optional(),
     scoreFormat: z.object({
       currencyCode: z.string().describe(
         "The curreny code string. Only used for CURRENCY format type.",
@@ -187,48 +187,62 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).',
+        ).optional(),
         many: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).',
+        ).optional(),
         one: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).",
+        ).optional(),
         other: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).",
+        ).optional(),
         two: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).",
+        ).optional(),
         zero: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
-      }).describe("A number affix resource.").optional(),
-    }).describe("A number format resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of the number 0 (as in Arabic).",
+        ).optional(),
+      }).describe(
+        "An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.",
+      ).optional(),
+    }).describe("The score formatting for the leaderboard.").optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this leaderboard. Writes to this field are ignored.",
     ).optional(),
-  }).describe("A leaderboard configuration detail.").optional(),
+  }).describe("The draft data of the leaderboard.").optional(),
   id: z.string().describe("The ID of the leaderboard.").optional(),
   published: z.object({
     iconUrl: z.string().describe(
@@ -248,7 +262,7 @@ const GlobalArgsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the leaderboard name.").optional(),
     scoreFormat: z.object({
       currencyCode: z.string().describe(
         "The curreny code string. Only used for CURRENCY format type.",
@@ -269,48 +283,62 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).',
+        ).optional(),
         many: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).',
+        ).optional(),
         one: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).",
+        ).optional(),
         other: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).",
+        ).optional(),
         two: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).",
+        ).optional(),
         zero: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
-      }).describe("A number affix resource.").optional(),
-    }).describe("A number format resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of the number 0 (as in Arabic).",
+        ).optional(),
+      }).describe(
+        "An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.",
+      ).optional(),
+    }).describe("The score formatting for the leaderboard.").optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this leaderboard. Writes to this field are ignored.",
     ).optional(),
-  }).describe("A leaderboard configuration detail.").optional(),
+  }).describe("The read-only published data of the leaderboard.").optional(),
   scoreMax: z.string().describe(
     "Maximum score that can be posted to this leaderboard.",
   ).optional(),
@@ -451,7 +479,7 @@ const InputsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the leaderboard name.").optional(),
     scoreFormat: z.object({
       currencyCode: z.string().describe(
         "The curreny code string. Only used for CURRENCY format type.",
@@ -472,48 +500,62 @@ const InputsSchema = z.object({
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).',
+        ).optional(),
         many: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).',
+        ).optional(),
         one: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).",
+        ).optional(),
         other: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).",
+        ).optional(),
         two: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).",
+        ).optional(),
         zero: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
-      }).describe("A number affix resource.").optional(),
-    }).describe("A number format resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of the number 0 (as in Arabic).",
+        ).optional(),
+      }).describe(
+        "An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.",
+      ).optional(),
+    }).describe("The score formatting for the leaderboard.").optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this leaderboard. Writes to this field are ignored.",
     ).optional(),
-  }).describe("A leaderboard configuration detail.").optional(),
+  }).describe("The draft data of the leaderboard.").optional(),
   id: z.string().describe("The ID of the leaderboard.").optional(),
   published: z.object({
     iconUrl: z.string().describe(
@@ -533,7 +575,7 @@ const InputsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the leaderboard name.").optional(),
     scoreFormat: z.object({
       currencyCode: z.string().describe(
         "The curreny code string. Only used for CURRENCY format type.",
@@ -554,48 +596,62 @@ const InputsSchema = z.object({
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).',
+        ).optional(),
         many: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          'When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).',
+        ).optional(),
         one: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).",
+        ).optional(),
         other: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).",
+        ).optional(),
         two: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).",
+        ).optional(),
         zero: z.object({
           kind: z.string().describe(
             "Uniquely identifies the type of this resource. Value is always the fixed string `gamesConfiguration#localizedStringBundle`.",
           ).optional(),
           translations: z.array(z.unknown()).describe("The locale strings.")
             .optional(),
-        }).describe("A localized string bundle resource.").optional(),
-      }).describe("A number affix resource.").optional(),
-    }).describe("A number format resource.").optional(),
+        }).describe(
+          "When the language requires special treatment of the number 0 (as in Arabic).",
+        ).optional(),
+      }).describe(
+        "An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.",
+      ).optional(),
+    }).describe("The score formatting for the leaderboard.").optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this leaderboard. Writes to this field are ignored.",
     ).optional(),
-  }).describe("A leaderboard configuration detail.").optional(),
+  }).describe("The read-only published data of the leaderboard.").optional(),
   scoreMax: z.string().describe(
     "Maximum score that can be posted to this leaderboard.",
   ).optional(),
@@ -636,7 +692,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Games Services Publishing LeaderboardConfigurations. Registered at `@swamp/gcp/gamesconfiguration/leaderboardconfigurations`. */
 export const model = {
   type: "@swamp/gcp/gamesconfiguration/leaderboardconfigurations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -728,6 +784,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -769,12 +830,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "applicationId": String(g["applicationId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

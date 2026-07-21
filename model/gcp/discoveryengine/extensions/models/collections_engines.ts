@@ -160,10 +160,10 @@ const GlobalArgsSchema = z.object({
       name: z.string().describe(
         "Required. Immutable. The resource name of the agent gateway. Expected format: `projects/{project_number}/locations/{location}/agentGateways/{agent_gateway}`.",
       ).optional(),
-    }).describe("Reference to an Agent Gateway resource.").optional(),
-  }).describe(
-    "Agent Gateway setting, which may be attached to Gemini Enterprise resources for egress control of Gemini Enterprise agents to agents and tools outside of Gemini Enterprise.",
-  ).optional(),
+    }).describe(
+      "Optional. The default egress agent gateway to use, when this setting is applied to a Gemini Enterprise resource. The deployment mode must be GOOGLE_MANAGED, and the governed access path must be AGENT_TO_ANYWHERE.",
+    ).optional(),
+  }).describe("Optional. The agent gateway setting for the engine.").optional(),
   appType: z.enum(["APP_TYPE_UNSPECIFIED", "APP_TYPE_INTRANET"]).describe(
     "Optional. Immutable. This the application type which this engine resource represents. NOTE: this is a new concept independ of existing industry vertical or solution type.",
   ).optional(),
@@ -182,7 +182,7 @@ const GlobalArgsSchema = z.object({
         "Required. The time zone of the agent from the [time zone database](https://www.iana.org/time-zones), e.g., America/New_York, Europe/Paris.",
       ).optional(),
     }).describe(
-      "Configurations for generating a Dialogflow agent. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.",
+      "The configurationt generate the Dialogflow agent that is associated to this Engine. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.",
     ).optional(),
     allowCrossRegion: z.boolean().describe(
       "Optional. If the flag set to true, we allow the agent and engine are in different locations, otherwise the agent and engine are required to be in the same location. The flag is set to false by default. Note that the `allow_cross_region` are one-time consumed by and passed to EngineService.CreateEngine. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.",
@@ -190,58 +190,15 @@ const GlobalArgsSchema = z.object({
     dialogflowAgentToLink: z.string().describe(
       "The resource name of an exist Dialogflow agent to link to this Chat Engine. Customers can either provide `agent_creation_config` to create agent or provide an agent name that links the agent with the Chat engine. Format: `projects//locations//agents/`. Note that the `dialogflow_agent_to_link` are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation. Use ChatEngineMetadata.dialogflow_agent for actual agent association after Engine is created.",
     ).optional(),
-  }).describe("Configurations for a Chat Engine.").optional(),
-  cmekConfig: z.object({
-    isDefault: z.boolean().describe(
-      "Output only. The default CmekConfig for the Customer.",
-    ).optional(),
-    kmsKey: z.string().describe(
-      "Required. KMS key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. KMS key version resource name which will be used to encrypt resources `/cryptoKeyVersions/{keyVersion}`.",
-    ).optional(),
-    lastRotationTimestampMicros: z.string().describe(
-      "Output only. The timestamp of the last key rotation.",
-    ).optional(),
-    name: z.string().describe(
-      "Required. The name of the CmekConfig of the form `projects/{project}/locations/{location}/cmekConfig` or `projects/{project}/locations/{location}/cmekConfigs/{cmek_config}`.",
-    ).optional(),
-    notebooklmState: z.enum([
-      "NOTEBOOK_LM_STATE_UNSPECIFIED",
-      "NOTEBOOK_LM_NOT_READY",
-      "NOTEBOOK_LM_READY",
-      "NOTEBOOK_LM_NOT_ENABLED",
-    ]).describe(
-      "Output only. Whether the NotebookLM Corpus is ready to be used.",
-    ).optional(),
-    singleRegionKeys: z.array(z.object({
-      kmsKey: z.string().describe(
-        "Required. Single-regional kms key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-      ).optional(),
-    })).describe(
-      "Optional. Single-regional CMEKs that are required for some VAIS features.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "KEY_ISSUE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UNUSABLE",
-      "ACTIVE_ROTATING",
-      "DELETED",
-      "EXPIRED",
-    ]).describe("Output only. The states of the CmekConfig.").optional(),
   }).describe(
-    "Configurations used to enable CMEK data encryption with Cloud KMS keys.",
+    "Configurations for the Chat Engine. Only applicable if solution_type is SOLUTION_TYPE_CHAT.",
   ).optional(),
   commonConfig: z.object({
     companyName: z.string().describe(
       "The name of the company, business or entity that is associated with the engine. Setting this may help improve LLM related features.",
     ).optional(),
-  }).describe("Common configurations for an Engine.").optional(),
+  }).describe("Common config spec that specifies the metadata of the engine.")
+    .optional(),
   configurableBillingApproach: z.enum([
     "CONFIGURABLE_BILLING_APPROACH_UNSPECIFIED",
     "CONFIGURABLE_BILLING_APPROACH_ENABLED",
@@ -300,11 +257,13 @@ const GlobalArgsSchema = z.object({
       disablePrivateKgQueryUnderstanding: z.boolean().describe(
         "Whether to disable the private KG query understanding for the engine. Defaults to false if not specified.",
       ).optional(),
-    }).describe("Feature config for the Knowledge Graph.").optional(),
+    }).describe("Optional. Feature config for the Knowledge Graph.").optional(),
     privateKnowledgeGraphTypes: z.array(z.string()).describe(
       "Specify entity types to support.",
     ).optional(),
-  }).describe("Configuration message for the Knowledge Graph.").optional(),
+  }).describe(
+    "Optional. Configurations for the Knowledge Graph. Only applicable if solution_type is SOLUTION_TYPE_SEARCH.",
+  ).optional(),
   marketplaceAgentVisibility: z.enum([
     "MARKETPLACE_AGENT_VISIBILITY_UNSPECIFIED",
     "SHOW_AVAILABLE_AGENTS_ONLY",
@@ -320,17 +279,13 @@ const GlobalArgsSchema = z.object({
         timeWindowDays: z.string().describe(
           "The time window of which the engine is queried at training and prediction time. Positive integers only. The value translates to the last X days of events. Currently required for the `most-popular-items` engine.",
         ).optional(),
-      }).describe(
-        "Feature configurations that are required for creating a Most Popular engine.",
-      ).optional(),
+      }).describe("Most popular engine feature config.").optional(),
       recommendedForYouConfig: z.object({
         contextEventType: z.string().describe(
           "The type of event with which the engine is queried at prediction time. If set to `generic`, only `view-item`, `media-play`,and `media-complete` will be used as `context-event` in engine training. If set to `view-home-page`, `view-home-page` will also be used as `context-events` in addition to `view-item`, `media-play`, and `media-complete`. Currently supported for the `recommended-for-you` engine. Currently supported values: `view-home-page`, `generic`.",
         ).optional(),
-      }).describe(
-        "Additional feature configurations for creating a `recommended-for-you` engine.",
-      ).optional(),
-    }).describe("More feature configs of the selected engine type.").optional(),
+      }).describe("Recommended for you engine feature config.").optional(),
+    }).describe("Optional. Additional engine features config.").optional(),
     optimizationObjective: z.string().describe(
       "The optimization objective. e.g., `cvr`. This field together with optimization_objective describe engine metadata to use to control engine training and serving. Currently supported values: `ctr`, `cvr`. If not specified, we choose default based on engine type. Default depends on type of recommendation: `recommended-for-you` => `ctr` `others-you-may-like` => `ctr`",
     ).optional(),
@@ -341,8 +296,9 @@ const GlobalArgsSchema = z.object({
       targetFieldValueFloat: z.number().describe(
         "Required. The threshold to be applied to the target (e.g., 0.5).",
       ).optional(),
-    }).describe("Custom threshold for `cvr` optimization_objective.")
-      .optional(),
+    }).describe(
+      "Name and value of the custom threshold for cvr optimization_objective. For target_field `watch-time`, target_field_value must be an integer value indicating the media progress time in seconds between (0, 86400] (excludes 0, includes 86400) (e.g., 90). For target_field `watch-percentage`, the target_field_value must be a valid float value between (0, 1.0] (excludes 0, includes 1.0) (e.g., 0.5).",
+    ).optional(),
     trainingState: z.enum(["TRAINING_STATE_UNSPECIFIED", "PAUSED", "TRAINING"])
       .describe(
         "The training state that the engine is in (e.g. `TRAINING` or `PAUSED`). Since part of the cost of running the service is frequency of training - this can be used to determine when to train engine in order to control cost. If not specified: the default value for `CreateEngine` method is `TRAINING`. The default value for `UpdateEngine` method is to keep the state the same as before.",
@@ -350,8 +306,9 @@ const GlobalArgsSchema = z.object({
     type: z.string().describe(
       "Required. The type of engine. e.g., `recommended-for-you`. This field together with optimization_objective describe engine metadata to use to control engine training and serving. Currently supported values: `recommended-for-you`, `others-you-may-like`, `more-like-this`, `most-popular-items`.",
     ).optional(),
-  }).describe("Additional config specs for a Media Recommendation engine.")
-    .optional(),
+  }).describe(
+    "Configurations for the Media Engine. Only applicable on the data stores with solution_type SOLUTION_TYPE_RECOMMENDATION and IndustryVertical.MEDIA vertical.",
+  ).optional(),
   modelConfigs: z.record(
     z.string(),
     z.enum(["MODEL_STATE_UNSPECIFIED", "MODEL_ENABLED", "MODEL_DISABLED"]),
@@ -368,7 +325,7 @@ const GlobalArgsSchema = z.object({
     sensitiveLoggingEnabled: z.boolean().describe(
       "Optional. Enables sensitive logging. Sensitive logging includes customer core content (e.g. prompts, responses). If `false`, will sanitize all sensitive fields.",
     ).optional(),
-  }).describe("Observability config for a resource.").optional(),
+  }).describe("Optional. Observability config for the engine.").optional(),
   procurementContactEmails: z.array(z.string()).describe(
     "Optional. The emails of the procurement contacts.",
   ).optional(),
@@ -403,7 +360,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "The search feature tier of this engine. Different tiers might have different pricing. To learn more, check the pricing documentation. Defaults to SearchTier.SEARCH_TIER_STANDARD if not specified.",
     ).optional(),
-  }).describe("Configurations for a Search Engine.").optional(),
+  }).describe(
+    "Configurations for the Search Engine. Only applicable if solution_type is SOLUTION_TYPE_SEARCH.",
+  ).optional(),
   solutionType: z.enum([
     "SOLUTION_TYPE_UNSPECIFIED",
     "SOLUTION_TYPE_RECOMMENDATION",
@@ -525,10 +484,10 @@ const InputsSchema = z.object({
       name: z.string().describe(
         "Required. Immutable. The resource name of the agent gateway. Expected format: `projects/{project_number}/locations/{location}/agentGateways/{agent_gateway}`.",
       ).optional(),
-    }).describe("Reference to an Agent Gateway resource.").optional(),
-  }).describe(
-    "Agent Gateway setting, which may be attached to Gemini Enterprise resources for egress control of Gemini Enterprise agents to agents and tools outside of Gemini Enterprise.",
-  ).optional(),
+    }).describe(
+      "Optional. The default egress agent gateway to use, when this setting is applied to a Gemini Enterprise resource. The deployment mode must be GOOGLE_MANAGED, and the governed access path must be AGENT_TO_ANYWHERE.",
+    ).optional(),
+  }).describe("Optional. The agent gateway setting for the engine.").optional(),
   appType: z.enum(["APP_TYPE_UNSPECIFIED", "APP_TYPE_INTRANET"]).describe(
     "Optional. Immutable. This the application type which this engine resource represents. NOTE: this is a new concept independ of existing industry vertical or solution type.",
   ).optional(),
@@ -547,7 +506,7 @@ const InputsSchema = z.object({
         "Required. The time zone of the agent from the [time zone database](https://www.iana.org/time-zones), e.g., America/New_York, Europe/Paris.",
       ).optional(),
     }).describe(
-      "Configurations for generating a Dialogflow agent. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.",
+      "The configurationt generate the Dialogflow agent that is associated to this Engine. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.",
     ).optional(),
     allowCrossRegion: z.boolean().describe(
       "Optional. If the flag set to true, we allow the agent and engine are in different locations, otherwise the agent and engine are required to be in the same location. The flag is set to false by default. Note that the `allow_cross_region` are one-time consumed by and passed to EngineService.CreateEngine. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.",
@@ -555,58 +514,15 @@ const InputsSchema = z.object({
     dialogflowAgentToLink: z.string().describe(
       "The resource name of an exist Dialogflow agent to link to this Chat Engine. Customers can either provide `agent_creation_config` to create agent or provide an agent name that links the agent with the Chat engine. Format: `projects//locations//agents/`. Note that the `dialogflow_agent_to_link` are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation. Use ChatEngineMetadata.dialogflow_agent for actual agent association after Engine is created.",
     ).optional(),
-  }).describe("Configurations for a Chat Engine.").optional(),
-  cmekConfig: z.object({
-    isDefault: z.boolean().describe(
-      "Output only. The default CmekConfig for the Customer.",
-    ).optional(),
-    kmsKey: z.string().describe(
-      "Required. KMS key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. KMS key version resource name which will be used to encrypt resources `/cryptoKeyVersions/{keyVersion}`.",
-    ).optional(),
-    lastRotationTimestampMicros: z.string().describe(
-      "Output only. The timestamp of the last key rotation.",
-    ).optional(),
-    name: z.string().describe(
-      "Required. The name of the CmekConfig of the form `projects/{project}/locations/{location}/cmekConfig` or `projects/{project}/locations/{location}/cmekConfigs/{cmek_config}`.",
-    ).optional(),
-    notebooklmState: z.enum([
-      "NOTEBOOK_LM_STATE_UNSPECIFIED",
-      "NOTEBOOK_LM_NOT_READY",
-      "NOTEBOOK_LM_READY",
-      "NOTEBOOK_LM_NOT_ENABLED",
-    ]).describe(
-      "Output only. Whether the NotebookLM Corpus is ready to be used.",
-    ).optional(),
-    singleRegionKeys: z.array(z.object({
-      kmsKey: z.string().describe(
-        "Required. Single-regional kms key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-      ).optional(),
-    })).describe(
-      "Optional. Single-regional CMEKs that are required for some VAIS features.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "KEY_ISSUE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UNUSABLE",
-      "ACTIVE_ROTATING",
-      "DELETED",
-      "EXPIRED",
-    ]).describe("Output only. The states of the CmekConfig.").optional(),
   }).describe(
-    "Configurations used to enable CMEK data encryption with Cloud KMS keys.",
+    "Configurations for the Chat Engine. Only applicable if solution_type is SOLUTION_TYPE_CHAT.",
   ).optional(),
   commonConfig: z.object({
     companyName: z.string().describe(
       "The name of the company, business or entity that is associated with the engine. Setting this may help improve LLM related features.",
     ).optional(),
-  }).describe("Common configurations for an Engine.").optional(),
+  }).describe("Common config spec that specifies the metadata of the engine.")
+    .optional(),
   configurableBillingApproach: z.enum([
     "CONFIGURABLE_BILLING_APPROACH_UNSPECIFIED",
     "CONFIGURABLE_BILLING_APPROACH_ENABLED",
@@ -665,11 +581,13 @@ const InputsSchema = z.object({
       disablePrivateKgQueryUnderstanding: z.boolean().describe(
         "Whether to disable the private KG query understanding for the engine. Defaults to false if not specified.",
       ).optional(),
-    }).describe("Feature config for the Knowledge Graph.").optional(),
+    }).describe("Optional. Feature config for the Knowledge Graph.").optional(),
     privateKnowledgeGraphTypes: z.array(z.string()).describe(
       "Specify entity types to support.",
     ).optional(),
-  }).describe("Configuration message for the Knowledge Graph.").optional(),
+  }).describe(
+    "Optional. Configurations for the Knowledge Graph. Only applicable if solution_type is SOLUTION_TYPE_SEARCH.",
+  ).optional(),
   marketplaceAgentVisibility: z.enum([
     "MARKETPLACE_AGENT_VISIBILITY_UNSPECIFIED",
     "SHOW_AVAILABLE_AGENTS_ONLY",
@@ -685,17 +603,13 @@ const InputsSchema = z.object({
         timeWindowDays: z.string().describe(
           "The time window of which the engine is queried at training and prediction time. Positive integers only. The value translates to the last X days of events. Currently required for the `most-popular-items` engine.",
         ).optional(),
-      }).describe(
-        "Feature configurations that are required for creating a Most Popular engine.",
-      ).optional(),
+      }).describe("Most popular engine feature config.").optional(),
       recommendedForYouConfig: z.object({
         contextEventType: z.string().describe(
           "The type of event with which the engine is queried at prediction time. If set to `generic`, only `view-item`, `media-play`,and `media-complete` will be used as `context-event` in engine training. If set to `view-home-page`, `view-home-page` will also be used as `context-events` in addition to `view-item`, `media-play`, and `media-complete`. Currently supported for the `recommended-for-you` engine. Currently supported values: `view-home-page`, `generic`.",
         ).optional(),
-      }).describe(
-        "Additional feature configurations for creating a `recommended-for-you` engine.",
-      ).optional(),
-    }).describe("More feature configs of the selected engine type.").optional(),
+      }).describe("Recommended for you engine feature config.").optional(),
+    }).describe("Optional. Additional engine features config.").optional(),
     optimizationObjective: z.string().describe(
       "The optimization objective. e.g., `cvr`. This field together with optimization_objective describe engine metadata to use to control engine training and serving. Currently supported values: `ctr`, `cvr`. If not specified, we choose default based on engine type. Default depends on type of recommendation: `recommended-for-you` => `ctr` `others-you-may-like` => `ctr`",
     ).optional(),
@@ -706,8 +620,9 @@ const InputsSchema = z.object({
       targetFieldValueFloat: z.number().describe(
         "Required. The threshold to be applied to the target (e.g., 0.5).",
       ).optional(),
-    }).describe("Custom threshold for `cvr` optimization_objective.")
-      .optional(),
+    }).describe(
+      "Name and value of the custom threshold for cvr optimization_objective. For target_field `watch-time`, target_field_value must be an integer value indicating the media progress time in seconds between (0, 86400] (excludes 0, includes 86400) (e.g., 90). For target_field `watch-percentage`, the target_field_value must be a valid float value between (0, 1.0] (excludes 0, includes 1.0) (e.g., 0.5).",
+    ).optional(),
     trainingState: z.enum(["TRAINING_STATE_UNSPECIFIED", "PAUSED", "TRAINING"])
       .describe(
         "The training state that the engine is in (e.g. `TRAINING` or `PAUSED`). Since part of the cost of running the service is frequency of training - this can be used to determine when to train engine in order to control cost. If not specified: the default value for `CreateEngine` method is `TRAINING`. The default value for `UpdateEngine` method is to keep the state the same as before.",
@@ -715,8 +630,9 @@ const InputsSchema = z.object({
     type: z.string().describe(
       "Required. The type of engine. e.g., `recommended-for-you`. This field together with optimization_objective describe engine metadata to use to control engine training and serving. Currently supported values: `recommended-for-you`, `others-you-may-like`, `more-like-this`, `most-popular-items`.",
     ).optional(),
-  }).describe("Additional config specs for a Media Recommendation engine.")
-    .optional(),
+  }).describe(
+    "Configurations for the Media Engine. Only applicable on the data stores with solution_type SOLUTION_TYPE_RECOMMENDATION and IndustryVertical.MEDIA vertical.",
+  ).optional(),
   modelConfigs: z.record(
     z.string(),
     z.enum(["MODEL_STATE_UNSPECIFIED", "MODEL_ENABLED", "MODEL_DISABLED"]),
@@ -733,7 +649,7 @@ const InputsSchema = z.object({
     sensitiveLoggingEnabled: z.boolean().describe(
       "Optional. Enables sensitive logging. Sensitive logging includes customer core content (e.g. prompts, responses). If `false`, will sanitize all sensitive fields.",
     ).optional(),
-  }).describe("Observability config for a resource.").optional(),
+  }).describe("Optional. Observability config for the engine.").optional(),
   procurementContactEmails: z.array(z.string()).describe(
     "Optional. The emails of the procurement contacts.",
   ).optional(),
@@ -768,7 +684,9 @@ const InputsSchema = z.object({
     ]).describe(
       "The search feature tier of this engine. Different tiers might have different pricing. To learn more, check the pricing documentation. Defaults to SearchTier.SEARCH_TIER_STANDARD if not specified.",
     ).optional(),
-  }).describe("Configurations for a Search Engine.").optional(),
+  }).describe(
+    "Configurations for the Search Engine. Only applicable if solution_type is SOLUTION_TYPE_SEARCH.",
+  ).optional(),
   solutionType: z.enum([
     "SOLUTION_TYPE_UNSPECIFIED",
     "SOLUTION_TYPE_RECOMMENDATION",
@@ -811,7 +729,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines. Registered at `@swamp/gcp/discoveryengine/collections-engines`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -992,6 +910,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cmekConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { cmekConfig: _cmekConfig, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1022,7 +948,6 @@ export const model = {
         if (g["chatEngineConfig"] !== undefined) {
           body["chatEngineConfig"] = g["chatEngineConfig"];
         }
-        if (g["cmekConfig"] !== undefined) body["cmekConfig"] = g["cmekConfig"];
         if (g["commonConfig"] !== undefined) {
           body["commonConfig"] = g["commonConfig"];
         }
@@ -1185,7 +1110,6 @@ export const model = {
         if (g["chatEngineConfig"] !== undefined) {
           body["chatEngineConfig"] = g["chatEngineConfig"];
         }
-        if (g["cmekConfig"] !== undefined) body["cmekConfig"] = g["cmekConfig"];
         if (g["commonConfig"] !== undefined) {
           body["commonConfig"] = g["commonConfig"];
         }

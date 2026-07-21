@@ -183,8 +183,7 @@ const GlobalArgsSchema = z.object({
       headerRows: z.number().int().describe(
         "Optional. The number of rows to interpret as header rows that should be skipped when reading data rows.",
       ).optional(),
-    }).describe("Describe CSV and similar semi-structured data formats.")
-      .optional(),
+    }).describe("Optional. Configuration for CSV data.").optional(),
     enabled: z.boolean().describe("Optional. Whether discovery is enabled.")
       .optional(),
     excludePatterns: z.array(z.string()).describe(
@@ -200,49 +199,13 @@ const GlobalArgsSchema = z.object({
       encoding: z.string().describe(
         "Optional. The character encoding of the data. The default is UTF-8.",
       ).optional(),
-    }).describe("Describe JSON data format.").optional(),
+    }).describe("Optional. Configuration for Json data.").optional(),
     schedule: z.string().describe(
       'Optional. Cron schedule (https://en.wikipedia.org/wiki/Cron) for running discovery periodically. Successive discovery runs must be scheduled at least 60 minutes apart. The default value is to run discovery every 60 minutes.To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.',
     ).optional(),
   }).describe(
-    "Settings to manage the metadata discovery and publishing for an asset.",
+    "Optional. Specification of the discovery feature applied to data referenced by this asset. When this spec is left unset, the asset will use the spec set on the parent zone.",
   ).optional(),
-  discoveryStatus: z.object({
-    lastRunDuration: z.string().describe(
-      "The duration of the last discovery run.",
-    ).optional(),
-    lastRunTime: z.string().describe(
-      "The start time of the last discovery run.",
-    ).optional(),
-    message: z.string().describe(
-      "Additional information about the current state.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "SCHEDULED",
-      "IN_PROGRESS",
-      "PAUSED",
-      "DISABLED",
-    ]).describe("The current status of the discovery feature.").optional(),
-    stats: z.object({
-      dataItems: z.string().describe(
-        "The count of data items within the referenced resource.",
-      ).optional(),
-      dataSize: z.string().describe(
-        "The number of stored data bytes within the referenced resource.",
-      ).optional(),
-      filesets: z.string().describe(
-        "The count of fileset entities within the referenced resource.",
-      ).optional(),
-      tables: z.string().describe(
-        "The count of table entities within the referenced resource.",
-      ).optional(),
-    }).describe(
-      "The aggregated data statistics for the asset reported by discovery.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
-  }).describe("Status of discovery for an asset.").optional(),
   displayName: z.string().describe("Optional. User friendly display name.")
     .optional(),
   labels: z.record(z.string(), z.string()).describe(
@@ -258,32 +221,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     type: z.enum(["TYPE_UNSPECIFIED", "STORAGE_BUCKET", "BIGQUERY_DATASET"])
       .describe("Required. Immutable. Type of resource.").optional(),
-  }).describe("Identifies the cloud resource that is referenced by this asset.")
-    .optional(),
-  resourceStatus: z.object({
-    managedAccessIdentity: z.string().describe(
-      "Output only. Service account associated with the BigQuery Connection.",
-    ).optional(),
-    message: z.string().describe(
-      "Additional information about the current state.",
-    ).optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "READY", "ERROR"]).describe(
-      "The current state of the managed resource.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
-  }).describe("Status of the resource referenced by an asset.").optional(),
-  securityStatus: z.object({
-    message: z.string().describe(
-      "Additional information about the current state.",
-    ).optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "READY", "APPLYING", "ERROR"]).describe(
-      "The current state of the security policy applied to the attached resource.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
   }).describe(
-    "Security policy status of the asset. Data security policy, i.e., readers, writers & owners, should be specified in the lake/zone/asset IAM policy.",
+    "Required. Specification of the resource that is referenced by this asset.",
   ).optional(),
   assetId: z.string().describe(
     "Required. Asset identifier. This ID will be used to generate names such as table names when publishing metadata to Hive Metastore and BigQuery. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must end with a number or a letter. * Must be between 1-63 characters. * Must be unique within the zone.",
@@ -376,8 +315,7 @@ const InputsSchema = z.object({
       headerRows: z.number().int().describe(
         "Optional. The number of rows to interpret as header rows that should be skipped when reading data rows.",
       ).optional(),
-    }).describe("Describe CSV and similar semi-structured data formats.")
-      .optional(),
+    }).describe("Optional. Configuration for CSV data.").optional(),
     enabled: z.boolean().describe("Optional. Whether discovery is enabled.")
       .optional(),
     excludePatterns: z.array(z.string()).describe(
@@ -393,49 +331,13 @@ const InputsSchema = z.object({
       encoding: z.string().describe(
         "Optional. The character encoding of the data. The default is UTF-8.",
       ).optional(),
-    }).describe("Describe JSON data format.").optional(),
+    }).describe("Optional. Configuration for Json data.").optional(),
     schedule: z.string().describe(
       'Optional. Cron schedule (https://en.wikipedia.org/wiki/Cron) for running discovery periodically. Successive discovery runs must be scheduled at least 60 minutes apart. The default value is to run discovery every 60 minutes.To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.',
     ).optional(),
   }).describe(
-    "Settings to manage the metadata discovery and publishing for an asset.",
+    "Optional. Specification of the discovery feature applied to data referenced by this asset. When this spec is left unset, the asset will use the spec set on the parent zone.",
   ).optional(),
-  discoveryStatus: z.object({
-    lastRunDuration: z.string().describe(
-      "The duration of the last discovery run.",
-    ).optional(),
-    lastRunTime: z.string().describe(
-      "The start time of the last discovery run.",
-    ).optional(),
-    message: z.string().describe(
-      "Additional information about the current state.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "SCHEDULED",
-      "IN_PROGRESS",
-      "PAUSED",
-      "DISABLED",
-    ]).describe("The current status of the discovery feature.").optional(),
-    stats: z.object({
-      dataItems: z.string().describe(
-        "The count of data items within the referenced resource.",
-      ).optional(),
-      dataSize: z.string().describe(
-        "The number of stored data bytes within the referenced resource.",
-      ).optional(),
-      filesets: z.string().describe(
-        "The count of fileset entities within the referenced resource.",
-      ).optional(),
-      tables: z.string().describe(
-        "The count of table entities within the referenced resource.",
-      ).optional(),
-    }).describe(
-      "The aggregated data statistics for the asset reported by discovery.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
-  }).describe("Status of discovery for an asset.").optional(),
   displayName: z.string().describe("Optional. User friendly display name.")
     .optional(),
   labels: z.record(z.string(), z.string()).describe(
@@ -451,32 +353,8 @@ const InputsSchema = z.object({
       ).optional(),
     type: z.enum(["TYPE_UNSPECIFIED", "STORAGE_BUCKET", "BIGQUERY_DATASET"])
       .describe("Required. Immutable. Type of resource.").optional(),
-  }).describe("Identifies the cloud resource that is referenced by this asset.")
-    .optional(),
-  resourceStatus: z.object({
-    managedAccessIdentity: z.string().describe(
-      "Output only. Service account associated with the BigQuery Connection.",
-    ).optional(),
-    message: z.string().describe(
-      "Additional information about the current state.",
-    ).optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "READY", "ERROR"]).describe(
-      "The current state of the managed resource.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
-  }).describe("Status of the resource referenced by an asset.").optional(),
-  securityStatus: z.object({
-    message: z.string().describe(
-      "Additional information about the current state.",
-    ).optional(),
-    state: z.enum(["STATE_UNSPECIFIED", "READY", "APPLYING", "ERROR"]).describe(
-      "The current state of the security policy applied to the attached resource.",
-    ).optional(),
-    updateTime: z.string().describe("Last update time of the status.")
-      .optional(),
   }).describe(
-    "Security policy status of the asset. Data security policy, i.e., readers, writers & owners, should be specified in the lake/zone/asset IAM policy.",
+    "Required. Specification of the resource that is referenced by this asset.",
   ).optional(),
   assetId: z.string().describe(
     "Required. Asset identifier. This ID will be used to generate names such as table names when publishing metadata to Hive Metastore and BigQuery. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must end with a number or a letter. * Must be between 1-63 characters. * Must be unique within the zone.",
@@ -512,7 +390,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Lakes.Assets. Registered at `@swamp/gcp/dataplex/lakes-assets`. */
 export const model = {
   type: "@swamp/gcp/dataplex/lakes-assets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -619,6 +497,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: discoveryStatus, resourceStatus, securityStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          discoveryStatus: _discoveryStatus,
+          resourceStatus: _resourceStatus,
+          securityStatus: _securityStatus,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -652,21 +543,12 @@ export const model = {
         if (g["discoverySpec"] !== undefined) {
           body["discoverySpec"] = g["discoverySpec"];
         }
-        if (g["discoveryStatus"] !== undefined) {
-          body["discoveryStatus"] = g["discoveryStatus"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["resourceSpec"] !== undefined) {
           body["resourceSpec"] = g["resourceSpec"];
-        }
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
-        }
-        if (g["securityStatus"] !== undefined) {
-          body["securityStatus"] = g["securityStatus"];
         }
         if (g["assetId"] !== undefined) {
           params["assetId"] = String(g["assetId"]);
@@ -794,21 +676,12 @@ export const model = {
         if (g["discoverySpec"] !== undefined) {
           body["discoverySpec"] = g["discoverySpec"];
         }
-        if (g["discoveryStatus"] !== undefined) {
-          body["discoveryStatus"] = g["discoveryStatus"];
-        }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["resourceSpec"] !== undefined) {
           body["resourceSpec"] = g["resourceSpec"];
-        }
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
-        }
-        if (g["securityStatus"] !== undefined) {
-          body["securityStatus"] = g["securityStatus"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

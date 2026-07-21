@@ -161,33 +161,6 @@ const GlobalArgsSchema = z.object({
   backupType: z.enum(["BACKUP_TYPE_UNSPECIFIED", "STANDARD", "HOT"]).describe(
     "Indicates the backup type of the backup.",
   ).optional(),
-  encryptionInfo: z.object({
-    encryptionStatus: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    encryptionType: z.enum([
-      "ENCRYPTION_TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe(
-      "Output only. The type of encryption used to protect this resource.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. The version of the Cloud KMS key specified in the parent cluster that is in use for the data underlying this table.",
-    ).optional(),
-  }).describe(
-    "Encryption information for a given resource. If this resource is protected with customer managed encryption, the in-use Cloud Key Management Service (Cloud KMS) key version is specified along with its status.",
-  ).optional(),
   expireTime: z.string().describe(
     "Required. The expiration time of the backup. When creating a backup or updating its `expire_time`, the value must be greater than the backup creation time by: - At least 6 hours - At most 90 days Once the `expire_time` has passed, Cloud Bigtable will delete the backup.",
   ).optional(),
@@ -243,33 +216,6 @@ const InputsSchema = z.object({
   backupType: z.enum(["BACKUP_TYPE_UNSPECIFIED", "STANDARD", "HOT"]).describe(
     "Indicates the backup type of the backup.",
   ).optional(),
-  encryptionInfo: z.object({
-    encryptionStatus: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    encryptionType: z.enum([
-      "ENCRYPTION_TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe(
-      "Output only. The type of encryption used to protect this resource.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. The version of the Cloud KMS key specified in the parent cluster that is in use for the data underlying this table.",
-    ).optional(),
-  }).describe(
-    "Encryption information for a given resource. If this resource is protected with customer managed encryption, the in-use Cloud Key Management Service (Cloud KMS) key version is specified along with its status.",
-  ).optional(),
   expireTime: z.string().describe(
     "Required. The expiration time of the backup. When creating a backup or updating its `expire_time`, the value must be greater than the backup creation time by: - At least 6 hours - At most 90 days Once the `expire_time` has passed, Cloud Bigtable will delete the backup.",
   ).optional(),
@@ -316,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Clusters.Backups. Registered at `@swamp/gcp/bigtableadmin/instances-clusters-backups`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-clusters-backups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -423,6 +369,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: encryptionInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { encryptionInfo: _encryptionInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -450,9 +404,6 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["backupType"] !== undefined) body["backupType"] = g["backupType"];
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["hotToStandardTime"] !== undefined) {
           body["hotToStandardTime"] = g["hotToStandardTime"];
@@ -581,9 +532,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["backupType"] !== undefined) body["backupType"] = g["backupType"];
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["hotToStandardTime"] !== undefined) {
           body["hotToStandardTime"] = g["hotToStandardTime"];

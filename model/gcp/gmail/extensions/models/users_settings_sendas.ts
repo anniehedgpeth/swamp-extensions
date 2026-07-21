@@ -203,8 +203,9 @@ const GlobalArgsSchema = z.object({
     username: z.string().describe(
       "The username that will be used for authentication with the SMTP service. This is a write-only field that can be specified in requests to create or update SendAs settings; it is never populated in responses.",
     ).optional(),
-  }).describe("Configuration for communication with an SMTP service.")
-    .optional(),
+  }).describe(
+    'An optional SMTP service that will be used as an outbound relay for mail sent using this alias. If this is empty, outbound mail will be sent directly from Gmail\'s servers to the destination SMTP service. This setting only applies to custom "from" aliases.',
+  ).optional(),
   treatAsAlias: z.boolean().describe(
     'Whether Gmail should treat this address as an alias for the user\'s primary email address. This setting only applies to custom "from" aliases.',
   ).optional(),
@@ -279,8 +280,9 @@ const InputsSchema = z.object({
     username: z.string().describe(
       "The username that will be used for authentication with the SMTP service. This is a write-only field that can be specified in requests to create or update SendAs settings; it is never populated in responses.",
     ).optional(),
-  }).describe("Configuration for communication with an SMTP service.")
-    .optional(),
+  }).describe(
+    'An optional SMTP service that will be used as an outbound relay for mail sent using this alias. If this is empty, outbound mail will be sent directly from Gmail\'s servers to the destination SMTP service. This setting only applies to custom "from" aliases.',
+  ).optional(),
   treatAsAlias: z.boolean().describe(
     'Whether Gmail should treat this address as an alias for the user\'s primary email address. This setting only applies to custom "from" aliases.',
   ).optional(),
@@ -319,7 +321,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Settings.SendAs. Registered at `@swamp/gcp/gmail/users-settings-sendas`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-settings-sendas",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -438,6 +440,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

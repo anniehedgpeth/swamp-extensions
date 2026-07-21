@@ -198,7 +198,7 @@ const GlobalArgsSchema = z.object({
           "Compute Engine machine series to consider for insights and recommendations. If empty, no restriction is applied on the machine series.",
         ).optional(),
       }).describe(
-        "The type of machines to consider when calculating virtual machine migration insights and recommendations. Not all machine types are available in all zones and regions.",
+        "Preferences concerning the machine types to consider on Compute Engine.",
       ).optional(),
       persistentDiskType: z.enum([
         "PERSISTENT_DISK_TYPE_UNSPECIFIED",
@@ -209,13 +209,15 @@ const GlobalArgsSchema = z.object({
         "Persistent disk type to use. If unspecified (default), all types are considered, based on available usage data.",
       ).optional(),
     }).describe(
-      "The user preferences relating to Compute Engine target platform.",
+      "Compute Engine preferences concern insights and recommendations for Compute Engine target.",
     ).optional(),
     regionPreferences: z.object({
       preferredRegions: z.array(z.string()).describe(
         "A list of preferred regions, ordered by the most preferred region first. Set only valid Google Cloud region names. See https://cloud.google.com/compute/docs/regions-zones for available regions.",
       ).optional(),
-    }).describe("The user preferences relating to target regions.").optional(),
+    }).describe(
+      "Region preferences for assets using this preference set. If you are unsure which value to set, the migration service API region is often a good value to start with.",
+    ).optional(),
     sizingOptimizationStrategy: z.enum([
       "SIZING_OPTIMIZATION_STRATEGY_UNSPECIFIED",
       "SIZING_OPTIMIZATION_STRATEGY_SAME_AS_SOURCE",
@@ -249,8 +251,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "A list of sole tenant node types. An empty list means that all possible node types will be considered.",
       ).optional(),
-    }).describe("Preferences concerning Sole Tenancy nodes and VMs.")
-      .optional(),
+    }).describe(
+      "Preferences concerning Sole Tenant nodes and virtual machines.",
+    ).optional(),
     targetProduct: z.enum([
       "COMPUTE_MIGRATION_TARGET_PRODUCT_UNSPECIFIED",
       "COMPUTE_MIGRATION_TARGET_PRODUCT_COMPUTE_ENGINE",
@@ -280,10 +283,10 @@ const GlobalArgsSchema = z.object({
         "The Deduplication and Compression ratio is based on the logical (Used Before) space required to store data before applying deduplication and compression, in relation to the physical (Used After) space required after applying deduplication and compression. Specifically, the ratio is the Used Before space divided by the Used After space. For example, if the Used Before space is 3 GB, but the physical Used After space is 1 GB, the deduplication and compression ratio is 3x. Acceptable values are between 1.0 and 4.0.",
       ).optional(),
     }).describe(
-      "The user preferences relating to Google Cloud VMware Engine target platform.",
+      "Preferences concerning insights and recommendations for Google Cloud VMware Engine.",
     ).optional(),
   }).describe(
-    "VirtualMachinePreferences enables you to create sets of assumptions, for example, a geographical location and pricing track, for your migrated virtual machines. The set of preferences influence recommendations for migrating virtual machine assets.",
+    "Optional. A set of preferences that applies to all virtual machines in the context.",
   ).optional(),
   preferenceSetId: z.string().describe(
     "Required. User specified ID for the preference set. It will become the last component of the preference set name. The ID must be unique within the project, must conform with RFC-1034, is restricted to lower-cased letters, and has a maximum length of 63 characters. The ID must match the regular expression `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
@@ -374,7 +377,7 @@ const InputsSchema = z.object({
           "Compute Engine machine series to consider for insights and recommendations. If empty, no restriction is applied on the machine series.",
         ).optional(),
       }).describe(
-        "The type of machines to consider when calculating virtual machine migration insights and recommendations. Not all machine types are available in all zones and regions.",
+        "Preferences concerning the machine types to consider on Compute Engine.",
       ).optional(),
       persistentDiskType: z.enum([
         "PERSISTENT_DISK_TYPE_UNSPECIFIED",
@@ -385,13 +388,15 @@ const InputsSchema = z.object({
         "Persistent disk type to use. If unspecified (default), all types are considered, based on available usage data.",
       ).optional(),
     }).describe(
-      "The user preferences relating to Compute Engine target platform.",
+      "Compute Engine preferences concern insights and recommendations for Compute Engine target.",
     ).optional(),
     regionPreferences: z.object({
       preferredRegions: z.array(z.string()).describe(
         "A list of preferred regions, ordered by the most preferred region first. Set only valid Google Cloud region names. See https://cloud.google.com/compute/docs/regions-zones for available regions.",
       ).optional(),
-    }).describe("The user preferences relating to target regions.").optional(),
+    }).describe(
+      "Region preferences for assets using this preference set. If you are unsure which value to set, the migration service API region is often a good value to start with.",
+    ).optional(),
     sizingOptimizationStrategy: z.enum([
       "SIZING_OPTIMIZATION_STRATEGY_UNSPECIFIED",
       "SIZING_OPTIMIZATION_STRATEGY_SAME_AS_SOURCE",
@@ -425,8 +430,9 @@ const InputsSchema = z.object({
       })).describe(
         "A list of sole tenant node types. An empty list means that all possible node types will be considered.",
       ).optional(),
-    }).describe("Preferences concerning Sole Tenancy nodes and VMs.")
-      .optional(),
+    }).describe(
+      "Preferences concerning Sole Tenant nodes and virtual machines.",
+    ).optional(),
     targetProduct: z.enum([
       "COMPUTE_MIGRATION_TARGET_PRODUCT_UNSPECIFIED",
       "COMPUTE_MIGRATION_TARGET_PRODUCT_COMPUTE_ENGINE",
@@ -456,10 +462,10 @@ const InputsSchema = z.object({
         "The Deduplication and Compression ratio is based on the logical (Used Before) space required to store data before applying deduplication and compression, in relation to the physical (Used After) space required after applying deduplication and compression. Specifically, the ratio is the Used Before space divided by the Used After space. For example, if the Used Before space is 3 GB, but the physical Used After space is 1 GB, the deduplication and compression ratio is 3x. Acceptable values are between 1.0 and 4.0.",
       ).optional(),
     }).describe(
-      "The user preferences relating to Google Cloud VMware Engine target platform.",
+      "Preferences concerning insights and recommendations for Google Cloud VMware Engine.",
     ).optional(),
   }).describe(
-    "VirtualMachinePreferences enables you to create sets of assumptions, for example, a geographical location and pricing track, for your migrated virtual machines. The set of preferences influence recommendations for migrating virtual machine assets.",
+    "Optional. A set of preferences that applies to all virtual machines in the context.",
   ).optional(),
   preferenceSetId: z.string().describe(
     "Required. User specified ID for the preference set. It will become the last component of the preference set name. The ID must be unique within the project, must conform with RFC-1034, is restricted to lower-cased letters, and has a maximum length of 63 characters. The ID must match the regular expression `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
@@ -495,7 +501,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center PreferenceSets. Registered at `@swamp/gcp/migrationcenter/preferencesets`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/preferencesets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -604,6 +610,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

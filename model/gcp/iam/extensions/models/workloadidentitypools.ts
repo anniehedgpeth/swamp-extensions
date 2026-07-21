@@ -188,7 +188,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If set to true, the trust domain will utilize the GCP-provisioned default CA. A default CA in the same region as the workload will be selected to issue the certificate. Enabling this will clear any existing `ca_pools` configuration to provision the certificates. NOTE: This field is mutually exclusive with `ca_pools`. If this flag is enabled, certificates will be automatically provisioned from the default shared CAs. This flag should not be set if you want to use your own CA pools to provision the certificates.",
     ).optional(),
   }).describe(
-    "Represents configuration for generating mutual TLS (mTLS) certificates for the identities within this pool.",
+    "Optional. Defines the Certificate Authority (CA) pool resources and configurations required for issuance and rotation of mTLS workload certificates.",
   ).optional(),
   inlineTrustConfig: z.object({
     additionalTrustBundles: z.record(
@@ -216,7 +216,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Maps specific trust domains (e.g., \"example.com\") to their corresponding TrustStore, which contain the trusted root certificates for that domain. There can be a maximum of 10 trust domain entries in this map. Note that a trust domain automatically trusts itself and don't need to be specified here. If however, this WorkloadIdentityPool's trust domain contains any trust anchors in the additional_trust_bundles map, those trust anchors will be *appended to* the trust bundle automatically derived from your InlineCertificateIssuanceConfig's ca_pools.",
     ).optional(),
   }).describe(
-    "Defines configuration for extending trust to additional trust domains. By establishing trust with another domain, the current domain will recognize and accept certificates issued by entities within the trusted domains. Note that a trust domain automatically trusts itself, eliminating the need for explicit configuration.",
+    "Optional. Represents config to add additional trusted trust domains.",
   ).optional(),
   mode: z.enum([
     "MODE_UNSPECIFIED",
@@ -294,7 +294,7 @@ const InputsSchema = z.object({
       "Optional. If set to true, the trust domain will utilize the GCP-provisioned default CA. A default CA in the same region as the workload will be selected to issue the certificate. Enabling this will clear any existing `ca_pools` configuration to provision the certificates. NOTE: This field is mutually exclusive with `ca_pools`. If this flag is enabled, certificates will be automatically provisioned from the default shared CAs. This flag should not be set if you want to use your own CA pools to provision the certificates.",
     ).optional(),
   }).describe(
-    "Represents configuration for generating mutual TLS (mTLS) certificates for the identities within this pool.",
+    "Optional. Defines the Certificate Authority (CA) pool resources and configurations required for issuance and rotation of mTLS workload certificates.",
   ).optional(),
   inlineTrustConfig: z.object({
     additionalTrustBundles: z.record(
@@ -322,7 +322,7 @@ const InputsSchema = z.object({
       "Optional. Maps specific trust domains (e.g., \"example.com\") to their corresponding TrustStore, which contain the trusted root certificates for that domain. There can be a maximum of 10 trust domain entries in this map. Note that a trust domain automatically trusts itself and don't need to be specified here. If however, this WorkloadIdentityPool's trust domain contains any trust anchors in the additional_trust_bundles map, those trust anchors will be *appended to* the trust bundle automatically derived from your InlineCertificateIssuanceConfig's ca_pools.",
     ).optional(),
   }).describe(
-    "Defines configuration for extending trust to additional trust domains. By establishing trust with another domain, the current domain will recognize and accept certificates issued by entities within the trusted domains. Note that a trust domain automatically trusts itself, eliminating the need for explicit configuration.",
+    "Optional. Represents config to add additional trusted trust domains.",
   ).optional(),
   mode: z.enum([
     "MODE_UNSPECIFIED",
@@ -363,7 +363,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkloadIdentityPools. Registered at `@swamp/gcp/iam/workloadidentitypools`. */
 export const model = {
   type: "@swamp/gcp/iam/workloadidentitypools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

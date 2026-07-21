@@ -159,9 +159,7 @@ const GlobalArgsSchema = z.object({
     moduleId: z.string().describe(
       "The ID of the App Engine module underlying this service. Corresponds to the module_id resource label in the gae_app monitored resource (https://cloud.google.com/monitoring/api/resources#tag_gae_app).",
     ).optional(),
-  }).describe(
-    "App Engine service. Learn more at https://cloud.google.com/appengine.",
-  ).optional(),
+  }).describe("Type used for App Engine services.").optional(),
   basicService: z.object({
     serviceLabels: z.record(z.string(), z.string()).describe(
       "Labels that specify the resource that emits the monitoring data which is used for SLO reporting of this Service. Documentation and valid values for given service types here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
@@ -170,15 +168,13 @@ const GlobalArgsSchema = z.object({
       "The type of service that this basic service defines, e.g. APP_ENGINE service type. Documentation and valid values here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
     ).optional(),
   }).describe(
-    "A well-known service type, defined by its service type and service labels. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
+    "Message that contains the service type and service labels of this service if it is a basic service. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
   ).optional(),
   cloudEndpoints: z.object({
     service: z.string().describe(
       "The name of the Cloud Endpoints service underlying this service. Corresponds to the service resource label in the api monitored resource (https://cloud.google.com/monitoring/api/resources#tag_api).",
     ).optional(),
-  }).describe(
-    "Cloud Endpoints service. Learn more at https://cloud.google.com/endpoints.",
-  ).optional(),
+  }).describe("Type used for Cloud Endpoints services.").optional(),
   cloudRun: z.object({
     location: z.string().describe(
       "The location the service is run. Corresponds to the location resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).",
@@ -186,8 +182,7 @@ const GlobalArgsSchema = z.object({
     serviceName: z.string().describe(
       "The name of the Cloud Run service. Corresponds to the service_name resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).",
     ).optional(),
-  }).describe("Cloud Run service. Learn more at https://cloud.google.com/run.")
-    .optional(),
+  }).describe("Type used for Cloud Run services.").optional(),
   clusterIstio: z.object({
     clusterName: z.string().describe(
       "The name of the Kubernetes cluster in which this Istio service is defined. Corresponds to the cluster_name resource label in k8s_cluster resources.",
@@ -201,12 +196,9 @@ const GlobalArgsSchema = z.object({
     serviceNamespace: z.string().describe(
       "The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.",
     ).optional(),
-  }).describe(
-    "Istio service scoped to a single Kubernetes cluster. Learn more at https://istio.io. Clusters running OSS Istio will have their services ingested as this type.",
-  ).optional(),
-  custom: z.object({}).describe(
-    "Use a custom service to designate a service that you want to monitor when none of the other service types (like App Engine, Cloud Run, or a GKE type) matches your intended service.",
-  ).optional(),
+  }).describe("Type used for Istio services that live in a Kubernetes cluster.")
+    .optional(),
+  custom: z.object({}).describe("Custom service type.").optional(),
   displayName: z.string().describe(
     "Name used for UI elements listing this Service.",
   ).optional(),
@@ -221,9 +213,7 @@ const GlobalArgsSchema = z.object({
     projectId: z.string().describe(
       "Output only. The project this resource lives in. For legacy services migrated from the Custom type, this may be a distinct project from the one parenting the service itself.",
     ).optional(),
-  }).describe(
-    "GKE Namespace. The field names correspond to the resource metadata labels on monitored resources that fall under a namespace (for example, k8s_container or k8s_pod).",
-  ).optional(),
+  }).describe("Type used for GKE Namespaces.").optional(),
   gkeService: z.object({
     clusterName: z.string().describe("The name of the parent cluster.")
       .optional(),
@@ -237,7 +227,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     serviceName: z.string().describe("The name of this service.").optional(),
   }).describe(
-    'GKE Service. The "service" here represents a Kubernetes service object (https://kubernetes.io/docs/concepts/services-networking/service). The field names correspond to the resource labels on k8s_service monitored resources (https://cloud.google.com/monitoring/api/resources#tag_k8s_service).',
+    "Type used for GKE Services (the Kubernetes concept of a service).",
   ).optional(),
   gkeWorkload: z.object({
     clusterName: z.string().describe("The name of the parent cluster.")
@@ -255,9 +245,7 @@ const GlobalArgsSchema = z.object({
     topLevelControllerType: z.string().describe(
       'The type of this workload (for example, "Deployment" or "DaemonSet")',
     ).optional(),
-  }).describe(
-    "A GKE Workload (Deployment, StatefulSet, etc). The field names correspond to the metadata labels on monitored resources that fall under a workload (for example, k8s_container or k8s_pod).",
-  ).optional(),
+  }).describe("Type used for GKE Workloads.").optional(),
   istioCanonicalService: z.object({
     canonicalService: z.string().describe(
       "The name of the canonical service underlying this service. Corresponds to the destination_canonical_service_name metric label in label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).",
@@ -269,7 +257,7 @@ const GlobalArgsSchema = z.object({
       "Identifier for the Istio mesh in which this canonical service is defined. Corresponds to the mesh_uid metric label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).",
     ).optional(),
   }).describe(
-    "Canonical service scoped to an Istio mesh. Anthos clusters running ASM >= 1.6.8 will have their services ingested as this type.",
+    "Type used for canonical services scoped to an Istio mesh. Metrics for Istio are documented here (https://istio.io/latest/docs/reference/config/metrics/)",
   ).optional(),
   meshIstio: z.object({
     meshUid: z.string().describe(
@@ -281,9 +269,8 @@ const GlobalArgsSchema = z.object({
     serviceNamespace: z.string().describe(
       "The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.",
     ).optional(),
-  }).describe(
-    "Istio service scoped to an Istio mesh. Anthos clusters running ASM < 1.6.8 will have their services ingested as this type.",
-  ).optional(),
+  }).describe("Type used for Istio services scoped to an Istio mesh.")
+    .optional(),
   name: z.string().describe(
     "Identifier. Resource name for this Service. The format is: projects/[PROJECT_ID_OR_NUMBER]/services/[SERVICE_ID]",
   ).optional(),
@@ -376,9 +363,7 @@ const InputsSchema = z.object({
     moduleId: z.string().describe(
       "The ID of the App Engine module underlying this service. Corresponds to the module_id resource label in the gae_app monitored resource (https://cloud.google.com/monitoring/api/resources#tag_gae_app).",
     ).optional(),
-  }).describe(
-    "App Engine service. Learn more at https://cloud.google.com/appengine.",
-  ).optional(),
+  }).describe("Type used for App Engine services.").optional(),
   basicService: z.object({
     serviceLabels: z.record(z.string(), z.string()).describe(
       "Labels that specify the resource that emits the monitoring data which is used for SLO reporting of this Service. Documentation and valid values for given service types here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
@@ -387,15 +372,13 @@ const InputsSchema = z.object({
       "The type of service that this basic service defines, e.g. APP_ENGINE service type. Documentation and valid values here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
     ).optional(),
   }).describe(
-    "A well-known service type, defined by its service type and service labels. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
+    "Message that contains the service type and service labels of this service if it is a basic service. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).",
   ).optional(),
   cloudEndpoints: z.object({
     service: z.string().describe(
       "The name of the Cloud Endpoints service underlying this service. Corresponds to the service resource label in the api monitored resource (https://cloud.google.com/monitoring/api/resources#tag_api).",
     ).optional(),
-  }).describe(
-    "Cloud Endpoints service. Learn more at https://cloud.google.com/endpoints.",
-  ).optional(),
+  }).describe("Type used for Cloud Endpoints services.").optional(),
   cloudRun: z.object({
     location: z.string().describe(
       "The location the service is run. Corresponds to the location resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).",
@@ -403,8 +386,7 @@ const InputsSchema = z.object({
     serviceName: z.string().describe(
       "The name of the Cloud Run service. Corresponds to the service_name resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).",
     ).optional(),
-  }).describe("Cloud Run service. Learn more at https://cloud.google.com/run.")
-    .optional(),
+  }).describe("Type used for Cloud Run services.").optional(),
   clusterIstio: z.object({
     clusterName: z.string().describe(
       "The name of the Kubernetes cluster in which this Istio service is defined. Corresponds to the cluster_name resource label in k8s_cluster resources.",
@@ -418,12 +400,9 @@ const InputsSchema = z.object({
     serviceNamespace: z.string().describe(
       "The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.",
     ).optional(),
-  }).describe(
-    "Istio service scoped to a single Kubernetes cluster. Learn more at https://istio.io. Clusters running OSS Istio will have their services ingested as this type.",
-  ).optional(),
-  custom: z.object({}).describe(
-    "Use a custom service to designate a service that you want to monitor when none of the other service types (like App Engine, Cloud Run, or a GKE type) matches your intended service.",
-  ).optional(),
+  }).describe("Type used for Istio services that live in a Kubernetes cluster.")
+    .optional(),
+  custom: z.object({}).describe("Custom service type.").optional(),
   displayName: z.string().describe(
     "Name used for UI elements listing this Service.",
   ).optional(),
@@ -438,9 +417,7 @@ const InputsSchema = z.object({
     projectId: z.string().describe(
       "Output only. The project this resource lives in. For legacy services migrated from the Custom type, this may be a distinct project from the one parenting the service itself.",
     ).optional(),
-  }).describe(
-    "GKE Namespace. The field names correspond to the resource metadata labels on monitored resources that fall under a namespace (for example, k8s_container or k8s_pod).",
-  ).optional(),
+  }).describe("Type used for GKE Namespaces.").optional(),
   gkeService: z.object({
     clusterName: z.string().describe("The name of the parent cluster.")
       .optional(),
@@ -454,7 +431,7 @@ const InputsSchema = z.object({
     ).optional(),
     serviceName: z.string().describe("The name of this service.").optional(),
   }).describe(
-    'GKE Service. The "service" here represents a Kubernetes service object (https://kubernetes.io/docs/concepts/services-networking/service). The field names correspond to the resource labels on k8s_service monitored resources (https://cloud.google.com/monitoring/api/resources#tag_k8s_service).',
+    "Type used for GKE Services (the Kubernetes concept of a service).",
   ).optional(),
   gkeWorkload: z.object({
     clusterName: z.string().describe("The name of the parent cluster.")
@@ -472,9 +449,7 @@ const InputsSchema = z.object({
     topLevelControllerType: z.string().describe(
       'The type of this workload (for example, "Deployment" or "DaemonSet")',
     ).optional(),
-  }).describe(
-    "A GKE Workload (Deployment, StatefulSet, etc). The field names correspond to the metadata labels on monitored resources that fall under a workload (for example, k8s_container or k8s_pod).",
-  ).optional(),
+  }).describe("Type used for GKE Workloads.").optional(),
   istioCanonicalService: z.object({
     canonicalService: z.string().describe(
       "The name of the canonical service underlying this service. Corresponds to the destination_canonical_service_name metric label in label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).",
@@ -486,7 +461,7 @@ const InputsSchema = z.object({
       "Identifier for the Istio mesh in which this canonical service is defined. Corresponds to the mesh_uid metric label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).",
     ).optional(),
   }).describe(
-    "Canonical service scoped to an Istio mesh. Anthos clusters running ASM >= 1.6.8 will have their services ingested as this type.",
+    "Type used for canonical services scoped to an Istio mesh. Metrics for Istio are documented here (https://istio.io/latest/docs/reference/config/metrics/)",
   ).optional(),
   meshIstio: z.object({
     meshUid: z.string().describe(
@@ -498,9 +473,8 @@ const InputsSchema = z.object({
     serviceNamespace: z.string().describe(
       "The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.",
     ).optional(),
-  }).describe(
-    "Istio service scoped to an Istio mesh. Anthos clusters running ASM < 1.6.8 will have their services ingested as this type.",
-  ).optional(),
+  }).describe("Type used for Istio services scoped to an Istio mesh.")
+    .optional(),
   name: z.string().describe(
     "Identifier. Resource name for this Service. The format is: projects/[PROJECT_ID_OR_NUMBER]/services/[SERVICE_ID]",
   ).optional(),
@@ -544,7 +518,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Monitoring Services. Registered at `@swamp/gcp/monitoring/services`. */
 export const model = {
   type: "@swamp/gcp/monitoring/services",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -643,6 +617,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

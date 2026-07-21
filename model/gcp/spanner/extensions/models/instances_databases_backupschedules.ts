@@ -168,12 +168,14 @@ const GlobalArgsSchema = z.object({
     kmsKeyNames: z.array(z.string()).describe(
       "Optional. Specifies the KMS configuration for the one or more keys used to protect the backup. Values are of the form `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{kms_key_name}`. The keys referenced by `kms_key_names` must fully cover all regions of the backup's instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type `GOOGLE_MANAGED`, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type `USER_MANAGED`, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren't supported for `USER_MANAGED` type instance configurations.",
     ).optional(),
-  }).describe("Encryption configuration for the backup to create.").optional(),
+  }).describe(
+    "Optional. The encryption configuration that is used to encrypt the backup. If this field is not specified, the backup uses the same encryption configuration as the database.",
+  ).optional(),
   fullBackupSpec: z.object({}).describe(
-    "The specification for full backups. A full backup stores the entire contents of the database at a given version time.",
+    "The schedule creates only full backups.",
   ).optional(),
   incrementalBackupSpec: z.object({}).describe(
-    "The specification for incremental backup chains. An incremental backup stores the delta of changes between a previous backup and the database contents at a given version time. An incremental backup chain consists of a full backup and zero or more successive incremental backups. The first backup created for an incremental backup chain is always a full backup.",
+    "The schedule creates incremental backup chains.",
   ).optional(),
   retentionDuration: z.string().describe(
     "Optional. The retention duration of a backup that must be at least 6 hours and at most 366 days. The backup is eligible to be automatically deleted once the retention period has elapsed.",
@@ -189,10 +191,10 @@ const GlobalArgsSchema = z.object({
       timeZone: z.string().describe(
         "Output only. The time zone of the times in `CrontabSpec.text`. Currently, only UTC is supported.",
       ).optional(),
-    }).describe(
-      "CrontabSpec can be used to specify the version time and frequency at which the backup is created.",
-    ).optional(),
-  }).describe("Defines specifications of the backup schedule.").optional(),
+    }).describe("Cron style schedule specification.").optional(),
+  }).describe(
+    "Optional. The schedule specification based on which the backup creations are triggered.",
+  ).optional(),
   backupScheduleId: z.string().describe(
     "Required. The Id to use for the backup schedule. The `backup_schedule_id` appended to `parent` forms the full backup schedule name of the form `projects//instances//databases//backupSchedules/`.",
   ).optional(),
@@ -245,12 +247,14 @@ const InputsSchema = z.object({
     kmsKeyNames: z.array(z.string()).describe(
       "Optional. Specifies the KMS configuration for the one or more keys used to protect the backup. Values are of the form `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{kms_key_name}`. The keys referenced by `kms_key_names` must fully cover all regions of the backup's instance configuration. Some examples: * For regional (single-region) instance configurations, specify a regional location KMS key. * For multi-region instance configurations of type `GOOGLE_MANAGED`, either specify a multi-region location KMS key or multiple regional location KMS keys that cover all regions in the instance configuration. * For an instance configuration of type `USER_MANAGED`, specify only regional location KMS keys to cover each region in the instance configuration. Multi-region location KMS keys aren't supported for `USER_MANAGED` type instance configurations.",
     ).optional(),
-  }).describe("Encryption configuration for the backup to create.").optional(),
+  }).describe(
+    "Optional. The encryption configuration that is used to encrypt the backup. If this field is not specified, the backup uses the same encryption configuration as the database.",
+  ).optional(),
   fullBackupSpec: z.object({}).describe(
-    "The specification for full backups. A full backup stores the entire contents of the database at a given version time.",
+    "The schedule creates only full backups.",
   ).optional(),
   incrementalBackupSpec: z.object({}).describe(
-    "The specification for incremental backup chains. An incremental backup stores the delta of changes between a previous backup and the database contents at a given version time. An incremental backup chain consists of a full backup and zero or more successive incremental backups. The first backup created for an incremental backup chain is always a full backup.",
+    "The schedule creates incremental backup chains.",
   ).optional(),
   retentionDuration: z.string().describe(
     "Optional. The retention duration of a backup that must be at least 6 hours and at most 366 days. The backup is eligible to be automatically deleted once the retention period has elapsed.",
@@ -266,10 +270,10 @@ const InputsSchema = z.object({
       timeZone: z.string().describe(
         "Output only. The time zone of the times in `CrontabSpec.text`. Currently, only UTC is supported.",
       ).optional(),
-    }).describe(
-      "CrontabSpec can be used to specify the version time and frequency at which the backup is created.",
-    ).optional(),
-  }).describe("Defines specifications of the backup schedule.").optional(),
+    }).describe("Cron style schedule specification.").optional(),
+  }).describe(
+    "Optional. The schedule specification based on which the backup creations are triggered.",
+  ).optional(),
   backupScheduleId: z.string().describe(
     "Required. The Id to use for the backup schedule. The `backup_schedule_id` appended to `parent` forms the full backup schedule name of the form `projects//instances//databases//backupSchedules/`.",
   ).optional(),
@@ -304,7 +308,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner Instances.Databases.BackupSchedules. Registered at `@swamp/gcp/spanner/instances-databases-backupschedules`. */
 export const model = {
   type: "@swamp/gcp/spanner/instances-databases-backupschedules",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -436,6 +440,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -488,14 +497,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

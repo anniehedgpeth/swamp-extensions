@@ -202,13 +202,14 @@ const GlobalArgsSchema = z.object({
         viewerRating: z.enum(["none", "like", "dislike"]).describe(
           "The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future.",
         ).optional(),
-      }).describe("Basic details about a comment, such as its author and text.")
-        .optional(),
+      }).describe(
+        "The snippet object contains basic details about the comment.",
+      ).optional(),
     })).describe(
       "A limited number of replies. Unless the number of replies returned equals total_reply_count in the snippet the returned replies are only a subset of the total number of replies.",
     ).optional(),
   }).describe(
-    "Comments written in (direct or indirect) reply to the top level comment.",
+    "The replies object contains a limited number of replies (if any) to the top level comment found in the snippet.",
   ).optional(),
   snippet: z.object({
     canReply: z.boolean().describe(
@@ -287,16 +288,19 @@ const GlobalArgsSchema = z.object({
         viewerRating: z.enum(["none", "like", "dislike"]).describe(
           "The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future.",
         ).optional(),
-      }).describe("Basic details about a comment, such as its author and text.")
-        .optional(),
-    }).describe("A *comment* represents a single YouTube comment.").optional(),
+      }).describe(
+        "The snippet object contains basic details about the comment.",
+      ).optional(),
+    }).describe("The top level comment of this thread.").optional(),
     totalReplyCount: z.number().int().describe(
       "The total number of replies (not including the top level comment).",
     ).optional(),
     videoId: z.string().describe(
       "The ID of the video the comments refer to, if any.",
     ).optional(),
-  }).describe("Basic details about a comment thread.").optional(),
+  }).describe(
+    "The snippet object contains basic details about the comment thread and also the top level comment.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter identifies the properties that the API response will include. Set the parameter value to snippet. The snippet part has a quota cost of 2 units.",
   ),
@@ -444,13 +448,14 @@ const InputsSchema = z.object({
         viewerRating: z.enum(["none", "like", "dislike"]).describe(
           "The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future.",
         ).optional(),
-      }).describe("Basic details about a comment, such as its author and text.")
-        .optional(),
+      }).describe(
+        "The snippet object contains basic details about the comment.",
+      ).optional(),
     })).describe(
       "A limited number of replies. Unless the number of replies returned equals total_reply_count in the snippet the returned replies are only a subset of the total number of replies.",
     ).optional(),
   }).describe(
-    "Comments written in (direct or indirect) reply to the top level comment.",
+    "The replies object contains a limited number of replies (if any) to the top level comment found in the snippet.",
   ).optional(),
   snippet: z.object({
     canReply: z.boolean().describe(
@@ -529,16 +534,19 @@ const InputsSchema = z.object({
         viewerRating: z.enum(["none", "like", "dislike"]).describe(
           "The rating the viewer has given to this comment. For the time being this will never return RATE_TYPE_DISLIKE and instead return RATE_TYPE_NONE. This may change in the future.",
         ).optional(),
-      }).describe("Basic details about a comment, such as its author and text.")
-        .optional(),
-    }).describe("A *comment* represents a single YouTube comment.").optional(),
+      }).describe(
+        "The snippet object contains basic details about the comment.",
+      ).optional(),
+    }).describe("The top level comment of this thread.").optional(),
     totalReplyCount: z.number().int().describe(
       "The total number of replies (not including the top level comment).",
     ).optional(),
     videoId: z.string().describe(
       "The ID of the video the comments refer to, if any.",
     ).optional(),
-  }).describe("Basic details about a comment thread.").optional(),
+  }).describe(
+    "The snippet object contains basic details about the comment thread and also the top level comment.",
+  ).optional(),
   part: z.string().describe(
     "The *part* parameter identifies the properties that the API response will include. Set the parameter value to snippet. The snippet part has a quota cost of 2 units.",
   ).optional(),
@@ -567,7 +575,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data CommentThreads. Registered at `@swamp/gcp/youtube/commentthreads`. */
 export const model = {
   type: "@swamp/gcp/youtube/commentthreads",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -659,6 +667,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -692,12 +705,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

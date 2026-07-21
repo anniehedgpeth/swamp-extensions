@@ -164,14 +164,6 @@ const GlobalArgsSchema = z.object({
   enableMetastoreEncryption: z.boolean().describe(
     "Optional. Represent the state of CMEK opt-in for metastore.",
   ).optional(),
-  failureDetails: z.object({
-    errorCode: z.enum(["UNKNOWN", "INTERNAL_ERROR", "REQUIRE_USER_ACTION"])
-      .describe("Output only. The error code for the failure.").optional(),
-    errorMessage: z.string().describe(
-      "Output only. The error message will be shown to the user. Set only if the error code is REQUIRE_USER_ACTION.",
-    ).optional(),
-  }).describe("Details of the failure if anything related to Cmek db fails.")
-    .optional(),
   key: z.string().describe(
     "Optional. If a key is chosen, it means that the customer is using CMEK. If a key is not chosen, it means that the customer is using Google managed encryption.",
   ).optional(),
@@ -210,14 +202,6 @@ const InputsSchema = z.object({
   enableMetastoreEncryption: z.boolean().describe(
     "Optional. Represent the state of CMEK opt-in for metastore.",
   ).optional(),
-  failureDetails: z.object({
-    errorCode: z.enum(["UNKNOWN", "INTERNAL_ERROR", "REQUIRE_USER_ACTION"])
-      .describe("Output only. The error code for the failure.").optional(),
-    errorMessage: z.string().describe(
-      "Output only. The error message will be shown to the user. Set only if the error code is REQUIRE_USER_ACTION.",
-    ).optional(),
-  }).describe("Details of the failure if anything related to Cmek db fails.")
-    .optional(),
   key: z.string().describe(
     "Optional. If a key is chosen, it means that the customer is using CMEK. If a key is not chosen, it means that the customer is using Google managed encryption.",
   ).optional(),
@@ -255,7 +239,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex EncryptionConfigs. Registered at `@swamp/gcp/dataplex/encryptionconfigs`. */
 export const model = {
   type: "@swamp/gcp/dataplex/encryptionconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -357,6 +341,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: failureDetails",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { failureDetails: _failureDetails, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -382,9 +374,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["enableMetastoreEncryption"] !== undefined) {
           body["enableMetastoreEncryption"] = g["enableMetastoreEncryption"];
-        }
-        if (g["failureDetails"] !== undefined) {
-          body["failureDetails"] = g["failureDetails"];
         }
         if (g["key"] !== undefined) body["key"] = g["key"];
         if (g["name"] !== undefined) body["name"] = g["name"];
@@ -497,9 +486,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["enableMetastoreEncryption"] !== undefined) {
           body["enableMetastoreEncryption"] = g["enableMetastoreEncryption"];
-        }
-        if (g["failureDetails"] !== undefined) {
-          body["failureDetails"] = g["failureDetails"];
         }
         if (g["key"] !== undefined) body["key"] = g["key"];
         const updateMaskKeys = Object.keys(body);

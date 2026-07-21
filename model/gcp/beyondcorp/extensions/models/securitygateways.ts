@@ -180,12 +180,14 @@ const GlobalArgsSchema = z.object({
         assignedIps: z.array(z.string()).describe(
           "Output only. List of IP addresses assigned to the Cloud NAT.",
         ).optional(),
-      }).describe("Represents the Internet Gateway configuration.").optional(),
+      }).describe("Optional. Internet Gateway configuration.").optional(),
     }),
   ).describe(
     "Optional. Map of Hubs that represents regional data path deployment with GCP region as a key.",
   ).optional(),
-  logging: z.object({}).describe("Configuration for Cloud Logging.").optional(),
+  logging: z.object({}).describe(
+    "Optional. Configuration for Cloud Logging. If this field is present, the logging will be enabled.",
+  ).optional(),
   name: z.string().describe("Identifier. Name of the resource.").optional(),
   proxyProtocolConfig: z.object({
     allowedClientHeaders: z.array(z.string()).describe(
@@ -204,7 +206,7 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. The output type details for the delegated device.",
         ).optional(),
-      }).describe("The delegated device information configuration.").optional(),
+      }).describe("Optional. The device information configuration.").optional(),
       groupInfo: z.object({
         outputType: z.enum([
           "OUTPUT_TYPE_UNSPECIFIED",
@@ -214,7 +216,7 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "Optional. The output type of the delegated group information.",
         ).optional(),
-      }).describe("The delegated group configuration details.").optional(),
+      }).describe("Optional. Group details.").optional(),
       outputType: z.enum([
         "OUTPUT_TYPE_UNSPECIFIED",
         "PROTOBUF",
@@ -229,27 +231,28 @@ const GlobalArgsSchema = z.object({
           "JSON",
           "NONE",
         ]).describe("Optional. The delegated user's information.").optional(),
-      }).describe("The configuration information for the delegated user.")
-        .optional(),
-    }).describe("Contextual headers configuration.").optional(),
+      }).describe("Optional. User details.").optional(),
+    }).describe("Optional. Configuration for the contextual headers.")
+      .optional(),
     gatewayIdentity: z.enum(["GATEWAY_IDENTITY_UNSPECIFIED", "RESOURCE_NAME"])
       .describe("Optional. The security gateway identity configuration.")
       .optional(),
     metadataHeaders: z.record(z.string(), z.string()).describe(
       "Optional. Custom resource specific headers along with the values. The names should conform to RFC 9110: >Field names can contain alphanumeric characters, hyphens, and periods, can contain only ASCII-printable characters and tabs, and must start with a letter.",
     ).optional(),
-  }).describe("The configuration for the proxy.").optional(),
+  }).describe("Optional. Shared proxy configuration for all apps.").optional(),
   serviceDiscovery: z.object({
     apiGateway: z.object({
       resourceOverride: z.object({
         path: z.string().describe(
           "Optional. Contains the URI path fragment where HTTP request is sent.",
         ).optional(),
-      }).describe("API operation descriptor.").optional(),
-    }).describe(
-      "If Service Discovery is done through API, defines its settings.",
-    ).optional(),
-  }).describe("Settings related to the Service Discovery.").optional(),
+      }).describe(
+        "Optional. Enables fetching resource model updates to alter service behavior per Chrome profile.",
+      ).optional(),
+    }).describe("Optional. External API configuration.").optional(),
+  }).describe("Optional. Settings related to the Service Discovery.")
+    .optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request.",
   ).optional(),
@@ -315,12 +318,14 @@ const InputsSchema = z.object({
         assignedIps: z.array(z.string()).describe(
           "Output only. List of IP addresses assigned to the Cloud NAT.",
         ).optional(),
-      }).describe("Represents the Internet Gateway configuration.").optional(),
+      }).describe("Optional. Internet Gateway configuration.").optional(),
     }),
   ).describe(
     "Optional. Map of Hubs that represents regional data path deployment with GCP region as a key.",
   ).optional(),
-  logging: z.object({}).describe("Configuration for Cloud Logging.").optional(),
+  logging: z.object({}).describe(
+    "Optional. Configuration for Cloud Logging. If this field is present, the logging will be enabled.",
+  ).optional(),
   name: z.string().describe("Identifier. Name of the resource.").optional(),
   proxyProtocolConfig: z.object({
     allowedClientHeaders: z.array(z.string()).describe(
@@ -339,7 +344,7 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. The output type details for the delegated device.",
         ).optional(),
-      }).describe("The delegated device information configuration.").optional(),
+      }).describe("Optional. The device information configuration.").optional(),
       groupInfo: z.object({
         outputType: z.enum([
           "OUTPUT_TYPE_UNSPECIFIED",
@@ -349,7 +354,7 @@ const InputsSchema = z.object({
         ]).describe(
           "Optional. The output type of the delegated group information.",
         ).optional(),
-      }).describe("The delegated group configuration details.").optional(),
+      }).describe("Optional. Group details.").optional(),
       outputType: z.enum([
         "OUTPUT_TYPE_UNSPECIFIED",
         "PROTOBUF",
@@ -364,27 +369,28 @@ const InputsSchema = z.object({
           "JSON",
           "NONE",
         ]).describe("Optional. The delegated user's information.").optional(),
-      }).describe("The configuration information for the delegated user.")
-        .optional(),
-    }).describe("Contextual headers configuration.").optional(),
+      }).describe("Optional. User details.").optional(),
+    }).describe("Optional. Configuration for the contextual headers.")
+      .optional(),
     gatewayIdentity: z.enum(["GATEWAY_IDENTITY_UNSPECIFIED", "RESOURCE_NAME"])
       .describe("Optional. The security gateway identity configuration.")
       .optional(),
     metadataHeaders: z.record(z.string(), z.string()).describe(
       "Optional. Custom resource specific headers along with the values. The names should conform to RFC 9110: >Field names can contain alphanumeric characters, hyphens, and periods, can contain only ASCII-printable characters and tabs, and must start with a letter.",
     ).optional(),
-  }).describe("The configuration for the proxy.").optional(),
+  }).describe("Optional. Shared proxy configuration for all apps.").optional(),
   serviceDiscovery: z.object({
     apiGateway: z.object({
       resourceOverride: z.object({
         path: z.string().describe(
           "Optional. Contains the URI path fragment where HTTP request is sent.",
         ).optional(),
-      }).describe("API operation descriptor.").optional(),
-    }).describe(
-      "If Service Discovery is done through API, defines its settings.",
-    ).optional(),
-  }).describe("Settings related to the Service Discovery.").optional(),
+      }).describe(
+        "Optional. Enables fetching resource model updates to alter service behavior per Chrome profile.",
+      ).optional(),
+    }).describe("Optional. External API configuration.").optional(),
+  }).describe("Optional. Settings related to the Service Discovery.")
+    .optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request.",
   ).optional(),
@@ -419,7 +425,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BeyondCorp SecurityGateways. Registered at `@swamp/gcp/beyondcorp/securitygateways`. */
 export const model = {
   type: "@swamp/gcp/beyondcorp/securitygateways",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -548,6 +554,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

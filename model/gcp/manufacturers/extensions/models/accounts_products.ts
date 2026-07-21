@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
       .optional(),
     value: z.string().describe("The numeric value of the capacity.").optional(),
   }).describe(
-    "The capacity of a product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.",
+    "The capacity of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.",
   ).optional(),
   certification: z.array(z.object({
     authority: z.string().describe("Required. Name of the certification body.")
@@ -219,7 +219,7 @@ const GlobalArgsSchema = z.object({
       "The numeric value of the number of products in a package.",
     ).optional(),
   }).describe(
-    "The number of products in a single package. For more information, see https://support.google.com/manufacturers/answer/6124116#count.",
+    "The count of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#count.",
   ).optional(),
   description: z.string().describe(
     "The description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#description.",
@@ -255,7 +255,7 @@ const GlobalArgsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]).describe(
         "The type of the image, i.e., crawled or uploaded. @OutputOnly",
       ).optional(),
-    }).describe("An image.").optional(),
+    }).describe("An optional image describing the feature.").optional(),
     text: z.string().describe("A detailed description of the feature.")
       .optional(),
   })).describe(
@@ -283,7 +283,9 @@ const GlobalArgsSchema = z.object({
     nutritionClaim: z.array(z.string()).describe("Nutrition claim.").optional(),
     storageInstructions: z.string().describe("Storage instructions.")
       .optional(),
-  }).optional(),
+  }).describe(
+    "Grocery Attributes. See more at https://support.google.com/manufacturers/answer/12098458#grocery.",
+  ).optional(),
   gtin: z.array(z.string()).describe(
     "The Global Trade Item Number (GTIN) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#gtin.",
   ).optional(),
@@ -309,7 +311,9 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]).describe(
       "The type of the image, i.e., crawled or uploaded. @OutputOnly",
     ).optional(),
-  }).describe("An image.").optional(),
+  }).describe(
+    "The image of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#image.",
+  ).optional(),
   includedDestination: z.array(z.string()).describe(
     'A list of included destinations such as "ClientExport", "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information, see https://support.google.com/manufacturers/answer/7443550',
   ).optional(),
@@ -329,69 +333,69 @@ const GlobalArgsSchema = z.object({
     addedSugars: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Added sugars.").optional(),
     addedSugarsDailyPercentage: z.number().describe(
       "Added sugars daily percentage.",
     ).optional(),
     calcium: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Calcium.").optional(),
     calciumDailyPercentage: z.number().describe("Calcium daily percentage.")
       .optional(),
     cholesterol: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Cholesterol.").optional(),
     cholesterolDailyPercentage: z.number().describe(
       "Cholesterol daily percentage.",
     ).optional(),
     dietaryFiber: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Dietary fiber.").optional(),
     dietaryFiberDailyPercentage: z.number().describe(
       "Dietary fiber daily percentage.",
     ).optional(),
     energy: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Mandatory Nutrition Facts. Energy.").optional(),
     energyFromFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Energy from fat.").optional(),
     folateDailyPercentage: z.number().describe("Folate daily percentage.")
       .optional(),
     folateFolicAcid: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Folate folic acid.").optional(),
     folateMcgDfe: z.number().describe("Folate mcg DFE.").optional(),
     iron: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Iron.").optional(),
     ironDailyPercentage: z.number().describe("Iron daily percentage.")
       .optional(),
     monounsaturatedFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Monounsaturated fat.").optional(),
     nutritionFactMeasure: z.string().describe("Nutrition fact measure.")
       .optional(),
     polyols: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Polyols.").optional(),
     polyunsaturatedFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Polyunsaturated fat.").optional(),
     potassium: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Potassium.").optional(),
     potassiumDailyPercentage: z.number().describe("Potassium daily percentage.")
       .optional(),
     preparedSizeDescription: z.string().describe("Prepared size description.")
@@ -399,13 +403,13 @@ const GlobalArgsSchema = z.object({
     protein: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Protein.").optional(),
     proteinDailyPercentage: z.number().describe("Protein daily percentage.")
       .optional(),
     saturatedFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Saturated fat.").optional(),
     saturatedFatDailyPercentage: z.number().describe(
       "Saturated fat daily percentage.",
     ).optional(),
@@ -415,49 +419,49 @@ const GlobalArgsSchema = z.object({
     servingSizeMeasure: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Serving size measure.").optional(),
     servingsPerContainer: z.string().describe("Servings per container.")
       .optional(),
     sodium: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Sodium.").optional(),
     sodiumDailyPercentage: z.number().describe("Sodium daily percentage.")
       .optional(),
     starch: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Starch.").optional(),
     totalCarbohydrate: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Total carbohydrate.").optional(),
     totalCarbohydrateDailyPercentage: z.number().describe(
       "Total carbohydrate daily percentage.",
     ).optional(),
     totalFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Total fat.").optional(),
     totalFatDailyPercentage: z.number().describe("Total fat daily percentage.")
       .optional(),
     totalSugars: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Total sugars.").optional(),
     totalSugarsDailyPercentage: z.number().describe(
       "Total sugars daily percentage.",
     ).optional(),
     transFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Trans fat.").optional(),
     transFatDailyPercentage: z.number().describe("Trans fat daily percentage.")
       .optional(),
     vitaminD: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Vitamin D.").optional(),
     vitaminDDailyPercentage: z.number().describe("Vitamin D daily percentage.")
       .optional(),
     voluntaryNutritionFact: z.array(z.object({
@@ -466,9 +470,11 @@ const GlobalArgsSchema = z.object({
       value: z.object({
         amount: z.number().describe("amount.").optional(),
         unit: z.string().describe("unit.").optional(),
-      }).describe("Combination of float amount and unit.").optional(),
+      }).describe("Value.").optional(),
     })).describe("Voluntary nutrition fact.").optional(),
-  }).optional(),
+  }).describe(
+    "Nutrition Attributes. See more at https://support.google.com/manufacturers/answer/12098458#food-servings.",
+  ).optional(),
   pattern: z.string().describe(
     "The pattern of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#pattern.",
   ).optional(),
@@ -519,7 +525,9 @@ const GlobalArgsSchema = z.object({
     amount: z.string().describe("The numeric value of the price.").optional(),
     currency: z.string().describe("The currency in which the price is denoted.")
       .optional(),
-  }).describe("A price.").optional(),
+  }).describe(
+    "The suggested retail price (MSRP) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#price.",
+  ).optional(),
   targetClientId: z.string().describe(
     "The target client id. Should only be used in the accounts of the data partners. For more information, see https://support.google.com/manufacturers/answer/10857344",
   ).optional(),
@@ -818,7 +826,7 @@ const InputsSchema = z.object({
       .optional(),
     value: z.string().describe("The numeric value of the capacity.").optional(),
   }).describe(
-    "The capacity of a product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.",
+    "The capacity of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.",
   ).optional(),
   certification: z.array(z.object({
     authority: z.string().describe("Required. Name of the certification body.")
@@ -848,7 +856,7 @@ const InputsSchema = z.object({
       "The numeric value of the number of products in a package.",
     ).optional(),
   }).describe(
-    "The number of products in a single package. For more information, see https://support.google.com/manufacturers/answer/6124116#count.",
+    "The count of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#count.",
   ).optional(),
   description: z.string().describe(
     "The description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#description.",
@@ -884,7 +892,7 @@ const InputsSchema = z.object({
       type: z.enum(["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]).describe(
         "The type of the image, i.e., crawled or uploaded. @OutputOnly",
       ).optional(),
-    }).describe("An image.").optional(),
+    }).describe("An optional image describing the feature.").optional(),
     text: z.string().describe("A detailed description of the feature.")
       .optional(),
   })).describe(
@@ -912,7 +920,9 @@ const InputsSchema = z.object({
     nutritionClaim: z.array(z.string()).describe("Nutrition claim.").optional(),
     storageInstructions: z.string().describe("Storage instructions.")
       .optional(),
-  }).optional(),
+  }).describe(
+    "Grocery Attributes. See more at https://support.google.com/manufacturers/answer/12098458#grocery.",
+  ).optional(),
   gtin: z.array(z.string()).describe(
     "The Global Trade Item Number (GTIN) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#gtin.",
   ).optional(),
@@ -938,7 +948,9 @@ const InputsSchema = z.object({
     type: z.enum(["TYPE_UNSPECIFIED", "CRAWLED", "UPLOADED"]).describe(
       "The type of the image, i.e., crawled or uploaded. @OutputOnly",
     ).optional(),
-  }).describe("An image.").optional(),
+  }).describe(
+    "The image of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#image.",
+  ).optional(),
   includedDestination: z.array(z.string()).describe(
     'A list of included destinations such as "ClientExport", "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information, see https://support.google.com/manufacturers/answer/7443550',
   ).optional(),
@@ -958,69 +970,69 @@ const InputsSchema = z.object({
     addedSugars: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Added sugars.").optional(),
     addedSugarsDailyPercentage: z.number().describe(
       "Added sugars daily percentage.",
     ).optional(),
     calcium: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Calcium.").optional(),
     calciumDailyPercentage: z.number().describe("Calcium daily percentage.")
       .optional(),
     cholesterol: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Cholesterol.").optional(),
     cholesterolDailyPercentage: z.number().describe(
       "Cholesterol daily percentage.",
     ).optional(),
     dietaryFiber: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Dietary fiber.").optional(),
     dietaryFiberDailyPercentage: z.number().describe(
       "Dietary fiber daily percentage.",
     ).optional(),
     energy: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Mandatory Nutrition Facts. Energy.").optional(),
     energyFromFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Energy from fat.").optional(),
     folateDailyPercentage: z.number().describe("Folate daily percentage.")
       .optional(),
     folateFolicAcid: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Folate folic acid.").optional(),
     folateMcgDfe: z.number().describe("Folate mcg DFE.").optional(),
     iron: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Iron.").optional(),
     ironDailyPercentage: z.number().describe("Iron daily percentage.")
       .optional(),
     monounsaturatedFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Monounsaturated fat.").optional(),
     nutritionFactMeasure: z.string().describe("Nutrition fact measure.")
       .optional(),
     polyols: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Polyols.").optional(),
     polyunsaturatedFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Polyunsaturated fat.").optional(),
     potassium: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Potassium.").optional(),
     potassiumDailyPercentage: z.number().describe("Potassium daily percentage.")
       .optional(),
     preparedSizeDescription: z.string().describe("Prepared size description.")
@@ -1028,13 +1040,13 @@ const InputsSchema = z.object({
     protein: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Protein.").optional(),
     proteinDailyPercentage: z.number().describe("Protein daily percentage.")
       .optional(),
     saturatedFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Saturated fat.").optional(),
     saturatedFatDailyPercentage: z.number().describe(
       "Saturated fat daily percentage.",
     ).optional(),
@@ -1044,49 +1056,49 @@ const InputsSchema = z.object({
     servingSizeMeasure: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Serving size measure.").optional(),
     servingsPerContainer: z.string().describe("Servings per container.")
       .optional(),
     sodium: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Sodium.").optional(),
     sodiumDailyPercentage: z.number().describe("Sodium daily percentage.")
       .optional(),
     starch: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Starch.").optional(),
     totalCarbohydrate: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Total carbohydrate.").optional(),
     totalCarbohydrateDailyPercentage: z.number().describe(
       "Total carbohydrate daily percentage.",
     ).optional(),
     totalFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Total fat.").optional(),
     totalFatDailyPercentage: z.number().describe("Total fat daily percentage.")
       .optional(),
     totalSugars: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Total sugars.").optional(),
     totalSugarsDailyPercentage: z.number().describe(
       "Total sugars daily percentage.",
     ).optional(),
     transFat: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Trans fat.").optional(),
     transFatDailyPercentage: z.number().describe("Trans fat daily percentage.")
       .optional(),
     vitaminD: z.object({
       amount: z.number().describe("amount.").optional(),
       unit: z.string().describe("unit.").optional(),
-    }).describe("Combination of float amount and unit.").optional(),
+    }).describe("Vitamin D.").optional(),
     vitaminDDailyPercentage: z.number().describe("Vitamin D daily percentage.")
       .optional(),
     voluntaryNutritionFact: z.array(z.object({
@@ -1095,9 +1107,11 @@ const InputsSchema = z.object({
       value: z.object({
         amount: z.number().describe("amount.").optional(),
         unit: z.string().describe("unit.").optional(),
-      }).describe("Combination of float amount and unit.").optional(),
+      }).describe("Value.").optional(),
     })).describe("Voluntary nutrition fact.").optional(),
-  }).optional(),
+  }).describe(
+    "Nutrition Attributes. See more at https://support.google.com/manufacturers/answer/12098458#food-servings.",
+  ).optional(),
   pattern: z.string().describe(
     "The pattern of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#pattern.",
   ).optional(),
@@ -1148,7 +1162,9 @@ const InputsSchema = z.object({
     amount: z.string().describe("The numeric value of the price.").optional(),
     currency: z.string().describe("The currency in which the price is denoted.")
       .optional(),
-  }).describe("A price.").optional(),
+  }).describe(
+    "The suggested retail price (MSRP) of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#price.",
+  ).optional(),
   targetClientId: z.string().describe(
     "The target client id. Should only be used in the accounts of the data partners. For more information, see https://support.google.com/manufacturers/answer/10857344",
   ).optional(),
@@ -1191,7 +1207,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Manufacturer Center Accounts.Products. Registered at `@swamp/gcp/manufacturers/accounts-products`. */
 export const model = {
   type: "@swamp/gcp/manufacturers/accounts-products",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1280,6 +1296,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -157,7 +157,7 @@ const GlobalArgsSchema = z.object({
       "Optional. If set to 'True', an unhealthy IG/NEG will be set as drained. - An IG/NEG is considered unhealthy if less than 25% of the instances/endpoints in the IG/NEG are healthy. - This option will never result in draining more than 50% of the configured IGs/NEGs for the Backend Service.",
     ).optional(),
   }).describe(
-    "Option to specify if an unhealthy IG/NEG should be considered for global load balancing and traffic routing.",
+    "Optional. Configuration to automatically move traffic away for unhealthy IG/NEG for the associated Backend Service.",
   ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
@@ -166,9 +166,8 @@ const GlobalArgsSchema = z.object({
     failoverHealthThreshold: z.number().int().describe(
       "Optional. The percentage threshold that a load balancer will begin to send traffic to failover backends. If the percentage of endpoints in a MIG/NEG is smaller than this value, traffic would be sent to failover backends if possible. This field should be set to a value between 1 and 99. The default value is 50 for Global external HTTP(S) load balancer (classic) and Proxyless service mesh, and 70 for others.",
     ).optional(),
-  }).describe(
-    "Option to specify health based failover behavior. This is not related to Network load balancer FailoverPolicy.",
-  ).optional(),
+  }).describe("Optional. Configuration related to health based failover.")
+    .optional(),
   isolationConfig: z.object({
     isolationGranularity: z.enum([
       "ISOLATION_GRANULARITY_UNSPECIFIED",
@@ -179,7 +178,7 @@ const GlobalArgsSchema = z.object({
       .describe("Optional. The isolation mode of the load balancer.")
       .optional(),
   }).describe(
-    "Configuration to provide isolation support for the associated Backend Service.",
+    "Optional. Configuration to provide isolation support for the associated Backend Service.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Set of label tags associated with the ServiceLbPolicy resource.",
@@ -235,7 +234,7 @@ const InputsSchema = z.object({
       "Optional. If set to 'True', an unhealthy IG/NEG will be set as drained. - An IG/NEG is considered unhealthy if less than 25% of the instances/endpoints in the IG/NEG are healthy. - This option will never result in draining more than 50% of the configured IGs/NEGs for the Backend Service.",
     ).optional(),
   }).describe(
-    "Option to specify if an unhealthy IG/NEG should be considered for global load balancing and traffic routing.",
+    "Optional. Configuration to automatically move traffic away for unhealthy IG/NEG for the associated Backend Service.",
   ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
@@ -244,9 +243,8 @@ const InputsSchema = z.object({
     failoverHealthThreshold: z.number().int().describe(
       "Optional. The percentage threshold that a load balancer will begin to send traffic to failover backends. If the percentage of endpoints in a MIG/NEG is smaller than this value, traffic would be sent to failover backends if possible. This field should be set to a value between 1 and 99. The default value is 50 for Global external HTTP(S) load balancer (classic) and Proxyless service mesh, and 70 for others.",
     ).optional(),
-  }).describe(
-    "Option to specify health based failover behavior. This is not related to Network load balancer FailoverPolicy.",
-  ).optional(),
+  }).describe("Optional. Configuration related to health based failover.")
+    .optional(),
   isolationConfig: z.object({
     isolationGranularity: z.enum([
       "ISOLATION_GRANULARITY_UNSPECIFIED",
@@ -257,7 +255,7 @@ const InputsSchema = z.object({
       .describe("Optional. The isolation mode of the load balancer.")
       .optional(),
   }).describe(
-    "Configuration to provide isolation support for the associated Backend Service.",
+    "Optional. Configuration to provide isolation support for the associated Backend Service.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Set of label tags associated with the ServiceLbPolicy resource.",
@@ -305,7 +303,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services ServiceLbPolicies. Registered at `@swamp/gcp/networkservices/servicelbpolicies`. */
 export const model = {
   type: "@swamp/gcp/networkservices/servicelbpolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -409,6 +407,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

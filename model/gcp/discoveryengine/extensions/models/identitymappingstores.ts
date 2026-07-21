@@ -139,52 +139,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  cmekConfig: z.object({
-    isDefault: z.boolean().describe(
-      "Output only. The default CmekConfig for the Customer.",
-    ).optional(),
-    kmsKey: z.string().describe(
-      "Required. KMS key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. KMS key version resource name which will be used to encrypt resources `/cryptoKeyVersions/{keyVersion}`.",
-    ).optional(),
-    lastRotationTimestampMicros: z.string().describe(
-      "Output only. The timestamp of the last key rotation.",
-    ).optional(),
-    name: z.string().describe(
-      "Required. The name of the CmekConfig of the form `projects/{project}/locations/{location}/cmekConfig` or `projects/{project}/locations/{location}/cmekConfigs/{cmek_config}`.",
-    ).optional(),
-    notebooklmState: z.enum([
-      "NOTEBOOK_LM_STATE_UNSPECIFIED",
-      "NOTEBOOK_LM_NOT_READY",
-      "NOTEBOOK_LM_READY",
-      "NOTEBOOK_LM_NOT_ENABLED",
-    ]).describe(
-      "Output only. Whether the NotebookLM Corpus is ready to be used.",
-    ).optional(),
-    singleRegionKeys: z.array(z.object({
-      kmsKey: z.string().describe(
-        "Required. Single-regional kms key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-      ).optional(),
-    })).describe(
-      "Optional. Single-regional CMEKs that are required for some VAIS features.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "KEY_ISSUE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UNUSABLE",
-      "ACTIVE_ROTATING",
-      "DELETED",
-      "EXPIRED",
-    ]).describe("Output only. The states of the CmekConfig.").optional(),
-  }).describe(
-    "Configurations used to enable CMEK data encryption with Cloud KMS keys.",
-  ).optional(),
   kmsKeyName: z.string().describe(
     "Input only. The KMS key to be used to protect this Identity Mapping Store at creation time. Must be set for requests that need to comply with CMEK Org Policy protections. If this field is set and processed successfully, the Identity Mapping Store will be protected by the KMS key, as indicated in the cmek_config field.",
   ).optional(),
@@ -229,52 +183,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  cmekConfig: z.object({
-    isDefault: z.boolean().describe(
-      "Output only. The default CmekConfig for the Customer.",
-    ).optional(),
-    kmsKey: z.string().describe(
-      "Required. KMS key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-    ).optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. KMS key version resource name which will be used to encrypt resources `/cryptoKeyVersions/{keyVersion}`.",
-    ).optional(),
-    lastRotationTimestampMicros: z.string().describe(
-      "Output only. The timestamp of the last key rotation.",
-    ).optional(),
-    name: z.string().describe(
-      "Required. The name of the CmekConfig of the form `projects/{project}/locations/{location}/cmekConfig` or `projects/{project}/locations/{location}/cmekConfigs/{cmek_config}`.",
-    ).optional(),
-    notebooklmState: z.enum([
-      "NOTEBOOK_LM_STATE_UNSPECIFIED",
-      "NOTEBOOK_LM_NOT_READY",
-      "NOTEBOOK_LM_READY",
-      "NOTEBOOK_LM_NOT_ENABLED",
-    ]).describe(
-      "Output only. Whether the NotebookLM Corpus is ready to be used.",
-    ).optional(),
-    singleRegionKeys: z.array(z.object({
-      kmsKey: z.string().describe(
-        "Required. Single-regional kms key resource name which will be used to encrypt resources `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}`.",
-      ).optional(),
-    })).describe(
-      "Optional. Single-regional CMEKs that are required for some VAIS features.",
-    ).optional(),
-    state: z.enum([
-      "STATE_UNSPECIFIED",
-      "CREATING",
-      "ACTIVE",
-      "KEY_ISSUE",
-      "DELETING",
-      "DELETE_FAILED",
-      "UNUSABLE",
-      "ACTIVE_ROTATING",
-      "DELETED",
-      "EXPIRED",
-    ]).describe("Output only. The states of the CmekConfig.").optional(),
-  }).describe(
-    "Configurations used to enable CMEK data encryption with Cloud KMS keys.",
-  ).optional(),
   kmsKeyName: z.string().describe(
     "Input only. The KMS key to be used to protect this Identity Mapping Store at creation time. Must be set for requests that need to comply with CMEK Org Policy protections. If this field is set and processed successfully, the Identity Mapping Store will be protected by the KMS key, as indicated in the cmek_config field.",
   ).optional(),
@@ -318,7 +226,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine IdentityMappingStores. Registered at `@swamp/gcp/discoveryengine/identitymappingstores`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/identitymappingstores",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -425,6 +333,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cmekConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { cmekConfig: _cmekConfig, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -450,7 +366,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["cmekConfig"] !== undefined) body["cmekConfig"] = g["cmekConfig"];
         if (g["kmsKeyName"] !== undefined) body["kmsKeyName"] = g["kmsKeyName"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["cmekConfigName"] !== undefined) {

@@ -195,7 +195,7 @@ const GlobalArgsSchema = z.object({
       mediaId: z.string().describe(
         "Media ID of the uploaded asset. This is a unique identifier for the asset. This ID can be passed to other API calls, e.g. CreateCreative to associate the asset with a creative. The Media ID space updated on **April 5, 2023**. Update media IDs cached before **April 5, 2023** by retrieving the new media ID from associated creative resources or re-uploading the asset.",
       ).optional(),
-    }).describe("A single asset.").optional(),
+    }).describe("Optional. The associated asset.").optional(),
     role: z.enum([
       "ASSET_ROLE_UNSPECIFIED",
       "ASSET_ROLE_MAIN",
@@ -222,17 +222,6 @@ const GlobalArgsSchema = z.object({
     ]).describe("Optional. The role of this asset for the creative.")
       .optional(),
   })).describe("Required. Assets associated to this creative.").optional(),
-  cmTrackingAd: z.object({
-    cmAdId: z.string().describe(
-      "Optional. The ad ID of the campaign manager 360 tracking Ad.",
-    ).optional(),
-    cmCreativeId: z.string().describe(
-      "Optional. The creative ID of the campaign manager 360 tracking Ad.",
-    ).optional(),
-    cmPlacementId: z.string().describe(
-      "Optional. The placement ID of the campaign manager 360 tracking Ad.",
-    ).optional(),
-  }).describe("A Campaign Manager 360 tracking ad.").optional(),
   companionCreativeIds: z.array(z.string()).describe(
     "Optional. The IDs of companion creatives for a video creative. You can assign existing display creatives (with image or HTML5 assets) to serve surrounding the publisher's video player. Companions display around the video player while the video is playing and remain after the video has completed. Creatives contain additional dimensions can not be companion creatives. This field is only supported for the following creative_type: * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
@@ -266,7 +255,9 @@ const GlobalArgsSchema = z.object({
   dimensions: z.object({
     heightPixels: z.number().int().describe("The height in pixels.").optional(),
     widthPixels: z.number().int().describe("The width in pixels.").optional(),
-  }).describe("Dimensions.").optional(),
+  }).describe(
+    "Required. Primary dimensions of the creative. Applicable to all creative types. The value of width_pixels and height_pixels defaults to `0` when creative_type is one of: * `CREATIVE_TYPE_VIDEO` * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_NATIVE_VIDEO`",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the creative. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -345,7 +336,7 @@ const GlobalArgsSchema = z.object({
       heightPixels: z.number().int().describe("The height in pixels.")
         .optional(),
       widthPixels: z.number().int().describe("The width in pixels.").optional(),
-    }).describe("Dimensions.").optional(),
+    }).describe("Optional. The dimensions of the OBA icon.").optional(),
     landingPageUrl: z.string().describe(
       "Required. The landing page URL of the OBA icon. Only URLs of the following domains are allowed: * `https://info.evidon.com` * `https://l.betrad.com`",
     ).optional(),
@@ -369,7 +360,9 @@ const GlobalArgsSchema = z.object({
     viewTrackingUrl: z.string().describe(
       "Required. The view tracking URL of the OBA icon. Only URLs of the following domains are allowed: * `https://info.evidon.com` * `https://l.betrad.com`",
     ).optional(),
-  }).describe("OBA Icon for a Creative").optional(),
+  }).describe(
+    "Optional. Specifies the OBA icon for a video creative. This field is only supported in the following creative_type: * `CREATIVE_TYPE_VIDEO`",
+  ).optional(),
   progressOffset: z.object({
     percentage: z.string().describe(
       "Optional. The offset in percentage of the audio or video duration.",
@@ -377,7 +370,9 @@ const GlobalArgsSchema = z.object({
     seconds: z.string().describe(
       "Optional. The offset in seconds from the start of the audio or video.",
     ).optional(),
-  }).describe("The length an audio or a video has been played.").optional(),
+  }).describe(
+    "Optional. Amount of time to play the video before counting a view. This field is required when skippable is true. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
+  ).optional(),
   requireHtml5: z.boolean().describe(
     "Optional. Indicates that the creative relies on HTML5 to render properly. Optional and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE`",
   ).optional(),
@@ -387,131 +382,6 @@ const GlobalArgsSchema = z.object({
   requirePingForAttribution: z.boolean().describe(
     "Optional. Indicates that the creative will wait for a return ping for attribution. Only valid when using a Campaign Manager 360 tracking ad with a third-party ad server parameter and the ${DC_DBM_TOKEN} macro. Optional and only valid for third-party tag creatives or third-party VAST tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE` Third-party VAST tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
-  reviewStatus: z.object({
-    approvalStatus: z.enum([
-      "APPROVAL_STATUS_UNSPECIFIED",
-      "APPROVAL_STATUS_PENDING_NOT_SERVABLE",
-      "APPROVAL_STATUS_PENDING_SERVABLE",
-      "APPROVAL_STATUS_APPROVED_SERVABLE",
-      "APPROVAL_STATUS_REJECTED_NOT_SERVABLE",
-    ]).describe(
-      "Represents the basic approval needed for a creative to begin serving. Summary of creative_and_landing_page_review_status and content_and_policy_review_status.",
-    ).optional(),
-    contentAndPolicyReviewStatus: z.enum([
-      "REVIEW_STATUS_UNSPECIFIED",
-      "REVIEW_STATUS_APPROVED",
-      "REVIEW_STATUS_REJECTED",
-      "REVIEW_STATUS_PENDING",
-    ]).describe("Content and policy review status for the creative.")
-      .optional(),
-    creativeAndLandingPageReviewStatus: z.enum([
-      "REVIEW_STATUS_UNSPECIFIED",
-      "REVIEW_STATUS_APPROVED",
-      "REVIEW_STATUS_REJECTED",
-      "REVIEW_STATUS_PENDING",
-    ]).describe("Creative and landing page review status for the creative.")
-      .optional(),
-    exchangeReviewStatuses: z.array(z.object({
-      exchange: z.enum([
-        "EXCHANGE_UNSPECIFIED",
-        "EXCHANGE_GOOGLE_AD_MANAGER",
-        "EXCHANGE_APPNEXUS",
-        "EXCHANGE_BRIGHTROLL",
-        "EXCHANGE_ADFORM",
-        "EXCHANGE_ADMETA",
-        "EXCHANGE_ADMIXER",
-        "EXCHANGE_ADSMOGO",
-        "EXCHANGE_ADSWIZZ",
-        "EXCHANGE_BIDSWITCH",
-        "EXCHANGE_BRIGHTROLL_DISPLAY",
-        "EXCHANGE_CADREON",
-        "EXCHANGE_DAILYMOTION",
-        "EXCHANGE_FIVE",
-        "EXCHANGE_FLUCT",
-        "EXCHANGE_FREEWHEEL",
-        "EXCHANGE_GENIEE",
-        "EXCHANGE_GUMGUM",
-        "EXCHANGE_IMOBILE",
-        "EXCHANGE_IBILLBOARD",
-        "EXCHANGE_IMPROVE_DIGITAL",
-        "EXCHANGE_INDEX",
-        "EXCHANGE_KARGO",
-        "EXCHANGE_MICROAD",
-        "EXCHANGE_MOPUB",
-        "EXCHANGE_NEND",
-        "EXCHANGE_ONE_BY_AOL_DISPLAY",
-        "EXCHANGE_ONE_BY_AOL_MOBILE",
-        "EXCHANGE_ONE_BY_AOL_VIDEO",
-        "EXCHANGE_OOYALA",
-        "EXCHANGE_OPENX",
-        "EXCHANGE_PERMODO",
-        "EXCHANGE_PLATFORMONE",
-        "EXCHANGE_PLATFORMID",
-        "EXCHANGE_PUBMATIC",
-        "EXCHANGE_PULSEPOINT",
-        "EXCHANGE_REVENUEMAX",
-        "EXCHANGE_RUBICON",
-        "EXCHANGE_SMARTCLIP",
-        "EXCHANGE_SMARTRTB",
-        "EXCHANGE_SMARTSTREAMTV",
-        "EXCHANGE_SOVRN",
-        "EXCHANGE_SPOTXCHANGE",
-        "EXCHANGE_STROER",
-        "EXCHANGE_TEADSTV",
-        "EXCHANGE_TELARIA",
-        "EXCHANGE_TVN",
-        "EXCHANGE_UNITED",
-        "EXCHANGE_YIELDLAB",
-        "EXCHANGE_YIELDMO",
-        "EXCHANGE_UNRULYX",
-        "EXCHANGE_OPEN8",
-        "EXCHANGE_TRITON",
-        "EXCHANGE_TRIPLELIFT",
-        "EXCHANGE_TABOOLA",
-        "EXCHANGE_INMOBI",
-        "EXCHANGE_SMAATO",
-        "EXCHANGE_AJA",
-        "EXCHANGE_SUPERSHIP",
-        "EXCHANGE_NEXSTAR_DIGITAL",
-        "EXCHANGE_WAZE",
-        "EXCHANGE_SOUNDCAST",
-        "EXCHANGE_SHARETHROUGH",
-        "EXCHANGE_FYBER",
-        "EXCHANGE_RED_FOR_PUBLISHERS",
-        "EXCHANGE_MEDIANET",
-        "EXCHANGE_TAPJOY",
-        "EXCHANGE_VISTAR",
-        "EXCHANGE_DAX",
-        "EXCHANGE_JCD",
-        "EXCHANGE_PLACE_EXCHANGE",
-        "EXCHANGE_APPLOVIN",
-        "EXCHANGE_CONNATIX",
-        "EXCHANGE_RESET_DIGITAL",
-        "EXCHANGE_HIVESTACK",
-        "EXCHANGE_DRAX",
-        "EXCHANGE_APPLOVIN_GBID",
-        "EXCHANGE_FYBER_GBID",
-        "EXCHANGE_UNITY_GBID",
-        "EXCHANGE_CHARTBOOST_GBID",
-        "EXCHANGE_ADMOST_GBID",
-        "EXCHANGE_TOPON_GBID",
-        "EXCHANGE_NETFLIX",
-        "EXCHANGE_CORE",
-        "EXCHANGE_COMMERCE_GRID",
-        "EXCHANGE_SPOTIFY",
-        "EXCHANGE_TUBI",
-        "EXCHANGE_SNAP",
-        "EXCHANGE_CADENT",
-        "EXCHANGE_EXTE",
-      ]).describe("The exchange reviewing the creative.").optional(),
-      status: z.enum([
-        "REVIEW_STATUS_UNSPECIFIED",
-        "REVIEW_STATUS_APPROVED",
-        "REVIEW_STATUS_REJECTED",
-        "REVIEW_STATUS_PENDING",
-      ]).describe("Status of the exchange review.").optional(),
-    })).describe("Exchange review statuses for the creative.").optional(),
-  }).describe("Review statuses for the creative.").optional(),
   skipOffset: z.object({
     percentage: z.string().describe(
       "Optional. The offset in percentage of the audio or video duration.",
@@ -519,7 +389,9 @@ const GlobalArgsSchema = z.object({
     seconds: z.string().describe(
       "Optional. The offset in seconds from the start of the audio or video.",
     ).optional(),
-  }).describe("The length an audio or a video has been played.").optional(),
+  }).describe(
+    "Optional. Amount of time to play the video before the skip button appears. This field is required when skippable is true. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
+  ).optional(),
   skippable: z.boolean().describe(
     "Optional. Whether the user can choose to skip a video creative. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
@@ -578,7 +450,7 @@ const GlobalArgsSchema = z.object({
     ]).describe("Optional. The registry provides unique creative identifiers.")
       .optional(),
   }).describe(
-    "A creative identifier provided by a registry that is unique across all platforms. This is part of the VAST 4.0 standard.",
+    "Optional. An optional creative identifier provided by a registry that is unique across all platforms. Universal Ad ID is part of the VAST 4.0 standard. It can be modified after the creative is created. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
   vastTagUrl: z.string().describe(
     "Optional. The URL of the VAST tag for a third-party VAST tag creative. Required and only valid for third-party VAST tag creatives. Third-party VAST tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_VIDEO`",
@@ -735,7 +607,7 @@ const InputsSchema = z.object({
       mediaId: z.string().describe(
         "Media ID of the uploaded asset. This is a unique identifier for the asset. This ID can be passed to other API calls, e.g. CreateCreative to associate the asset with a creative. The Media ID space updated on **April 5, 2023**. Update media IDs cached before **April 5, 2023** by retrieving the new media ID from associated creative resources or re-uploading the asset.",
       ).optional(),
-    }).describe("A single asset.").optional(),
+    }).describe("Optional. The associated asset.").optional(),
     role: z.enum([
       "ASSET_ROLE_UNSPECIFIED",
       "ASSET_ROLE_MAIN",
@@ -762,17 +634,6 @@ const InputsSchema = z.object({
     ]).describe("Optional. The role of this asset for the creative.")
       .optional(),
   })).describe("Required. Assets associated to this creative.").optional(),
-  cmTrackingAd: z.object({
-    cmAdId: z.string().describe(
-      "Optional. The ad ID of the campaign manager 360 tracking Ad.",
-    ).optional(),
-    cmCreativeId: z.string().describe(
-      "Optional. The creative ID of the campaign manager 360 tracking Ad.",
-    ).optional(),
-    cmPlacementId: z.string().describe(
-      "Optional. The placement ID of the campaign manager 360 tracking Ad.",
-    ).optional(),
-  }).describe("A Campaign Manager 360 tracking ad.").optional(),
   companionCreativeIds: z.array(z.string()).describe(
     "Optional. The IDs of companion creatives for a video creative. You can assign existing display creatives (with image or HTML5 assets) to serve surrounding the publisher's video player. Companions display around the video player while the video is playing and remain after the video has completed. Creatives contain additional dimensions can not be companion creatives. This field is only supported for the following creative_type: * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
@@ -806,7 +667,9 @@ const InputsSchema = z.object({
   dimensions: z.object({
     heightPixels: z.number().int().describe("The height in pixels.").optional(),
     widthPixels: z.number().int().describe("The width in pixels.").optional(),
-  }).describe("Dimensions.").optional(),
+  }).describe(
+    "Required. Primary dimensions of the creative. Applicable to all creative types. The value of width_pixels and height_pixels defaults to `0` when creative_type is one of: * `CREATIVE_TYPE_VIDEO` * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_NATIVE_VIDEO`",
+  ).optional(),
   displayName: z.string().describe(
     "Required. The display name of the creative. Must be UTF-8 encoded with a maximum size of 240 bytes.",
   ).optional(),
@@ -885,7 +748,7 @@ const InputsSchema = z.object({
       heightPixels: z.number().int().describe("The height in pixels.")
         .optional(),
       widthPixels: z.number().int().describe("The width in pixels.").optional(),
-    }).describe("Dimensions.").optional(),
+    }).describe("Optional. The dimensions of the OBA icon.").optional(),
     landingPageUrl: z.string().describe(
       "Required. The landing page URL of the OBA icon. Only URLs of the following domains are allowed: * `https://info.evidon.com` * `https://l.betrad.com`",
     ).optional(),
@@ -909,7 +772,9 @@ const InputsSchema = z.object({
     viewTrackingUrl: z.string().describe(
       "Required. The view tracking URL of the OBA icon. Only URLs of the following domains are allowed: * `https://info.evidon.com` * `https://l.betrad.com`",
     ).optional(),
-  }).describe("OBA Icon for a Creative").optional(),
+  }).describe(
+    "Optional. Specifies the OBA icon for a video creative. This field is only supported in the following creative_type: * `CREATIVE_TYPE_VIDEO`",
+  ).optional(),
   progressOffset: z.object({
     percentage: z.string().describe(
       "Optional. The offset in percentage of the audio or video duration.",
@@ -917,7 +782,9 @@ const InputsSchema = z.object({
     seconds: z.string().describe(
       "Optional. The offset in seconds from the start of the audio or video.",
     ).optional(),
-  }).describe("The length an audio or a video has been played.").optional(),
+  }).describe(
+    "Optional. Amount of time to play the video before counting a view. This field is required when skippable is true. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
+  ).optional(),
   requireHtml5: z.boolean().describe(
     "Optional. Indicates that the creative relies on HTML5 to render properly. Optional and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE`",
   ).optional(),
@@ -927,131 +794,6 @@ const InputsSchema = z.object({
   requirePingForAttribution: z.boolean().describe(
     "Optional. Indicates that the creative will wait for a return ping for attribution. Only valid when using a Campaign Manager 360 tracking ad with a third-party ad server parameter and the ${DC_DBM_TOKEN} macro. Optional and only valid for third-party tag creatives or third-party VAST tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE` Third-party VAST tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
-  reviewStatus: z.object({
-    approvalStatus: z.enum([
-      "APPROVAL_STATUS_UNSPECIFIED",
-      "APPROVAL_STATUS_PENDING_NOT_SERVABLE",
-      "APPROVAL_STATUS_PENDING_SERVABLE",
-      "APPROVAL_STATUS_APPROVED_SERVABLE",
-      "APPROVAL_STATUS_REJECTED_NOT_SERVABLE",
-    ]).describe(
-      "Represents the basic approval needed for a creative to begin serving. Summary of creative_and_landing_page_review_status and content_and_policy_review_status.",
-    ).optional(),
-    contentAndPolicyReviewStatus: z.enum([
-      "REVIEW_STATUS_UNSPECIFIED",
-      "REVIEW_STATUS_APPROVED",
-      "REVIEW_STATUS_REJECTED",
-      "REVIEW_STATUS_PENDING",
-    ]).describe("Content and policy review status for the creative.")
-      .optional(),
-    creativeAndLandingPageReviewStatus: z.enum([
-      "REVIEW_STATUS_UNSPECIFIED",
-      "REVIEW_STATUS_APPROVED",
-      "REVIEW_STATUS_REJECTED",
-      "REVIEW_STATUS_PENDING",
-    ]).describe("Creative and landing page review status for the creative.")
-      .optional(),
-    exchangeReviewStatuses: z.array(z.object({
-      exchange: z.enum([
-        "EXCHANGE_UNSPECIFIED",
-        "EXCHANGE_GOOGLE_AD_MANAGER",
-        "EXCHANGE_APPNEXUS",
-        "EXCHANGE_BRIGHTROLL",
-        "EXCHANGE_ADFORM",
-        "EXCHANGE_ADMETA",
-        "EXCHANGE_ADMIXER",
-        "EXCHANGE_ADSMOGO",
-        "EXCHANGE_ADSWIZZ",
-        "EXCHANGE_BIDSWITCH",
-        "EXCHANGE_BRIGHTROLL_DISPLAY",
-        "EXCHANGE_CADREON",
-        "EXCHANGE_DAILYMOTION",
-        "EXCHANGE_FIVE",
-        "EXCHANGE_FLUCT",
-        "EXCHANGE_FREEWHEEL",
-        "EXCHANGE_GENIEE",
-        "EXCHANGE_GUMGUM",
-        "EXCHANGE_IMOBILE",
-        "EXCHANGE_IBILLBOARD",
-        "EXCHANGE_IMPROVE_DIGITAL",
-        "EXCHANGE_INDEX",
-        "EXCHANGE_KARGO",
-        "EXCHANGE_MICROAD",
-        "EXCHANGE_MOPUB",
-        "EXCHANGE_NEND",
-        "EXCHANGE_ONE_BY_AOL_DISPLAY",
-        "EXCHANGE_ONE_BY_AOL_MOBILE",
-        "EXCHANGE_ONE_BY_AOL_VIDEO",
-        "EXCHANGE_OOYALA",
-        "EXCHANGE_OPENX",
-        "EXCHANGE_PERMODO",
-        "EXCHANGE_PLATFORMONE",
-        "EXCHANGE_PLATFORMID",
-        "EXCHANGE_PUBMATIC",
-        "EXCHANGE_PULSEPOINT",
-        "EXCHANGE_REVENUEMAX",
-        "EXCHANGE_RUBICON",
-        "EXCHANGE_SMARTCLIP",
-        "EXCHANGE_SMARTRTB",
-        "EXCHANGE_SMARTSTREAMTV",
-        "EXCHANGE_SOVRN",
-        "EXCHANGE_SPOTXCHANGE",
-        "EXCHANGE_STROER",
-        "EXCHANGE_TEADSTV",
-        "EXCHANGE_TELARIA",
-        "EXCHANGE_TVN",
-        "EXCHANGE_UNITED",
-        "EXCHANGE_YIELDLAB",
-        "EXCHANGE_YIELDMO",
-        "EXCHANGE_UNRULYX",
-        "EXCHANGE_OPEN8",
-        "EXCHANGE_TRITON",
-        "EXCHANGE_TRIPLELIFT",
-        "EXCHANGE_TABOOLA",
-        "EXCHANGE_INMOBI",
-        "EXCHANGE_SMAATO",
-        "EXCHANGE_AJA",
-        "EXCHANGE_SUPERSHIP",
-        "EXCHANGE_NEXSTAR_DIGITAL",
-        "EXCHANGE_WAZE",
-        "EXCHANGE_SOUNDCAST",
-        "EXCHANGE_SHARETHROUGH",
-        "EXCHANGE_FYBER",
-        "EXCHANGE_RED_FOR_PUBLISHERS",
-        "EXCHANGE_MEDIANET",
-        "EXCHANGE_TAPJOY",
-        "EXCHANGE_VISTAR",
-        "EXCHANGE_DAX",
-        "EXCHANGE_JCD",
-        "EXCHANGE_PLACE_EXCHANGE",
-        "EXCHANGE_APPLOVIN",
-        "EXCHANGE_CONNATIX",
-        "EXCHANGE_RESET_DIGITAL",
-        "EXCHANGE_HIVESTACK",
-        "EXCHANGE_DRAX",
-        "EXCHANGE_APPLOVIN_GBID",
-        "EXCHANGE_FYBER_GBID",
-        "EXCHANGE_UNITY_GBID",
-        "EXCHANGE_CHARTBOOST_GBID",
-        "EXCHANGE_ADMOST_GBID",
-        "EXCHANGE_TOPON_GBID",
-        "EXCHANGE_NETFLIX",
-        "EXCHANGE_CORE",
-        "EXCHANGE_COMMERCE_GRID",
-        "EXCHANGE_SPOTIFY",
-        "EXCHANGE_TUBI",
-        "EXCHANGE_SNAP",
-        "EXCHANGE_CADENT",
-        "EXCHANGE_EXTE",
-      ]).describe("The exchange reviewing the creative.").optional(),
-      status: z.enum([
-        "REVIEW_STATUS_UNSPECIFIED",
-        "REVIEW_STATUS_APPROVED",
-        "REVIEW_STATUS_REJECTED",
-        "REVIEW_STATUS_PENDING",
-      ]).describe("Status of the exchange review.").optional(),
-    })).describe("Exchange review statuses for the creative.").optional(),
-  }).describe("Review statuses for the creative.").optional(),
   skipOffset: z.object({
     percentage: z.string().describe(
       "Optional. The offset in percentage of the audio or video duration.",
@@ -1059,7 +801,9 @@ const InputsSchema = z.object({
     seconds: z.string().describe(
       "Optional. The offset in seconds from the start of the audio or video.",
     ).optional(),
-  }).describe("The length an audio or a video has been played.").optional(),
+  }).describe(
+    "Optional. Amount of time to play the video before the skip button appears. This field is required when skippable is true. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
+  ).optional(),
   skippable: z.boolean().describe(
     "Optional. Whether the user can choose to skip a video creative. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
@@ -1118,7 +862,7 @@ const InputsSchema = z.object({
     ]).describe("Optional. The registry provides unique creative identifiers.")
       .optional(),
   }).describe(
-    "A creative identifier provided by a registry that is unique across all platforms. This is part of the VAST 4.0 standard.",
+    "Optional. An optional creative identifier provided by a registry that is unique across all platforms. Universal Ad ID is part of the VAST 4.0 standard. It can be modified after the creative is created. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
   vastTagUrl: z.string().describe(
     "Optional. The URL of the VAST tag for a third-party VAST tag creative. Required and only valid for third-party VAST tag creatives. Third-party VAST tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_AUDIO` * `CREATIVE_TYPE_VIDEO`",
@@ -1148,7 +892,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Creatives. Registered at `@swamp/gcp/displayvideo/advertisers-creatives`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-creatives",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1250,6 +994,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: cmTrackingAd, reviewStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          cmTrackingAd: _cmTrackingAd,
+          reviewStatus: _reviewStatus,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1281,9 +1037,6 @@ export const model = {
           body["appendedTag"] = g["appendedTag"];
         }
         if (g["assets"] !== undefined) body["assets"] = g["assets"];
-        if (g["cmTrackingAd"] !== undefined) {
-          body["cmTrackingAd"] = g["cmTrackingAd"];
-        }
         if (g["companionCreativeIds"] !== undefined) {
           body["companionCreativeIds"] = g["companionCreativeIds"];
         }
@@ -1332,9 +1085,6 @@ export const model = {
         }
         if (g["requirePingForAttribution"] !== undefined) {
           body["requirePingForAttribution"] = g["requirePingForAttribution"];
-        }
-        if (g["reviewStatus"] !== undefined) {
-          body["reviewStatus"] = g["reviewStatus"];
         }
         if (g["skipOffset"] !== undefined) body["skipOffset"] = g["skipOffset"];
         if (g["skippable"] !== undefined) body["skippable"] = g["skippable"];
@@ -1456,9 +1206,6 @@ export const model = {
           body["appendedTag"] = g["appendedTag"];
         }
         if (g["assets"] !== undefined) body["assets"] = g["assets"];
-        if (g["cmTrackingAd"] !== undefined) {
-          body["cmTrackingAd"] = g["cmTrackingAd"];
-        }
         if (g["companionCreativeIds"] !== undefined) {
           body["companionCreativeIds"] = g["companionCreativeIds"];
         }
@@ -1504,9 +1251,6 @@ export const model = {
         }
         if (g["requirePingForAttribution"] !== undefined) {
           body["requirePingForAttribution"] = g["requirePingForAttribution"];
-        }
-        if (g["reviewStatus"] !== undefined) {
-          body["reviewStatus"] = g["reviewStatus"];
         }
         if (g["skipOffset"] !== undefined) body["skipOffset"] = g["skipOffset"];
         if (g["skippable"] !== undefined) body["skippable"] = g["skippable"];

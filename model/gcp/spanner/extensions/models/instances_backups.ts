@@ -170,30 +170,6 @@ const GlobalArgsSchema = z.object({
   database: z.string().describe(
     "Required for the CreateBackup operation. Name of the database from which this backup was created. This needs to be in the same instance as the backup. Values are of the form `projects/{project}/instances/{instance}/databases/{database}`.",
   ).optional(),
-  encryptionInfo: z.object({
-    encryptionStatus: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. The type of encryption.").optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. A Cloud KMS key version that is being used to protect the database or backup.",
-    ).optional(),
-  }).describe("Encryption information for a Cloud Spanner database or backup.")
-    .optional(),
   expireTime: z.string().describe(
     "Required for the CreateBackup operation. The expiration time of the backup, with microseconds granularity that must be at least 6 hours and at most 366 days from the time the CreateBackup request is processed. Once the `expire_time` has passed, the backup is eligible to be automatically deleted by Cloud Spanner to free the resources used by the backup.",
   ).optional(),
@@ -272,30 +248,6 @@ const InputsSchema = z.object({
   database: z.string().describe(
     "Required for the CreateBackup operation. Name of the database from which this backup was created. This needs to be in the same instance as the backup. Values are of the form `projects/{project}/instances/{instance}/databases/{database}`.",
   ).optional(),
-  encryptionInfo: z.object({
-    encryptionStatus: z.object({
-      code: z.number().int().describe(
-        "The status code, which should be an enum value of google.rpc.Code.",
-      ).optional(),
-      details: z.array(z.record(z.string(), z.string())).describe(
-        "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-      ).optional(),
-      message: z.string().describe(
-        "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-      ).optional(),
-    }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-    ).optional(),
-    encryptionType: z.enum([
-      "TYPE_UNSPECIFIED",
-      "GOOGLE_DEFAULT_ENCRYPTION",
-      "CUSTOMER_MANAGED_ENCRYPTION",
-    ]).describe("Output only. The type of encryption.").optional(),
-    kmsKeyVersion: z.string().describe(
-      "Output only. A Cloud KMS key version that is being used to protect the database or backup.",
-    ).optional(),
-  }).describe("Encryption information for a Cloud Spanner database or backup.")
-    .optional(),
   expireTime: z.string().describe(
     "Required for the CreateBackup operation. The expiration time of the backup, with microseconds granularity that must be at least 6 hours and at most 366 days from the time the CreateBackup request is processed. Once the `expire_time` has passed, the backup is eligible to be automatically deleted by Cloud Spanner to free the resources used by the backup.",
   ).optional(),
@@ -345,7 +297,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner Instances.Backups. Registered at `@swamp/gcp/spanner/instances-backups`. */
 export const model = {
   type: "@swamp/gcp/spanner/instances-backups",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -477,6 +429,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: encryptionInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { encryptionInfo: _encryptionInfo, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -504,9 +464,6 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["database"] !== undefined) body["database"] = g["database"];
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["versionTime"] !== undefined) {
           body["versionTime"] = g["versionTime"];
@@ -545,14 +502,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -644,9 +594,6 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["database"] !== undefined) body["database"] = g["database"];
-        if (g["encryptionInfo"] !== undefined) {
-          body["encryptionInfo"] = g["encryptionInfo"];
-        }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["versionTime"] !== undefined) {
           body["versionTime"] = g["versionTime"];

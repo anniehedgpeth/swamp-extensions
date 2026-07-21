@@ -228,7 +228,7 @@ const GlobalArgsSchema = z.object({
       passwordExpirationTime: z.string().describe(
         "The expiration time of the current password.",
       ).optional(),
-    }).describe("Read-only password status.").optional(),
+    }).describe("Output only. Read-only password status.").optional(),
   }).describe("User level password validation policy.").optional(),
   project: z.string().describe(
     "The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable. Can be omitted for `update` because it is already specified on the URL.",
@@ -333,7 +333,7 @@ const InputsSchema = z.object({
       passwordExpirationTime: z.string().describe(
         "The expiration time of the current password.",
       ).optional(),
-    }).describe("Read-only password status.").optional(),
+    }).describe("Output only. Read-only password status.").optional(),
   }).describe("User level password validation policy.").optional(),
   project: z.string().describe(
     "The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable. Can be omitted for `update` because it is already specified on the URL.",
@@ -376,7 +376,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Users. Registered at `@swamp/gcp/sqladmin/users`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/users",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -490,6 +490,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

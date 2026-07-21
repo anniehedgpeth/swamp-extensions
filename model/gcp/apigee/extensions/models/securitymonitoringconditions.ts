@@ -180,11 +180,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Required. The array of resources. For Apigee, the proxies are resources.",
     ).optional(),
-  }).describe(
-    "Message for the array of resources. For Apigee, the proxies are resources.",
-  ).optional(),
+  }).describe("Include only these resources.").optional(),
   includeAllResources: z.object({}).describe(
-    "Message for include_all_resources option.",
+    "Include all resources under the scope.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Name of the security monitoring condition resource. Format: organizations/{org}/securityMonitoringConditions/{security_monitoring_condition}",
@@ -252,11 +250,9 @@ const InputsSchema = z.object({
     })).describe(
       "Required. The array of resources. For Apigee, the proxies are resources.",
     ).optional(),
-  }).describe(
-    "Message for the array of resources. For Apigee, the proxies are resources.",
-  ).optional(),
+  }).describe("Include only these resources.").optional(),
   includeAllResources: z.object({}).describe(
-    "Message for include_all_resources option.",
+    "Include all resources under the scope.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Name of the security monitoring condition resource. Format: organizations/{org}/securityMonitoringConditions/{security_monitoring_condition}",
@@ -305,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee SecurityMonitoringConditions. Registered at `@swamp/gcp/apigee/securitymonitoringconditions`. */
 export const model = {
   type: "@swamp/gcp/apigee/securitymonitoringconditions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -404,6 +400,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

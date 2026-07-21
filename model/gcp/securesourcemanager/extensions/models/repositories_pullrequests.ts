@@ -143,8 +143,7 @@ const GlobalArgsSchema = z.object({
     sha: z.string().describe(
       "Output only. The commit at the tip of the branch.",
     ).optional(),
-  }).describe("Branch represents a branch involved in a pull request.")
-    .optional(),
+  }).describe("Required. The branch to merge changes in.").optional(),
   body: z.string().describe(
     "Optional. The pull request body. Provides a detailed description of the changes.",
   ).optional(),
@@ -153,7 +152,7 @@ const GlobalArgsSchema = z.object({
     sha: z.string().describe(
       "Output only. The commit at the tip of the branch.",
     ).optional(),
-  }).describe("Branch represents a branch involved in a pull request.")
+  }).describe("Immutable. The branch containing the changes to be merged.")
     .optional(),
   title: z.string().describe("Required. The pull request title.").optional(),
   parent: z.string().describe(
@@ -195,8 +194,7 @@ const InputsSchema = z.object({
     sha: z.string().describe(
       "Output only. The commit at the tip of the branch.",
     ).optional(),
-  }).describe("Branch represents a branch involved in a pull request.")
-    .optional(),
+  }).describe("Required. The branch to merge changes in.").optional(),
   body: z.string().describe(
     "Optional. The pull request body. Provides a detailed description of the changes.",
   ).optional(),
@@ -205,7 +203,7 @@ const InputsSchema = z.object({
     sha: z.string().describe(
       "Output only. The commit at the tip of the branch.",
     ).optional(),
-  }).describe("Branch represents a branch involved in a pull request.")
+  }).describe("Immutable. The branch containing the changes to be merged.")
     .optional(),
   title: z.string().describe("Required. The pull request title.").optional(),
   parent: z.string().describe(
@@ -239,7 +237,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Repositories.PullRequests. Registered at `@swamp/gcp/securesourcemanager/repositories-pullrequests`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/repositories-pullrequests",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -346,6 +344,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -386,14 +389,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -480,7 +476,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["base"] !== undefined) body["base"] = g["base"];
         if (g["body"] !== undefined) body["body"] = g["body"];
-        if (g["head"] !== undefined) body["head"] = g["head"];
         if (g["title"] !== undefined) body["title"] = g["title"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

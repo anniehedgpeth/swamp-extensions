@@ -166,8 +166,7 @@ const GlobalArgsSchema = z.object({
       semconvVersion: z.string().describe(
         'Required. Defines which version OTel Semantic Convention the data follows. Can be "1.39.0" or newer.',
       ).optional(),
-    }).describe("Configuration for data source following OpenTelemetry.")
-      .optional(),
+    }).describe("Data source follows OpenTelemetry convention.").optional(),
     traceScope: z.object({
       filter: z.array(z.object({
         duration: z.object({
@@ -176,24 +175,19 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("Required. The value to compare against.")
             .optional(),
-        }).describe(
-          "Defines a predicate for filtering based on a numeric value.",
-        ).optional(),
+        }).describe("Filter on the duration of a trace.").optional(),
         totalTokenUsage: z.object({
           comparisonOperator: z.unknown().describe(
             "Required. The comparison operator to apply.",
           ).optional(),
           value: z.unknown().describe("Required. The value to compare against.")
             .optional(),
-        }).describe(
-          "Defines a predicate for filtering based on a numeric value.",
-        ).optional(),
+        }).describe("Filter on the total token usage within a trace.")
+          .optional(),
       })).describe(
         "Optional. A list of predicates to filter traces. Multiple predicates are combined using AND. The maximum number of predicates is 10.",
       ).optional(),
-    }).describe(
-      "If chosen, the online evaluator will evaluate single traces matching specified `filter`.",
-    ).optional(),
+    }).describe("Scope online evaluation to single traces.").optional(),
     traceView: z.string().describe(
       "Optional. Optional trace view that will be used to query traces. If empty, the `_Default` view will be used. NOTE: This field is not supported yet and will be ignored if set.",
     ).optional(),
@@ -208,10 +202,8 @@ const GlobalArgsSchema = z.object({
       percentage: z.number().int().describe(
         "Required. The percentage of traces to sample for evaluation. Must be an integer between `1` and `100`.",
       ).optional(),
-    }).describe("Configuration for random sampling.").optional(),
-  }).describe(
-    "Configuration for sampling behavior of the OnlineEvaluator. The OnlineEvaluator runs at a fixed interval of 10 minutes.",
-  ).optional(),
+    }).describe("Random sampling method.").optional(),
+  }).describe("Required. Configuration for the OnlineEvaluator.").optional(),
   displayName: z.string().describe(
     "Optional. Human-readable name for the `OnlineEvaluator`. The name doesn't have to be unique. The name can consist of any UTF-8 characters. The maximum length is `63` characters. If the display name exceeds max characters, an `INVALID_ARGUMENT` error is returned.",
   ).optional(),
@@ -236,9 +228,7 @@ const GlobalArgsSchema = z.object({
         useEffectiveOrder: z.boolean().describe(
           "Optional. Whether to use_effective_order to compute bleu score.",
         ).optional(),
-      }).describe(
-        "Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.",
-      ).optional(),
+      }).describe("Spec for bleu metric.").optional(),
       computationBasedMetricSpec: z.object({
         parameters: z.record(z.string(), z.unknown()).describe(
           'Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.',
@@ -250,17 +240,14 @@ const GlobalArgsSchema = z.object({
           "ROUGE",
         ]).describe("Required. The type of the computation based metric.")
           .optional(),
-      }).describe("Specification for a computation based metric.").optional(),
+      }).describe("Spec for a computation based metric.").optional(),
       customCodeExecutionSpec: z.object({
         evaluationFunction: z.string().describe(
           "Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -> float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input: ` instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text=\"The answer is 4.\"), reference=EvaluationInstance.InstanceData(text=\"4\")) ` Example converted input: ` { 'response': {'text': 'The answer is 4.'}, 'reference': {'text': '4'} } ` Example python function: ` def evaluate(instance: dict[str, Any]) -> float: if instance'response' == instance'reference': return 1.0 return 0.0 ` CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.",
         ).optional(),
-      }).describe(
-        "Specificies a metric that is populated by evaluating user-defined Python code.",
-      ).optional(),
-      exactMatchSpec: z.object({}).describe(
-        "Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.",
-      ).optional(),
+      }).describe("Spec for Custom Code Execution metric.").optional(),
+      exactMatchSpec: z.object({}).describe("Spec for exact match metric.")
+        .optional(),
       llmBasedMetricSpec: z.object({
         additionalConfig: z.record(z.string(), z.unknown()).describe(
           "Optional. Optional additional configuration for the metric.",
@@ -273,13 +260,13 @@ const GlobalArgsSchema = z.object({
             "Optional. Default is true. Whether to flip the candidate and baseline responses. This is only applicable to the pairwise metric. If enabled, also provide PairwiseMetricSpec.candidate_response_field_name and PairwiseMetricSpec.baseline_response_field_name. When rendering PairwiseMetricSpec.metric_prompt_template, the candidate and baseline fields will be flipped for half of the samples to reduce bias.",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           samplingCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
         }).describe(
-          "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+          "Optional. Optional configuration for the judge LLM (Autorater).",
         ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Template for the prompt sent to the judge model.",
@@ -291,17 +278,17 @@ const GlobalArgsSchema = z.object({
           metricSpecParameters: z.unknown().describe(
             "Optional. The parameters needed to run the pre-defined metric.",
           ).optional(),
-        }).describe("The spec for a pre-defined metric.").optional(),
+        }).describe("Dynamically generate rubrics using a predefined spec.")
+          .optional(),
         resultParserConfig: z.object({
           customCodeParserConfig: z.unknown().describe(
-            "Configuration for parsing the LLM response using custom code.",
+            "Optional. Use custom code to parse the LLM response.",
           ).optional(),
-        }).describe(
-          "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
-        ).optional(),
+        }).describe("Optional. The parser config for the metric result.")
+          .optional(),
         rubricGenerationSpec: z.object({
           modelConfig: z.unknown().describe(
-            "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+            "Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
           ).optional(),
           promptTemplate: z.unknown().describe(
             "Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
@@ -312,7 +299,7 @@ const GlobalArgsSchema = z.object({
           rubricTypeOntology: z.unknown().describe(
             "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
           ).optional(),
-        }).describe("Specification for how rubrics should be generated.")
+        }).describe("Dynamically generate rubrics using this specification.")
           .optional(),
         rubricGroupKey: z.string().describe(
           "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -320,7 +307,7 @@ const GlobalArgsSchema = z.object({
         systemInstruction: z.string().describe(
           "Optional. System instructions for the judge model.",
         ).optional(),
-      }).describe("Specification for an LLM based metric.").optional(),
+      }).describe("Spec for an LLM based metric.").optional(),
       metadata: z.object({
         otherMetadata: z.record(z.string(), z.unknown()).describe(
           "Optional. Flexible metadata for user-defined attributes.",
@@ -339,13 +326,13 @@ const GlobalArgsSchema = z.object({
             "Optional. The distance between discrete steps in the range. If unset, the range is assumed to be continuous.",
           ).optional(),
         }).describe(
-          "The range of possible scores for this metric, used for plotting.",
+          "Optional. The range of possible scores for this metric, used for plotting.",
         ).optional(),
         title: z.string().describe(
           "Optional. The user-friendly name for the metric. If not set for a registered metric, it will default to the metric's display name.",
         ).optional(),
       }).describe(
-        "Metadata about the metric, used for visualization and organization.",
+        "Optional. Metadata about the metric, used for visualization and organization.",
       ).optional(),
       pairwiseMetricSpec: z.object({
         baselineResponseFieldName: z.string().describe(
@@ -358,7 +345,9 @@ const GlobalArgsSchema = z.object({
           returnRawOutput: z.unknown().describe(
             "Optional. Whether to return raw output.",
           ).optional(),
-        }).describe("Spec for custom output format configuration.").optional(),
+        }).describe(
+          "Optional. CustomOutputFormatConfig allows customization of metric output. When this config is set, the default output is replaced with the raw output string. If a custom format is chosen, the `pairwise_choice` and `explanation` fields in the corresponding metric result will be empty.",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Metric prompt template for pairwise metric.",
         ).optional(),
@@ -371,7 +360,9 @@ const GlobalArgsSchema = z.object({
           returnRawOutput: z.unknown().describe(
             "Optional. Whether to return raw output.",
           ).optional(),
-        }).describe("Spec for custom output format configuration.").optional(),
+        }).describe(
+          "Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the `score` and `explanation` fields in the corresponding metric result will be empty.",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Metric prompt template for pointwise metric.",
         ).optional(),
@@ -397,10 +388,8 @@ const GlobalArgsSchema = z.object({
         useStemmer: z.boolean().describe(
           "Optional. Whether to use stemmer to compute rouge score.",
         ).optional(),
-      }).describe(
-        "Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.",
-      ).optional(),
-    }).describe("The metric used for running evaluations.").optional(),
+      }).describe("Spec for rouge metric.").optional(),
+    }).describe("Inline metric config.").optional(),
     metricResourceName: z.string().describe(
       "Optional. Resource name for registered metric.",
     ).optional(),
@@ -547,8 +536,7 @@ const InputsSchema = z.object({
       semconvVersion: z.string().describe(
         'Required. Defines which version OTel Semantic Convention the data follows. Can be "1.39.0" or newer.',
       ).optional(),
-    }).describe("Configuration for data source following OpenTelemetry.")
-      .optional(),
+    }).describe("Data source follows OpenTelemetry convention.").optional(),
     traceScope: z.object({
       filter: z.array(z.object({
         duration: z.object({
@@ -557,24 +545,19 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("Required. The value to compare against.")
             .optional(),
-        }).describe(
-          "Defines a predicate for filtering based on a numeric value.",
-        ).optional(),
+        }).describe("Filter on the duration of a trace.").optional(),
         totalTokenUsage: z.object({
           comparisonOperator: z.unknown().describe(
             "Required. The comparison operator to apply.",
           ).optional(),
           value: z.unknown().describe("Required. The value to compare against.")
             .optional(),
-        }).describe(
-          "Defines a predicate for filtering based on a numeric value.",
-        ).optional(),
+        }).describe("Filter on the total token usage within a trace.")
+          .optional(),
       })).describe(
         "Optional. A list of predicates to filter traces. Multiple predicates are combined using AND. The maximum number of predicates is 10.",
       ).optional(),
-    }).describe(
-      "If chosen, the online evaluator will evaluate single traces matching specified `filter`.",
-    ).optional(),
+    }).describe("Scope online evaluation to single traces.").optional(),
     traceView: z.string().describe(
       "Optional. Optional trace view that will be used to query traces. If empty, the `_Default` view will be used. NOTE: This field is not supported yet and will be ignored if set.",
     ).optional(),
@@ -589,10 +572,8 @@ const InputsSchema = z.object({
       percentage: z.number().int().describe(
         "Required. The percentage of traces to sample for evaluation. Must be an integer between `1` and `100`.",
       ).optional(),
-    }).describe("Configuration for random sampling.").optional(),
-  }).describe(
-    "Configuration for sampling behavior of the OnlineEvaluator. The OnlineEvaluator runs at a fixed interval of 10 minutes.",
-  ).optional(),
+    }).describe("Random sampling method.").optional(),
+  }).describe("Required. Configuration for the OnlineEvaluator.").optional(),
   displayName: z.string().describe(
     "Optional. Human-readable name for the `OnlineEvaluator`. The name doesn't have to be unique. The name can consist of any UTF-8 characters. The maximum length is `63` characters. If the display name exceeds max characters, an `INVALID_ARGUMENT` error is returned.",
   ).optional(),
@@ -617,9 +598,7 @@ const InputsSchema = z.object({
         useEffectiveOrder: z.boolean().describe(
           "Optional. Whether to use_effective_order to compute bleu score.",
         ).optional(),
-      }).describe(
-        "Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.",
-      ).optional(),
+      }).describe("Spec for bleu metric.").optional(),
       computationBasedMetricSpec: z.object({
         parameters: z.record(z.string(), z.unknown()).describe(
           'Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.',
@@ -631,17 +610,14 @@ const InputsSchema = z.object({
           "ROUGE",
         ]).describe("Required. The type of the computation based metric.")
           .optional(),
-      }).describe("Specification for a computation based metric.").optional(),
+      }).describe("Spec for a computation based metric.").optional(),
       customCodeExecutionSpec: z.object({
         evaluationFunction: z.string().describe(
           "Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -> float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input: ` instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text=\"The answer is 4.\"), reference=EvaluationInstance.InstanceData(text=\"4\")) ` Example converted input: ` { 'response': {'text': 'The answer is 4.'}, 'reference': {'text': '4'} } ` Example python function: ` def evaluate(instance: dict[str, Any]) -> float: if instance'response' == instance'reference': return 1.0 return 0.0 ` CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.",
         ).optional(),
-      }).describe(
-        "Specificies a metric that is populated by evaluating user-defined Python code.",
-      ).optional(),
-      exactMatchSpec: z.object({}).describe(
-        "Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.",
-      ).optional(),
+      }).describe("Spec for Custom Code Execution metric.").optional(),
+      exactMatchSpec: z.object({}).describe("Spec for exact match metric.")
+        .optional(),
       llmBasedMetricSpec: z.object({
         additionalConfig: z.record(z.string(), z.unknown()).describe(
           "Optional. Optional additional configuration for the metric.",
@@ -654,13 +630,13 @@ const InputsSchema = z.object({
             "Optional. Default is true. Whether to flip the candidate and baseline responses. This is only applicable to the pairwise metric. If enabled, also provide PairwiseMetricSpec.candidate_response_field_name and PairwiseMetricSpec.baseline_response_field_name. When rendering PairwiseMetricSpec.metric_prompt_template, the candidate and baseline fields will be flipped for half of the samples to reduce bias.",
           ).optional(),
           generationConfig: z.unknown().describe(
-            "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+            "Optional. Configuration options for model generation and outputs.",
           ).optional(),
           samplingCount: z.unknown().describe(
             "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
           ).optional(),
         }).describe(
-          "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+          "Optional. Optional configuration for the judge LLM (Autorater).",
         ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Template for the prompt sent to the judge model.",
@@ -672,17 +648,17 @@ const InputsSchema = z.object({
           metricSpecParameters: z.unknown().describe(
             "Optional. The parameters needed to run the pre-defined metric.",
           ).optional(),
-        }).describe("The spec for a pre-defined metric.").optional(),
+        }).describe("Dynamically generate rubrics using a predefined spec.")
+          .optional(),
         resultParserConfig: z.object({
           customCodeParserConfig: z.unknown().describe(
-            "Configuration for parsing the LLM response using custom code.",
+            "Optional. Use custom code to parse the LLM response.",
           ).optional(),
-        }).describe(
-          "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
-        ).optional(),
+        }).describe("Optional. The parser config for the metric result.")
+          .optional(),
         rubricGenerationSpec: z.object({
           modelConfig: z.unknown().describe(
-            "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+            "Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.",
           ).optional(),
           promptTemplate: z.unknown().describe(
             "Template for the prompt used to generate rubrics. The details should be updated based on the most-recent recipe requirements.",
@@ -693,7 +669,7 @@ const InputsSchema = z.object({
           rubricTypeOntology: z.unknown().describe(
             "Optional. An optional, pre-defined list of allowed types for generated rubrics. If this field is provided, it implies `include_rubric_type` should be true, and the generated rubric types should be chosen from this ontology.",
           ).optional(),
-        }).describe("Specification for how rubrics should be generated.")
+        }).describe("Dynamically generate rubrics using this specification.")
           .optional(),
         rubricGroupKey: z.string().describe(
           "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -701,7 +677,7 @@ const InputsSchema = z.object({
         systemInstruction: z.string().describe(
           "Optional. System instructions for the judge model.",
         ).optional(),
-      }).describe("Specification for an LLM based metric.").optional(),
+      }).describe("Spec for an LLM based metric.").optional(),
       metadata: z.object({
         otherMetadata: z.record(z.string(), z.unknown()).describe(
           "Optional. Flexible metadata for user-defined attributes.",
@@ -720,13 +696,13 @@ const InputsSchema = z.object({
             "Optional. The distance between discrete steps in the range. If unset, the range is assumed to be continuous.",
           ).optional(),
         }).describe(
-          "The range of possible scores for this metric, used for plotting.",
+          "Optional. The range of possible scores for this metric, used for plotting.",
         ).optional(),
         title: z.string().describe(
           "Optional. The user-friendly name for the metric. If not set for a registered metric, it will default to the metric's display name.",
         ).optional(),
       }).describe(
-        "Metadata about the metric, used for visualization and organization.",
+        "Optional. Metadata about the metric, used for visualization and organization.",
       ).optional(),
       pairwiseMetricSpec: z.object({
         baselineResponseFieldName: z.string().describe(
@@ -739,7 +715,9 @@ const InputsSchema = z.object({
           returnRawOutput: z.unknown().describe(
             "Optional. Whether to return raw output.",
           ).optional(),
-        }).describe("Spec for custom output format configuration.").optional(),
+        }).describe(
+          "Optional. CustomOutputFormatConfig allows customization of metric output. When this config is set, the default output is replaced with the raw output string. If a custom format is chosen, the `pairwise_choice` and `explanation` fields in the corresponding metric result will be empty.",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Metric prompt template for pairwise metric.",
         ).optional(),
@@ -752,7 +730,9 @@ const InputsSchema = z.object({
           returnRawOutput: z.unknown().describe(
             "Optional. Whether to return raw output.",
           ).optional(),
-        }).describe("Spec for custom output format configuration.").optional(),
+        }).describe(
+          "Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the `score` and `explanation` fields in the corresponding metric result will be empty.",
+        ).optional(),
         metricPromptTemplate: z.string().describe(
           "Required. Metric prompt template for pointwise metric.",
         ).optional(),
@@ -778,10 +758,8 @@ const InputsSchema = z.object({
         useStemmer: z.boolean().describe(
           "Optional. Whether to use stemmer to compute rouge score.",
         ).optional(),
-      }).describe(
-        "Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.",
-      ).optional(),
-    }).describe("The metric used for running evaluations.").optional(),
+      }).describe("Spec for rouge metric.").optional(),
+    }).describe("Inline metric config.").optional(),
     metricResourceName: z.string().describe(
       "Optional. Resource name for registered metric.",
     ).optional(),
@@ -819,7 +797,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform OnlineEvaluators. Registered at `@swamp/gcp/aiplatform/onlineevaluators`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/onlineevaluators",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

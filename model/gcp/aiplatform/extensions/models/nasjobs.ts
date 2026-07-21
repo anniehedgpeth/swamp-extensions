@@ -147,100 +147,11 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key options for a NasJob. If this is set, then all resources created by the NasJob will be encrypted with the provided encryption key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize NasJobs. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
-  nasJobOutput: z.object({
-    multiTrialJobOutput: z.object({
-      searchTrials: z.array(z.object({
-        endTime: z.string().describe(
-          "Output only. Time when the NasTrial's status changed to `SUCCEEDED` or `INFEASIBLE`.",
-        ).optional(),
-        finalMeasurement: z.object({
-          elapsedDuration: z.unknown().describe(
-            "Output only. Time that the Trial has been running at the point of this Measurement.",
-          ).optional(),
-          metrics: z.unknown().describe(
-            "Output only. A list of metrics got by evaluating the objective functions using suggested Parameter values.",
-          ).optional(),
-          stepCount: z.unknown().describe(
-            "Output only. The number of steps the machine learning model has been trained for. Must be non-negative.",
-          ).optional(),
-        }).describe(
-          "A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.",
-        ).optional(),
-        id: z.string().describe(
-          "Output only. The identifier of the NasTrial assigned by the service.",
-        ).optional(),
-        startTime: z.string().describe(
-          "Output only. Time when the NasTrial was started.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNSPECIFIED",
-          "REQUESTED",
-          "ACTIVE",
-          "STOPPING",
-          "SUCCEEDED",
-          "INFEASIBLE",
-        ]).describe("Output only. The detailed state of the NasTrial.")
-          .optional(),
-      })).describe(
-        "Output only. List of NasTrials that were started as part of search stage.",
-      ).optional(),
-      trainTrials: z.array(z.object({
-        endTime: z.string().describe(
-          "Output only. Time when the NasTrial's status changed to `SUCCEEDED` or `INFEASIBLE`.",
-        ).optional(),
-        finalMeasurement: z.object({
-          elapsedDuration: z.unknown().describe(
-            "Output only. Time that the Trial has been running at the point of this Measurement.",
-          ).optional(),
-          metrics: z.unknown().describe(
-            "Output only. A list of metrics got by evaluating the objective functions using suggested Parameter values.",
-          ).optional(),
-          stepCount: z.unknown().describe(
-            "Output only. The number of steps the machine learning model has been trained for. Must be non-negative.",
-          ).optional(),
-        }).describe(
-          "A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.",
-        ).optional(),
-        id: z.string().describe(
-          "Output only. The identifier of the NasTrial assigned by the service.",
-        ).optional(),
-        startTime: z.string().describe(
-          "Output only. Time when the NasTrial was started.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNSPECIFIED",
-          "REQUESTED",
-          "ACTIVE",
-          "STOPPING",
-          "SUCCEEDED",
-          "INFEASIBLE",
-        ]).describe("Output only. The detailed state of the NasTrial.")
-          .optional(),
-      })).describe(
-        "Output only. List of NasTrials that were started as part of train stage.",
-      ).optional(),
-    }).describe(
-      "The output of a multi-trial Neural Architecture Search (NAS) jobs.",
-    ).optional(),
-  }).describe("Represents a uCAIP NasJob output.").optional(),
   nasJobSpec: z.object({
     multiTrialAlgorithmSpec: z.object({
       metric: z.object({
@@ -250,7 +161,9 @@ const GlobalArgsSchema = z.object({
         metricId: z.string().describe(
           "Required. The ID of the metric. Must not contain whitespaces.",
         ).optional(),
-      }).describe("Represents a metric to optimize.").optional(),
+      }).describe(
+        "Metric specs for the NAS job. Validation for this field is done at `multi_trial_algorithm_spec` field.",
+      ).optional(),
       multiTrialAlgorithm: z.enum([
         "MULTI_TRIAL_ALGORITHM_UNSPECIFIED",
         "REINFORCEMENT_LEARNING",
@@ -274,7 +187,7 @@ const GlobalArgsSchema = z.object({
               "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
             ).optional(),
           }).describe(
-            "The Google Cloud Storage location where the output is to be written to.",
+            "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob's baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = `/model/` * AIP_CHECKPOINT_DIR = `/checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `/logs/` For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = `//model/` * AIP_CHECKPOINT_DIR = `//checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `//logs/`",
           ).optional(),
           enableDashboardAccess: z.boolean().describe(
             "Optional. Whether you want Vertex AI to enable access to the customized dashboard in training chief container. If set to `true`, you can access the dashboard at the URIs given by CustomJob.web_access_uris or Trial.web_access_uris (within HyperparameterTuningJob.trials).",
@@ -307,7 +220,8 @@ const GlobalArgsSchema = z.object({
             networkAttachment: z.unknown().describe(
               "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
             ).optional(),
-          }).describe("Configuration for PSC-I.").optional(),
+          }).describe("Optional. Configuration for PSC-I for CustomJob.")
+            .optional(),
           reservedIpRanges: z.array(z.unknown()).describe(
             "Optional. A list of names for the reserved ip ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
           ).optional(),
@@ -327,9 +241,7 @@ const GlobalArgsSchema = z.object({
             timeout: z.unknown().describe(
               "Optional. The maximum job running time. The default is 7 days.",
             ).optional(),
-          }).describe(
-            "All parameters related to queuing and scheduling of custom jobs.",
-          ).optional(),
+          }).describe("Scheduling options for a CustomJob.").optional(),
           serviceAccount: z.string().describe(
             "Specifies the service account for workload run-as account. Users submitting jobs must have act-as permission on this run-as account. If unspecified, the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project is used.",
           ).optional(),
@@ -339,8 +251,10 @@ const GlobalArgsSchema = z.object({
           workerPoolSpecs: z.array(z.unknown()).describe(
             "Required. The spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value.",
           ).optional(),
-        }).describe("Represents the spec of a CustomJob.").optional(),
-      }).describe("Represent spec for search trials.").optional(),
+        }).describe(
+          "Required. The spec of a search trial job. The same spec applies to all search trials.",
+        ).optional(),
+      }).describe("Required. Spec for search trials.").optional(),
       trainTrialSpec: z.object({
         frequency: z.number().int().describe(
           "Required. Frequency of search trials to start train stage. Top N [TrainTrialSpec.max_parallel_trial_count] search trials will be trained for every M [TrainTrialSpec.frequency] trials searched.",
@@ -354,7 +268,7 @@ const GlobalArgsSchema = z.object({
               "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
             ).optional(),
           }).describe(
-            "The Google Cloud Storage location where the output is to be written to.",
+            "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob's baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = `/model/` * AIP_CHECKPOINT_DIR = `/checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `/logs/` For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = `//model/` * AIP_CHECKPOINT_DIR = `//checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `//logs/`",
           ).optional(),
           enableDashboardAccess: z.boolean().describe(
             "Optional. Whether you want Vertex AI to enable access to the customized dashboard in training chief container. If set to `true`, you can access the dashboard at the URIs given by CustomJob.web_access_uris or Trial.web_access_uris (within HyperparameterTuningJob.trials).",
@@ -387,7 +301,8 @@ const GlobalArgsSchema = z.object({
             networkAttachment: z.unknown().describe(
               "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
             ).optional(),
-          }).describe("Configuration for PSC-I.").optional(),
+          }).describe("Optional. Configuration for PSC-I for CustomJob.")
+            .optional(),
           reservedIpRanges: z.array(z.unknown()).describe(
             "Optional. A list of names for the reserved ip ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
           ).optional(),
@@ -407,9 +322,7 @@ const GlobalArgsSchema = z.object({
             timeout: z.unknown().describe(
               "Optional. The maximum job running time. The default is 7 days.",
             ).optional(),
-          }).describe(
-            "All parameters related to queuing and scheduling of custom jobs.",
-          ).optional(),
+          }).describe("Scheduling options for a CustomJob.").optional(),
           serviceAccount: z.string().describe(
             "Specifies the service account for workload run-as account. Users submitting jobs must have act-as permission on this run-as account. If unspecified, the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project is used.",
           ).optional(),
@@ -419,17 +332,20 @@ const GlobalArgsSchema = z.object({
           workerPoolSpecs: z.array(z.unknown()).describe(
             "Required. The spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value.",
           ).optional(),
-        }).describe("Represents the spec of a CustomJob.").optional(),
-      }).describe("Represent spec for train trials.").optional(),
-    }).describe("The spec of multi-trial Neural Architecture Search (NAS).")
-      .optional(),
+        }).describe(
+          "Required. The spec of a train trial job. The same spec applies to all train trials.",
+        ).optional(),
+      }).describe(
+        "Spec for train trials. Top N [TrainTrialSpec.max_parallel_trial_count] search trials will be trained for every M [TrainTrialSpec.frequency] trials searched.",
+      ).optional(),
+    }).describe("The spec of multi-trial algorithms.").optional(),
     resumeNasJobId: z.string().describe(
       "The ID of the existing NasJob in the same Project and Location which will be used to resume search. search_space_spec and nas_algorithm_spec are obtained from previous NasJob hence should not provide them again for this NasJob.",
     ).optional(),
     searchSpaceSpec: z.string().describe(
       "It defines the search space for Neural Architecture Search (NAS).",
     ).optional(),
-  }).describe("Represents the spec of a NasJob.").optional(),
+  }).describe("Required. The specification of a NasJob.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -575,100 +491,11 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key options for a NasJob. If this is set, then all resources created by the NasJob will be encrypted with the provided encryption key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize NasJobs. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
   ).optional(),
-  nasJobOutput: z.object({
-    multiTrialJobOutput: z.object({
-      searchTrials: z.array(z.object({
-        endTime: z.string().describe(
-          "Output only. Time when the NasTrial's status changed to `SUCCEEDED` or `INFEASIBLE`.",
-        ).optional(),
-        finalMeasurement: z.object({
-          elapsedDuration: z.unknown().describe(
-            "Output only. Time that the Trial has been running at the point of this Measurement.",
-          ).optional(),
-          metrics: z.unknown().describe(
-            "Output only. A list of metrics got by evaluating the objective functions using suggested Parameter values.",
-          ).optional(),
-          stepCount: z.unknown().describe(
-            "Output only. The number of steps the machine learning model has been trained for. Must be non-negative.",
-          ).optional(),
-        }).describe(
-          "A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.",
-        ).optional(),
-        id: z.string().describe(
-          "Output only. The identifier of the NasTrial assigned by the service.",
-        ).optional(),
-        startTime: z.string().describe(
-          "Output only. Time when the NasTrial was started.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNSPECIFIED",
-          "REQUESTED",
-          "ACTIVE",
-          "STOPPING",
-          "SUCCEEDED",
-          "INFEASIBLE",
-        ]).describe("Output only. The detailed state of the NasTrial.")
-          .optional(),
-      })).describe(
-        "Output only. List of NasTrials that were started as part of search stage.",
-      ).optional(),
-      trainTrials: z.array(z.object({
-        endTime: z.string().describe(
-          "Output only. Time when the NasTrial's status changed to `SUCCEEDED` or `INFEASIBLE`.",
-        ).optional(),
-        finalMeasurement: z.object({
-          elapsedDuration: z.unknown().describe(
-            "Output only. Time that the Trial has been running at the point of this Measurement.",
-          ).optional(),
-          metrics: z.unknown().describe(
-            "Output only. A list of metrics got by evaluating the objective functions using suggested Parameter values.",
-          ).optional(),
-          stepCount: z.unknown().describe(
-            "Output only. The number of steps the machine learning model has been trained for. Must be non-negative.",
-          ).optional(),
-        }).describe(
-          "A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.",
-        ).optional(),
-        id: z.string().describe(
-          "Output only. The identifier of the NasTrial assigned by the service.",
-        ).optional(),
-        startTime: z.string().describe(
-          "Output only. Time when the NasTrial was started.",
-        ).optional(),
-        state: z.enum([
-          "STATE_UNSPECIFIED",
-          "REQUESTED",
-          "ACTIVE",
-          "STOPPING",
-          "SUCCEEDED",
-          "INFEASIBLE",
-        ]).describe("Output only. The detailed state of the NasTrial.")
-          .optional(),
-      })).describe(
-        "Output only. List of NasTrials that were started as part of train stage.",
-      ).optional(),
-    }).describe(
-      "The output of a multi-trial Neural Architecture Search (NAS) jobs.",
-    ).optional(),
-  }).describe("Represents a uCAIP NasJob output.").optional(),
   nasJobSpec: z.object({
     multiTrialAlgorithmSpec: z.object({
       metric: z.object({
@@ -678,7 +505,9 @@ const InputsSchema = z.object({
         metricId: z.string().describe(
           "Required. The ID of the metric. Must not contain whitespaces.",
         ).optional(),
-      }).describe("Represents a metric to optimize.").optional(),
+      }).describe(
+        "Metric specs for the NAS job. Validation for this field is done at `multi_trial_algorithm_spec` field.",
+      ).optional(),
       multiTrialAlgorithm: z.enum([
         "MULTI_TRIAL_ALGORITHM_UNSPECIFIED",
         "REINFORCEMENT_LEARNING",
@@ -702,7 +531,7 @@ const InputsSchema = z.object({
               "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
             ).optional(),
           }).describe(
-            "The Google Cloud Storage location where the output is to be written to.",
+            "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob's baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = `/model/` * AIP_CHECKPOINT_DIR = `/checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `/logs/` For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = `//model/` * AIP_CHECKPOINT_DIR = `//checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `//logs/`",
           ).optional(),
           enableDashboardAccess: z.boolean().describe(
             "Optional. Whether you want Vertex AI to enable access to the customized dashboard in training chief container. If set to `true`, you can access the dashboard at the URIs given by CustomJob.web_access_uris or Trial.web_access_uris (within HyperparameterTuningJob.trials).",
@@ -735,7 +564,8 @@ const InputsSchema = z.object({
             networkAttachment: z.unknown().describe(
               "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
             ).optional(),
-          }).describe("Configuration for PSC-I.").optional(),
+          }).describe("Optional. Configuration for PSC-I for CustomJob.")
+            .optional(),
           reservedIpRanges: z.array(z.unknown()).describe(
             "Optional. A list of names for the reserved ip ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
           ).optional(),
@@ -755,9 +585,7 @@ const InputsSchema = z.object({
             timeout: z.unknown().describe(
               "Optional. The maximum job running time. The default is 7 days.",
             ).optional(),
-          }).describe(
-            "All parameters related to queuing and scheduling of custom jobs.",
-          ).optional(),
+          }).describe("Scheduling options for a CustomJob.").optional(),
           serviceAccount: z.string().describe(
             "Specifies the service account for workload run-as account. Users submitting jobs must have act-as permission on this run-as account. If unspecified, the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project is used.",
           ).optional(),
@@ -767,8 +595,10 @@ const InputsSchema = z.object({
           workerPoolSpecs: z.array(z.unknown()).describe(
             "Required. The spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value.",
           ).optional(),
-        }).describe("Represents the spec of a CustomJob.").optional(),
-      }).describe("Represent spec for search trials.").optional(),
+        }).describe(
+          "Required. The spec of a search trial job. The same spec applies to all search trials.",
+        ).optional(),
+      }).describe("Required. Spec for search trials.").optional(),
       trainTrialSpec: z.object({
         frequency: z.number().int().describe(
           "Required. Frequency of search trials to start train stage. Top N [TrainTrialSpec.max_parallel_trial_count] search trials will be trained for every M [TrainTrialSpec.frequency] trials searched.",
@@ -782,7 +612,7 @@ const InputsSchema = z.object({
               "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
             ).optional(),
           }).describe(
-            "The Google Cloud Storage location where the output is to be written to.",
+            "The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob's baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = `/model/` * AIP_CHECKPOINT_DIR = `/checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `/logs/` For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = `//model/` * AIP_CHECKPOINT_DIR = `//checkpoints/` * AIP_TENSORBOARD_LOG_DIR = `//logs/`",
           ).optional(),
           enableDashboardAccess: z.boolean().describe(
             "Optional. Whether you want Vertex AI to enable access to the customized dashboard in training chief container. If set to `true`, you can access the dashboard at the URIs given by CustomJob.web_access_uris or Trial.web_access_uris (within HyperparameterTuningJob.trials).",
@@ -815,7 +645,8 @@ const InputsSchema = z.object({
             networkAttachment: z.unknown().describe(
               "Optional. The name of the Compute Engine [network attachment](https://cloud.google.com/vpc/docs/about-network-attachments) to attach to the resource within the region and user project. To specify this field, you must have already [created a network attachment] (https://cloud.google.com/vpc/docs/create-manage-network-attachments#create-network-attachments). This field is only used for resources using PSC-I.",
             ).optional(),
-          }).describe("Configuration for PSC-I.").optional(),
+          }).describe("Optional. Configuration for PSC-I for CustomJob.")
+            .optional(),
           reservedIpRanges: z.array(z.unknown()).describe(
             "Optional. A list of names for the reserved ip ranges under the VPC network that can be used for this job. If set, we will deploy the job within the provided ip ranges. Otherwise, the job will be deployed to any ip ranges under the provided VPC network. Example: ['vertex-ai-ip-range'].",
           ).optional(),
@@ -835,9 +666,7 @@ const InputsSchema = z.object({
             timeout: z.unknown().describe(
               "Optional. The maximum job running time. The default is 7 days.",
             ).optional(),
-          }).describe(
-            "All parameters related to queuing and scheduling of custom jobs.",
-          ).optional(),
+          }).describe("Scheduling options for a CustomJob.").optional(),
           serviceAccount: z.string().describe(
             "Specifies the service account for workload run-as account. Users submitting jobs must have act-as permission on this run-as account. If unspecified, the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) for the CustomJob's project is used.",
           ).optional(),
@@ -847,17 +676,20 @@ const InputsSchema = z.object({
           workerPoolSpecs: z.array(z.unknown()).describe(
             "Required. The spec of the worker pools including machine type and Docker image. All worker pools except the first one are optional and can be skipped by providing an empty value.",
           ).optional(),
-        }).describe("Represents the spec of a CustomJob.").optional(),
-      }).describe("Represent spec for train trials.").optional(),
-    }).describe("The spec of multi-trial Neural Architecture Search (NAS).")
-      .optional(),
+        }).describe(
+          "Required. The spec of a train trial job. The same spec applies to all train trials.",
+        ).optional(),
+      }).describe(
+        "Spec for train trials. Top N [TrainTrialSpec.max_parallel_trial_count] search trials will be trained for every M [TrainTrialSpec.frequency] trials searched.",
+      ).optional(),
+    }).describe("The spec of multi-trial algorithms.").optional(),
     resumeNasJobId: z.string().describe(
       "The ID of the existing NasJob in the same Project and Location which will be used to resume search. search_space_spec and nas_algorithm_spec are obtained from previous NasJob hence should not provide them again for this NasJob.",
     ).optional(),
     searchSpaceSpec: z.string().describe(
       "It defines the search space for Neural Architecture Search (NAS).",
     ).optional(),
-  }).describe("Represents the spec of a NasJob.").optional(),
+  }).describe("Required. The specification of a NasJob.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -886,7 +718,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform NasJobs. Registered at `@swamp/gcp/aiplatform/nasjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/nasjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1018,6 +850,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, nasJobOutput",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, nasJobOutput: _nasJobOutput, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1048,11 +888,7 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["nasJobOutput"] !== undefined) {
-          body["nasJobOutput"] = g["nasJobOutput"];
-        }
         if (g["nasJobSpec"] !== undefined) body["nasJobSpec"] = g["nasJobSpec"];
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(

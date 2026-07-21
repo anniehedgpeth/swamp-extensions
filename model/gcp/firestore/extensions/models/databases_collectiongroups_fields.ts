@@ -148,10 +148,10 @@ const GlobalArgsSchema = z.object({
           "Indicates that this field supports ordering by the specified order or comparing using =,!=, , >=.",
         ).optional(),
         searchConfig: z.unknown().describe(
-          "The configuration for how to index a field for search.",
+          "Indicates that this field supports search operations.",
         ).optional(),
         vectorConfig: z.unknown().describe(
-          "The index configuration to support vector search operations",
+          "Indicates that this field supports nearest neighbor and distance operations on vector.",
         ).optional(),
       })).describe(
         "The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.",
@@ -177,8 +177,9 @@ const GlobalArgsSchema = z.object({
         textLanguageOverrideFieldPath: z.string().describe(
           'Optional. The field in the document that specifies which language to use for that specific document. For indexes with MONGODB_COMPATIBLE_API ApiScope: if unspecified, the language is taken from the "language" field if it exists or from `text_language` if it does not.',
         ).optional(),
-      }).describe("Options for search indexes at the definition level.")
-        .optional(),
+      }).describe(
+        "Optional. Options for search indexes that are at the index definition level. This field is only currently supported for indexes with MONGODB_COMPATIBLE_API ApiScope.",
+      ).optional(),
       shardCount: z.number().int().describe(
         "Optional. The number of shards for the index.",
       ).optional(),
@@ -194,7 +195,9 @@ const GlobalArgsSchema = z.object({
     usesAncestorConfig: z.boolean().describe(
       "Output only. When true, the `Field`'s index configuration is set from the configuration specified by the `ancestor_field`. When false, the `Field`'s index configuration is defined explicitly.",
     ).optional(),
-  }).describe("The index configuration for this field.").optional(),
+  }).describe(
+    "The index configuration for this field. If unset, field indexing will revert to the configuration defined by the `ancestor_field`. To explicitly remove all indexes for this field, specify an index config with an empty list of indexes.",
+  ).optional(),
   name: z.string().describe(
     "Required. A field name of the form: `projects/{project_id}/databases/{database_id}/collectionGroups/{collection_id}/fields/{field_path}` A field path can be a simple field name, e.g. `address` or a path to fields within `map_value`, e.g. `address.city`, or a special field path. The only valid special field is `*`, which represents any field. Field paths can be quoted using `` ` `` (backtick). The only character that must be escaped within a quoted field path is the backtick character itself, escaped using a backslash. Special characters in field paths that must be quoted include: `*`, `.`, `` ` `` (backtick), `[`, `]`, as well as any ascii symbolic characters. Examples: `` `address.city` `` represents a field named `address.city`, not the map key `city` in the field `address`. `` `*` `` represents a field named `*`, not any field. A special `Field` contains the default indexing settings for all fields. This field's resource name is: `projects/{project_id}/databases/{database_id}/collectionGroups/__default__/fields/*` Indexes defined on this `Field` will be applied to all fields which do not have their own `Field` index configuration.",
   ).optional(),
@@ -205,7 +208,7 @@ const GlobalArgsSchema = z.object({
     state: z.enum(["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "NEEDS_REPAIR"])
       .describe("Output only. The state of the TTL configuration.").optional(),
   }).describe(
-    "The TTL (time-to-live) configuration for documents that have this `Field` set. A timestamp stored in a TTL-enabled field will be used to determine the expiration time of the document. The expiration time is the sum of the timestamp value and the `expiration_offset`. For Enterprise edition databases, the timestamp value may alternatively be stored in an array value in the TTL-enabled field. An expiration time in the past indicates that the document is eligible for immediate expiration. Using any other data type or leaving the field absent will disable expiration for the individual document.",
+    "The TTL configuration for this `Field`. Setting or unsetting this will enable or disable the TTL for documents that have this `Field`.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -284,10 +287,10 @@ const InputsSchema = z.object({
           "Indicates that this field supports ordering by the specified order or comparing using =,!=, , >=.",
         ).optional(),
         searchConfig: z.unknown().describe(
-          "The configuration for how to index a field for search.",
+          "Indicates that this field supports search operations.",
         ).optional(),
         vectorConfig: z.unknown().describe(
-          "The index configuration to support vector search operations",
+          "Indicates that this field supports nearest neighbor and distance operations on vector.",
         ).optional(),
       })).describe(
         "The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.",
@@ -313,8 +316,9 @@ const InputsSchema = z.object({
         textLanguageOverrideFieldPath: z.string().describe(
           'Optional. The field in the document that specifies which language to use for that specific document. For indexes with MONGODB_COMPATIBLE_API ApiScope: if unspecified, the language is taken from the "language" field if it exists or from `text_language` if it does not.',
         ).optional(),
-      }).describe("Options for search indexes at the definition level.")
-        .optional(),
+      }).describe(
+        "Optional. Options for search indexes that are at the index definition level. This field is only currently supported for indexes with MONGODB_COMPATIBLE_API ApiScope.",
+      ).optional(),
       shardCount: z.number().int().describe(
         "Optional. The number of shards for the index.",
       ).optional(),
@@ -330,7 +334,9 @@ const InputsSchema = z.object({
     usesAncestorConfig: z.boolean().describe(
       "Output only. When true, the `Field`'s index configuration is set from the configuration specified by the `ancestor_field`. When false, the `Field`'s index configuration is defined explicitly.",
     ).optional(),
-  }).describe("The index configuration for this field.").optional(),
+  }).describe(
+    "The index configuration for this field. If unset, field indexing will revert to the configuration defined by the `ancestor_field`. To explicitly remove all indexes for this field, specify an index config with an empty list of indexes.",
+  ).optional(),
   name: z.string().describe(
     "Required. A field name of the form: `projects/{project_id}/databases/{database_id}/collectionGroups/{collection_id}/fields/{field_path}` A field path can be a simple field name, e.g. `address` or a path to fields within `map_value`, e.g. `address.city`, or a special field path. The only valid special field is `*`, which represents any field. Field paths can be quoted using `` ` `` (backtick). The only character that must be escaped within a quoted field path is the backtick character itself, escaped using a backslash. Special characters in field paths that must be quoted include: `*`, `.`, `` ` `` (backtick), `[`, `]`, as well as any ascii symbolic characters. Examples: `` `address.city` `` represents a field named `address.city`, not the map key `city` in the field `address`. `` `*` `` represents a field named `*`, not any field. A special `Field` contains the default indexing settings for all fields. This field's resource name is: `projects/{project_id}/databases/{database_id}/collectionGroups/__default__/fields/*` Indexes defined on this `Field` will be applied to all fields which do not have their own `Field` index configuration.",
   ).optional(),
@@ -341,7 +347,7 @@ const InputsSchema = z.object({
     state: z.enum(["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "NEEDS_REPAIR"])
       .describe("Output only. The state of the TTL configuration.").optional(),
   }).describe(
-    "The TTL (time-to-live) configuration for documents that have this `Field` set. A timestamp stored in a TTL-enabled field will be used to determine the expiration time of the document. The expiration time is the sum of the timestamp value and the `expiration_offset`. For Enterprise edition databases, the timestamp value may alternatively be stored in an array value in the TTL-enabled field. An expiration time in the past indicates that the document is eligible for immediate expiration. Using any other data type or leaving the field absent will disable expiration for the individual document.",
+    "The TTL configuration for this `Field`. Setting or unsetting this will enable or disable the TTL for documents that have this `Field`.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -374,7 +380,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.CollectionGroups.Fields. Registered at `@swamp/gcp/firestore/databases-collectiongroups-fields`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-collectiongroups-fields",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -518,6 +524,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

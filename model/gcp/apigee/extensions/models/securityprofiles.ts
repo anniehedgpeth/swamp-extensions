@@ -170,23 +170,23 @@ const GlobalArgsSchema = z.object({
         "Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.",
       ).optional(),
       authorization: z.object({}).describe(
-        "By default, following policies will be included: - JWS - JWT - OAuth - BasicAuth - APIKey",
+        "Checks to see if you have an authorization policy in place.",
       ).optional(),
       cors: z.object({}).describe(
         "Checks to see if you have CORS policy in place.",
       ).optional(),
       mediation: z.object({}).describe(
-        "By default, following policies will be included: - OASValidation - SOAPMessageValidation",
+        "Checks to see if you have a mediation policy in place.",
       ).optional(),
       mtls: z.object({}).describe(
         "Checks to see if you have configured mTLS for the target server.",
       ).optional(),
       threat: z.object({}).describe(
-        "By default, following policies will be included: - XMLThreatProtection - JSONThreatProtection",
+        "Checks to see if you have a threat protection policy in place.",
       ).optional(),
     })).describe("List of categories of profile config.").optional(),
   }).describe(
-    "ProfileConfig defines a set of categories and policies which will be used to compute security score.",
+    "Required. Customized profile configuration that computes the security score.",
   ).optional(),
   scoringConfigs: z.array(z.object({
     description: z.string().describe("Description of the config.").optional(),
@@ -259,23 +259,23 @@ const InputsSchema = z.object({
         "Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.",
       ).optional(),
       authorization: z.object({}).describe(
-        "By default, following policies will be included: - JWS - JWT - OAuth - BasicAuth - APIKey",
+        "Checks to see if you have an authorization policy in place.",
       ).optional(),
       cors: z.object({}).describe(
         "Checks to see if you have CORS policy in place.",
       ).optional(),
       mediation: z.object({}).describe(
-        "By default, following policies will be included: - OASValidation - SOAPMessageValidation",
+        "Checks to see if you have a mediation policy in place.",
       ).optional(),
       mtls: z.object({}).describe(
         "Checks to see if you have configured mTLS for the target server.",
       ).optional(),
       threat: z.object({}).describe(
-        "By default, following policies will be included: - XMLThreatProtection - JSONThreatProtection",
+        "Checks to see if you have a threat protection policy in place.",
       ).optional(),
     })).describe("List of categories of profile config.").optional(),
   }).describe(
-    "ProfileConfig defines a set of categories and policies which will be used to compute security score.",
+    "Required. Customized profile configuration that computes the security score.",
   ).optional(),
   scoringConfigs: z.array(z.object({
     description: z.string().describe("Description of the config.").optional(),
@@ -315,7 +315,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee SecurityProfiles. Registered at `@swamp/gcp/apigee/securityprofiles`. */
 export const model = {
   type: "@swamp/gcp/apigee/securityprofiles",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -414,6 +414,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
           'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
         ).optional(),
       }).describe(
-        'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+        "Optional. Selects resources using their Kubernetes GroupKinds. If specified, only resources of provided GroupKind will be selected.",
       ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "Optional. Selects resources using Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/). If specified, a resource will be selected if and only if the resource has all of the provided labels and all the label values match.",
@@ -206,7 +206,7 @@ const GlobalArgsSchema = z.object({
           'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
         ).optional(),
       }).describe(
-        'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+        "Optional. Selects resources using their Kubernetes GroupKinds. If specified, only resources of provided GroupKind will be selected.",
       ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "Optional. Selects resources using Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/). If specified, a resource will be selected if and only if the resource has all of the provided labels and all the label values match.",
@@ -221,210 +221,10 @@ const GlobalArgsSchema = z.object({
       "Optional. Selects resources for restoration. If specified, only resources which match `inclusion_filters` will be selected for restoration. A resource will be selected if it matches any `ResourceSelector` of the `inclusion_filters`.",
     ).optional(),
   }).describe(
-    "Defines the filter for `Restore`. This filter can be used to further refine the resource selection of the `Restore` beyond the coarse-grained scope defined in the `RestorePlan`. `exclusion_filters` take precedence over `inclusion_filters`. If a resource matches both `inclusion_filters` and `exclusion_filters`, it will not be restored.",
+    "Optional. Immutable. Filters resources for `Restore`. If not specified, the scope of the restore will remain the same as defined in the `RestorePlan`. If this is specified and no resources are matched by the `inclusion_filters` or everything is excluded by the `exclusion_filters`, nothing will be restored. This filter can only be specified if the value of namespaced_resource_restore_mode is set to `MERGE_SKIP_ON_CONFLICT`, `MERGE_REPLACE_VOLUME_ON_CONFLICT` or `MERGE_REPLACE_ON_CONFLICT`.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "A set of custom labels supplied by user.",
-  ).optional(),
-  restoreConfig: z.object({
-    allNamespaces: z.boolean().describe(
-      'Restore all namespaced resources in the Backup if set to "True". Specifying this field to "False" is an error.',
-    ).optional(),
-    clusterResourceConflictPolicy: z.enum([
-      "CLUSTER_RESOURCE_CONFLICT_POLICY_UNSPECIFIED",
-      "USE_EXISTING_VERSION",
-      "USE_BACKUP_VERSION",
-    ]).describe(
-      "Optional. Defines the behavior for handling the situation where cluster-scoped resources being restored already exist in the target cluster. This MUST be set to a value other than CLUSTER_RESOURCE_CONFLICT_POLICY_UNSPECIFIED if cluster_resource_restore_scope is not empty.",
-    ).optional(),
-    clusterResourceRestoreScope: z.object({
-      allGroupKinds: z.boolean().describe(
-        "Optional. If True, all valid cluster-scoped resources will be restored. Mutually exclusive to any other field in the message.",
-      ).optional(),
-      excludedGroupKinds: z.array(z.object({
-        resourceGroup: z.string().describe(
-          'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-        ).optional(),
-        resourceKind: z.string().describe(
-          'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-        ).optional(),
-      })).describe(
-        "Optional. A list of cluster-scoped resource group kinds to NOT restore from the backup. If specified, all valid cluster-scoped resources will be restored except for those specified in the list. Mutually exclusive to any other field in the message.",
-      ).optional(),
-      noGroupKinds: z.boolean().describe(
-        "Optional. If True, no cluster-scoped resources will be restored. This has the same restore scope as if the message is not defined. Mutually exclusive to any other field in the message.",
-      ).optional(),
-      selectedGroupKinds: z.array(z.object({
-        resourceGroup: z.string().describe(
-          'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-        ).optional(),
-        resourceKind: z.string().describe(
-          'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-        ).optional(),
-      })).describe(
-        "Optional. A list of cluster-scoped resource group kinds to restore from the backup. If specified, only the selected resources will be restored. Mutually exclusive to any other field in the message.",
-      ).optional(),
-    }).describe(
-      'Defines the scope of cluster-scoped resources to restore. Some group kinds are not reasonable choices for a restore, and will cause an error if selected here. Any scope selection that would restore "all valid" resources automatically excludes these group kinds. - Node - ComponentStatus - gkebackup.gke.io/BackupJob - gkebackup.gke.io/RestoreJob - metrics.k8s.io/NodeMetrics - migration.k8s.io/StorageState - migration.k8s.io/StorageVersionMigration - snapshot.storage.k8s.io/VolumeSnapshotContent - storage.k8s.io/CSINode - storage.k8s.io/VolumeAttachment Some group kinds are driven by restore configuration elsewhere, and will cause an error if selected here. - Namespace - PersistentVolume',
-    ).optional(),
-    excludedNamespaces: z.object({
-      namespaces: z.array(z.string()).describe(
-        "Optional. A list of Kubernetes Namespaces.",
-      ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
-    namespacedResourceRestoreMode: z.enum([
-      "NAMESPACED_RESOURCE_RESTORE_MODE_UNSPECIFIED",
-      "DELETE_AND_RESTORE",
-      "FAIL_ON_CONFLICT",
-      "MERGE_SKIP_ON_CONFLICT",
-      "MERGE_REPLACE_VOLUME_ON_CONFLICT",
-      "MERGE_REPLACE_ON_CONFLICT",
-    ]).describe(
-      "Optional. Defines the behavior for handling the situation where sets of namespaced resources being restored already exist in the target cluster. This MUST be set to a value other than NAMESPACED_RESOURCE_RESTORE_MODE_UNSPECIFIED.",
-    ).optional(),
-    noNamespaces: z.boolean().describe(
-      'Do not restore any namespaced resources if set to "True". Specifying this field to "False" is not allowed.',
-    ).optional(),
-    restoreOrder: z.object({
-      groupKindDependencies: z.array(z.object({
-        requiring: z.object({
-          resourceGroup: z.unknown().describe(
-            'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-          ).optional(),
-          resourceKind: z.unknown().describe(
-            'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-          ).optional(),
-        }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
-        ).optional(),
-        satisfying: z.object({
-          resourceGroup: z.unknown().describe(
-            'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-          ).optional(),
-          resourceKind: z.unknown().describe(
-            'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-          ).optional(),
-        }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
-        ).optional(),
-      })).describe(
-        "Optional. Contains a list of group kind dependency pairs provided by the customer, that is used by Backup for GKE to generate a group kind restore order.",
-      ).optional(),
-    }).describe(
-      "Allows customers to specify dependencies between resources that Backup for GKE can use to compute a resasonable restore order.",
-    ).optional(),
-    selectedApplications: z.object({
-      namespacedNames: z.array(z.object({
-        name: z.string().describe(
-          "Optional. The name of the Kubernetes resource.",
-        ).optional(),
-        namespace: z.string().describe(
-          "Optional. The Namespace of the Kubernetes resource.",
-        ).optional(),
-      })).describe("Optional. A list of namespaced Kubernetes resources.")
-        .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
-    selectedNamespaces: z.object({
-      namespaces: z.array(z.string()).describe(
-        "Optional. A list of Kubernetes Namespaces.",
-      ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
-    substitutionRules: z.array(z.object({
-      newValue: z.string().describe(
-        'Optional. This is the new value to set for any fields that pass the filtering and selection criteria. To remove a value from a Kubernetes resource, either leave this field unspecified, or set it to the empty string ("").',
-      ).optional(),
-      originalValuePattern: z.string().describe(
-        'Optional. (Filtering parameter) This is a [regular expression] (https://en.wikipedia.org/wiki/Regular_expression) that is compared against the fields matched by the target_json_path expression (and must also have passed the previous filters). Substitution will not be performed against fields whose value does not match this expression. If this field is NOT specified, then ALL fields matched by the target_json_path expression will undergo substitution. Note that an empty (e.g., "", rather than unspecified) value for this field will only match empty fields.',
-      ).optional(),
-      targetGroupKinds: z.array(z.object({
-        resourceGroup: z.unknown().describe(
-          'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-        ).optional(),
-        resourceKind: z.unknown().describe(
-          'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-        ).optional(),
-      })).describe(
-        'Optional. (Filtering parameter) Any resource subject to substitution must belong to one of the listed "types". If this field is not provided, no type filtering will be performed (all resources of all types matching previous filtering parameters will be candidates for substitution).',
-      ).optional(),
-      targetJsonPath: z.string().describe(
-        "Required. This is a [JSONPath] (https://kubernetes.io/docs/reference/kubectl/jsonpath/) expression that matches specific fields of candidate resources and it operates as both a filtering parameter (resources that are not matched with this expression will not be candidates for substitution) as well as a field identifier (identifies exactly which fields out of the candidate resources will be modified).",
-      ).optional(),
-      targetNamespaces: z.array(z.string()).describe(
-        'Optional. (Filtering parameter) Any resource subject to substitution must be contained within one of the listed Kubernetes Namespace in the Backup. If this field is not provided, no namespace filtering will be performed (all resources in all Namespaces, including all cluster-scoped resources, will be candidates for substitution). To mix cluster-scoped and namespaced resources in the same rule, use an empty string ("") as one of the target namespaces.',
-      ).optional(),
-    })).describe(
-      "Optional. A list of transformation rules to be applied against Kubernetes resources as they are selected for restoration from a Backup. Rules are executed in order defined - this order matters, as changes made by a rule may impact the filtering logic of subsequent rules. An empty list means no substitution will occur.",
-    ).optional(),
-    transformationRules: z.array(z.object({
-      description: z.string().describe(
-        "Optional. The description is a user specified string description of the transformation rule.",
-      ).optional(),
-      fieldActions: z.array(z.object({
-        fromPath: z.unknown().describe(
-          "Optional. A string containing a JSON Pointer value that references the location in the target document to move the value from.",
-        ).optional(),
-        op: z.unknown().describe(
-          "Required. op specifies the operation to perform.",
-        ).optional(),
-        path: z.unknown().describe(
-          "Optional. A string containing a JSON-Pointer value that references a location within the target document where the operation is performed.",
-        ).optional(),
-        value: z.unknown().describe(
-          "Optional. A string that specifies the desired value in string format to use for transformation.",
-        ).optional(),
-      })).describe(
-        "Required. A list of transformation rule actions to take against candidate resources. Actions are executed in order defined - this order matters, as they could potentially interfere with each other and the first operation could affect the outcome of the second operation.",
-      ).optional(),
-      resourceFilter: z.object({
-        groupKinds: z.array(z.unknown()).describe(
-          'Optional. (Filtering parameter) Any resource subject to transformation must belong to one of the listed "types". If this field is not provided, no type filtering will be performed (all resources of all types matching previous filtering parameters will be candidates for transformation).',
-        ).optional(),
-        jsonPath: z.string().describe(
-          "Optional. This is a [JSONPath] (https://github.com/json-path/JsonPath/blob/master/README.md) expression that matches specific fields of candidate resources and it operates as a filtering parameter (resources that are not matched with this expression will not be candidates for transformation).",
-        ).optional(),
-        namespaces: z.array(z.unknown()).describe(
-          "Optional. (Filtering parameter) Any resource subject to transformation must be contained within one of the listed Kubernetes Namespace in the Backup. If this field is not provided, no namespace filtering will be performed (all resources in all Namespaces, including all cluster-scoped resources, will be candidates for transformation).",
-        ).optional(),
-      }).describe(
-        "ResourceFilter specifies matching criteria to limit the scope of a change to a specific set of kubernetes resources that are selected for restoration from a backup.",
-      ).optional(),
-    })).describe(
-      "Optional. A list of transformation rules to be applied against Kubernetes resources as they are selected for restoration from a Backup. Rules are executed in order defined - this order matters, as changes made by a rule may impact the filtering logic of subsequent rules. An empty list means no transformation will occur.",
-    ).optional(),
-    volumeDataRestorePolicy: z.enum([
-      "VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED",
-      "RESTORE_VOLUME_DATA_FROM_BACKUP",
-      "REUSE_VOLUME_HANDLE_FROM_BACKUP",
-      "NO_VOLUME_DATA_RESTORATION",
-    ]).describe(
-      "Optional. Specifies the mechanism to be used to restore volume data. Default: VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED (will be treated as NO_VOLUME_DATA_RESTORATION).",
-    ).optional(),
-    volumeDataRestorePolicyBindings: z.array(z.object({
-      policy: z.enum([
-        "VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED",
-        "RESTORE_VOLUME_DATA_FROM_BACKUP",
-        "REUSE_VOLUME_HANDLE_FROM_BACKUP",
-        "NO_VOLUME_DATA_RESTORATION",
-      ]).describe(
-        "Required. The VolumeDataRestorePolicy to apply when restoring volumes in scope.",
-      ).optional(),
-      volumeType: z.enum(["VOLUME_TYPE_UNSPECIFIED", "GCE_PERSISTENT_DISK"])
-        .describe(
-          "The volume type, as determined by the PVC's bound PV, to apply the policy to.",
-        ).optional(),
-    })).describe(
-      "Optional. A table that binds volumes by their scope to a restore policy. Bindings must have a unique scope. Any volumes not scoped in the bindings are subject to the policy defined in volume_data_restore_policy.",
-    ).optional(),
-  }).describe("Configuration of a restore.").optional(),
-  troubleshootingInfo: z.object({
-    stateReasonCode: z.string().describe(
-      "Output only. Unique code for each backup/restore operation failure message which helps user identify the failure.",
-    ).optional(),
-    stateReasonUri: z.string().describe(
-      "Output only. URL for the troubleshooting doc which will help the user fix the failing backup/restore operation.",
-    ).optional(),
-  }).describe(
-    "Stores information about troubleshooting doc for debugging a particular state of an operation (eg - backup/restore). This will be used by the end user to debug their operation failure scenario easily.",
   ).optional(),
   volumeDataRestorePolicyOverrides: z.array(z.object({
     policy: z.enum([
@@ -445,7 +245,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe("Optional. A list of namespaced Kubernetes resources.")
         .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
+    }).describe("A list of PVCs to apply the policy override to.").optional(),
   })).describe(
     "Optional. Immutable. Overrides the volume data restore policies selected in the Restore Config for override-scoped resources.",
   ).optional(),
@@ -607,7 +407,7 @@ const InputsSchema = z.object({
           'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
         ).optional(),
       }).describe(
-        'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+        "Optional. Selects resources using their Kubernetes GroupKinds. If specified, only resources of provided GroupKind will be selected.",
       ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "Optional. Selects resources using Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/). If specified, a resource will be selected if and only if the resource has all of the provided labels and all the label values match.",
@@ -630,7 +430,7 @@ const InputsSchema = z.object({
           'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
         ).optional(),
       }).describe(
-        'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
+        "Optional. Selects resources using their Kubernetes GroupKinds. If specified, only resources of provided GroupKind will be selected.",
       ).optional(),
       labels: z.record(z.string(), z.string()).describe(
         "Optional. Selects resources using Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/). If specified, a resource will be selected if and only if the resource has all of the provided labels and all the label values match.",
@@ -645,210 +445,10 @@ const InputsSchema = z.object({
       "Optional. Selects resources for restoration. If specified, only resources which match `inclusion_filters` will be selected for restoration. A resource will be selected if it matches any `ResourceSelector` of the `inclusion_filters`.",
     ).optional(),
   }).describe(
-    "Defines the filter for `Restore`. This filter can be used to further refine the resource selection of the `Restore` beyond the coarse-grained scope defined in the `RestorePlan`. `exclusion_filters` take precedence over `inclusion_filters`. If a resource matches both `inclusion_filters` and `exclusion_filters`, it will not be restored.",
+    "Optional. Immutable. Filters resources for `Restore`. If not specified, the scope of the restore will remain the same as defined in the `RestorePlan`. If this is specified and no resources are matched by the `inclusion_filters` or everything is excluded by the `exclusion_filters`, nothing will be restored. This filter can only be specified if the value of namespaced_resource_restore_mode is set to `MERGE_SKIP_ON_CONFLICT`, `MERGE_REPLACE_VOLUME_ON_CONFLICT` or `MERGE_REPLACE_ON_CONFLICT`.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "A set of custom labels supplied by user.",
-  ).optional(),
-  restoreConfig: z.object({
-    allNamespaces: z.boolean().describe(
-      'Restore all namespaced resources in the Backup if set to "True". Specifying this field to "False" is an error.',
-    ).optional(),
-    clusterResourceConflictPolicy: z.enum([
-      "CLUSTER_RESOURCE_CONFLICT_POLICY_UNSPECIFIED",
-      "USE_EXISTING_VERSION",
-      "USE_BACKUP_VERSION",
-    ]).describe(
-      "Optional. Defines the behavior for handling the situation where cluster-scoped resources being restored already exist in the target cluster. This MUST be set to a value other than CLUSTER_RESOURCE_CONFLICT_POLICY_UNSPECIFIED if cluster_resource_restore_scope is not empty.",
-    ).optional(),
-    clusterResourceRestoreScope: z.object({
-      allGroupKinds: z.boolean().describe(
-        "Optional. If True, all valid cluster-scoped resources will be restored. Mutually exclusive to any other field in the message.",
-      ).optional(),
-      excludedGroupKinds: z.array(z.object({
-        resourceGroup: z.string().describe(
-          'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-        ).optional(),
-        resourceKind: z.string().describe(
-          'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-        ).optional(),
-      })).describe(
-        "Optional. A list of cluster-scoped resource group kinds to NOT restore from the backup. If specified, all valid cluster-scoped resources will be restored except for those specified in the list. Mutually exclusive to any other field in the message.",
-      ).optional(),
-      noGroupKinds: z.boolean().describe(
-        "Optional. If True, no cluster-scoped resources will be restored. This has the same restore scope as if the message is not defined. Mutually exclusive to any other field in the message.",
-      ).optional(),
-      selectedGroupKinds: z.array(z.object({
-        resourceGroup: z.string().describe(
-          'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-        ).optional(),
-        resourceKind: z.string().describe(
-          'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-        ).optional(),
-      })).describe(
-        "Optional. A list of cluster-scoped resource group kinds to restore from the backup. If specified, only the selected resources will be restored. Mutually exclusive to any other field in the message.",
-      ).optional(),
-    }).describe(
-      'Defines the scope of cluster-scoped resources to restore. Some group kinds are not reasonable choices for a restore, and will cause an error if selected here. Any scope selection that would restore "all valid" resources automatically excludes these group kinds. - Node - ComponentStatus - gkebackup.gke.io/BackupJob - gkebackup.gke.io/RestoreJob - metrics.k8s.io/NodeMetrics - migration.k8s.io/StorageState - migration.k8s.io/StorageVersionMigration - snapshot.storage.k8s.io/VolumeSnapshotContent - storage.k8s.io/CSINode - storage.k8s.io/VolumeAttachment Some group kinds are driven by restore configuration elsewhere, and will cause an error if selected here. - Namespace - PersistentVolume',
-    ).optional(),
-    excludedNamespaces: z.object({
-      namespaces: z.array(z.string()).describe(
-        "Optional. A list of Kubernetes Namespaces.",
-      ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
-    namespacedResourceRestoreMode: z.enum([
-      "NAMESPACED_RESOURCE_RESTORE_MODE_UNSPECIFIED",
-      "DELETE_AND_RESTORE",
-      "FAIL_ON_CONFLICT",
-      "MERGE_SKIP_ON_CONFLICT",
-      "MERGE_REPLACE_VOLUME_ON_CONFLICT",
-      "MERGE_REPLACE_ON_CONFLICT",
-    ]).describe(
-      "Optional. Defines the behavior for handling the situation where sets of namespaced resources being restored already exist in the target cluster. This MUST be set to a value other than NAMESPACED_RESOURCE_RESTORE_MODE_UNSPECIFIED.",
-    ).optional(),
-    noNamespaces: z.boolean().describe(
-      'Do not restore any namespaced resources if set to "True". Specifying this field to "False" is not allowed.',
-    ).optional(),
-    restoreOrder: z.object({
-      groupKindDependencies: z.array(z.object({
-        requiring: z.object({
-          resourceGroup: z.unknown().describe(
-            'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-          ).optional(),
-          resourceKind: z.unknown().describe(
-            'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-          ).optional(),
-        }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
-        ).optional(),
-        satisfying: z.object({
-          resourceGroup: z.unknown().describe(
-            'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-          ).optional(),
-          resourceKind: z.unknown().describe(
-            'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-          ).optional(),
-        }).describe(
-          'This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.',
-        ).optional(),
-      })).describe(
-        "Optional. Contains a list of group kind dependency pairs provided by the customer, that is used by Backup for GKE to generate a group kind restore order.",
-      ).optional(),
-    }).describe(
-      "Allows customers to specify dependencies between resources that Backup for GKE can use to compute a resasonable restore order.",
-    ).optional(),
-    selectedApplications: z.object({
-      namespacedNames: z.array(z.object({
-        name: z.string().describe(
-          "Optional. The name of the Kubernetes resource.",
-        ).optional(),
-        namespace: z.string().describe(
-          "Optional. The Namespace of the Kubernetes resource.",
-        ).optional(),
-      })).describe("Optional. A list of namespaced Kubernetes resources.")
-        .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
-    selectedNamespaces: z.object({
-      namespaces: z.array(z.string()).describe(
-        "Optional. A list of Kubernetes Namespaces.",
-      ).optional(),
-    }).describe("A list of Kubernetes Namespaces.").optional(),
-    substitutionRules: z.array(z.object({
-      newValue: z.string().describe(
-        'Optional. This is the new value to set for any fields that pass the filtering and selection criteria. To remove a value from a Kubernetes resource, either leave this field unspecified, or set it to the empty string ("").',
-      ).optional(),
-      originalValuePattern: z.string().describe(
-        'Optional. (Filtering parameter) This is a [regular expression] (https://en.wikipedia.org/wiki/Regular_expression) that is compared against the fields matched by the target_json_path expression (and must also have passed the previous filters). Substitution will not be performed against fields whose value does not match this expression. If this field is NOT specified, then ALL fields matched by the target_json_path expression will undergo substitution. Note that an empty (e.g., "", rather than unspecified) value for this field will only match empty fields.',
-      ).optional(),
-      targetGroupKinds: z.array(z.object({
-        resourceGroup: z.unknown().describe(
-          'Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.',
-        ).optional(),
-        resourceKind: z.unknown().describe(
-          'Optional. Kind of a Kubernetes resource, must be in UpperCamelCase (PascalCase) and singular form. E.g. "CustomResourceDefinition", "StorageClass", etc.',
-        ).optional(),
-      })).describe(
-        'Optional. (Filtering parameter) Any resource subject to substitution must belong to one of the listed "types". If this field is not provided, no type filtering will be performed (all resources of all types matching previous filtering parameters will be candidates for substitution).',
-      ).optional(),
-      targetJsonPath: z.string().describe(
-        "Required. This is a [JSONPath] (https://kubernetes.io/docs/reference/kubectl/jsonpath/) expression that matches specific fields of candidate resources and it operates as both a filtering parameter (resources that are not matched with this expression will not be candidates for substitution) as well as a field identifier (identifies exactly which fields out of the candidate resources will be modified).",
-      ).optional(),
-      targetNamespaces: z.array(z.string()).describe(
-        'Optional. (Filtering parameter) Any resource subject to substitution must be contained within one of the listed Kubernetes Namespace in the Backup. If this field is not provided, no namespace filtering will be performed (all resources in all Namespaces, including all cluster-scoped resources, will be candidates for substitution). To mix cluster-scoped and namespaced resources in the same rule, use an empty string ("") as one of the target namespaces.',
-      ).optional(),
-    })).describe(
-      "Optional. A list of transformation rules to be applied against Kubernetes resources as they are selected for restoration from a Backup. Rules are executed in order defined - this order matters, as changes made by a rule may impact the filtering logic of subsequent rules. An empty list means no substitution will occur.",
-    ).optional(),
-    transformationRules: z.array(z.object({
-      description: z.string().describe(
-        "Optional. The description is a user specified string description of the transformation rule.",
-      ).optional(),
-      fieldActions: z.array(z.object({
-        fromPath: z.unknown().describe(
-          "Optional. A string containing a JSON Pointer value that references the location in the target document to move the value from.",
-        ).optional(),
-        op: z.unknown().describe(
-          "Required. op specifies the operation to perform.",
-        ).optional(),
-        path: z.unknown().describe(
-          "Optional. A string containing a JSON-Pointer value that references a location within the target document where the operation is performed.",
-        ).optional(),
-        value: z.unknown().describe(
-          "Optional. A string that specifies the desired value in string format to use for transformation.",
-        ).optional(),
-      })).describe(
-        "Required. A list of transformation rule actions to take against candidate resources. Actions are executed in order defined - this order matters, as they could potentially interfere with each other and the first operation could affect the outcome of the second operation.",
-      ).optional(),
-      resourceFilter: z.object({
-        groupKinds: z.array(z.unknown()).describe(
-          'Optional. (Filtering parameter) Any resource subject to transformation must belong to one of the listed "types". If this field is not provided, no type filtering will be performed (all resources of all types matching previous filtering parameters will be candidates for transformation).',
-        ).optional(),
-        jsonPath: z.string().describe(
-          "Optional. This is a [JSONPath] (https://github.com/json-path/JsonPath/blob/master/README.md) expression that matches specific fields of candidate resources and it operates as a filtering parameter (resources that are not matched with this expression will not be candidates for transformation).",
-        ).optional(),
-        namespaces: z.array(z.unknown()).describe(
-          "Optional. (Filtering parameter) Any resource subject to transformation must be contained within one of the listed Kubernetes Namespace in the Backup. If this field is not provided, no namespace filtering will be performed (all resources in all Namespaces, including all cluster-scoped resources, will be candidates for transformation).",
-        ).optional(),
-      }).describe(
-        "ResourceFilter specifies matching criteria to limit the scope of a change to a specific set of kubernetes resources that are selected for restoration from a backup.",
-      ).optional(),
-    })).describe(
-      "Optional. A list of transformation rules to be applied against Kubernetes resources as they are selected for restoration from a Backup. Rules are executed in order defined - this order matters, as changes made by a rule may impact the filtering logic of subsequent rules. An empty list means no transformation will occur.",
-    ).optional(),
-    volumeDataRestorePolicy: z.enum([
-      "VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED",
-      "RESTORE_VOLUME_DATA_FROM_BACKUP",
-      "REUSE_VOLUME_HANDLE_FROM_BACKUP",
-      "NO_VOLUME_DATA_RESTORATION",
-    ]).describe(
-      "Optional. Specifies the mechanism to be used to restore volume data. Default: VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED (will be treated as NO_VOLUME_DATA_RESTORATION).",
-    ).optional(),
-    volumeDataRestorePolicyBindings: z.array(z.object({
-      policy: z.enum([
-        "VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED",
-        "RESTORE_VOLUME_DATA_FROM_BACKUP",
-        "REUSE_VOLUME_HANDLE_FROM_BACKUP",
-        "NO_VOLUME_DATA_RESTORATION",
-      ]).describe(
-        "Required. The VolumeDataRestorePolicy to apply when restoring volumes in scope.",
-      ).optional(),
-      volumeType: z.enum(["VOLUME_TYPE_UNSPECIFIED", "GCE_PERSISTENT_DISK"])
-        .describe(
-          "The volume type, as determined by the PVC's bound PV, to apply the policy to.",
-        ).optional(),
-    })).describe(
-      "Optional. A table that binds volumes by their scope to a restore policy. Bindings must have a unique scope. Any volumes not scoped in the bindings are subject to the policy defined in volume_data_restore_policy.",
-    ).optional(),
-  }).describe("Configuration of a restore.").optional(),
-  troubleshootingInfo: z.object({
-    stateReasonCode: z.string().describe(
-      "Output only. Unique code for each backup/restore operation failure message which helps user identify the failure.",
-    ).optional(),
-    stateReasonUri: z.string().describe(
-      "Output only. URL for the troubleshooting doc which will help the user fix the failing backup/restore operation.",
-    ).optional(),
-  }).describe(
-    "Stores information about troubleshooting doc for debugging a particular state of an operation (eg - backup/restore). This will be used by the end user to debug their operation failure scenario easily.",
   ).optional(),
   volumeDataRestorePolicyOverrides: z.array(z.object({
     policy: z.enum([
@@ -869,7 +469,7 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe("Optional. A list of namespaced Kubernetes resources.")
         .optional(),
-    }).describe("A list of namespaced Kubernetes resources.").optional(),
+    }).describe("A list of PVCs to apply the policy override to.").optional(),
   })).describe(
     "Optional. Immutable. Overrides the volume data restore policies selected in the Restore Config for override-scoped resources.",
   ).optional(),
@@ -907,7 +507,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup for GKE RestorePlans.Restores. Registered at `@swamp/gcp/gkebackup/restoreplans-restores`. */
 export const model = {
   type: "@swamp/gcp/gkebackup/restoreplans-restores",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1019,6 +619,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: restoreConfig, troubleshootingInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          restoreConfig: _restoreConfig,
+          troubleshootingInfo: _troubleshootingInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1052,12 +664,6 @@ export const model = {
         }
         if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["restoreConfig"] !== undefined) {
-          body["restoreConfig"] = g["restoreConfig"];
-        }
-        if (g["troubleshootingInfo"] !== undefined) {
-          body["troubleshootingInfo"] = g["troubleshootingInfo"];
-        }
         if (g["volumeDataRestorePolicyOverrides"] !== undefined) {
           body["volumeDataRestorePolicyOverrides"] =
             g["volumeDataRestorePolicyOverrides"];
@@ -1084,14 +690,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1185,14 +784,7 @@ export const model = {
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["restoreConfig"] !== undefined) {
-          body["restoreConfig"] = g["restoreConfig"];
-        }
-        if (g["troubleshootingInfo"] !== undefined) {
-          body["troubleshootingInfo"] = g["troubleshootingInfo"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

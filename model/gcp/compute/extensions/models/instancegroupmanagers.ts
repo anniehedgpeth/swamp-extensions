@@ -214,9 +214,11 @@ const GlobalArgsSchema = z.object({
         "The metadata key-value pairs that you want to patch onto the instance. For more information, see Project and instance metadata.",
       ).optional(),
     }).describe(
-      "Represents the change that you want to make to the instance properties.",
+      "Properties to set on all instances in the group. You can add or modify properties using theinstanceGroupManagers.patch orregionInstanceGroupManagers.patch. After settingallInstancesConfig on the group, you must update the group's instances to apply the configuration. To apply the configuration, set the group's updatePolicy.type field to use proactive updates or use the applyUpdatesToInstances method.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Specifies configuration that overrides the instance template configuration for the group.",
+  ).optional(),
   autoHealingPolicies: z.array(z.object({
     healthCheck: z.string().describe(
       "The URL for the health check that signals autohealing.",
@@ -230,47 +232,6 @@ const GlobalArgsSchema = z.object({
   baseInstanceName: z.string().describe(
     'The base instance name is a prefix that you want to attach to the names of all VMs in a MIG. The maximum character length is 58 and the name must comply with RFC1035 format. When a VM is created in the group, the MIG appends a hyphen and a random four-character string to the base instance name. If you want the MIG to assign sequential numbers instead of a random string, then end the base instance name with a hyphen followed by one or more hash symbols. The hash symbols indicate the number of digits. For example, a base instance name of "vm-###" results in "vm-001" as a VM name. @pattern [a-z](([-a-z0-9]{0,57})|([-a-z0-9]{0,51}-#{1,10}(\\\\[[0-9]{1,10}\\\\])?))',
   ).optional(),
-  currentActions: z.object({
-    abandoning: z.number().int().describe(
-      "Output only. The total number of instances in the managed instance group that are scheduled to be abandoned. Abandoning an instance removes it from the managed instance group without deleting it.",
-    ).optional(),
-    creating: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be created or are currently being created. If the group fails to create any of these instances, it tries again until it creates the instance successfully. If you have disabled creation retries, this field will not be populated; instead, the creatingWithoutRetries field will be populated.",
-    ).optional(),
-    creatingWithoutRetries: z.number().int().describe(
-      "Output only. The number of instances that the managed instance group will attempt to create. The group attempts to create each instance only once. If the group fails to create any of these instances, it decreases the group's targetSize value accordingly.",
-    ).optional(),
-    deleting: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be deleted or are currently being deleted.",
-    ).optional(),
-    none: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are running and have no scheduled actions.",
-    ).optional(),
-    recreating: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be recreated or are currently being being recreated. Recreating an instance deletes the existing root persistent disk and creates a new disk from the image that is defined in the instance template.",
-    ).optional(),
-    refreshing: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are being reconfigured with properties that do not require a restart or a recreate action. For example, setting or removing target pools for the instance.",
-    ).optional(),
-    restarting: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be restarted or are currently being restarted.",
-    ).optional(),
-    resuming: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be resumed or are currently being resumed.",
-    ).optional(),
-    starting: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be started or are currently being started.",
-    ).optional(),
-    stopping: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be stopped or are currently being stopped.",
-    ).optional(),
-    suspending: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be suspended or are currently being suspended.",
-    ).optional(),
-    verifying: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are being verified. See the managedInstances[].currentAction property in the listManagedInstances method documentation.",
-    ).optional(),
-  }).optional(),
   description: z.string().describe("An optional description of this resource.")
     .optional(),
   distributionPolicy: z.object({
@@ -285,7 +246,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Zones where the regional managed instance group will create and manage its instances. By default, a regional MIG doesn't automatically select an AI zone to create instances, even if an AI zone is available in the specified region. To create instances in an AI zone in the selected region, you must explicitly specify it in the distribution policy together with the other preferred zones.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Policy specifying the intended distribution of managed instances across zones in a regional managed instance group.",
+  ).optional(),
   fingerprint: z.string().describe(
     "Fingerprint of this resource. This field may be used in optimistic locking. It will be ignored when inserting an InstanceGroupManager. An up-to-date fingerprint must be provided in order to update the InstanceGroupManager, otherwise the request will fail with error412 conditionNotMet. To see the latest fingerprint, make a get() request to retrieve an InstanceGroupManager.",
   ).optional(),
@@ -303,7 +266,9 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "Named instance selections configuring properties that the group will use when creating new VMs.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Instance flexibility allowing MIG to create VMs from multiple types of machines. Instance flexibility configuration on MIG overrides instance template configuration.",
+  ).optional(),
   instanceLifecyclePolicy: z.object({
     defaultActionOnFailure: z.enum(["DO_NOTHING", "REPAIR"]).describe(
       "The action that a MIG performs on a failed VM. If the value of the onFailedHealthCheck field is `DEFAULT_ACTION`, then the same action also applies to the VMs on which your application fails a health check. Valid values are - REPAIR (default): MIG automatically repairs a failed VM by recreating it. For more information, see About repairing VMs in a MIG. - DO_NOTHING: MIG does not repair a failed VM.",
@@ -320,7 +285,7 @@ const GlobalArgsSchema = z.object({
         "Specifies whether the MIG can change a VM's zone during a repair. Valid values are: - NO (default): MIG cannot change a VM's zone during a repair. - YES: MIG can select a different zone for the VM during a repair.",
       ).optional(),
     }).describe("Configuration for VM repairs in the MIG.").optional(),
-  }).optional(),
+  }).describe("The repair policy for this managed instance group.").optional(),
   instanceTemplate: z.string().describe(
     "The URL of the instance template that is specified for this managed instance group. The group uses this template to create all new instances in the managed instance group. The templates for existing instances in the group do not change unless you run recreateInstances, runapplyUpdatesToInstances, or set the group'supdatePolicy.type to PROACTIVE.",
   ).optional(),
@@ -335,7 +300,7 @@ const GlobalArgsSchema = z.object({
     workloadPolicy: z.string().describe(
       "The URL of the workload policy that is specified for this managed instance group. It can be a full or partial URL. For example, the following are all valid URLs to a workload policy: - https://www.googleapis.com/compute/v1/projects/project/regions/region/resourcePolicies/resourcePolicy - projects/project/regions/region/resourcePolicies/resourcePolicy - regions/region/resourcePolicies/resourcePolicy",
     ).optional(),
-  }).optional(),
+  }).describe("Resource policies for this managed instance group.").optional(),
   standbyPolicy: z.object({
     initialDelaySec: z.number().int().describe(
       "Specifies the number of seconds that the MIG should wait to suspend or stop a VM after that VM was created. The initial delay gives the initialization script the time to prepare your VM for a quick scale out. The value of initial delay must be between 0 and 3600 seconds. The default value is 0.",
@@ -343,7 +308,7 @@ const GlobalArgsSchema = z.object({
     mode: z.enum(["MANUAL", "SCALE_OUT_POOL"]).describe(
       "Defines how a MIG resumes or starts VMs from a standby pool when the group scales out. The default mode is `MANUAL`.",
     ).optional(),
-  }).optional(),
+  }).describe("Standby policy for stopped and suspended instances.").optional(),
   statefulPolicy: z.object({
     preservedState: z.object({
       disks: z.record(
@@ -380,126 +345,8 @@ const GlobalArgsSchema = z.object({
         "Internal network IPs assigned to the instances that will be preserved on instance delete, update, etc. This map is keyed with the network interface name.",
       ).optional(),
     }).describe("Configuration of preserved resources.").optional(),
-  }).optional(),
-  status: z.object({
-    allInstancesConfig: z.object({
-      currentRevision: z.string().describe(
-        "Output only. Current all-instances configuration revision. This value is in RFC3339 text format.",
-      ).optional(),
-      effective: z.boolean().describe(
-        "Output only. A bit indicating whether this configuration has been applied to all managed instances in the group.",
-      ).optional(),
-    }).optional(),
-    appliedAcceleratorTopologies: z.array(z.object({
-      acceleratorTopology: z.string().describe(
-        'Output only. Topology in the format of: "16x16", "4x4x4", etc. The value is the same as configured in the WorkloadPolicy.',
-      ).optional(),
-      state: z.enum([
-        "ACTIVATING",
-        "ACTIVE",
-        "DEACTIVATING",
-        "FAILED",
-        "INCOMPLETE",
-        "REACTIVATING",
-      ]).describe("Output only. The state of the accelerator topology.")
-        .optional(),
-      stateDetails: z.object({
-        error: z.object({
-          errors: z.unknown().describe(
-            "[Output Only] The array of errors encountered while processing this operation.",
-          ).optional(),
-        }).describe("Output only. Encountered errors.").optional(),
-        timestamp: z.string().describe(
-          "Output only. Timestamp is shown only if there is an error. The field has // RFC3339 // text format.",
-        ).optional(),
-      }).optional(),
-    })).describe(
-      "Output only. The accelerator topology applied to this MIG. Currently only one accelerator topology is supported.",
-    ).optional(),
-    autoscaler: z.string().describe(
-      "Output only. The URL of theAutoscaler that targets this instance group manager.",
-    ).optional(),
-    bulkInstanceOperation: z.object({
-      inProgress: z.boolean().describe(
-        "Output only. Informs whether bulk instance operation is in progress.",
-      ).optional(),
-      lastProgressCheck: z.object({
-        error: z.object({
-          errors: z.array(z.unknown()).describe(
-            "[Output Only] The array of errors encountered while processing this operation.",
-          ).optional(),
-        }).describe(
-          "Output only. Errors encountered during bulk instance operation.",
-        ).optional(),
-        timestamp: z.string().describe(
-          "Output only. Timestamp of the last progress check of bulk instance operation. Timestamp is in RFC3339 text format.",
-        ).optional(),
-      }).optional(),
-    }).describe(
-      "Bulk instance operation is the creation of VMs in a MIG when the targetSizePolicy.mode is set to BULK.",
-    ).optional(),
-    currentInstanceStatuses: z.object({
-      deprovisioning: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have DEPROVISIONING status.",
-      ).optional(),
-      nonExistent: z.number().int().describe(
-        "Output only. The number of instances that have not been created yet or have been deleted. Includes only instances that would be shown in the listManagedInstances method and not all instances that have been deleted in the lifetime of the MIG. Does not include FlexStart instances that are waiting for the resources availability, they are considered as 'pending'.",
-      ).optional(),
-      pending: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have PENDING status, that is FlexStart instances that are waiting for resources. Instances that do not exist because of the other reasons are counted as 'non_existent'.",
-      ).optional(),
-      pendingStop: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have PENDING_STOP status.",
-      ).optional(),
-      provisioning: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have PROVISIONING status.",
-      ).optional(),
-      repairing: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have REPAIRING status.",
-      ).optional(),
-      running: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have RUNNING status.",
-      ).optional(),
-      staging: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have STAGING status.",
-      ).optional(),
-      stopped: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have STOPPED status.",
-      ).optional(),
-      stopping: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have STOPPING status.",
-      ).optional(),
-      suspended: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have SUSPENDED status.",
-      ).optional(),
-      suspending: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have SUSPENDING status.",
-      ).optional(),
-      terminated: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have TERMINATED status.",
-      ).optional(),
-    }).describe(
-      "The list of instance statuses and the number of instances in this managed instance group that have the status. For more information about how to interpret each status check the instance lifecycle documentation. Currently only shown for TPU MIGs.",
-    ).optional(),
-    isStable: z.boolean().describe(
-      "Output only. A bit indicating whether the managed instance group is in a stable state. A stable state means that: none of the instances in the managed instance group is currently undergoing any type of change (for example, creation, restart, or deletion); no future changes are scheduled for instances in the managed instance group; and the managed instance group itself is not being modified.",
-    ).optional(),
-    stateful: z.object({
-      hasStatefulConfig: z.boolean().describe(
-        "Output only. A bit indicating whether the managed instance group has stateful configuration, that is, if you have configured any items in a stateful policy or in per-instance configs. The group might report that it has no stateful configuration even when there is still some preserved state on a managed instance, for example, if you have deleted all PICs but not yet applied those deletions.",
-      ).optional(),
-      perInstanceConfigs: z.object({
-        allEffective: z.boolean().describe(
-          "Output only. A bit indicating if all of the group's per-instance configurations (listed in the output of a listPerInstanceConfigs API call) have status EFFECTIVE or there are no per-instance-configs.",
-        ).optional(),
-      }).optional(),
-    }).optional(),
-    versionTarget: z.object({
-      isReached: z.boolean().describe(
-        "Output only. A bit indicating whether version target has been reached in this managed instance group, i.e. all instances are in their target version. Instances' target version are specified byversion field on Instance Group Manager.",
-      ).optional(),
-    }).optional(),
-  }).optional(),
+  }).describe("Stateful configuration for this Instanced Group Manager")
+    .optional(),
   targetPools: z.array(z.string()).describe(
     "The URLs for all TargetPool resources to which instances in theinstanceGroup field are added. The target pools automatically apply to all of the instances in the managed instance group.",
   ).optional(),
@@ -510,7 +357,9 @@ const GlobalArgsSchema = z.object({
     mode: z.enum(["BULK", "INDIVIDUAL", "UNSPECIFIED_MODE"]).describe(
       "The mode of target size policy based on which the MIG creates its VMs individually or all at once.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The policy that specifies how the MIG creates its VMs to achieve the target size.",
+  ).optional(),
   targetStoppedSize: z.number().int().describe(
     "The target number of stopped instances for this managed instance group. This number changes when you: - Stop instance using the stopInstances method or start instances using the startInstances method. - Manually change the targetStoppedSize using the update method.",
   ).optional(),
@@ -532,7 +381,7 @@ const GlobalArgsSchema = z.object({
         "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
       ).optional(),
     }).describe(
-      "Encapsulates numeric value that can be either absolute or relative.",
+      "The maximum number of instances that can be created above the specifiedtargetSize during the update process. This value can be either a fixed number or, if the group has 10 or more instances, a percentage. If you set a percentage, the number of instances is rounded if necessary. The default value for maxSurge is a fixed value equal to the number of zones in which the managed instance group operates. At least one of either maxSurge ormaxUnavailable must be greater than 0. Learn more about maxSurge.",
     ).optional(),
     maxUnavailable: z.object({
       calculated: z.number().int().describe(
@@ -545,7 +394,7 @@ const GlobalArgsSchema = z.object({
         "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
       ).optional(),
     }).describe(
-      "Encapsulates numeric value that can be either absolute or relative.",
+      "The maximum number of instances that can be unavailable during the update process. An instance is considered available if all of the following conditions are satisfied: - The instance's status is RUNNING. - If there is a health check on the instance group, the instance's health check status must be HEALTHY at least once. If there is no health check on the group, then the instance only needs to have a status of RUNNING to be considered available. This value can be either a fixed number or, if the group has 10 or more instances, a percentage. If you set a percentage, the number of instances is rounded if necessary. The default value formaxUnavailable is a fixed value equal to the number of zones in which the managed instance group operates. At least one of either maxSurge ormaxUnavailable must be greater than 0. Learn more about maxUnavailable.",
     ).optional(),
     minimalAction: z.enum(["NONE", "REFRESH", "REPLACE", "RESTART"]).describe(
       "Minimal action to be taken on an instance. Use this option to minimize disruption as much as possible or to apply a more disruptive action than is necessary. - To limit disruption as much as possible, set the minimal action toREFRESH. If your update requires a more disruptive action, Compute Engine performs the necessary action to execute the update. - To apply a more disruptive action than is strictly necessary, set the minimal action to RESTART or REPLACE. For example, Compute Engine does not need to restart a VM to change its metadata. But if your application reads instance metadata only when a VM is restarted, you can set the minimal action to RESTART in order to pick up metadata changes.",
@@ -564,7 +413,7 @@ const GlobalArgsSchema = z.object({
     type: z.enum(["OPPORTUNISTIC", "PROACTIVE"]).describe(
       "The type of update process. You can specify either PROACTIVE so that the MIG automatically updates VMs to the latest configurations orOPPORTUNISTIC so that you can select the VMs that you want to update.",
     ).optional(),
-  }).optional(),
+  }).describe("The update policy for this managed instance group.").optional(),
   versions: z.array(z.object({
     instanceTemplate: z.string().describe(
       "The URL of the instance template that is specified for this managed instance group. The group uses this template to create new instances in the managed instance group until the `targetSize` for this version is reached. The templates for existing instances in the group do not change unless you run recreateInstances, runapplyUpdatesToInstances, or set the group'supdatePolicy.type to PROACTIVE; in those cases, existing instances are updated until the `targetSize` for this version is reached.",
@@ -583,7 +432,7 @@ const GlobalArgsSchema = z.object({
         "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
       ).optional(),
     }).describe(
-      "Encapsulates numeric value that can be either absolute or relative.",
+      "Specifies the intended number of instances to be created from theinstanceTemplate. The final number of instances created from the template will be equal to: - If expressed as a fixed number, the minimum of either targetSize.fixed or instanceGroupManager.targetSize is used. - if expressed as a percent, the targetSize would be (targetSize.percent/100 * InstanceGroupManager.targetSize) If there is a remainder, the number is rounded. If unset, this version will update any remaining instances not updated by another version. ReadStarting a canary update for more information.",
     ).optional(),
   })).describe(
     "Specifies the instance templates used by this managed instance group to create instances. Each version is defined by an instanceTemplate and aname. Every version can appear at most once per instance group. This field overrides the top-level instanceTemplate field. Read more about therelationships between these fields. Exactly one version must leave thetargetSize field unset. That version will be applied to all remaining instances. For more information, read aboutcanary updates.",
@@ -774,9 +623,11 @@ const InputsSchema = z.object({
         "The metadata key-value pairs that you want to patch onto the instance. For more information, see Project and instance metadata.",
       ).optional(),
     }).describe(
-      "Represents the change that you want to make to the instance properties.",
+      "Properties to set on all instances in the group. You can add or modify properties using theinstanceGroupManagers.patch orregionInstanceGroupManagers.patch. After settingallInstancesConfig on the group, you must update the group's instances to apply the configuration. To apply the configuration, set the group's updatePolicy.type field to use proactive updates or use the applyUpdatesToInstances method.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Specifies configuration that overrides the instance template configuration for the group.",
+  ).optional(),
   autoHealingPolicies: z.array(z.object({
     healthCheck: z.string().describe(
       "The URL for the health check that signals autohealing.",
@@ -790,47 +641,6 @@ const InputsSchema = z.object({
   baseInstanceName: z.string().describe(
     'The base instance name is a prefix that you want to attach to the names of all VMs in a MIG. The maximum character length is 58 and the name must comply with RFC1035 format. When a VM is created in the group, the MIG appends a hyphen and a random four-character string to the base instance name. If you want the MIG to assign sequential numbers instead of a random string, then end the base instance name with a hyphen followed by one or more hash symbols. The hash symbols indicate the number of digits. For example, a base instance name of "vm-###" results in "vm-001" as a VM name. @pattern [a-z](([-a-z0-9]{0,57})|([-a-z0-9]{0,51}-#{1,10}(\\\\[[0-9]{1,10}\\\\])?))',
   ).optional(),
-  currentActions: z.object({
-    abandoning: z.number().int().describe(
-      "Output only. The total number of instances in the managed instance group that are scheduled to be abandoned. Abandoning an instance removes it from the managed instance group without deleting it.",
-    ).optional(),
-    creating: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be created or are currently being created. If the group fails to create any of these instances, it tries again until it creates the instance successfully. If you have disabled creation retries, this field will not be populated; instead, the creatingWithoutRetries field will be populated.",
-    ).optional(),
-    creatingWithoutRetries: z.number().int().describe(
-      "Output only. The number of instances that the managed instance group will attempt to create. The group attempts to create each instance only once. If the group fails to create any of these instances, it decreases the group's targetSize value accordingly.",
-    ).optional(),
-    deleting: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be deleted or are currently being deleted.",
-    ).optional(),
-    none: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are running and have no scheduled actions.",
-    ).optional(),
-    recreating: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be recreated or are currently being being recreated. Recreating an instance deletes the existing root persistent disk and creates a new disk from the image that is defined in the instance template.",
-    ).optional(),
-    refreshing: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are being reconfigured with properties that do not require a restart or a recreate action. For example, setting or removing target pools for the instance.",
-    ).optional(),
-    restarting: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be restarted or are currently being restarted.",
-    ).optional(),
-    resuming: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be resumed or are currently being resumed.",
-    ).optional(),
-    starting: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be started or are currently being started.",
-    ).optional(),
-    stopping: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be stopped or are currently being stopped.",
-    ).optional(),
-    suspending: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are scheduled to be suspended or are currently being suspended.",
-    ).optional(),
-    verifying: z.number().int().describe(
-      "Output only. The number of instances in the managed instance group that are being verified. See the managedInstances[].currentAction property in the listManagedInstances method documentation.",
-    ).optional(),
-  }).optional(),
   description: z.string().describe("An optional description of this resource.")
     .optional(),
   distributionPolicy: z.object({
@@ -845,7 +655,9 @@ const InputsSchema = z.object({
     })).describe(
       "Zones where the regional managed instance group will create and manage its instances. By default, a regional MIG doesn't automatically select an AI zone to create instances, even if an AI zone is available in the specified region. To create instances in an AI zone in the selected region, you must explicitly specify it in the distribution policy together with the other preferred zones.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Policy specifying the intended distribution of managed instances across zones in a regional managed instance group.",
+  ).optional(),
   fingerprint: z.string().describe(
     "Fingerprint of this resource. This field may be used in optimistic locking. It will be ignored when inserting an InstanceGroupManager. An up-to-date fingerprint must be provided in order to update the InstanceGroupManager, otherwise the request will fail with error412 conditionNotMet. To see the latest fingerprint, make a get() request to retrieve an InstanceGroupManager.",
   ).optional(),
@@ -863,7 +675,9 @@ const InputsSchema = z.object({
     ).describe(
       "Named instance selections configuring properties that the group will use when creating new VMs.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Instance flexibility allowing MIG to create VMs from multiple types of machines. Instance flexibility configuration on MIG overrides instance template configuration.",
+  ).optional(),
   instanceLifecyclePolicy: z.object({
     defaultActionOnFailure: z.enum(["DO_NOTHING", "REPAIR"]).describe(
       "The action that a MIG performs on a failed VM. If the value of the onFailedHealthCheck field is `DEFAULT_ACTION`, then the same action also applies to the VMs on which your application fails a health check. Valid values are - REPAIR (default): MIG automatically repairs a failed VM by recreating it. For more information, see About repairing VMs in a MIG. - DO_NOTHING: MIG does not repair a failed VM.",
@@ -880,7 +694,7 @@ const InputsSchema = z.object({
         "Specifies whether the MIG can change a VM's zone during a repair. Valid values are: - NO (default): MIG cannot change a VM's zone during a repair. - YES: MIG can select a different zone for the VM during a repair.",
       ).optional(),
     }).describe("Configuration for VM repairs in the MIG.").optional(),
-  }).optional(),
+  }).describe("The repair policy for this managed instance group.").optional(),
   instanceTemplate: z.string().describe(
     "The URL of the instance template that is specified for this managed instance group. The group uses this template to create all new instances in the managed instance group. The templates for existing instances in the group do not change unless you run recreateInstances, runapplyUpdatesToInstances, or set the group'supdatePolicy.type to PROACTIVE.",
   ).optional(),
@@ -895,7 +709,7 @@ const InputsSchema = z.object({
     workloadPolicy: z.string().describe(
       "The URL of the workload policy that is specified for this managed instance group. It can be a full or partial URL. For example, the following are all valid URLs to a workload policy: - https://www.googleapis.com/compute/v1/projects/project/regions/region/resourcePolicies/resourcePolicy - projects/project/regions/region/resourcePolicies/resourcePolicy - regions/region/resourcePolicies/resourcePolicy",
     ).optional(),
-  }).optional(),
+  }).describe("Resource policies for this managed instance group.").optional(),
   standbyPolicy: z.object({
     initialDelaySec: z.number().int().describe(
       "Specifies the number of seconds that the MIG should wait to suspend or stop a VM after that VM was created. The initial delay gives the initialization script the time to prepare your VM for a quick scale out. The value of initial delay must be between 0 and 3600 seconds. The default value is 0.",
@@ -903,7 +717,7 @@ const InputsSchema = z.object({
     mode: z.enum(["MANUAL", "SCALE_OUT_POOL"]).describe(
       "Defines how a MIG resumes or starts VMs from a standby pool when the group scales out. The default mode is `MANUAL`.",
     ).optional(),
-  }).optional(),
+  }).describe("Standby policy for stopped and suspended instances.").optional(),
   statefulPolicy: z.object({
     preservedState: z.object({
       disks: z.record(
@@ -940,126 +754,8 @@ const InputsSchema = z.object({
         "Internal network IPs assigned to the instances that will be preserved on instance delete, update, etc. This map is keyed with the network interface name.",
       ).optional(),
     }).describe("Configuration of preserved resources.").optional(),
-  }).optional(),
-  status: z.object({
-    allInstancesConfig: z.object({
-      currentRevision: z.string().describe(
-        "Output only. Current all-instances configuration revision. This value is in RFC3339 text format.",
-      ).optional(),
-      effective: z.boolean().describe(
-        "Output only. A bit indicating whether this configuration has been applied to all managed instances in the group.",
-      ).optional(),
-    }).optional(),
-    appliedAcceleratorTopologies: z.array(z.object({
-      acceleratorTopology: z.string().describe(
-        'Output only. Topology in the format of: "16x16", "4x4x4", etc. The value is the same as configured in the WorkloadPolicy.',
-      ).optional(),
-      state: z.enum([
-        "ACTIVATING",
-        "ACTIVE",
-        "DEACTIVATING",
-        "FAILED",
-        "INCOMPLETE",
-        "REACTIVATING",
-      ]).describe("Output only. The state of the accelerator topology.")
-        .optional(),
-      stateDetails: z.object({
-        error: z.object({
-          errors: z.unknown().describe(
-            "[Output Only] The array of errors encountered while processing this operation.",
-          ).optional(),
-        }).describe("Output only. Encountered errors.").optional(),
-        timestamp: z.string().describe(
-          "Output only. Timestamp is shown only if there is an error. The field has // RFC3339 // text format.",
-        ).optional(),
-      }).optional(),
-    })).describe(
-      "Output only. The accelerator topology applied to this MIG. Currently only one accelerator topology is supported.",
-    ).optional(),
-    autoscaler: z.string().describe(
-      "Output only. The URL of theAutoscaler that targets this instance group manager.",
-    ).optional(),
-    bulkInstanceOperation: z.object({
-      inProgress: z.boolean().describe(
-        "Output only. Informs whether bulk instance operation is in progress.",
-      ).optional(),
-      lastProgressCheck: z.object({
-        error: z.object({
-          errors: z.array(z.unknown()).describe(
-            "[Output Only] The array of errors encountered while processing this operation.",
-          ).optional(),
-        }).describe(
-          "Output only. Errors encountered during bulk instance operation.",
-        ).optional(),
-        timestamp: z.string().describe(
-          "Output only. Timestamp of the last progress check of bulk instance operation. Timestamp is in RFC3339 text format.",
-        ).optional(),
-      }).optional(),
-    }).describe(
-      "Bulk instance operation is the creation of VMs in a MIG when the targetSizePolicy.mode is set to BULK.",
-    ).optional(),
-    currentInstanceStatuses: z.object({
-      deprovisioning: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have DEPROVISIONING status.",
-      ).optional(),
-      nonExistent: z.number().int().describe(
-        "Output only. The number of instances that have not been created yet or have been deleted. Includes only instances that would be shown in the listManagedInstances method and not all instances that have been deleted in the lifetime of the MIG. Does not include FlexStart instances that are waiting for the resources availability, they are considered as 'pending'.",
-      ).optional(),
-      pending: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have PENDING status, that is FlexStart instances that are waiting for resources. Instances that do not exist because of the other reasons are counted as 'non_existent'.",
-      ).optional(),
-      pendingStop: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have PENDING_STOP status.",
-      ).optional(),
-      provisioning: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have PROVISIONING status.",
-      ).optional(),
-      repairing: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have REPAIRING status.",
-      ).optional(),
-      running: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have RUNNING status.",
-      ).optional(),
-      staging: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have STAGING status.",
-      ).optional(),
-      stopped: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have STOPPED status.",
-      ).optional(),
-      stopping: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have STOPPING status.",
-      ).optional(),
-      suspended: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have SUSPENDED status.",
-      ).optional(),
-      suspending: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have SUSPENDING status.",
-      ).optional(),
-      terminated: z.number().int().describe(
-        "Output only. The number of instances in the managed instance group that have TERMINATED status.",
-      ).optional(),
-    }).describe(
-      "The list of instance statuses and the number of instances in this managed instance group that have the status. For more information about how to interpret each status check the instance lifecycle documentation. Currently only shown for TPU MIGs.",
-    ).optional(),
-    isStable: z.boolean().describe(
-      "Output only. A bit indicating whether the managed instance group is in a stable state. A stable state means that: none of the instances in the managed instance group is currently undergoing any type of change (for example, creation, restart, or deletion); no future changes are scheduled for instances in the managed instance group; and the managed instance group itself is not being modified.",
-    ).optional(),
-    stateful: z.object({
-      hasStatefulConfig: z.boolean().describe(
-        "Output only. A bit indicating whether the managed instance group has stateful configuration, that is, if you have configured any items in a stateful policy or in per-instance configs. The group might report that it has no stateful configuration even when there is still some preserved state on a managed instance, for example, if you have deleted all PICs but not yet applied those deletions.",
-      ).optional(),
-      perInstanceConfigs: z.object({
-        allEffective: z.boolean().describe(
-          "Output only. A bit indicating if all of the group's per-instance configurations (listed in the output of a listPerInstanceConfigs API call) have status EFFECTIVE or there are no per-instance-configs.",
-        ).optional(),
-      }).optional(),
-    }).optional(),
-    versionTarget: z.object({
-      isReached: z.boolean().describe(
-        "Output only. A bit indicating whether version target has been reached in this managed instance group, i.e. all instances are in their target version. Instances' target version are specified byversion field on Instance Group Manager.",
-      ).optional(),
-    }).optional(),
-  }).optional(),
+  }).describe("Stateful configuration for this Instanced Group Manager")
+    .optional(),
   targetPools: z.array(z.string()).describe(
     "The URLs for all TargetPool resources to which instances in theinstanceGroup field are added. The target pools automatically apply to all of the instances in the managed instance group.",
   ).optional(),
@@ -1070,7 +766,9 @@ const InputsSchema = z.object({
     mode: z.enum(["BULK", "INDIVIDUAL", "UNSPECIFIED_MODE"]).describe(
       "The mode of target size policy based on which the MIG creates its VMs individually or all at once.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The policy that specifies how the MIG creates its VMs to achieve the target size.",
+  ).optional(),
   targetStoppedSize: z.number().int().describe(
     "The target number of stopped instances for this managed instance group. This number changes when you: - Stop instance using the stopInstances method or start instances using the startInstances method. - Manually change the targetStoppedSize using the update method.",
   ).optional(),
@@ -1092,7 +790,7 @@ const InputsSchema = z.object({
         "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
       ).optional(),
     }).describe(
-      "Encapsulates numeric value that can be either absolute or relative.",
+      "The maximum number of instances that can be created above the specifiedtargetSize during the update process. This value can be either a fixed number or, if the group has 10 or more instances, a percentage. If you set a percentage, the number of instances is rounded if necessary. The default value for maxSurge is a fixed value equal to the number of zones in which the managed instance group operates. At least one of either maxSurge ormaxUnavailable must be greater than 0. Learn more about maxSurge.",
     ).optional(),
     maxUnavailable: z.object({
       calculated: z.number().int().describe(
@@ -1105,7 +803,7 @@ const InputsSchema = z.object({
         "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
       ).optional(),
     }).describe(
-      "Encapsulates numeric value that can be either absolute or relative.",
+      "The maximum number of instances that can be unavailable during the update process. An instance is considered available if all of the following conditions are satisfied: - The instance's status is RUNNING. - If there is a health check on the instance group, the instance's health check status must be HEALTHY at least once. If there is no health check on the group, then the instance only needs to have a status of RUNNING to be considered available. This value can be either a fixed number or, if the group has 10 or more instances, a percentage. If you set a percentage, the number of instances is rounded if necessary. The default value formaxUnavailable is a fixed value equal to the number of zones in which the managed instance group operates. At least one of either maxSurge ormaxUnavailable must be greater than 0. Learn more about maxUnavailable.",
     ).optional(),
     minimalAction: z.enum(["NONE", "REFRESH", "REPLACE", "RESTART"]).describe(
       "Minimal action to be taken on an instance. Use this option to minimize disruption as much as possible or to apply a more disruptive action than is necessary. - To limit disruption as much as possible, set the minimal action toREFRESH. If your update requires a more disruptive action, Compute Engine performs the necessary action to execute the update. - To apply a more disruptive action than is strictly necessary, set the minimal action to RESTART or REPLACE. For example, Compute Engine does not need to restart a VM to change its metadata. But if your application reads instance metadata only when a VM is restarted, you can set the minimal action to RESTART in order to pick up metadata changes.",
@@ -1124,7 +822,7 @@ const InputsSchema = z.object({
     type: z.enum(["OPPORTUNISTIC", "PROACTIVE"]).describe(
       "The type of update process. You can specify either PROACTIVE so that the MIG automatically updates VMs to the latest configurations orOPPORTUNISTIC so that you can select the VMs that you want to update.",
     ).optional(),
-  }).optional(),
+  }).describe("The update policy for this managed instance group.").optional(),
   versions: z.array(z.object({
     instanceTemplate: z.string().describe(
       "The URL of the instance template that is specified for this managed instance group. The group uses this template to create new instances in the managed instance group until the `targetSize` for this version is reached. The templates for existing instances in the group do not change unless you run recreateInstances, runapplyUpdatesToInstances, or set the group'supdatePolicy.type to PROACTIVE; in those cases, existing instances are updated until the `targetSize` for this version is reached.",
@@ -1143,7 +841,7 @@ const InputsSchema = z.object({
         "Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.",
       ).optional(),
     }).describe(
-      "Encapsulates numeric value that can be either absolute or relative.",
+      "Specifies the intended number of instances to be created from theinstanceTemplate. The final number of instances created from the template will be equal to: - If expressed as a fixed number, the minimum of either targetSize.fixed or instanceGroupManager.targetSize is used. - if expressed as a percent, the targetSize would be (targetSize.percent/100 * InstanceGroupManager.targetSize) If there is a remainder, the number is rounded. If unset, this version will update any remaining instances not updated by another version. ReadStarting a canary update for more information.",
     ).optional(),
   })).describe(
     "Specifies the instance templates used by this managed instance group to create instances. Each version is defined by an instanceTemplate and aname. Every version can appear at most once per instance group. This field overrides the top-level instanceTemplate field. Read more about therelationships between these fields. Exactly one version must leave thetargetSize field unset. That version will be applied to all remaining instances. For more information, read aboutcanary updates.",
@@ -1179,7 +877,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstanceGroupManagers. Registered at `@swamp/gcp/compute/instancegroupmanagers`. */
 export const model = {
   type: "@swamp/gcp/compute/instancegroupmanagers",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1361,6 +1059,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: currentActions, status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { currentActions: _currentActions, status: _status, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1392,9 +1099,6 @@ export const model = {
         }
         if (g["baseInstanceName"] !== undefined) {
           body["baseInstanceName"] = g["baseInstanceName"];
-        }
-        if (g["currentActions"] !== undefined) {
-          body["currentActions"] = g["currentActions"];
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
@@ -1428,7 +1132,6 @@ export const model = {
         if (g["statefulPolicy"] !== undefined) {
           body["statefulPolicy"] = g["statefulPolicy"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["targetPools"] !== undefined) {
           body["targetPools"] = g["targetPools"];
         }
@@ -1554,9 +1257,6 @@ export const model = {
         if (g["baseInstanceName"] !== undefined) {
           body["baseInstanceName"] = g["baseInstanceName"];
         }
-        if (g["currentActions"] !== undefined) {
-          body["currentActions"] = g["currentActions"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -1589,7 +1289,6 @@ export const model = {
         if (g["statefulPolicy"] !== undefined) {
           body["statefulPolicy"] = g["statefulPolicy"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["targetPools"] !== undefined) {
           body["targetPools"] = g["targetPools"];
         }

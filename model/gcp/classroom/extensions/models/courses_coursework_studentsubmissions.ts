@@ -208,7 +208,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the Drive item. Read-only.")
           .optional(),
-      }).describe("Representation of a Google Drive file.").optional(),
+      }).describe("Google Drive file attachment.").optional(),
       form: z.object({
         formUrl: z.string().describe("URL of the form.").optional(),
         responseUrl: z.string().describe(
@@ -218,7 +218,7 @@ const GlobalArgsSchema = z.object({
           "URL of a thumbnail image of the Form. Read-only.",
         ).optional(),
         title: z.string().describe("Title of the Form. Read-only.").optional(),
-      }).describe("Google Forms item.").optional(),
+      }).describe("Google Forms attachment.").optional(),
       link: z.object({
         thumbnailUrl: z.string().describe(
           "URL of a thumbnail image of the target URL. Read-only.",
@@ -228,7 +228,7 @@ const GlobalArgsSchema = z.object({
         url: z.string().describe(
           "URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.",
         ).optional(),
-      }).describe("URL item.").optional(),
+      }).describe("Link attachment.").optional(),
       youTubeVideo: z.object({
         alternateLink: z.string().describe(
           "URL that can be used to view the YouTube video. Read-only.",
@@ -239,11 +239,13 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the YouTube video. Read-only.")
           .optional(),
-      }).describe("YouTube video item.").optional(),
+      }).describe("Youtube video attachment.").optional(),
     })).describe(
       "Attachments added by the student. Drive files that correspond to materials with a share mode of STUDENT_COPY may not exist yet if the student has not accessed the assignment in Classroom. Some attachment metadata is only populated if the requesting user has permission to access it. Identifier and alternate_link fields are always available, but others (for example, title) may not be.",
     ).optional(),
-  }).describe("Student work for an assignment.").optional(),
+  }).describe(
+    "Submission content when course_work_type is ASSIGNMENT. Students can modify this content using ModifyAttachments.",
+  ).optional(),
   associatedWithDeveloper: z.boolean().describe(
     "Whether this student submission is associated with the Developer Console project making the request. See CreateCourseWork for more details. Read-only.",
   ).optional(),
@@ -286,11 +288,15 @@ const GlobalArgsSchema = z.object({
     .optional(),
   multipleChoiceSubmission: z.object({
     answer: z.string().describe("Student's select choice.").optional(),
-  }).describe("Student work for a multiple-choice question.").optional(),
+  }).describe(
+    "Submission content when course_work_type is MULTIPLE_CHOICE_QUESTION.",
+  ).optional(),
   shortAnswerSubmission: z.object({
     answer: z.string().describe("Student response to a short-answer question.")
       .optional(),
-  }).describe("Student work for a short answer question.").optional(),
+  }).describe(
+    "Submission content when course_work_type is SHORT_ANSWER_QUESTION.",
+  ).optional(),
   state: z.enum([
     "SUBMISSION_STATE_UNSPECIFIED",
     "NEW",
@@ -320,7 +326,8 @@ const GlobalArgsSchema = z.object({
       pointsEarned: z.number().describe(
         "The numerator of the grade at this time in the submission grade history.",
       ).optional(),
-    }).describe("The history of each grade on this submission.").optional(),
+    }).describe("The grade history information of the submission, if present.")
+      .optional(),
     stateHistory: z.object({
       actorUserId: z.string().describe(
         "The teacher or student who made the change.",
@@ -336,7 +343,7 @@ const GlobalArgsSchema = z.object({
       stateTimestamp: z.string().describe(
         "When the submission entered this state.",
       ).optional(),
-    }).describe("The history of each state this submission has been in.")
+    }).describe("The state history information of the submission, if present.")
       .optional(),
   })).describe(
     "The history of the submission (includes state and grade histories). Read-only.",
@@ -453,7 +460,7 @@ const InputsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the Drive item. Read-only.")
           .optional(),
-      }).describe("Representation of a Google Drive file.").optional(),
+      }).describe("Google Drive file attachment.").optional(),
       form: z.object({
         formUrl: z.string().describe("URL of the form.").optional(),
         responseUrl: z.string().describe(
@@ -463,7 +470,7 @@ const InputsSchema = z.object({
           "URL of a thumbnail image of the Form. Read-only.",
         ).optional(),
         title: z.string().describe("Title of the Form. Read-only.").optional(),
-      }).describe("Google Forms item.").optional(),
+      }).describe("Google Forms attachment.").optional(),
       link: z.object({
         thumbnailUrl: z.string().describe(
           "URL of a thumbnail image of the target URL. Read-only.",
@@ -473,7 +480,7 @@ const InputsSchema = z.object({
         url: z.string().describe(
           "URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.",
         ).optional(),
-      }).describe("URL item.").optional(),
+      }).describe("Link attachment.").optional(),
       youTubeVideo: z.object({
         alternateLink: z.string().describe(
           "URL that can be used to view the YouTube video. Read-only.",
@@ -484,11 +491,13 @@ const InputsSchema = z.object({
         ).optional(),
         title: z.string().describe("Title of the YouTube video. Read-only.")
           .optional(),
-      }).describe("YouTube video item.").optional(),
+      }).describe("Youtube video attachment.").optional(),
     })).describe(
       "Attachments added by the student. Drive files that correspond to materials with a share mode of STUDENT_COPY may not exist yet if the student has not accessed the assignment in Classroom. Some attachment metadata is only populated if the requesting user has permission to access it. Identifier and alternate_link fields are always available, but others (for example, title) may not be.",
     ).optional(),
-  }).describe("Student work for an assignment.").optional(),
+  }).describe(
+    "Submission content when course_work_type is ASSIGNMENT. Students can modify this content using ModifyAttachments.",
+  ).optional(),
   associatedWithDeveloper: z.boolean().describe(
     "Whether this student submission is associated with the Developer Console project making the request. See CreateCourseWork for more details. Read-only.",
   ).optional(),
@@ -531,11 +540,15 @@ const InputsSchema = z.object({
     .optional(),
   multipleChoiceSubmission: z.object({
     answer: z.string().describe("Student's select choice.").optional(),
-  }).describe("Student work for a multiple-choice question.").optional(),
+  }).describe(
+    "Submission content when course_work_type is MULTIPLE_CHOICE_QUESTION.",
+  ).optional(),
   shortAnswerSubmission: z.object({
     answer: z.string().describe("Student response to a short-answer question.")
       .optional(),
-  }).describe("Student work for a short answer question.").optional(),
+  }).describe(
+    "Submission content when course_work_type is SHORT_ANSWER_QUESTION.",
+  ).optional(),
   state: z.enum([
     "SUBMISSION_STATE_UNSPECIFIED",
     "NEW",
@@ -565,7 +578,8 @@ const InputsSchema = z.object({
       pointsEarned: z.number().describe(
         "The numerator of the grade at this time in the submission grade history.",
       ).optional(),
-    }).describe("The history of each grade on this submission.").optional(),
+    }).describe("The grade history information of the submission, if present.")
+      .optional(),
     stateHistory: z.object({
       actorUserId: z.string().describe(
         "The teacher or student who made the change.",
@@ -581,7 +595,7 @@ const InputsSchema = z.object({
       stateTimestamp: z.string().describe(
         "When the submission entered this state.",
       ).optional(),
-    }).describe("The history of each state this submission has been in.")
+    }).describe("The state history information of the submission, if present.")
       .optional(),
   })).describe(
     "The history of the submission (includes state and grade histories). Read-only.",
@@ -617,7 +631,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom Courses.CourseWork.StudentSubmissions. Registered at `@swamp/gcp/classroom/courses-coursework-studentsubmissions`. */
 export const model = {
   type: "@swamp/gcp/classroom/courses-coursework-studentsubmissions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -706,6 +720,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

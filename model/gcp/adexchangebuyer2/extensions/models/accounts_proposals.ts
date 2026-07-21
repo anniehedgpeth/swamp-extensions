@@ -148,17 +148,11 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  billedBuyer: z.object({
-    accountId: z.string().describe("Authorized Buyers account ID of the buyer.")
-      .optional(),
-  }).describe(
-    "Represents a buyer of inventory. Each buyer is identified by a unique Authorized Buyers account ID.",
-  ).optional(),
   buyer: z.object({
     accountId: z.string().describe("Authorized Buyers account ID of the buyer.")
       .optional(),
   }).describe(
-    "Represents a buyer of inventory. Each buyer is identified by a unique Authorized Buyers account ID.",
+    "Reference to the buyer on the proposal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.",
   ).optional(),
   buyerContacts: z.array(z.object({
     email: z.string().describe("Email address for the contact.").optional(),
@@ -168,9 +162,7 @@ const GlobalArgsSchema = z.object({
     referenceId: z.string().describe(
       "A buyer or seller specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).",
     ).optional(),
-  }).describe(
-    "Buyers are allowed to store certain types of private data in a proposal/deal.",
-  ).optional(),
+  }).describe("Private data for buyer. (hidden from seller).").optional(),
   deals: z.array(z.object({
     availableEndTime: z.string().describe(
       "Proposed flight end time of the deal. This will generally be stored in a granularity of a second. A value is not required for Private Auction deals or Preferred Deals.",
@@ -182,9 +174,7 @@ const GlobalArgsSchema = z.object({
       referenceId: z.string().describe(
         "A buyer or seller specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).",
       ).optional(),
-    }).describe(
-      "Buyers are allowed to store certain types of private data in a proposal/deal.",
-    ).optional(),
+    }).describe("Buyer private data (hidden from seller).").optional(),
     createProductId: z.string().describe(
       "The product ID from which this deal was created. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.",
     ).optional(),
@@ -212,9 +202,8 @@ const GlobalArgsSchema = z.object({
         creativeCompanionSizes: z.unknown().describe(
           "Companion sizes may be filled in only when this is a video creative.",
         ).optional(),
-        creativeSize: z.unknown().describe(
-          "Represents size of a single ad slot, or a creative.",
-        ).optional(),
+        creativeSize: z.unknown().describe("The size of the creative.")
+          .optional(),
       })).optional(),
       skippableAdType: z.enum([
         "SKIPPABLE_AD_TYPE_UNSPECIFIED",
@@ -225,7 +214,7 @@ const GlobalArgsSchema = z.object({
         "Skippable video ads allow viewers to skip ads after 5 seconds.",
       ).optional(),
     }).describe(
-      "Represents creative restrictions associated to Programmatic Guaranteed/ Preferred Deal in Ad Manager. This doesn't apply to Private Auction and AdX Preferred Deals.",
+      "Output only. Restricitions about the creatives associated with the deal (for example, size) This is available for Programmatic Guaranteed/Preferred Deals in Ad Manager.",
     ).optional(),
     creativeSafeFrameCompatibility: z.enum([
       "CREATIVE_SAFE_FRAME_COMPATIBILITY_UNSPECIFIED",
@@ -258,9 +247,9 @@ const GlobalArgsSchema = z.object({
           "The seller's reason for pausing, if the seller paused the deal.",
         ).optional(),
       }).describe(
-        "Tracks which parties (if any) have paused a deal. The deal is considered paused if either hasBuyerPaused or hasSellPaused is true.",
+        "Output only. Tracks which parties (if any) have paused a deal.",
       ).optional(),
-    }).describe("Message captures metadata about the serving status of a deal.")
+    }).describe("Output only. Metadata about the serving status of this deal.")
       .optional(),
     dealTerms: z.object({
       brandingType: z.enum([
@@ -283,16 +272,16 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe("The actual price with currency specified.").optional(),
         pricingType: z.enum([
           "PRICING_TYPE_UNSPECIFIED",
           "COST_PER_MILLE",
           "COST_PER_DAY",
         ]).describe("The pricing type for the deal/product. (default: CPM)")
           .optional(),
-      }).describe("Represents a price and a pricing type for a product / deal.")
-        .optional(),
+      }).describe(
+        "Non-binding estimate of the estimated gross spend for this deal. Can be set by buyer or seller.",
+      ).optional(),
       estimatedImpressionsPerDay: z.string().describe(
         "Non-binding estimate of the impressions served per day. Can be set by buyer or seller.",
       ).optional(),
@@ -322,7 +311,7 @@ const GlobalArgsSchema = z.object({
         ]).describe(
           "The reservation type for a Programmatic Guaranteed deal. This indicates whether the number of impressions is fixed, or a percent of available impressions. If not specified, the default reservation type is STANDARD.",
         ).optional(),
-      }).describe("Terms for Programmatic Guaranteed Deals.").optional(),
+      }).describe("The terms for guaranteed fixed price deals.").optional(),
       nonGuaranteedAuctionTerms: z.object({
         autoOptimizePrivateAuction: z.boolean().describe(
           "True if open auction buyers are allowed to compete with invited buyers in this private auction.",
@@ -330,20 +319,16 @@ const GlobalArgsSchema = z.object({
         reservePricesPerBuyer: z.array(z.unknown()).describe(
           "Reserve price for the specified buyer.",
         ).optional(),
-      }).describe(
-        "Terms for Private Auctions. Note that Private Auctions can be created only by the seller, but they can be returned in a get or list request.",
-      ).optional(),
+      }).describe("The terms for non-guaranteed auction deals.").optional(),
       nonGuaranteedFixedPriceTerms: z.object({
         fixedPrices: z.array(z.unknown()).describe(
           "Fixed price for the specified buyer.",
         ).optional(),
-      }).describe("Terms for Preferred Deals.").optional(),
+      }).describe("The terms for non-guaranteed fixed price deals.").optional(),
       sellerTimeZone: z.string().describe(
         'The time zone name. For deals with Cost Per Day billing, defines the time zone used to mark the boundaries of a day. It should be an IANA TZ name, such as "America/Los_Angeles". For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.',
       ).optional(),
-    }).describe(
-      "The deal terms specify the details of a Product/deal. They specify things like price per buyer, the type of pricing model (for example, fixed price, auction) and expected impressions from the publisher.",
-    ).optional(),
+    }).describe("The negotiable terms of the deal.").optional(),
     deliveryControl: z.object({
       creativeBlockingLevel: z.enum([
         "CREATIVE_BLOCKING_LEVEL_UNSPECIFIED",
@@ -371,8 +356,9 @@ const GlobalArgsSchema = z.object({
           "The time unit. Along with num_time_units defines the amount of time over which impressions per user are counted and capped.",
         ).optional(),
       })).describe("Output only. Specifies any frequency caps.").optional(),
-    }).describe("Message contains details about how the deals will be paced.")
-      .optional(),
+    }).describe(
+      "The set of fields around delivery control that are interesting for a buyer to see but are non-negotiable. These are set by the publisher.",
+    ).optional(),
     description: z.string().describe("Description for the deal terms.")
       .optional(),
     displayName: z.string().describe("The name of the deal.").optional(),
@@ -414,9 +400,7 @@ const GlobalArgsSchema = z.object({
         targetedCriteriaIds: z.array(z.unknown()).describe(
           "A list of numeric IDs to be included.",
         ).optional(),
-      }).describe(
-        "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
-      ).optional(),
+      }).describe("Geo criteria IDs to be included/excluded.").optional(),
       inventorySizeTargeting: z.object({
         excludedInventorySizes: z.array(z.unknown()).describe(
           "A list of inventory sizes to be excluded.",
@@ -424,25 +408,23 @@ const GlobalArgsSchema = z.object({
         targetedInventorySizes: z.array(z.unknown()).describe(
           "A list of inventory sizes to be included.",
         ).optional(),
-      }).describe(
-        "Represents the size of an ad unit that can be targeted on an ad request. It only applies to Private Auction, AdX Preferred Deals and Auction Packages. This targeting does not apply to Programmatic Guaranteed and Preferred Deals in Ad Manager.",
-      ).optional(),
+      }).describe("Inventory sizes to be included/excluded.").optional(),
       placementTargeting: z.object({
         mobileApplicationTargeting: z.object({
           firstPartyTargeting: z.unknown().describe(
-            "Represents a list of targeted and excluded mobile application IDs that publishers own. Mobile application IDs are from App Store and Google Play Store. Android App ID, for example, com.google.android.apps.maps, can be found in Google Play Store URL. iOS App ID (which is a number) can be found at the end of iTunes store URL. First party mobile applications is either included or excluded.",
+            "Publisher owned apps to be targeted or excluded by the publisher to display the ads in.",
           ).optional(),
-        }).describe("Mobile application targeting settings.").optional(),
+        }).describe(
+          "Mobile application targeting information in a deal. This doesn't apply to Auction Packages.",
+        ).optional(),
         urlTargeting: z.object({
           excludedUrls: z.unknown().describe("A list of URLs to be excluded.")
             .optional(),
           targetedUrls: z.unknown().describe("A list of URLs to be included.")
             .optional(),
-        }).describe(
-          "Represents a list of targeted and excluded URLs (for example, google.com). For Private Auction and AdX Preferred Deals, URLs are either included or excluded. For Programmatic Guaranteed and Preferred Deals, this doesn't apply.",
-        ).optional(),
+        }).describe("URLs to be included/excluded.").optional(),
       }).describe(
-        "Represents targeting about where the ads can appear, for example, certain sites or mobile applications. Different placement targeting types will be logically OR'ed.",
+        "Placement targeting information, for example, URL, mobile applications.",
       ).optional(),
       technologyTargeting: z.object({
         deviceCapabilityTargeting: z.object({
@@ -452,9 +434,8 @@ const GlobalArgsSchema = z.object({
           targetedCriteriaIds: z.unknown().describe(
             "A list of numeric IDs to be included.",
           ).optional(),
-        }).describe(
-          "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
-        ).optional(),
+        }).describe("IDs of device capabilities to be included/excluded.")
+          .optional(),
         deviceCategoryTargeting: z.object({
           excludedCriteriaIds: z.unknown().describe(
             "A list of numeric IDs to be excluded.",
@@ -462,20 +443,20 @@ const GlobalArgsSchema = z.object({
           targetedCriteriaIds: z.unknown().describe(
             "A list of numeric IDs to be included.",
           ).optional(),
-        }).describe(
-          "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
-        ).optional(),
+        }).describe("IDs of device categories to be included/excluded.")
+          .optional(),
         operatingSystemTargeting: z.object({
           operatingSystemCriteria: z.unknown().describe(
-            "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
+            "IDs of operating systems to be included/excluded.",
           ).optional(),
           operatingSystemVersionCriteria: z.unknown().describe(
-            "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
+            "IDs of operating system versions to be included/excluded.",
           ).optional(),
-        }).describe("Represents targeting information for operating systems.")
+        }).describe("Operating system related targeting information.")
           .optional(),
-      }).describe("Represents targeting about various types of technology.")
-        .optional(),
+      }).describe(
+        "Technology targeting information, for example, operating system, device category.",
+      ).optional(),
       videoTargeting: z.object({
         excludedPositionTypes: z.array(z.unknown()).describe(
           "A list of video positions to be excluded. Position types can either be included or excluded (XOR).",
@@ -483,9 +464,9 @@ const GlobalArgsSchema = z.object({
         targetedPositionTypes: z.array(z.unknown()).describe(
           "A list of video positions to be included. When the included list is present, the excluded list must be empty. When the excluded list is present, the included list must be empty.",
         ).optional(),
-      }).describe("Represents targeting information about video.").optional(),
+      }).describe("Video targeting information.").optional(),
     }).describe(
-      "Targeting represents different criteria that can be used by advertisers to target ad inventory. For example, they can choose to target ad requests only if the user is in the US. Multiple types of targeting are always applied as a logical AND, unless noted otherwise.",
+      "Output only. Specifies the subset of inventory targeted by the deal.",
     ).optional(),
     targetingCriterion: z.array(z.object({
       exclusions: z.array(z.unknown()).describe(
@@ -518,7 +499,7 @@ const GlobalArgsSchema = z.object({
       "Output only. Ad manager network code for the seller.",
     ).optional(),
   }).describe(
-    "Represents a seller of inventory. Each seller is identified by a unique Ad Manager account ID.",
+    "Reference to the seller on the proposal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.",
   ).optional(),
   accountId: z.string().describe("Account ID of the buyer."),
 });
@@ -697,17 +678,11 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  billedBuyer: z.object({
-    accountId: z.string().describe("Authorized Buyers account ID of the buyer.")
-      .optional(),
-  }).describe(
-    "Represents a buyer of inventory. Each buyer is identified by a unique Authorized Buyers account ID.",
-  ).optional(),
   buyer: z.object({
     accountId: z.string().describe("Authorized Buyers account ID of the buyer.")
       .optional(),
   }).describe(
-    "Represents a buyer of inventory. Each buyer is identified by a unique Authorized Buyers account ID.",
+    "Reference to the buyer on the proposal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.",
   ).optional(),
   buyerContacts: z.array(z.object({
     email: z.string().describe("Email address for the contact.").optional(),
@@ -717,9 +692,7 @@ const InputsSchema = z.object({
     referenceId: z.string().describe(
       "A buyer or seller specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).",
     ).optional(),
-  }).describe(
-    "Buyers are allowed to store certain types of private data in a proposal/deal.",
-  ).optional(),
+  }).describe("Private data for buyer. (hidden from seller).").optional(),
   deals: z.array(z.object({
     availableEndTime: z.string().describe(
       "Proposed flight end time of the deal. This will generally be stored in a granularity of a second. A value is not required for Private Auction deals or Preferred Deals.",
@@ -731,9 +704,7 @@ const InputsSchema = z.object({
       referenceId: z.string().describe(
         "A buyer or seller specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).",
       ).optional(),
-    }).describe(
-      "Buyers are allowed to store certain types of private data in a proposal/deal.",
-    ).optional(),
+    }).describe("Buyer private data (hidden from seller).").optional(),
     createProductId: z.string().describe(
       "The product ID from which this deal was created. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.",
     ).optional(),
@@ -761,9 +732,8 @@ const InputsSchema = z.object({
         creativeCompanionSizes: z.unknown().describe(
           "Companion sizes may be filled in only when this is a video creative.",
         ).optional(),
-        creativeSize: z.unknown().describe(
-          "Represents size of a single ad slot, or a creative.",
-        ).optional(),
+        creativeSize: z.unknown().describe("The size of the creative.")
+          .optional(),
       })).optional(),
       skippableAdType: z.enum([
         "SKIPPABLE_AD_TYPE_UNSPECIFIED",
@@ -774,7 +744,7 @@ const InputsSchema = z.object({
         "Skippable video ads allow viewers to skip ads after 5 seconds.",
       ).optional(),
     }).describe(
-      "Represents creative restrictions associated to Programmatic Guaranteed/ Preferred Deal in Ad Manager. This doesn't apply to Private Auction and AdX Preferred Deals.",
+      "Output only. Restricitions about the creatives associated with the deal (for example, size) This is available for Programmatic Guaranteed/Preferred Deals in Ad Manager.",
     ).optional(),
     creativeSafeFrameCompatibility: z.enum([
       "CREATIVE_SAFE_FRAME_COMPATIBILITY_UNSPECIFIED",
@@ -807,9 +777,9 @@ const InputsSchema = z.object({
           "The seller's reason for pausing, if the seller paused the deal.",
         ).optional(),
       }).describe(
-        "Tracks which parties (if any) have paused a deal. The deal is considered paused if either hasBuyerPaused or hasSellPaused is true.",
+        "Output only. Tracks which parties (if any) have paused a deal.",
       ).optional(),
-    }).describe("Message captures metadata about the serving status of a deal.")
+    }).describe("Output only. Metadata about the serving status of this deal.")
       .optional(),
     dealTerms: z.object({
       brandingType: z.enum([
@@ -832,16 +802,16 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe("The actual price with currency specified.").optional(),
         pricingType: z.enum([
           "PRICING_TYPE_UNSPECIFIED",
           "COST_PER_MILLE",
           "COST_PER_DAY",
         ]).describe("The pricing type for the deal/product. (default: CPM)")
           .optional(),
-      }).describe("Represents a price and a pricing type for a product / deal.")
-        .optional(),
+      }).describe(
+        "Non-binding estimate of the estimated gross spend for this deal. Can be set by buyer or seller.",
+      ).optional(),
       estimatedImpressionsPerDay: z.string().describe(
         "Non-binding estimate of the impressions served per day. Can be set by buyer or seller.",
       ).optional(),
@@ -871,7 +841,7 @@ const InputsSchema = z.object({
         ]).describe(
           "The reservation type for a Programmatic Guaranteed deal. This indicates whether the number of impressions is fixed, or a percent of available impressions. If not specified, the default reservation type is STANDARD.",
         ).optional(),
-      }).describe("Terms for Programmatic Guaranteed Deals.").optional(),
+      }).describe("The terms for guaranteed fixed price deals.").optional(),
       nonGuaranteedAuctionTerms: z.object({
         autoOptimizePrivateAuction: z.boolean().describe(
           "True if open auction buyers are allowed to compete with invited buyers in this private auction.",
@@ -879,20 +849,16 @@ const InputsSchema = z.object({
         reservePricesPerBuyer: z.array(z.unknown()).describe(
           "Reserve price for the specified buyer.",
         ).optional(),
-      }).describe(
-        "Terms for Private Auctions. Note that Private Auctions can be created only by the seller, but they can be returned in a get or list request.",
-      ).optional(),
+      }).describe("The terms for non-guaranteed auction deals.").optional(),
       nonGuaranteedFixedPriceTerms: z.object({
         fixedPrices: z.array(z.unknown()).describe(
           "Fixed price for the specified buyer.",
         ).optional(),
-      }).describe("Terms for Preferred Deals.").optional(),
+      }).describe("The terms for non-guaranteed fixed price deals.").optional(),
       sellerTimeZone: z.string().describe(
         'The time zone name. For deals with Cost Per Day billing, defines the time zone used to mark the boundaries of a day. It should be an IANA TZ name, such as "America/Los_Angeles". For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.',
       ).optional(),
-    }).describe(
-      "The deal terms specify the details of a Product/deal. They specify things like price per buyer, the type of pricing model (for example, fixed price, auction) and expected impressions from the publisher.",
-    ).optional(),
+    }).describe("The negotiable terms of the deal.").optional(),
     deliveryControl: z.object({
       creativeBlockingLevel: z.enum([
         "CREATIVE_BLOCKING_LEVEL_UNSPECIFIED",
@@ -920,8 +886,9 @@ const InputsSchema = z.object({
           "The time unit. Along with num_time_units defines the amount of time over which impressions per user are counted and capped.",
         ).optional(),
       })).describe("Output only. Specifies any frequency caps.").optional(),
-    }).describe("Message contains details about how the deals will be paced.")
-      .optional(),
+    }).describe(
+      "The set of fields around delivery control that are interesting for a buyer to see but are non-negotiable. These are set by the publisher.",
+    ).optional(),
     description: z.string().describe("Description for the deal terms.")
       .optional(),
     displayName: z.string().describe("The name of the deal.").optional(),
@@ -963,9 +930,7 @@ const InputsSchema = z.object({
         targetedCriteriaIds: z.array(z.unknown()).describe(
           "A list of numeric IDs to be included.",
         ).optional(),
-      }).describe(
-        "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
-      ).optional(),
+      }).describe("Geo criteria IDs to be included/excluded.").optional(),
       inventorySizeTargeting: z.object({
         excludedInventorySizes: z.array(z.unknown()).describe(
           "A list of inventory sizes to be excluded.",
@@ -973,25 +938,23 @@ const InputsSchema = z.object({
         targetedInventorySizes: z.array(z.unknown()).describe(
           "A list of inventory sizes to be included.",
         ).optional(),
-      }).describe(
-        "Represents the size of an ad unit that can be targeted on an ad request. It only applies to Private Auction, AdX Preferred Deals and Auction Packages. This targeting does not apply to Programmatic Guaranteed and Preferred Deals in Ad Manager.",
-      ).optional(),
+      }).describe("Inventory sizes to be included/excluded.").optional(),
       placementTargeting: z.object({
         mobileApplicationTargeting: z.object({
           firstPartyTargeting: z.unknown().describe(
-            "Represents a list of targeted and excluded mobile application IDs that publishers own. Mobile application IDs are from App Store and Google Play Store. Android App ID, for example, com.google.android.apps.maps, can be found in Google Play Store URL. iOS App ID (which is a number) can be found at the end of iTunes store URL. First party mobile applications is either included or excluded.",
+            "Publisher owned apps to be targeted or excluded by the publisher to display the ads in.",
           ).optional(),
-        }).describe("Mobile application targeting settings.").optional(),
+        }).describe(
+          "Mobile application targeting information in a deal. This doesn't apply to Auction Packages.",
+        ).optional(),
         urlTargeting: z.object({
           excludedUrls: z.unknown().describe("A list of URLs to be excluded.")
             .optional(),
           targetedUrls: z.unknown().describe("A list of URLs to be included.")
             .optional(),
-        }).describe(
-          "Represents a list of targeted and excluded URLs (for example, google.com). For Private Auction and AdX Preferred Deals, URLs are either included or excluded. For Programmatic Guaranteed and Preferred Deals, this doesn't apply.",
-        ).optional(),
+        }).describe("URLs to be included/excluded.").optional(),
       }).describe(
-        "Represents targeting about where the ads can appear, for example, certain sites or mobile applications. Different placement targeting types will be logically OR'ed.",
+        "Placement targeting information, for example, URL, mobile applications.",
       ).optional(),
       technologyTargeting: z.object({
         deviceCapabilityTargeting: z.object({
@@ -1001,9 +964,8 @@ const InputsSchema = z.object({
           targetedCriteriaIds: z.unknown().describe(
             "A list of numeric IDs to be included.",
           ).optional(),
-        }).describe(
-          "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
-        ).optional(),
+        }).describe("IDs of device capabilities to be included/excluded.")
+          .optional(),
         deviceCategoryTargeting: z.object({
           excludedCriteriaIds: z.unknown().describe(
             "A list of numeric IDs to be excluded.",
@@ -1011,20 +973,20 @@ const InputsSchema = z.object({
           targetedCriteriaIds: z.unknown().describe(
             "A list of numeric IDs to be included.",
           ).optional(),
-        }).describe(
-          "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
-        ).optional(),
+        }).describe("IDs of device categories to be included/excluded.")
+          .optional(),
         operatingSystemTargeting: z.object({
           operatingSystemCriteria: z.unknown().describe(
-            "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
+            "IDs of operating systems to be included/excluded.",
           ).optional(),
           operatingSystemVersionCriteria: z.unknown().describe(
-            "Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs.",
+            "IDs of operating system versions to be included/excluded.",
           ).optional(),
-        }).describe("Represents targeting information for operating systems.")
+        }).describe("Operating system related targeting information.")
           .optional(),
-      }).describe("Represents targeting about various types of technology.")
-        .optional(),
+      }).describe(
+        "Technology targeting information, for example, operating system, device category.",
+      ).optional(),
       videoTargeting: z.object({
         excludedPositionTypes: z.array(z.unknown()).describe(
           "A list of video positions to be excluded. Position types can either be included or excluded (XOR).",
@@ -1032,9 +994,9 @@ const InputsSchema = z.object({
         targetedPositionTypes: z.array(z.unknown()).describe(
           "A list of video positions to be included. When the included list is present, the excluded list must be empty. When the excluded list is present, the included list must be empty.",
         ).optional(),
-      }).describe("Represents targeting information about video.").optional(),
+      }).describe("Video targeting information.").optional(),
     }).describe(
-      "Targeting represents different criteria that can be used by advertisers to target ad inventory. For example, they can choose to target ad requests only if the user is in the US. Multiple types of targeting are always applied as a logical AND, unless noted otherwise.",
+      "Output only. Specifies the subset of inventory targeted by the deal.",
     ).optional(),
     targetingCriterion: z.array(z.object({
       exclusions: z.array(z.unknown()).describe(
@@ -1067,7 +1029,7 @@ const InputsSchema = z.object({
       "Output only. Ad manager network code for the seller.",
     ).optional(),
   }).describe(
-    "Represents a seller of inventory. Each seller is identified by a unique Ad Manager account ID.",
+    "Reference to the seller on the proposal. Note: This field may be set only when creating the resource. Modifying this field while updating the resource will result in an error.",
   ).optional(),
   accountId: z.string().describe("Account ID of the buyer.").optional(),
 });
@@ -1095,7 +1057,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Ad Exchange Buyer Accounts.Proposals. Registered at `@swamp/gcp/adexchangebuyer2/accounts-proposals`. */
 export const model = {
   type: "@swamp/gcp/adexchangebuyer2/accounts-proposals",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1197,6 +1159,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: billedBuyer",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { billedBuyer: _billedBuyer, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1222,9 +1192,6 @@ export const model = {
           params["accountId"] = String(g["accountId"]);
         }
         const body: Record<string, unknown> = {};
-        if (g["billedBuyer"] !== undefined) {
-          body["billedBuyer"] = g["billedBuyer"];
-        }
         if (g["buyer"] !== undefined) body["buyer"] = g["buyer"];
         if (g["buyerContacts"] !== undefined) {
           body["buyerContacts"] = g["buyerContacts"];
@@ -1332,10 +1299,6 @@ export const model = {
         }
         params["proposalId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
-        if (g["billedBuyer"] !== undefined) {
-          body["billedBuyer"] = g["billedBuyer"];
-        }
-        if (g["buyer"] !== undefined) body["buyer"] = g["buyer"];
         if (g["buyerContacts"] !== undefined) {
           body["buyerContacts"] = g["buyerContacts"];
         }
@@ -1346,7 +1309,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["seller"] !== undefined) body["seller"] = g["seller"];
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

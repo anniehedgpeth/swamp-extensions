@@ -176,7 +176,7 @@ const GlobalArgsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the Execution status transitioned to COMPLETE. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set",
   ).optional(),
   creationTime: z.object({
     nanos: z.number().int().describe(
@@ -186,7 +186,7 @@ const GlobalArgsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the Execution was created. This value will be set automatically when CreateExecution is called. - In response: always set - In create/update request: never set",
   ).optional(),
   dimensionDefinitions: z.array(z.object({})).describe(
     "The dimensions along which different steps in this execution may vary. This must remain fixed over the life of the execution. Returns INVALID_ARGUMENT if this field is set in an update request. Returns INVALID_ARGUMENT if the same name occurs in more than one dimension_definition. Returns INVALID_ARGUMENT if the size of the list is over 100. - In response: present if set by create - In create request: optional - In update request: never set",
@@ -217,8 +217,9 @@ const GlobalArgsSchema = z.object({
       unableToCrawl: z.boolean().describe(
         "If the robo was unable to crawl the app; perhaps because the app did not start.",
       ).optional(),
-    }).describe("Details for an outcome with a FAILURE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional",
+    ).optional(),
     inconclusiveDetail: z.object({
       abortedByUser: z.boolean().describe(
         "If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.",
@@ -229,8 +230,9 @@ const GlobalArgsSchema = z.object({
       infrastructureFailure: z.boolean().describe(
         "If the test runner could not determine success or failure because the test depends on a component other than the system under test which failed. For example, a mobile test requires provisioning a device where the test executes, and that provisioning can fail.",
       ).optional(),
-    }).describe("Details for an outcome with an INCONCLUSIVE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about an INCONCLUSIVE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not INCONCLUSIVE. Optional",
+    ).optional(),
     skippedDetail: z.object({
       incompatibleAppVersion: z.boolean().describe(
         "If the App doesn't support the specific API level.",
@@ -244,14 +246,15 @@ const GlobalArgsSchema = z.object({
       pendingTimeout: z.boolean().describe(
         "Indicates that the test could not be scheduled in the requested time because no suitable device was available.",
       ).optional(),
-    }).describe("Details for an outcome with a SKIPPED outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a SKIPPED outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SKIPPED. Optional",
+    ).optional(),
     successDetail: z.object({
       otherNativeCrash: z.boolean().describe(
         "If a native process other than the app crashed.",
       ).optional(),
     }).describe(
-      "Details for an outcome with a SUCCESS outcome summary. LINT.IfChange",
+      "More information about a SUCCESS outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SUCCESS. Optional",
     ).optional(),
     summary: z.enum([
       "unset",
@@ -261,8 +264,9 @@ const GlobalArgsSchema = z.object({
       "skipped",
       "flaky",
     ]).describe("The simplest way to interpret a result. Required").optional(),
-  }).describe("Interprets a result so that humans and machines can act on it.")
-    .optional(),
+  }).describe(
+    "Classify the result, for example into SUCCESS or FAILURE - In response: present if set by create/update request - In create/update request: optional",
+  ).optional(),
   specification: z.object({
     androidTest: z.object({
       androidAppInfo: z.object({
@@ -276,7 +280,7 @@ const GlobalArgsSchema = z.object({
         versionName: z.string().describe(
           "The version name of the app. Optional.",
         ).optional(),
-      }).describe("Android app information.").optional(),
+      }).describe("Information about the application under test.").optional(),
       androidInstrumentationTest: z.object({
         testPackageId: z.string().describe(
           "The java package for the test to be executed. Required",
@@ -290,9 +294,7 @@ const GlobalArgsSchema = z.object({
         useOrchestrator: z.boolean().describe(
           "The flag indicates whether Android Test Orchestrator will be used to run test or not.",
         ).optional(),
-      }).describe(
-        "A test of an Android application that can control an Android component independently of its normal lifecycle. See for more information on types of Android tests.",
-      ).optional(),
+      }).describe("An Android instrumentation test.").optional(),
       androidRoboTest: z.object({
         appInitialActivity: z.string().describe(
           "The initial activity that should be used to start the app. Optional",
@@ -309,12 +311,9 @@ const GlobalArgsSchema = z.object({
         maxSteps: z.number().int().describe(
           "The max number of steps/actions Robo can execute. Default is no limit (0). Optional",
         ).optional(),
-      }).describe(
-        "A test of an android application that explores the application on a virtual or physical Android device, finding culprits and crashes as it goes.",
-      ).optional(),
-      androidTestLoop: z.object({}).describe(
-        "Test Loops are tests that can be launched by the app itself, determining when to run by listening for an intent.",
-      ).optional(),
+      }).describe("An Android robo test.").optional(),
+      androidTestLoop: z.object({}).describe("An Android test loop.")
+        .optional(),
       testTimeout: z.object({
         nanos: z.number().int().describe(
           "Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.",
@@ -323,26 +322,23 @@ const GlobalArgsSchema = z.object({
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+        "Max time a test is allowed to run before it is automatically cancelled.",
       ).optional(),
-    }).describe("An Android mobile test specification.").optional(),
+    }).describe("An Android mobile test execution specification.").optional(),
     iosTest: z.object({
       iosAppInfo: z.object({
         name: z.string().describe("The name of the app. Required").optional(),
-      }).describe("iOS app information").optional(),
-      iosRoboTest: z.object({}).describe("A Robo test for an iOS application.")
-        .optional(),
+      }).describe("Information about the application under test.").optional(),
+      iosRoboTest: z.object({}).describe("An iOS Robo test.").optional(),
       iosTestLoop: z.object({
         bundleId: z.string().describe("Bundle ID of the app.").optional(),
-      }).describe("A game loop test of an iOS application.").optional(),
+      }).describe("An iOS test loop.").optional(),
       iosXcTest: z.object({
         bundleId: z.string().describe("Bundle ID of the app.").optional(),
         xcodeVersion: z.string().describe(
           "Xcode version that the test was run with.",
         ).optional(),
-      }).describe(
-        "A test of an iOS application that uses the XCTest framework.",
-      ).optional(),
+      }).describe("An iOS XCTest.").optional(),
       testTimeout: z.object({
         nanos: z.number().int().describe(
           "Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.",
@@ -351,10 +347,12 @@ const GlobalArgsSchema = z.object({
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+        "Max time a test is allowed to run before it is automatically cancelled.",
       ).optional(),
-    }).describe("A iOS mobile test specification").optional(),
-  }).describe("The details about how to run the execution.").optional(),
+    }).describe("An iOS mobile test execution specification.").optional(),
+  }).describe(
+    "Lightweight information about execution request. - In response: present if set by create - In create: optional - In update: optional",
+  ).optional(),
   state: z.enum(["unknownState", "pending", "inProgress", "complete"]).describe(
     "The initial state is IN_PROGRESS. The only legal state transitions is from IN_PROGRESS to COMPLETE. A PRECONDITION_FAILED will be returned if an invalid transition is requested. The state can only be set to COMPLETE once. A FAILED_PRECONDITION will be returned if the state is set to COMPLETE multiple times. If the state is set to COMPLETE, all the in-progress steps within the execution will be set as COMPLETE. If the outcome of the step is not set, the outcome will be set to INCONCLUSIVE. - In response always set - In create/update request: optional",
   ).optional(),
@@ -469,7 +467,7 @@ const InputsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the Execution status transitioned to COMPLETE. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set",
   ).optional(),
   creationTime: z.object({
     nanos: z.number().int().describe(
@@ -479,7 +477,7 @@ const InputsSchema = z.object({
       "Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.",
     ).optional(),
   }).describe(
-    'A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.',
+    "The time when the Execution was created. This value will be set automatically when CreateExecution is called. - In response: always set - In create/update request: never set",
   ).optional(),
   dimensionDefinitions: z.array(z.object({})).describe(
     "The dimensions along which different steps in this execution may vary. This must remain fixed over the life of the execution. Returns INVALID_ARGUMENT if this field is set in an update request. Returns INVALID_ARGUMENT if the same name occurs in more than one dimension_definition. Returns INVALID_ARGUMENT if the size of the list is over 100. - In response: present if set by create - In create request: optional - In update request: never set",
@@ -510,8 +508,9 @@ const InputsSchema = z.object({
       unableToCrawl: z.boolean().describe(
         "If the robo was unable to crawl the app; perhaps because the app did not start.",
       ).optional(),
-    }).describe("Details for an outcome with a FAILURE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional",
+    ).optional(),
     inconclusiveDetail: z.object({
       abortedByUser: z.boolean().describe(
         "If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.",
@@ -522,8 +521,9 @@ const InputsSchema = z.object({
       infrastructureFailure: z.boolean().describe(
         "If the test runner could not determine success or failure because the test depends on a component other than the system under test which failed. For example, a mobile test requires provisioning a device where the test executes, and that provisioning can fail.",
       ).optional(),
-    }).describe("Details for an outcome with an INCONCLUSIVE outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about an INCONCLUSIVE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not INCONCLUSIVE. Optional",
+    ).optional(),
     skippedDetail: z.object({
       incompatibleAppVersion: z.boolean().describe(
         "If the App doesn't support the specific API level.",
@@ -537,14 +537,15 @@ const InputsSchema = z.object({
       pendingTimeout: z.boolean().describe(
         "Indicates that the test could not be scheduled in the requested time because no suitable device was available.",
       ).optional(),
-    }).describe("Details for an outcome with a SKIPPED outcome summary.")
-      .optional(),
+    }).describe(
+      "More information about a SKIPPED outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SKIPPED. Optional",
+    ).optional(),
     successDetail: z.object({
       otherNativeCrash: z.boolean().describe(
         "If a native process other than the app crashed.",
       ).optional(),
     }).describe(
-      "Details for an outcome with a SUCCESS outcome summary. LINT.IfChange",
+      "More information about a SUCCESS outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not SUCCESS. Optional",
     ).optional(),
     summary: z.enum([
       "unset",
@@ -554,8 +555,9 @@ const InputsSchema = z.object({
       "skipped",
       "flaky",
     ]).describe("The simplest way to interpret a result. Required").optional(),
-  }).describe("Interprets a result so that humans and machines can act on it.")
-    .optional(),
+  }).describe(
+    "Classify the result, for example into SUCCESS or FAILURE - In response: present if set by create/update request - In create/update request: optional",
+  ).optional(),
   specification: z.object({
     androidTest: z.object({
       androidAppInfo: z.object({
@@ -569,7 +571,7 @@ const InputsSchema = z.object({
         versionName: z.string().describe(
           "The version name of the app. Optional.",
         ).optional(),
-      }).describe("Android app information.").optional(),
+      }).describe("Information about the application under test.").optional(),
       androidInstrumentationTest: z.object({
         testPackageId: z.string().describe(
           "The java package for the test to be executed. Required",
@@ -583,9 +585,7 @@ const InputsSchema = z.object({
         useOrchestrator: z.boolean().describe(
           "The flag indicates whether Android Test Orchestrator will be used to run test or not.",
         ).optional(),
-      }).describe(
-        "A test of an Android application that can control an Android component independently of its normal lifecycle. See for more information on types of Android tests.",
-      ).optional(),
+      }).describe("An Android instrumentation test.").optional(),
       androidRoboTest: z.object({
         appInitialActivity: z.string().describe(
           "The initial activity that should be used to start the app. Optional",
@@ -602,12 +602,9 @@ const InputsSchema = z.object({
         maxSteps: z.number().int().describe(
           "The max number of steps/actions Robo can execute. Default is no limit (0). Optional",
         ).optional(),
-      }).describe(
-        "A test of an android application that explores the application on a virtual or physical Android device, finding culprits and crashes as it goes.",
-      ).optional(),
-      androidTestLoop: z.object({}).describe(
-        "Test Loops are tests that can be launched by the app itself, determining when to run by listening for an intent.",
-      ).optional(),
+      }).describe("An Android robo test.").optional(),
+      androidTestLoop: z.object({}).describe("An Android test loop.")
+        .optional(),
       testTimeout: z.object({
         nanos: z.number().int().describe(
           "Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.",
@@ -616,26 +613,23 @@ const InputsSchema = z.object({
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+        "Max time a test is allowed to run before it is automatically cancelled.",
       ).optional(),
-    }).describe("An Android mobile test specification.").optional(),
+    }).describe("An Android mobile test execution specification.").optional(),
     iosTest: z.object({
       iosAppInfo: z.object({
         name: z.string().describe("The name of the app. Required").optional(),
-      }).describe("iOS app information").optional(),
-      iosRoboTest: z.object({}).describe("A Robo test for an iOS application.")
-        .optional(),
+      }).describe("Information about the application under test.").optional(),
+      iosRoboTest: z.object({}).describe("An iOS Robo test.").optional(),
       iosTestLoop: z.object({
         bundleId: z.string().describe("Bundle ID of the app.").optional(),
-      }).describe("A game loop test of an iOS application.").optional(),
+      }).describe("An iOS test loop.").optional(),
       iosXcTest: z.object({
         bundleId: z.string().describe("Bundle ID of the app.").optional(),
         xcodeVersion: z.string().describe(
           "Xcode version that the test was run with.",
         ).optional(),
-      }).describe(
-        "A test of an iOS application that uses the XCTest framework.",
-      ).optional(),
+      }).describe("An iOS XCTest.").optional(),
       testTimeout: z.object({
         nanos: z.number().int().describe(
           "Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.",
@@ -644,10 +638,12 @@ const InputsSchema = z.object({
           "Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.',
+        "Max time a test is allowed to run before it is automatically cancelled.",
       ).optional(),
-    }).describe("A iOS mobile test specification").optional(),
-  }).describe("The details about how to run the execution.").optional(),
+    }).describe("An iOS mobile test execution specification.").optional(),
+  }).describe(
+    "Lightweight information about execution request. - In response: present if set by create - In create: optional - In update: optional",
+  ).optional(),
   state: z.enum(["unknownState", "pending", "inProgress", "complete"]).describe(
     "The initial state is IN_PROGRESS. The only legal state transitions is from IN_PROGRESS to COMPLETE. A PRECONDITION_FAILED will be returned if an invalid transition is requested. The state can only be set to COMPLETE once. A FAILED_PRECONDITION will be returned if the state is set to COMPLETE multiple times. If the state is set to COMPLETE, all the in-progress steps within the execution will be set as COMPLETE. If the outcome of the step is not set, the outcome will be set to INCONCLUSIVE. - In response always set - In create/update request: optional",
   ).optional(),
@@ -683,7 +679,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tool Results Histories.Executions. Registered at `@swamp/gcp/toolresults/histories-executions`. */
 export const model = {
   type: "@swamp/gcp/toolresults/histories-executions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -780,6 +776,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -836,15 +837,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "historyId": String(g["historyId"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

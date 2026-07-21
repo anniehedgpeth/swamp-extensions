@@ -176,23 +176,6 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  aggregatedData: z.object({
-    customRangesCount: z.number().int().describe(
-      "Output only. Number of CustomRanges in the RegistryBook.",
-    ).optional(),
-    customRealmsCount: z.number().int().describe(
-      "Output only. Number of custom Realms in the RegistryBook.",
-    ).optional(),
-    discoveredRangesCount: z.number().int().describe(
-      "Output only. Number of DiscoveredRanges in the RegistryBook.",
-    ).optional(),
-    discoveredRealmsCount: z.number().int().describe(
-      "Output only. Number of discovered Realms in the RegistryBook.",
-    ).optional(),
-    uniqueScopesCount: z.number().int().describe(
-      "Output only. Number of scopes unique to the RegistryBook.",
-    ).optional(),
-  }).describe("Aggregated data for the RegistryBook.").optional(),
   claimedScopes: z.array(z.string()).describe(
     "Optional. List of scopes claimed by the RegistryBook. In Preview, Only project scope is supported. Each scope is in the format of projects/{project}. Each scope can only be claimed once.",
   ).optional(),
@@ -236,23 +219,6 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  aggregatedData: z.object({
-    customRangesCount: z.number().int().describe(
-      "Output only. Number of CustomRanges in the RegistryBook.",
-    ).optional(),
-    customRealmsCount: z.number().int().describe(
-      "Output only. Number of custom Realms in the RegistryBook.",
-    ).optional(),
-    discoveredRangesCount: z.number().int().describe(
-      "Output only. Number of DiscoveredRanges in the RegistryBook.",
-    ).optional(),
-    discoveredRealmsCount: z.number().int().describe(
-      "Output only. Number of discovered Realms in the RegistryBook.",
-    ).optional(),
-    uniqueScopesCount: z.number().int().describe(
-      "Output only. Number of scopes unique to the RegistryBook.",
-    ).optional(),
-  }).describe("Aggregated data for the RegistryBook.").optional(),
   claimedScopes: z.array(z.string()).describe(
     "Optional. List of scopes claimed by the RegistryBook. In Preview, Only project scope is supported. Each scope is in the format of projects/{project}. Each scope can only be claimed once.",
   ).optional(),
@@ -296,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Number Registry RegistryBooks. Registered at `@swamp/gcp/cloudnumberregistry/registrybooks`. */
 export const model = {
   type: "@swamp/gcp/cloudnumberregistry/registrybooks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.05.19.1",
@@ -373,6 +339,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: aggregatedData",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { aggregatedData: _aggregatedData, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -398,9 +372,6 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["aggregatedData"] !== undefined) {
-          body["aggregatedData"] = g["aggregatedData"];
-        }
         if (g["claimedScopes"] !== undefined) {
           body["claimedScopes"] = g["claimedScopes"];
         }
@@ -518,9 +489,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["aggregatedData"] !== undefined) {
-          body["aggregatedData"] = g["aggregatedData"];
-        }
         if (g["claimedScopes"] !== undefined) {
           body["claimedScopes"] = g["claimedScopes"];
         }

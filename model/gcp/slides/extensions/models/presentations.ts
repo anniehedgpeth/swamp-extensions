@@ -101,22 +101,19 @@ const GlobalArgsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -128,50 +125,41 @@ const GlobalArgsSchema = z.object({
         children: z.unknown().describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.unknown().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
-        imageProperties: z.unknown().describe("The properties of the Image.")
+        imageProperties: z.unknown().describe("The properties of the image.")
           .optional(),
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.unknown().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.unknown().describe(
           "The category of the line. It matches the `category` specified in CreateLineRequest, and can be updated with UpdateLineCategoryRequest.",
         ).optional(),
-        lineProperties: z.unknown().describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+        lineProperties: z.unknown().describe("The properties of the line.")
+          .optional(),
         lineType: z.unknown().describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
       shape: z.object({
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
-        shapeProperties: z.unknown().describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        shapeProperties: z.unknown().describe("The properties of the shape.")
+          .optional(),
         shapeType: z.unknown().describe("The type of the shape.").optional(),
-        text: z.unknown().describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        text: z.unknown().describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.unknown().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -180,28 +168,23 @@ const GlobalArgsSchema = z.object({
           "The URL of an image of the embedded chart, with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
         sheetsChartProperties: z.unknown().describe(
-          "The properties of the SheetsChart.",
+          "The properties of the Sheets chart.",
         ).optional(),
         spreadsheetId: z.unknown().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
-        height: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-        width: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-      }).describe("A width and height.").optional(),
+        height: z.unknown().describe("The height of the object.").optional(),
+        width: z.unknown().describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.unknown().describe(
-          "The properties of the SpeakerSpotlight.",
+          "The properties of the Speaker Spotlight.",
         ).optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.unknown().describe("Number of columns in the table.")
           .optional(),
@@ -217,7 +200,7 @@ const GlobalArgsSchema = z.object({
         verticalBorderRows: z.unknown().describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -239,7 +222,7 @@ const GlobalArgsSchema = z.object({
         unit: z.unknown().describe("The units for translate elements.")
           .optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.unknown().describe(
@@ -249,20 +232,22 @@ const GlobalArgsSchema = z.object({
         url: z.unknown().describe(
           "An URL to a video. The URL is valid as long as the source video exists and sharing settings do not change.",
         ).optional(),
-        videoProperties: z.unknown().describe("The properties of the Video.")
+        videoProperties: z.unknown().describe("The properties of the video.")
           .optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.unknown().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.unknown()).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -271,23 +256,21 @@ const GlobalArgsSchema = z.object({
           alpha: z.unknown().describe(
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
-          color: z.unknown().describe("A themeable solid color value.")
+          color: z.unknown().describe("The color value of the solid fill.")
             .optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.unknown().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
-          size: z.unknown().describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+          size: z.unknown().describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -306,9 +289,8 @@ const GlobalArgsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
   })).describe(
     "The layouts in the presentation. A layout is a template that determines how content is arranged and styled on the slides that inherit from that layout.",
   ).optional(),
@@ -323,22 +305,19 @@ const GlobalArgsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -350,50 +329,41 @@ const GlobalArgsSchema = z.object({
         children: z.unknown().describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.unknown().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
-        imageProperties: z.unknown().describe("The properties of the Image.")
+        imageProperties: z.unknown().describe("The properties of the image.")
           .optional(),
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.unknown().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.unknown().describe(
           "The category of the line. It matches the `category` specified in CreateLineRequest, and can be updated with UpdateLineCategoryRequest.",
         ).optional(),
-        lineProperties: z.unknown().describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+        lineProperties: z.unknown().describe("The properties of the line.")
+          .optional(),
         lineType: z.unknown().describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
       shape: z.object({
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
-        shapeProperties: z.unknown().describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        shapeProperties: z.unknown().describe("The properties of the shape.")
+          .optional(),
         shapeType: z.unknown().describe("The type of the shape.").optional(),
-        text: z.unknown().describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        text: z.unknown().describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.unknown().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -402,28 +372,23 @@ const GlobalArgsSchema = z.object({
           "The URL of an image of the embedded chart, with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
         sheetsChartProperties: z.unknown().describe(
-          "The properties of the SheetsChart.",
+          "The properties of the Sheets chart.",
         ).optional(),
         spreadsheetId: z.unknown().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
-        height: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-        width: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-      }).describe("A width and height.").optional(),
+        height: z.unknown().describe("The height of the object.").optional(),
+        width: z.unknown().describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.unknown().describe(
-          "The properties of the SpeakerSpotlight.",
+          "The properties of the Speaker Spotlight.",
         ).optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.unknown().describe("Number of columns in the table.")
           .optional(),
@@ -439,7 +404,7 @@ const GlobalArgsSchema = z.object({
         verticalBorderRows: z.unknown().describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -461,7 +426,7 @@ const GlobalArgsSchema = z.object({
         unit: z.unknown().describe("The units for translate elements.")
           .optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.unknown().describe(
@@ -471,20 +436,22 @@ const GlobalArgsSchema = z.object({
         url: z.unknown().describe(
           "An URL to a video. The URL is valid as long as the source video exists and sharing settings do not change.",
         ).optional(),
-        videoProperties: z.unknown().describe("The properties of the Video.")
+        videoProperties: z.unknown().describe("The properties of the video.")
           .optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.unknown().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.unknown()).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -493,23 +460,21 @@ const GlobalArgsSchema = z.object({
           alpha: z.unknown().describe(
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
-          color: z.unknown().describe("A themeable solid color value.")
+          color: z.unknown().describe("The color value of the solid fill.")
             .optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.unknown().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
-          size: z.unknown().describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+          size: z.unknown().describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -528,9 +493,8 @@ const GlobalArgsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
   })).describe(
     "The slide masters in the presentation. A slide master contains all common page elements and the common properties for a set of layouts. They serve three purposes: - Placeholder shapes on a master contain the default text styles and shape properties of all placeholder shapes on pages that use that master. - The master page properties define the common page properties inherited by its layouts. - Any other shapes on the master slide appear on all slides using that master, regardless of their layout.",
   ).optional(),
@@ -542,22 +506,19 @@ const GlobalArgsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -569,9 +530,8 @@ const GlobalArgsSchema = z.object({
         children: z.array(z.unknown()).describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.string().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
@@ -584,21 +544,24 @@ const GlobalArgsSchema = z.object({
             "The contrast effect of the image. The value should be in the interval [-1.0, 1.0], where 0 means no effect. This property is read-only.",
           ).optional(),
           cropProperties: z.unknown().describe(
-            "The crop properties of an object enclosed in a container. For example, an Image. The crop properties is represented by the offsets of four edges which define a crop rectangle. The offsets are measured in percentage from the corresponding edges of the object's original bounding rectangle towards inside, relative to the object's original dimensions. - If the offset is in the interval (0, 1), the corresponding edge of crop rectangle is positioned inside of the object's original bounding rectangle. - If the offset is negative or greater than 1, the corresponding edge of crop rectangle is positioned outside of the object's original bounding rectangle. - If the left edge of the crop rectangle is on the right side of its right edge, the object will be flipped horizontally. - If the top edge of the crop rectangle is below its bottom edge, the object will be flipped vertically. - If all offsets and rotation angle is 0, the object is not cropped. After cropping, the content in the crop rectangle will be stretched to fit its container.",
+            "The crop properties of the image. If not set, the image is not cropped. This property is read-only.",
           ).optional(),
-          link: z.unknown().describe("A hypertext link.").optional(),
+          link: z.unknown().describe(
+            "The hyperlink destination of the image. If unset, there is no link.",
+          ).optional(),
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the image. If not set, the image has no outline.",
           ).optional(),
-          recolor: z.unknown().describe("A recolor effect applied on an image.")
-            .optional(),
+          recolor: z.unknown().describe(
+            "The recolor effect of the image. If not set, the image is not recolored. This property is read-only.",
+          ).optional(),
           shadow: z.unknown().describe(
-            "The shadow properties of a page element. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The shadow of the image. If not set, the image has no shadow. This property is read-only.",
           ).optional(),
           transparency: z.unknown().describe(
             "The transparency effect of the image. The value should be in the interval [0.0, 1.0], where 0 means no effect and 1 means completely transparent. This property is read-only.",
           ).optional(),
-        }).describe("The properties of the Image.").optional(),
+        }).describe("The properties of the image.").optional(),
         placeholder: z.object({
           index: z.unknown().describe(
             "The index of the placeholder. If the same placeholder types are present in the same page, they would have different index values.",
@@ -608,12 +571,12 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of the placeholder.").optional(),
         }).describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.string().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.enum([
           "LINE_CATEGORY_UNSPECIFIED",
@@ -630,22 +593,22 @@ const GlobalArgsSchema = z.object({
             "The style of the arrow at the end of the line.",
           ).optional(),
           endConnection: z.unknown().describe(
-            "The properties for one end of a Line connection.",
+            'The connection at the end of the line. If unset, there is no connection. Only lines with a Type indicating it is a "connector" can have an `end_connection`.',
           ).optional(),
-          lineFill: z.unknown().describe("The fill of the line.").optional(),
-          link: z.unknown().describe("A hypertext link.").optional(),
+          lineFill: z.unknown().describe(
+            "The fill of the line. The default line fill matches the defaults for new lines created in the Slides editor.",
+          ).optional(),
+          link: z.unknown().describe(
+            "The hyperlink destination of the line. If unset, there is no link.",
+          ).optional(),
           startArrow: z.unknown().describe(
             "The style of the arrow at the beginning of the line.",
           ).optional(),
           startConnection: z.unknown().describe(
-            "The properties for one end of a Line connection.",
+            'The connection at the beginning of the line. If unset, there is no connection. Only lines with a Type indicating it is a "connector" can have a `start_connection`.',
           ).optional(),
-          weight: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+          weight: z.unknown().describe("The thickness of the line.").optional(),
+        }).describe("The properties of the line.").optional(),
         lineType: z.enum([
           "TYPE_UNSPECIFIED",
           "STRAIGHT_CONNECTOR_1",
@@ -659,9 +622,7 @@ const GlobalArgsSchema = z.object({
           "CURVED_CONNECTOR_5",
           "STRAIGHT_LINE",
         ]).describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
@@ -675,28 +636,28 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of the placeholder.").optional(),
         }).describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         shapeProperties: z.object({
           autofit: z.unknown().describe(
-            "The autofit properties of a Shape. This property is only set for shapes that allow text.",
+            "The autofit properties of the shape. This property is only set for shapes that allow text.",
           ).optional(),
           contentAlignment: z.unknown().describe(
             "The alignment of the content in the shape. If unspecified, the alignment is inherited from a parent placeholder if it exists. If the shape has no parent, the default alignment matches the alignment for new shapes created in the Slides editor.",
           ).optional(),
-          link: z.unknown().describe("A hypertext link.").optional(),
+          link: z.unknown().describe(
+            "The hyperlink destination of the shape. If unset, there is no link. Links are not inherited from parent placeholders.",
+          ).optional(),
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the shape. If unset, the outline is inherited from a parent placeholder if it exists. If the shape has no parent, then the default outline depends on the shape type, matching the defaults for new shapes created in the Slides editor.",
           ).optional(),
           shadow: z.unknown().describe(
-            "The shadow properties of a page element. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The shadow properties of the shape. If unset, the shadow is inherited from a parent placeholder if it exists. If the shape has no parent, then the default shadow matches the defaults for new shapes created in the Slides editor. This property is read-only.",
           ).optional(),
           shapeBackgroundFill: z.unknown().describe(
-            "The shape background fill.",
+            "The background fill of the shape. If unset, the background fill is inherited from a parent placeholder if it exists. If the shape has no parent, then the default background fill depends on the shape type, matching the defaults for new shapes created in the Slides editor.",
           ).optional(),
-        }).describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        }).describe("The properties of the shape.").optional(),
         shapeType: z.enum([
           "TYPE_UNSPECIFIED",
           "TEXT_BOX",
@@ -849,12 +810,8 @@ const GlobalArgsSchema = z.object({
           textElements: z.unknown().describe(
             "The text contents broken down into its component parts, including styling information. This property is read-only.",
           ).optional(),
-        }).describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        }).describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.number().int().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -864,38 +821,35 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         sheetsChartProperties: z.object({
           chartImageProperties: z.unknown().describe(
-            "The properties of the Image.",
+            "The properties of the embedded chart image.",
           ).optional(),
-        }).describe("The properties of the SheetsChart.").optional(),
+        }).describe("The properties of the Sheets chart.").optional(),
         spreadsheetId: z.string().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
         height: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe("The height of the object.").optional(),
         width: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-      }).describe("A width and height.").optional(),
+        }).describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.object({
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the Speaker Spotlight. If not set, it has no outline.",
           ).optional(),
           shadow: z.unknown().describe(
-            "The shadow properties of a page element. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The shadow of the Speaker Spotlight. If not set, it has no shadow.",
           ).optional(),
-        }).describe("The properties of the SpeakerSpotlight.").optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+        }).describe("The properties of the Speaker Spotlight.").optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.number().int().describe("Number of columns in the table.")
           .optional(),
@@ -913,7 +867,7 @@ const GlobalArgsSchema = z.object({
         verticalBorderRows: z.array(z.unknown()).describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -934,7 +888,7 @@ const GlobalArgsSchema = z.object({
           "The units for translate elements.",
         ).optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.string().describe(
@@ -957,27 +911,31 @@ const GlobalArgsSchema = z.object({
             "Whether to mute the audio during video playback. Defaults to false.",
           ).optional(),
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the video. The default outline matches the defaults for new videos created in the Slides editor.",
           ).optional(),
           start: z.unknown().describe(
             "The time at which to start playback, measured in seconds from the beginning of the video. If set, the start time should be before the end time. If you set this to a value that exceeds the video's length in seconds, the video will be played from the last second. If not set, the video will be played from the beginning.",
           ).optional(),
-        }).describe("The properties of the Video.").optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+        }).describe("The properties of the video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.string().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.object({
-          color: z.unknown().describe("An RGB color.").optional(),
+          color: z.unknown().describe(
+            "The concrete color corresponding to the theme color type above.",
+          ).optional(),
           type: z.unknown().describe("The type of the theme color.").optional(),
         })).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -987,32 +945,27 @@ const GlobalArgsSchema = z.object({
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
           color: z.object({
-            rgbColor: z.unknown().describe("An RGB color.").optional(),
+            rgbColor: z.unknown().describe("An opaque RGB color.").optional(),
             themeColor: z.unknown().describe("An opaque theme color.")
               .optional(),
-          }).describe("A themeable solid color value.").optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+          }).describe("The color value of the solid fill.").optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.string().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
           size: z.object({
-            height: z.unknown().describe(
-              "A magnitude in a single direction in the specified units.",
-            ).optional(),
-            width: z.unknown().describe(
-              "A magnitude in a single direction in the specified units.",
-            ).optional(),
-          }).describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+            height: z.unknown().describe("The height of the object.")
+              .optional(),
+            width: z.unknown().describe("The width of the object.").optional(),
+          }).describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -1031,26 +984,25 @@ const GlobalArgsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
-  }).describe("A page in a presentation.").optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
+  }).describe(
+    "The notes master in the presentation. It serves three purposes: - Placeholder shapes on a notes master contain the default text styles and shape properties of all placeholder shapes on notes pages. Specifically, a `SLIDE_IMAGE` placeholder shape contains the slide thumbnail, and a `BODY` placeholder shape contains the speaker notes. - The notes master page properties define the common page properties inherited by all notes pages. - Any other shapes on the notes master appear on all notes pages. The notes master is read-only.",
+  ).optional(),
   pageSize: z.object({
     height: z.object({
       magnitude: z.number().describe("The magnitude.").optional(),
       unit: z.enum(["UNIT_UNSPECIFIED", "EMU", "PT"]).describe(
         "The units for magnitude.",
       ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
+    }).describe("The height of the object.").optional(),
     width: z.object({
       magnitude: z.number().describe("The magnitude.").optional(),
       unit: z.enum(["UNIT_UNSPECIFIED", "EMU", "PT"]).describe(
         "The units for magnitude.",
       ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-  }).describe("A width and height.").optional(),
+    }).describe("The width of the object.").optional(),
+  }).describe("The size of pages in the presentation.").optional(),
   presentationId: z.string().describe("The ID of the presentation.").optional(),
   slides: z.array(z.object({
     layoutProperties: z.object({
@@ -1060,22 +1012,19 @@ const GlobalArgsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -1087,50 +1036,41 @@ const GlobalArgsSchema = z.object({
         children: z.unknown().describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.unknown().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
-        imageProperties: z.unknown().describe("The properties of the Image.")
+        imageProperties: z.unknown().describe("The properties of the image.")
           .optional(),
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.unknown().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.unknown().describe(
           "The category of the line. It matches the `category` specified in CreateLineRequest, and can be updated with UpdateLineCategoryRequest.",
         ).optional(),
-        lineProperties: z.unknown().describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+        lineProperties: z.unknown().describe("The properties of the line.")
+          .optional(),
         lineType: z.unknown().describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
       shape: z.object({
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
-        shapeProperties: z.unknown().describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        shapeProperties: z.unknown().describe("The properties of the shape.")
+          .optional(),
         shapeType: z.unknown().describe("The type of the shape.").optional(),
-        text: z.unknown().describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        text: z.unknown().describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.unknown().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -1139,28 +1079,23 @@ const GlobalArgsSchema = z.object({
           "The URL of an image of the embedded chart, with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
         sheetsChartProperties: z.unknown().describe(
-          "The properties of the SheetsChart.",
+          "The properties of the Sheets chart.",
         ).optional(),
         spreadsheetId: z.unknown().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
-        height: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-        width: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-      }).describe("A width and height.").optional(),
+        height: z.unknown().describe("The height of the object.").optional(),
+        width: z.unknown().describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.unknown().describe(
-          "The properties of the SpeakerSpotlight.",
+          "The properties of the Speaker Spotlight.",
         ).optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.unknown().describe("Number of columns in the table.")
           .optional(),
@@ -1176,7 +1111,7 @@ const GlobalArgsSchema = z.object({
         verticalBorderRows: z.unknown().describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -1198,7 +1133,7 @@ const GlobalArgsSchema = z.object({
         unit: z.unknown().describe("The units for translate elements.")
           .optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.unknown().describe(
@@ -1208,20 +1143,22 @@ const GlobalArgsSchema = z.object({
         url: z.unknown().describe(
           "An URL to a video. The URL is valid as long as the source video exists and sharing settings do not change.",
         ).optional(),
-        videoProperties: z.unknown().describe("The properties of the Video.")
+        videoProperties: z.unknown().describe("The properties of the video.")
           .optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.unknown().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.unknown()).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -1230,23 +1167,21 @@ const GlobalArgsSchema = z.object({
           alpha: z.unknown().describe(
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
-          color: z.unknown().describe("A themeable solid color value.")
+          color: z.unknown().describe("The color value of the solid fill.")
             .optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.unknown().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
-          size: z.unknown().describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+          size: z.unknown().describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -1265,9 +1200,8 @@ const GlobalArgsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
   })).describe(
     "The slides in the presentation. A slide inherits properties from a slide layout.",
   ).optional(),
@@ -1777,22 +1711,19 @@ const InputsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -1804,50 +1735,41 @@ const InputsSchema = z.object({
         children: z.unknown().describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.unknown().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
-        imageProperties: z.unknown().describe("The properties of the Image.")
+        imageProperties: z.unknown().describe("The properties of the image.")
           .optional(),
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.unknown().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.unknown().describe(
           "The category of the line. It matches the `category` specified in CreateLineRequest, and can be updated with UpdateLineCategoryRequest.",
         ).optional(),
-        lineProperties: z.unknown().describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+        lineProperties: z.unknown().describe("The properties of the line.")
+          .optional(),
         lineType: z.unknown().describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
       shape: z.object({
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
-        shapeProperties: z.unknown().describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        shapeProperties: z.unknown().describe("The properties of the shape.")
+          .optional(),
         shapeType: z.unknown().describe("The type of the shape.").optional(),
-        text: z.unknown().describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        text: z.unknown().describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.unknown().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -1856,28 +1778,23 @@ const InputsSchema = z.object({
           "The URL of an image of the embedded chart, with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
         sheetsChartProperties: z.unknown().describe(
-          "The properties of the SheetsChart.",
+          "The properties of the Sheets chart.",
         ).optional(),
         spreadsheetId: z.unknown().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
-        height: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-        width: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-      }).describe("A width and height.").optional(),
+        height: z.unknown().describe("The height of the object.").optional(),
+        width: z.unknown().describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.unknown().describe(
-          "The properties of the SpeakerSpotlight.",
+          "The properties of the Speaker Spotlight.",
         ).optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.unknown().describe("Number of columns in the table.")
           .optional(),
@@ -1893,7 +1810,7 @@ const InputsSchema = z.object({
         verticalBorderRows: z.unknown().describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -1915,7 +1832,7 @@ const InputsSchema = z.object({
         unit: z.unknown().describe("The units for translate elements.")
           .optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.unknown().describe(
@@ -1925,20 +1842,22 @@ const InputsSchema = z.object({
         url: z.unknown().describe(
           "An URL to a video. The URL is valid as long as the source video exists and sharing settings do not change.",
         ).optional(),
-        videoProperties: z.unknown().describe("The properties of the Video.")
+        videoProperties: z.unknown().describe("The properties of the video.")
           .optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.unknown().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.unknown()).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -1947,23 +1866,21 @@ const InputsSchema = z.object({
           alpha: z.unknown().describe(
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
-          color: z.unknown().describe("A themeable solid color value.")
+          color: z.unknown().describe("The color value of the solid fill.")
             .optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.unknown().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
-          size: z.unknown().describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+          size: z.unknown().describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -1982,9 +1899,8 @@ const InputsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
   })).describe(
     "The layouts in the presentation. A layout is a template that determines how content is arranged and styled on the slides that inherit from that layout.",
   ).optional(),
@@ -1999,22 +1915,19 @@ const InputsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -2026,50 +1939,41 @@ const InputsSchema = z.object({
         children: z.unknown().describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.unknown().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
-        imageProperties: z.unknown().describe("The properties of the Image.")
+        imageProperties: z.unknown().describe("The properties of the image.")
           .optional(),
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.unknown().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.unknown().describe(
           "The category of the line. It matches the `category` specified in CreateLineRequest, and can be updated with UpdateLineCategoryRequest.",
         ).optional(),
-        lineProperties: z.unknown().describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+        lineProperties: z.unknown().describe("The properties of the line.")
+          .optional(),
         lineType: z.unknown().describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
       shape: z.object({
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
-        shapeProperties: z.unknown().describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        shapeProperties: z.unknown().describe("The properties of the shape.")
+          .optional(),
         shapeType: z.unknown().describe("The type of the shape.").optional(),
-        text: z.unknown().describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        text: z.unknown().describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.unknown().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -2078,28 +1982,23 @@ const InputsSchema = z.object({
           "The URL of an image of the embedded chart, with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
         sheetsChartProperties: z.unknown().describe(
-          "The properties of the SheetsChart.",
+          "The properties of the Sheets chart.",
         ).optional(),
         spreadsheetId: z.unknown().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
-        height: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-        width: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-      }).describe("A width and height.").optional(),
+        height: z.unknown().describe("The height of the object.").optional(),
+        width: z.unknown().describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.unknown().describe(
-          "The properties of the SpeakerSpotlight.",
+          "The properties of the Speaker Spotlight.",
         ).optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.unknown().describe("Number of columns in the table.")
           .optional(),
@@ -2115,7 +2014,7 @@ const InputsSchema = z.object({
         verticalBorderRows: z.unknown().describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -2137,7 +2036,7 @@ const InputsSchema = z.object({
         unit: z.unknown().describe("The units for translate elements.")
           .optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.unknown().describe(
@@ -2147,20 +2046,22 @@ const InputsSchema = z.object({
         url: z.unknown().describe(
           "An URL to a video. The URL is valid as long as the source video exists and sharing settings do not change.",
         ).optional(),
-        videoProperties: z.unknown().describe("The properties of the Video.")
+        videoProperties: z.unknown().describe("The properties of the video.")
           .optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.unknown().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.unknown()).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -2169,23 +2070,21 @@ const InputsSchema = z.object({
           alpha: z.unknown().describe(
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
-          color: z.unknown().describe("A themeable solid color value.")
+          color: z.unknown().describe("The color value of the solid fill.")
             .optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.unknown().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
-          size: z.unknown().describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+          size: z.unknown().describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -2204,9 +2103,8 @@ const InputsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
   })).describe(
     "The slide masters in the presentation. A slide master contains all common page elements and the common properties for a set of layouts. They serve three purposes: - Placeholder shapes on a master contain the default text styles and shape properties of all placeholder shapes on pages that use that master. - The master page properties define the common page properties inherited by its layouts. - Any other shapes on the master slide appear on all slides using that master, regardless of their layout.",
   ).optional(),
@@ -2218,22 +2116,19 @@ const InputsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -2245,9 +2140,8 @@ const InputsSchema = z.object({
         children: z.array(z.unknown()).describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.string().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
@@ -2260,21 +2154,24 @@ const InputsSchema = z.object({
             "The contrast effect of the image. The value should be in the interval [-1.0, 1.0], where 0 means no effect. This property is read-only.",
           ).optional(),
           cropProperties: z.unknown().describe(
-            "The crop properties of an object enclosed in a container. For example, an Image. The crop properties is represented by the offsets of four edges which define a crop rectangle. The offsets are measured in percentage from the corresponding edges of the object's original bounding rectangle towards inside, relative to the object's original dimensions. - If the offset is in the interval (0, 1), the corresponding edge of crop rectangle is positioned inside of the object's original bounding rectangle. - If the offset is negative or greater than 1, the corresponding edge of crop rectangle is positioned outside of the object's original bounding rectangle. - If the left edge of the crop rectangle is on the right side of its right edge, the object will be flipped horizontally. - If the top edge of the crop rectangle is below its bottom edge, the object will be flipped vertically. - If all offsets and rotation angle is 0, the object is not cropped. After cropping, the content in the crop rectangle will be stretched to fit its container.",
+            "The crop properties of the image. If not set, the image is not cropped. This property is read-only.",
           ).optional(),
-          link: z.unknown().describe("A hypertext link.").optional(),
+          link: z.unknown().describe(
+            "The hyperlink destination of the image. If unset, there is no link.",
+          ).optional(),
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the image. If not set, the image has no outline.",
           ).optional(),
-          recolor: z.unknown().describe("A recolor effect applied on an image.")
-            .optional(),
+          recolor: z.unknown().describe(
+            "The recolor effect of the image. If not set, the image is not recolored. This property is read-only.",
+          ).optional(),
           shadow: z.unknown().describe(
-            "The shadow properties of a page element. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The shadow of the image. If not set, the image has no shadow. This property is read-only.",
           ).optional(),
           transparency: z.unknown().describe(
             "The transparency effect of the image. The value should be in the interval [0.0, 1.0], where 0 means no effect and 1 means completely transparent. This property is read-only.",
           ).optional(),
-        }).describe("The properties of the Image.").optional(),
+        }).describe("The properties of the image.").optional(),
         placeholder: z.object({
           index: z.unknown().describe(
             "The index of the placeholder. If the same placeholder types are present in the same page, they would have different index values.",
@@ -2284,12 +2181,12 @@ const InputsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of the placeholder.").optional(),
         }).describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.string().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.enum([
           "LINE_CATEGORY_UNSPECIFIED",
@@ -2306,22 +2203,22 @@ const InputsSchema = z.object({
             "The style of the arrow at the end of the line.",
           ).optional(),
           endConnection: z.unknown().describe(
-            "The properties for one end of a Line connection.",
+            'The connection at the end of the line. If unset, there is no connection. Only lines with a Type indicating it is a "connector" can have an `end_connection`.',
           ).optional(),
-          lineFill: z.unknown().describe("The fill of the line.").optional(),
-          link: z.unknown().describe("A hypertext link.").optional(),
+          lineFill: z.unknown().describe(
+            "The fill of the line. The default line fill matches the defaults for new lines created in the Slides editor.",
+          ).optional(),
+          link: z.unknown().describe(
+            "The hyperlink destination of the line. If unset, there is no link.",
+          ).optional(),
           startArrow: z.unknown().describe(
             "The style of the arrow at the beginning of the line.",
           ).optional(),
           startConnection: z.unknown().describe(
-            "The properties for one end of a Line connection.",
+            'The connection at the beginning of the line. If unset, there is no connection. Only lines with a Type indicating it is a "connector" can have a `start_connection`.',
           ).optional(),
-          weight: z.unknown().describe(
-            "A magnitude in a single direction in the specified units.",
-          ).optional(),
-        }).describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+          weight: z.unknown().describe("The thickness of the line.").optional(),
+        }).describe("The properties of the line.").optional(),
         lineType: z.enum([
           "TYPE_UNSPECIFIED",
           "STRAIGHT_CONNECTOR_1",
@@ -2335,9 +2232,7 @@ const InputsSchema = z.object({
           "CURVED_CONNECTOR_5",
           "STRAIGHT_LINE",
         ]).describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
@@ -2351,28 +2246,28 @@ const InputsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of the placeholder.").optional(),
         }).describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         shapeProperties: z.object({
           autofit: z.unknown().describe(
-            "The autofit properties of a Shape. This property is only set for shapes that allow text.",
+            "The autofit properties of the shape. This property is only set for shapes that allow text.",
           ).optional(),
           contentAlignment: z.unknown().describe(
             "The alignment of the content in the shape. If unspecified, the alignment is inherited from a parent placeholder if it exists. If the shape has no parent, the default alignment matches the alignment for new shapes created in the Slides editor.",
           ).optional(),
-          link: z.unknown().describe("A hypertext link.").optional(),
+          link: z.unknown().describe(
+            "The hyperlink destination of the shape. If unset, there is no link. Links are not inherited from parent placeholders.",
+          ).optional(),
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the shape. If unset, the outline is inherited from a parent placeholder if it exists. If the shape has no parent, then the default outline depends on the shape type, matching the defaults for new shapes created in the Slides editor.",
           ).optional(),
           shadow: z.unknown().describe(
-            "The shadow properties of a page element. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The shadow properties of the shape. If unset, the shadow is inherited from a parent placeholder if it exists. If the shape has no parent, then the default shadow matches the defaults for new shapes created in the Slides editor. This property is read-only.",
           ).optional(),
           shapeBackgroundFill: z.unknown().describe(
-            "The shape background fill.",
+            "The background fill of the shape. If unset, the background fill is inherited from a parent placeholder if it exists. If the shape has no parent, then the default background fill depends on the shape type, matching the defaults for new shapes created in the Slides editor.",
           ).optional(),
-        }).describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        }).describe("The properties of the shape.").optional(),
         shapeType: z.enum([
           "TYPE_UNSPECIFIED",
           "TEXT_BOX",
@@ -2525,12 +2420,8 @@ const InputsSchema = z.object({
           textElements: z.unknown().describe(
             "The text contents broken down into its component parts, including styling information. This property is read-only.",
           ).optional(),
-        }).describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        }).describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.number().int().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -2540,38 +2431,35 @@ const InputsSchema = z.object({
         ).optional(),
         sheetsChartProperties: z.object({
           chartImageProperties: z.unknown().describe(
-            "The properties of the Image.",
+            "The properties of the embedded chart image.",
           ).optional(),
-        }).describe("The properties of the SheetsChart.").optional(),
+        }).describe("The properties of the Sheets chart.").optional(),
         spreadsheetId: z.string().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
         height: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
+        }).describe("The height of the object.").optional(),
         width: z.object({
           magnitude: z.unknown().describe("The magnitude.").optional(),
           unit: z.unknown().describe("The units for magnitude.").optional(),
-        }).describe("A magnitude in a single direction in the specified units.")
-          .optional(),
-      }).describe("A width and height.").optional(),
+        }).describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.object({
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the Speaker Spotlight. If not set, it has no outline.",
           ).optional(),
           shadow: z.unknown().describe(
-            "The shadow properties of a page element. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The shadow of the Speaker Spotlight. If not set, it has no shadow.",
           ).optional(),
-        }).describe("The properties of the SpeakerSpotlight.").optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+        }).describe("The properties of the Speaker Spotlight.").optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.number().int().describe("Number of columns in the table.")
           .optional(),
@@ -2589,7 +2477,7 @@ const InputsSchema = z.object({
         verticalBorderRows: z.array(z.unknown()).describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -2610,7 +2498,7 @@ const InputsSchema = z.object({
           "The units for translate elements.",
         ).optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.string().describe(
@@ -2633,27 +2521,31 @@ const InputsSchema = z.object({
             "Whether to mute the audio during video playback. Defaults to false.",
           ).optional(),
           outline: z.unknown().describe(
-            "The outline of a PageElement. If these fields are unset, they may be inherited from a parent placeholder if it exists. If there is no parent, the fields will default to the value used for new page elements created in the Slides editor, which may depend on the page element kind.",
+            "The outline of the video. The default outline matches the defaults for new videos created in the Slides editor.",
           ).optional(),
           start: z.unknown().describe(
             "The time at which to start playback, measured in seconds from the beginning of the video. If set, the start time should be before the end time. If you set this to a value that exceeds the video's length in seconds, the video will be played from the last second. If not set, the video will be played from the beginning.",
           ).optional(),
-        }).describe("The properties of the Video.").optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+        }).describe("The properties of the video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.string().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.object({
-          color: z.unknown().describe("An RGB color.").optional(),
+          color: z.unknown().describe(
+            "The concrete color corresponding to the theme color type above.",
+          ).optional(),
           type: z.unknown().describe("The type of the theme color.").optional(),
         })).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -2663,32 +2555,27 @@ const InputsSchema = z.object({
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
           color: z.object({
-            rgbColor: z.unknown().describe("An RGB color.").optional(),
+            rgbColor: z.unknown().describe("An opaque RGB color.").optional(),
             themeColor: z.unknown().describe("An opaque theme color.")
               .optional(),
-          }).describe("A themeable solid color value.").optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+          }).describe("The color value of the solid fill.").optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.string().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
           size: z.object({
-            height: z.unknown().describe(
-              "A magnitude in a single direction in the specified units.",
-            ).optional(),
-            width: z.unknown().describe(
-              "A magnitude in a single direction in the specified units.",
-            ).optional(),
-          }).describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+            height: z.unknown().describe("The height of the object.")
+              .optional(),
+            width: z.unknown().describe("The width of the object.").optional(),
+          }).describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -2707,26 +2594,25 @@ const InputsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
-  }).describe("A page in a presentation.").optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
+  }).describe(
+    "The notes master in the presentation. It serves three purposes: - Placeholder shapes on a notes master contain the default text styles and shape properties of all placeholder shapes on notes pages. Specifically, a `SLIDE_IMAGE` placeholder shape contains the slide thumbnail, and a `BODY` placeholder shape contains the speaker notes. - The notes master page properties define the common page properties inherited by all notes pages. - Any other shapes on the notes master appear on all notes pages. The notes master is read-only.",
+  ).optional(),
   pageSize: z.object({
     height: z.object({
       magnitude: z.number().describe("The magnitude.").optional(),
       unit: z.enum(["UNIT_UNSPECIFIED", "EMU", "PT"]).describe(
         "The units for magnitude.",
       ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
+    }).describe("The height of the object.").optional(),
     width: z.object({
       magnitude: z.number().describe("The magnitude.").optional(),
       unit: z.enum(["UNIT_UNSPECIFIED", "EMU", "PT"]).describe(
         "The units for magnitude.",
       ).optional(),
-    }).describe("A magnitude in a single direction in the specified units.")
-      .optional(),
-  }).describe("A width and height.").optional(),
+    }).describe("The width of the object.").optional(),
+  }).describe("The size of pages in the presentation.").optional(),
   presentationId: z.string().describe("The ID of the presentation.").optional(),
   slides: z.array(z.object({
     layoutProperties: z.object({
@@ -2736,22 +2622,19 @@ const InputsSchema = z.object({
         "The object ID of the master that this layout is based on.",
       ).optional(),
       name: z.string().describe("The name of the layout.").optional(),
-    }).describe(
-      "The properties of Page are only relevant for pages with page_type LAYOUT.",
-    ).optional(),
+    }).describe("Layout specific properties. Only set if page_type = LAYOUT.")
+      .optional(),
     masterProperties: z.object({
       displayName: z.string().describe("The human-readable name of the master.")
         .optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type MASTER.",
-    ).optional(),
+    }).describe("Master specific properties. Only set if page_type = MASTER.")
+      .optional(),
     notesProperties: z.object({
       speakerNotesObjectId: z.string().describe(
         "The object ID of the shape on this notes page that contains the speaker notes for the corresponding slide. The actual shape may not always exist on the notes page. Inserting text using this object ID will automatically create the shape. In this case, the actual shape may have different object ID. The `GetPresentation` or `GetPage` action will always return the latest object ID.",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type NOTES.",
-    ).optional(),
+    }).describe("Notes specific properties. Only set if page_type = NOTES.")
+      .optional(),
     objectId: z.string().describe(
       "The object ID for this page. Object IDs used by Page and PageElement share the same namespace.",
     ).optional(),
@@ -2763,50 +2646,41 @@ const InputsSchema = z.object({
         children: z.unknown().describe(
           "The collection of elements in the group. The minimum size of a group is 2.",
         ).optional(),
-      }).describe(
-        "A PageElement kind representing a joined collection of PageElements.",
-      ).optional(),
+      }).describe("A collection of page elements joined as a single unit.")
+        .optional(),
       image: z.object({
         contentUrl: z.unknown().describe(
           "An URL to an image with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
-        imageProperties: z.unknown().describe("The properties of the Image.")
+        imageProperties: z.unknown().describe("The properties of the image.")
           .optional(),
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the image is a placeholder image and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
         sourceUrl: z.unknown().describe(
           "The source URL is the URL used to insert the image. The source URL can be empty.",
         ).optional(),
-      }).describe("A PageElement kind representing an image.").optional(),
+      }).describe("An image page element.").optional(),
       line: z.object({
         lineCategory: z.unknown().describe(
           "The category of the line. It matches the `category` specified in CreateLineRequest, and can be updated with UpdateLineCategoryRequest.",
         ).optional(),
-        lineProperties: z.unknown().describe(
-          "The properties of the Line. When unset, these fields default to values that match the appearance of new lines created in the Slides editor.",
-        ).optional(),
+        lineProperties: z.unknown().describe("The properties of the line.")
+          .optional(),
         lineType: z.unknown().describe("The type of the line.").optional(),
-      }).describe(
-        "A PageElement kind representing a non-connector line, straight connector, curved connector, or bent connector.",
-      ).optional(),
+      }).describe("A line page element.").optional(),
       objectId: z.string().describe(
         "The object ID for this page element. Object IDs used by google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the same namespace.",
       ).optional(),
       shape: z.object({
         placeholder: z.unknown().describe(
-          "The placeholder information that uniquely identifies a placeholder shape.",
+          "Placeholders are page elements that inherit from corresponding placeholders on layouts and masters. If set, the shape is a placeholder shape and any inherited properties can be resolved by looking at the parent placeholder identified by the Placeholder.parent_object_id field.",
         ).optional(),
-        shapeProperties: z.unknown().describe(
-          "The properties of a Shape. If the shape is a placeholder shape as determined by the placeholder field, then these properties may be inherited from a parent placeholder shape. Determining the rendered value of the property depends on the corresponding property_state field value. Any text autofit settings on the shape are automatically deactivated by requests that can impact how text fits in the shape.",
-        ).optional(),
+        shapeProperties: z.unknown().describe("The properties of the shape.")
+          .optional(),
         shapeType: z.unknown().describe("The type of the shape.").optional(),
-        text: z.unknown().describe(
-          "The general text content. The text must reside in a compatible shape (e.g. text box or rectangle) or a table cell in a page.",
-        ).optional(),
-      }).describe(
-        "A PageElement kind representing a generic shape that doesn't have a more specific classification. For more information, see [Size and position page elements](https://developers.google.com/workspace/slides/api/guides/transform).",
-      ).optional(),
+        text: z.unknown().describe("The text content of the shape.").optional(),
+      }).describe("A generic shape.").optional(),
       sheetsChart: z.object({
         chartId: z.unknown().describe(
           "The ID of the specific chart in the Google Sheets spreadsheet that is embedded.",
@@ -2815,28 +2689,23 @@ const InputsSchema = z.object({
           "The URL of an image of the embedded chart, with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the image as the original requester. Access to the image may be lost if the presentation's sharing settings change.",
         ).optional(),
         sheetsChartProperties: z.unknown().describe(
-          "The properties of the SheetsChart.",
+          "The properties of the Sheets chart.",
         ).optional(),
         spreadsheetId: z.unknown().describe(
           "The ID of the Google Sheets spreadsheet that contains the source chart.",
         ).optional(),
       }).describe(
-        "A PageElement kind representing a linked chart embedded from Google Sheets.",
+        "A linked chart embedded from Google Sheets. Unlinked charts are represented as images.",
       ).optional(),
       size: z.object({
-        height: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-        width: z.unknown().describe(
-          "A magnitude in a single direction in the specified units.",
-        ).optional(),
-      }).describe("A width and height.").optional(),
+        height: z.unknown().describe("The height of the object.").optional(),
+        width: z.unknown().describe("The width of the object.").optional(),
+      }).describe("The size of the page element.").optional(),
       speakerSpotlight: z.object({
         speakerSpotlightProperties: z.unknown().describe(
-          "The properties of the SpeakerSpotlight.",
+          "The properties of the Speaker Spotlight.",
         ).optional(),
-      }).describe("A PageElement kind representing a Speaker Spotlight.")
-        .optional(),
+      }).describe("A Speaker Spotlight.").optional(),
       table: z.object({
         columns: z.unknown().describe("Number of columns in the table.")
           .optional(),
@@ -2852,7 +2721,7 @@ const InputsSchema = z.object({
         verticalBorderRows: z.unknown().describe(
           "Properties of vertical cell borders. A table's vertical cell borders are represented as a grid. The grid has the same number of rows as the table and one more column than the number of columns in the table. For example, if the table is 3 x 3, its vertical borders will be represented as a grid with 3 rows and 4 columns.",
         ).optional(),
-      }).describe("A PageElement kind representing a table.").optional(),
+      }).describe("A table page element.").optional(),
       title: z.string().describe(
         "The title of the page element. Combined with description to display alt text. The field is not supported for Group elements.",
       ).optional(),
@@ -2874,7 +2743,7 @@ const InputsSchema = z.object({
         unit: z.unknown().describe("The units for translate elements.")
           .optional(),
       }).describe(
-        "AffineTransform uses a 3x3 matrix with an implied last row of [ 0 0 1 ] to transform source coordinates (x,y) into destination coordinates (x', y') according to: x' x = shear_y scale_y translate_y 1 [ 1 ] After transformation, x' = scale_x * x + shear_x * y + translate_x; y' = scale_y * y + shear_y * x + translate_y; This message is therefore composed of these six matrix elements.",
+        "The transform of the page element. The visual appearance of the page element is determined by its absolute transform. To compute the absolute transform, preconcatenate a page element's transform with the transforms of all of its parent groups. If the page element is not in a group, its absolute transform is the same as the value in this field. The initial transform for the newly created Group is always the identity transform.",
       ).optional(),
       video: z.object({
         id: z.unknown().describe(
@@ -2884,20 +2753,22 @@ const InputsSchema = z.object({
         url: z.unknown().describe(
           "An URL to a video. The URL is valid as long as the source video exists and sharing settings do not change.",
         ).optional(),
-        videoProperties: z.unknown().describe("The properties of the Video.")
+        videoProperties: z.unknown().describe("The properties of the video.")
           .optional(),
-      }).describe("A PageElement kind representing a video.").optional(),
+      }).describe("A video page element.").optional(),
       wordArt: z.object({
         renderedText: z.unknown().describe("The text rendered as word art.")
           .optional(),
-      }).describe("A PageElement kind representing word art.").optional(),
+      }).describe("A word art page element.").optional(),
     })).describe("The page elements rendered on the page.").optional(),
     pageProperties: z.object({
       colorScheme: z.object({
         colors: z.array(z.unknown()).describe(
           "The ThemeColorType and corresponding concrete color pairs.",
         ).optional(),
-      }).describe("The palette of predefined colors for a page.").optional(),
+      }).describe(
+        "The color scheme of the page. If unset, the color scheme is inherited from a parent page. If the page has no parent, the color scheme uses a default Slides color scheme, matching the defaults in the Slides editor. Only the concrete colors of the first 12 ThemeColorTypes are editable. In addition, only the color scheme on `Master` pages can be updated. To update the field, a color scheme containing mappings from all the first 12 ThemeColorTypes to their concrete colors must be provided. Colors for the remaining ThemeColorTypes will be ignored.",
+      ).optional(),
       pageBackgroundFill: z.object({
         propertyState: z.enum(["RENDERED", "NOT_RENDERED", "INHERIT"]).describe(
           "The background fill property state. Updating the fill on a page will implicitly update this field to `RENDERED`, unless another value is specified in the same request. To have no fill on a page, set this field to `NOT_RENDERED`. In this case, any other fill fields set in the same request will be ignored.",
@@ -2906,23 +2777,21 @@ const InputsSchema = z.object({
           alpha: z.unknown().describe(
             "The fraction of this `color` that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color.",
           ).optional(),
-          color: z.unknown().describe("A themeable solid color value.")
+          color: z.unknown().describe("The color value of the solid fill.")
             .optional(),
-        }).describe(
-          "A solid color fill. The page or page element is filled entirely with the specified color value. If any field is unset, its value may be inherited from a parent placeholder if it exists.",
-        ).optional(),
+        }).describe("Solid color fill.").optional(),
         stretchedPictureFill: z.object({
           contentUrl: z.unknown().describe(
             "Reading the content_url: An URL to a picture with a default lifetime of 30 minutes. This URL is tagged with the account of the requester. Anyone with the URL effectively accesses the picture as the original requester. Access to the picture may be lost if the presentation's sharing settings change. Writing the content_url: The picture is fetched once at insertion time and a copy is stored for display inside the presentation. Pictures must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URL can be at most 2 kB in length.",
           ).optional(),
-          size: z.unknown().describe("A width and height.").optional(),
-        }).describe(
-          "The stretched picture fill. The page or page element is filled entirely with the specified picture. The picture is stretched to fit its container.",
-        ).optional(),
-      }).describe("The page background fill.").optional(),
-    }).describe(
-      "The properties of the Page. The page will inherit properties from the parent page. Depending on the page type the hierarchy is defined in either SlideProperties or LayoutProperties.",
-    ).optional(),
+          size: z.unknown().describe(
+            "The original size of the picture fill. This field is read-only.",
+          ).optional(),
+        }).describe("Stretched picture fill.").optional(),
+      }).describe(
+        "The background fill of the page. If unset, the background fill is inherited from a parent page if it exists. If the page has no parent, then the background fill defaults to the corresponding fill in the Slides editor.",
+      ).optional(),
+    }).describe("The properties of the page.").optional(),
     pageType: z.enum(["SLIDE", "MASTER", "LAYOUT", "NOTES", "NOTES_MASTER"])
       .describe("The type of the page.").optional(),
     revisionId: z.string().describe(
@@ -2941,9 +2810,8 @@ const InputsSchema = z.object({
       notesPage: z.record(z.string(), z.unknown()).describe(
         "Circular reference to Page",
       ).optional(),
-    }).describe(
-      "The properties of Page that are only relevant for pages with page_type SLIDE.",
-    ).optional(),
+    }).describe("Slide specific properties. Only set if page_type = SLIDE.")
+      .optional(),
   })).describe(
     "The slides in the presentation. A slide inherits properties from a slide layout.",
   ).optional(),
@@ -2973,7 +2841,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Slides Presentations. Registered at `@swamp/gcp/slides/presentations`. */
 export const model = {
   type: "@swamp/gcp/slides/presentations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3067,6 +2935,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -231,7 +231,7 @@ const GlobalArgsSchema = z.object({
       kmsKey: z.string().describe(
         "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
       ).optional(),
-    }).describe("The definition of a boot disk.").optional(),
+    }).describe("Optional. The boot disk for the VM.").optional(),
     confidentialInstanceConfig: z.object({
       confidentialInstanceType: z.enum([
         "CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED",
@@ -239,7 +239,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Defines the type of technology used by the confidential instance.",
       ).optional(),
-    }).describe("A set of Confidential Instance options.").optional(),
+    }).describe("Optional. Confidential instance configuration.").optional(),
     containerImage: z.object({
       repository: z.string().describe(
         "Required. The path to the container image repository. For example: `gcr.io/{project_id}/{image_name}`",
@@ -248,7 +248,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The tag of the container image. If not specified, this defaults to the latest tag.",
       ).optional(),
     }).describe(
-      "Definition of a container image for starting a notebook instance with the environment installed in a container.",
+      "Optional. Use a container image to start the notebook instance.",
     ).optional(),
     dataDisks: z.array(z.object({
       diskEncryption: z.enum(["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"])
@@ -293,7 +293,7 @@ const GlobalArgsSchema = z.object({
       enableGpuDriver: z.boolean().describe(
         "Optional. Whether the end user authorizes Google Cloud to install GPU driver on this VM instance. If this field is empty or set to false, the GPU driver won't be installed. Only applicable to instances with GPUs.",
       ).optional(),
-    }).describe("A GPU driver configuration").optional(),
+    }).describe("Optional. Configuration for GPU drivers.").optional(),
     instanceId: z.string().describe(
       "Output only. The unique ID of the Compute Engine instance resource.",
     ).optional(),
@@ -341,7 +341,9 @@ const GlobalArgsSchema = z.object({
       values: z.array(z.string()).describe(
         'Optional. Corresponds to the label values of a reservation resource. This can be either a name to a reservation in the same project or "projects/different-project/reservations/some-reservation-name" to target a shared reservation in the same zone but in a different project.',
       ).optional(),
-    }).describe("A reservation that an instance can consume from.").optional(),
+    }).describe(
+      "Optional. Specifies the reservations that this instance can consume from.",
+    ).optional(),
     serviceAccounts: z.array(z.object({
       email: z.string().describe(
         "Optional. Email address of the service account.",
@@ -363,7 +365,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Defines whether the VM instance has the vTPM enabled.",
       ).optional(),
     }).describe(
-      "A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm). Not all combinations are valid.",
+      "Optional. Shielded VM configuration. [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm).",
     ).optional(),
     tags: z.array(z.string()).describe(
       "Optional. The Compute Engine network tags to add to runtime (see [Add network tags](https://cloud.google.com/vpc/docs/add-remove-network-tags)).",
@@ -379,10 +381,10 @@ const GlobalArgsSchema = z.object({
         "Required. The name of the Google Cloud project that this VM image belongs to. Format: `{project_id}`",
       ).optional(),
     }).describe(
-      "Definition of a custom Compute Engine virtual machine image for starting a notebook instance with the environment installed directly on the VM.",
+      "Optional. Use a Compute Engine VM image to start the notebook instance.",
     ).optional(),
   }).describe(
-    "The definition of how to configure a VM instance outside of Resources and Identity.",
+    "Optional. Compute Engine setup for the notebook. Uses notebook-defined fields.",
   ).optional(),
   instanceOwners: z.array(z.string()).describe(
     "Optional. The owner of this instance after creation. Format: `alias@example.com` Currently supports one owner only. If not specified, all of the service account users of your VM instance's service account can use the instance.",
@@ -565,7 +567,7 @@ const InputsSchema = z.object({
       kmsKey: z.string().describe(
         "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
       ).optional(),
-    }).describe("The definition of a boot disk.").optional(),
+    }).describe("Optional. The boot disk for the VM.").optional(),
     confidentialInstanceConfig: z.object({
       confidentialInstanceType: z.enum([
         "CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED",
@@ -573,7 +575,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Defines the type of technology used by the confidential instance.",
       ).optional(),
-    }).describe("A set of Confidential Instance options.").optional(),
+    }).describe("Optional. Confidential instance configuration.").optional(),
     containerImage: z.object({
       repository: z.string().describe(
         "Required. The path to the container image repository. For example: `gcr.io/{project_id}/{image_name}`",
@@ -582,7 +584,7 @@ const InputsSchema = z.object({
         "Optional. The tag of the container image. If not specified, this defaults to the latest tag.",
       ).optional(),
     }).describe(
-      "Definition of a container image for starting a notebook instance with the environment installed in a container.",
+      "Optional. Use a container image to start the notebook instance.",
     ).optional(),
     dataDisks: z.array(z.object({
       diskEncryption: z.enum(["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"])
@@ -627,7 +629,7 @@ const InputsSchema = z.object({
       enableGpuDriver: z.boolean().describe(
         "Optional. Whether the end user authorizes Google Cloud to install GPU driver on this VM instance. If this field is empty or set to false, the GPU driver won't be installed. Only applicable to instances with GPUs.",
       ).optional(),
-    }).describe("A GPU driver configuration").optional(),
+    }).describe("Optional. Configuration for GPU drivers.").optional(),
     instanceId: z.string().describe(
       "Output only. The unique ID of the Compute Engine instance resource.",
     ).optional(),
@@ -675,7 +677,9 @@ const InputsSchema = z.object({
       values: z.array(z.string()).describe(
         'Optional. Corresponds to the label values of a reservation resource. This can be either a name to a reservation in the same project or "projects/different-project/reservations/some-reservation-name" to target a shared reservation in the same zone but in a different project.',
       ).optional(),
-    }).describe("A reservation that an instance can consume from.").optional(),
+    }).describe(
+      "Optional. Specifies the reservations that this instance can consume from.",
+    ).optional(),
     serviceAccounts: z.array(z.object({
       email: z.string().describe(
         "Optional. Email address of the service account.",
@@ -697,7 +701,7 @@ const InputsSchema = z.object({
         "Optional. Defines whether the VM instance has the vTPM enabled.",
       ).optional(),
     }).describe(
-      "A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm). Not all combinations are valid.",
+      "Optional. Shielded VM configuration. [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm).",
     ).optional(),
     tags: z.array(z.string()).describe(
       "Optional. The Compute Engine network tags to add to runtime (see [Add network tags](https://cloud.google.com/vpc/docs/add-remove-network-tags)).",
@@ -713,10 +717,10 @@ const InputsSchema = z.object({
         "Required. The name of the Google Cloud project that this VM image belongs to. Format: `{project_id}`",
       ).optional(),
     }).describe(
-      "Definition of a custom Compute Engine virtual machine image for starting a notebook instance with the environment installed directly on the VM.",
+      "Optional. Use a Compute Engine VM image to start the notebook instance.",
     ).optional(),
   }).describe(
-    "The definition of how to configure a VM instance outside of Resources and Identity.",
+    "Optional. Compute Engine setup for the notebook. Uses notebook-defined fields.",
   ).optional(),
   instanceOwners: z.array(z.string()).describe(
     "Optional. The owner of this instance after creation. Format: `alias@example.com` Currently supports one owner only. If not specified, all of the service account users of your VM instance's service account can use the instance.",
@@ -757,7 +761,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Instances. Registered at `@swamp/gcp/notebooks/instances`. */
 export const model = {
   type: "@swamp/gcp/notebooks/instances",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -899,6 +903,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -969,16 +978,7 @@ export const model = {
               "failedValues": ["STOPPED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

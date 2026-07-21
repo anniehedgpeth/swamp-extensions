@@ -142,7 +142,9 @@ const GlobalArgsSchema = z.object({
     twoFactorPublicKeyPems: z.array(z.string()).describe(
       "Output only. The public keys associated with the 2FA keys for M of N quorum auth.",
     ).optional(),
-  }).describe("Configuration for M of N quorum auth.").optional(),
+  }).describe(
+    "Required. The quorum auth configuration for the SingleTenantHsmInstance.",
+  ).optional(),
   singleTenantHsmInstanceId: z.string().describe(
     "Optional. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`.",
   ).optional(),
@@ -189,7 +191,9 @@ const InputsSchema = z.object({
     twoFactorPublicKeyPems: z.array(z.string()).describe(
       "Output only. The public keys associated with the 2FA keys for M of N quorum auth.",
     ).optional(),
-  }).describe("Configuration for M of N quorum auth.").optional(),
+  }).describe(
+    "Required. The quorum auth configuration for the SingleTenantHsmInstance.",
+  ).optional(),
   singleTenantHsmInstanceId: z.string().describe(
     "Optional. It must be unique within a location and match the regular expression `[a-zA-Z0-9_-]{1,63}`.",
   ).optional(),
@@ -221,7 +225,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) SingleTenantHsmInstances. Registered at `@swamp/gcp/cloudkms/singletenanthsminstances`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/singletenanthsminstances",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -363,6 +367,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: keyPortabilityEnabled",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

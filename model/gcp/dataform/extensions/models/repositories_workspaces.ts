@@ -139,21 +139,10 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
   disableMoves: z.boolean().describe(
     "Optional. If set to true, workspaces will not be moved if its linked Repository is moved. Instead, it will be deleted.",
   ).optional(),
   name: z.string().describe("Identifier. The workspace's name.").optional(),
-  privateResourceMetadata: z.object({
-    userScoped: z.boolean().describe(
-      "Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.",
-    ).optional(),
-  }).describe("Metadata used to identify if a resource is user scoped.")
-    .optional(),
   workspaceId: z.string().describe(
     "Required. The ID to use for the workspace, which will become the final component of the workspace's resource name.",
   ).optional(),
@@ -185,21 +174,10 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  dataEncryptionState: z.object({
-    kmsKeyVersionName: z.string().describe(
-      "Required. The KMS key version name with which data of a resource is encrypted.",
-    ).optional(),
-  }).describe("Describes encryption state of a resource.").optional(),
   disableMoves: z.boolean().describe(
     "Optional. If set to true, workspaces will not be moved if its linked Repository is moved. Instead, it will be deleted.",
   ).optional(),
   name: z.string().describe("Identifier. The workspace's name.").optional(),
-  privateResourceMetadata: z.object({
-    userScoped: z.boolean().describe(
-      "Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.",
-    ).optional(),
-  }).describe("Metadata used to identify if a resource is user scoped.")
-    .optional(),
   workspaceId: z.string().describe(
     "Required. The ID to use for the workspace, which will become the final component of the workspace's resource name.",
   ).optional(),
@@ -234,7 +212,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.Workspaces. Registered at `@swamp/gcp/dataform/repositories-workspaces`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-workspaces",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -341,6 +319,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: dataEncryptionState, privateResourceMetadata",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          dataEncryptionState: _dataEncryptionState,
+          privateResourceMetadata: _privateResourceMetadata,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -363,16 +353,10 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
-        if (g["dataEncryptionState"] !== undefined) {
-          body["dataEncryptionState"] = g["dataEncryptionState"];
-        }
         if (g["disableMoves"] !== undefined) {
           body["disableMoves"] = g["disableMoves"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["privateResourceMetadata"] !== undefined) {
-          body["privateResourceMetadata"] = g["privateResourceMetadata"];
-        }
         if (g["workspaceId"] !== undefined) {
           params["workspaceId"] = String(g["workspaceId"]);
         }

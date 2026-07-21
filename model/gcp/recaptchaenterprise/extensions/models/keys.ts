@@ -159,13 +159,12 @@ const GlobalArgsSchema = z.object({
     supportNonGoogleAppStoreDistribution: z.boolean().describe(
       "Optional. Set to true for keys that are used in an Android application that is available for download in app stores in addition to the Google Play Store.",
     ).optional(),
-  }).describe("Settings specific to keys that can be used by Android apps.")
-    .optional(),
+  }).describe("Settings for keys that can be used by Android apps.").optional(),
   displayName: z.string().describe(
     "Required. Human-readable display name of this key. Modifiable by user.",
   ).optional(),
   expressSettings: z.object({}).describe(
-    "Settings specific to keys that can be used for reCAPTCHA Express.",
+    "Settings for keys that can be used by reCAPTCHA Express.",
   ).optional(),
   iosSettings: z.object({
     allowAllBundleIds: z.boolean().describe(
@@ -185,10 +184,9 @@ const GlobalArgsSchema = z.object({
         "Required. The Apple team ID (10-character string) owning the provisioning profile used to build your application.",
       ).optional(),
     }).describe(
-      "Contains fields that are required to perform Apple-specific integrity checks.",
+      "Optional. Apple Developer account details for the app that is protected by the reCAPTCHA Key. reCAPTCHA leverages platform-specific checks like Apple App Attest and Apple DeviceCheck to protect your app from abuse. Providing these fields allows reCAPTCHA to get a better assessment of the integrity of your app.",
     ).optional(),
-  }).describe("Settings specific to keys that can be used by iOS apps.")
-    .optional(),
+  }).describe("Settings for keys that can be used by iOS apps.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. See [Creating and managing labels] (https://cloud.google.com/recaptcha/docs/labels).",
   ).optional(),
@@ -206,7 +204,7 @@ const GlobalArgsSchema = z.object({
     testingScore: z.number().describe(
       "Optional. All assessments for this Key return this score. Must be between 0 (likely not legitimate) and 1 (likely legitimate) inclusive.",
     ).optional(),
-  }).describe("Options for user acceptance testing.").optional(),
+  }).describe("Optional. Options for user acceptance testing.").optional(),
   universalSettings: z.object({}).describe(
     "Settings for keys that are configured through their Policy.",
   ).optional(),
@@ -229,9 +227,8 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. The Web Application Firewall (WAF) service that uses this key.",
     ).optional(),
-  }).describe(
-    "Settings specific to keys that can be used for WAF (Web Application Firewall).",
-  ).optional(),
+  }).describe("Optional. Settings for Web Application Firewall (WAF).")
+    .optional(),
   webSettings: z.object({
     allowAllDomains: z.boolean().describe(
       "Optional. If set to true, it means allowed_domains are not enforced.",
@@ -265,10 +262,10 @@ const GlobalArgsSchema = z.object({
         scoreThreshold: z.number().describe(
           "Required. A challenge is triggered if the end-user score is below that threshold. Value must be between 0 and 1 (inclusive).",
         ).optional(),
-      }).describe("Per-action challenge settings.").optional(),
-    }).describe(
-      "Settings for POLICY_BASED_CHALLENGE keys to control when a challenge is triggered.",
-    ).optional(),
+      }).describe(
+        "Required. Defines when a challenge is triggered (unless the default threshold is overridden for the given action, see `action_settings`).",
+      ).optional(),
+    }).describe("Optional. Challenge settings.").optional(),
     integrationType: z.enum([
       "INTEGRATION_TYPE_UNSPECIFIED",
       "SCORE",
@@ -278,8 +275,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. Describes how this key is integrated with the website.",
     ).optional(),
-  }).describe("Settings specific to keys that can be used by websites.")
-    .optional(),
+  }).describe("Settings for keys that can be used by websites.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -346,13 +342,12 @@ const InputsSchema = z.object({
     supportNonGoogleAppStoreDistribution: z.boolean().describe(
       "Optional. Set to true for keys that are used in an Android application that is available for download in app stores in addition to the Google Play Store.",
     ).optional(),
-  }).describe("Settings specific to keys that can be used by Android apps.")
-    .optional(),
+  }).describe("Settings for keys that can be used by Android apps.").optional(),
   displayName: z.string().describe(
     "Required. Human-readable display name of this key. Modifiable by user.",
   ).optional(),
   expressSettings: z.object({}).describe(
-    "Settings specific to keys that can be used for reCAPTCHA Express.",
+    "Settings for keys that can be used by reCAPTCHA Express.",
   ).optional(),
   iosSettings: z.object({
     allowAllBundleIds: z.boolean().describe(
@@ -372,10 +367,9 @@ const InputsSchema = z.object({
         "Required. The Apple team ID (10-character string) owning the provisioning profile used to build your application.",
       ).optional(),
     }).describe(
-      "Contains fields that are required to perform Apple-specific integrity checks.",
+      "Optional. Apple Developer account details for the app that is protected by the reCAPTCHA Key. reCAPTCHA leverages platform-specific checks like Apple App Attest and Apple DeviceCheck to protect your app from abuse. Providing these fields allows reCAPTCHA to get a better assessment of the integrity of your app.",
     ).optional(),
-  }).describe("Settings specific to keys that can be used by iOS apps.")
-    .optional(),
+  }).describe("Settings for keys that can be used by iOS apps.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. See [Creating and managing labels] (https://cloud.google.com/recaptcha/docs/labels).",
   ).optional(),
@@ -393,7 +387,7 @@ const InputsSchema = z.object({
     testingScore: z.number().describe(
       "Optional. All assessments for this Key return this score. Must be between 0 (likely not legitimate) and 1 (likely legitimate) inclusive.",
     ).optional(),
-  }).describe("Options for user acceptance testing.").optional(),
+  }).describe("Optional. Options for user acceptance testing.").optional(),
   universalSettings: z.object({}).describe(
     "Settings for keys that are configured through their Policy.",
   ).optional(),
@@ -416,9 +410,8 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. The Web Application Firewall (WAF) service that uses this key.",
     ).optional(),
-  }).describe(
-    "Settings specific to keys that can be used for WAF (Web Application Firewall).",
-  ).optional(),
+  }).describe("Optional. Settings for Web Application Firewall (WAF).")
+    .optional(),
   webSettings: z.object({
     allowAllDomains: z.boolean().describe(
       "Optional. If set to true, it means allowed_domains are not enforced.",
@@ -452,10 +445,10 @@ const InputsSchema = z.object({
         scoreThreshold: z.number().describe(
           "Required. A challenge is triggered if the end-user score is below that threshold. Value must be between 0 and 1 (inclusive).",
         ).optional(),
-      }).describe("Per-action challenge settings.").optional(),
-    }).describe(
-      "Settings for POLICY_BASED_CHALLENGE keys to control when a challenge is triggered.",
-    ).optional(),
+      }).describe(
+        "Required. Defines when a challenge is triggered (unless the default threshold is overridden for the given action, see `action_settings`).",
+      ).optional(),
+    }).describe("Optional. Challenge settings.").optional(),
     integrationType: z.enum([
       "INTEGRATION_TYPE_UNSPECIFIED",
       "SCORE",
@@ -465,8 +458,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. Describes how this key is integrated with the website.",
     ).optional(),
-  }).describe("Settings specific to keys that can be used by websites.")
-    .optional(),
+  }).describe("Settings for keys that can be used by websites.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -495,7 +487,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud reCAPTCHA Enterprise Keys. Registered at `@swamp/gcp/recaptchaenterprise/keys`. */
 export const model = {
   type: "@swamp/gcp/recaptchaenterprise/keys",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -613,6 +605,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: universalSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

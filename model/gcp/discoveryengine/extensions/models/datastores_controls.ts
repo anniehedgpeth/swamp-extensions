@@ -194,9 +194,9 @@ const GlobalArgsSchema = z.object({
           "Optional. The interpolation type to be applied to connect the control points listed below.",
         ).optional(),
     }).describe(
-      "Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.",
+      "Optional. Complex specification for custom ranking based on customer defined attribute value.",
     ).optional(),
-  }).describe("Adjusts order of products in returned list.").optional(),
+  }).describe("Defines a boost-type control").optional(),
   conditions: z.array(z.object({
     activeTimeRange: z.array(z.object({
       endTime: z.string().describe(
@@ -234,7 +234,7 @@ const GlobalArgsSchema = z.object({
       "Required. A filter to apply on the matching condition results. Required Syntax documentation: https://cloud.google.com/retail/docs/filter-and-order Maximum length is 5000 characters. Otherwise an INVALID ARGUMENT error is thrown.",
     ).optional(),
   }).describe(
-    "Specified which products may be included in results. Uses same filter as boost.",
+    "Defines a filter-type control Currently not supported by Recommendation",
   ).optional(),
   name: z.string().describe(
     "Immutable. Fully qualified name `projects/*/locations/global/dataStore/*/controls/*`",
@@ -262,17 +262,14 @@ const GlobalArgsSchema = z.object({
       uri: z.string().describe(
         "Optional. The URL for the page the user wants to promote. Must be set for site search. For other verticals, this is optional.",
       ).optional(),
-    }).describe(
-      "Promotion proto includes uri and other helping information to display the promotion.",
-    ).optional(),
-  }).describe(
-    "Promote certain links based on some trigger queries. Example: Promote shoe store link when searching for `shoe` keyword. The link can be outside of associated data store.",
-  ).optional(),
+    }).describe("Required. Promotion attached to this action.").optional(),
+  }).describe("Promote certain links based on predefined trigger queries.")
+    .optional(),
   redirectAction: z.object({
     redirectUri: z.string().describe(
       "Required. The URI to which the shopper will be redirected. Required. URI must have length equal or less than 2000 characters. Otherwise an INVALID ARGUMENT error is thrown.",
     ).optional(),
-  }).describe("Redirects a shopper to the provided URI.").optional(),
+  }).describe("Defines a redirect-type control.").optional(),
   solutionType: z.enum([
     "SOLUTION_TYPE_UNSPECIFIED",
     "SOLUTION_TYPE_RECOMMENDATION",
@@ -287,9 +284,7 @@ const GlobalArgsSchema = z.object({
     synonyms: z.array(z.string()).describe(
       "Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms. Otherwise an INVALID ARGUMENT error is thrown.",
     ).optional(),
-  }).describe(
-    'Creates a set of terms that will act as synonyms of one another. Example: "happy" will also be considered as "glad", "glad" will also be considered as "happy".',
-  ).optional(),
+  }).describe("Treats a group of terms as synonyms of one another.").optional(),
   useCases: z.array(
     z.enum([
       "SEARCH_USE_CASE_UNSPECIFIED",
@@ -411,9 +406,9 @@ const InputsSchema = z.object({
           "Optional. The interpolation type to be applied to connect the control points listed below.",
         ).optional(),
     }).describe(
-      "Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.",
+      "Optional. Complex specification for custom ranking based on customer defined attribute value.",
     ).optional(),
-  }).describe("Adjusts order of products in returned list.").optional(),
+  }).describe("Defines a boost-type control").optional(),
   conditions: z.array(z.object({
     activeTimeRange: z.array(z.object({
       endTime: z.string().describe(
@@ -451,7 +446,7 @@ const InputsSchema = z.object({
       "Required. A filter to apply on the matching condition results. Required Syntax documentation: https://cloud.google.com/retail/docs/filter-and-order Maximum length is 5000 characters. Otherwise an INVALID ARGUMENT error is thrown.",
     ).optional(),
   }).describe(
-    "Specified which products may be included in results. Uses same filter as boost.",
+    "Defines a filter-type control Currently not supported by Recommendation",
   ).optional(),
   name: z.string().describe(
     "Immutable. Fully qualified name `projects/*/locations/global/dataStore/*/controls/*`",
@@ -479,17 +474,14 @@ const InputsSchema = z.object({
       uri: z.string().describe(
         "Optional. The URL for the page the user wants to promote. Must be set for site search. For other verticals, this is optional.",
       ).optional(),
-    }).describe(
-      "Promotion proto includes uri and other helping information to display the promotion.",
-    ).optional(),
-  }).describe(
-    "Promote certain links based on some trigger queries. Example: Promote shoe store link when searching for `shoe` keyword. The link can be outside of associated data store.",
-  ).optional(),
+    }).describe("Required. Promotion attached to this action.").optional(),
+  }).describe("Promote certain links based on predefined trigger queries.")
+    .optional(),
   redirectAction: z.object({
     redirectUri: z.string().describe(
       "Required. The URI to which the shopper will be redirected. Required. URI must have length equal or less than 2000 characters. Otherwise an INVALID ARGUMENT error is thrown.",
     ).optional(),
-  }).describe("Redirects a shopper to the provided URI.").optional(),
+  }).describe("Defines a redirect-type control.").optional(),
   solutionType: z.enum([
     "SOLUTION_TYPE_UNSPECIFIED",
     "SOLUTION_TYPE_RECOMMENDATION",
@@ -504,9 +496,7 @@ const InputsSchema = z.object({
     synonyms: z.array(z.string()).describe(
       "Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms. Otherwise an INVALID ARGUMENT error is thrown.",
     ).optional(),
-  }).describe(
-    'Creates a set of terms that will act as synonyms of one another. Example: "happy" will also be considered as "glad", "glad" will also be considered as "happy".',
-  ).optional(),
+  }).describe("Treats a group of terms as synonyms of one another.").optional(),
   useCases: z.array(
     z.enum([
       "SEARCH_USE_CASE_UNSPECIFIED",
@@ -550,7 +540,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.Controls. Registered at `@swamp/gcp/discoveryengine/datastores-controls`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-controls",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -654,6 +644,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

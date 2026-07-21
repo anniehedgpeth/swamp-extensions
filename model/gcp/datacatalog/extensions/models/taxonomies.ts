@@ -166,28 +166,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. Resource name of this taxonomy in URL format. Note: Policy tag manager generates unique taxonomy IDs.",
   ).optional(),
-  service: z.object({
-    identity: z.string().describe("The service agent for the service.")
-      .optional(),
-    name: z.enum([
-      "MANAGING_SYSTEM_UNSPECIFIED",
-      "MANAGING_SYSTEM_DATAPLEX",
-      "MANAGING_SYSTEM_OTHER",
-    ]).describe("The Google Cloud service name.").optional(),
-  }).describe("The source system of the Taxonomy.").optional(),
-  taxonomyTimestamps: z.object({
-    createTime: z.string().describe(
-      "Creation timestamp of the resource within the given system.",
-    ).optional(),
-    expireTime: z.string().describe(
-      "Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
-    ).optional(),
-  }).describe(
-    "Timestamps associated with this resource in a particular system.",
-  ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -231,28 +209,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. Resource name of this taxonomy in URL format. Note: Policy tag manager generates unique taxonomy IDs.",
   ).optional(),
-  service: z.object({
-    identity: z.string().describe("The service agent for the service.")
-      .optional(),
-    name: z.enum([
-      "MANAGING_SYSTEM_UNSPECIFIED",
-      "MANAGING_SYSTEM_DATAPLEX",
-      "MANAGING_SYSTEM_OTHER",
-    ]).describe("The Google Cloud service name.").optional(),
-  }).describe("The source system of the Taxonomy.").optional(),
-  taxonomyTimestamps: z.object({
-    createTime: z.string().describe(
-      "Creation timestamp of the resource within the given system.",
-    ).optional(),
-    expireTime: z.string().describe(
-      "Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.",
-    ).optional(),
-    updateTime: z.string().describe(
-      "Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.",
-    ).optional(),
-  }).describe(
-    "Timestamps associated with this resource in a particular system.",
-  ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -281,7 +237,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Data Catalog Taxonomies. Registered at `@swamp/gcp/datacatalog/taxonomies`. */
 export const model = {
   type: "@swamp/gcp/datacatalog/taxonomies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -388,6 +344,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: service, taxonomyTimestamps",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          service: _service,
+          taxonomyTimestamps: _taxonomyTimestamps,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -423,10 +391,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["service"] !== undefined) body["service"] = g["service"];
-        if (g["taxonomyTimestamps"] !== undefined) {
-          body["taxonomyTimestamps"] = g["taxonomyTimestamps"];
-        }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
             `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
@@ -541,10 +505,6 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["service"] !== undefined) body["service"] = g["service"];
-        if (g["taxonomyTimestamps"] !== undefined) {
-          body["taxonomyTimestamps"] = g["taxonomyTimestamps"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

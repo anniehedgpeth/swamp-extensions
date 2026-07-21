@@ -143,7 +143,9 @@ const GlobalArgsSchema = z.object({
         "Required. The name of the header to extract the client ip from.",
       ).optional(),
     }).describe("Resolves the client ip based on a custom header.").optional(),
-  }).describe("Configuration for resolving the client ip.").optional(),
+  }).describe(
+    "Optional. The algorithm to resolve IP. This will affect Analytics, API Security, and other features that use the client ip. To remove a client ip resolution config, update the field to an empty value. Example: '{ \"clientIpResolutionConfig\" = {} }' For more information, see: https://cloud.google.com/apigee/docs/api-platform/system-administration/client-ip-resolution.",
+  ).optional(),
   deploymentType: z.enum(["DEPLOYMENT_TYPE_UNSPECIFIED", "PROXY", "ARCHIVE"])
     .describe(
       "Optional. Deployment type supported by the environment. The deployment type can be set when creating the environment and cannot be changed. When you enable archive deployment, you will be **prevented from performing** a [subset of actions](/apigee/docs/api-platform/local-development/overview#prevented-actions) within the environment, including: * Managing the deployment of API proxy or shared flow revisions * Creating, updating, or deleting resource files * Creating, updating, or deleting target servers",
@@ -170,16 +172,14 @@ const GlobalArgsSchema = z.object({
     minNodeCount: z.string().describe(
       "Optional. The minimum total number of gateway nodes that the is reserved for all instances that has the specified environment. If not specified, the default is determined by the recommended minimum number of nodes for that gateway.",
     ).optional(),
-  }).describe(
-    "NodeConfig for setting the min/max number of nodes associated with the environment.",
-  ).optional(),
+  }).describe("Optional. NodeConfig of the environment.").optional(),
   properties: z.object({
     property: z.array(z.object({
       name: z.string().describe("The property key").optional(),
       value: z.string().describe("The property value").optional(),
     })).describe("List of all properties in the object").optional(),
   }).describe(
-    "Message for compatibility with legacy Edge specification for Java Properties object in JSON.",
+    "Optional. Key-value pairs that may be used for customizing the environment.",
   ).optional(),
   type: z.enum([
     "ENVIRONMENT_TYPE_UNSPECIFIED",
@@ -247,7 +247,9 @@ const InputsSchema = z.object({
         "Required. The name of the header to extract the client ip from.",
       ).optional(),
     }).describe("Resolves the client ip based on a custom header.").optional(),
-  }).describe("Configuration for resolving the client ip.").optional(),
+  }).describe(
+    "Optional. The algorithm to resolve IP. This will affect Analytics, API Security, and other features that use the client ip. To remove a client ip resolution config, update the field to an empty value. Example: '{ \"clientIpResolutionConfig\" = {} }' For more information, see: https://cloud.google.com/apigee/docs/api-platform/system-administration/client-ip-resolution.",
+  ).optional(),
   deploymentType: z.enum(["DEPLOYMENT_TYPE_UNSPECIFIED", "PROXY", "ARCHIVE"])
     .describe(
       "Optional. Deployment type supported by the environment. The deployment type can be set when creating the environment and cannot be changed. When you enable archive deployment, you will be **prevented from performing** a [subset of actions](/apigee/docs/api-platform/local-development/overview#prevented-actions) within the environment, including: * Managing the deployment of API proxy or shared flow revisions * Creating, updating, or deleting resource files * Creating, updating, or deleting target servers",
@@ -274,16 +276,14 @@ const InputsSchema = z.object({
     minNodeCount: z.string().describe(
       "Optional. The minimum total number of gateway nodes that the is reserved for all instances that has the specified environment. If not specified, the default is determined by the recommended minimum number of nodes for that gateway.",
     ).optional(),
-  }).describe(
-    "NodeConfig for setting the min/max number of nodes associated with the environment.",
-  ).optional(),
+  }).describe("Optional. NodeConfig of the environment.").optional(),
   properties: z.object({
     property: z.array(z.object({
       name: z.string().describe("The property key").optional(),
       value: z.string().describe("The property value").optional(),
     })).describe("List of all properties in the object").optional(),
   }).describe(
-    "Message for compatibility with legacy Edge specification for Java Properties object in JSON.",
+    "Optional. Key-value pairs that may be used for customizing the environment.",
   ).optional(),
   type: z.enum([
     "ENVIRONMENT_TYPE_UNSPECIFIED",
@@ -320,7 +320,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments. Registered at `@swamp/gcp/apigee/environments`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -444,6 +444,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

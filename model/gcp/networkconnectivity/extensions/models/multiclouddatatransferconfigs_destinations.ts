@@ -203,23 +203,6 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The name of the `Destination` resource. Format: `projects/{project}/locations/{location}/multicloudDataTransferConfigs/{multicloud_data_transfer_config}/destinations/{destination}`.",
   ).optional(),
-  stateTimeline: z.object({
-    states: z.array(z.object({
-      effectiveTime: z.string().describe(
-        "Output only. Accompanies only the transient states, which include `ADDING`, `DELETING`, and `SUSPENDING`, to denote the time until which the transient state of the resource will be effective. For instance, if the state is `ADDING`, this field shows the time when the resource state transitions to `ACTIVE`.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "ADDING",
-        "ACTIVE",
-        "DELETING",
-        "SUSPENDING",
-        "SUSPENDED",
-      ]).describe("Output only. The state of the resource.").optional(),
-    })).describe(
-      "Output only. The state and activation time details of the resource state.",
-    ).optional(),
-  }).describe("The timeline of the pending states for a resource.").optional(),
   destinationId: z.string().describe(
     "Required. The ID to use for the `Destination` resource, which becomes the final component of the `Destination` resource name.",
   ).optional(),
@@ -289,23 +272,6 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The name of the `Destination` resource. Format: `projects/{project}/locations/{location}/multicloudDataTransferConfigs/{multicloud_data_transfer_config}/destinations/{destination}`.",
   ).optional(),
-  stateTimeline: z.object({
-    states: z.array(z.object({
-      effectiveTime: z.string().describe(
-        "Output only. Accompanies only the transient states, which include `ADDING`, `DELETING`, and `SUSPENDING`, to denote the time until which the transient state of the resource will be effective. For instance, if the state is `ADDING`, this field shows the time when the resource state transitions to `ACTIVE`.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "ADDING",
-        "ACTIVE",
-        "DELETING",
-        "SUSPENDING",
-        "SUSPENDED",
-      ]).describe("Output only. The state of the resource.").optional(),
-    })).describe(
-      "Output only. The state and activation time details of the resource state.",
-    ).optional(),
-  }).describe("The timeline of the pending states for a resource.").optional(),
   destinationId: z.string().describe(
     "Required. The ID to use for the `Destination` resource, which becomes the final component of the `Destination` resource name.",
   ).optional(),
@@ -344,7 +310,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/networkconnectivity/multiclouddatatransferconfigs-destinations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -451,6 +417,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: stateTimeline",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { stateTimeline: _stateTimeline, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -481,9 +455,6 @@ export const model = {
         if (g["ipPrefix"] !== undefined) body["ipPrefix"] = g["ipPrefix"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["stateTimeline"] !== undefined) {
-          body["stateTimeline"] = g["stateTimeline"];
-        }
         if (g["destinationId"] !== undefined) {
           params["destinationId"] = String(g["destinationId"]);
         }
@@ -599,9 +570,6 @@ export const model = {
         }
         if (g["endpoints"] !== undefined) body["endpoints"] = g["endpoints"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["stateTimeline"] !== undefined) {
-          body["stateTimeline"] = g["stateTimeline"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

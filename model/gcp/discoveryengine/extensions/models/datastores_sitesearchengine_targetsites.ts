@@ -157,29 +157,8 @@ const GlobalArgsSchema = z.object({
   exactMatch: z.boolean().describe(
     "Immutable. If set to false, a uri_pattern is generated to include all pages whose address contains the provided_uri_pattern. If set to true, an uri_pattern is generated to try to be an exact match of the provided_uri_pattern or just the specific page if the provided_uri_pattern is a specific one. provided_uri_pattern is always normalized to generate the URI pattern to be used by the search engine.",
   ).optional(),
-  failureReason: z.object({
-    quotaFailure: z.object({
-      totalRequiredQuota: z.string().describe(
-        "This number is an estimation on how much total quota this project needs to successfully complete indexing.",
-      ).optional(),
-    }).describe("Failed due to insufficient quota.").optional(),
-  }).describe("Site search indexing failure reasons.").optional(),
   providedUriPattern: z.string().describe(
     "Required. Input only. The user provided URI pattern from which the `generated_uri_pattern` is generated.",
-  ).optional(),
-  siteVerificationInfo: z.object({
-    siteVerificationState: z.enum([
-      "SITE_VERIFICATION_STATE_UNSPECIFIED",
-      "VERIFIED",
-      "UNVERIFIED",
-      "EXEMPTED",
-    ]).describe(
-      "Site verification state indicating the ownership and validity.",
-    ).optional(),
-    verifyTime: z.string().describe("Latest site verification time.")
-      .optional(),
-  }).describe(
-    "Verification information for target sites in advanced site search.",
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "INCLUDE", "EXCLUDE"]).describe(
     "The type of the target site, e.g., whether the site is to be included or excluded.",
@@ -223,29 +202,8 @@ const InputsSchema = z.object({
   exactMatch: z.boolean().describe(
     "Immutable. If set to false, a uri_pattern is generated to include all pages whose address contains the provided_uri_pattern. If set to true, an uri_pattern is generated to try to be an exact match of the provided_uri_pattern or just the specific page if the provided_uri_pattern is a specific one. provided_uri_pattern is always normalized to generate the URI pattern to be used by the search engine.",
   ).optional(),
-  failureReason: z.object({
-    quotaFailure: z.object({
-      totalRequiredQuota: z.string().describe(
-        "This number is an estimation on how much total quota this project needs to successfully complete indexing.",
-      ).optional(),
-    }).describe("Failed due to insufficient quota.").optional(),
-  }).describe("Site search indexing failure reasons.").optional(),
   providedUriPattern: z.string().describe(
     "Required. Input only. The user provided URI pattern from which the `generated_uri_pattern` is generated.",
-  ).optional(),
-  siteVerificationInfo: z.object({
-    siteVerificationState: z.enum([
-      "SITE_VERIFICATION_STATE_UNSPECIFIED",
-      "VERIFIED",
-      "UNVERIFIED",
-      "EXEMPTED",
-    ]).describe(
-      "Site verification state indicating the ownership and validity.",
-    ).optional(),
-    verifyTime: z.string().describe("Latest site verification time.")
-      .optional(),
-  }).describe(
-    "Verification information for target sites in advanced site search.",
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "INCLUDE", "EXCLUDE"]).describe(
     "The type of the target site, e.g., whether the site is to be included or excluded.",
@@ -281,7 +239,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.SiteSearchEngine.TargetSites. Registered at `@swamp/gcp/discoveryengine/datastores-sitesearchengine-targetsites`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-sitesearchengine-targetsites",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -383,6 +341,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: failureReason, siteVerificationInfo",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          failureReason: _failureReason,
+          siteVerificationInfo: _siteVerificationInfo,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -406,14 +376,8 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["exactMatch"] !== undefined) body["exactMatch"] = g["exactMatch"];
-        if (g["failureReason"] !== undefined) {
-          body["failureReason"] = g["failureReason"];
-        }
         if (g["providedUriPattern"] !== undefined) {
           body["providedUriPattern"] = g["providedUriPattern"];
-        }
-        if (g["siteVerificationInfo"] !== undefined) {
-          body["siteVerificationInfo"] = g["siteVerificationInfo"];
         }
         if (g["type"] !== undefined) body["type"] = g["type"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
@@ -429,14 +393,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -521,14 +478,8 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["failureReason"] !== undefined) {
-          body["failureReason"] = g["failureReason"];
-        }
         if (g["providedUriPattern"] !== undefined) {
           body["providedUriPattern"] = g["providedUriPattern"];
-        }
-        if (g["siteVerificationInfo"] !== undefined) {
-          body["siteVerificationInfo"] = g["siteVerificationInfo"];
         }
         if (g["type"] !== undefined) body["type"] = g["type"];
         for (const key of Object.keys(existing)) {

@@ -179,7 +179,8 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Output only. The lifecycle state of the connection assignment.",
     ).optional(),
-  }).describe("The properties of a GoldengateConnectionAssignment.").optional(),
+  }).describe("Required. The properties of the GoldengateConnectionAssignment.")
+    .optional(),
   goldengateConnectionAssignmentId: z.string().describe(
     "Required. The ID of the GoldengateConnectionAssignment to create.",
   ).optional(),
@@ -244,7 +245,8 @@ const InputsSchema = z.object({
     ]).describe(
       "Output only. The lifecycle state of the connection assignment.",
     ).optional(),
-  }).describe("The properties of a GoldengateConnectionAssignment.").optional(),
+  }).describe("Required. The properties of the GoldengateConnectionAssignment.")
+    .optional(),
   goldengateConnectionAssignmentId: z.string().describe(
     "Required. The ID of the GoldengateConnectionAssignment to create.",
   ).optional(),
@@ -279,7 +281,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud GoldengateConnectionAssignments. Registered at `@swamp/gcp/oracledatabase/goldengateconnectionassignments`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/goldengateconnectionassignments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

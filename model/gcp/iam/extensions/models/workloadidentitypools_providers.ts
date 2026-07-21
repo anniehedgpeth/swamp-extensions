@@ -163,8 +163,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   aws: z.object({
     accountId: z.string().describe("Required. The AWS account ID.").optional(),
-  }).describe("Represents an Amazon Web Services identity provider.")
-    .optional(),
+  }).describe("An Amazon Web Services identity provider.").optional(),
   description: z.string().describe(
     "Optional. A description for the provider. Cannot exceed 256 characters.",
   ).optional(),
@@ -186,12 +185,12 @@ const GlobalArgsSchema = z.object({
     jwksJson: z.string().describe(
       'Optional. OIDC JWKs in JSON String format. For details on the definition of a JWK, see https://tools.ietf.org/html/rfc7517. If not set, the `jwks_uri` from the discovery document(fetched from the.well-known path of the `issuer_uri`) will be used. Currently, RSA and EC asymmetric keys are supported. The JWK must use following format and include only the following fields: { "keys": [ { "kty": "RSA/EC", "alg": "", "use": "sig", "kid": "", "n": "", "e": "", "x": "", "y": "", "crv": "" } ] }',
     ).optional(),
-  }).describe("Represents an OpenId Connect 1.0 identity provider.").optional(),
+  }).describe("An OpenId Connect 1.0 identity provider.").optional(),
   saml: z.object({
     idpMetadataXml: z.string().describe(
       "Required. SAML identity provider (IdP) configuration metadata XML doc. The XML document must comply with the [SAML 2.0 specification](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf). The maximum size of an acceptable XML document is 128K characters. The SAML metadata XML document must satisfy the following constraints: * Must contain an IdP Entity ID. * Must contain at least one non-expired signing certificate. * For each signing certificate, the expiration must be: * From no more than 7 days in the future. * To no more than 25 years in the future. * Up to three IdP signing keys are allowed. When updating the provider's metadata XML, at least one non-expired signing key must overlap with the existing metadata. This requirement is skipped if there are no non-expired signing keys present in the existing metadata.",
     ).optional(),
-  }).describe("Represents an SAML 2.0 identity provider.").optional(),
+  }).describe("An SAML 2.0 identity provider.").optional(),
   x509: z.object({
     trustStore: z.object({
       intermediateCas: z.array(z.object({
@@ -212,11 +211,9 @@ const GlobalArgsSchema = z.object({
         "Optional. If set to True, the trust bundle will include the private ca managed identity regional root public certificates. Important: `trust_default_shared_ca` is only supported for managed identity trust domain resource.",
       ).optional(),
     }).describe(
-      "Trust store that contains trust anchors and optional intermediate CAs used in PKI to build a trust chain(trust hierarchy) and verify a client's identity.",
+      "Required. A TrustStore. Use this trust store as a wrapper to config the trust anchor and optional intermediate cas to help build the trust chain for the incoming end entity certificate. Follow the X.509 guidelines to define those PEM encoded certs. Only one trust store is currently supported.",
     ).optional(),
-  }).describe(
-    "An X.509-type identity provider represents a CA. It is trusted to assert a client identity if the client has a certificate that chains up to this CA.",
-  ).optional(),
+  }).describe("An X.509-type identity provider.").optional(),
   workloadIdentityPoolProviderId: z.string().describe(
     "Required. The ID for the provider, which becomes the final component of the resource name. This value must be 4-32 characters, and may contain the characters [a-z0-9-]. The prefix `gcp-` is reserved for use by Google, and may not be specified.",
   ).optional(),
@@ -276,8 +273,7 @@ const InputsSchema = z.object({
   ).optional(),
   aws: z.object({
     accountId: z.string().describe("Required. The AWS account ID.").optional(),
-  }).describe("Represents an Amazon Web Services identity provider.")
-    .optional(),
+  }).describe("An Amazon Web Services identity provider.").optional(),
   description: z.string().describe(
     "Optional. A description for the provider. Cannot exceed 256 characters.",
   ).optional(),
@@ -299,12 +295,12 @@ const InputsSchema = z.object({
     jwksJson: z.string().describe(
       'Optional. OIDC JWKs in JSON String format. For details on the definition of a JWK, see https://tools.ietf.org/html/rfc7517. If not set, the `jwks_uri` from the discovery document(fetched from the.well-known path of the `issuer_uri`) will be used. Currently, RSA and EC asymmetric keys are supported. The JWK must use following format and include only the following fields: { "keys": [ { "kty": "RSA/EC", "alg": "", "use": "sig", "kid": "", "n": "", "e": "", "x": "", "y": "", "crv": "" } ] }',
     ).optional(),
-  }).describe("Represents an OpenId Connect 1.0 identity provider.").optional(),
+  }).describe("An OpenId Connect 1.0 identity provider.").optional(),
   saml: z.object({
     idpMetadataXml: z.string().describe(
       "Required. SAML identity provider (IdP) configuration metadata XML doc. The XML document must comply with the [SAML 2.0 specification](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf). The maximum size of an acceptable XML document is 128K characters. The SAML metadata XML document must satisfy the following constraints: * Must contain an IdP Entity ID. * Must contain at least one non-expired signing certificate. * For each signing certificate, the expiration must be: * From no more than 7 days in the future. * To no more than 25 years in the future. * Up to three IdP signing keys are allowed. When updating the provider's metadata XML, at least one non-expired signing key must overlap with the existing metadata. This requirement is skipped if there are no non-expired signing keys present in the existing metadata.",
     ).optional(),
-  }).describe("Represents an SAML 2.0 identity provider.").optional(),
+  }).describe("An SAML 2.0 identity provider.").optional(),
   x509: z.object({
     trustStore: z.object({
       intermediateCas: z.array(z.object({
@@ -325,11 +321,9 @@ const InputsSchema = z.object({
         "Optional. If set to True, the trust bundle will include the private ca managed identity regional root public certificates. Important: `trust_default_shared_ca` is only supported for managed identity trust domain resource.",
       ).optional(),
     }).describe(
-      "Trust store that contains trust anchors and optional intermediate CAs used in PKI to build a trust chain(trust hierarchy) and verify a client's identity.",
+      "Required. A TrustStore. Use this trust store as a wrapper to config the trust anchor and optional intermediate cas to help build the trust chain for the incoming end entity certificate. Follow the X.509 guidelines to define those PEM encoded certs. Only one trust store is currently supported.",
     ).optional(),
-  }).describe(
-    "An X.509-type identity provider represents a CA. It is trusted to assert a client identity if the client has a certificate that chains up to this CA.",
-  ).optional(),
+  }).describe("An X.509-type identity provider.").optional(),
   workloadIdentityPoolProviderId: z.string().describe(
     "Required. The ID for the provider, which becomes the final component of the resource name. This value must be 4-32 characters, and may contain the characters [a-z0-9-]. The prefix `gcp-` is reserved for use by Google, and may not be specified.",
   ).optional(),
@@ -364,7 +358,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkloadIdentityPools.Providers. Registered at `@swamp/gcp/iam/workloadidentitypools-providers`. */
 export const model = {
   type: "@swamp/gcp/iam/workloadidentitypools-providers",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

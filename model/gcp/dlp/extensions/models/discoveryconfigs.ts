@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           tableId: z.unknown().describe("Name of the table.").optional(),
         }).describe(
-          "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
+          "Store all profiles to BigQuery. * The system will create a new dataset and table for you if none are are provided. The dataset will be named `sensitive_data_protection_discovery` and table will be named `discovery_profiles`. This table will be placed in the same project as the container project running the scan. After the first profile is generated and the dataset and table are created, the discovery scan configuration will be updated with the dataset and table names. * See [Analyze data profiles stored in BigQuery](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles). * See [Sample queries for your BigQuery table](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#sample_sql_queries). * Data is inserted using [streaming insert](https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert) and so data may be in the buffer for a period of time after the profile has finished. * The Pub/Sub notification is sent before the streaming buffer is guaranteed to be written, so data may not be instantly visible to queries by the time your topic receives the Pub/Sub notification. * The best practice is to use the same table for an entire organization so that you can take advantage of the [provided Data Studio reports](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#use_a_premade_report). If you use VPC Service Controls to define security perimeters, then you must use a separate table for each boundary.",
         ).optional(),
         sampleFindingsTable: z.object({
           datasetId: z.unknown().describe("Dataset ID of the table.")
@@ -176,11 +176,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           tableId: z.unknown().describe("Name of the table.").optional(),
         }).describe(
-          "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
+          "Store sample data profile findings in an existing table or a new table in an existing dataset. Each regeneration will result in new rows in BigQuery. Data is inserted using [streaming insert](https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert) and so data may be in the buffer for a period of time after the profile has finished.",
         ).optional(),
-      }).describe(
-        "If set, the detailed data profiles will be persisted to the location of your choice whenever updated.",
-      ).optional(),
+      }).describe("Export data profiles into a provided location.").optional(),
       pubSubNotification: z.object({
         detailOfMessage: z.enum([
           "DETAIL_LEVEL_UNSPECIFIED",
@@ -200,30 +198,26 @@ const GlobalArgsSchema = z.object({
           "The type of event that triggers a Pub/Sub. At most one `PubSubNotification` per EventType is permitted.",
         ).optional(),
         pubsubCondition: z.object({
-          expressions: z.unknown().describe(
-            "An expression, consisting of an operator and conditions.",
-          ).optional(),
+          expressions: z.unknown().describe("An expression.").optional(),
         }).describe(
-          "A condition for determining whether a Pub/Sub should be triggered.",
+          "Conditions (e.g., data risk or sensitivity level) for triggering a Pub/Sub.",
         ).optional(),
         topic: z.string().describe(
           "Cloud Pub/Sub topic to send notifications to. Format is projects/{project}/topics/{topic}.",
         ).optional(),
-      }).describe(
-        "Send a Pub/Sub message into the given Pub/Sub topic to connect other systems to data profile generation. The message payload data will be the byte serialization of `DataProfilePubSubMessage`.",
-      ).optional(),
+      }).describe("Publish a message into the Pub/Sub topic.").optional(),
       publishToChronicle: z.object({}).describe(
-        "Message expressing intention to publish to Google Security Operations.",
+        "Publishes generated data profiles to Google Security Operations. For more information, see [Use Sensitive Data Protection data in context-aware analytics](https://cloud.google.com/chronicle/docs/detection/usecase-dlp-high-risk-user-download).",
       ).optional(),
       publishToDataplexCatalog: z.object({
         lowerDataRiskToLow: z.boolean().describe(
           "Whether creating a Dataplex Universal Catalog aspect for a profiled resource should lower the risk of the profile for that resource. This also lowers the data risk of resources at the lower levels of the resource hierarchy. For example, reducing the data risk of a table data profile also reduces the data risk of the constituent column data profiles.",
         ).optional(),
       }).describe(
-        "Create Dataplex Universal Catalog aspects for profiled resources with the aspect type Sensitive Data Protection Profile. To learn more about aspects, see https://cloud.google.com/sensitive-data-protection/docs/add-aspects.",
+        "Publishes a portion of each profile to Dataplex Universal Catalog with the aspect type Sensitive Data Protection Profile.",
       ).optional(),
       publishToScc: z.object({}).describe(
-        "If set, a summary finding will be created or updated in Security Command Center for each profile.",
+        "Publishes findings to Security Command Center for each data profile.",
       ).optional(),
       tagResources: z.object({
         lowerDataRiskToLow: z.boolean().describe(
@@ -235,9 +229,8 @@ const GlobalArgsSchema = z.object({
         tagConditions: z.array(z.unknown()).describe(
           "The tags to associate with different conditions.",
         ).optional(),
-      }).describe(
-        "If set, attaches the [tags] (https://cloud.google.com/resource-manager/docs/tags/tags-overview) provided to profiled resources. Tags support [access control](https://cloud.google.com/iam/docs/tags-access-control). You can conditionally grant or deny access to a resource based on whether the resource has a specific tag.",
-      ).optional(),
+      }).describe("Tags the profiled resources with the specified tag values.")
+        .optional(),
     })).describe("Actions to execute at the completion of scanning.")
       .optional(),
     createTime: z.string().describe(
@@ -255,9 +248,7 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -286,15 +277,11 @@ const GlobalArgsSchema = z.object({
         organizationId: z.string().describe(
           "The ID of an organization to scan.",
         ).optional(),
-      }).describe(
-        "The location to begin a discovery scan. Denotes an organization ID or folder ID within an organization.",
-      ).optional(),
+      }).describe("The data to scan: folder, org, or project").optional(),
       projectId: z.string().describe(
         "The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the DLP API must be enabled.",
       ).optional(),
-    }).describe(
-      "Project and scan location information. Only set when the parent is an org.",
-    ).optional(),
+    }).describe("Only set when the parent is an org.").optional(),
     otherCloudStartingLocation: z.object({
       awsLocation: z.object({
         accountId: z.string().describe(
@@ -304,7 +291,7 @@ const GlobalArgsSchema = z.object({
           "All AWS assets stored in Asset Inventory that didn't match other AWS discovery configs.",
         ).optional(),
       }).describe("The AWS starting location for discovery.").optional(),
-    }).describe("The other cloud starting location for discovery.").optional(),
+    }).describe("Must be set only when scanning other clouds.").optional(),
     processingLocation: z.object({
       documentFallbackLocation: z.object({
         globalProcessing: z.object({}).describe(
@@ -313,9 +300,8 @@ const GlobalArgsSchema = z.object({
         multiRegionProcessing: z.object({}).describe(
           "Processing occurs in a multi-region that contains the current region if available.",
         ).optional(),
-      }).describe(
-        "Configure document processing to fall back to any of the following processing options if document processing is unavailable in the original request location.",
-      ).optional(),
+      }).describe("Document processing falls back using this configuration.")
+        .optional(),
       imageFallbackLocation: z.object({
         globalProcessing: z.object({}).describe(
           "Processing occurs in the global region.",
@@ -323,11 +309,10 @@ const GlobalArgsSchema = z.object({
         multiRegionProcessing: z.object({}).describe(
           "Processing occurs in a multi-region that contains the current region if available.",
         ).optional(),
-      }).describe(
-        "Configure image processing to fall back to any of the following processing options if image processing is unavailable in the original request location.",
-      ).optional(),
+      }).describe("Image processing falls back using this configuration.")
+        .optional(),
     }).describe(
-      "Configure processing location for discovery and inspection. For example, image OCR is only provided in limited regions but configuring ProcessingLocation will redirect OCR to a location where OCR is provided.",
+      "Optional. Processing location configuration. Vertex AI dataset scanning will set processing_location.image_fallback_type to MultiRegionProcessing by default.",
     ).optional(),
     status: z.enum(["STATUS_UNSPECIFIED", "RUNNING", "PAUSED"]).describe(
       "Required. A status for this configuration.",
@@ -336,53 +321,54 @@ const GlobalArgsSchema = z.object({
       bigQueryTarget: z.object({
         cadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Frequency at which profiles should be updated, regardless of whether the underlying resource has changed. Defaults to never.",
           ).optional(),
           schemaModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when a schema is modified.",
+            "Governs when to update data profiles when a schema is modified.",
           ).optional(),
           tableModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when a table is modified.",
+            "Governs when to update data profiles when a table is modified.",
           ).optional(),
         }).describe(
-          "What must take place for a profile to be updated and how frequently it should occur. New tables are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update profiles. New tables that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
         conditions: z.object({
           createdAfter: z.unknown().describe(
             "BigQuery table must have been created after this date. Used to avoid backfilling.",
           ).optional(),
           orConditions: z.unknown().describe(
-            "There is an OR relationship between these attributes. They are used to determine if a table should be scanned or not in Discovery.",
+            "At least one of the conditions must be true for a table to be scanned.",
           ).optional(),
           typeCollection: z.unknown().describe(
             "Restrict discovery to categories of table types.",
           ).optional(),
           types: z.unknown().describe(
-            "The types of BigQuery tables supported by Cloud DLP.",
+            "Restrict discovery to specific table types.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a table is scanned in discovery for the first time. There is an AND relationship between the top-level attributes. Additionally, minimum conditions with an OR relationship that must be met before Cloud DLP scans a table can be set (like a minimum row count or a minimum table age).",
+          "In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Tables that match this filter will not have profiles created.",
+        ).optional(),
         filter: z.object({
           otherTables: z.unknown().describe(
-            "Catch-all for all other tables not specified by other filters. Should always be last, except for single-table configurations, which will only have a TableReference target.",
+            "Catch-all. This should always be the last filter in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
           tableReference: z.unknown().describe(
-            "Message defining the location of a BigQuery table with the projectId inferred from the parent project.",
+            "The table to scan. Discovery configurations including this can only include one DiscoveryTarget (the DiscoveryTarget with this TableReference).",
           ).optional(),
           tables: z.unknown().describe(
-            "Specifies a collection of BigQuery tables. Used for Discovery.",
+            "A specific set of tables for this filter to apply to. A table collection must be specified in only one filter per config. If a table id or dataset is empty, Cloud DLP assumes all tables in that collection must be profiled. Must specify a project ID.",
           ).optional(),
         }).describe(
-          "Determines what tables will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID, dataset ID, and table ID.",
+          "Required. The tables the discovery cadence applies to. The first target with a matching filter will be the one to apply to a table.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with BigQuery tables",
+        "BigQuery target for Discovery. The first target to match a table will be the one applied.",
       ).optional(),
       cloudSqlTarget: z.object({
         conditions: z.object({
@@ -393,43 +379,44 @@ const GlobalArgsSchema = z.object({
             "Data profiles will only be generated for the database resource types specified in this field. If not specified, defaults to [DATABASE_RESOURCE_TYPE_ALL_SUPPORTED_TYPES].",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a table is profiled for the first time.",
+          "In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Disable profiling for database resources that match this filter.",
+        ).optional(),
         filter: z.object({
           collection: z.unknown().describe(
-            "Match database resources using regex filters. Examples of database resources are tables, views, and stored procedures.",
+            "A specific set of database resources for this filter to apply to.",
           ).optional(),
           databaseResourceReference: z.unknown().describe(
-            "Identifies a single database resource, like a table within a database.",
+            "The database resource to scan. Targets including this can only include one target (the target with this database resource reference).",
           ).optional(),
           others: z.unknown().describe(
-            "Match database resources not covered by any other filter.",
+            "Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
         }).describe(
-          "Determines what tables will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID, location, instance, database, and database resource name.",
+          "Required. The tables the discovery cadence applies to. The first target with a matching filter will be the one to apply to a table.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Data changes (non-schema changes) in Cloud SQL tables can't trigger reprofiling. If you set this field, profiles are refreshed at this frequency regardless of whether the underlying tables have changed. Defaults to never.",
           ).optional(),
           schemaModifiedCadence: z.unknown().describe(
-            "How frequently to modify the profile when the table's schema is modified.",
+            "When to reprofile if the schema has changed.",
           ).optional(),
         }).describe(
-          "How often existing tables should have their profiles refreshed. New tables are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update profiles. New tables that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with Cloud SQL tables.",
+        "Cloud SQL target for Discovery. The first target to match a table will be the one applied.",
       ).optional(),
       cloudStorageTarget: z.object({
         conditions: z.object({
           cloudStorageConditions: z.unknown().describe(
-            "Requirements that must be true before a Cloud Storage bucket or object is scanned in discovery for the first time. There is an AND relationship between the top-level attributes.",
+            "Optional. Cloud Storage conditions.",
           ).optional(),
           createdAfter: z.unknown().describe(
             "Optional. File store must have been created after this date. Used to avoid backfilling.",
@@ -438,35 +425,36 @@ const GlobalArgsSchema = z.object({
             "Optional. Minimum age a file store must have. If set, the value must be 1 hour or greater.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a file store is scanned in discovery for the first time. There is an AND relationship between the top-level attributes.",
+          "Optional. In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Optional. Disable profiling for buckets that match this filter.",
+        ).optional(),
         filter: z.object({
           cloudStorageResourceReference: z.unknown().describe(
-            "Identifies a single Cloud Storage bucket.",
+            "Optional. The bucket to scan. Targets including this can only include one target (the target with this bucket). This enables profiling the contents of a single bucket, while the other options allow for easy profiling of many bucets within a project or an organization.",
           ).optional(),
           collection: z.unknown().describe(
-            "Match file stores (e.g. buckets) using filters.",
+            "Optional. A specific set of buckets for this filter to apply to.",
           ).optional(),
           others: z.unknown().describe(
-            "Match discovery resources not covered by any other filter.",
+            "Optional. Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
         }).describe(
-          "Determines which buckets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID and bucket name.",
+          "Required. The buckets the generation_cadence applies to. The first target with a matching filter will be the one to apply to a bucket.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Optional. Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Optional. Data changes in Cloud Storage can't trigger reprofiling. If you set this field, profiles are refreshed at this frequency regardless of whether the underlying buckets have changed. Defaults to never.",
           ).optional(),
         }).describe(
-          "How often existing buckets should have their profiles refreshed. New buckets are scanned as quickly as possible depending on system capacity.",
+          "Optional. How often and when to update profiles. New buckets that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with Cloud Storage buckets.",
+        "Cloud Storage target for Discovery. The first target to match a table will be the one applied.",
       ).optional(),
       otherCloudTarget: z.object({
         conditions: z.object({
@@ -477,45 +465,46 @@ const GlobalArgsSchema = z.object({
             "Minimum age a resource must be before Cloud DLP can profile it. Value must be 1 hour or greater.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a resource is profiled for the first time.",
+          "Optional. In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
         dataSourceType: z.object({
           dataSource: z.unknown().describe(
             "A string that identifies the type of resource being profiled. Current values: * google/bigquery/table * google/project * google/sql/table * google/gcs/bucket",
           ).optional(),
         }).describe(
-          "Message used to identify the type of resource being profiled.",
+          "Required. The type of data profiles generated by this discovery target. Supported values are: * aws/s3/bucket",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Disable profiling for resources that match this filter.",
+        ).optional(),
         filter: z.object({
           collection: z.unknown().describe(
-            "Match resources using regex filters.",
+            "A collection of resources for this filter to apply to.",
           ).optional(),
           others: z.unknown().describe(
-            "Match discovery resources not covered by any other filter.",
+            "Optional. Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
           singleResource: z.unknown().describe(
-            "Identifies a single resource, like a single Amazon S3 bucket.",
+            "The resource to scan. Configs using this filter can only have one target (the target with this single resource reference).",
           ).optional(),
         }).describe(
-          "Determines which resources from the other cloud will have profiles generated. Includes the ability to filter by resource names.",
+          "Required. The resources that the discovery cadence applies to. The first target with a matching filter will be the one to apply to a resource.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Optional. Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Optional. Frequency to update profiles regardless of whether the underlying resource has changes. Defaults to never.",
           ).optional(),
         }).describe(
-          "How often existing resources should have their profiles refreshed. New resources are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update data profiles. New resources that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery of resources from other clouds. An [AWS connector in Security Command Center (Enterprise](https://cloud.google.com/security-command-center/docs/connect-scc-to-aws) is required to use this feature.",
+        "Other clouds target for discovery. The first target to match a resource will be the one applied.",
       ).optional(),
       secretsTarget: z.object({}).describe(
-        "Discovery target for credentials and secrets in cloud resource metadata. This target does not include any filtering or frequency controls. Cloud DLP will scan cloud resource metadata for secrets daily. No inspect template should be included in the discovery config for a security benchmarks scan. Instead, the built-in list of secrets and credentials infoTypes will be used (see https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets). Credentials and secrets discovered will be reported as vulnerabilities to Security Command Center.",
+        "Discovery target that looks for credentials and secrets stored in cloud resource metadata and reports them as vulnerabilities to Security Command Center. Only one target of this type is allowed.",
       ).optional(),
       vertexDatasetTarget: z.object({
         conditions: z.object({
@@ -526,35 +515,36 @@ const GlobalArgsSchema = z.object({
             "Minimum age a Vertex AI dataset must have. If set, the value must be 1 hour or greater.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a dataset is profiled for the first time.",
+          "In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Disable profiling for datasets that match this filter.",
+        ).optional(),
         filter: z.object({
           collection: z.unknown().describe(
-            "Match dataset resources using regex filters.",
+            "A specific set of Vertex AI datasets for this filter to apply to.",
           ).optional(),
           others: z.unknown().describe(
-            "Match discovery resources not covered by any other filter.",
+            "Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
           vertexDatasetResourceReference: z.unknown().describe(
-            "Identifies a single Vertex AI resource. Only datasets are supported.",
+            "The dataset resource to scan. Targets including this can only include one target (the target with this dataset resource reference).",
           ).optional(),
         }).describe(
-          "Determines what datasets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID or dataset regex.",
+          "Required. The datasets the discovery cadence applies to. The first target with a matching filter will be the one to apply to a dataset.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to be updated.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "If you set this field, profiles are refreshed at this frequency regardless of whether the underlying datasets have changed. Defaults to never.",
           ).optional(),
         }).describe(
-          "How often existing datasets should have their profiles refreshed. New datasets are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update profiles. New datasets that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with Vertex AI datasets.",
+        "Vertex AI dataset target for Discovery. The first target to match a dataset will be the one applied. Note that discovery for Vertex AI can incur Cloud Storage Class B operation charges for storage.objects.get operations and retrieval fees. For more information, see [Cloud Storage pricing](https://cloud.google.com/storage/pricing#price-tables). Note that discovery for Vertex AI dataset will not be able to scan images unless DiscoveryConfig.processing_location.image_fallback_location has multi_region_processing or global_processing configured.",
       ).optional(),
     })).describe(
       "Target to match against for determining what to scan and how frequently.",
@@ -562,9 +552,7 @@ const GlobalArgsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. The last update timestamp of a DiscoveryConfig.",
     ).optional(),
-  }).describe(
-    "Configuration for discovery to scan resources for profile generation. Only one discovery configuration may exist per organization, folder, or project. The generated data profiles are retained according to the [data retention policy] (https://cloud.google.com/sensitive-data-protection/docs/data-profiles#retention).",
-  ).optional(),
+  }).describe("Required. New DiscoveryConfig value.").optional(),
   updateMask: z.string().describe("Mask to control which fields get updated.")
     .optional(),
   parent: z.string().describe(
@@ -823,7 +811,7 @@ const InputsSchema = z.object({
           ).optional(),
           tableId: z.unknown().describe("Name of the table.").optional(),
         }).describe(
-          "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
+          "Store all profiles to BigQuery. * The system will create a new dataset and table for you if none are are provided. The dataset will be named `sensitive_data_protection_discovery` and table will be named `discovery_profiles`. This table will be placed in the same project as the container project running the scan. After the first profile is generated and the dataset and table are created, the discovery scan configuration will be updated with the dataset and table names. * See [Analyze data profiles stored in BigQuery](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles). * See [Sample queries for your BigQuery table](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#sample_sql_queries). * Data is inserted using [streaming insert](https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert) and so data may be in the buffer for a period of time after the profile has finished. * The Pub/Sub notification is sent before the streaming buffer is guaranteed to be written, so data may not be instantly visible to queries by the time your topic receives the Pub/Sub notification. * The best practice is to use the same table for an entire organization so that you can take advantage of the [provided Data Studio reports](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#use_a_premade_report). If you use VPC Service Controls to define security perimeters, then you must use a separate table for each boundary.",
         ).optional(),
         sampleFindingsTable: z.object({
           datasetId: z.unknown().describe("Dataset ID of the table.")
@@ -833,11 +821,9 @@ const InputsSchema = z.object({
           ).optional(),
           tableId: z.unknown().describe("Name of the table.").optional(),
         }).describe(
-          "Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: `:.` or `..`.",
+          "Store sample data profile findings in an existing table or a new table in an existing dataset. Each regeneration will result in new rows in BigQuery. Data is inserted using [streaming insert](https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert) and so data may be in the buffer for a period of time after the profile has finished.",
         ).optional(),
-      }).describe(
-        "If set, the detailed data profiles will be persisted to the location of your choice whenever updated.",
-      ).optional(),
+      }).describe("Export data profiles into a provided location.").optional(),
       pubSubNotification: z.object({
         detailOfMessage: z.enum([
           "DETAIL_LEVEL_UNSPECIFIED",
@@ -857,30 +843,26 @@ const InputsSchema = z.object({
           "The type of event that triggers a Pub/Sub. At most one `PubSubNotification` per EventType is permitted.",
         ).optional(),
         pubsubCondition: z.object({
-          expressions: z.unknown().describe(
-            "An expression, consisting of an operator and conditions.",
-          ).optional(),
+          expressions: z.unknown().describe("An expression.").optional(),
         }).describe(
-          "A condition for determining whether a Pub/Sub should be triggered.",
+          "Conditions (e.g., data risk or sensitivity level) for triggering a Pub/Sub.",
         ).optional(),
         topic: z.string().describe(
           "Cloud Pub/Sub topic to send notifications to. Format is projects/{project}/topics/{topic}.",
         ).optional(),
-      }).describe(
-        "Send a Pub/Sub message into the given Pub/Sub topic to connect other systems to data profile generation. The message payload data will be the byte serialization of `DataProfilePubSubMessage`.",
-      ).optional(),
+      }).describe("Publish a message into the Pub/Sub topic.").optional(),
       publishToChronicle: z.object({}).describe(
-        "Message expressing intention to publish to Google Security Operations.",
+        "Publishes generated data profiles to Google Security Operations. For more information, see [Use Sensitive Data Protection data in context-aware analytics](https://cloud.google.com/chronicle/docs/detection/usecase-dlp-high-risk-user-download).",
       ).optional(),
       publishToDataplexCatalog: z.object({
         lowerDataRiskToLow: z.boolean().describe(
           "Whether creating a Dataplex Universal Catalog aspect for a profiled resource should lower the risk of the profile for that resource. This also lowers the data risk of resources at the lower levels of the resource hierarchy. For example, reducing the data risk of a table data profile also reduces the data risk of the constituent column data profiles.",
         ).optional(),
       }).describe(
-        "Create Dataplex Universal Catalog aspects for profiled resources with the aspect type Sensitive Data Protection Profile. To learn more about aspects, see https://cloud.google.com/sensitive-data-protection/docs/add-aspects.",
+        "Publishes a portion of each profile to Dataplex Universal Catalog with the aspect type Sensitive Data Protection Profile.",
       ).optional(),
       publishToScc: z.object({}).describe(
-        "If set, a summary finding will be created or updated in Security Command Center for each profile.",
+        "Publishes findings to Security Command Center for each data profile.",
       ).optional(),
       tagResources: z.object({
         lowerDataRiskToLow: z.boolean().describe(
@@ -892,9 +874,8 @@ const InputsSchema = z.object({
         tagConditions: z.array(z.unknown()).describe(
           "The tags to associate with different conditions.",
         ).optional(),
-      }).describe(
-        "If set, attaches the [tags] (https://cloud.google.com/resource-manager/docs/tags/tags-overview) provided to profiled resources. Tags support [access control](https://cloud.google.com/iam/docs/tags-access-control). You can conditionally grant or deny access to a resource based on whether the resource has a specific tag.",
-      ).optional(),
+      }).describe("Tags the profiled resources with the specified tag values.")
+        .optional(),
     })).describe("Actions to execute at the completion of scanning.")
       .optional(),
     createTime: z.string().describe(
@@ -912,9 +893,7 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Detailed error codes and messages.").optional(),
       extraInfo: z.enum([
         "ERROR_INFO_UNSPECIFIED",
         "IMAGE_SCAN_UNAVAILABLE_IN_REGION",
@@ -943,15 +922,11 @@ const InputsSchema = z.object({
         organizationId: z.string().describe(
           "The ID of an organization to scan.",
         ).optional(),
-      }).describe(
-        "The location to begin a discovery scan. Denotes an organization ID or folder ID within an organization.",
-      ).optional(),
+      }).describe("The data to scan: folder, org, or project").optional(),
       projectId: z.string().describe(
         "The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the DLP API must be enabled.",
       ).optional(),
-    }).describe(
-      "Project and scan location information. Only set when the parent is an org.",
-    ).optional(),
+    }).describe("Only set when the parent is an org.").optional(),
     otherCloudStartingLocation: z.object({
       awsLocation: z.object({
         accountId: z.string().describe(
@@ -961,7 +936,7 @@ const InputsSchema = z.object({
           "All AWS assets stored in Asset Inventory that didn't match other AWS discovery configs.",
         ).optional(),
       }).describe("The AWS starting location for discovery.").optional(),
-    }).describe("The other cloud starting location for discovery.").optional(),
+    }).describe("Must be set only when scanning other clouds.").optional(),
     processingLocation: z.object({
       documentFallbackLocation: z.object({
         globalProcessing: z.object({}).describe(
@@ -970,9 +945,8 @@ const InputsSchema = z.object({
         multiRegionProcessing: z.object({}).describe(
           "Processing occurs in a multi-region that contains the current region if available.",
         ).optional(),
-      }).describe(
-        "Configure document processing to fall back to any of the following processing options if document processing is unavailable in the original request location.",
-      ).optional(),
+      }).describe("Document processing falls back using this configuration.")
+        .optional(),
       imageFallbackLocation: z.object({
         globalProcessing: z.object({}).describe(
           "Processing occurs in the global region.",
@@ -980,11 +954,10 @@ const InputsSchema = z.object({
         multiRegionProcessing: z.object({}).describe(
           "Processing occurs in a multi-region that contains the current region if available.",
         ).optional(),
-      }).describe(
-        "Configure image processing to fall back to any of the following processing options if image processing is unavailable in the original request location.",
-      ).optional(),
+      }).describe("Image processing falls back using this configuration.")
+        .optional(),
     }).describe(
-      "Configure processing location for discovery and inspection. For example, image OCR is only provided in limited regions but configuring ProcessingLocation will redirect OCR to a location where OCR is provided.",
+      "Optional. Processing location configuration. Vertex AI dataset scanning will set processing_location.image_fallback_type to MultiRegionProcessing by default.",
     ).optional(),
     status: z.enum(["STATUS_UNSPECIFIED", "RUNNING", "PAUSED"]).describe(
       "Required. A status for this configuration.",
@@ -993,53 +966,54 @@ const InputsSchema = z.object({
       bigQueryTarget: z.object({
         cadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Frequency at which profiles should be updated, regardless of whether the underlying resource has changed. Defaults to never.",
           ).optional(),
           schemaModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when a schema is modified.",
+            "Governs when to update data profiles when a schema is modified.",
           ).optional(),
           tableModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when a table is modified.",
+            "Governs when to update data profiles when a table is modified.",
           ).optional(),
         }).describe(
-          "What must take place for a profile to be updated and how frequently it should occur. New tables are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update profiles. New tables that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
         conditions: z.object({
           createdAfter: z.unknown().describe(
             "BigQuery table must have been created after this date. Used to avoid backfilling.",
           ).optional(),
           orConditions: z.unknown().describe(
-            "There is an OR relationship between these attributes. They are used to determine if a table should be scanned or not in Discovery.",
+            "At least one of the conditions must be true for a table to be scanned.",
           ).optional(),
           typeCollection: z.unknown().describe(
             "Restrict discovery to categories of table types.",
           ).optional(),
           types: z.unknown().describe(
-            "The types of BigQuery tables supported by Cloud DLP.",
+            "Restrict discovery to specific table types.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a table is scanned in discovery for the first time. There is an AND relationship between the top-level attributes. Additionally, minimum conditions with an OR relationship that must be met before Cloud DLP scans a table can be set (like a minimum row count or a minimum table age).",
+          "In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Tables that match this filter will not have profiles created.",
+        ).optional(),
         filter: z.object({
           otherTables: z.unknown().describe(
-            "Catch-all for all other tables not specified by other filters. Should always be last, except for single-table configurations, which will only have a TableReference target.",
+            "Catch-all. This should always be the last filter in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
           tableReference: z.unknown().describe(
-            "Message defining the location of a BigQuery table with the projectId inferred from the parent project.",
+            "The table to scan. Discovery configurations including this can only include one DiscoveryTarget (the DiscoveryTarget with this TableReference).",
           ).optional(),
           tables: z.unknown().describe(
-            "Specifies a collection of BigQuery tables. Used for Discovery.",
+            "A specific set of tables for this filter to apply to. A table collection must be specified in only one filter per config. If a table id or dataset is empty, Cloud DLP assumes all tables in that collection must be profiled. Must specify a project ID.",
           ).optional(),
         }).describe(
-          "Determines what tables will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID, dataset ID, and table ID.",
+          "Required. The tables the discovery cadence applies to. The first target with a matching filter will be the one to apply to a table.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with BigQuery tables",
+        "BigQuery target for Discovery. The first target to match a table will be the one applied.",
       ).optional(),
       cloudSqlTarget: z.object({
         conditions: z.object({
@@ -1050,43 +1024,44 @@ const InputsSchema = z.object({
             "Data profiles will only be generated for the database resource types specified in this field. If not specified, defaults to [DATABASE_RESOURCE_TYPE_ALL_SUPPORTED_TYPES].",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a table is profiled for the first time.",
+          "In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Disable profiling for database resources that match this filter.",
+        ).optional(),
         filter: z.object({
           collection: z.unknown().describe(
-            "Match database resources using regex filters. Examples of database resources are tables, views, and stored procedures.",
+            "A specific set of database resources for this filter to apply to.",
           ).optional(),
           databaseResourceReference: z.unknown().describe(
-            "Identifies a single database resource, like a table within a database.",
+            "The database resource to scan. Targets including this can only include one target (the target with this database resource reference).",
           ).optional(),
           others: z.unknown().describe(
-            "Match database resources not covered by any other filter.",
+            "Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
         }).describe(
-          "Determines what tables will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID, location, instance, database, and database resource name.",
+          "Required. The tables the discovery cadence applies to. The first target with a matching filter will be the one to apply to a table.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Data changes (non-schema changes) in Cloud SQL tables can't trigger reprofiling. If you set this field, profiles are refreshed at this frequency regardless of whether the underlying tables have changed. Defaults to never.",
           ).optional(),
           schemaModifiedCadence: z.unknown().describe(
-            "How frequently to modify the profile when the table's schema is modified.",
+            "When to reprofile if the schema has changed.",
           ).optional(),
         }).describe(
-          "How often existing tables should have their profiles refreshed. New tables are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update profiles. New tables that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with Cloud SQL tables.",
+        "Cloud SQL target for Discovery. The first target to match a table will be the one applied.",
       ).optional(),
       cloudStorageTarget: z.object({
         conditions: z.object({
           cloudStorageConditions: z.unknown().describe(
-            "Requirements that must be true before a Cloud Storage bucket or object is scanned in discovery for the first time. There is an AND relationship between the top-level attributes.",
+            "Optional. Cloud Storage conditions.",
           ).optional(),
           createdAfter: z.unknown().describe(
             "Optional. File store must have been created after this date. Used to avoid backfilling.",
@@ -1095,35 +1070,36 @@ const InputsSchema = z.object({
             "Optional. Minimum age a file store must have. If set, the value must be 1 hour or greater.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a file store is scanned in discovery for the first time. There is an AND relationship between the top-level attributes.",
+          "Optional. In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Optional. Disable profiling for buckets that match this filter.",
+        ).optional(),
         filter: z.object({
           cloudStorageResourceReference: z.unknown().describe(
-            "Identifies a single Cloud Storage bucket.",
+            "Optional. The bucket to scan. Targets including this can only include one target (the target with this bucket). This enables profiling the contents of a single bucket, while the other options allow for easy profiling of many bucets within a project or an organization.",
           ).optional(),
           collection: z.unknown().describe(
-            "Match file stores (e.g. buckets) using filters.",
+            "Optional. A specific set of buckets for this filter to apply to.",
           ).optional(),
           others: z.unknown().describe(
-            "Match discovery resources not covered by any other filter.",
+            "Optional. Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
         }).describe(
-          "Determines which buckets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID and bucket name.",
+          "Required. The buckets the generation_cadence applies to. The first target with a matching filter will be the one to apply to a bucket.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Optional. Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Optional. Data changes in Cloud Storage can't trigger reprofiling. If you set this field, profiles are refreshed at this frequency regardless of whether the underlying buckets have changed. Defaults to never.",
           ).optional(),
         }).describe(
-          "How often existing buckets should have their profiles refreshed. New buckets are scanned as quickly as possible depending on system capacity.",
+          "Optional. How often and when to update profiles. New buckets that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with Cloud Storage buckets.",
+        "Cloud Storage target for Discovery. The first target to match a table will be the one applied.",
       ).optional(),
       otherCloudTarget: z.object({
         conditions: z.object({
@@ -1134,45 +1110,46 @@ const InputsSchema = z.object({
             "Minimum age a resource must be before Cloud DLP can profile it. Value must be 1 hour or greater.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a resource is profiled for the first time.",
+          "Optional. In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
         dataSourceType: z.object({
           dataSource: z.unknown().describe(
             "A string that identifies the type of resource being profiled. Current values: * google/bigquery/table * google/project * google/sql/table * google/gcs/bucket",
           ).optional(),
         }).describe(
-          "Message used to identify the type of resource being profiled.",
+          "Required. The type of data profiles generated by this discovery target. Supported values are: * aws/s3/bucket",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Disable profiling for resources that match this filter.",
+        ).optional(),
         filter: z.object({
           collection: z.unknown().describe(
-            "Match resources using regex filters.",
+            "A collection of resources for this filter to apply to.",
           ).optional(),
           others: z.unknown().describe(
-            "Match discovery resources not covered by any other filter.",
+            "Optional. Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
           singleResource: z.unknown().describe(
-            "Identifies a single resource, like a single Amazon S3 bucket.",
+            "The resource to scan. Configs using this filter can only have one target (the target with this single resource reference).",
           ).optional(),
         }).describe(
-          "Determines which resources from the other cloud will have profiles generated. Includes the ability to filter by resource names.",
+          "Required. The resources that the discovery cadence applies to. The first target with a matching filter will be the one to apply to a resource.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Optional. Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to update.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "Optional. Frequency to update profiles regardless of whether the underlying resource has changes. Defaults to never.",
           ).optional(),
         }).describe(
-          "How often existing resources should have their profiles refreshed. New resources are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update data profiles. New resources that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery of resources from other clouds. An [AWS connector in Security Command Center (Enterprise](https://cloud.google.com/security-command-center/docs/connect-scc-to-aws) is required to use this feature.",
+        "Other clouds target for discovery. The first target to match a resource will be the one applied.",
       ).optional(),
       secretsTarget: z.object({}).describe(
-        "Discovery target for credentials and secrets in cloud resource metadata. This target does not include any filtering or frequency controls. Cloud DLP will scan cloud resource metadata for secrets daily. No inspect template should be included in the discovery config for a security benchmarks scan. Instead, the built-in list of secrets and credentials infoTypes will be used (see https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets). Credentials and secrets discovered will be reported as vulnerabilities to Security Command Center.",
+        "Discovery target that looks for credentials and secrets stored in cloud resource metadata and reports them as vulnerabilities to Security Command Center. Only one target of this type is allowed.",
       ).optional(),
       vertexDatasetTarget: z.object({
         conditions: z.object({
@@ -1183,35 +1160,36 @@ const InputsSchema = z.object({
             "Minimum age a Vertex AI dataset must have. If set, the value must be 1 hour or greater.",
           ).optional(),
         }).describe(
-          "Requirements that must be true before a dataset is profiled for the first time.",
+          "In addition to matching the filter, these conditions must be true before a profile is generated.",
         ).optional(),
-        disabled: z.object({}).describe("Do not profile the tables.")
-          .optional(),
+        disabled: z.object({}).describe(
+          "Disable profiling for datasets that match this filter.",
+        ).optional(),
         filter: z.object({
           collection: z.unknown().describe(
-            "Match dataset resources using regex filters.",
+            "A specific set of Vertex AI datasets for this filter to apply to.",
           ).optional(),
           others: z.unknown().describe(
-            "Match discovery resources not covered by any other filter.",
+            "Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.",
           ).optional(),
           vertexDatasetResourceReference: z.unknown().describe(
-            "Identifies a single Vertex AI resource. Only datasets are supported.",
+            "The dataset resource to scan. Targets including this can only include one target (the target with this dataset resource reference).",
           ).optional(),
         }).describe(
-          "Determines what datasets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID or dataset regex.",
+          "Required. The datasets the discovery cadence applies to. The first target with a matching filter will be the one to apply to a dataset.",
         ).optional(),
         generationCadence: z.object({
           inspectTemplateModifiedCadence: z.unknown().describe(
-            "The cadence at which to update data profiles when the inspection rules defined by the `InspectTemplate` change.",
+            "Governs when to update data profiles when the inspection rules defined by the `InspectTemplate` change. If not set, changing the template will not cause a data profile to be updated.",
           ).optional(),
           refreshFrequency: z.unknown().describe(
             "If you set this field, profiles are refreshed at this frequency regardless of whether the underlying datasets have changed. Defaults to never.",
           ).optional(),
         }).describe(
-          "How often existing datasets should have their profiles refreshed. New datasets are scanned as quickly as possible depending on system capacity.",
+          "How often and when to update profiles. New datasets that match both the filter and conditions are scanned as quickly as possible depending on system capacity.",
         ).optional(),
       }).describe(
-        "Target used to match against for discovery with Vertex AI datasets.",
+        "Vertex AI dataset target for Discovery. The first target to match a dataset will be the one applied. Note that discovery for Vertex AI can incur Cloud Storage Class B operation charges for storage.objects.get operations and retrieval fees. For more information, see [Cloud Storage pricing](https://cloud.google.com/storage/pricing#price-tables). Note that discovery for Vertex AI dataset will not be able to scan images unless DiscoveryConfig.processing_location.image_fallback_location has multi_region_processing or global_processing configured.",
       ).optional(),
     })).describe(
       "Target to match against for determining what to scan and how frequently.",
@@ -1219,9 +1197,7 @@ const InputsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. The last update timestamp of a DiscoveryConfig.",
     ).optional(),
-  }).describe(
-    "Configuration for discovery to scan resources for profile generation. Only one discovery configuration may exist per organization, folder, or project. The generated data profiles are retained according to the [data retention policy] (https://cloud.google.com/sensitive-data-protection/docs/data-profiles#retention).",
-  ).optional(),
+  }).describe("Required. New DiscoveryConfig value.").optional(),
   updateMask: z.string().describe("Mask to control which fields get updated.")
     .optional(),
   parent: z.string().describe(
@@ -1252,7 +1228,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) DiscoveryConfigs. Registered at `@swamp/gcp/dlp/discoveryconfigs`. */
 export const model = {
   type: "@swamp/gcp/dlp/discoveryconfigs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1359,6 +1335,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1409,14 +1390,7 @@ export const model = {
               "failedValues": [],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

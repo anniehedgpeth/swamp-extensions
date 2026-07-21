@@ -194,7 +194,9 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       "Version of the application. You should update this field whenever the application changes in a way that affects the computation of the data.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Information about an application which feeds sensor data into the platform.",
+  ).optional(),
   dataStreamId: z.string().describe(
     "A unique identifier for the data stream produced by this data source. The identifier includes: - The physical device's manufacturer, model, and serial number (UID). - The application's package name or name. Package name is used when the data source was created by an Android application. The developer project number is used when the data source was created by a REST client. - The data source's type. - The data source's stream name. Note that not all attributes of the data source are used as part of the stream identifier. In particular, the version of the hardware/the application isn't used. This allows us to preserve the same stream through version updates. This also means that two DataSource objects may represent the same data stream even if they're not equal. The exact format of the data stream ID created by an Android application is: type:dataType.name:application.packageName:device.manufacturer:device.model:device.uid:dataStreamName The exact format of the data stream ID created by a REST client is: type:dataType.name:developer project number:device.manufacturer:device.model:device.uid:dataStreamName When any of the optional fields that make up the data stream ID are absent, they will be omitted from the data stream ID. The minimum viable data stream ID would be: type:dataType.name:developer project number Finally, the developer project number and device UID are obfuscated when read by any REST or Android client that did not create the data source. Only the data source creator will see the developer project number in clear and normal form. This means a client will see a different set of data_stream_ids than another client with different credentials.",
   ).optional(),
@@ -222,7 +224,9 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Each data type has a unique, namespaced, name. All data types in the com.google namespace are shared as part of the platform.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The data type defines the schema for a stream of data being collected by, inserted into, or queried from the Fitness API.",
+  ).optional(),
   device: z.object({
     manufacturer: z.string().describe("Manufacturer of the product/hardware.")
       .optional(),
@@ -245,7 +249,7 @@ const GlobalArgsSchema = z.object({
       "Version string for the device hardware/software.",
     ).optional(),
   }).describe(
-    "Representation of an integrated device (such as a phone or a wearable) that can hold sensors. Each sensor is exposed as a data source. The main purpose of the device information contained in this class is to identify the hardware of a particular data source. This can be useful in different ways, including: - Distinguishing two similar sensors on different devices (the step counter on two nexus 5 phones, for instance) - Display the source of data to the user (by using the device make / model) - Treat data differently depending on sensor type (accelerometers on a watch may give different patterns than those on a phone) - Build different analysis models for each device/version.",
+    "Representation of an integrated device (such as a phone or a wearable) that can hold sensors.",
   ).optional(),
   type: z.enum(["raw", "derived"]).describe(
     "A constant describing the type of this data source. Indicates whether this data source produces raw or derived data.",
@@ -305,7 +309,9 @@ const InputsSchema = z.object({
     version: z.string().describe(
       "Version of the application. You should update this field whenever the application changes in a way that affects the computation of the data.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Information about an application which feeds sensor data into the platform.",
+  ).optional(),
   dataStreamId: z.string().describe(
     "A unique identifier for the data stream produced by this data source. The identifier includes: - The physical device's manufacturer, model, and serial number (UID). - The application's package name or name. Package name is used when the data source was created by an Android application. The developer project number is used when the data source was created by a REST client. - The data source's type. - The data source's stream name. Note that not all attributes of the data source are used as part of the stream identifier. In particular, the version of the hardware/the application isn't used. This allows us to preserve the same stream through version updates. This also means that two DataSource objects may represent the same data stream even if they're not equal. The exact format of the data stream ID created by an Android application is: type:dataType.name:application.packageName:device.manufacturer:device.model:device.uid:dataStreamName The exact format of the data stream ID created by a REST client is: type:dataType.name:developer project number:device.manufacturer:device.model:device.uid:dataStreamName When any of the optional fields that make up the data stream ID are absent, they will be omitted from the data stream ID. The minimum viable data stream ID would be: type:dataType.name:developer project number Finally, the developer project number and device UID are obfuscated when read by any REST or Android client that did not create the data source. Only the data source creator will see the developer project number in clear and normal form. This means a client will see a different set of data_stream_ids than another client with different credentials.",
   ).optional(),
@@ -333,7 +339,9 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Each data type has a unique, namespaced, name. All data types in the com.google namespace are shared as part of the platform.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The data type defines the schema for a stream of data being collected by, inserted into, or queried from the Fitness API.",
+  ).optional(),
   device: z.object({
     manufacturer: z.string().describe("Manufacturer of the product/hardware.")
       .optional(),
@@ -356,7 +364,7 @@ const InputsSchema = z.object({
       "Version string for the device hardware/software.",
     ).optional(),
   }).describe(
-    "Representation of an integrated device (such as a phone or a wearable) that can hold sensors. Each sensor is exposed as a data source. The main purpose of the device information contained in this class is to identify the hardware of a particular data source. This can be useful in different ways, including: - Distinguishing two similar sensors on different devices (the step counter on two nexus 5 phones, for instance) - Display the source of data to the user (by using the device make / model) - Treat data differently depending on sensor type (accelerometers on a watch may give different patterns than those on a phone) - Build different analysis models for each device/version.",
+    "Representation of an integrated device (such as a phone or a wearable) that can hold sensors.",
   ).optional(),
   type: z.enum(["raw", "derived"]).describe(
     "A constant describing the type of this data source. Indicates whether this data source produces raw or derived data.",
@@ -389,7 +397,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Fitness Users.DataSources. Registered at `@swamp/gcp/fitness/users-datasources`. */
 export const model = {
   type: "@swamp/gcp/fitness/users-datasources",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -476,6 +484,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -519,12 +532,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "userId": String(g["userId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

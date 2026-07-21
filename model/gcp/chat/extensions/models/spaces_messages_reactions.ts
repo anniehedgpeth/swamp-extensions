@@ -167,39 +167,22 @@ const GlobalArgsSchema = z.object({
         filename: z.string().describe(
           "Required. Input only. The image file name. Supported file extensions: `.png`, `.jpg`, `.gif`.",
         ).optional(),
-      }).describe("Payload data for the custom emoji.").optional(),
+      }).describe(
+        "Optional. Input only. Payload data. Required when the custom emoji is created.",
+      ).optional(),
       temporaryImageUri: z.string().describe(
         "Output only. A temporary image URL for the custom emoji, valid for at least 10 minutes. Note that this is not populated in the response when the custom emoji is created.",
       ).optional(),
       uid: z.string().describe(
         "Output only. Unique key for the custom emoji resource.",
       ).optional(),
-    }).describe(
-      "Represents a [custom emoji](https://support.google.com/chat/answer/12800149).",
-    ).optional(),
+    }).describe("A custom emoji.").optional(),
     unicode: z.string().describe(
       "Optional. A basic emoji represented by a unicode string.",
     ).optional(),
-  }).describe("An emoji that is used as a reaction to a message.").optional(),
+  }).describe("Required. The emoji used in the reaction.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the reaction. Format: `spaces/{space}/messages/{message}/reactions/{reaction}`",
-  ).optional(),
-  user: z.object({
-    displayName: z.string().describe("Output only. The user's display name.")
-      .optional(),
-    domainId: z.string().describe(
-      "Unique identifier of the user's Google Workspace domain.",
-    ).optional(),
-    isAnonymous: z.boolean().describe(
-      "Output only. When `true`, the user is deleted or their profile is not visible.",
-    ).optional(),
-    name: z.string().describe(
-      "Resource name for a Google Chat user. Format: `users/{user}`. `users/app` can be used as an alias for the calling app bot user. For human users, `{user}` is the same user identifier as: - the `id` for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, `users/123456789` in Chat API represents the same person as the `123456789` Person profile ID in People API. - the `id` for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user's email address can be used as an alias for `{user}` in API requests. For example, if the People API Person profile ID for `user@example.com` is `123456789`, you can use `users/user@example.com` as an alias to reference `users/123456789`. Only the canonical resource name (for example `users/123456789`) will be returned from the API.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
-      .optional(),
-  }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -252,39 +235,22 @@ const InputsSchema = z.object({
         filename: z.string().describe(
           "Required. Input only. The image file name. Supported file extensions: `.png`, `.jpg`, `.gif`.",
         ).optional(),
-      }).describe("Payload data for the custom emoji.").optional(),
+      }).describe(
+        "Optional. Input only. Payload data. Required when the custom emoji is created.",
+      ).optional(),
       temporaryImageUri: z.string().describe(
         "Output only. A temporary image URL for the custom emoji, valid for at least 10 minutes. Note that this is not populated in the response when the custom emoji is created.",
       ).optional(),
       uid: z.string().describe(
         "Output only. Unique key for the custom emoji resource.",
       ).optional(),
-    }).describe(
-      "Represents a [custom emoji](https://support.google.com/chat/answer/12800149).",
-    ).optional(),
+    }).describe("A custom emoji.").optional(),
     unicode: z.string().describe(
       "Optional. A basic emoji represented by a unicode string.",
     ).optional(),
-  }).describe("An emoji that is used as a reaction to a message.").optional(),
+  }).describe("Required. The emoji used in the reaction.").optional(),
   name: z.string().describe(
     "Identifier. The resource name of the reaction. Format: `spaces/{space}/messages/{message}/reactions/{reaction}`",
-  ).optional(),
-  user: z.object({
-    displayName: z.string().describe("Output only. The user's display name.")
-      .optional(),
-    domainId: z.string().describe(
-      "Unique identifier of the user's Google Workspace domain.",
-    ).optional(),
-    isAnonymous: z.boolean().describe(
-      "Output only. When `true`, the user is deleted or their profile is not visible.",
-    ).optional(),
-    name: z.string().describe(
-      "Resource name for a Google Chat user. Format: `users/{user}`. `users/app` can be used as an alias for the calling app bot user. For human users, `{user}` is the same user identifier as: - the `id` for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, `users/123456789` in Chat API represents the same person as the `123456789` Person profile ID in People API. - the `id` for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user's email address can be used as an alias for `{user}` in API requests. For example, if the People API Person profile ID for `user@example.com` is `123456789`, you can use `users/user@example.com` as an alias to reference `users/123456789`. Only the canonical resource name (for example `users/123456789`) will be returned from the API.",
-    ).optional(),
-    type: z.enum(["TYPE_UNSPECIFIED", "HUMAN", "BOT"]).describe("User type.")
-      .optional(),
-  }).describe(
-    "A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a `User` resource only populates the user's `name` and `type`.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -314,7 +280,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages.Reactions. Registered at `@swamp/gcp/chat/spaces-messages-reactions`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages-reactions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -411,6 +377,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: user",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { user: _user, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -435,7 +409,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["emoji"] !== undefined) body["emoji"] = g["emoji"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["user"] !== undefined) body["user"] = g["user"];
         const result = await createResource(
           BASE_URL,
           INSERT_CONFIG,

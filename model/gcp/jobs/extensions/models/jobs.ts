@@ -169,7 +169,9 @@ const GlobalArgsSchema = z.object({
       uris: z.array(z.string()).describe(
         "Optional but at least one of uris, emails or instruction must be specified. Use this URI field to direct an applicant to a website, for example to link to an online application form. The maximum number of allowed characters for each entry is 2,000.",
       ).optional(),
-    }).describe("Application related details of a job posting.").optional(),
+    }).describe(
+      "Required. At least one field within ApplicationInfo must be specified. Job application information.",
+    ).optional(),
     companyDisplayName: z.string().describe(
       "Output only. Display name of the company listing the job.",
     ).optional(),
@@ -188,8 +190,9 @@ const GlobalArgsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Optional. The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+        ).optional(),
         minCompensation: z.object({
           currencyCode: z.string().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -200,9 +203,12 @@ const GlobalArgsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
-      }).describe("Compensation range.").optional(),
+        }).describe(
+          "Optional. The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+        ).optional(),
+      }).describe(
+        "Output only. Annualized base compensation range. Computed as base compensation entry's CompensationEntry.compensation times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+      ).optional(),
       annualizedTotalCompensationRange: z.object({
         maxCompensation: z.object({
           currencyCode: z.string().describe(
@@ -214,8 +220,9 @@ const GlobalArgsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Optional. The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+        ).optional(),
         minCompensation: z.object({
           currencyCode: z.string().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -226,9 +233,12 @@ const GlobalArgsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
-      }).describe("Compensation range.").optional(),
+        }).describe(
+          "Optional. The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+        ).optional(),
+      }).describe(
+        "Output only. Annualized total compensation range. Computed as all compensation entries' CompensationEntry.compensation times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+      ).optional(),
       entries: z.array(z.object({
         amount: z.object({
           currencyCode: z.unknown().describe(
@@ -240,8 +250,7 @@ const GlobalArgsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe("Optional. Compensation amount.").optional(),
         description: z.string().describe(
           "Optional. Compensation description. For example, could indicate equity terms or provide additional context to an estimated bonus.",
         ).optional(),
@@ -250,12 +259,12 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         range: z.object({
           maxCompensation: z.unknown().describe(
-            "Represents an amount of money with its currency type.",
+            "Optional. The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
           ).optional(),
           minCompensation: z.unknown().describe(
-            "Represents an amount of money with its currency type.",
+            "Optional. The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
           ).optional(),
-        }).describe("Compensation range.").optional(),
+        }).describe("Optional. Compensation range.").optional(),
         type: z.enum([
           "COMPENSATION_TYPE_UNSPECIFIED",
           "BASE",
@@ -284,7 +293,7 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. Job compensation information. At most one entry can be of type CompensationInfo.CompensationType.BASE, which is referred as ** base compensation entry ** for the job.",
       ).optional(),
-    }).describe("Job compensation details.").optional(),
+    }).describe("Optional. Job compensation information.").optional(),
     customAttributes: z.record(
       z.string(),
       z.object({
@@ -364,9 +373,8 @@ const GlobalArgsSchema = z.object({
           longitude: z.unknown().describe(
             "The longitude in degrees. It must be in the range [-180.0, +180.0].",
           ).optional(),
-        }).describe(
-          "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-        ).optional(),
+        }).describe("An object representing a latitude/longitude pair.")
+          .optional(),
         locationType: z.enum([
           "LOCATION_TYPE_UNSPECIFIED",
           "COUNTRY",
@@ -417,7 +425,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
           ).optional(),
         }).describe(
-          "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+          "Postal address of the location that includes human readable information, such as postal delivery and payments addresses. Given a postal address, a postal service can deliver items to a premises, P.O. Box, or other delivery location.",
         ).optional(),
         radiusInMiles: z.number().describe(
           'Radius in miles of the job location. This value is derived from the location bounding box in which a circle with the specified radius centered from LatLng covers the area associated with the job location. For example, currently, "Mountain View, CA, USA" has a radius of 6.17 miles.',
@@ -519,7 +527,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Option for job HTML content sanitization. Applied fields are: * description * applicationInfo.instruction * incentives * qualifications * responsibilities HTML tags in these fields may be stripped if sanitiazation is not disabled. Defaults to HtmlSanitization.SIMPLE_FORMATTING_ONLY.",
       ).optional(),
-    }).describe("Input only. Options for job processing.").optional(),
+    }).describe("Optional. Options for job processing.").optional(),
     promotionValue: z.number().int().describe(
       "Optional. A promotion value of the job, as determined by the client. The value determines the sort order of the jobs returned when searching for jobs using the featured jobs search call, with higher promotional values being returned first and ties being resolved by relevance sort. Only the jobs with a promotionValue >0 are returned in a FEATURED_JOB_SEARCH. Default value is 0, and negative values are treated as 0.",
     ).optional(),
@@ -543,9 +551,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Deprecated. The job is only visible to the owner. The visibility of the job. Defaults to Visibility.ACCOUNT_ONLY if not specified.",
     ).optional(),
-  }).describe(
-    'A Job resource represents a job posting (also referred to as a "job listing" or "job requisition"). A job belongs to a Company, which is the hiring entity responsible for the job.',
-  ).optional(),
+  }).describe("Required. The Job to be updated.").optional(),
   updateMask: z.string().describe(
     "Optional but strongly recommended to be provided for the best service experience. If update_mask is provided, only the specified fields in job are updated. Otherwise all the fields are updated. A field mask to restrict the fields that are updated. Only top level fields of Job are supported.",
   ).optional(),
@@ -687,7 +693,9 @@ const InputsSchema = z.object({
       uris: z.array(z.string()).describe(
         "Optional but at least one of uris, emails or instruction must be specified. Use this URI field to direct an applicant to a website, for example to link to an online application form. The maximum number of allowed characters for each entry is 2,000.",
       ).optional(),
-    }).describe("Application related details of a job posting.").optional(),
+    }).describe(
+      "Required. At least one field within ApplicationInfo must be specified. Job application information.",
+    ).optional(),
     companyDisplayName: z.string().describe(
       "Output only. Display name of the company listing the job.",
     ).optional(),
@@ -706,8 +714,9 @@ const InputsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Optional. The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+        ).optional(),
         minCompensation: z.object({
           currencyCode: z.string().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -718,9 +727,12 @@ const InputsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
-      }).describe("Compensation range.").optional(),
+        }).describe(
+          "Optional. The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+        ).optional(),
+      }).describe(
+        "Output only. Annualized base compensation range. Computed as base compensation entry's CompensationEntry.compensation times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+      ).optional(),
       annualizedTotalCompensationRange: z.object({
         maxCompensation: z.object({
           currencyCode: z.string().describe(
@@ -732,8 +744,9 @@ const InputsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe(
+          "Optional. The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
+        ).optional(),
         minCompensation: z.object({
           currencyCode: z.string().describe(
             "The three-letter currency code defined in ISO 4217.",
@@ -744,9 +757,12 @@ const InputsSchema = z.object({
           units: z.string().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
-      }).describe("Compensation range.").optional(),
+        }).describe(
+          "Optional. The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
+        ).optional(),
+      }).describe(
+        "Output only. Annualized total compensation range. Computed as all compensation entries' CompensationEntry.compensation times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.",
+      ).optional(),
       entries: z.array(z.object({
         amount: z.object({
           currencyCode: z.unknown().describe(
@@ -758,8 +774,7 @@ const InputsSchema = z.object({
           units: z.unknown().describe(
             'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
           ).optional(),
-        }).describe("Represents an amount of money with its currency type.")
-          .optional(),
+        }).describe("Optional. Compensation amount.").optional(),
         description: z.string().describe(
           "Optional. Compensation description. For example, could indicate equity terms or provide additional context to an estimated bonus.",
         ).optional(),
@@ -768,12 +783,12 @@ const InputsSchema = z.object({
         ).optional(),
         range: z.object({
           maxCompensation: z.unknown().describe(
-            "Represents an amount of money with its currency type.",
+            "Optional. The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.",
           ).optional(),
           minCompensation: z.unknown().describe(
-            "Represents an amount of money with its currency type.",
+            "Optional. The minimum amount of compensation. If left empty, the value is set to zero and the currency code is set to match the currency code of max_compensation.",
           ).optional(),
-        }).describe("Compensation range.").optional(),
+        }).describe("Optional. Compensation range.").optional(),
         type: z.enum([
           "COMPENSATION_TYPE_UNSPECIFIED",
           "BASE",
@@ -802,7 +817,7 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. Job compensation information. At most one entry can be of type CompensationInfo.CompensationType.BASE, which is referred as ** base compensation entry ** for the job.",
       ).optional(),
-    }).describe("Job compensation details.").optional(),
+    }).describe("Optional. Job compensation information.").optional(),
     customAttributes: z.record(
       z.string(),
       z.object({
@@ -882,9 +897,8 @@ const InputsSchema = z.object({
           longitude: z.unknown().describe(
             "The longitude in degrees. It must be in the range [-180.0, +180.0].",
           ).optional(),
-        }).describe(
-          "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
-        ).optional(),
+        }).describe("An object representing a latitude/longitude pair.")
+          .optional(),
         locationType: z.enum([
           "LOCATION_TYPE_UNSPECIFIED",
           "COUNTRY",
@@ -935,7 +949,7 @@ const InputsSchema = z.object({
             "Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.",
           ).optional(),
         }).describe(
-          "Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.",
+          "Postal address of the location that includes human readable information, such as postal delivery and payments addresses. Given a postal address, a postal service can deliver items to a premises, P.O. Box, or other delivery location.",
         ).optional(),
         radiusInMiles: z.number().describe(
           'Radius in miles of the job location. This value is derived from the location bounding box in which a circle with the specified radius centered from LatLng covers the area associated with the job location. For example, currently, "Mountain View, CA, USA" has a radius of 6.17 miles.',
@@ -1037,7 +1051,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Option for job HTML content sanitization. Applied fields are: * description * applicationInfo.instruction * incentives * qualifications * responsibilities HTML tags in these fields may be stripped if sanitiazation is not disabled. Defaults to HtmlSanitization.SIMPLE_FORMATTING_ONLY.",
       ).optional(),
-    }).describe("Input only. Options for job processing.").optional(),
+    }).describe("Optional. Options for job processing.").optional(),
     promotionValue: z.number().int().describe(
       "Optional. A promotion value of the job, as determined by the client. The value determines the sort order of the jobs returned when searching for jobs using the featured jobs search call, with higher promotional values being returned first and ties being resolved by relevance sort. Only the jobs with a promotionValue >0 are returned in a FEATURED_JOB_SEARCH. Default value is 0, and negative values are treated as 0.",
     ).optional(),
@@ -1061,9 +1075,7 @@ const InputsSchema = z.object({
     ]).describe(
       "Deprecated. The job is only visible to the owner. The visibility of the job. Defaults to Visibility.ACCOUNT_ONLY if not specified.",
     ).optional(),
-  }).describe(
-    'A Job resource represents a job posting (also referred to as a "job listing" or "job requisition"). A job belongs to a Company, which is the hiring entity responsible for the job.',
-  ).optional(),
+  }).describe("Required. The Job to be updated.").optional(),
   updateMask: z.string().describe(
     "Optional but strongly recommended to be provided for the best service experience. If update_mask is provided, only the specified fields in job are updated. Otherwise all the fields are updated. A field mask to restrict the fields that are updated. Only top level fields of Job are supported.",
   ).optional(),
@@ -1095,7 +1107,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Talent Solution Jobs. Registered at `@swamp/gcp/jobs/jobs`. */
 export const model = {
   type: "@swamp/gcp/jobs/jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1134,16 +1153,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

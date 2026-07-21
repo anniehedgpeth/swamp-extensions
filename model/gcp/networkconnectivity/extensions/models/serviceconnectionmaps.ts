@@ -223,8 +223,9 @@ const GlobalArgsSchema = z.object({
       ttl: z.string().describe(
         "Optional. The Time To Live for the DNS record, in seconds. If not provided, a default of 30 seconds will be used.",
       ).optional(),
-    }).describe("The specification for automatically creating a DNS record.")
-      .optional(),
+    }).describe(
+      "Optional. The specification for automatically creating a DNS record for this PSC connection.",
+    ).optional(),
     serviceAttachmentUri: z.string().describe(
       "The resource path of a service attachment. Example: projects/{projectNumOrId}/regions/{region}/serviceAttachments/{resourceId}.",
     ).optional(),
@@ -372,8 +373,9 @@ const InputsSchema = z.object({
       ttl: z.string().describe(
         "Optional. The Time To Live for the DNS record, in seconds. If not provided, a default of 30 seconds will be used.",
       ).optional(),
-    }).describe("The specification for automatically creating a DNS record.")
-      .optional(),
+    }).describe(
+      "Optional. The specification for automatically creating a DNS record for this PSC connection.",
+    ).optional(),
     serviceAttachmentUri: z.string().describe(
       "The resource path of a service attachment. Example: projects/{projectNumOrId}/regions/{region}/serviceAttachments/{resourceId}.",
     ).optional(),
@@ -418,7 +420,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Connectivity ServiceConnectionMaps. Registered at `@swamp/gcp/networkconnectivity/serviceconnectionmaps`. */
 export const model = {
   type: "@swamp/gcp/networkconnectivity/serviceconnectionmaps",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -527,6 +529,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

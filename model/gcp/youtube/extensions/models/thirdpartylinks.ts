@@ -179,7 +179,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Timestamp when the affiliate program status was last updated.",
       ).optional(),
     }).describe(
-      "Information specific to a creator in an affiliate program linked to a YouTube channel.",
+      "Information specific to a link between a channel and an affiliate program of a partner.",
     ).optional(),
     channelToStoreLink: z.object({
       billingDetails: z.object({
@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
           "billingStatusActive",
           "billingStatusInactive",
         ]).describe("The current billing profile status.").optional(),
-      }).describe("Information specific to billing.").optional(),
+      }).describe("Information specific to billing (read-only).").optional(),
       merchantAffiliateProgramDetails: z.object({
         status: z.enum([
           "merchantAffiliateProgramStatusUnspecified",
@@ -198,14 +198,15 @@ const GlobalArgsSchema = z.object({
           "merchantAffiliateProgramStatusPaused",
         ]).describe("The current merchant affiliate program status.")
           .optional(),
-      }).describe("Information specific to merchant affiliate program.")
-        .optional(),
+      }).describe(
+        "Information specific to merchant affiliate program (read-only).",
+      ).optional(),
       merchantId: z.string().describe("Google Merchant Center id of the store.")
         .optional(),
       storeName: z.string().describe("Name of the store.").optional(),
       storeUrl: z.string().describe("Landing page of the store.").optional(),
     }).describe(
-      "Information specific to a store on a merchandising platform linked to a YouTube channel.",
+      "Information specific to a link between a channel and a store on a merchandising platform.",
     ).optional(),
     type: z.enum([
       "linkUnspecified",
@@ -215,12 +216,12 @@ const GlobalArgsSchema = z.object({
       "Type of the link named after the entities that are being linked.",
     ).optional(),
   }).describe(
-    "Basic information about a third party account link, including its type and type-specific information.",
+    "The snippet object contains basic details about the third- party account link.",
   ).optional(),
   status: z.object({
     linkStatus: z.enum(["unknown", "failed", "pending", "linked"]).optional(),
   }).describe(
-    "The third-party link status object contains information about the status of the link.",
+    "The status object contains information about the status of the link.",
   ).optional(),
   part: z.string().describe(
     "The *part* parameter specifies the thirdPartyLink resource parts that the API request and response will include. Supported values are linkingToken, status, and snippet.",
@@ -287,7 +288,7 @@ const InputsSchema = z.object({
         "Optional. Timestamp when the affiliate program status was last updated.",
       ).optional(),
     }).describe(
-      "Information specific to a creator in an affiliate program linked to a YouTube channel.",
+      "Information specific to a link between a channel and an affiliate program of a partner.",
     ).optional(),
     channelToStoreLink: z.object({
       billingDetails: z.object({
@@ -297,7 +298,7 @@ const InputsSchema = z.object({
           "billingStatusActive",
           "billingStatusInactive",
         ]).describe("The current billing profile status.").optional(),
-      }).describe("Information specific to billing.").optional(),
+      }).describe("Information specific to billing (read-only).").optional(),
       merchantAffiliateProgramDetails: z.object({
         status: z.enum([
           "merchantAffiliateProgramStatusUnspecified",
@@ -306,14 +307,15 @@ const InputsSchema = z.object({
           "merchantAffiliateProgramStatusPaused",
         ]).describe("The current merchant affiliate program status.")
           .optional(),
-      }).describe("Information specific to merchant affiliate program.")
-        .optional(),
+      }).describe(
+        "Information specific to merchant affiliate program (read-only).",
+      ).optional(),
       merchantId: z.string().describe("Google Merchant Center id of the store.")
         .optional(),
       storeName: z.string().describe("Name of the store.").optional(),
       storeUrl: z.string().describe("Landing page of the store.").optional(),
     }).describe(
-      "Information specific to a store on a merchandising platform linked to a YouTube channel.",
+      "Information specific to a link between a channel and a store on a merchandising platform.",
     ).optional(),
     type: z.enum([
       "linkUnspecified",
@@ -323,12 +325,12 @@ const InputsSchema = z.object({
       "Type of the link named after the entities that are being linked.",
     ).optional(),
   }).describe(
-    "Basic information about a third party account link, including its type and type-specific information.",
+    "The snippet object contains basic details about the third- party account link.",
   ).optional(),
   status: z.object({
     linkStatus: z.enum(["unknown", "failed", "pending", "linked"]).optional(),
   }).describe(
-    "The third-party link status object contains information about the status of the link.",
+    "The status object contains information about the status of the link.",
   ).optional(),
   part: z.string().describe(
     "The *part* parameter specifies the thirdPartyLink resource parts that the API request and response will include. Supported values are linkingToken, status, and snippet.",
@@ -361,7 +363,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data ThirdPartyLinks. Registered at `@swamp/gcp/youtube/thirdpartylinks`. */
 export const model = {
   type: "@swamp/gcp/youtube/thirdpartylinks",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -473,6 +475,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -511,12 +518,7 @@ export const model = {
           body,
           undefined,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "part": String(g["part"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

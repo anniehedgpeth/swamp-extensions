@@ -191,39 +191,6 @@ const GlobalArgsSchema = z.object({
   annotations: z.record(z.string(), z.string()).describe(
     "Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy.",
   ).optional(),
-  condition: z.object({
-    pipelineReadyCondition: z.object({
-      status: z.boolean().describe(
-        "True if the Pipeline is in a valid state. Otherwise at least one condition in `PipelineCondition` is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Pipeline.",
-      ).optional(),
-      updateTime: z.string().describe("Last time the condition was updated.")
-        .optional(),
-    }).describe(
-      "PipelineReadyCondition contains information around the status of the Pipeline.",
-    ).optional(),
-    targetsPresentCondition: z.object({
-      missingTargets: z.array(z.string()).describe(
-        "The list of Target names that do not exist. For example, `projects/{project_id}/locations/{location_name}/targets/{target_name}`.",
-      ).optional(),
-      status: z.boolean().describe("True if there aren't any missing Targets.")
-        .optional(),
-      updateTime: z.string().describe("Last time the condition was updated.")
-        .optional(),
-    }).describe(
-      "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-    ).optional(),
-    targetsTypeCondition: z.object({
-      errorDetails: z.string().describe("Human readable error message.")
-        .optional(),
-      status: z.boolean().describe(
-        "True if the targets are all a comparable type. For example this is true if all targets are GKE clusters. This is false if some targets are Cloud Run targets and others are GKE clusters.",
-      ).optional(),
-    }).describe(
-      "TargetsTypeCondition contains information on whether the Targets defined in the Delivery Pipeline are of the same type.",
-    ).optional(),
-  }).describe(
-    "PipelineCondition contains all conditions relevant to a Delivery Pipeline.",
-  ).optional(),
   description: z.string().describe(
     "Optional. Description of the `DeliveryPipeline`. Max length is 255 characters.",
   ).optional(),
@@ -251,36 +218,39 @@ const GlobalArgsSchema = z.object({
       strategy: z.object({
         canary: z.object({
           canaryDeployment: z.unknown().describe(
-            "CanaryDeployment represents the canary deployment configuration",
+            "Optional. Configures the progressive based deployment for a Target.",
           ).optional(),
           customCanaryDeployment: z.unknown().describe(
-            "CustomCanaryDeployment represents the custom canary deployment configuration.",
+            "Optional. Configures the progressive based deployment for a Target, but allows customizing at the phase level where a phase represents each of the percentage deployments.",
           ).optional(),
           runtimeConfig: z.unknown().describe(
-            "RuntimeConfig contains the runtime specific configurations for a deployment strategy.",
+            "Optional. Runtime specific configurations for the deployment strategy. The runtime configuration is used to determine how Cloud Deploy will split traffic to enable a progressive deployment.",
           ).optional(),
-        }).describe("Canary represents the canary deployment strategy.")
-          .optional(),
+        }).describe(
+          "Optional. Canary deployment strategy provides progressive percentage based deployments to a Target.",
+        ).optional(),
         standard: z.object({
           analysis: z.unknown().describe(
-            "Analysis contains the configuration for the set of analyses to be performed on the target.",
+            "Optional. Configuration for the analysis job. If this is not configured, the analysis job will not be present.",
           ).optional(),
           postdeploy: z.unknown().describe(
-            "Postdeploy contains the postdeploy job configuration information.",
+            "Optional. Configuration for the postdeploy job. If this is not configured, the postdeploy job will not be present.",
           ).optional(),
           predeploy: z.unknown().describe(
-            "Predeploy contains the predeploy job configuration information.",
+            "Optional. Configuration for the predeploy job. If this is not configured, the predeploy job will not be present.",
           ).optional(),
           verify: z.unknown().describe(
             "Optional. Whether to verify a deployment via `skaffold verify`.",
           ).optional(),
           verifyConfig: z.unknown().describe(
-            "Verify contains the verify job configuration information.",
+            "Optional. Configuration for the verify job. Cannot be set if `verify` is set to true.",
           ).optional(),
-        }).describe("Standard represents the standard deployment strategy.")
-          .optional(),
-      }).describe("Strategy contains deployment strategy information.")
-        .optional(),
+        }).describe(
+          "Optional. Standard deployment strategy executes a single deploy and allows verifying the deployment.",
+        ).optional(),
+      }).describe(
+        "Optional. The strategy to use for a `Rollout` to this stage.",
+      ).optional(),
       targetId: z.string().describe(
         "Optional. The target_id to which this stage points. This field refers exclusively to the last segment of a target name. For example, this field would just be `my-target` (rather than `projects/project/locations/location/targets/my-target`). The location of the `Target` is inferred to be the same as the location of the `DeliveryPipeline` that contains this `Stage`.",
       ).optional(),
@@ -288,7 +258,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Each stage specifies configuration for a `Target`. The ordering of this list defines the promotion flow.",
     ).optional(),
   }).describe(
-    "SerialPipeline defines a sequential set of stages for a `DeliveryPipeline`.",
+    "Optional. SerialPipeline defines a sequential set of stages for a `DeliveryPipeline`.",
   ).optional(),
   suspended: z.boolean().describe(
     "Optional. When suspended, no new releases or rollouts can be created, but in-progress ones will complete.",
@@ -365,39 +335,6 @@ const InputsSchema = z.object({
   annotations: z.record(z.string(), z.string()).describe(
     "Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy.",
   ).optional(),
-  condition: z.object({
-    pipelineReadyCondition: z.object({
-      status: z.boolean().describe(
-        "True if the Pipeline is in a valid state. Otherwise at least one condition in `PipelineCondition` is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Pipeline.",
-      ).optional(),
-      updateTime: z.string().describe("Last time the condition was updated.")
-        .optional(),
-    }).describe(
-      "PipelineReadyCondition contains information around the status of the Pipeline.",
-    ).optional(),
-    targetsPresentCondition: z.object({
-      missingTargets: z.array(z.string()).describe(
-        "The list of Target names that do not exist. For example, `projects/{project_id}/locations/{location_name}/targets/{target_name}`.",
-      ).optional(),
-      status: z.boolean().describe("True if there aren't any missing Targets.")
-        .optional(),
-      updateTime: z.string().describe("Last time the condition was updated.")
-        .optional(),
-    }).describe(
-      "`TargetsPresentCondition` contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.",
-    ).optional(),
-    targetsTypeCondition: z.object({
-      errorDetails: z.string().describe("Human readable error message.")
-        .optional(),
-      status: z.boolean().describe(
-        "True if the targets are all a comparable type. For example this is true if all targets are GKE clusters. This is false if some targets are Cloud Run targets and others are GKE clusters.",
-      ).optional(),
-    }).describe(
-      "TargetsTypeCondition contains information on whether the Targets defined in the Delivery Pipeline are of the same type.",
-    ).optional(),
-  }).describe(
-    "PipelineCondition contains all conditions relevant to a Delivery Pipeline.",
-  ).optional(),
   description: z.string().describe(
     "Optional. Description of the `DeliveryPipeline`. Max length is 255 characters.",
   ).optional(),
@@ -425,36 +362,39 @@ const InputsSchema = z.object({
       strategy: z.object({
         canary: z.object({
           canaryDeployment: z.unknown().describe(
-            "CanaryDeployment represents the canary deployment configuration",
+            "Optional. Configures the progressive based deployment for a Target.",
           ).optional(),
           customCanaryDeployment: z.unknown().describe(
-            "CustomCanaryDeployment represents the custom canary deployment configuration.",
+            "Optional. Configures the progressive based deployment for a Target, but allows customizing at the phase level where a phase represents each of the percentage deployments.",
           ).optional(),
           runtimeConfig: z.unknown().describe(
-            "RuntimeConfig contains the runtime specific configurations for a deployment strategy.",
+            "Optional. Runtime specific configurations for the deployment strategy. The runtime configuration is used to determine how Cloud Deploy will split traffic to enable a progressive deployment.",
           ).optional(),
-        }).describe("Canary represents the canary deployment strategy.")
-          .optional(),
+        }).describe(
+          "Optional. Canary deployment strategy provides progressive percentage based deployments to a Target.",
+        ).optional(),
         standard: z.object({
           analysis: z.unknown().describe(
-            "Analysis contains the configuration for the set of analyses to be performed on the target.",
+            "Optional. Configuration for the analysis job. If this is not configured, the analysis job will not be present.",
           ).optional(),
           postdeploy: z.unknown().describe(
-            "Postdeploy contains the postdeploy job configuration information.",
+            "Optional. Configuration for the postdeploy job. If this is not configured, the postdeploy job will not be present.",
           ).optional(),
           predeploy: z.unknown().describe(
-            "Predeploy contains the predeploy job configuration information.",
+            "Optional. Configuration for the predeploy job. If this is not configured, the predeploy job will not be present.",
           ).optional(),
           verify: z.unknown().describe(
             "Optional. Whether to verify a deployment via `skaffold verify`.",
           ).optional(),
           verifyConfig: z.unknown().describe(
-            "Verify contains the verify job configuration information.",
+            "Optional. Configuration for the verify job. Cannot be set if `verify` is set to true.",
           ).optional(),
-        }).describe("Standard represents the standard deployment strategy.")
-          .optional(),
-      }).describe("Strategy contains deployment strategy information.")
-        .optional(),
+        }).describe(
+          "Optional. Standard deployment strategy executes a single deploy and allows verifying the deployment.",
+        ).optional(),
+      }).describe(
+        "Optional. The strategy to use for a `Rollout` to this stage.",
+      ).optional(),
       targetId: z.string().describe(
         "Optional. The target_id to which this stage points. This field refers exclusively to the last segment of a target name. For example, this field would just be `my-target` (rather than `projects/project/locations/location/targets/my-target`). The location of the `Target` is inferred to be the same as the location of the `DeliveryPipeline` that contains this `Stage`.",
       ).optional(),
@@ -462,7 +402,7 @@ const InputsSchema = z.object({
       "Optional. Each stage specifies configuration for a `Target`. The ordering of this list defines the promotion flow.",
     ).optional(),
   }).describe(
-    "SerialPipeline defines a sequential set of stages for a `DeliveryPipeline`.",
+    "Optional. SerialPipeline defines a sequential set of stages for a `DeliveryPipeline`.",
   ).optional(),
   suspended: z.boolean().describe(
     "Optional. When suspended, no new releases or rollouts can be created, but in-progress ones will complete.",
@@ -501,7 +441,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy DeliveryPipelines. Registered at `@swamp/gcp/clouddeploy/deliverypipelines`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/deliverypipelines",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -623,6 +563,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: condition",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { condition: _condition, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -651,7 +599,6 @@ export const model = {
         if (g["annotations"] !== undefined) {
           body["annotations"] = g["annotations"];
         }
-        if (g["condition"] !== undefined) body["condition"] = g["condition"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -776,7 +723,6 @@ export const model = {
         if (g["annotations"] !== undefined) {
           body["annotations"] = g["annotations"];
         }
-        if (g["condition"] !== undefined) body["condition"] = g["condition"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

@@ -219,8 +219,9 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "Required. Price in EUR to use for any new regions Play may launch in.",
+      ).optional(),
       usdPrice: z.object({
         currencyCode: z.string().describe(
           "The three-letter currency code defined in ISO 4217.",
@@ -231,10 +232,11 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "Required. Price in USD to use for any new regions Play may launch in.",
+      ).optional(),
     }).describe(
-      "Pricing information for any new regions Play may launch in the future.",
+      "Pricing information for any new locations Play may launch in the future. If omitted, the purchase option will not be automatically available in any new locations Play may launch in the future.",
     ).optional(),
     offerTags: z.array(z.object({
       tag: z.string().describe(
@@ -264,8 +266,9 @@ const GlobalArgsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The price of the purchase option in the specified region. Must be set in the currency that is linked to the specified region.",
+      ).optional(),
       regionCode: z.string().describe(
         'Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".',
       ).optional(),
@@ -297,9 +300,8 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Optional. Digital content or service classification for products distributed to users in eligible regions. If unset, it defaults to `WITHDRAWAL_RIGHT_DIGITAL_CONTENT`. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information.",
       ).optional(),
-    }).describe(
-      "Details about taxation, Google Play policy and legal compliance for one-time product purchase options.",
-    ).optional(),
+    }).describe("Optional. Details about taxes and legal compliance.")
+      .optional(),
   })).describe(
     "Required. The set of purchase options for this one-time product.",
   ).optional(),
@@ -308,14 +310,14 @@ const GlobalArgsSchema = z.object({
       "Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region's version and set of regional prices and currencies will succeed even though a new version is available.",
     ).optional(),
   }).describe(
-    "The version of the available regions being used for the specified resource.",
+    "Output only. The version of the regions configuration that was used to generate the one-time product.",
   ).optional(),
   restrictedPaymentCountries: z.object({
     regionCodes: z.array(z.string()).describe(
       'Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".',
     ).optional(),
   }).describe(
-    "Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
+    "Optional. Countries where the purchase of this one-time product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
   ).optional(),
   taxAndComplianceSettings: z.object({
     isTokenizedDigitalAsset: z.boolean().describe(
@@ -368,9 +370,7 @@ const GlobalArgsSchema = z.object({
         "Tax tier to specify reduced tax rate. Developers who sell digital news, magazines, newspapers, books, or audiobooks in various regions may be eligible for reduced tax rates. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498).",
       ).optional(),
     })).describe("Regional tax configuration.").optional(),
-  }).describe(
-    "Details about taxation, Google Play policy and legal compliance for one-time products.",
-  ).optional(),
+  }).describe("Details about taxes and legal compliance.").optional(),
 });
 
 const StateSchema = z.object({
@@ -507,8 +507,9 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "Required. Price in EUR to use for any new regions Play may launch in.",
+      ).optional(),
       usdPrice: z.object({
         currencyCode: z.string().describe(
           "The three-letter currency code defined in ISO 4217.",
@@ -519,10 +520,11 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "Required. Price in USD to use for any new regions Play may launch in.",
+      ).optional(),
     }).describe(
-      "Pricing information for any new regions Play may launch in the future.",
+      "Pricing information for any new locations Play may launch in the future. If omitted, the purchase option will not be automatically available in any new locations Play may launch in the future.",
     ).optional(),
     offerTags: z.array(z.object({
       tag: z.string().describe(
@@ -552,8 +554,9 @@ const InputsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The price of the purchase option in the specified region. Must be set in the currency that is linked to the specified region.",
+      ).optional(),
       regionCode: z.string().describe(
         'Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".',
       ).optional(),
@@ -585,9 +588,8 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Digital content or service classification for products distributed to users in eligible regions. If unset, it defaults to `WITHDRAWAL_RIGHT_DIGITAL_CONTENT`. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information.",
       ).optional(),
-    }).describe(
-      "Details about taxation, Google Play policy and legal compliance for one-time product purchase options.",
-    ).optional(),
+    }).describe("Optional. Details about taxes and legal compliance.")
+      .optional(),
   })).describe(
     "Required. The set of purchase options for this one-time product.",
   ).optional(),
@@ -596,14 +598,14 @@ const InputsSchema = z.object({
       "Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region's version and set of regional prices and currencies will succeed even though a new version is available.",
     ).optional(),
   }).describe(
-    "The version of the available regions being used for the specified resource.",
+    "Output only. The version of the regions configuration that was used to generate the one-time product.",
   ).optional(),
   restrictedPaymentCountries: z.object({
     regionCodes: z.array(z.string()).describe(
       'Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".',
     ).optional(),
   }).describe(
-    "Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
+    "Optional. Countries where the purchase of this one-time product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
   ).optional(),
   taxAndComplianceSettings: z.object({
     isTokenizedDigitalAsset: z.boolean().describe(
@@ -656,9 +658,7 @@ const InputsSchema = z.object({
         "Tax tier to specify reduced tax rate. Developers who sell digital news, magazines, newspapers, books, or audiobooks in various regions may be eligible for reduced tax rates. [Learn more](https://support.google.com/googleplay/android-developer/answer/10463498).",
       ).optional(),
     })).describe("Regional tax configuration.").optional(),
-  }).describe(
-    "Details about taxation, Google Play policy and legal compliance for one-time products.",
-  ).optional(),
+  }).describe("Details about taxes and legal compliance.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -684,7 +684,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Monetization.Onetimeproducts. Registered at `@swamp/gcp/androidpublisher/monetization-onetimeproducts`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/monetization-onetimeproducts",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -778,6 +778,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

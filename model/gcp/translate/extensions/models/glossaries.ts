@@ -160,9 +160,12 @@ const GlobalArgsSchema = z.object({
       inputUri: z.string().describe(
         "Required. Source data URI. For example, `gs://my_bucket/my_object`.",
       ).optional(),
-    }).describe("The Google Cloud Storage location for the input content.")
-      .optional(),
-  }).describe("Input configuration for glossaries.").optional(),
+    }).describe(
+      "Required. Google Cloud Storage location of glossary data. File format is determined based on the filename extension. API returns [google.rpc.Code.INVALID_ARGUMENT] for unsupported URI-s and file formats. Wildcards are not allowed. This must be a single file in one of the following formats: For unidirectional glossaries: - TSV/CSV (`.tsv`/`.csv`): Two column file, tab- or comma-separated. The first column is source text. The second column is target text. No headers in this file. The first row contains data and not column names. - TMX (`.tmx`): TMX file with parallel data defining source/target term pairs. For equivalent term sets glossaries: - CSV (`.csv`): Multi-column CSV file defining equivalent glossary terms in multiple languages. See documentation for more information - [glossaries](https://cloud.google.com/translate/docs/advanced/glossary).",
+    ).optional(),
+  }).describe(
+    "Required. Provides examples to build the glossary from. Total glossary must not exceed 10M Unicode codepoints.",
+  ).optional(),
   languageCodesSet: z.object({
     languageCodes: z.array(z.string()).describe(
       "Optional. The ISO-639 language code(s) for terms defined in the glossary. All entries are unique. The list contains at least two entries. Expected to be an exact match for GlossaryTerm.language_code.",
@@ -219,9 +222,12 @@ const InputsSchema = z.object({
       inputUri: z.string().describe(
         "Required. Source data URI. For example, `gs://my_bucket/my_object`.",
       ).optional(),
-    }).describe("The Google Cloud Storage location for the input content.")
-      .optional(),
-  }).describe("Input configuration for glossaries.").optional(),
+    }).describe(
+      "Required. Google Cloud Storage location of glossary data. File format is determined based on the filename extension. API returns [google.rpc.Code.INVALID_ARGUMENT] for unsupported URI-s and file formats. Wildcards are not allowed. This must be a single file in one of the following formats: For unidirectional glossaries: - TSV/CSV (`.tsv`/`.csv`): Two column file, tab- or comma-separated. The first column is source text. The second column is target text. No headers in this file. The first row contains data and not column names. - TMX (`.tmx`): TMX file with parallel data defining source/target term pairs. For equivalent term sets glossaries: - CSV (`.csv`): Multi-column CSV file defining equivalent glossary terms in multiple languages. See documentation for more information - [glossaries](https://cloud.google.com/translate/docs/advanced/glossary).",
+    ).optional(),
+  }).describe(
+    "Required. Provides examples to build the glossary from. Total glossary must not exceed 10M Unicode codepoints.",
+  ).optional(),
   languageCodesSet: z.object({
     languageCodes: z.array(z.string()).describe(
       "Optional. The ISO-639 language code(s) for terms defined in the glossary. All entries are unique. The list contains at least two entries. Expected to be an exact match for GlossaryTerm.language_code.",
@@ -266,7 +272,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Translation Glossaries. Registered at `@swamp/gcp/translate/glossaries`. */
 export const model = {
   type: "@swamp/gcp/translate/glossaries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -370,6 +376,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

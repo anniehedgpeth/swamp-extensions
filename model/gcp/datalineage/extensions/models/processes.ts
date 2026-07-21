@@ -188,7 +188,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Type of the source. Use of a source_type other than `CUSTOM` for process creation or updating is highly discouraged. It might be restricted in the future without notice. There will be increase in cost if you use any of the source types other than `CUSTOM`.",
     ).optional(),
-  }).describe("Origin of a process.").optional(),
+  }).describe(
+    "Optional. The origin of this process and its runs and lineage events.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. A unique identifier for this request. Restricted to 36 ASCII characters. A random UUID is recommended. This request is idempotent only if a `request_id` is provided.",
   ).optional(),
@@ -241,7 +243,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Type of the source. Use of a source_type other than `CUSTOM` for process creation or updating is highly discouraged. It might be restricted in the future without notice. There will be increase in cost if you use any of the source types other than `CUSTOM`.",
     ).optional(),
-  }).describe("Origin of a process.").optional(),
+  }).describe(
+    "Optional. The origin of this process and its runs and lineage events.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. A unique identifier for this request. Restricted to 36 ASCII characters. A random UUID is recommended. This request is idempotent only if a `request_id` is provided.",
   ).optional(),
@@ -273,7 +277,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data Lineage Processes. Registered at `@swamp/gcp/datalineage/processes`. */
 export const model = {
   type: "@swamp/gcp/datalineage/processes",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -412,6 +416,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

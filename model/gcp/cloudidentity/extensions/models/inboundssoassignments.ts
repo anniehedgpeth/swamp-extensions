@@ -145,7 +145,7 @@ const GlobalArgsSchema = z.object({
       "Required. Name of the `InboundOidcSsoProfile` to use. Must be of the form `inboundOidcSsoProfiles/{inbound_oidc_sso_profile}`.",
     ).optional(),
   }).describe(
-    "Details that are applicable when `sso_mode` is set to `OIDC_SSO`.",
+    "OpenID Connect SSO details. Must be set if and only if `sso_mode` is set to `OIDC_SSO`.",
   ).optional(),
   rank: z.number().int().describe(
     "Must be zero (which is the default value so it can be omitted) for assignments with `target_org_unit` set and must be greater-than-or-equal-to one for assignments with `target_group` set.",
@@ -154,12 +154,15 @@ const GlobalArgsSchema = z.object({
     inboundSamlSsoProfile: z.string().describe(
       "Required. Name of the `InboundSamlSsoProfile` to use. Must be of the form `inboundSamlSsoProfiles/{inbound_saml_sso_profile}`.",
     ).optional(),
-  }).describe("Details that are applicable when `sso_mode` == `SAML_SSO`.")
-    .optional(),
+  }).describe(
+    "SAML SSO details. Must be set if and only if `sso_mode` is set to `SAML_SSO`.",
+  ).optional(),
   signInBehavior: z.object({
     redirectCondition: z.enum(["REDIRECT_CONDITION_UNSPECIFIED", "NEVER"])
       .describe("When to redirect sign-ins to the IdP.").optional(),
-  }).describe("Controls sign-in behavior.").optional(),
+  }).describe(
+    "Assertions about users assigned to an IdP will always be accepted from that IdP. This controls whether/when Google should redirect a user to the IdP. Unset (defaults) is the recommended configuration.",
+  ).optional(),
   ssoMode: z.enum([
     "SSO_MODE_UNSPECIFIED",
     "SSO_OFF",
@@ -209,7 +212,7 @@ const InputsSchema = z.object({
       "Required. Name of the `InboundOidcSsoProfile` to use. Must be of the form `inboundOidcSsoProfiles/{inbound_oidc_sso_profile}`.",
     ).optional(),
   }).describe(
-    "Details that are applicable when `sso_mode` is set to `OIDC_SSO`.",
+    "OpenID Connect SSO details. Must be set if and only if `sso_mode` is set to `OIDC_SSO`.",
   ).optional(),
   rank: z.number().int().describe(
     "Must be zero (which is the default value so it can be omitted) for assignments with `target_org_unit` set and must be greater-than-or-equal-to one for assignments with `target_group` set.",
@@ -218,12 +221,15 @@ const InputsSchema = z.object({
     inboundSamlSsoProfile: z.string().describe(
       "Required. Name of the `InboundSamlSsoProfile` to use. Must be of the form `inboundSamlSsoProfiles/{inbound_saml_sso_profile}`.",
     ).optional(),
-  }).describe("Details that are applicable when `sso_mode` == `SAML_SSO`.")
-    .optional(),
+  }).describe(
+    "SAML SSO details. Must be set if and only if `sso_mode` is set to `SAML_SSO`.",
+  ).optional(),
   signInBehavior: z.object({
     redirectCondition: z.enum(["REDIRECT_CONDITION_UNSPECIFIED", "NEVER"])
       .describe("When to redirect sign-ins to the IdP.").optional(),
-  }).describe("Controls sign-in behavior.").optional(),
+  }).describe(
+    "Assertions about users assigned to an IdP will always be accepted from that IdP. This controls whether/when Google should redirect a user to the IdP. Unset (defaults) is the recommended configuration.",
+  ).optional(),
   ssoMode: z.enum([
     "SSO_MODE_UNSPECIFIED",
     "SSO_OFF",
@@ -262,7 +268,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity InboundSsoAssignments. Registered at `@swamp/gcp/cloudidentity/inboundssoassignments`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/inboundssoassignments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -364,6 +370,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -412,12 +423,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {},
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

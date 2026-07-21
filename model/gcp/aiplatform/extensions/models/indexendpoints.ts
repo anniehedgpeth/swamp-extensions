@@ -168,7 +168,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Immutable. Customer-managed encryption key spec for an IndexEndpoint. If set, this IndexEndpoint and all sub-resources of this IndexEndpoint will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize your IndexEndpoints. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -211,8 +211,9 @@ const GlobalArgsSchema = z.object({
     serviceAttachment: z.string().describe(
       "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
     ).optional(),
-  }).describe("Represents configuration for private service connect.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for private service connect. network and private_service_connect_config are mutually exclusive.",
+  ).optional(),
   publicEndpointEnabled: z.boolean().describe(
     "Optional. If true, the deployed index will be accessible through public endpoint.",
   ).optional(),
@@ -332,7 +333,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Immutable. Customer-managed encryption key spec for an IndexEndpoint. If set, this IndexEndpoint and all sub-resources of this IndexEndpoint will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels with user-defined metadata to organize your IndexEndpoints. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -375,8 +376,9 @@ const InputsSchema = z.object({
     serviceAttachment: z.string().describe(
       "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
     ).optional(),
-  }).describe("Represents configuration for private service connect.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for private service connect. network and private_service_connect_config are mutually exclusive.",
+  ).optional(),
   publicEndpointEnabled: z.boolean().describe(
     "Optional. If true, the deployed index will be accessible through public endpoint.",
   ).optional(),
@@ -408,7 +410,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform IndexEndpoints. Registered at `@swamp/gcp/aiplatform/indexendpoints`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/indexendpoints",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -542,6 +544,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -700,9 +707,6 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
-        }
-        if (g["encryptionSpec"] !== undefined) {
-          body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["network"] !== undefined) body["network"] = g["network"];

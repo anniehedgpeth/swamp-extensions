@@ -221,9 +221,7 @@ const GlobalArgsSchema = z.object({
     uid: z.string().describe(
       "Unique, system-generated identifier for this resource.",
     ).optional(),
-  }).describe(
-    "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
-  ).optional(),
+  }).describe("Optional. Standard object's metadata.").optional(),
   spec: z.object({
     runExecutionToken: z.string().describe(
       "A unique string used as a suffix for creating a new execution. The Job will become ready when the execution is successfully completed. The sum of job name and token length must be fewer than 63 characters.",
@@ -293,7 +291,7 @@ const GlobalArgsSchema = z.object({
           "Unique, system-generated identifier for this resource.",
         ).optional(),
       }).describe(
-        "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
+        "Optional. Optional metadata for this Execution, including labels and annotations. The following annotation keys set properties of the created execution: * `run.googleapis.com/cloudsql-instances` sets Cloud SQL connections. Multiple values should be comma separated. * `run.googleapis.com/vpc-access-connector` sets a Serverless VPC Access connector. * `run.googleapis.com/vpc-access-egress` sets VPC egress. Supported values are `all-traffic`, `all` (deprecated), and `private-ranges-only`. `all-traffic` and `all` provide the same functionality. `all` is deprecated but will continue to be supported. Prefer `all-traffic`.",
       ).optional(),
       spec: z.object({
         parallelism: z.number().int().describe(
@@ -322,68 +320,20 @@ const GlobalArgsSchema = z.object({
             volumes: z.unknown().describe(
               "Optional. List of volumes that can be mounted by containers belonging to the task.",
             ).optional(),
-          }).describe("TaskSpec is a description of a task.").optional(),
+          }).describe(
+            "Optional. Specification of the desired behavior of the task.",
+          ).optional(),
         }).describe(
-          "TaskTemplateSpec describes the data a task should have when created from a template.",
+          "Optional. The template used to create tasks for this execution.",
         ).optional(),
-      }).describe("ExecutionSpec describes how the execution will look.")
-        .optional(),
+      }).describe(
+        "Required. ExecutionSpec holds the desired configuration for executions of this job.",
+      ).optional(),
     }).describe(
-      "ExecutionTemplateSpec describes the metadata and spec an Execution should have when created from a job.",
+      "Optional. Describes the execution that will be created when running a job.",
     ).optional(),
-  }).describe("JobSpec describes how the job will look.").optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Optional. Last time the condition transitioned from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Optional. Human readable message indicating details about the current status.",
-      ).optional(),
-      reason: z.string().describe(
-        "Optional. One-word CamelCase reason for the condition's last transition. These are intended to be stable, unique values which the client may use to trigger error handling logic, whereas messages which may be changed later by the server.",
-      ).optional(),
-      severity: z.string().describe(
-        "Optional. How to interpret this condition. One of Error, Warning, or Info. Conditions of severity Info do not contribute to resource readiness.",
-      ).optional(),
-      status: z.string().describe(
-        "Status of the condition, one of True, False, Unknown.",
-      ).optional(),
-      type: z.string().describe(
-        'type is used to communicate the status of the reconciliation process. Types common to all resources include: * "Ready" or "Completed": True when the Resource is ready.',
-      ).optional(),
-    })).describe(
-      'Conditions communicate information about ongoing/complete reconciliation processes that bring the "spec" inline with the observed state of the world. Job-specific conditions include: * `Ready`: `True` when the job is ready to be executed.',
-    ).optional(),
-    executionCount: z.number().int().describe(
-      "Number of executions created for this job.",
-    ).optional(),
-    latestCreatedExecution: z.object({
-      completionStatus: z.enum([
-        "COMPLETION_STATUS_UNSPECIFIED",
-        "EXECUTION_SUCCEEDED",
-        "EXECUTION_FAILED",
-        "EXECUTION_RUNNING",
-        "EXECUTION_PENDING",
-        "EXECUTION_CANCELLED",
-      ]).describe("Optional. Status for the execution completion.").optional(),
-      completionTimestamp: z.string().describe(
-        "Optional. Completion timestamp of the execution.",
-      ).optional(),
-      creationTimestamp: z.string().describe(
-        "Optional. Creation timestamp of the execution.",
-      ).optional(),
-      deletionTimestamp: z.string().describe(
-        "Optional. The read-only soft deletion timestamp of the execution.",
-      ).optional(),
-      name: z.string().describe("Optional. Name of the execution.").optional(),
-    }).describe(
-      "Reference to an Execution. Use /Executions.GetExecution with the given name to get full execution including the latest status.",
-    ).optional(),
-    observedGeneration: z.number().int().describe(
-      "The 'generation' of the job that was last processed by the controller.",
-    ).optional(),
-  }).describe("JobStatus represents the current state of a Job.").optional(),
+  }).describe("Optional. Specification of the desired behavior of a job.")
+    .optional(),
   dryRun: z.string().describe(
     "Optional. Indicates that the server should validate the request and populate default values without persisting the request. Supported values: `all`",
   ).optional(),
@@ -550,9 +500,7 @@ const InputsSchema = z.object({
     uid: z.string().describe(
       "Unique, system-generated identifier for this resource.",
     ).optional(),
-  }).describe(
-    "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
-  ).optional(),
+  }).describe("Optional. Standard object's metadata.").optional(),
   spec: z.object({
     runExecutionToken: z.string().describe(
       "A unique string used as a suffix for creating a new execution. The Job will become ready when the execution is successfully completed. The sum of job name and token length must be fewer than 63 characters.",
@@ -622,7 +570,7 @@ const InputsSchema = z.object({
           "Unique, system-generated identifier for this resource.",
         ).optional(),
       }).describe(
-        "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
+        "Optional. Optional metadata for this Execution, including labels and annotations. The following annotation keys set properties of the created execution: * `run.googleapis.com/cloudsql-instances` sets Cloud SQL connections. Multiple values should be comma separated. * `run.googleapis.com/vpc-access-connector` sets a Serverless VPC Access connector. * `run.googleapis.com/vpc-access-egress` sets VPC egress. Supported values are `all-traffic`, `all` (deprecated), and `private-ranges-only`. `all-traffic` and `all` provide the same functionality. `all` is deprecated but will continue to be supported. Prefer `all-traffic`.",
       ).optional(),
       spec: z.object({
         parallelism: z.number().int().describe(
@@ -651,68 +599,20 @@ const InputsSchema = z.object({
             volumes: z.unknown().describe(
               "Optional. List of volumes that can be mounted by containers belonging to the task.",
             ).optional(),
-          }).describe("TaskSpec is a description of a task.").optional(),
+          }).describe(
+            "Optional. Specification of the desired behavior of the task.",
+          ).optional(),
         }).describe(
-          "TaskTemplateSpec describes the data a task should have when created from a template.",
+          "Optional. The template used to create tasks for this execution.",
         ).optional(),
-      }).describe("ExecutionSpec describes how the execution will look.")
-        .optional(),
+      }).describe(
+        "Required. ExecutionSpec holds the desired configuration for executions of this job.",
+      ).optional(),
     }).describe(
-      "ExecutionTemplateSpec describes the metadata and spec an Execution should have when created from a job.",
+      "Optional. Describes the execution that will be created when running a job.",
     ).optional(),
-  }).describe("JobSpec describes how the job will look.").optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Optional. Last time the condition transitioned from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Optional. Human readable message indicating details about the current status.",
-      ).optional(),
-      reason: z.string().describe(
-        "Optional. One-word CamelCase reason for the condition's last transition. These are intended to be stable, unique values which the client may use to trigger error handling logic, whereas messages which may be changed later by the server.",
-      ).optional(),
-      severity: z.string().describe(
-        "Optional. How to interpret this condition. One of Error, Warning, or Info. Conditions of severity Info do not contribute to resource readiness.",
-      ).optional(),
-      status: z.string().describe(
-        "Status of the condition, one of True, False, Unknown.",
-      ).optional(),
-      type: z.string().describe(
-        'type is used to communicate the status of the reconciliation process. Types common to all resources include: * "Ready" or "Completed": True when the Resource is ready.',
-      ).optional(),
-    })).describe(
-      'Conditions communicate information about ongoing/complete reconciliation processes that bring the "spec" inline with the observed state of the world. Job-specific conditions include: * `Ready`: `True` when the job is ready to be executed.',
-    ).optional(),
-    executionCount: z.number().int().describe(
-      "Number of executions created for this job.",
-    ).optional(),
-    latestCreatedExecution: z.object({
-      completionStatus: z.enum([
-        "COMPLETION_STATUS_UNSPECIFIED",
-        "EXECUTION_SUCCEEDED",
-        "EXECUTION_FAILED",
-        "EXECUTION_RUNNING",
-        "EXECUTION_PENDING",
-        "EXECUTION_CANCELLED",
-      ]).describe("Optional. Status for the execution completion.").optional(),
-      completionTimestamp: z.string().describe(
-        "Optional. Completion timestamp of the execution.",
-      ).optional(),
-      creationTimestamp: z.string().describe(
-        "Optional. Creation timestamp of the execution.",
-      ).optional(),
-      deletionTimestamp: z.string().describe(
-        "Optional. The read-only soft deletion timestamp of the execution.",
-      ).optional(),
-      name: z.string().describe("Optional. Name of the execution.").optional(),
-    }).describe(
-      "Reference to an Execution. Use /Executions.GetExecution with the given name to get full execution including the latest status.",
-    ).optional(),
-    observedGeneration: z.number().int().describe(
-      "The 'generation' of the job that was last processed by the controller.",
-    ).optional(),
-  }).describe("JobStatus represents the current state of a Job.").optional(),
+  }).describe("Optional. Specification of the desired behavior of a job.")
+    .optional(),
   dryRun: z.string().describe(
     "Optional. Indicates that the server should validate the request and populate default values without persisting the request. Supported values: `all`",
   ).optional(),
@@ -744,7 +644,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Namespaces.Jobs. Registered at `@swamp/gcp/run/namespaces-jobs`. */
 export const model = {
   type: "@swamp/gcp/run/namespaces-jobs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -770,7 +680,6 @@ export const model = {
         if (g["apiVersion"] !== undefined) body["apiVersion"] = g["apiVersion"];
         if (g["metadata"] !== undefined) body["metadata"] = g["metadata"];
         if (g["spec"] !== undefined) body["spec"] = g["spec"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["dryRun"] !== undefined) params["dryRun"] = String(g["dryRun"]);
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -785,14 +694,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

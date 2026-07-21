@@ -198,7 +198,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
     }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+      "Optional. condition for the binding. If CEL expression in this field is true, this access binding will be considered",
     ).optional(),
     dataset: z.object({
       dataset: z.object({
@@ -208,14 +208,14 @@ const GlobalArgsSchema = z.object({
         projectId: z.string().describe(
           "Optional. The ID of the project containing this dataset.",
         ).optional(),
-      }).describe("Identifier for a dataset.").optional(),
+      }).describe("The dataset this entry applies to").optional(),
       targetTypes: z.array(
         z.enum(["TARGET_TYPE_UNSPECIFIED", "VIEWS", "ROUTINES"]),
       ).describe(
         "Which resources in the dataset this entry applies to. Currently, only views are supported, but additional target types may be added in the future.",
       ).optional(),
     }).describe(
-      "Grants all resources of particular types in a particular dataset read access to the current dataset. Similar to how individually authorized views work, updates to any resource granted through its dataset (including creation of new resources) requires read permission to referenced resources, plus write permission to the authorizing dataset.",
+      "[Pick one] A grant authorizing all resources of a particular type in a particular dataset access to this dataset. Only views are supported for now. The role field is not required when this field is set. If that dataset is deleted and re-created, its access needs to be granted again via an update operation.",
     ).optional(),
     domain: z.string().describe(
       '[Pick one] A domain to grant access to. Any users signed in with the domain specified will be granted the specified access. Example: "example.com". Maps to IAM policy member "domain:DOMAIN".',
@@ -239,7 +239,9 @@ const GlobalArgsSchema = z.object({
       routineId: z.string().describe(
         "Required. The ID of the routine. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
       ).optional(),
-    }).describe("Id path of a routine.").optional(),
+    }).describe(
+      "[Pick one] A routine from a different dataset to grant access to. Queries executed against that routine will have read access to views/tables/routines in this dataset. Only UDF is supported for now. The role field is not required when this field is set. If that routine is updated by any user, access to the routine needs to be granted again via an update operation.",
+    ).optional(),
     specialGroup: z.string().describe(
       "[Pick one] A special group to grant access to. Possible values include: * projectOwners: Owners of the enclosing project. * projectReaders: Readers of the enclosing project. * projectWriters: Writers of the enclosing project. * allAuthenticatedUsers: All authenticated BigQuery users. Maps to similarly-named IAM members.",
     ).optional(),
@@ -256,7 +258,9 @@ const GlobalArgsSchema = z.object({
       tableId: z.string().describe(
         "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "[Pick one] A view from a different dataset to grant access to. Queries executed against that view will have read access to views/tables/routines in this dataset. The role field is not required when this field is set. If that view is updated by any user, access to the view needs to be granted again via an update operation.",
+    ).optional(),
   })).describe(
     "Optional. An array of objects that define dataset access for one or more entities. You can set this property when inserting or updating a dataset in order to control who is allowed to access the data. If unspecified at dataset creation time, BigQuery adds default dataset access for the following entities: access.specialGroup: projectReaders; access.role: READER; access.specialGroup: projectWriters; access.role: WRITER; access.specialGroup: projectOwners; access.role: OWNER; access.userByEmail: [dataset creator email]; access.role: OWNER; If you patch a dataset, then this field is overwritten by the patched dataset's access field. To add entities, you must supply the entire existing access array in addition to any new entities that you want to add.",
   ).optional(),
@@ -267,7 +271,7 @@ const GlobalArgsSchema = z.object({
     projectId: z.string().describe(
       "Optional. The ID of the project containing this dataset.",
     ).optional(),
-  }).describe("Identifier for a dataset.").optional(),
+  }).describe("Required. A reference that identifies the dataset.").optional(),
   defaultCollation: z.string().describe(
     "Optional. Defines the default collation specification of future tables created in the dataset. If a table is created in this dataset without table-level default collation, then the table inherits the dataset default collation, which is applied to the string fields that do not have explicit collation specified. A change to this field affects only tables created afterwards, and does not alter the existing tables. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
   ).optional(),
@@ -275,7 +279,9 @@ const GlobalArgsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
     ).optional(),
-  }).describe("Configuration for Cloud KMS encryption settings.").optional(),
+  }).describe(
+    "The default encryption key for all tables in the dataset. After this property is set, the encryption key of all newly-created tables in the dataset is set to this value unless the table creation request or query explicitly overrides the key.",
+  ).optional(),
   defaultPartitionExpirationMs: z.string().describe(
     "This default partition expiration, expressed in milliseconds. When new time-partitioned tables are created in a dataset where this property is set, the table will inherit this value, propagated as the `TimePartitioning.expirationMs` property on the new table. If you set `TimePartitioning.expirationMs` explicitly when creating a table, the `defaultPartitionExpirationMs` of the containing dataset is ignored. When creating a partitioned table, if `defaultPartitionExpirationMs` is set, the `defaultTableExpirationMs` value is ignored and the table will not be inherit a table expiration deadline.",
   ).optional(),
@@ -300,7 +306,7 @@ const GlobalArgsSchema = z.object({
       "Optional. A map of key value pairs defining the parameters and properties of the open source schema. Maximum size of 2MiB.",
     ).optional(),
   }).describe(
-    "Options defining open source compatible datasets living in the BigQuery catalog. Contains metadata of open source database, schema, or namespace represented by the current dataset.",
+    "Optional. Options defining open source compatible datasets living in the BigQuery catalog. Contains metadata of open source database, schema or namespace represented by the current dataset.",
   ).optional(),
   externalDatasetReference: z.object({
     connection: z.string().describe(
@@ -310,7 +316,7 @@ const GlobalArgsSchema = z.object({
       "Required. External source that backs this dataset.",
     ).optional(),
   }).describe(
-    "Configures the access a dataset defined in an external metadata storage.",
+    "Optional. Reference to a read-only external dataset defined in data catalogs outside of BigQuery. Filled out when the dataset type is EXTERNAL.",
   ).optional(),
   friendlyName: z.string().describe(
     "Optional. A descriptive name for the dataset.",
@@ -321,12 +327,6 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "The labels associated with this dataset. You can use these to organize and group your datasets. You can set this property when inserting or updating a dataset. See [Creating and Updating Dataset Labels](https://cloud.google.com/bigquery/docs/creating-managing-labels#creating_and_updating_dataset_labels) for more information.",
   ).optional(),
-  linkedDatasetMetadata: z.object({
-    linkState: z.enum(["LINK_STATE_UNSPECIFIED", "LINKED", "UNLINKED"])
-      .describe(
-        "Output only. Specifies whether Linked Dataset is currently in a linked state or not.",
-      ).optional(),
-  }).describe("Metadata about the Linked Dataset.").optional(),
   linkedDatasetSource: z.object({
     sourceDataset: z.object({
       datasetId: z.string().describe(
@@ -335,9 +335,12 @@ const GlobalArgsSchema = z.object({
       projectId: z.string().describe(
         "Optional. The ID of the project containing this dataset.",
       ).optional(),
-    }).describe("Identifier for a dataset.").optional(),
-  }).describe("A dataset source type which refers to another BigQuery dataset.")
-    .optional(),
+    }).describe(
+      "The source dataset reference contains project numbers and not project ids.",
+    ).optional(),
+  }).describe(
+    "Optional. The source dataset reference when the dataset is of type LINKED. For all other dataset types it is not set. This field cannot be updated once it is set. Any attempt to update this field using Update and Patch API Operations will be ignored.",
+  ).optional(),
   location: z.string().describe(
     "The geographic location where the dataset should reside. See https://cloud.google.com/bigquery/docs/locations for supported locations.",
   ).optional(),
@@ -347,11 +350,6 @@ const GlobalArgsSchema = z.object({
   resourceTags: z.record(z.string(), z.string()).describe(
     'Optional. The [tags](https://cloud.google.com/bigquery/docs/tags) attached to this dataset. Tag keys are globally unique. Tag key is expected to be in the namespaced format, for example "123456789012/environment" where 123456789012 is the ID of the parent organization or project resource for this tag key. Tag value is expected to be the short name, for example "Production". See [Tag definitions](https://cloud.google.com/iam/docs/tags-access-control#definitions) for more details.',
   ).optional(),
-  restrictions: z.object({
-    type: z.enum(["RESTRICTION_TYPE_UNSPECIFIED", "RESTRICTED_DATA_EGRESS"])
-      .describe("Output only. Specifies the type of dataset/table restriction.")
-      .optional(),
-  }).optional(),
   storageBillingModel: z.enum([
     "STORAGE_BILLING_MODEL_UNSPECIFIED",
     "LOGICAL",
@@ -473,7 +471,7 @@ const InputsSchema = z.object({
         "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
       ).optional(),
     }).describe(
-      'Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() < 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type!= \'private\' && document.type!= \'internal\'" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "\'New message received at \' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.',
+      "Optional. condition for the binding. If CEL expression in this field is true, this access binding will be considered",
     ).optional(),
     dataset: z.object({
       dataset: z.object({
@@ -483,14 +481,14 @@ const InputsSchema = z.object({
         projectId: z.string().describe(
           "Optional. The ID of the project containing this dataset.",
         ).optional(),
-      }).describe("Identifier for a dataset.").optional(),
+      }).describe("The dataset this entry applies to").optional(),
       targetTypes: z.array(
         z.enum(["TARGET_TYPE_UNSPECIFIED", "VIEWS", "ROUTINES"]),
       ).describe(
         "Which resources in the dataset this entry applies to. Currently, only views are supported, but additional target types may be added in the future.",
       ).optional(),
     }).describe(
-      "Grants all resources of particular types in a particular dataset read access to the current dataset. Similar to how individually authorized views work, updates to any resource granted through its dataset (including creation of new resources) requires read permission to referenced resources, plus write permission to the authorizing dataset.",
+      "[Pick one] A grant authorizing all resources of a particular type in a particular dataset access to this dataset. Only views are supported for now. The role field is not required when this field is set. If that dataset is deleted and re-created, its access needs to be granted again via an update operation.",
     ).optional(),
     domain: z.string().describe(
       '[Pick one] A domain to grant access to. Any users signed in with the domain specified will be granted the specified access. Example: "example.com". Maps to IAM policy member "domain:DOMAIN".',
@@ -514,7 +512,9 @@ const InputsSchema = z.object({
       routineId: z.string().describe(
         "Required. The ID of the routine. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 256 characters.",
       ).optional(),
-    }).describe("Id path of a routine.").optional(),
+    }).describe(
+      "[Pick one] A routine from a different dataset to grant access to. Queries executed against that routine will have read access to views/tables/routines in this dataset. Only UDF is supported for now. The role field is not required when this field is set. If that routine is updated by any user, access to the routine needs to be granted again via an update operation.",
+    ).optional(),
     specialGroup: z.string().describe(
       "[Pick one] A special group to grant access to. Possible values include: * projectOwners: Owners of the enclosing project. * projectReaders: Readers of the enclosing project. * projectWriters: Writers of the enclosing project. * allAuthenticatedUsers: All authenticated BigQuery users. Maps to similarly-named IAM members.",
     ).optional(),
@@ -531,7 +531,9 @@ const InputsSchema = z.object({
       tableId: z.string().describe(
         "Required. The ID of the table. The ID can contain Unicode characters in category L (letter), M (mark), N (number), Pc (connector, including underscore), Pd (dash), and Zs (space). For more information, see [General Category](https://wikipedia.org/wiki/Unicode_character_property#General_Category). The maximum length is 1,024 characters. Certain operations allow suffixing of the table ID with a partition decorator, such as `sample_table$20190123`.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "[Pick one] A view from a different dataset to grant access to. Queries executed against that view will have read access to views/tables/routines in this dataset. The role field is not required when this field is set. If that view is updated by any user, access to the view needs to be granted again via an update operation.",
+    ).optional(),
   })).describe(
     "Optional. An array of objects that define dataset access for one or more entities. You can set this property when inserting or updating a dataset in order to control who is allowed to access the data. If unspecified at dataset creation time, BigQuery adds default dataset access for the following entities: access.specialGroup: projectReaders; access.role: READER; access.specialGroup: projectWriters; access.role: WRITER; access.specialGroup: projectOwners; access.role: OWNER; access.userByEmail: [dataset creator email]; access.role: OWNER; If you patch a dataset, then this field is overwritten by the patched dataset's access field. To add entities, you must supply the entire existing access array in addition to any new entities that you want to add.",
   ).optional(),
@@ -542,7 +544,7 @@ const InputsSchema = z.object({
     projectId: z.string().describe(
       "Optional. The ID of the project containing this dataset.",
     ).optional(),
-  }).describe("Identifier for a dataset.").optional(),
+  }).describe("Required. A reference that identifies the dataset.").optional(),
   defaultCollation: z.string().describe(
     "Optional. Defines the default collation specification of future tables created in the dataset. If a table is created in this dataset without table-level default collation, then the table inherits the dataset default collation, which is applied to the string fields that do not have explicit collation specified. A change to this field affects only tables created afterwards, and does not alter the existing tables. The following values are supported: * 'und:ci': undetermined locale, case insensitive. * '': empty string. Default to case-sensitive behavior.",
   ).optional(),
@@ -550,7 +552,9 @@ const InputsSchema = z.object({
     kmsKeyName: z.string().describe(
       "Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.",
     ).optional(),
-  }).describe("Configuration for Cloud KMS encryption settings.").optional(),
+  }).describe(
+    "The default encryption key for all tables in the dataset. After this property is set, the encryption key of all newly-created tables in the dataset is set to this value unless the table creation request or query explicitly overrides the key.",
+  ).optional(),
   defaultPartitionExpirationMs: z.string().describe(
     "This default partition expiration, expressed in milliseconds. When new time-partitioned tables are created in a dataset where this property is set, the table will inherit this value, propagated as the `TimePartitioning.expirationMs` property on the new table. If you set `TimePartitioning.expirationMs` explicitly when creating a table, the `defaultPartitionExpirationMs` of the containing dataset is ignored. When creating a partitioned table, if `defaultPartitionExpirationMs` is set, the `defaultTableExpirationMs` value is ignored and the table will not be inherit a table expiration deadline.",
   ).optional(),
@@ -575,7 +579,7 @@ const InputsSchema = z.object({
       "Optional. A map of key value pairs defining the parameters and properties of the open source schema. Maximum size of 2MiB.",
     ).optional(),
   }).describe(
-    "Options defining open source compatible datasets living in the BigQuery catalog. Contains metadata of open source database, schema, or namespace represented by the current dataset.",
+    "Optional. Options defining open source compatible datasets living in the BigQuery catalog. Contains metadata of open source database, schema or namespace represented by the current dataset.",
   ).optional(),
   externalDatasetReference: z.object({
     connection: z.string().describe(
@@ -585,7 +589,7 @@ const InputsSchema = z.object({
       "Required. External source that backs this dataset.",
     ).optional(),
   }).describe(
-    "Configures the access a dataset defined in an external metadata storage.",
+    "Optional. Reference to a read-only external dataset defined in data catalogs outside of BigQuery. Filled out when the dataset type is EXTERNAL.",
   ).optional(),
   friendlyName: z.string().describe(
     "Optional. A descriptive name for the dataset.",
@@ -596,12 +600,6 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "The labels associated with this dataset. You can use these to organize and group your datasets. You can set this property when inserting or updating a dataset. See [Creating and Updating Dataset Labels](https://cloud.google.com/bigquery/docs/creating-managing-labels#creating_and_updating_dataset_labels) for more information.",
   ).optional(),
-  linkedDatasetMetadata: z.object({
-    linkState: z.enum(["LINK_STATE_UNSPECIFIED", "LINKED", "UNLINKED"])
-      .describe(
-        "Output only. Specifies whether Linked Dataset is currently in a linked state or not.",
-      ).optional(),
-  }).describe("Metadata about the Linked Dataset.").optional(),
   linkedDatasetSource: z.object({
     sourceDataset: z.object({
       datasetId: z.string().describe(
@@ -610,9 +608,12 @@ const InputsSchema = z.object({
       projectId: z.string().describe(
         "Optional. The ID of the project containing this dataset.",
       ).optional(),
-    }).describe("Identifier for a dataset.").optional(),
-  }).describe("A dataset source type which refers to another BigQuery dataset.")
-    .optional(),
+    }).describe(
+      "The source dataset reference contains project numbers and not project ids.",
+    ).optional(),
+  }).describe(
+    "Optional. The source dataset reference when the dataset is of type LINKED. For all other dataset types it is not set. This field cannot be updated once it is set. Any attempt to update this field using Update and Patch API Operations will be ignored.",
+  ).optional(),
   location: z.string().describe(
     "The geographic location where the dataset should reside. See https://cloud.google.com/bigquery/docs/locations for supported locations.",
   ).optional(),
@@ -622,11 +623,6 @@ const InputsSchema = z.object({
   resourceTags: z.record(z.string(), z.string()).describe(
     'Optional. The [tags](https://cloud.google.com/bigquery/docs/tags) attached to this dataset. Tag keys are globally unique. Tag key is expected to be in the namespaced format, for example "123456789012/environment" where 123456789012 is the ID of the parent organization or project resource for this tag key. Tag value is expected to be the short name, for example "Production". See [Tag definitions](https://cloud.google.com/iam/docs/tags-access-control#definitions) for more details.',
   ).optional(),
-  restrictions: z.object({
-    type: z.enum(["RESTRICTION_TYPE_UNSPECIFIED", "RESTRICTED_DATA_EGRESS"])
-      .describe("Output only. Specifies the type of dataset/table restriction.")
-      .optional(),
-  }).optional(),
   storageBillingModel: z.enum([
     "STORAGE_BILLING_MODEL_UNSPECIFIED",
     "LOGICAL",
@@ -661,7 +657,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Datasets. Registered at `@swamp/gcp/bigquery/datasets`. */
 export const model = {
   type: "@swamp/gcp/bigquery/datasets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -763,6 +759,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: linkedDatasetMetadata, restrictions",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          linkedDatasetMetadata: _linkedDatasetMetadata,
+          restrictions: _restrictions,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -822,9 +830,6 @@ export const model = {
           body["isCaseInsensitive"] = g["isCaseInsensitive"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["linkedDatasetMetadata"] !== undefined) {
-          body["linkedDatasetMetadata"] = g["linkedDatasetMetadata"];
-        }
         if (g["linkedDatasetSource"] !== undefined) {
           body["linkedDatasetSource"] = g["linkedDatasetSource"];
         }
@@ -834,9 +839,6 @@ export const model = {
         }
         if (g["resourceTags"] !== undefined) {
           body["resourceTags"] = g["resourceTags"];
-        }
-        if (g["restrictions"] !== undefined) {
-          body["restrictions"] = g["restrictions"];
         }
         if (g["storageBillingModel"] !== undefined) {
           body["storageBillingModel"] = g["storageBillingModel"];
@@ -852,12 +854,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "projectId": projectId },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -968,21 +965,12 @@ export const model = {
           body["isCaseInsensitive"] = g["isCaseInsensitive"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["linkedDatasetMetadata"] !== undefined) {
-          body["linkedDatasetMetadata"] = g["linkedDatasetMetadata"];
-        }
-        if (g["linkedDatasetSource"] !== undefined) {
-          body["linkedDatasetSource"] = g["linkedDatasetSource"];
-        }
         if (g["location"] !== undefined) body["location"] = g["location"];
         if (g["maxTimeTravelHours"] !== undefined) {
           body["maxTimeTravelHours"] = g["maxTimeTravelHours"];
         }
         if (g["resourceTags"] !== undefined) {
           body["resourceTags"] = g["resourceTags"];
-        }
-        if (g["restrictions"] !== undefined) {
-          body["restrictions"] = g["restrictions"];
         }
         if (g["storageBillingModel"] !== undefined) {
           body["storageBillingModel"] = g["storageBillingModel"];

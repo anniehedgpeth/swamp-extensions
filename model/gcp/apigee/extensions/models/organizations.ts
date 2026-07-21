@@ -159,7 +159,9 @@ const GlobalArgsSchema = z.object({
       ]).describe("Output only. The state of the Analytics add-on.").optional(),
       updateTime: z.string().describe("Output only. The latest update time.")
         .optional(),
-    }).describe("Configuration for the Analytics add-on.").optional(),
+    }).describe(
+      "Configuration for the Analytics add-on. Only used in organizations.environments.addonsConfig.",
+    ).optional(),
     apiSecurityConfig: z.object({
       enabled: z.boolean().describe(
         "Flag that specifies whether the API security add-on is enabled.",
@@ -167,7 +169,7 @@ const GlobalArgsSchema = z.object({
       expiresAt: z.string().describe(
         "Output only. Time at which the API Security add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.",
       ).optional(),
-    }).describe("Configurations of the API Security add-on.").optional(),
+    }).describe("Configuration for the API Security add-on.").optional(),
     connectorsPlatformConfig: z.object({
       enabled: z.boolean().describe(
         "Flag that specifies whether the Connectors Platform add-on is enabled.",
@@ -186,7 +188,8 @@ const GlobalArgsSchema = z.object({
         "Flag that specifies whether the Monetization add-on is enabled.",
       ).optional(),
     }).describe("Configuration for the Monetization add-on.").optional(),
-  }).describe("Add-on configurations for the Apigee organization.").optional(),
+  }).describe("Optional. Addon configurations of the Apigee organization.")
+    .optional(),
   apiConsumerDataEncryptionKeyName: z.string().describe(
     "Optional. Cloud KMS key name used for encrypting API consumer data. If not specified or [BillingType](#BillingType) is `EVALUATION`, a Google-Managed encryption key will be used. Format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`",
   ).optional(),
@@ -230,7 +233,7 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe("The property value").optional(),
     })).describe("List of all properties in the object").optional(),
   }).describe(
-    "Message for compatibility with legacy Edge specification for Java Properties object in JSON.",
+    "Optional. Properties defined in the Apigee organization profile.",
   ).optional(),
   runtimeDatabaseEncryptionKeyName: z.string().describe(
     'Optional. Cloud KMS key name used for encrypting the data that is stored and replicated across runtime instances. Update is not allowed after the organization is created. If not specified or [RuntimeType](#RuntimeType) is `TRIAL`, a Google-Managed encryption key will be used. For example: "projects/foo/locations/us/keyRings/bar/cryptoKeys/baz". **Note:** Not supported for Apigee hybrid.',
@@ -336,7 +339,9 @@ const InputsSchema = z.object({
       ]).describe("Output only. The state of the Analytics add-on.").optional(),
       updateTime: z.string().describe("Output only. The latest update time.")
         .optional(),
-    }).describe("Configuration for the Analytics add-on.").optional(),
+    }).describe(
+      "Configuration for the Analytics add-on. Only used in organizations.environments.addonsConfig.",
+    ).optional(),
     apiSecurityConfig: z.object({
       enabled: z.boolean().describe(
         "Flag that specifies whether the API security add-on is enabled.",
@@ -344,7 +349,7 @@ const InputsSchema = z.object({
       expiresAt: z.string().describe(
         "Output only. Time at which the API Security add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.",
       ).optional(),
-    }).describe("Configurations of the API Security add-on.").optional(),
+    }).describe("Configuration for the API Security add-on.").optional(),
     connectorsPlatformConfig: z.object({
       enabled: z.boolean().describe(
         "Flag that specifies whether the Connectors Platform add-on is enabled.",
@@ -363,7 +368,8 @@ const InputsSchema = z.object({
         "Flag that specifies whether the Monetization add-on is enabled.",
       ).optional(),
     }).describe("Configuration for the Monetization add-on.").optional(),
-  }).describe("Add-on configurations for the Apigee organization.").optional(),
+  }).describe("Optional. Addon configurations of the Apigee organization.")
+    .optional(),
   apiConsumerDataEncryptionKeyName: z.string().describe(
     "Optional. Cloud KMS key name used for encrypting API consumer data. If not specified or [BillingType](#BillingType) is `EVALUATION`, a Google-Managed encryption key will be used. Format: `projects/*/locations/*/keyRings/*/cryptoKeys/*`",
   ).optional(),
@@ -407,7 +413,7 @@ const InputsSchema = z.object({
       value: z.string().describe("The property value").optional(),
     })).describe("List of all properties in the object").optional(),
   }).describe(
-    "Message for compatibility with legacy Edge specification for Java Properties object in JSON.",
+    "Optional. Properties defined in the Apigee organization profile.",
   ).optional(),
   runtimeDatabaseEncryptionKeyName: z.string().describe(
     'Optional. Cloud KMS key name used for encrypting the data that is stored and replicated across runtime instances. Update is not allowed after the organization is created. If not specified or [RuntimeType](#RuntimeType) is `TRIAL`, a Google-Managed encryption key will be used. For example: "projects/foo/locations/us/keyRings/bar/cryptoKeys/baz". **Note:** Not supported for Apigee hybrid.',
@@ -445,7 +451,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Organizations. Registered at `@swamp/gcp/apigee/organizations`. */
 export const model = {
   type: "@swamp/gcp/apigee/organizations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -544,6 +550,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -169,9 +169,7 @@ const GlobalArgsSchema = z.object({
       productsFilter: z.string().describe(
         'The filter can have a max size of 5000 characters. An expression which specifies which products to apply an action to. The syntax and supported fields are the same as a filter expression. See SearchRequest.filter for detail syntax and limitations. Examples: * To boost products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *',
       ).optional(),
-    }).describe(
-      "A boost action to apply to results matching condition specified above.",
-    ).optional(),
+    }).describe("A boost action.").optional(),
     condition: z.object({
       activeTimeRange: z.array(z.object({
         endTime: z.string().describe("End of time range. Range is inclusive.")
@@ -196,7 +194,7 @@ const GlobalArgsSchema = z.object({
         "A list (up to 10 entries) of terms to match the query on. If not specified, match all queries. If many query terms are specified, the condition is matched if any of the terms is a match (i.e. using the OR operator).",
       ).optional(),
     }).describe(
-      "Metadata that is used to define a condition that triggers an action. A valid condition must specify at least one of 'query_terms' or 'products_filter'. If multiple fields are specified, the condition is met if all the fields are satisfied e.g. if a set of query terms and product_filter are set, then only items matching the product_filter for requests with a query matching the query terms wil get boosted.",
+      "Required. The condition that triggers the rule. If the condition is empty, the rule will always apply.",
     ).optional(),
     doNotAssociateAction: z.object({
       doNotAssociateTerms: z.array(z.string()).describe(
@@ -208,16 +206,13 @@ const GlobalArgsSchema = z.object({
       terms: z.array(z.string()).describe(
         "Will be [deprecated = true] post migration;",
       ).optional(),
-    }).describe(
-      'Prevents `query_term` from being associated with specified terms during search. Example: Don\'t associate "gShoe" and "cheap".',
-    ).optional(),
+    }).describe("Prevents term from being associated with other terms.")
+      .optional(),
     filterAction: z.object({
       filter: z.string().describe(
         'A filter to apply on the matching condition results. Supported features: * filter must be set. * Filter syntax is identical to SearchRequest.filter. For more information, see [Filter](/retail/docs/filter-and-order#filter). * To filter products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *',
       ).optional(),
-    }).describe(
-      "* Rule Condition: - No Condition.query_terms provided is a global match. - 1 or more Condition.query_terms provided are combined with OR operator. * Action Input: The request query and filter that are applied to the retrieved products, in addition to any filters already provided with the SearchRequest. The AND operator is used to combine the query's existing filters with the filter rule(s). NOTE: May result in 0 results when filters conflict. * Action Result: Filters the returned objects to be ONLY those that passed the filter.",
-    ).optional(),
+    }).describe("Filters results.").optional(),
     forceReturnFacetAction: z.object({
       facetPositionAdjustments: z.array(z.object({
         attributeName: z.string().describe(
@@ -229,16 +224,13 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Each instance corresponds to a force return attribute for the given condition. There can't be more 15 instances here.",
       ).optional(),
-    }).describe(
-      'Force returns an attribute/facet in the request around a certain position or above. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can\'t specify both. * Action Inputs: attribute name, position * Action Result: Will force return a facet key around a certain position or above if the condition is satisfied. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes", the ForceReturnFacetAction.FacetPositionAdjustment.attribute_name is "size" and the ForceReturnFacetAction.FacetPositionAdjustment.position is 8. Two cases: a) The facet key "size" is not already in the top 8 slots, then the facet "size" will appear at a position close to 8. b) The facet key "size" in among the top 8 positions in the request, then it will stay at its current rank.',
-    ).optional(),
+    }).describe("Force returns an attribute as a facet in the request.")
+      .optional(),
     ignoreAction: z.object({
       ignoreTerms: z.array(z.string()).describe(
         "Terms to ignore in the search query.",
       ).optional(),
-    }).describe(
-      'Prevents a term in the query from being used in search. Example: Don\'t search for "shoddy".',
-    ).optional(),
+    }).describe("Ignores specific terms from query during search.").optional(),
     onewaySynonymsAction: z.object({
       onewayTerms: z.array(z.string()).describe(
         "Will be [deprecated = true] post migration;",
@@ -250,29 +242,26 @@ const GlobalArgsSchema = z.object({
         "Defines a set of synonyms. Cannot contain duplicates. Can specify up to 100 synonyms.",
       ).optional(),
     }).describe(
-      'Maps a set of terms to a set of synonyms. Set of synonyms will be treated as synonyms of each query term only. `query_terms` will not be treated as synonyms of each other. Example: "sneakers" will use a synonym of "shoes". "shoes" will not use a synonym of "sneakers".',
+      "Treats specific term as a synonym with a group of terms. Group of terms will not be treated as synonyms with the specific term.",
     ).optional(),
     pinAction: z.object({
       pinMap: z.record(z.string(), z.string()).describe(
         "Required. A map of positions to product_ids. Partial matches per action are allowed, if a certain position in the map is already filled that `[position, product_id]` pair will be ignored but the rest may still be applied. This case will only occur if multiple pin actions are matched to a single request, as the map guarantees that pin positions are unique within the same action. Duplicate product_ids are not permitted within a single pin map. The max size of this map is 120, equivalent to the max [request page size](https://cloud.google.com/retail/docs/reference/rest/v2/projects.locations.catalogs.placements/search#request-body).",
       ).optional(),
     }).describe(
-      'Pins one or more specified products to a specific position in the results. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can\'t specify both. * Action Input: mapping of `[pin_position, product_id]` pairs (pin position uses 1-based indexing). * Action Result: Will pin products with matching ids to the position specified in the final result order. Example: Suppose the query is `shoes`, the Condition.query_terms is `shoes` and the pin_map has `{1, "pid1"}`, then product with `pid1` will be pinned to the top position in the final results. If multiple PinActions are matched to a single request the actions will be processed from most to least recently updated. Pins to positions larger than the max allowed page size of 120 are not allowed.',
+      "Pins one or more specified products to a specific position in the results.",
     ).optional(),
     redirectAction: z.object({
       redirectUri: z.string().describe(
         "URL must have length equal or less than 2000 characters.",
       ).optional(),
-    }).describe(
-      "Redirects a shopper to a specific page. * Rule Condition: Must specify Condition.query_terms. * Action Input: Request Query * Action Result: Redirects shopper to provided uri.",
-    ).optional(),
+    }).describe("Redirects a shopper to a specific page.").optional(),
     removeFacetAction: z.object({
       attributeNames: z.array(z.string()).describe(
         "The attribute names (i.e. facet keys) to remove from the dynamic facets (if present in the request). There can't be more 3 attribute names. Each attribute name should be a valid attribute name, be non-empty and contain at most 80 characters.",
       ).optional(),
-    }).describe(
-      'Removes an attribute/facet in the request if is present. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can\'t specify both. * Action Input: attribute name * Action Result: Will remove the attribute (as a facet) from the request if it is present. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes" and the attribute name "size", then facet key "size" will be removed from the request (if it is present).',
-    ).optional(),
+    }).describe("Remove an attribute as a facet in the request (if present).")
+      .optional(),
     replacementAction: z.object({
       queryTerms: z.array(z.string()).describe(
         "Terms from the search query. Will be replaced by replacement term. Can specify up to 100 terms.",
@@ -282,18 +271,14 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       term: z.string().describe("Will be [deprecated = true] post migration;")
         .optional(),
-    }).describe(
-      'Replaces a term in the query. Multiple replacement candidates can be specified. All `query_terms` will be replaced with the replacement term. Example: Replace "gShoe" with "google shoe".',
-    ).optional(),
+    }).describe("Replaces specific terms in the query.").optional(),
     twowaySynonymsAction: z.object({
       synonyms: z.array(z.string()).describe(
         "Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms.",
       ).optional(),
-    }).describe(
-      'Creates a set of terms that will be treated as synonyms of each other. Example: synonyms of "sneakers" and "shoes": * "sneakers" will use a synonym of "shoes". * "shoes" will use a synonym of "sneakers".',
-    ).optional(),
+    }).describe("Treats a set of terms as synonyms of one another.").optional(),
   }).describe(
-    "A rule is a condition-action pair * A condition defines when a rule is to be triggered. * An action specifies what occurs on that trigger. Currently rules only work for controls with SOLUTION_TYPE_SEARCH.",
+    'A rule control - a condition-action pair. Enacts a set action when the condition is triggered. For example: Boost "gShoe" when query full matches "Running Shoes".',
   ).optional(),
   searchSolutionUseCase: z.array(
     z.enum([
@@ -409,9 +394,7 @@ const InputsSchema = z.object({
       productsFilter: z.string().describe(
         'The filter can have a max size of 5000 characters. An expression which specifies which products to apply an action to. The syntax and supported fields are the same as a filter expression. See SearchRequest.filter for detail syntax and limitations. Examples: * To boost products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *',
       ).optional(),
-    }).describe(
-      "A boost action to apply to results matching condition specified above.",
-    ).optional(),
+    }).describe("A boost action.").optional(),
     condition: z.object({
       activeTimeRange: z.array(z.object({
         endTime: z.string().describe("End of time range. Range is inclusive.")
@@ -436,7 +419,7 @@ const InputsSchema = z.object({
         "A list (up to 10 entries) of terms to match the query on. If not specified, match all queries. If many query terms are specified, the condition is matched if any of the terms is a match (i.e. using the OR operator).",
       ).optional(),
     }).describe(
-      "Metadata that is used to define a condition that triggers an action. A valid condition must specify at least one of 'query_terms' or 'products_filter'. If multiple fields are specified, the condition is met if all the fields are satisfied e.g. if a set of query terms and product_filter are set, then only items matching the product_filter for requests with a query matching the query terms wil get boosted.",
+      "Required. The condition that triggers the rule. If the condition is empty, the rule will always apply.",
     ).optional(),
     doNotAssociateAction: z.object({
       doNotAssociateTerms: z.array(z.string()).describe(
@@ -448,16 +431,13 @@ const InputsSchema = z.object({
       terms: z.array(z.string()).describe(
         "Will be [deprecated = true] post migration;",
       ).optional(),
-    }).describe(
-      'Prevents `query_term` from being associated with specified terms during search. Example: Don\'t associate "gShoe" and "cheap".',
-    ).optional(),
+    }).describe("Prevents term from being associated with other terms.")
+      .optional(),
     filterAction: z.object({
       filter: z.string().describe(
         'A filter to apply on the matching condition results. Supported features: * filter must be set. * Filter syntax is identical to SearchRequest.filter. For more information, see [Filter](/retail/docs/filter-and-order#filter). * To filter products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *',
       ).optional(),
-    }).describe(
-      "* Rule Condition: - No Condition.query_terms provided is a global match. - 1 or more Condition.query_terms provided are combined with OR operator. * Action Input: The request query and filter that are applied to the retrieved products, in addition to any filters already provided with the SearchRequest. The AND operator is used to combine the query's existing filters with the filter rule(s). NOTE: May result in 0 results when filters conflict. * Action Result: Filters the returned objects to be ONLY those that passed the filter.",
-    ).optional(),
+    }).describe("Filters results.").optional(),
     forceReturnFacetAction: z.object({
       facetPositionAdjustments: z.array(z.object({
         attributeName: z.string().describe(
@@ -469,16 +449,13 @@ const InputsSchema = z.object({
       })).describe(
         "Each instance corresponds to a force return attribute for the given condition. There can't be more 15 instances here.",
       ).optional(),
-    }).describe(
-      'Force returns an attribute/facet in the request around a certain position or above. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can\'t specify both. * Action Inputs: attribute name, position * Action Result: Will force return a facet key around a certain position or above if the condition is satisfied. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes", the ForceReturnFacetAction.FacetPositionAdjustment.attribute_name is "size" and the ForceReturnFacetAction.FacetPositionAdjustment.position is 8. Two cases: a) The facet key "size" is not already in the top 8 slots, then the facet "size" will appear at a position close to 8. b) The facet key "size" in among the top 8 positions in the request, then it will stay at its current rank.',
-    ).optional(),
+    }).describe("Force returns an attribute as a facet in the request.")
+      .optional(),
     ignoreAction: z.object({
       ignoreTerms: z.array(z.string()).describe(
         "Terms to ignore in the search query.",
       ).optional(),
-    }).describe(
-      'Prevents a term in the query from being used in search. Example: Don\'t search for "shoddy".',
-    ).optional(),
+    }).describe("Ignores specific terms from query during search.").optional(),
     onewaySynonymsAction: z.object({
       onewayTerms: z.array(z.string()).describe(
         "Will be [deprecated = true] post migration;",
@@ -490,29 +467,26 @@ const InputsSchema = z.object({
         "Defines a set of synonyms. Cannot contain duplicates. Can specify up to 100 synonyms.",
       ).optional(),
     }).describe(
-      'Maps a set of terms to a set of synonyms. Set of synonyms will be treated as synonyms of each query term only. `query_terms` will not be treated as synonyms of each other. Example: "sneakers" will use a synonym of "shoes". "shoes" will not use a synonym of "sneakers".',
+      "Treats specific term as a synonym with a group of terms. Group of terms will not be treated as synonyms with the specific term.",
     ).optional(),
     pinAction: z.object({
       pinMap: z.record(z.string(), z.string()).describe(
         "Required. A map of positions to product_ids. Partial matches per action are allowed, if a certain position in the map is already filled that `[position, product_id]` pair will be ignored but the rest may still be applied. This case will only occur if multiple pin actions are matched to a single request, as the map guarantees that pin positions are unique within the same action. Duplicate product_ids are not permitted within a single pin map. The max size of this map is 120, equivalent to the max [request page size](https://cloud.google.com/retail/docs/reference/rest/v2/projects.locations.catalogs.placements/search#request-body).",
       ).optional(),
     }).describe(
-      'Pins one or more specified products to a specific position in the results. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can\'t specify both. * Action Input: mapping of `[pin_position, product_id]` pairs (pin position uses 1-based indexing). * Action Result: Will pin products with matching ids to the position specified in the final result order. Example: Suppose the query is `shoes`, the Condition.query_terms is `shoes` and the pin_map has `{1, "pid1"}`, then product with `pid1` will be pinned to the top position in the final results. If multiple PinActions are matched to a single request the actions will be processed from most to least recently updated. Pins to positions larger than the max allowed page size of 120 are not allowed.',
+      "Pins one or more specified products to a specific position in the results.",
     ).optional(),
     redirectAction: z.object({
       redirectUri: z.string().describe(
         "URL must have length equal or less than 2000 characters.",
       ).optional(),
-    }).describe(
-      "Redirects a shopper to a specific page. * Rule Condition: Must specify Condition.query_terms. * Action Input: Request Query * Action Result: Redirects shopper to provided uri.",
-    ).optional(),
+    }).describe("Redirects a shopper to a specific page.").optional(),
     removeFacetAction: z.object({
       attributeNames: z.array(z.string()).describe(
         "The attribute names (i.e. facet keys) to remove from the dynamic facets (if present in the request). There can't be more 3 attribute names. Each attribute name should be a valid attribute name, be non-empty and contain at most 80 characters.",
       ).optional(),
-    }).describe(
-      'Removes an attribute/facet in the request if is present. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can\'t specify both. * Action Input: attribute name * Action Result: Will remove the attribute (as a facet) from the request if it is present. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes" and the attribute name "size", then facet key "size" will be removed from the request (if it is present).',
-    ).optional(),
+    }).describe("Remove an attribute as a facet in the request (if present).")
+      .optional(),
     replacementAction: z.object({
       queryTerms: z.array(z.string()).describe(
         "Terms from the search query. Will be replaced by replacement term. Can specify up to 100 terms.",
@@ -522,18 +496,14 @@ const InputsSchema = z.object({
       ).optional(),
       term: z.string().describe("Will be [deprecated = true] post migration;")
         .optional(),
-    }).describe(
-      'Replaces a term in the query. Multiple replacement candidates can be specified. All `query_terms` will be replaced with the replacement term. Example: Replace "gShoe" with "google shoe".',
-    ).optional(),
+    }).describe("Replaces specific terms in the query.").optional(),
     twowaySynonymsAction: z.object({
       synonyms: z.array(z.string()).describe(
         "Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms.",
       ).optional(),
-    }).describe(
-      'Creates a set of terms that will be treated as synonyms of each other. Example: synonyms of "sneakers" and "shoes": * "sneakers" will use a synonym of "shoes". * "shoes" will use a synonym of "sneakers".',
-    ).optional(),
+    }).describe("Treats a set of terms as synonyms of one another.").optional(),
   }).describe(
-    "A rule is a condition-action pair * A condition defines when a rule is to be triggered. * An action specifies what occurs on that trigger. Currently rules only work for controls with SOLUTION_TYPE_SEARCH.",
+    'A rule control - a condition-action pair. Enacts a set action when the condition is triggered. For example: Boost "gShoe" when query full matches "Running Shoes".',
   ).optional(),
   searchSolutionUseCase: z.array(
     z.enum([
@@ -587,7 +557,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.Controls. Registered at `@swamp/gcp/retail/catalogs-controls`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs-controls",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -691,6 +661,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -184,8 +184,9 @@ const GlobalArgsSchema = z.object({
             updateTime: z.unknown().describe(
               "The time the aspect was last updated in the source system.",
             ).optional(),
-          }).describe("Information related to the source system of the aspect.")
-            .optional(),
+          }).describe(
+            "Optional. Information related to the source system of the aspect.",
+          ).optional(),
           aspectType: z.string().describe(
             "Output only. The resource name of the type used to create this Aspect.",
           ).optional(),
@@ -247,7 +248,7 @@ const GlobalArgsSchema = z.object({
           "The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.",
         ).optional(),
       }).describe(
-        "Information related to the source system of the data resource that is represented by the entry.",
+        "Optional. Information related to the source system of the data resource that is represented by the entry.",
       ).optional(),
       entryType: z.string().describe(
         "Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.",
@@ -264,16 +265,14 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time when the entry was last updated in Dataplex Universal Catalog.",
       ).optional(),
-    }).describe(
-      "An entry is a representation of a data resource that can be described by various metadata.",
-    ).optional(),
+    }).describe("Required. Entry resource.").optional(),
     entryId: z.string().describe(
       "Required. Entry identifier. It has to be unique within an Entry Group.Entries corresponding to Google Cloud resources use an Entry ID format based on full resource names (https://cloud.google.com/apis/design/resource_names#full_resource_name). The format is a full resource name of the resource without the prefix double slashes in the API service name part of the full resource name. This allows retrieval of entries using their associated resource name.For example, if the full resource name of a resource is //library.googleapis.com/shelves/shelf1/books/book2, then the suggested entry_id is library.googleapis.com/shelves/shelf1/books/book2.It is also suggested to follow the same convention for entries corresponding to resources from providers or systems other than Google Cloud.The maximum size of the field is 4000 characters.",
     ).optional(),
     parent: z.string().describe(
       "Required. The resource name of the parent Entry Group: projects/{project}/locations/{location}/entryGroups/{entry_group}.",
     ).optional(),
-  }).describe("Create Entry request.").optional(),
+  }).describe("Payload for creating an Entry.").optional(),
   createEntryLink: z.object({
     entryLink: z.object({
       aspects: z.record(
@@ -289,8 +288,9 @@ const GlobalArgsSchema = z.object({
             updateTime: z.unknown().describe(
               "The time the aspect was last updated in the source system.",
             ).optional(),
-          }).describe("Information related to the source system of the aspect.")
-            .optional(),
+          }).describe(
+            "Optional. Information related to the source system of the aspect.",
+          ).optional(),
           aspectType: z.string().describe(
             "Output only. The resource name of the type used to create this Aspect.",
           ).optional(),
@@ -335,14 +335,14 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time when the Entry Link was last updated.",
       ).optional(),
-    }).describe("EntryLink represents a link between two Entries.").optional(),
+    }).describe("Required. Entry Link resource.").optional(),
     entryLinkId: z.string().describe(
       "Required. Entry Link identifier * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the EntryGroup.",
     ).optional(),
     parent: z.string().describe(
       "Required. The resource name of the parent Entry Group: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.",
     ).optional(),
-  }).describe("Request message for CreateEntryLink.").optional(),
+  }).describe("Payload for creating an EntryLink.").optional(),
   createGlossary: z.object({
     glossary: z.object({
       categoryCount: z.number().int().describe(
@@ -375,9 +375,7 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time at which the Glossary was last updated.",
       ).optional(),
-    }).describe(
-      "A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.",
-    ).optional(),
+    }).describe("Required. The Glossary to create.").optional(),
     glossaryId: z.string().describe(
       "Required. Glossary ID: Glossary identifier.",
     ).optional(),
@@ -387,7 +385,7 @@ const GlobalArgsSchema = z.object({
     validateOnly: z.boolean().describe(
       "Optional. Validates the request without actually creating the Glossary. Default: false.",
     ).optional(),
-  }).describe("Create Glossary Request").optional(),
+  }).describe("Payload for creating a Glossary.").optional(),
   createGlossaryCategory: z.object({
     category: z.object({
       createTime: z.string().describe(
@@ -414,16 +412,13 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time at which the GlossaryCategory was last updated.",
       ).optional(),
-    }).describe(
-      "A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.",
-    ).optional(),
+    }).describe("Required. The GlossaryCategory to create.").optional(),
     categoryId: z.string().describe("Required. GlossaryCategory identifier.")
       .optional(),
     parent: z.string().describe(
       "Required. The parent resource where this GlossaryCategory will be created. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} where locationId refers to a Google Cloud region.",
     ).optional(),
-  }).describe("Creates a new GlossaryCategory under the specified Glossary.")
-    .optional(),
+  }).describe("Payload for creating a GlossaryCategory.").optional(),
   createGlossaryTerm: z.object({
     parent: z.string().describe(
       "Required. The parent resource where the GlossaryTerm will be created. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} where location_id refers to a Google Cloud region.",
@@ -453,13 +448,10 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time at which the GlossaryTerm was last updated.",
       ).optional(),
-    }).describe(
-      "GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.",
-    ).optional(),
+    }).describe("Required. The GlossaryTerm to create.").optional(),
     termId: z.string().describe("Required. GlossaryTerm identifier.")
       .optional(),
-  }).describe("Creates a new GlossaryTerm under the specified Glossary.")
-    .optional(),
+  }).describe("Payload for creating a GlossaryTerm.").optional(),
   createTime: z.string().describe(
     "Output only. The time when the ChangeRequest was created.",
   ).optional(),
@@ -476,19 +468,17 @@ const GlobalArgsSchema = z.object({
     requestedPrincipal: z.string().describe(
       "Optional. The principal for which access is being requested in IAM format. If not specified, the requestor's principal will be used. Example: serviceAccount:my-sa@my-project.iam.gserviceaccount.com. Only service account principals are currently supported. https://cloud.google.com/iam/docs/principal-identifiers",
     ).optional(),
-  }).describe(
-    "Message for requesting access to a Data Product. This will be used to create a ChangeRequest of type REQUEST_DATA_PRODUCT_ACCESS.",
-  ).optional(),
+  }).describe("Payload for Data Product access request.").optional(),
   deleteEntry: z.object({
     name: z.string().describe(
       "Required. The resource name of the Entry: projects/{project}/locations/{location}/entryGroups/{entry_group}/entries/{entry}.",
     ).optional(),
-  }).describe("Delete Entry request.").optional(),
+  }).describe("Payload for deleting an Entry.").optional(),
   deleteEntryLink: z.object({
     name: z.string().describe(
       "Required. The resource name of the Entry Link: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entryLinks/{entry_link_id}.",
     ).optional(),
-  }).describe("Request message for DeleteEntryLink.").optional(),
+  }).describe("Payload for deleting an EntryLink.").optional(),
   deleteGlossary: z.object({
     etag: z.string().describe(
       "Optional. The etag of the Glossary. If this is provided, it must match the server's etag. If the etag is provided and does not match the server-computed etag, the request must fail with a ABORTED error code.",
@@ -496,17 +486,17 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "Required. The name of the Glossary to delete. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}",
     ).optional(),
-  }).describe("Delete Glossary Request").optional(),
+  }).describe("Payload for deleting a Glossary.").optional(),
   deleteGlossaryCategory: z.object({
     name: z.string().describe(
       "Required. The name of the GlossaryCategory to delete. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}",
     ).optional(),
-  }).describe("Delete GlossaryCategory Request").optional(),
+  }).describe("Payload for deleting a GlossaryCategory.").optional(),
   deleteGlossaryTerm: z.object({
     name: z.string().describe(
       "Required. The name of the GlossaryTerm to delete. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/terms/{term_id}",
     ).optional(),
-  }).describe("Delete GlossaryTerm Request").optional(),
+  }).describe("Payload for deleting a GlossaryTerm.").optional(),
   etag: z.string().describe(
     "Optional. This checksum is computed by the service. It can be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.",
   ).optional(),
@@ -561,8 +551,9 @@ const GlobalArgsSchema = z.object({
             updateTime: z.unknown().describe(
               "The time the aspect was last updated in the source system.",
             ).optional(),
-          }).describe("Information related to the source system of the aspect.")
-            .optional(),
+          }).describe(
+            "Optional. Information related to the source system of the aspect.",
+          ).optional(),
           aspectType: z.string().describe(
             "Output only. The resource name of the type used to create this Aspect.",
           ).optional(),
@@ -624,7 +615,7 @@ const GlobalArgsSchema = z.object({
           "The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.",
         ).optional(),
       }).describe(
-        "Information related to the source system of the data resource that is represented by the entry.",
+        "Optional. Information related to the source system of the data resource that is represented by the entry.",
       ).optional(),
       entryType: z.string().describe(
         "Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.",
@@ -641,13 +632,11 @@ const GlobalArgsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time when the entry was last updated in Dataplex Universal Catalog.",
       ).optional(),
-    }).describe(
-      "An entry is a representation of a data resource that can be described by various metadata.",
-    ).optional(),
+    }).describe("Required. Entry resource.").optional(),
     updateMask: z.string().describe(
       'Optional. Mask of fields to update. To update Aspects, the update_mask must contain the value "aspects".If the update_mask is empty, the service will update all modifiable fields present in the request.',
     ).optional(),
-  }).describe("Update Entry request.").optional(),
+  }).describe("Payload for updating an Entry.").optional(),
   updateGlossary: z.object({
     glossary: z.object({
       categoryCount: z.number().int().describe(
@@ -681,14 +670,14 @@ const GlobalArgsSchema = z.object({
         "Output only. The time at which the Glossary was last updated.",
       ).optional(),
     }).describe(
-      "A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.",
+      "Required. The Glossary to update. The Glossary's name field is used to identify the Glossary to update. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}",
     ).optional(),
     updateMask: z.string().describe("Required. The list of fields to update.")
       .optional(),
     validateOnly: z.boolean().describe(
       "Optional. Validates the request without actually updating the Glossary. Default: false.",
     ).optional(),
-  }).describe("Update Glossary Request").optional(),
+  }).describe("Payload for updating a Glossary.").optional(),
   updateGlossaryCategory: z.object({
     category: z.object({
       createTime: z.string().describe(
@@ -716,11 +705,11 @@ const GlobalArgsSchema = z.object({
         "Output only. The time at which the GlossaryCategory was last updated.",
       ).optional(),
     }).describe(
-      "A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.",
+      "Required. The GlossaryCategory to update. The GlossaryCategory's name field is used to identify the GlossaryCategory to update. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}",
     ).optional(),
     updateMask: z.string().describe("Required. The list of fields to update.")
       .optional(),
-  }).describe("Update GlossaryCategory Request").optional(),
+  }).describe("Payload for updating a GlossaryCategory.").optional(),
   updateGlossaryTerm: z.object({
     term: z.object({
       createTime: z.string().describe(
@@ -748,11 +737,11 @@ const GlobalArgsSchema = z.object({
         "Output only. The time at which the GlossaryTerm was last updated.",
       ).optional(),
     }).describe(
-      "GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.",
+      "Required. The GlossaryTerm to update. The GlossaryTerm's name field is used to identify the GlossaryTerm to update. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/terms/{term_id}",
     ).optional(),
     updateMask: z.string().describe("Required. The list of fields to update.")
       .optional(),
-  }).describe("Update GlossaryTerm Request").optional(),
+  }).describe("Payload for updating a GlossaryTerm.").optional(),
   updateTime: z.string().describe(
     "Output only. The time when the ChangeRequest was last updated.",
   ).optional(),
@@ -1008,8 +997,9 @@ const InputsSchema = z.object({
             updateTime: z.unknown().describe(
               "The time the aspect was last updated in the source system.",
             ).optional(),
-          }).describe("Information related to the source system of the aspect.")
-            .optional(),
+          }).describe(
+            "Optional. Information related to the source system of the aspect.",
+          ).optional(),
           aspectType: z.string().describe(
             "Output only. The resource name of the type used to create this Aspect.",
           ).optional(),
@@ -1071,7 +1061,7 @@ const InputsSchema = z.object({
           "The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.",
         ).optional(),
       }).describe(
-        "Information related to the source system of the data resource that is represented by the entry.",
+        "Optional. Information related to the source system of the data resource that is represented by the entry.",
       ).optional(),
       entryType: z.string().describe(
         "Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.",
@@ -1088,16 +1078,14 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time when the entry was last updated in Dataplex Universal Catalog.",
       ).optional(),
-    }).describe(
-      "An entry is a representation of a data resource that can be described by various metadata.",
-    ).optional(),
+    }).describe("Required. Entry resource.").optional(),
     entryId: z.string().describe(
       "Required. Entry identifier. It has to be unique within an Entry Group.Entries corresponding to Google Cloud resources use an Entry ID format based on full resource names (https://cloud.google.com/apis/design/resource_names#full_resource_name). The format is a full resource name of the resource without the prefix double slashes in the API service name part of the full resource name. This allows retrieval of entries using their associated resource name.For example, if the full resource name of a resource is //library.googleapis.com/shelves/shelf1/books/book2, then the suggested entry_id is library.googleapis.com/shelves/shelf1/books/book2.It is also suggested to follow the same convention for entries corresponding to resources from providers or systems other than Google Cloud.The maximum size of the field is 4000 characters.",
     ).optional(),
     parent: z.string().describe(
       "Required. The resource name of the parent Entry Group: projects/{project}/locations/{location}/entryGroups/{entry_group}.",
     ).optional(),
-  }).describe("Create Entry request.").optional(),
+  }).describe("Payload for creating an Entry.").optional(),
   createEntryLink: z.object({
     entryLink: z.object({
       aspects: z.record(
@@ -1113,8 +1101,9 @@ const InputsSchema = z.object({
             updateTime: z.unknown().describe(
               "The time the aspect was last updated in the source system.",
             ).optional(),
-          }).describe("Information related to the source system of the aspect.")
-            .optional(),
+          }).describe(
+            "Optional. Information related to the source system of the aspect.",
+          ).optional(),
           aspectType: z.string().describe(
             "Output only. The resource name of the type used to create this Aspect.",
           ).optional(),
@@ -1159,14 +1148,14 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time when the Entry Link was last updated.",
       ).optional(),
-    }).describe("EntryLink represents a link between two Entries.").optional(),
+    }).describe("Required. Entry Link resource.").optional(),
     entryLinkId: z.string().describe(
       "Required. Entry Link identifier * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the EntryGroup.",
     ).optional(),
     parent: z.string().describe(
       "Required. The resource name of the parent Entry Group: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.",
     ).optional(),
-  }).describe("Request message for CreateEntryLink.").optional(),
+  }).describe("Payload for creating an EntryLink.").optional(),
   createGlossary: z.object({
     glossary: z.object({
       categoryCount: z.number().int().describe(
@@ -1199,9 +1188,7 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time at which the Glossary was last updated.",
       ).optional(),
-    }).describe(
-      "A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.",
-    ).optional(),
+    }).describe("Required. The Glossary to create.").optional(),
     glossaryId: z.string().describe(
       "Required. Glossary ID: Glossary identifier.",
     ).optional(),
@@ -1211,7 +1198,7 @@ const InputsSchema = z.object({
     validateOnly: z.boolean().describe(
       "Optional. Validates the request without actually creating the Glossary. Default: false.",
     ).optional(),
-  }).describe("Create Glossary Request").optional(),
+  }).describe("Payload for creating a Glossary.").optional(),
   createGlossaryCategory: z.object({
     category: z.object({
       createTime: z.string().describe(
@@ -1238,16 +1225,13 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time at which the GlossaryCategory was last updated.",
       ).optional(),
-    }).describe(
-      "A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.",
-    ).optional(),
+    }).describe("Required. The GlossaryCategory to create.").optional(),
     categoryId: z.string().describe("Required. GlossaryCategory identifier.")
       .optional(),
     parent: z.string().describe(
       "Required. The parent resource where this GlossaryCategory will be created. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} where locationId refers to a Google Cloud region.",
     ).optional(),
-  }).describe("Creates a new GlossaryCategory under the specified Glossary.")
-    .optional(),
+  }).describe("Payload for creating a GlossaryCategory.").optional(),
   createGlossaryTerm: z.object({
     parent: z.string().describe(
       "Required. The parent resource where the GlossaryTerm will be created. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} where location_id refers to a Google Cloud region.",
@@ -1277,13 +1261,10 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time at which the GlossaryTerm was last updated.",
       ).optional(),
-    }).describe(
-      "GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.",
-    ).optional(),
+    }).describe("Required. The GlossaryTerm to create.").optional(),
     termId: z.string().describe("Required. GlossaryTerm identifier.")
       .optional(),
-  }).describe("Creates a new GlossaryTerm under the specified Glossary.")
-    .optional(),
+  }).describe("Payload for creating a GlossaryTerm.").optional(),
   createTime: z.string().describe(
     "Output only. The time when the ChangeRequest was created.",
   ).optional(),
@@ -1300,19 +1281,17 @@ const InputsSchema = z.object({
     requestedPrincipal: z.string().describe(
       "Optional. The principal for which access is being requested in IAM format. If not specified, the requestor's principal will be used. Example: serviceAccount:my-sa@my-project.iam.gserviceaccount.com. Only service account principals are currently supported. https://cloud.google.com/iam/docs/principal-identifiers",
     ).optional(),
-  }).describe(
-    "Message for requesting access to a Data Product. This will be used to create a ChangeRequest of type REQUEST_DATA_PRODUCT_ACCESS.",
-  ).optional(),
+  }).describe("Payload for Data Product access request.").optional(),
   deleteEntry: z.object({
     name: z.string().describe(
       "Required. The resource name of the Entry: projects/{project}/locations/{location}/entryGroups/{entry_group}/entries/{entry}.",
     ).optional(),
-  }).describe("Delete Entry request.").optional(),
+  }).describe("Payload for deleting an Entry.").optional(),
   deleteEntryLink: z.object({
     name: z.string().describe(
       "Required. The resource name of the Entry Link: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entryLinks/{entry_link_id}.",
     ).optional(),
-  }).describe("Request message for DeleteEntryLink.").optional(),
+  }).describe("Payload for deleting an EntryLink.").optional(),
   deleteGlossary: z.object({
     etag: z.string().describe(
       "Optional. The etag of the Glossary. If this is provided, it must match the server's etag. If the etag is provided and does not match the server-computed etag, the request must fail with a ABORTED error code.",
@@ -1320,17 +1299,17 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "Required. The name of the Glossary to delete. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}",
     ).optional(),
-  }).describe("Delete Glossary Request").optional(),
+  }).describe("Payload for deleting a Glossary.").optional(),
   deleteGlossaryCategory: z.object({
     name: z.string().describe(
       "Required. The name of the GlossaryCategory to delete. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}",
     ).optional(),
-  }).describe("Delete GlossaryCategory Request").optional(),
+  }).describe("Payload for deleting a GlossaryCategory.").optional(),
   deleteGlossaryTerm: z.object({
     name: z.string().describe(
       "Required. The name of the GlossaryTerm to delete. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/terms/{term_id}",
     ).optional(),
-  }).describe("Delete GlossaryTerm Request").optional(),
+  }).describe("Payload for deleting a GlossaryTerm.").optional(),
   etag: z.string().describe(
     "Optional. This checksum is computed by the service. It can be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.",
   ).optional(),
@@ -1385,8 +1364,9 @@ const InputsSchema = z.object({
             updateTime: z.unknown().describe(
               "The time the aspect was last updated in the source system.",
             ).optional(),
-          }).describe("Information related to the source system of the aspect.")
-            .optional(),
+          }).describe(
+            "Optional. Information related to the source system of the aspect.",
+          ).optional(),
           aspectType: z.string().describe(
             "Output only. The resource name of the type used to create this Aspect.",
           ).optional(),
@@ -1448,7 +1428,7 @@ const InputsSchema = z.object({
           "The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.",
         ).optional(),
       }).describe(
-        "Information related to the source system of the data resource that is represented by the entry.",
+        "Optional. Information related to the source system of the data resource that is represented by the entry.",
       ).optional(),
       entryType: z.string().describe(
         "Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.",
@@ -1465,13 +1445,11 @@ const InputsSchema = z.object({
       updateTime: z.string().describe(
         "Output only. The time when the entry was last updated in Dataplex Universal Catalog.",
       ).optional(),
-    }).describe(
-      "An entry is a representation of a data resource that can be described by various metadata.",
-    ).optional(),
+    }).describe("Required. Entry resource.").optional(),
     updateMask: z.string().describe(
       'Optional. Mask of fields to update. To update Aspects, the update_mask must contain the value "aspects".If the update_mask is empty, the service will update all modifiable fields present in the request.',
     ).optional(),
-  }).describe("Update Entry request.").optional(),
+  }).describe("Payload for updating an Entry.").optional(),
   updateGlossary: z.object({
     glossary: z.object({
       categoryCount: z.number().int().describe(
@@ -1505,14 +1483,14 @@ const InputsSchema = z.object({
         "Output only. The time at which the Glossary was last updated.",
       ).optional(),
     }).describe(
-      "A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.",
+      "Required. The Glossary to update. The Glossary's name field is used to identify the Glossary to update. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}",
     ).optional(),
     updateMask: z.string().describe("Required. The list of fields to update.")
       .optional(),
     validateOnly: z.boolean().describe(
       "Optional. Validates the request without actually updating the Glossary. Default: false.",
     ).optional(),
-  }).describe("Update Glossary Request").optional(),
+  }).describe("Payload for updating a Glossary.").optional(),
   updateGlossaryCategory: z.object({
     category: z.object({
       createTime: z.string().describe(
@@ -1540,11 +1518,11 @@ const InputsSchema = z.object({
         "Output only. The time at which the GlossaryCategory was last updated.",
       ).optional(),
     }).describe(
-      "A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.",
+      "Required. The GlossaryCategory to update. The GlossaryCategory's name field is used to identify the GlossaryCategory to update. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}",
     ).optional(),
     updateMask: z.string().describe("Required. The list of fields to update.")
       .optional(),
-  }).describe("Update GlossaryCategory Request").optional(),
+  }).describe("Payload for updating a GlossaryCategory.").optional(),
   updateGlossaryTerm: z.object({
     term: z.object({
       createTime: z.string().describe(
@@ -1572,11 +1550,11 @@ const InputsSchema = z.object({
         "Output only. The time at which the GlossaryTerm was last updated.",
       ).optional(),
     }).describe(
-      "GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.",
+      "Required. The GlossaryTerm to update. The GlossaryTerm's name field is used to identify the GlossaryTerm to update. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/terms/{term_id}",
     ).optional(),
     updateMask: z.string().describe("Required. The list of fields to update.")
       .optional(),
-  }).describe("Update GlossaryTerm Request").optional(),
+  }).describe("Payload for updating a GlossaryTerm.").optional(),
   updateTime: z.string().describe(
     "Output only. The time when the ChangeRequest was last updated.",
   ).optional(),
@@ -1608,7 +1586,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex ChangeRequests. Registered at `@swamp/gcp/dataplex/changerequests`. */
 export const model = {
   type: "@swamp/gcp/dataplex/changerequests",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

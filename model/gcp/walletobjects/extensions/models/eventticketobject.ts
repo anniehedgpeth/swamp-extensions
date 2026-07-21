@@ -132,14 +132,17 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -151,19 +154,26 @@ const GlobalArgsSchema = z.object({
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.string().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("Deprecated. Image isn't supported in the app link module.")
+        .optional(),
       appTarget: z.object({
         packageName: z.string().describe(
           "Package name for AppTarget. For example: com.google.android.gm",
@@ -179,19 +189,27 @@ const GlobalArgsSchema = z.object({
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+          ).optional(),
           uri: z.string().describe(
             "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+        ).optional(),
+      }).describe(
+        "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+      ).optional(),
       description: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -202,7 +220,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -216,7 +236,9 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Deprecated. Description isn't supported in the app link module.",
+      ).optional(),
       title: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -227,7 +249,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -241,8 +265,9 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Deprecated. Title isn't supported in the app link module.")
+        .optional(),
+    }).describe("Optional information about the partner app link.").optional(),
     displayText: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -253,7 +278,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -267,7 +294,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional display text for the app link button. Character limit is 30.",
+    ).optional(),
     iosAppLinkInfo: z.object({
       appLogoImage: z.object({
         contentDescription: z.object({
@@ -280,14 +309,17 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -299,19 +331,26 @@ const GlobalArgsSchema = z.object({
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.string().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("Deprecated. Image isn't supported in the app link module.")
+        .optional(),
       appTarget: z.object({
         packageName: z.string().describe(
           "Package name for AppTarget. For example: com.google.android.gm",
@@ -327,19 +366,27 @@ const GlobalArgsSchema = z.object({
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+          ).optional(),
           uri: z.string().describe(
             "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+        ).optional(),
+      }).describe(
+        "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+      ).optional(),
       description: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -350,7 +397,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -364,7 +413,9 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Deprecated. Description isn't supported in the app link module.",
+      ).optional(),
       title: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -375,7 +426,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -389,8 +442,10 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Deprecated. Title isn't supported in the app link module.")
+        .optional(),
+    }).describe("Deprecated. Links to open iOS apps are not supported.")
+      .optional(),
     webAppLinkInfo: z.object({
       appLogoImage: z.object({
         contentDescription: z.object({
@@ -403,14 +458,17 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -422,19 +480,26 @@ const GlobalArgsSchema = z.object({
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.string().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("Deprecated. Image isn't supported in the app link module.")
+        .optional(),
       appTarget: z.object({
         packageName: z.string().describe(
           "Package name for AppTarget. For example: com.google.android.gm",
@@ -450,19 +515,27 @@ const GlobalArgsSchema = z.object({
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+          ).optional(),
           uri: z.string().describe(
             "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+        ).optional(),
+      }).describe(
+        "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+      ).optional(),
       description: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -473,7 +546,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -487,7 +562,9 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Deprecated. Description isn't supported in the app link module.",
+      ).optional(),
       title: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -498,7 +575,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -512,9 +591,12 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
-  }).optional(),
+      }).describe("Deprecated. Title isn't supported in the app link module.")
+        .optional(),
+    }).describe("Optional information about the partner web link.").optional(),
+  }).describe(
+    "Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.",
+  ).optional(),
   barcode: z.object({
     alternateText: z.string().describe(
       "An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.",
@@ -535,7 +617,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -549,7 +633,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional text that will be shown when the barcode is hidden behind a click action. This happens in cases where a pass has Smart Tap enabled. If not specified, a default is chosen by Google.",
+    ).optional(),
     type: z.enum([
       "BARCODE_TYPE_UNSPECIFIED",
       "AZTEC",
@@ -581,7 +667,7 @@ const GlobalArgsSchema = z.object({
       "textOnly",
     ]).describe("The type of barcode.").optional(),
     value: z.string().describe("The value encoded in the barcode.").optional(),
-  }).optional(),
+  }).describe("The barcode type and value.").optional(),
   classId: z.string().describe(
     "Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.",
   ).optional(),
@@ -593,14 +679,17 @@ const GlobalArgsSchema = z.object({
       androidAppLinkInfo: z.object({
         appLogoImage: z.object({
           contentDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe("Description of the image used for accessibility.")
+            .optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
           ).optional(),
@@ -611,12 +700,17 @@ const GlobalArgsSchema = z.object({
             description: z.unknown().describe(
               "Additional information about the image, which is unused and retained only for backward compatibility.",
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description, which are unused and retained only for backward compatibility.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of the image. URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).describe("Wrapping type for Google hosted images.").optional(),
+          }).describe(
+            "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+          ).optional(),
+        }).describe("Deprecated. Image isn't supported in the app link module.")
+          .optional(),
         appTarget: z.object({
           packageName: z.string().describe(
             "Package name for AppTarget. For example: com.google.android.gm",
@@ -631,12 +725,18 @@ const GlobalArgsSchema = z.object({
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).optional(),
+          }).describe(
+            "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+          ).optional(),
+        }).describe(
+          "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+        ).optional(),
         description: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -647,14 +747,18 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Deprecated. Description isn't supported in the app link module.",
+        ).optional(),
         title: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -665,15 +769,19 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe("Deprecated. Title isn't supported in the app link module.")
+          .optional(),
+      }).describe("Optional information about the partner app link.")
+        .optional(),
       displayText: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -684,7 +792,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -698,18 +808,23 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Optional display text for the app link button. Character limit is 30.",
+      ).optional(),
       iosAppLinkInfo: z.object({
         appLogoImage: z.object({
           contentDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe("Description of the image used for accessibility.")
+            .optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
           ).optional(),
@@ -720,12 +835,17 @@ const GlobalArgsSchema = z.object({
             description: z.unknown().describe(
               "Additional information about the image, which is unused and retained only for backward compatibility.",
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description, which are unused and retained only for backward compatibility.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of the image. URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).describe("Wrapping type for Google hosted images.").optional(),
+          }).describe(
+            "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+          ).optional(),
+        }).describe("Deprecated. Image isn't supported in the app link module.")
+          .optional(),
         appTarget: z.object({
           packageName: z.string().describe(
             "Package name for AppTarget. For example: com.google.android.gm",
@@ -740,12 +860,18 @@ const GlobalArgsSchema = z.object({
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).optional(),
+          }).describe(
+            "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+          ).optional(),
+        }).describe(
+          "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+        ).optional(),
         description: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -756,14 +882,18 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Deprecated. Description isn't supported in the app link module.",
+        ).optional(),
         title: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -774,26 +904,33 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe("Deprecated. Title isn't supported in the app link module.")
+          .optional(),
+      }).describe("Deprecated. Links to open iOS apps are not supported.")
+        .optional(),
       webAppLinkInfo: z.object({
         appLogoImage: z.object({
           contentDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe("Description of the image used for accessibility.")
+            .optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
           ).optional(),
@@ -804,12 +941,17 @@ const GlobalArgsSchema = z.object({
             description: z.unknown().describe(
               "Additional information about the image, which is unused and retained only for backward compatibility.",
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description, which are unused and retained only for backward compatibility.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of the image. URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).describe("Wrapping type for Google hosted images.").optional(),
+          }).describe(
+            "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+          ).optional(),
+        }).describe("Deprecated. Image isn't supported in the app link module.")
+          .optional(),
         appTarget: z.object({
           packageName: z.string().describe(
             "Package name for AppTarget. For example: com.google.android.gm",
@@ -824,12 +966,18 @@ const GlobalArgsSchema = z.object({
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).optional(),
+          }).describe(
+            "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+          ).optional(),
+        }).describe(
+          "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+        ).optional(),
         description: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -840,14 +988,18 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Deprecated. Description isn't supported in the app link module.",
+        ).optional(),
         title: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -858,16 +1010,22 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
-      }).optional(),
-    }).optional(),
+        }).describe("Deprecated. Title isn't supported in the app link module.")
+          .optional(),
+      }).describe("Optional information about the partner web link.")
+        .optional(),
+    }).describe(
+      "Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.",
+    ).optional(),
     callbackOptions: z.object({
       updateRequestUrl: z.string().describe(
         "URL for the merchant endpoint that would be called to request updates. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot. Deprecated.",
@@ -875,7 +1033,9 @@ const GlobalArgsSchema = z.object({
       url: z.string().describe(
         "The HTTPS url configured by the merchant. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.",
+    ).optional(),
     classTemplateInfo: z.object({
       cardBarcodeSectionDetails: z.object({
         firstBottomDetail: z.object({
@@ -883,50 +1043,70 @@ const GlobalArgsSchema = z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
-        }).optional(),
+          }).describe(
+            "A reference to an existing text-based or image field to display.",
+          ).optional(),
+        }).describe("Optional information to display below the barcode.")
+          .optional(),
         firstTopDetail: z.object({
           fieldSelector: z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
-        }).optional(),
+          }).describe(
+            "A reference to an existing text-based or image field to display.",
+          ).optional(),
+        }).describe(
+          "Optional information to display above the barcode. If `secondTopDetail` is defined, this will be displayed to the start side of this detail section.",
+        ).optional(),
         secondTopDetail: z.object({
           fieldSelector: z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
-        }).optional(),
-      }).optional(),
+          }).describe(
+            "A reference to an existing text-based or image field to display.",
+          ).optional(),
+        }).describe(
+          "Optional second piece of information to display above the barcode. If `firstTopDetail` is defined, this will be displayed to the end side of this detail section.",
+        ).optional(),
+      }).describe(
+        "Specifies extra information to be displayed above and below the barcode.",
+      ).optional(),
       cardTemplateOverride: z.object({
         cardRowTemplateInfos: z.array(z.object({
-          oneItem: z.unknown().optional(),
-          threeItems: z.unknown().optional(),
-          twoItems: z.unknown().optional(),
+          oneItem: z.unknown().describe(
+            'Template for a row containing one item. Exactly one of "one_item", "two_items", "three_items" must be set.',
+          ).optional(),
+          threeItems: z.unknown().describe(
+            'Template for a row containing three items. Exactly one of "one_item", "two_items", "three_items" must be set.',
+          ).optional(),
+          twoItems: z.unknown().describe(
+            'Template for a row containing two items. Exactly one of "one_item", "two_items", "three_items" must be set.',
+          ).optional(),
         })).describe(
           "Template information for rows in the card view. At most three rows are allowed to be specified.",
         ).optional(),
-      }).optional(),
+      }).describe("Override for the card view.").optional(),
       detailsTemplateOverride: z.object({
         detailsItemInfos: z.array(z.object({
-          item: z.unknown().optional(),
+          item: z.unknown().describe(
+            "The item to be displayed in the details list.",
+          ).optional(),
         })).describe(
           'Information for the "nth" item displayed in the details list.',
         ).optional(),
-      }).optional(),
+      }).describe("Override for the details view (beneath the card view).")
+        .optional(),
       listTemplateOverride: z.object({
         firstRowOption: z.object({
           fieldOption: z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
+          }).describe(
+            "A reference to the field to be displayed in the first row.",
+          ).optional(),
           transitOption: z.enum([
             "TRANSIT_OPTION_UNSPECIFIED",
             "ORIGIN_AND_DESTINATION_NAMES",
@@ -936,21 +1116,27 @@ const GlobalArgsSchema = z.object({
             "ORIGIN_NAME",
             "originName",
           ]).optional(),
-        }).optional(),
+        }).describe(
+          "Specifies from a predefined set of options or from a reference to the field what will be displayed in the first row. To set this override, set the FirstRowOption.fieldOption to the FieldSelector of your choice.",
+        ).optional(),
         secondRowOption: z.object({
           fields: z.array(z.unknown()).describe(
             "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
           ).optional(),
-        }).describe("Custom field selector to use with field overrides.")
-          .optional(),
+        }).describe(
+          "A reference to the field to be displayed in the second row. This option is only displayed if there are not multiple user objects in a group. If there is a group, the second row will always display a field shared by all objects. To set this override, please set secondRowOption to the FieldSelector of you choice.",
+        ).optional(),
         thirdRowOption: z.object({
           fields: z.array(z.unknown()).describe(
             "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
           ).optional(),
-        }).describe("Custom field selector to use with field overrides.")
-          .optional(),
-      }).optional(),
-    }).optional(),
+        }).describe(
+          "An unused/deprecated field. Setting it will have no effect on what the user sees.",
+        ).optional(),
+      }).describe("Override for the passes list view.").optional(),
+    }).describe(
+      "Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.",
+    ).optional(),
     confirmationCodeLabel: z.enum([
       "CONFIRMATION_CODE_LABEL_UNSPECIFIED",
       "CONFIRMATION_CODE",
@@ -977,7 +1163,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -991,7 +1179,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the confirmation code value (`eventTicketObject.reservationInfo.confirmationCode`) on the card detail view. This should only be used if the default "Confirmation Code" label or one of the `confirmationCodeLabel` options is not sufficient. Both `confirmationCodeLabel` and `customConfirmationCodeLabel` may not be set. If neither is set, the label will default to "Confirmation Code", localized. If the confirmation code field is unset, this label will not be used.',
+    ).optional(),
     customGateLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -1002,7 +1192,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1016,7 +1208,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the gate value (`eventTicketObject.seatInfo.gate`) on the card detail view. This should only be used if the default "Gate" label or one of the `gateLabel` options is not sufficient. Both `gateLabel` and `customGateLabel` may not be set. If neither is set, the label will default to "Gate", localized. If the gate field is unset, this label will not be used.',
+    ).optional(),
     customRowLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -1027,7 +1221,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1041,7 +1237,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the row value (`eventTicketObject.seatInfo.row`) on the card detail view. This should only be used if the default "Row" label or one of the `rowLabel` options is not sufficient. Both `rowLabel` and `customRowLabel` may not be set. If neither is set, the label will default to "Row", localized. If the row field is unset, this label will not be used.',
+    ).optional(),
     customSeatLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -1052,7 +1250,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1066,7 +1266,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the seat value (`eventTicketObject.seatInfo.seat`) on the card detail view. This should only be used if the default "Seat" label or one of the `seatLabel` options is not sufficient. Both `seatLabel` and `customSeatLabel` may not be set. If neither is set, the label will default to "Seat", localized. If the seat field is unset, this label will not be used.',
+    ).optional(),
     customSectionLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -1077,7 +1279,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1091,7 +1295,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the section value (`eventTicketObject.seatInfo.section`) on the card detail view. This should only be used if the default "Section" label or one of the `sectionLabel` options is not sufficient. Both `sectionLabel` and `customSectionLabel` may not be set. If neither is set, the label will default to "Section", localized. If the section field is unset, this label will not be used.',
+    ).optional(),
     dateTime: z.object({
       customDoorsOpenLabel: z.object({
         defaultValue: z.object({
@@ -1103,7 +1309,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1117,7 +1325,9 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        'A custom label to use for the doors open value (`doorsOpen`) on the card detail view. This should only be used if the default "Doors Open" label or one of the `doorsOpenLabel` options is not sufficient. Both `doorsOpenLabel` and `customDoorsOpenLabel` may not be set. If neither is set, the label will default to "Doors Open", localized. If the doors open field is unset, this label will not be used.',
+      ).optional(),
       doorsOpen: z.string().describe(
         'The date/time when the doors open at the venue. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be `2018-06-05T20:00:00`. If the local date/time at the venue is 4 hours before UTC, an offset of `-04:00` may be appended. Without offset information, some rich features may not be available.',
       ).optional(),
@@ -1139,7 +1349,7 @@ const GlobalArgsSchema = z.object({
       start: z.string().describe(
         'The date/time when the event starts. If the event spans multiple days, it should be the start date/time on the first day. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be `2018-06-05T20:00:00`. If the local date/time at the venue is 4 hours before UTC, an offset of `-04:00` may be appended. Without offset information, some rich features may not be available.',
       ).optional(),
-    }).optional(),
+    }).describe("The date & time information of the event.").optional(),
     enableSmartTap: z.boolean().describe(
       "Identifies whether this class supports Smart Tap. The `redemptionIssuers` and object level `smartTapRedemptionLevel` fields must also be set up correctly in order for a pass to support Smart Tap.",
     ).optional(),
@@ -1156,7 +1366,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1170,7 +1382,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'Required. The name of the event, such as "LA Dodgers at SF Giants".',
+    ).optional(),
     finePrint: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -1181,7 +1395,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1195,7 +1411,8 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("The fine print, terms, or conditions of the ticket.")
+      .optional(),
     gateLabel: z.enum([
       "GATE_LABEL_UNSPECIFIED",
       "GATE",
@@ -1218,7 +1435,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1232,7 +1451,8 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -1253,19 +1473,27 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.",
+    ).optional(),
     hexBackgroundColor: z.string().describe(
       "The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as `#ffcc00`. You can also use the shorthand version of the RGB triplet which is #rgb, such as `#fc0`.",
     ).optional(),
@@ -1289,7 +1517,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1303,11 +1533,15 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
       uri: z.string().describe(
         "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The URI of your application's home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).",
+    ).optional(),
     id: z.string().describe(
       "Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '.', '_', or '-'.",
     ).optional(),
@@ -1317,14 +1551,17 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       mainImage: z.object({
         contentDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -1335,12 +1572,16 @@ const GlobalArgsSchema = z.object({
           description: z.unknown().describe(
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
-          localizedDescription: z.unknown().optional(),
+          localizedDescription: z.unknown().describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.unknown().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("A 100% width image.").optional(),
     })).describe(
       "Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.",
     ).optional(),
@@ -1353,7 +1594,7 @@ const GlobalArgsSchema = z.object({
         "A list of collections of labels and values. These will be displayed one after the other in a singular column.",
       ).optional(),
       showLastUpdateTime: z.boolean().optional(),
-    }).optional(),
+    }).describe("Deprecated. Use textModulesData instead.").optional(),
     issuerName: z.string().describe(
       "Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
     ).optional(),
@@ -1372,19 +1613,25 @@ const GlobalArgsSchema = z.object({
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
         ).optional(),
         localizedDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+        ).optional(),
         uri: z.string().describe(
           "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
         ).optional(),
       })).describe("The list of URIs.").optional(),
-    }).optional(),
+    }).describe(
+      "Links module data. If links module data is also defined on the object, both will be displayed.",
+    ).optional(),
     localizedIssuerName: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -1395,7 +1642,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1409,7 +1658,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+    ).optional(),
     locations: z.array(z.object({
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#latLongPoint"`.',
@@ -1434,7 +1685,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1448,7 +1701,8 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -1469,19 +1723,27 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "The logo image of the ticket. This image is displayed in the card detail view of the app.",
+    ).optional(),
     merchantLocations: z.array(z.object({
       latitude: z.number().describe(
         "The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.",
@@ -1499,7 +1761,9 @@ const GlobalArgsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
         ).optional(),
@@ -1507,8 +1771,12 @@ const GlobalArgsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+        ).optional(),
+      }).describe(
+        "The period of time that the message will be displayed to users. You can define both a `startTime` and `endTime` for each message. A message is displayed immediately after a Wallet Object is inserted unless a `startTime` is set. The message will appear in a list of messages indefinitely if `endTime` is not provided.",
+      ).optional(),
       header: z.string().describe("The message header.").optional(),
       id: z.string().describe(
         "The ID associated with a message. This field is here to enable ease of management of messages. Notice ID values could possibly duplicate across multiple messages in the same class/instance, and care must be taken to select a reasonable ID for each message.",
@@ -1526,14 +1794,16 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Translated strings for the message body.").optional(),
       localizedHeader: z.object({
         defaultValue: z.object({
           kind: z.unknown().describe(
@@ -1544,14 +1814,16 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Translated strings for the message header.").optional(),
       messageType: z.enum([
         "MESSAGE_TYPE_UNSPECIFIED",
         "TEXT",
@@ -1585,7 +1857,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     review: z.object({
       comments: z.string().optional(),
-    }).optional(),
+    }).describe(
+      "The review comments set by the platform when a class is marked `approved` or `rejected`.",
+    ).optional(),
     reviewStatus: z.enum([
       "REVIEW_STATUS_UNSPECIFIED",
       "UNDER_REVIEW",
@@ -1620,7 +1894,9 @@ const GlobalArgsSchema = z.object({
         "FOIL_SHIMMER",
         "foilShimmer",
       ]).describe("Type of animation.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional information about the security animation. If this is set a security animation will be rendered on pass details.",
+    ).optional(),
     textModulesData: z.array(z.object({
       body: z.string().describe(
         "The body of the Text Module, which is defined as an uninterrupted string. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.",
@@ -1641,14 +1917,18 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the body. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
       localizedHeader: z.object({
         defaultValue: z.object({
           kind: z.unknown().describe(
@@ -1659,14 +1939,18 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the header. Recommended maximum length is 35 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
     })).describe(
       "Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.",
     ).optional(),
@@ -1681,14 +1965,18 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Body to be displayed on the module. Character limit is 50 and longer strings will be truncated.",
+      ).optional(),
       header: z.object({
         defaultValue: z.object({
           kind: z.unknown().describe(
@@ -1699,24 +1987,31 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Header to be displayed on the module. Character limit is 60 and longer strings will be truncated.",
+      ).optional(),
       image: z.object({
         contentDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -1727,12 +2022,18 @@ const GlobalArgsSchema = z.object({
           description: z.unknown().describe(
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
-          localizedDescription: z.unknown().optional(),
+          localizedDescription: z.unknown().describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.unknown().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe(
+        "Image to be displayed on the module. Recommended image ratio is 1:1. Images will be resized to fit this ratio.",
+      ).optional(),
       sortIndex: z.number().int().describe(
         "The index for sorting the modules. Modules with a lower sort index are shown before modules with a higher sort index. If unspecified, the sort index is assumed to be INT_MAX. For two modules with the same index, the sorting behavior is undefined.",
       ).optional(),
@@ -1741,12 +2042,18 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       viewConstraints: z.object({
         displayInterval: z.object({
-          end: z.unknown().optional(),
+          end: z.unknown().describe(
+            "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
           ).optional(),
-          start: z.unknown().optional(),
-        }).optional(),
+          start: z.unknown().describe(
+            "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+          ).optional(),
+        }).describe(
+          "The period of time that the module will be displayed to users. Can define both a `startTime` and `endTime`. The module is displayed immediately after insertion unless a `startTime` is set. The module is displayed indefinitely if `endTime` is not set.",
+        ).optional(),
       }).describe(
         "Constraints that all must be met for the module to be shown.",
       ).optional(),
@@ -1764,7 +2071,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1778,7 +2087,9 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        'The address of the venue, such as "24 Willie Mays Plaza\\nSan Francisco, CA 94107". Address lines are separated by line feed (`\\n`) characters. This is required.',
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#eventVenue"`.',
       ).optional(),
@@ -1792,7 +2103,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1806,8 +2119,10 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
+      }).describe(
+        'The name of the venue, such as "AT&T Park". This is required.',
+      ).optional(),
+    }).describe("Event venue details.").optional(),
     version: z.string().describe("Deprecated").optional(),
     viewUnlockRequirement: z.enum([
       "VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED",
@@ -1826,7 +2141,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1840,7 +2157,8 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -1861,19 +2179,27 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "The wide logo of the ticket. When provided, this will be used in place of the logo in the top left of the card view.",
+    ).optional(),
     wordMark: z.object({
       contentDescription: z.object({
         defaultValue: z.object({
@@ -1885,7 +2211,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -1899,7 +2227,8 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -1920,20 +2249,28 @@ const GlobalArgsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
-  }).optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe("Deprecated.").optional(),
+  }).describe(
+    "A copy of the inherited fields of the parent class. These fields are retrieved during a GET.",
+  ).optional(),
   disableExpirationNotification: z.boolean().describe(
     "Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the `messages` field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.",
   ).optional(),
@@ -1947,7 +2284,9 @@ const GlobalArgsSchema = z.object({
     micros: z.string().describe(
       "The unit of money amount in micros. For example, $1 USD would be represented as 1000000 micros.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The face value of the ticket, matching what would be printed on a physical version of the ticket.",
+  ).optional(),
   groupingInfo: z.object({
     groupingId: z.string().describe(
       "Optional grouping ID for grouping the passes with the same ID visually together. Grouping with different types of passes is allowed.",
@@ -1955,7 +2294,8 @@ const GlobalArgsSchema = z.object({
     sortIndex: z.number().int().describe(
       "Optional index for sorting the passes when they are grouped with other passes. Passes with lower sort index are shown before passes with higher sort index. If unspecified, the value is assumed to be INT_MAX. For two passes with the same sort index, the sorting behavior is undefined.",
     ).optional(),
-  }).optional(),
+  }).describe("Information that controls how passes are grouped together.")
+    .optional(),
   hasLinkedDevice: z.boolean().describe(
     "Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.",
   ).optional(),
@@ -1973,7 +2313,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -1987,7 +2329,7 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("Description of the image used for accessibility.").optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
     ).optional(),
@@ -2008,7 +2350,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -2022,12 +2366,18 @@ const GlobalArgsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the description, which are unused and retained only for backward compatibility.",
+      ).optional(),
       uri: z.string().describe(
         "The location of the image. URIs must have a scheme.",
       ).optional(),
-    }).optional(),
-  }).describe("Wrapping type for Google hosted images.").optional(),
+    }).describe(
+      "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+    ).optional(),
+  }).describe(
+    "Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.",
+  ).optional(),
   hexBackgroundColor: z.string().describe(
     "The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as `#ffcc00`. You can also use the shorthand version of the RGB triplet which is #rgb, such as `#fc0`.",
   ).optional(),
@@ -2049,14 +2399,17 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -2068,19 +2421,25 @@ const GlobalArgsSchema = z.object({
           "Additional information about the image, which is unused and retained only for backward compatibility.",
         ).optional(),
         localizedDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe("A 100% width image.").optional(),
   })).describe(
     "Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.",
   ).optional(),
@@ -2090,8 +2449,12 @@ const GlobalArgsSchema = z.object({
         label: z.unknown().describe(
           "The label for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
         ).optional(),
-        localizedLabel: z.unknown().optional(),
-        localizedValue: z.unknown().optional(),
+        localizedLabel: z.unknown().describe(
+          "Translated strings for the label. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
+        ).optional(),
+        localizedValue: z.unknown().describe(
+          "Translated strings for the value. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
+        ).optional(),
         value: z.unknown().describe(
           "The value for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
         ).optional(),
@@ -2102,7 +2465,7 @@ const GlobalArgsSchema = z.object({
       "A list of collections of labels and values. These will be displayed one after the other in a singular column.",
     ).optional(),
     showLastUpdateTime: z.boolean().optional(),
-  }).optional(),
+  }).describe("Deprecated. Use textModulesData instead.").optional(),
   linkedObjectIds: z.array(z.string()).describe(
     "linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this event ticket object. If a user had saved this event ticket, then these linked_object_ids would be automatically pushed to the user's wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.",
   ).optional(),
@@ -2130,19 +2493,25 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
       uri: z.string().describe(
         "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
       ).optional(),
     })).describe("The list of URIs.").optional(),
-  }).optional(),
+  }).describe(
+    "Links module data. If links module data is also defined on the class, both will be displayed.",
+  ).optional(),
   merchantLocations: z.array(z.object({
     latitude: z.number().describe(
       "The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.",
@@ -2160,7 +2529,9 @@ const GlobalArgsSchema = z.object({
         date: z.string().describe(
           "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
       ).optional(),
@@ -2168,8 +2539,12 @@ const GlobalArgsSchema = z.object({
         date: z.string().describe(
           "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe(
+        "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+      ).optional(),
+    }).describe(
+      "The period of time that the message will be displayed to users. You can define both a `startTime` and `endTime` for each message. A message is displayed immediately after a Wallet Object is inserted unless a `startTime` is set. The message will appear in a list of messages indefinitely if `endTime` is not provided.",
+    ).optional(),
     header: z.string().describe("The message header.").optional(),
     id: z.string().describe(
       "The ID associated with a message. This field is here to enable ease of management of messages. Notice ID values could possibly duplicate across multiple messages in the same class/instance, and care must be taken to select a reasonable ID for each message.",
@@ -2187,7 +2562,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2201,7 +2578,7 @@ const GlobalArgsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("Translated strings for the message body.").optional(),
     localizedHeader: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -2212,7 +2589,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2226,7 +2605,7 @@ const GlobalArgsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("Translated strings for the message header.").optional(),
     messageType: z.enum([
       "MESSAGE_TYPE_UNSPECIFIED",
       "TEXT",
@@ -2257,8 +2636,9 @@ const GlobalArgsSchema = z.object({
       "ELIGIBLE",
       "INELIGIBLE",
     ]).describe("The screenshot eligibility for the pass.").optional(),
-  }).describe("Container for any constraints that may be placed on passes.")
-    .optional(),
+  }).describe(
+    "Pass constraints for the object. Includes limiting NFC and screenshot behaviors.",
+  ).optional(),
   reservationInfo: z.object({
     confirmationCode: z.string().describe(
       'The confirmation code of the event reservation. This may also take the form of an "order number", "confirmation number", "reservation number", or other equivalent.',
@@ -2266,7 +2646,9 @@ const GlobalArgsSchema = z.object({
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#eventReservationInfo"`.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Reservation details for this ticket. This is expected to be shared amongst all tickets that were purchased in the same order.",
+  ).optional(),
   rotatingBarcode: z.object({
     alternateText: z.string().describe(
       "An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.",
@@ -2281,8 +2663,9 @@ const GlobalArgsSchema = z.object({
       values: z.array(z.string()).describe(
         "Required. The values to encode in the barcode. At least one value is required.",
       ).optional(),
-    }).describe("A payload containing many barcode values and start date/time.")
-      .optional(),
+    }).describe(
+      "Input only. NOTE: This feature is only available for the transit vertical. Optional set of initial rotating barcode values. This allows a small subset of barcodes to be included with the object. Further rotating barcode values must be uploaded with the UploadRotatingBarcodeValues endpoint.",
+    ).optional(),
     renderEncoding: z.enum(["RENDER_ENCODING_UNSPECIFIED", "UTF_8"]).describe(
       "The render encoding for the barcode. When specified, barcode is rendered in the given encoding. Otherwise best known encoding is chosen by Google.",
     ).optional(),
@@ -2296,7 +2679,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2310,7 +2695,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional text that will be shown when the barcode is hidden behind a click action. This happens in cases where a pass has Smart Tap enabled. If not specified, a default is chosen by Google.",
+    ).optional(),
     totpDetails: z.object({
       algorithm: z.enum(["TOTP_ALGORITHM_UNSPECIFIED", "TOTP_SHA1"]).describe(
         "The TOTP algorithm used to generate the OTP.",
@@ -2328,9 +2715,8 @@ const GlobalArgsSchema = z.object({
       periodMillis: z.string().describe(
         "The time interval used for the TOTP value generation, in milliseconds.",
       ).optional(),
-    }).describe(
-      "Configuration for the time-based OTP substitutions. See https://tools.ietf.org/html/rfc6238",
-    ).optional(),
+    }).describe("Details used to evaluate the {totp_value_n} substitutions.")
+      .optional(),
     type: z.enum([
       "BARCODE_TYPE_UNSPECIFIED",
       "AZTEC",
@@ -2364,13 +2750,13 @@ const GlobalArgsSchema = z.object({
     valuePattern: z.string().describe(
       "String encoded barcode value. This string supports the following substitutions: * {totp_value_n}: Replaced with the TOTP value (see TotpDetails.parameters). * {totp_timestamp_millis}: Replaced with the timestamp (millis since epoch) at which the barcode was generated. * {totp_timestamp_seconds}: Replaced with the timestamp (seconds since epoch) at which the barcode was generated.",
     ).optional(),
-  }).optional(),
+  }).describe("The rotating barcode type and value.").optional(),
   saveRestrictions: z.object({
     restrictToEmailSha256: z.string().describe(
       'Restrict the save of the referencing object to the given email address only. This is the hex output of SHA256 sum of the email address, all lowercase and without any notations like "." or "+", except "@". For example, for example@example.com, this value will be 31c5543c1734d25c7206f5fd591525d0295bec6fe84ff82f946a34fe970a1e66 and for Example@example.com, this value will be bc34f262c93ad7122763684ccea6f07fb7f5d8a2d11e60ce15a6f43fe70ce632 If email address of the logged-in user who tries to save this pass does not match with the defined value here, users won\'t be allowed to save this pass. They will instead be prompted with an error to contact the issuer. This information should be gathered from the user with an explicit consent via Sign in with Google integration https://developers.google.com/identity/authentication. Please contact with support before using Save Restrictions.',
     ).optional(),
   }).describe(
-    "Defines restrictions on the object that will be verified during save. Note: this is an advanced feature, please contact Google for implementation support.",
+    "Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.",
   ).optional(),
   seatInfo: z.object({
     gate: z.object({
@@ -2383,7 +2769,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2397,7 +2785,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'The gate the ticket holder should enter to get to their seat, such as "A" or "West". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#eventSeat"`.',
     ).optional(),
@@ -2411,7 +2801,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2425,7 +2817,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'The row of the seat, such as "1", E", "BB", or "A5". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
     seat: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -2436,7 +2830,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2450,7 +2846,9 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'The seat number, such as "1", "2", "3", or any other seat identifier. This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
     section: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -2461,7 +2859,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2475,8 +2875,10 @@ const GlobalArgsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
-  }).optional(),
+    }).describe(
+      'The section of the seat, such as "121". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
+  }).describe("Seating details for this ticket.").optional(),
   smartTapRedemptionValue: z.string().describe(
     "The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields `enableSmartTap` and `redemptionIssuers` must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.",
   ).optional(),
@@ -2513,7 +2915,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2527,7 +2931,9 @@ const GlobalArgsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Translated strings for the body. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.",
+    ).optional(),
     localizedHeader: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -2538,7 +2944,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2552,7 +2960,9 @@ const GlobalArgsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Translated strings for the header. Recommended maximum length is 35 characters to ensure full string is displayed on smaller screens.",
+    ).optional(),
   })).describe(
     "Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.",
   ).optional(),
@@ -2572,7 +2982,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       value: z.string().describe("The UTF-8 encoded translated string.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Contains the string to be displayed if no appropriate translation is available.",
+    ).optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
     ).optional(),
@@ -2586,13 +2998,17 @@ const GlobalArgsSchema = z.object({
       value: z.string().describe("The UTF-8 encoded translated string.")
         .optional(),
     })).describe("Contains the translations for the string.").optional(),
-  }).optional(),
+  }).describe(
+    'The type of the ticket, such as "Adult" or "Child", or "VIP" or "Standard".',
+  ).optional(),
   validTimeInterval: z.object({
     end: z.object({
       date: z.string().describe(
         "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+    ).optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
     ).optional(),
@@ -2600,8 +3016,12 @@ const GlobalArgsSchema = z.object({
       date: z.string().describe(
         "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
       ).optional(),
-    }).optional(),
-  }).optional(),
+    }).describe(
+      "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+    ).optional(),
+  }).describe(
+    "The time period this object will be `active` and object can be used. An object's state will be changed to `expired` when this time period has passed.",
+  ).optional(),
   valueAddedModuleData: z.array(z.object({
     body: z.object({
       defaultValue: z.object({
@@ -2613,7 +3033,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2627,7 +3049,9 @@ const GlobalArgsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Body to be displayed on the module. Character limit is 50 and longer strings will be truncated.",
+    ).optional(),
     header: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -2638,7 +3062,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -2652,7 +3078,9 @@ const GlobalArgsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Header to be displayed on the module. Character limit is 60 and longer strings will be truncated.",
+    ).optional(),
     image: z.object({
       contentDescription: z.object({
         defaultValue: z.object({
@@ -2664,14 +3092,17 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -2683,19 +3114,27 @@ const GlobalArgsSchema = z.object({
           "Additional information about the image, which is unused and retained only for backward compatibility.",
         ).optional(),
         localizedDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "Image to be displayed on the module. Recommended image ratio is 1:1. Images will be resized to fit this ratio.",
+    ).optional(),
     sortIndex: z.number().int().describe(
       "The index for sorting the modules. Modules with a lower sort index are shown before modules with a higher sort index. If unspecified, the sort index is assumed to be INT_MAX. For two modules with the same index, the sorting behavior is undefined.",
     ).optional(),
@@ -2708,7 +3147,9 @@ const GlobalArgsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
         ).optional(),
@@ -2716,8 +3157,12 @@ const GlobalArgsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+        ).optional(),
+      }).describe(
+        "The period of time that the module will be displayed to users. Can define both a `startTime` and `endTime`. The module is displayed immediately after insertion unless a `startTime` is set. The module is displayed indefinitely if `endTime` is not set.",
+      ).optional(),
     }).describe("Constraints that all must be met for the module to be shown.")
       .optional(),
   })).describe(
@@ -4011,14 +4456,17 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -4030,19 +4478,26 @@ const InputsSchema = z.object({
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.string().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("Deprecated. Image isn't supported in the app link module.")
+        .optional(),
       appTarget: z.object({
         packageName: z.string().describe(
           "Package name for AppTarget. For example: com.google.android.gm",
@@ -4058,19 +4513,27 @@ const InputsSchema = z.object({
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+          ).optional(),
           uri: z.string().describe(
             "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+        ).optional(),
+      }).describe(
+        "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+      ).optional(),
       description: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4081,7 +4544,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4095,7 +4560,9 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Deprecated. Description isn't supported in the app link module.",
+      ).optional(),
       title: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4106,7 +4573,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4120,8 +4589,9 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Deprecated. Title isn't supported in the app link module.")
+        .optional(),
+    }).describe("Optional information about the partner app link.").optional(),
     displayText: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -4132,7 +4602,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4146,7 +4618,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional display text for the app link button. Character limit is 30.",
+    ).optional(),
     iosAppLinkInfo: z.object({
       appLogoImage: z.object({
         contentDescription: z.object({
@@ -4159,14 +4633,17 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -4178,19 +4655,26 @@ const InputsSchema = z.object({
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.string().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("Deprecated. Image isn't supported in the app link module.")
+        .optional(),
       appTarget: z.object({
         packageName: z.string().describe(
           "Package name for AppTarget. For example: com.google.android.gm",
@@ -4206,19 +4690,27 @@ const InputsSchema = z.object({
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+          ).optional(),
           uri: z.string().describe(
             "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+        ).optional(),
+      }).describe(
+        "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+      ).optional(),
       description: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4229,7 +4721,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4243,7 +4737,9 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Deprecated. Description isn't supported in the app link module.",
+      ).optional(),
       title: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4254,7 +4750,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4268,8 +4766,10 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
+      }).describe("Deprecated. Title isn't supported in the app link module.")
+        .optional(),
+    }).describe("Deprecated. Links to open iOS apps are not supported.")
+      .optional(),
     webAppLinkInfo: z.object({
       appLogoImage: z.object({
         contentDescription: z.object({
@@ -4282,14 +4782,17 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -4301,19 +4804,26 @@ const InputsSchema = z.object({
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.string().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("Deprecated. Image isn't supported in the app link module.")
+        .optional(),
       appTarget: z.object({
         packageName: z.string().describe(
           "Package name for AppTarget. For example: com.google.android.gm",
@@ -4329,19 +4839,27 @@ const InputsSchema = z.object({
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
           ).optional(),
           localizedDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe(
+            "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+          ).optional(),
           uri: z.string().describe(
             "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+        ).optional(),
+      }).describe(
+        "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+      ).optional(),
       description: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4352,7 +4870,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4366,7 +4886,9 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Deprecated. Description isn't supported in the app link module.",
+      ).optional(),
       title: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4377,7 +4899,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4391,9 +4915,12 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
-  }).optional(),
+      }).describe("Deprecated. Title isn't supported in the app link module.")
+        .optional(),
+    }).describe("Optional information about the partner web link.").optional(),
+  }).describe(
+    "Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.",
+  ).optional(),
   barcode: z.object({
     alternateText: z.string().describe(
       "An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.",
@@ -4414,7 +4941,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4428,7 +4957,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional text that will be shown when the barcode is hidden behind a click action. This happens in cases where a pass has Smart Tap enabled. If not specified, a default is chosen by Google.",
+    ).optional(),
     type: z.enum([
       "BARCODE_TYPE_UNSPECIFIED",
       "AZTEC",
@@ -4460,7 +4991,7 @@ const InputsSchema = z.object({
       "textOnly",
     ]).describe("The type of barcode.").optional(),
     value: z.string().describe("The value encoded in the barcode.").optional(),
-  }).optional(),
+  }).describe("The barcode type and value.").optional(),
   classId: z.string().describe(
     "Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.",
   ).optional(),
@@ -4472,14 +5003,17 @@ const InputsSchema = z.object({
       androidAppLinkInfo: z.object({
         appLogoImage: z.object({
           contentDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe("Description of the image used for accessibility.")
+            .optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
           ).optional(),
@@ -4490,12 +5024,17 @@ const InputsSchema = z.object({
             description: z.unknown().describe(
               "Additional information about the image, which is unused and retained only for backward compatibility.",
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description, which are unused and retained only for backward compatibility.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of the image. URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).describe("Wrapping type for Google hosted images.").optional(),
+          }).describe(
+            "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+          ).optional(),
+        }).describe("Deprecated. Image isn't supported in the app link module.")
+          .optional(),
         appTarget: z.object({
           packageName: z.string().describe(
             "Package name for AppTarget. For example: com.google.android.gm",
@@ -4510,12 +5049,18 @@ const InputsSchema = z.object({
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).optional(),
+          }).describe(
+            "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+          ).optional(),
+        }).describe(
+          "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+        ).optional(),
         description: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -4526,14 +5071,18 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Deprecated. Description isn't supported in the app link module.",
+        ).optional(),
         title: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -4544,15 +5093,19 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe("Deprecated. Title isn't supported in the app link module.")
+          .optional(),
+      }).describe("Optional information about the partner app link.")
+        .optional(),
       displayText: z.object({
         defaultValue: z.object({
           kind: z.string().describe(
@@ -4563,7 +5116,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4577,18 +5132,23 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Optional display text for the app link button. Character limit is 30.",
+      ).optional(),
       iosAppLinkInfo: z.object({
         appLogoImage: z.object({
           contentDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe("Description of the image used for accessibility.")
+            .optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
           ).optional(),
@@ -4599,12 +5159,17 @@ const InputsSchema = z.object({
             description: z.unknown().describe(
               "Additional information about the image, which is unused and retained only for backward compatibility.",
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description, which are unused and retained only for backward compatibility.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of the image. URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).describe("Wrapping type for Google hosted images.").optional(),
+          }).describe(
+            "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+          ).optional(),
+        }).describe("Deprecated. Image isn't supported in the app link module.")
+          .optional(),
         appTarget: z.object({
           packageName: z.string().describe(
             "Package name for AppTarget. For example: com.google.android.gm",
@@ -4619,12 +5184,18 @@ const InputsSchema = z.object({
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).optional(),
+          }).describe(
+            "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+          ).optional(),
+        }).describe(
+          "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+        ).optional(),
         description: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -4635,14 +5206,18 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Deprecated. Description isn't supported in the app link module.",
+        ).optional(),
         title: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -4653,26 +5228,33 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe("Deprecated. Title isn't supported in the app link module.")
+          .optional(),
+      }).describe("Deprecated. Links to open iOS apps are not supported.")
+        .optional(),
       webAppLinkInfo: z.object({
         appLogoImage: z.object({
           contentDescription: z.object({
-            defaultValue: z.unknown().optional(),
+            defaultValue: z.unknown().describe(
+              "Contains the string to be displayed if no appropriate translation is available.",
+            ).optional(),
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
             ).optional(),
             translatedValues: z.unknown().describe(
               "Contains the translations for the string.",
             ).optional(),
-          }).optional(),
+          }).describe("Description of the image used for accessibility.")
+            .optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
           ).optional(),
@@ -4683,12 +5265,17 @@ const InputsSchema = z.object({
             description: z.unknown().describe(
               "Additional information about the image, which is unused and retained only for backward compatibility.",
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description, which are unused and retained only for backward compatibility.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of the image. URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).describe("Wrapping type for Google hosted images.").optional(),
+          }).describe(
+            "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+          ).optional(),
+        }).describe("Deprecated. Image isn't supported in the app link module.")
+          .optional(),
         appTarget: z.object({
           packageName: z.string().describe(
             "Package name for AppTarget. For example: com.google.android.gm",
@@ -4703,12 +5290,18 @@ const InputsSchema = z.object({
             kind: z.unknown().describe(
               'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
             ).optional(),
-            localizedDescription: z.unknown().optional(),
+            localizedDescription: z.unknown().describe(
+              "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+            ).optional(),
             uri: z.unknown().describe(
               "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
             ).optional(),
-          }).optional(),
-        }).optional(),
+          }).describe(
+            "URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.",
+          ).optional(),
+        }).describe(
+          "Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.",
+        ).optional(),
         description: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -4719,14 +5312,18 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Deprecated. Description isn't supported in the app link module.",
+        ).optional(),
         title: z.object({
           defaultValue: z.object({
             kind: z.unknown().describe(
@@ -4737,16 +5334,22 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
-      }).optional(),
-    }).optional(),
+        }).describe("Deprecated. Title isn't supported in the app link module.")
+          .optional(),
+      }).describe("Optional information about the partner web link.")
+        .optional(),
+    }).describe(
+      "Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.",
+    ).optional(),
     callbackOptions: z.object({
       updateRequestUrl: z.string().describe(
         "URL for the merchant endpoint that would be called to request updates. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot. Deprecated.",
@@ -4754,7 +5357,9 @@ const InputsSchema = z.object({
       url: z.string().describe(
         "The HTTPS url configured by the merchant. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.",
+    ).optional(),
     classTemplateInfo: z.object({
       cardBarcodeSectionDetails: z.object({
         firstBottomDetail: z.object({
@@ -4762,50 +5367,70 @@ const InputsSchema = z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
-        }).optional(),
+          }).describe(
+            "A reference to an existing text-based or image field to display.",
+          ).optional(),
+        }).describe("Optional information to display below the barcode.")
+          .optional(),
         firstTopDetail: z.object({
           fieldSelector: z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
-        }).optional(),
+          }).describe(
+            "A reference to an existing text-based or image field to display.",
+          ).optional(),
+        }).describe(
+          "Optional information to display above the barcode. If `secondTopDetail` is defined, this will be displayed to the start side of this detail section.",
+        ).optional(),
         secondTopDetail: z.object({
           fieldSelector: z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
-        }).optional(),
-      }).optional(),
+          }).describe(
+            "A reference to an existing text-based or image field to display.",
+          ).optional(),
+        }).describe(
+          "Optional second piece of information to display above the barcode. If `firstTopDetail` is defined, this will be displayed to the end side of this detail section.",
+        ).optional(),
+      }).describe(
+        "Specifies extra information to be displayed above and below the barcode.",
+      ).optional(),
       cardTemplateOverride: z.object({
         cardRowTemplateInfos: z.array(z.object({
-          oneItem: z.unknown().optional(),
-          threeItems: z.unknown().optional(),
-          twoItems: z.unknown().optional(),
+          oneItem: z.unknown().describe(
+            'Template for a row containing one item. Exactly one of "one_item", "two_items", "three_items" must be set.',
+          ).optional(),
+          threeItems: z.unknown().describe(
+            'Template for a row containing three items. Exactly one of "one_item", "two_items", "three_items" must be set.',
+          ).optional(),
+          twoItems: z.unknown().describe(
+            'Template for a row containing two items. Exactly one of "one_item", "two_items", "three_items" must be set.',
+          ).optional(),
         })).describe(
           "Template information for rows in the card view. At most three rows are allowed to be specified.",
         ).optional(),
-      }).optional(),
+      }).describe("Override for the card view.").optional(),
       detailsTemplateOverride: z.object({
         detailsItemInfos: z.array(z.object({
-          item: z.unknown().optional(),
+          item: z.unknown().describe(
+            "The item to be displayed in the details list.",
+          ).optional(),
         })).describe(
           'Information for the "nth" item displayed in the details list.',
         ).optional(),
-      }).optional(),
+      }).describe("Override for the details view (beneath the card view).")
+        .optional(),
       listTemplateOverride: z.object({
         firstRowOption: z.object({
           fieldOption: z.object({
             fields: z.unknown().describe(
               "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
             ).optional(),
-          }).describe("Custom field selector to use with field overrides.")
-            .optional(),
+          }).describe(
+            "A reference to the field to be displayed in the first row.",
+          ).optional(),
           transitOption: z.enum([
             "TRANSIT_OPTION_UNSPECIFIED",
             "ORIGIN_AND_DESTINATION_NAMES",
@@ -4815,21 +5440,27 @@ const InputsSchema = z.object({
             "ORIGIN_NAME",
             "originName",
           ]).optional(),
-        }).optional(),
+        }).describe(
+          "Specifies from a predefined set of options or from a reference to the field what will be displayed in the first row. To set this override, set the FirstRowOption.fieldOption to the FieldSelector of your choice.",
+        ).optional(),
         secondRowOption: z.object({
           fields: z.array(z.unknown()).describe(
             "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
           ).optional(),
-        }).describe("Custom field selector to use with field overrides.")
-          .optional(),
+        }).describe(
+          "A reference to the field to be displayed in the second row. This option is only displayed if there are not multiple user objects in a group. If there is a group, the second row will always display a field shared by all objects. To set this override, please set secondRowOption to the FieldSelector of you choice.",
+        ).optional(),
         thirdRowOption: z.object({
           fields: z.array(z.unknown()).describe(
             "If more than one reference is supplied, then the first one that references a non-empty field will be displayed.",
           ).optional(),
-        }).describe("Custom field selector to use with field overrides.")
-          .optional(),
-      }).optional(),
-    }).optional(),
+        }).describe(
+          "An unused/deprecated field. Setting it will have no effect on what the user sees.",
+        ).optional(),
+      }).describe("Override for the passes list view.").optional(),
+    }).describe(
+      "Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.",
+    ).optional(),
     confirmationCodeLabel: z.enum([
       "CONFIRMATION_CODE_LABEL_UNSPECIFIED",
       "CONFIRMATION_CODE",
@@ -4856,7 +5487,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4870,7 +5503,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the confirmation code value (`eventTicketObject.reservationInfo.confirmationCode`) on the card detail view. This should only be used if the default "Confirmation Code" label or one of the `confirmationCodeLabel` options is not sufficient. Both `confirmationCodeLabel` and `customConfirmationCodeLabel` may not be set. If neither is set, the label will default to "Confirmation Code", localized. If the confirmation code field is unset, this label will not be used.',
+    ).optional(),
     customGateLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -4881,7 +5516,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4895,7 +5532,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the gate value (`eventTicketObject.seatInfo.gate`) on the card detail view. This should only be used if the default "Gate" label or one of the `gateLabel` options is not sufficient. Both `gateLabel` and `customGateLabel` may not be set. If neither is set, the label will default to "Gate", localized. If the gate field is unset, this label will not be used.',
+    ).optional(),
     customRowLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -4906,7 +5545,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4920,7 +5561,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the row value (`eventTicketObject.seatInfo.row`) on the card detail view. This should only be used if the default "Row" label or one of the `rowLabel` options is not sufficient. Both `rowLabel` and `customRowLabel` may not be set. If neither is set, the label will default to "Row", localized. If the row field is unset, this label will not be used.',
+    ).optional(),
     customSeatLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -4931,7 +5574,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4945,7 +5590,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the seat value (`eventTicketObject.seatInfo.seat`) on the card detail view. This should only be used if the default "Seat" label or one of the `seatLabel` options is not sufficient. Both `seatLabel` and `customSeatLabel` may not be set. If neither is set, the label will default to "Seat", localized. If the seat field is unset, this label will not be used.',
+    ).optional(),
     customSectionLabel: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -4956,7 +5603,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -4970,7 +5619,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'A custom label to use for the section value (`eventTicketObject.seatInfo.section`) on the card detail view. This should only be used if the default "Section" label or one of the `sectionLabel` options is not sufficient. Both `sectionLabel` and `customSectionLabel` may not be set. If neither is set, the label will default to "Section", localized. If the section field is unset, this label will not be used.',
+    ).optional(),
     dateTime: z.object({
       customDoorsOpenLabel: z.object({
         defaultValue: z.object({
@@ -4982,7 +5633,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -4996,7 +5649,9 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        'A custom label to use for the doors open value (`doorsOpen`) on the card detail view. This should only be used if the default "Doors Open" label or one of the `doorsOpenLabel` options is not sufficient. Both `doorsOpenLabel` and `customDoorsOpenLabel` may not be set. If neither is set, the label will default to "Doors Open", localized. If the doors open field is unset, this label will not be used.',
+      ).optional(),
       doorsOpen: z.string().describe(
         'The date/time when the doors open at the venue. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be `2018-06-05T20:00:00`. If the local date/time at the venue is 4 hours before UTC, an offset of `-04:00` may be appended. Without offset information, some rich features may not be available.',
       ).optional(),
@@ -5018,7 +5673,7 @@ const InputsSchema = z.object({
       start: z.string().describe(
         'The date/time when the event starts. If the event spans multiple days, it should be the start date/time on the first day. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be `2018-06-05T20:00:00`. If the local date/time at the venue is 4 hours before UTC, an offset of `-04:00` may be appended. Without offset information, some rich features may not be available.',
       ).optional(),
-    }).optional(),
+    }).describe("The date & time information of the event.").optional(),
     enableSmartTap: z.boolean().describe(
       "Identifies whether this class supports Smart Tap. The `redemptionIssuers` and object level `smartTapRedemptionLevel` fields must also be set up correctly in order for a pass to support Smart Tap.",
     ).optional(),
@@ -5035,7 +5690,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -5049,7 +5706,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'Required. The name of the event, such as "LA Dodgers at SF Giants".',
+    ).optional(),
     finePrint: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -5060,7 +5719,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -5074,7 +5735,8 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("The fine print, terms, or conditions of the ticket.")
+      .optional(),
     gateLabel: z.enum([
       "GATE_LABEL_UNSPECIFIED",
       "GATE",
@@ -5097,7 +5759,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5111,7 +5775,8 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -5132,19 +5797,27 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.",
+    ).optional(),
     hexBackgroundColor: z.string().describe(
       "The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as `#ffcc00`. You can also use the shorthand version of the RGB triplet which is #rgb, such as `#fc0`.",
     ).optional(),
@@ -5168,7 +5841,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5182,11 +5857,15 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
       uri: z.string().describe(
         "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "The URI of your application's home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).",
+    ).optional(),
     id: z.string().describe(
       "Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '.', '_', or '-'.",
     ).optional(),
@@ -5196,14 +5875,17 @@ const InputsSchema = z.object({
       ).optional(),
       mainImage: z.object({
         contentDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -5214,12 +5896,16 @@ const InputsSchema = z.object({
           description: z.unknown().describe(
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
-          localizedDescription: z.unknown().optional(),
+          localizedDescription: z.unknown().describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.unknown().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe("A 100% width image.").optional(),
     })).describe(
       "Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.",
     ).optional(),
@@ -5232,7 +5918,7 @@ const InputsSchema = z.object({
         "A list of collections of labels and values. These will be displayed one after the other in a singular column.",
       ).optional(),
       showLastUpdateTime: z.boolean().optional(),
-    }).optional(),
+    }).describe("Deprecated. Use textModulesData instead.").optional(),
     issuerName: z.string().describe(
       "Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
     ).optional(),
@@ -5251,19 +5937,25 @@ const InputsSchema = z.object({
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#uri"`.',
         ).optional(),
         localizedDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+        ).optional(),
         uri: z.string().describe(
           "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
         ).optional(),
       })).describe("The list of URIs.").optional(),
-    }).optional(),
+    }).describe(
+      "Links module data. If links module data is also defined on the object, both will be displayed.",
+    ).optional(),
     localizedIssuerName: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -5274,7 +5966,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -5288,7 +5982,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+    ).optional(),
     locations: z.array(z.object({
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#latLongPoint"`.',
@@ -5313,7 +6009,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5327,7 +6025,8 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -5348,19 +6047,27 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "The logo image of the ticket. This image is displayed in the card detail view of the app.",
+    ).optional(),
     merchantLocations: z.array(z.object({
       latitude: z.number().describe(
         "The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.",
@@ -5378,7 +6085,9 @@ const InputsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
         ).optional(),
@@ -5386,8 +6095,12 @@ const InputsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+        ).optional(),
+      }).describe(
+        "The period of time that the message will be displayed to users. You can define both a `startTime` and `endTime` for each message. A message is displayed immediately after a Wallet Object is inserted unless a `startTime` is set. The message will appear in a list of messages indefinitely if `endTime` is not provided.",
+      ).optional(),
       header: z.string().describe("The message header.").optional(),
       id: z.string().describe(
         "The ID associated with a message. This field is here to enable ease of management of messages. Notice ID values could possibly duplicate across multiple messages in the same class/instance, and care must be taken to select a reasonable ID for each message.",
@@ -5405,14 +6118,16 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Translated strings for the message body.").optional(),
       localizedHeader: z.object({
         defaultValue: z.object({
           kind: z.unknown().describe(
@@ -5423,14 +6138,16 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Translated strings for the message header.").optional(),
       messageType: z.enum([
         "MESSAGE_TYPE_UNSPECIFIED",
         "TEXT",
@@ -5464,7 +6181,9 @@ const InputsSchema = z.object({
     ).optional(),
     review: z.object({
       comments: z.string().optional(),
-    }).optional(),
+    }).describe(
+      "The review comments set by the platform when a class is marked `approved` or `rejected`.",
+    ).optional(),
     reviewStatus: z.enum([
       "REVIEW_STATUS_UNSPECIFIED",
       "UNDER_REVIEW",
@@ -5499,7 +6218,9 @@ const InputsSchema = z.object({
         "FOIL_SHIMMER",
         "foilShimmer",
       ]).describe("Type of animation.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional information about the security animation. If this is set a security animation will be rendered on pass details.",
+    ).optional(),
     textModulesData: z.array(z.object({
       body: z.string().describe(
         "The body of the Text Module, which is defined as an uninterrupted string. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.",
@@ -5520,14 +6241,18 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the body. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
       localizedHeader: z.object({
         defaultValue: z.object({
           kind: z.unknown().describe(
@@ -5538,14 +6263,18 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the header. Recommended maximum length is 35 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
     })).describe(
       "Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.",
     ).optional(),
@@ -5560,14 +6289,18 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Body to be displayed on the module. Character limit is 50 and longer strings will be truncated.",
+      ).optional(),
       header: z.object({
         defaultValue: z.object({
           kind: z.unknown().describe(
@@ -5578,24 +6311,31 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Header to be displayed on the module. Character limit is 60 and longer strings will be truncated.",
+      ).optional(),
       image: z.object({
         contentDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe("Description of the image used for accessibility.")
+          .optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
         ).optional(),
@@ -5606,12 +6346,18 @@ const InputsSchema = z.object({
           description: z.unknown().describe(
             "Additional information about the image, which is unused and retained only for backward compatibility.",
           ).optional(),
-          localizedDescription: z.unknown().optional(),
+          localizedDescription: z.unknown().describe(
+            "Translated strings for the description, which are unused and retained only for backward compatibility.",
+          ).optional(),
           uri: z.unknown().describe(
             "The location of the image. URIs must have a scheme.",
           ).optional(),
-        }).optional(),
-      }).describe("Wrapping type for Google hosted images.").optional(),
+        }).describe(
+          "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+        ).optional(),
+      }).describe(
+        "Image to be displayed on the module. Recommended image ratio is 1:1. Images will be resized to fit this ratio.",
+      ).optional(),
       sortIndex: z.number().int().describe(
         "The index for sorting the modules. Modules with a lower sort index are shown before modules with a higher sort index. If unspecified, the sort index is assumed to be INT_MAX. For two modules with the same index, the sorting behavior is undefined.",
       ).optional(),
@@ -5620,12 +6366,18 @@ const InputsSchema = z.object({
       ).optional(),
       viewConstraints: z.object({
         displayInterval: z.object({
-          end: z.unknown().optional(),
+          end: z.unknown().describe(
+            "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
           ).optional(),
-          start: z.unknown().optional(),
-        }).optional(),
+          start: z.unknown().describe(
+            "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+          ).optional(),
+        }).describe(
+          "The period of time that the module will be displayed to users. Can define both a `startTime` and `endTime`. The module is displayed immediately after insertion unless a `startTime` is set. The module is displayed indefinitely if `endTime` is not set.",
+        ).optional(),
       }).describe(
         "Constraints that all must be met for the module to be shown.",
       ).optional(),
@@ -5643,7 +6395,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5657,7 +6411,9 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        'The address of the venue, such as "24 Willie Mays Plaza\\nSan Francisco, CA 94107". Address lines are separated by line feed (`\\n`) characters. This is required.',
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#eventVenue"`.',
       ).optional(),
@@ -5671,7 +6427,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5685,8 +6443,10 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
-    }).optional(),
+      }).describe(
+        'The name of the venue, such as "AT&T Park". This is required.',
+      ).optional(),
+    }).describe("Event venue details.").optional(),
     version: z.string().describe("Deprecated").optional(),
     viewUnlockRequirement: z.enum([
       "VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED",
@@ -5705,7 +6465,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5719,7 +6481,8 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -5740,19 +6503,27 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "The wide logo of the ticket. When provided, this will be used in place of the logo in the top left of the card view.",
+    ).optional(),
     wordMark: z.object({
       contentDescription: z.object({
         defaultValue: z.object({
@@ -5764,7 +6535,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5778,7 +6551,8 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -5799,20 +6573,28 @@ const InputsSchema = z.object({
             ).optional(),
             value: z.unknown().describe("The UTF-8 encoded translated string.")
               .optional(),
-          }).optional(),
+          }).describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.string().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.array(z.unknown()).describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
-  }).optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe("Deprecated.").optional(),
+  }).describe(
+    "A copy of the inherited fields of the parent class. These fields are retrieved during a GET.",
+  ).optional(),
   disableExpirationNotification: z.boolean().describe(
     "Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the `messages` field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.",
   ).optional(),
@@ -5826,7 +6608,9 @@ const InputsSchema = z.object({
     micros: z.string().describe(
       "The unit of money amount in micros. For example, $1 USD would be represented as 1000000 micros.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The face value of the ticket, matching what would be printed on a physical version of the ticket.",
+  ).optional(),
   groupingInfo: z.object({
     groupingId: z.string().describe(
       "Optional grouping ID for grouping the passes with the same ID visually together. Grouping with different types of passes is allowed.",
@@ -5834,7 +6618,8 @@ const InputsSchema = z.object({
     sortIndex: z.number().int().describe(
       "Optional index for sorting the passes when they are grouped with other passes. Passes with lower sort index are shown before passes with higher sort index. If unspecified, the value is assumed to be INT_MAX. For two passes with the same sort index, the sorting behavior is undefined.",
     ).optional(),
-  }).optional(),
+  }).describe("Information that controls how passes are grouped together.")
+    .optional(),
   hasLinkedDevice: z.boolean().describe(
     "Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.",
   ).optional(),
@@ -5852,7 +6637,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -5866,7 +6653,7 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("Description of the image used for accessibility.").optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
     ).optional(),
@@ -5887,7 +6674,9 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.string().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
@@ -5901,12 +6690,18 @@ const InputsSchema = z.object({
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
         })).describe("Contains the translations for the string.").optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the description, which are unused and retained only for backward compatibility.",
+      ).optional(),
       uri: z.string().describe(
         "The location of the image. URIs must have a scheme.",
       ).optional(),
-    }).optional(),
-  }).describe("Wrapping type for Google hosted images.").optional(),
+    }).describe(
+      "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+    ).optional(),
+  }).describe(
+    "Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.",
+  ).optional(),
   hexBackgroundColor: z.string().describe(
     "The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as `#ffcc00`. You can also use the shorthand version of the RGB triplet which is #rgb, such as `#fc0`.",
   ).optional(),
@@ -5928,14 +6723,17 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -5947,19 +6745,25 @@ const InputsSchema = z.object({
           "Additional information about the image, which is unused and retained only for backward compatibility.",
         ).optional(),
         localizedDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe("A 100% width image.").optional(),
   })).describe(
     "Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.",
   ).optional(),
@@ -5969,8 +6773,12 @@ const InputsSchema = z.object({
         label: z.unknown().describe(
           "The label for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
         ).optional(),
-        localizedLabel: z.unknown().optional(),
-        localizedValue: z.unknown().optional(),
+        localizedLabel: z.unknown().describe(
+          "Translated strings for the label. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
+        ).optional(),
+        localizedValue: z.unknown().describe(
+          "Translated strings for the value. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
+        ).optional(),
         value: z.unknown().describe(
           "The value for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.",
         ).optional(),
@@ -5981,7 +6789,7 @@ const InputsSchema = z.object({
       "A list of collections of labels and values. These will be displayed one after the other in a singular column.",
     ).optional(),
     showLastUpdateTime: z.boolean().optional(),
-  }).optional(),
+  }).describe("Deprecated. Use textModulesData instead.").optional(),
   linkedObjectIds: z.array(z.string()).describe(
     "linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this event ticket object. If a user had saved this event ticket, then these linked_object_ids would be automatically pushed to the user's wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.",
   ).optional(),
@@ -6009,19 +6817,25 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.",
+      ).optional(),
       uri: z.string().describe(
         "The location of a web page, image, or other resource. URIs in the `LinksModuleData` module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.",
       ).optional(),
     })).describe("The list of URIs.").optional(),
-  }).optional(),
+  }).describe(
+    "Links module data. If links module data is also defined on the class, both will be displayed.",
+  ).optional(),
   merchantLocations: z.array(z.object({
     latitude: z.number().describe(
       "The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.",
@@ -6039,7 +6853,9 @@ const InputsSchema = z.object({
         date: z.string().describe(
           "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
       ).optional(),
@@ -6047,8 +6863,12 @@ const InputsSchema = z.object({
         date: z.string().describe(
           "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe(
+        "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+      ).optional(),
+    }).describe(
+      "The period of time that the message will be displayed to users. You can define both a `startTime` and `endTime` for each message. A message is displayed immediately after a Wallet Object is inserted unless a `startTime` is set. The message will appear in a list of messages indefinitely if `endTime` is not provided.",
+    ).optional(),
     header: z.string().describe("The message header.").optional(),
     id: z.string().describe(
       "The ID associated with a message. This field is here to enable ease of management of messages. Notice ID values could possibly duplicate across multiple messages in the same class/instance, and care must be taken to select a reasonable ID for each message.",
@@ -6066,7 +6886,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6080,7 +6902,7 @@ const InputsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("Translated strings for the message body.").optional(),
     localizedHeader: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -6091,7 +6913,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6105,7 +6929,7 @@ const InputsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe("Translated strings for the message header.").optional(),
     messageType: z.enum([
       "MESSAGE_TYPE_UNSPECIFIED",
       "TEXT",
@@ -6136,8 +6960,9 @@ const InputsSchema = z.object({
       "ELIGIBLE",
       "INELIGIBLE",
     ]).describe("The screenshot eligibility for the pass.").optional(),
-  }).describe("Container for any constraints that may be placed on passes.")
-    .optional(),
+  }).describe(
+    "Pass constraints for the object. Includes limiting NFC and screenshot behaviors.",
+  ).optional(),
   reservationInfo: z.object({
     confirmationCode: z.string().describe(
       'The confirmation code of the event reservation. This may also take the form of an "order number", "confirmation number", "reservation number", or other equivalent.',
@@ -6145,7 +6970,9 @@ const InputsSchema = z.object({
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#eventReservationInfo"`.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Reservation details for this ticket. This is expected to be shared amongst all tickets that were purchased in the same order.",
+  ).optional(),
   rotatingBarcode: z.object({
     alternateText: z.string().describe(
       "An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.",
@@ -6160,8 +6987,9 @@ const InputsSchema = z.object({
       values: z.array(z.string()).describe(
         "Required. The values to encode in the barcode. At least one value is required.",
       ).optional(),
-    }).describe("A payload containing many barcode values and start date/time.")
-      .optional(),
+    }).describe(
+      "Input only. NOTE: This feature is only available for the transit vertical. Optional set of initial rotating barcode values. This allows a small subset of barcodes to be included with the object. Further rotating barcode values must be uploaded with the UploadRotatingBarcodeValues endpoint.",
+    ).optional(),
     renderEncoding: z.enum(["RENDER_ENCODING_UNSPECIFIED", "UTF_8"]).describe(
       "The render encoding for the barcode. When specified, barcode is rendered in the given encoding. Otherwise best known encoding is chosen by Google.",
     ).optional(),
@@ -6175,7 +7003,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6189,7 +7019,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Optional text that will be shown when the barcode is hidden behind a click action. This happens in cases where a pass has Smart Tap enabled. If not specified, a default is chosen by Google.",
+    ).optional(),
     totpDetails: z.object({
       algorithm: z.enum(["TOTP_ALGORITHM_UNSPECIFIED", "TOTP_SHA1"]).describe(
         "The TOTP algorithm used to generate the OTP.",
@@ -6207,9 +7039,8 @@ const InputsSchema = z.object({
       periodMillis: z.string().describe(
         "The time interval used for the TOTP value generation, in milliseconds.",
       ).optional(),
-    }).describe(
-      "Configuration for the time-based OTP substitutions. See https://tools.ietf.org/html/rfc6238",
-    ).optional(),
+    }).describe("Details used to evaluate the {totp_value_n} substitutions.")
+      .optional(),
     type: z.enum([
       "BARCODE_TYPE_UNSPECIFIED",
       "AZTEC",
@@ -6243,13 +7074,13 @@ const InputsSchema = z.object({
     valuePattern: z.string().describe(
       "String encoded barcode value. This string supports the following substitutions: * {totp_value_n}: Replaced with the TOTP value (see TotpDetails.parameters). * {totp_timestamp_millis}: Replaced with the timestamp (millis since epoch) at which the barcode was generated. * {totp_timestamp_seconds}: Replaced with the timestamp (seconds since epoch) at which the barcode was generated.",
     ).optional(),
-  }).optional(),
+  }).describe("The rotating barcode type and value.").optional(),
   saveRestrictions: z.object({
     restrictToEmailSha256: z.string().describe(
       'Restrict the save of the referencing object to the given email address only. This is the hex output of SHA256 sum of the email address, all lowercase and without any notations like "." or "+", except "@". For example, for example@example.com, this value will be 31c5543c1734d25c7206f5fd591525d0295bec6fe84ff82f946a34fe970a1e66 and for Example@example.com, this value will be bc34f262c93ad7122763684ccea6f07fb7f5d8a2d11e60ce15a6f43fe70ce632 If email address of the logged-in user who tries to save this pass does not match with the defined value here, users won\'t be allowed to save this pass. They will instead be prompted with an error to contact the issuer. This information should be gathered from the user with an explicit consent via Sign in with Google integration https://developers.google.com/identity/authentication. Please contact with support before using Save Restrictions.',
     ).optional(),
   }).describe(
-    "Defines restrictions on the object that will be verified during save. Note: this is an advanced feature, please contact Google for implementation support.",
+    "Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.",
   ).optional(),
   seatInfo: z.object({
     gate: z.object({
@@ -6262,7 +7093,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6276,7 +7109,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'The gate the ticket holder should enter to get to their seat, such as "A" or "West". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#eventSeat"`.',
     ).optional(),
@@ -6290,7 +7125,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6304,7 +7141,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'The row of the seat, such as "1", E", "BB", or "A5". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
     seat: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -6315,7 +7154,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6329,7 +7170,9 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      'The seat number, such as "1", "2", "3", or any other seat identifier. This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
     section: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -6340,7 +7183,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6354,8 +7199,10 @@ const InputsSchema = z.object({
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
-  }).optional(),
+    }).describe(
+      'The section of the seat, such as "121". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.',
+    ).optional(),
+  }).describe("Seating details for this ticket.").optional(),
   smartTapRedemptionValue: z.string().describe(
     "The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields `enableSmartTap` and `redemptionIssuers` must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.",
   ).optional(),
@@ -6392,7 +7239,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6406,7 +7255,9 @@ const InputsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Translated strings for the body. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.",
+    ).optional(),
     localizedHeader: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -6417,7 +7268,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6431,7 +7284,9 @@ const InputsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Translated strings for the header. Recommended maximum length is 35 characters to ensure full string is displayed on smaller screens.",
+    ).optional(),
   })).describe(
     "Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.",
   ).optional(),
@@ -6451,7 +7306,9 @@ const InputsSchema = z.object({
       ).optional(),
       value: z.string().describe("The UTF-8 encoded translated string.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Contains the string to be displayed if no appropriate translation is available.",
+    ).optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
     ).optional(),
@@ -6465,13 +7322,17 @@ const InputsSchema = z.object({
       value: z.string().describe("The UTF-8 encoded translated string.")
         .optional(),
     })).describe("Contains the translations for the string.").optional(),
-  }).optional(),
+  }).describe(
+    'The type of the ticket, such as "Adult" or "Child", or "VIP" or "Standard".',
+  ).optional(),
   validTimeInterval: z.object({
     end: z.object({
       date: z.string().describe(
         "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+    ).optional(),
     kind: z.string().describe(
       'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
     ).optional(),
@@ -6479,8 +7340,12 @@ const InputsSchema = z.object({
       date: z.string().describe(
         "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
       ).optional(),
-    }).optional(),
-  }).optional(),
+    }).describe(
+      "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+    ).optional(),
+  }).describe(
+    "The time period this object will be `active` and object can be used. An object's state will be changed to `expired` when this time period has passed.",
+  ).optional(),
   valueAddedModuleData: z.array(z.object({
     body: z.object({
       defaultValue: z.object({
@@ -6492,7 +7357,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6506,7 +7373,9 @@ const InputsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Body to be displayed on the module. Character limit is 50 and longer strings will be truncated.",
+    ).optional(),
     header: z.object({
       defaultValue: z.object({
         kind: z.string().describe(
@@ -6517,7 +7386,9 @@ const InputsSchema = z.object({
         ).optional(),
         value: z.string().describe("The UTF-8 encoded translated string.")
           .optional(),
-      }).optional(),
+      }).describe(
+        "Contains the string to be displayed if no appropriate translation is available.",
+      ).optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
       ).optional(),
@@ -6531,7 +7402,9 @@ const InputsSchema = z.object({
         value: z.unknown().describe("The UTF-8 encoded translated string.")
           .optional(),
       })).describe("Contains the translations for the string.").optional(),
-    }).optional(),
+    }).describe(
+      "Header to be displayed on the module. Character limit is 60 and longer strings will be truncated.",
+    ).optional(),
     image: z.object({
       contentDescription: z.object({
         defaultValue: z.object({
@@ -6543,14 +7416,17 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("The UTF-8 encoded translated string.")
             .optional(),
-        }).optional(),
+        }).describe(
+          "Contains the string to be displayed if no appropriate translation is available.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
         ).optional(),
         translatedValues: z.array(z.unknown()).describe(
           "Contains the translations for the string.",
         ).optional(),
-      }).optional(),
+      }).describe("Description of the image used for accessibility.")
+        .optional(),
       kind: z.string().describe(
         'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#image"`.',
       ).optional(),
@@ -6562,19 +7438,27 @@ const InputsSchema = z.object({
           "Additional information about the image, which is unused and retained only for backward compatibility.",
         ).optional(),
         localizedDescription: z.object({
-          defaultValue: z.unknown().optional(),
+          defaultValue: z.unknown().describe(
+            "Contains the string to be displayed if no appropriate translation is available.",
+          ).optional(),
           kind: z.unknown().describe(
             'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#localizedString"`.',
           ).optional(),
           translatedValues: z.unknown().describe(
             "Contains the translations for the string.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Translated strings for the description, which are unused and retained only for backward compatibility.",
+        ).optional(),
         uri: z.string().describe(
           "The location of the image. URIs must have a scheme.",
         ).optional(),
-      }).optional(),
-    }).describe("Wrapping type for Google hosted images.").optional(),
+      }).describe(
+        "A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.",
+      ).optional(),
+    }).describe(
+      "Image to be displayed on the module. Recommended image ratio is 1:1. Images will be resized to fit this ratio.",
+    ).optional(),
     sortIndex: z.number().int().describe(
       "The index for sorting the modules. Modules with a lower sort index are shown before modules with a higher sort index. If unspecified, the sort index is assumed to be INT_MAX. For two modules with the same index, the sorting behavior is undefined.",
     ).optional(),
@@ -6587,7 +7471,9 @@ const InputsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "End time of the interval. Offset is not required. If an offset is provided and `start` time is set, `start` must also include an offset.",
+        ).optional(),
         kind: z.string().describe(
           'Identifies what kind of resource this is. Value: the fixed string `"walletobjects#timeInterval"`.',
         ).optional(),
@@ -6595,8 +7481,12 @@ const InputsSchema = z.object({
           date: z.unknown().describe(
             "An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field's documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: `1985-04-12T23:20:50.52Z` would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. `1985-04-12T19:20:50.52-04:00` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. `1985-04-12T19:20:50.52` would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user's time zone. For example, a time of `2018-06-19T18:30:00-04:00` will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user's current time zone. For example, a time of `2018-06-19T18:30:00` will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.",
           ).optional(),
-        }).optional(),
-      }).optional(),
+        }).describe(
+          "Start time of the interval. Offset is not required. If an offset is provided and `end` time is set, `end` must also include an offset.",
+        ).optional(),
+      }).describe(
+        "The period of time that the module will be displayed to users. Can define both a `startTime` and `endTime`. The module is displayed immediately after insertion unless a `startTime` is set. The module is displayed indefinitely if `endTime` is not set.",
+      ).optional(),
     }).describe("Constraints that all must be met for the module to be shown.")
       .optional(),
   })).describe(
@@ -6627,7 +7517,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Wallet Eventticketobject. Registered at `@swamp/gcp/walletobjects/eventticketobject`. */
 export const model = {
   type: "@swamp/gcp/walletobjects/eventticketobject",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -6726,6 +7616,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

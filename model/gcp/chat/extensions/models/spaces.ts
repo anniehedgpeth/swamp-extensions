@@ -190,23 +190,24 @@ const GlobalArgsSchema = z.object({
     accessPermissionSettings: z.object({
       discoverSpaceSetting: z.object({
         principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
+          audience: z.unknown().describe("An audience.").optional(),
         })).describe(
           "Optional. Unordered list. Allowed principals for this permission.",
         ).optional(),
-      }).describe("An access permission setting.").optional(),
+      }).describe(
+        "Optional. Access permission setting for discovering the space.",
+      ).optional(),
       joinSpaceSetting: z.object({
         principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
+          audience: z.unknown().describe("An audience.").optional(),
         })).describe(
           "Optional. Unordered list. Allowed principals for this permission.",
         ).optional(),
-      }).describe("An access permission setting.").optional(),
-    }).describe("Access permission settings for a space.").optional(),
+      }).describe("Optional. Access permission setting for joining the space.")
+        .optional(),
+    }).describe(
+      "Optional. Access permission settings for the space. To set the target audience when creating a space, specify the `accessSettings.audience` field in your request.",
+    ).optional(),
     accessState: z.enum(["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"])
       .describe("Output only. Indicates the access state of the space.")
       .optional(),
@@ -214,7 +215,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The resource name of the [target audience](https://support.google.com/a/answer/9934697) who can discover the space, join the space, and preview the messages in the space. If unset, only users or Google Groups who have been individually invited or added to the space can access it. For details, see [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience). Format: `audiences/{audience}` To use the default target audience for the Google Workspace organization, set to `audiences/default`. Reading the target audience supports: - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` scope. This field is not populated when using the `chat.bot` scope with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). Setting the target audience requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
     ).optional(),
   }).describe(
-    "Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.",
+    "Optional. Specifies the [access setting](https://support.google.com/chat/answer/11971020) of the space. Only populated when the `space_type` is `SPACE`.",
   ).optional(),
   customer: z.string().describe(
     "Optional. Immutable. The customer id of the domain of the space. Required only when creating a space with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and `SpaceType` is `SPACE`, otherwise should not be set. In the format `customers/{customer}`, where `customer` is the `id` from the [Admin SDK customer resource](https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers). Private apps can also use the `customers/my_customer` alias to create the space in the same Google Workspace organization as the app. This field isn't populated for direct messages (DMs) or when the space is created by non-Google Workspace users.",
@@ -224,16 +225,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   importMode: z.boolean().describe(
     "Optional. Whether this space is created in `Import Mode` as part of a data migration into Google Workspace. While spaces are being imported, they aren't visible to users until the import is complete. Creating a space in `Import Mode`requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
-  ).optional(),
-  membershipCount: z.object({
-    joinedDirectHumanUserCount: z.number().int().describe(
-      "Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.",
-    ).optional(),
-    joinedGroupCount: z.number().int().describe(
-      "Output only. Count of all groups that have directly joined the space.",
-    ).optional(),
-  }).describe(
-    "Represents the count of memberships of a space, grouped into categories.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the space. Format: `spaces/{space}` Where `{space}` represents the system-assigned ID for the space. You can obtain the space ID by calling the [`spaces.list()`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/list) method or from the space URL. For example, if the space URL is `https://mail.google.com/mail/u/0/#chat/space/AAAAAAAAA`, the space ID is `AAAAAAAAA`.",
@@ -249,7 +240,7 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for managing apps in a space.").optional(),
     manageMembersAndGroups: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -260,7 +251,8 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for managing members and groups in a space.")
+      .optional(),
     manageWebhooks: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -271,7 +263,8 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for managing webhooks in a space.")
+      .optional(),
     modifySpaceDetails: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -282,7 +275,9 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe(
+      "Optional. Setting for updating space name, avatar, description and guidelines.",
+    ).optional(),
     postMessages: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -293,7 +288,8 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Output only. Setting for posting messages in a space.")
+      .optional(),
     replyMessages: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -304,7 +300,8 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for replying to messages in a space.")
+      .optional(),
     toggleHistory: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -315,7 +312,8 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for toggling space history on and off.")
+      .optional(),
     useAtMentionAll: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -326,9 +324,9 @@ const GlobalArgsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for using @all in a space.").optional(),
   }).describe(
-    "[Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the `PredefinedPermissionSettings` field in your request.",
+    "Optional. Space permission settings for existing spaces. Input for updating exact space permission settings, where existing permission settings are replaced. Output lists current permission settings. Reading and updating permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` scope. Only populated and settable when the Chat app created the space. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)",
   ).optional(),
   predefinedPermissionSettings: z.enum([
     "PREDEFINED_PERMISSION_SETTINGS_UNSPECIFIED",
@@ -347,8 +345,9 @@ const GlobalArgsSchema = z.object({
     guidelines: z.string().describe(
       "Optional. The space's rules, expectations, and etiquette. Supports up to 5,000 characters.",
     ).optional(),
-  }).describe("Details about the space including description and rules.")
-    .optional(),
+  }).describe(
+    "Optional. Details about the space including description and rules.",
+  ).optional(),
   spaceHistoryState: z.enum([
     "HISTORY_STATE_UNSPECIFIED",
     "HISTORY_OFF",
@@ -458,23 +457,24 @@ const InputsSchema = z.object({
     accessPermissionSettings: z.object({
       discoverSpaceSetting: z.object({
         principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
+          audience: z.unknown().describe("An audience.").optional(),
         })).describe(
           "Optional. Unordered list. Allowed principals for this permission.",
         ).optional(),
-      }).describe("An access permission setting.").optional(),
+      }).describe(
+        "Optional. Access permission setting for discovering the space.",
+      ).optional(),
       joinSpaceSetting: z.object({
         principals: z.array(z.object({
-          audience: z.unknown().describe(
-            "A target audience in Google Chat. A target audience represents a group of users within a Google Workspace organization, defined by an administrator. Target audiences are used to configure access and visibility settings for resources, such as making a space discoverable to a specific group of users. For more details, see [Target audiences](https://support.google.com/a/answer/9934697) and [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience).",
-          ).optional(),
+          audience: z.unknown().describe("An audience.").optional(),
         })).describe(
           "Optional. Unordered list. Allowed principals for this permission.",
         ).optional(),
-      }).describe("An access permission setting.").optional(),
-    }).describe("Access permission settings for a space.").optional(),
+      }).describe("Optional. Access permission setting for joining the space.")
+        .optional(),
+    }).describe(
+      "Optional. Access permission settings for the space. To set the target audience when creating a space, specify the `accessSettings.audience` field in your request.",
+    ).optional(),
     accessState: z.enum(["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"])
       .describe("Output only. Indicates the access state of the space.")
       .optional(),
@@ -482,7 +482,7 @@ const InputsSchema = z.object({
       "Optional. The resource name of the [target audience](https://support.google.com/a/answer/9934697) who can discover the space, join the space, and preview the messages in the space. If unset, only users or Google Groups who have been individually invited or added to the space can access it. For details, see [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience). Format: `audiences/{audience}` To use the default target audience for the Google Workspace organization, set to `audiences/default`. Reading the target audience supports: - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` scope. This field is not populated when using the `chat.bot` scope with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). Setting the target audience requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
     ).optional(),
   }).describe(
-    "Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.",
+    "Optional. Specifies the [access setting](https://support.google.com/chat/answer/11971020) of the space. Only populated when the `space_type` is `SPACE`.",
   ).optional(),
   customer: z.string().describe(
     "Optional. Immutable. The customer id of the domain of the space. Required only when creating a space with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and `SpaceType` is `SPACE`, otherwise should not be set. In the format `customers/{customer}`, where `customer` is the `id` from the [Admin SDK customer resource](https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers). Private apps can also use the `customers/my_customer` alias to create the space in the same Google Workspace organization as the app. This field isn't populated for direct messages (DMs) or when the space is created by non-Google Workspace users.",
@@ -492,16 +492,6 @@ const InputsSchema = z.object({
   ).optional(),
   importMode: z.boolean().describe(
     "Optional. Whether this space is created in `Import Mode` as part of a data migration into Google Workspace. While spaces are being imported, they aren't visible to users until the import is complete. Creating a space in `Import Mode`requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).",
-  ).optional(),
-  membershipCount: z.object({
-    joinedDirectHumanUserCount: z.number().int().describe(
-      "Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.",
-    ).optional(),
-    joinedGroupCount: z.number().int().describe(
-      "Output only. Count of all groups that have directly joined the space.",
-    ).optional(),
-  }).describe(
-    "Represents the count of memberships of a space, grouped into categories.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the space. Format: `spaces/{space}` Where `{space}` represents the system-assigned ID for the space. You can obtain the space ID by calling the [`spaces.list()`](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/list) method or from the space URL. For example, if the space URL is `https://mail.google.com/mail/u/0/#chat/space/AAAAAAAAA`, the space ID is `AAAAAAAAA`.",
@@ -517,7 +507,7 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for managing apps in a space.").optional(),
     manageMembersAndGroups: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -528,7 +518,8 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for managing members and groups in a space.")
+      .optional(),
     manageWebhooks: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -539,7 +530,8 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for managing webhooks in a space.")
+      .optional(),
     modifySpaceDetails: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -550,7 +542,9 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe(
+      "Optional. Setting for updating space name, avatar, description and guidelines.",
+    ).optional(),
     postMessages: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -561,7 +555,8 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Output only. Setting for posting messages in a space.")
+      .optional(),
     replyMessages: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -572,7 +567,8 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for replying to messages in a space.")
+      .optional(),
     toggleHistory: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -583,7 +579,8 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for toggling space history on and off.")
+      .optional(),
     useAtMentionAll: z.object({
       assistantManagersAllowed: z.boolean().describe(
         "Optional. Whether space managers `ROLE_ASSISTANT_MANAGER`) have this permission.",
@@ -594,9 +591,9 @@ const InputsSchema = z.object({
       membersAllowed: z.boolean().describe(
         "Optional. Whether basic space members (`ROLE_MEMBER`) have this permission.",
       ).optional(),
-    }).describe("Represents a space permission setting.").optional(),
+    }).describe("Optional. Setting for using @all in a space.").optional(),
   }).describe(
-    "[Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the `PredefinedPermissionSettings` field in your request.",
+    "Optional. Space permission settings for existing spaces. Input for updating exact space permission settings, where existing permission settings are replaced. Output lists current permission settings. Reading and updating permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the `chat.app.spaces` scope. Only populated and settable when the Chat app created the space. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)",
   ).optional(),
   predefinedPermissionSettings: z.enum([
     "PREDEFINED_PERMISSION_SETTINGS_UNSPECIFIED",
@@ -615,8 +612,9 @@ const InputsSchema = z.object({
     guidelines: z.string().describe(
       "Optional. The space's rules, expectations, and etiquette. Supports up to 5,000 characters.",
     ).optional(),
-  }).describe("Details about the space including description and rules.")
-    .optional(),
+  }).describe(
+    "Optional. Details about the space including description and rules.",
+  ).optional(),
   spaceHistoryState: z.enum([
     "HISTORY_STATE_UNSPECIFIED",
     "HISTORY_OFF",
@@ -652,7 +650,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces. Registered at `@swamp/gcp/chat/spaces`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -789,6 +787,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: membershipCount",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { membershipCount: _membershipCount, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -819,9 +825,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["importMode"] !== undefined) body["importMode"] = g["importMode"];
-        if (g["membershipCount"] !== undefined) {
-          body["membershipCount"] = g["membershipCount"];
-        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["permissionSettings"] !== undefined) {
           body["permissionSettings"] = g["permissionSettings"];
@@ -935,9 +938,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["importMode"] !== undefined) body["importMode"] = g["importMode"];
-        if (g["membershipCount"] !== undefined) {
-          body["membershipCount"] = g["membershipCount"];
-        }
         if (g["permissionSettings"] !== undefined) {
           body["permissionSettings"] = g["permissionSettings"];
         }

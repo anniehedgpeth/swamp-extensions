@@ -169,23 +169,13 @@ const GlobalArgsSchema = z.object({
       "Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in `global`. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
   }).describe(
-    "Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).",
+    "Optional. The customer-managed encryption configuration of the regionalized secrets. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.",
   ).optional(),
   expireTime: z.string().describe(
     "Optional. Timestamp in UTC when the Secret is scheduled to expire. This is always provided on output, regardless of what was sent on input.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels assigned to this Secret. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `\\p{Ll}\\p{Lo}{0,62}` Label values must be between 0 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `[\\p{Ll}\\p{Lo}\\p{N}_-]{0,63}` No more than 64 labels can be assigned to a given resource.",
-  ).optional(),
-  policyMember: z.object({
-    iamPolicyNamePrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: `principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter`",
-    ).optional(),
-    iamPolicyUidPrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: `principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5`",
-    ).optional(),
-  }).describe(
-    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
   ).optional(),
   replication: z.object({
     automatic: z.object({
@@ -194,10 +184,10 @@ const GlobalArgsSchema = z.object({
           "Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in `global`. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
         ).optional(),
       }).describe(
-        "Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).",
+        "Optional. The customer-managed encryption configuration of the Secret. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.",
       ).optional(),
     }).describe(
-      "A replication policy that replicates the Secret payload without any restrictions.",
+      "The Secret will automatically be replicated without any restrictions.",
     ).optional(),
     userManaged: z.object({
       replicas: z.array(z.object({
@@ -206,7 +196,7 @@ const GlobalArgsSchema = z.object({
             "Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in `global`. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
           ).optional(),
         }).describe(
-          "Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).",
+          "Optional. The customer-managed encryption configuration of the User-Managed Replica. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.",
         ).optional(),
         location: z.string().describe(
           'The canonical IDs of the location to replicate data. For example: `"us-east1"`.',
@@ -215,10 +205,10 @@ const GlobalArgsSchema = z.object({
         "Required. The list of Replicas for this Secret. Cannot be empty.",
       ).optional(),
     }).describe(
-      "A replication policy that replicates the Secret payload into the locations specified in Replication.UserManaged.replicas",
+      "The Secret will only be replicated into the locations specified.",
     ).optional(),
   }).describe(
-    "A policy that defines the replication and encryption configuration of data.",
+    "Optional. Immutable. The replication policy of the secret data attached to the Secret. The replication policy cannot be changed after the Secret has been created.",
   ).optional(),
   rotation: z.object({
     managedRotationStatus: z.object({
@@ -233,13 +223,13 @@ const GlobalArgsSchema = z.object({
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
       }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+        "Output only. Displays customer-facing issues that occurred during an asynchronous managed rotation. For example, if there are some permission errors.",
       ).optional(),
       state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]).describe(
         "Output only. Indicates whether the Managed Rotation is active or not.",
       ).optional(),
     }).describe(
-      "Represents the status of a managed rotation. This is applicable only to Typed Secrets. It indicates whether the rotation is active and any errors that may have occurred during the asynchronous managed rotation.",
+      "Output only. The current status of the managed rotation. This field is only applicable to Typed Secrets. This field is set by the service and cannot be set by the user.",
     ).optional(),
     nextRotationTime: z.string().describe(
       "Optional. Timestamp in UTC at which the Secret is scheduled to rotate. Cannot be set to less than 300s (5 min) in the future and at most 3153600000s (100 years). next_rotation_time MUST be set if rotation_period is set.",
@@ -248,7 +238,7 @@ const GlobalArgsSchema = z.object({
       "Input only. The Duration between rotation notifications. Must be in seconds and at least 3600s (1h) and at most 3153600000s (100 years). If rotation_period is set, next_rotation_time must be set. next_rotation_time will be advanced by this period when the service automatically sends rotation notifications.",
     ).optional(),
   }).describe(
-    "The rotation time and period for a Secret. At next_rotation_time, Secret Manager will send a Pub/Sub notification to the topics configured on the Secret. Secret.topics must be set to configure rotation.",
+    "Optional. Rotation policy attached to the Secret. May be excluded if there is no rotation policy.",
   ).optional(),
   secretType: z.enum([
     "SECRET_TYPE_UNSPECIFIED",
@@ -352,23 +342,13 @@ const InputsSchema = z.object({
       "Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in `global`. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
     ).optional(),
   }).describe(
-    "Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).",
+    "Optional. The customer-managed encryption configuration of the regionalized secrets. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.",
   ).optional(),
   expireTime: z.string().describe(
     "Optional. Timestamp in UTC when the Secret is scheduled to expire. This is always provided on output, regardless of what was sent on input.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "The labels assigned to this Secret. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `\\p{Ll}\\p{Lo}{0,62}` Label values must be between 0 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: `[\\p{Ll}\\p{Lo}\\p{N}_-]{0,63}` No more than 64 labels can be assigned to a given resource.",
-  ).optional(),
-  policyMember: z.object({
-    iamPolicyNamePrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: `principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter`",
-    ).optional(),
-    iamPolicyUidPrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resource Example: `principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5`",
-    ).optional(),
-  }).describe(
-    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
   ).optional(),
   replication: z.object({
     automatic: z.object({
@@ -377,10 +357,10 @@ const InputsSchema = z.object({
           "Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in `global`. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
         ).optional(),
       }).describe(
-        "Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).",
+        "Optional. The customer-managed encryption configuration of the Secret. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.",
       ).optional(),
     }).describe(
-      "A replication policy that replicates the Secret payload without any restrictions.",
+      "The Secret will automatically be replicated without any restrictions.",
     ).optional(),
     userManaged: z.object({
       replicas: z.array(z.object({
@@ -389,7 +369,7 @@ const InputsSchema = z.object({
             "Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in `global`. The expected format is `projects/*/locations/*/keyRings/*/cryptoKeys/*`.",
           ).optional(),
         }).describe(
-          "Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).",
+          "Optional. The customer-managed encryption configuration of the User-Managed Replica. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.",
         ).optional(),
         location: z.string().describe(
           'The canonical IDs of the location to replicate data. For example: `"us-east1"`.',
@@ -398,10 +378,10 @@ const InputsSchema = z.object({
         "Required. The list of Replicas for this Secret. Cannot be empty.",
       ).optional(),
     }).describe(
-      "A replication policy that replicates the Secret payload into the locations specified in Replication.UserManaged.replicas",
+      "The Secret will only be replicated into the locations specified.",
     ).optional(),
   }).describe(
-    "A policy that defines the replication and encryption configuration of data.",
+    "Optional. Immutable. The replication policy of the secret data attached to the Secret. The replication policy cannot be changed after the Secret has been created.",
   ).optional(),
   rotation: z.object({
     managedRotationStatus: z.object({
@@ -416,13 +396,13 @@ const InputsSchema = z.object({
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
       }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+        "Output only. Displays customer-facing issues that occurred during an asynchronous managed rotation. For example, if there are some permission errors.",
       ).optional(),
       state: z.enum(["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]).describe(
         "Output only. Indicates whether the Managed Rotation is active or not.",
       ).optional(),
     }).describe(
-      "Represents the status of a managed rotation. This is applicable only to Typed Secrets. It indicates whether the rotation is active and any errors that may have occurred during the asynchronous managed rotation.",
+      "Output only. The current status of the managed rotation. This field is only applicable to Typed Secrets. This field is set by the service and cannot be set by the user.",
     ).optional(),
     nextRotationTime: z.string().describe(
       "Optional. Timestamp in UTC at which the Secret is scheduled to rotate. Cannot be set to less than 300s (5 min) in the future and at most 3153600000s (100 years). next_rotation_time MUST be set if rotation_period is set.",
@@ -431,7 +411,7 @@ const InputsSchema = z.object({
       "Input only. The Duration between rotation notifications. Must be in seconds and at least 3600s (1h) and at most 3153600000s (100 years). If rotation_period is set, next_rotation_time must be set. next_rotation_time will be advanced by this period when the service automatically sends rotation notifications.",
     ).optional(),
   }).describe(
-    "The rotation time and period for a Secret. At next_rotation_time, Secret Manager will send a Pub/Sub notification to the topics configured on the Secret. Secret.topics must be set to configure rotation.",
+    "Optional. Rotation policy attached to the Secret. May be excluded if there is no rotation policy.",
   ).optional(),
   secretType: z.enum([
     "SECRET_TYPE_UNSPECIFIED",
@@ -491,7 +471,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secret Manager Secrets. Registered at `@swamp/gcp/secretmanager/secrets`. */
 export const model = {
   type: "@swamp/gcp/secretmanager/secrets",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -620,6 +600,14 @@ export const model = {
       description: "Added: policyMember, secretType",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: policyMember",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { policyMember: _policyMember, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -653,9 +641,6 @@ export const model = {
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["policyMember"] !== undefined) {
-          body["policyMember"] = g["policyMember"];
-        }
         if (g["replication"] !== undefined) {
           body["replication"] = g["replication"];
         }
@@ -686,16 +671,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -788,12 +764,6 @@ export const model = {
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["policyMember"] !== undefined) {
-          body["policyMember"] = g["policyMember"];
-        }
-        if (g["replication"] !== undefined) {
-          body["replication"] = g["replication"];
-        }
         if (g["rotation"] !== undefined) body["rotation"] = g["rotation"];
         if (g["topics"] !== undefined) body["topics"] = g["topics"];
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];

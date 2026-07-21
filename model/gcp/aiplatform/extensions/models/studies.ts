@@ -158,16 +158,14 @@ const GlobalArgsSchema = z.object({
       useElapsedDuration: z.boolean().describe(
         "This bool determines whether or not the rule is applied based on elapsed_secs or steps. If use_elapsed_duration==false, the early stopping decision is made according to the predicted objective values according to the target steps. If use_elapsed_duration==true, elapsed_secs is used instead of steps. Also, in this case, the parameters max_num_steps and min_num_steps are overloaded to contain max_elapsed_seconds and min_elapsed_seconds.",
       ).optional(),
-    }).describe(
-      "Configuration for ConvexAutomatedStoppingSpec. When there are enough completed trials (configured by min_measurement_count), for pending trials with enough measurements and steps, the policy first computes an overestimate of the objective value at max_num_steps according to the slope of the incomplete objective value curve. No prediction can be made if the curve is completely flat. If the overestimation is worse than the best objective value of the completed trials, this pending trial will be early-stopped, but a last measurement will be added to the pending trial with max_num_steps and predicted objective value from the autoregression model.",
-    ).optional(),
+    }).describe("The automated early stopping spec using convex stopping rule.")
+      .optional(),
     decayCurveStoppingSpec: z.object({
       useElapsedDuration: z.boolean().describe(
         "True if Measurement.elapsed_duration is used as the x-axis of each Trials Decay Curve. Otherwise, Measurement.step_count will be used as the x-axis.",
       ).optional(),
-    }).describe(
-      "The decay curve automated stopping rule builds a Gaussian Process Regressor to predict the final objective value of a Trial based on the already completed Trials and the intermediate measurements of the current Trial. Early stopping is requested for the current Trial if there is very low probability to exceed the optimal value found so far.",
-    ).optional(),
+    }).describe("The automated early stopping spec using decay curve rule.")
+      .optional(),
     measurementSelectionType: z.enum([
       "MEASUREMENT_SELECTION_TYPE_UNSPECIFIED",
       "LAST_MEASUREMENT",
@@ -178,9 +176,8 @@ const GlobalArgsSchema = z.object({
       useElapsedDuration: z.boolean().describe(
         "True if median automated stopping rule applies on Measurement.elapsed_duration. It means that elapsed_duration field of latest measurement of current Trial is used to compute median objective value for each completed Trials.",
       ).optional(),
-    }).describe(
-      "The median automated stopping rule stops a pending Trial if the Trial's best objective_value is strictly below the median 'performance' of all completed Trials reported up to the Trial's last measurement. Currently, 'performance' refers to the running average of the objective values reported by the Trial in each measurement.",
-    ).optional(),
+    }).describe("The automated early stopping spec using median rule.")
+      .optional(),
     metrics: z.array(z.object({
       goal: z.enum(["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]).describe(
         "Required. The optimization goal of the metric.",
@@ -196,7 +193,7 @@ const GlobalArgsSchema = z.object({
           "Safety threshold (boundary value between safe and unsafe). NOTE that if you leave SafetyMetricConfig unset, a default value of 0 will be used.",
         ).optional(),
       }).describe(
-        "Used in safe optimization to specify threshold levels and risk tolerance.",
+        "Used for safe search. In the case, the metric will be a safety metric. You must provide a separate metric for objective metric.",
       ).optional(),
     })).describe("Required. Metric specs for the Study.").optional(),
     observationNoise: z.enum(["OBSERVATION_NOISE_UNSPECIFIED", "LOW", "HIGH"])
@@ -211,20 +208,19 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Required. The list of possible categories.",
         ).optional(),
-      }).describe("Value specification for a parameter in `CATEGORICAL` type.")
-        .optional(),
+      }).describe("The value spec for a 'CATEGORICAL' parameter.").optional(),
       conditionalParameterSpecs: z.array(z.object({
         parameterSpec: z.unknown().describe(
           "Circular reference to GoogleCloudAiplatformV1StudySpecParameterSpec",
         ).optional(),
         parentCategoricalValues: z.unknown().describe(
-          "Represents the spec to match categorical values from parent parameter.",
+          "The spec for matching values from a parent parameter of `CATEGORICAL` type.",
         ).optional(),
         parentDiscreteValues: z.unknown().describe(
-          "Represents the spec to match discrete values from parent parameter.",
+          "The spec for matching values from a parent parameter of `DISCRETE` type.",
         ).optional(),
         parentIntValues: z.unknown().describe(
-          "Represents the spec to match integer values from parent parameter.",
+          "The spec for matching values from a parent parameter of `INTEGER` type.",
         ).optional(),
       })).describe(
         "A conditional parameter node is active if the parameter's value matches the conditional node's parent_value_condition. If two items in conditional_parameter_specs have the same name, they must have disjoint parent_value_condition.",
@@ -236,8 +232,7 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Required. A list of possible values. The list should be in increasing order and at least 1e-10 apart. For instance, this parameter might have possible settings of 1.5, 2.5, and 4.0. This list should not contain more than 1,000 values.",
         ).optional(),
-      }).describe("Value specification for a parameter in `DISCRETE` type.")
-        .optional(),
+      }).describe("The value spec for a 'DISCRETE' parameter.").optional(),
       doubleValueSpec: z.object({
         defaultValue: z.number().describe(
           "A default value for a `DOUBLE` parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.",
@@ -248,8 +243,7 @@ const GlobalArgsSchema = z.object({
         minValue: z.number().describe(
           "Required. Inclusive minimum value of the parameter.",
         ).optional(),
-      }).describe("Value specification for a parameter in `DOUBLE` type.")
-        .optional(),
+      }).describe("The value spec for a 'DOUBLE' parameter.").optional(),
       integerValueSpec: z.object({
         defaultValue: z.string().describe(
           "A default value for an `INTEGER` parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.",
@@ -260,8 +254,7 @@ const GlobalArgsSchema = z.object({
         minValue: z.string().describe(
           "Required. Inclusive minimum value of the parameter.",
         ).optional(),
-      }).describe("Value specification for a parameter in `INTEGER` type.")
-        .optional(),
+      }).describe("The value spec for an 'INTEGER' parameter.").optional(),
       parameterId: z.string().describe(
         "Required. The ID of the parameter. Must not contain whitespaces and must be unique amongst all ParameterSpecs.",
       ).optional(),
@@ -291,7 +284,9 @@ const GlobalArgsSchema = z.object({
         maxDuration: z.string().describe(
           "Counts the wallclock time passed since the creation of this Study.",
         ).optional(),
-      }).describe("Time-based Constraint for Study").optional(),
+      }).describe(
+        "If the specified time or duration has passed, stop the study.",
+      ).optional(),
       minNumTrials: z.number().int().describe(
         "If there are fewer than this many COMPLETED trials, do not stop the study.",
       ).optional(),
@@ -302,14 +297,16 @@ const GlobalArgsSchema = z.object({
         maxDuration: z.string().describe(
           "Counts the wallclock time passed since the creation of this Study.",
         ).optional(),
-      }).describe("Time-based Constraint for Study").optional(),
+      }).describe(
+        'Each "stopping rule" in this proto specifies an "if" condition. Before Vizier would generate a new suggestion, it first checks each specified stopping rule, from top to bottom in this list. Note that the first few rules (e.g. minimum_runtime_constraint, min_num_trials) will prevent other stopping rules from being evaluated until they are met. For example, setting `min_num_trials=5` and `always_stop_after= 1 hour` means that the Study will ONLY stop after it has 5 COMPLETED trials, even if more than an hour has passed since its creation. It follows the first applicable rule (whose "if" condition is satisfied) to make a stopping decision. If none of the specified rules are applicable, then Vizier decides that the study should not stop. If Vizier decides that the study should stop, the study enters STOPPING state (or STOPPING_ASAP if should_stop_asap = true). IMPORTANT: The automatic study state transition happens precisely as described above; that is, deleting trials or updating StudyConfig NEVER automatically moves the study state back to ACTIVE. If you want to _resume_ a Study that was stopped, 1) change the stopping conditions if necessary, 2) activate the study, and then 3) ask for suggestions. If the specified time or duration has not passed, do not stop the study.',
+      ).optional(),
       shouldStopAsap: z.boolean().describe(
         "If true, a Study enters STOPPING_ASAP whenever it would normally enters STOPPING state. The bottom line is: set to true if you want to interrupt on-going evaluations of Trials as soon as the study stopping condition is met. (Please see Study.State documentation for the source of truth).",
       ).optional(),
     }).describe(
-      "The configuration (stopping conditions) for automated stopping of a Study. Conditions include trial budgets, time budgets, and convergence detection.",
+      "Conditions for automated stopping of a Study. Enable automated stopping by configuring at least one condition.",
     ).optional(),
-  }).describe("Represents specification of a Study.").optional(),
+  }).describe("Required. Configuration of the Study.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -426,16 +423,14 @@ const InputsSchema = z.object({
       useElapsedDuration: z.boolean().describe(
         "This bool determines whether or not the rule is applied based on elapsed_secs or steps. If use_elapsed_duration==false, the early stopping decision is made according to the predicted objective values according to the target steps. If use_elapsed_duration==true, elapsed_secs is used instead of steps. Also, in this case, the parameters max_num_steps and min_num_steps are overloaded to contain max_elapsed_seconds and min_elapsed_seconds.",
       ).optional(),
-    }).describe(
-      "Configuration for ConvexAutomatedStoppingSpec. When there are enough completed trials (configured by min_measurement_count), for pending trials with enough measurements and steps, the policy first computes an overestimate of the objective value at max_num_steps according to the slope of the incomplete objective value curve. No prediction can be made if the curve is completely flat. If the overestimation is worse than the best objective value of the completed trials, this pending trial will be early-stopped, but a last measurement will be added to the pending trial with max_num_steps and predicted objective value from the autoregression model.",
-    ).optional(),
+    }).describe("The automated early stopping spec using convex stopping rule.")
+      .optional(),
     decayCurveStoppingSpec: z.object({
       useElapsedDuration: z.boolean().describe(
         "True if Measurement.elapsed_duration is used as the x-axis of each Trials Decay Curve. Otherwise, Measurement.step_count will be used as the x-axis.",
       ).optional(),
-    }).describe(
-      "The decay curve automated stopping rule builds a Gaussian Process Regressor to predict the final objective value of a Trial based on the already completed Trials and the intermediate measurements of the current Trial. Early stopping is requested for the current Trial if there is very low probability to exceed the optimal value found so far.",
-    ).optional(),
+    }).describe("The automated early stopping spec using decay curve rule.")
+      .optional(),
     measurementSelectionType: z.enum([
       "MEASUREMENT_SELECTION_TYPE_UNSPECIFIED",
       "LAST_MEASUREMENT",
@@ -446,9 +441,8 @@ const InputsSchema = z.object({
       useElapsedDuration: z.boolean().describe(
         "True if median automated stopping rule applies on Measurement.elapsed_duration. It means that elapsed_duration field of latest measurement of current Trial is used to compute median objective value for each completed Trials.",
       ).optional(),
-    }).describe(
-      "The median automated stopping rule stops a pending Trial if the Trial's best objective_value is strictly below the median 'performance' of all completed Trials reported up to the Trial's last measurement. Currently, 'performance' refers to the running average of the objective values reported by the Trial in each measurement.",
-    ).optional(),
+    }).describe("The automated early stopping spec using median rule.")
+      .optional(),
     metrics: z.array(z.object({
       goal: z.enum(["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]).describe(
         "Required. The optimization goal of the metric.",
@@ -464,7 +458,7 @@ const InputsSchema = z.object({
           "Safety threshold (boundary value between safe and unsafe). NOTE that if you leave SafetyMetricConfig unset, a default value of 0 will be used.",
         ).optional(),
       }).describe(
-        "Used in safe optimization to specify threshold levels and risk tolerance.",
+        "Used for safe search. In the case, the metric will be a safety metric. You must provide a separate metric for objective metric.",
       ).optional(),
     })).describe("Required. Metric specs for the Study.").optional(),
     observationNoise: z.enum(["OBSERVATION_NOISE_UNSPECIFIED", "LOW", "HIGH"])
@@ -479,20 +473,19 @@ const InputsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Required. The list of possible categories.",
         ).optional(),
-      }).describe("Value specification for a parameter in `CATEGORICAL` type.")
-        .optional(),
+      }).describe("The value spec for a 'CATEGORICAL' parameter.").optional(),
       conditionalParameterSpecs: z.array(z.object({
         parameterSpec: z.unknown().describe(
           "Circular reference to GoogleCloudAiplatformV1StudySpecParameterSpec",
         ).optional(),
         parentCategoricalValues: z.unknown().describe(
-          "Represents the spec to match categorical values from parent parameter.",
+          "The spec for matching values from a parent parameter of `CATEGORICAL` type.",
         ).optional(),
         parentDiscreteValues: z.unknown().describe(
-          "Represents the spec to match discrete values from parent parameter.",
+          "The spec for matching values from a parent parameter of `DISCRETE` type.",
         ).optional(),
         parentIntValues: z.unknown().describe(
-          "Represents the spec to match integer values from parent parameter.",
+          "The spec for matching values from a parent parameter of `INTEGER` type.",
         ).optional(),
       })).describe(
         "A conditional parameter node is active if the parameter's value matches the conditional node's parent_value_condition. If two items in conditional_parameter_specs have the same name, they must have disjoint parent_value_condition.",
@@ -504,8 +497,7 @@ const InputsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "Required. A list of possible values. The list should be in increasing order and at least 1e-10 apart. For instance, this parameter might have possible settings of 1.5, 2.5, and 4.0. This list should not contain more than 1,000 values.",
         ).optional(),
-      }).describe("Value specification for a parameter in `DISCRETE` type.")
-        .optional(),
+      }).describe("The value spec for a 'DISCRETE' parameter.").optional(),
       doubleValueSpec: z.object({
         defaultValue: z.number().describe(
           "A default value for a `DOUBLE` parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.",
@@ -516,8 +508,7 @@ const InputsSchema = z.object({
         minValue: z.number().describe(
           "Required. Inclusive minimum value of the parameter.",
         ).optional(),
-      }).describe("Value specification for a parameter in `DOUBLE` type.")
-        .optional(),
+      }).describe("The value spec for a 'DOUBLE' parameter.").optional(),
       integerValueSpec: z.object({
         defaultValue: z.string().describe(
           "A default value for an `INTEGER` parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.",
@@ -528,8 +519,7 @@ const InputsSchema = z.object({
         minValue: z.string().describe(
           "Required. Inclusive minimum value of the parameter.",
         ).optional(),
-      }).describe("Value specification for a parameter in `INTEGER` type.")
-        .optional(),
+      }).describe("The value spec for an 'INTEGER' parameter.").optional(),
       parameterId: z.string().describe(
         "Required. The ID of the parameter. Must not contain whitespaces and must be unique amongst all ParameterSpecs.",
       ).optional(),
@@ -559,7 +549,9 @@ const InputsSchema = z.object({
         maxDuration: z.string().describe(
           "Counts the wallclock time passed since the creation of this Study.",
         ).optional(),
-      }).describe("Time-based Constraint for Study").optional(),
+      }).describe(
+        "If the specified time or duration has passed, stop the study.",
+      ).optional(),
       minNumTrials: z.number().int().describe(
         "If there are fewer than this many COMPLETED trials, do not stop the study.",
       ).optional(),
@@ -570,14 +562,16 @@ const InputsSchema = z.object({
         maxDuration: z.string().describe(
           "Counts the wallclock time passed since the creation of this Study.",
         ).optional(),
-      }).describe("Time-based Constraint for Study").optional(),
+      }).describe(
+        'Each "stopping rule" in this proto specifies an "if" condition. Before Vizier would generate a new suggestion, it first checks each specified stopping rule, from top to bottom in this list. Note that the first few rules (e.g. minimum_runtime_constraint, min_num_trials) will prevent other stopping rules from being evaluated until they are met. For example, setting `min_num_trials=5` and `always_stop_after= 1 hour` means that the Study will ONLY stop after it has 5 COMPLETED trials, even if more than an hour has passed since its creation. It follows the first applicable rule (whose "if" condition is satisfied) to make a stopping decision. If none of the specified rules are applicable, then Vizier decides that the study should not stop. If Vizier decides that the study should stop, the study enters STOPPING state (or STOPPING_ASAP if should_stop_asap = true). IMPORTANT: The automatic study state transition happens precisely as described above; that is, deleting trials or updating StudyConfig NEVER automatically moves the study state back to ACTIVE. If you want to _resume_ a Study that was stopped, 1) change the stopping conditions if necessary, 2) activate the study, and then 3) ask for suggestions. If the specified time or duration has not passed, do not stop the study.',
+      ).optional(),
       shouldStopAsap: z.boolean().describe(
         "If true, a Study enters STOPPING_ASAP whenever it would normally enters STOPPING state. The bottom line is: set to true if you want to interrupt on-going evaluations of Trials as soon as the study stopping condition is met. (Please see Study.State documentation for the source of truth).",
       ).optional(),
     }).describe(
-      "The configuration (stopping conditions) for automated stopping of a Study. Conditions include trial budgets, time budgets, and convergence detection.",
+      "Conditions for automated stopping of a Study. Enable automated stopping by configuring at least one condition.",
     ).optional(),
-  }).describe("Represents specification of a Study.").optional(),
+  }).describe("Required. Configuration of the Study.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -606,7 +600,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Studies. Registered at `@swamp/gcp/aiplatform/studies`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/studies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -735,6 +729,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

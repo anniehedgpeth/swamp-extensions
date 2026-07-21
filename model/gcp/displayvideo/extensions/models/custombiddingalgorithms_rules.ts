@@ -149,21 +149,12 @@ const GlobalArgsSchema = z.object({
   customBiddingAlgorithmId: z.string().describe(
     "Output only. The unique ID of the custom bidding algorithm that the rules resource belongs to.",
   ).optional(),
-  error: z.object({
-    errorCode: z.enum([
-      "ERROR_CODE_UNSPECIFIED",
-      "SYNTAX_ERROR",
-      "CONSTRAINT_VIOLATION_ERROR",
-      "INTERNAL_ERROR",
-    ]).describe("The type of error.").optional(),
-  }).describe("An error message for a CustomBiddingAlgorithmRules resource.")
-    .optional(),
   rules: z.object({
     resourceName: z.string().describe(
       "A resource name to be used in media.download to download the rules files. Or media.upload to upload the rules files. Resource names have the format `customBiddingAlgorithms/{custom_bidding_algorithm_id}/rulesRef/{ref_id}`.",
     ).optional(),
   }).describe(
-    "The reference to the uploaded AlgorithmRules file. Retrieve the location to upload new AlgorithmRules file to using customBiddingAlgorithms.uploadRules.",
+    "Required. Immutable. The reference to the uploaded AlgorithmRules file.",
   ).optional(),
   advertiserId: z.string().describe(
     "The ID of the advertiser that owns the parent custom bidding algorithm.",
@@ -199,21 +190,12 @@ const InputsSchema = z.object({
   customBiddingAlgorithmId: z.string().describe(
     "Output only. The unique ID of the custom bidding algorithm that the rules resource belongs to.",
   ).optional(),
-  error: z.object({
-    errorCode: z.enum([
-      "ERROR_CODE_UNSPECIFIED",
-      "SYNTAX_ERROR",
-      "CONSTRAINT_VIOLATION_ERROR",
-      "INTERNAL_ERROR",
-    ]).describe("The type of error.").optional(),
-  }).describe("An error message for a CustomBiddingAlgorithmRules resource.")
-    .optional(),
   rules: z.object({
     resourceName: z.string().describe(
       "A resource name to be used in media.download to download the rules files. Or media.upload to upload the rules files. Resource names have the format `customBiddingAlgorithms/{custom_bidding_algorithm_id}/rulesRef/{ref_id}`.",
     ).optional(),
   }).describe(
-    "The reference to the uploaded AlgorithmRules file. Retrieve the location to upload new AlgorithmRules file to using customBiddingAlgorithms.uploadRules.",
+    "Required. Immutable. The reference to the uploaded AlgorithmRules file.",
   ).optional(),
   advertiserId: z.string().describe(
     "The ID of the advertiser that owns the parent custom bidding algorithm.",
@@ -246,7 +228,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 CustomBiddingAlgorithms.Rules. Registered at `@swamp/gcp/displayvideo/custombiddingalgorithms-rules`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/custombiddingalgorithms-rules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -338,6 +320,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -364,7 +354,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["rules"] !== undefined) body["rules"] = g["rules"];
         if (g["advertiserId"] !== undefined) {
           params["advertiserId"] = String(g["advertiserId"]);
@@ -382,16 +371,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "customBiddingAlgorithmId": String(
-                g["customBiddingAlgorithmId"] ?? "",
-              ),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

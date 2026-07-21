@@ -210,7 +210,9 @@ const GlobalArgsSchema = z.object({
       size: z.number().int().describe(
         "Number of bytes for the message part data (encoding notwithstanding).",
       ).optional(),
-    }).describe("The body of a single MIME message part.").optional(),
+    }).describe(
+      "The message part body for this part, which may be empty for container MIME message parts.",
+    ).optional(),
     filename: z.string().describe(
       "The filename of the attachment. Only present if this message part represents an attachment.",
     ).optional(),
@@ -231,7 +233,7 @@ const GlobalArgsSchema = z.object({
     parts: z.array(z.record(z.string(), z.unknown())).describe(
       "The child MIME message parts of this part. This only applies to container MIME message parts, for example `multipart/*`. For non- container MIME message part types, such as `text/plain`, this field is empty. For more information, see RFC 1521.",
     ).optional(),
-  }).describe("A single MIME message part.").optional(),
+  }).describe("The parsed email structure in the message parts.").optional(),
   raw: z.string().describe(
     "The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in `messages.get` and `drafts.get` responses when the `format=RAW` parameter is supplied. @required gmail.users.drafts.create gmail.users.drafts.update",
   ),
@@ -330,7 +332,9 @@ const InputsSchema = z.object({
       size: z.number().int().describe(
         "Number of bytes for the message part data (encoding notwithstanding).",
       ).optional(),
-    }).describe("The body of a single MIME message part.").optional(),
+    }).describe(
+      "The message part body for this part, which may be empty for container MIME message parts.",
+    ).optional(),
     filename: z.string().describe(
       "The filename of the attachment. Only present if this message part represents an attachment.",
     ).optional(),
@@ -351,7 +355,7 @@ const InputsSchema = z.object({
     parts: z.array(z.record(z.string(), z.unknown())).describe(
       "The child MIME message parts of this part. This only applies to container MIME message parts, for example `multipart/*`. For non- container MIME message part types, such as `text/plain`, this field is empty. For more information, see RFC 1521.",
     ).optional(),
-  }).describe("A single MIME message part.").optional(),
+  }).describe("The parsed email structure in the message parts.").optional(),
   raw: z.string().describe(
     "The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in `messages.get` and `drafts.get` responses when the `format=RAW` parameter is supplied. @required gmail.users.drafts.create gmail.users.drafts.update",
   ).optional(),
@@ -396,7 +400,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Messages. Registered at `@swamp/gcp/gmail/users-messages`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-messages",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -525,6 +529,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

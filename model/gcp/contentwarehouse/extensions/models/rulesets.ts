@@ -157,49 +157,38 @@ const GlobalArgsSchema = z.object({
         operationType: z.unknown().describe("Identifies the type of operation.")
           .optional(),
         policy: z.unknown().describe(
-          'An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A `Policy` is a collection of `bindings`. A `binding` binds one or more `members`, or principals, to a single `role`. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A `role` is a named list of permissions; each `role` can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a `binding` can also specify a `condition`, which is a logical expression that allows access to a resource only if the expression evaluates to `true`. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:** ` { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time < timestamp(\'2020-10-01T00:00:00.000Z\')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } ` **YAML example:** ` bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time < timestamp(\'2020-10-01T00:00:00.000Z\') etag: BwWWja0YfJA= version: 3 ` For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).',
+          "Represents the new policy from which bindings are added, removed or replaced based on the type of the operation. the policy is limited to a few 10s of KB.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for access control list management operations.",
-      ).optional(),
+      }).describe("Action triggering access control operations.").optional(),
       actionId: z.string().describe("ID of the action. Managed internally.")
         .optional(),
       addToFolder: z.object({
         folders: z.unknown().describe(
           "Names of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for adding document under a folder.",
-      ).optional(),
+      }).describe("Action triggering create document link operation.")
+        .optional(),
       dataUpdate: z.object({
         entries: z.unknown().describe(
           'Map of (K, V) -> (valid name of the field, new value of the field) E.g., ("age", "60") entry triggers update of field age with a value of 60. If the field is not present then new entry is added. During update action execution, value strings will be casted to appropriate types.',
         ).optional(),
-      }).describe(
-        "Represents the action responsible for properties update operations.",
-      ).optional(),
+      }).describe("Action triggering data update operations.").optional(),
       dataValidation: z.object({
         conditions: z.unknown().describe(
           'Map of (K, V) -> (field, string condition to be evaluated on the field) E.g., ("age", "age > 18 && age < 60") entry triggers validation of field age with the given condition. Map entries will be ANDed during validation.',
         ).optional(),
-      }).describe(
-        "Represents the action responsible for data validation operations.",
-      ).optional(),
+      }).describe("Action triggering data validation operations.").optional(),
       deleteDocumentAction: z.object({
         enableHardDelete: z.unknown().describe(
           "Boolean field to select between hard vs soft delete options. Set 'true' for 'hard delete' and 'false' for 'soft delete'.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for deleting the document.",
-      ).optional(),
+      }).describe("Action deleting the document.").optional(),
       publishToPubSub: z.object({
         messages: z.unknown().describe("Messages to be published.").optional(),
         topicId: z.unknown().describe(
           "The topic id in the Pub/Sub service for which messages will be published to.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for publishing messages to a Pub/Sub topic.",
-      ).optional(),
+      }).describe("Action publish to Pub/Sub operation.").optional(),
       removeFromFolderAction: z.object({
         condition: z.unknown().describe(
           "Condition of the action to be executed.",
@@ -207,9 +196,7 @@ const GlobalArgsSchema = z.object({
         folder: z.unknown().describe(
           "Name of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for remove a document from a specific folder.",
-      ).optional(),
+      }).describe("Action removing a document from a folder.").optional(),
     })).describe(
       "List of actions that are executed when the rule is satisfied.",
     ).optional(),
@@ -242,27 +229,27 @@ const GlobalArgsSchema = z.object({
     rules: z.array(z.object({
       actions: z.array(z.object({
         accessControl: z.unknown().describe(
-          "Represents the action responsible for access control list management operations.",
+          "Action triggering access control operations.",
         ).optional(),
         actionId: z.unknown().describe("ID of the action. Managed internally.")
           .optional(),
         addToFolder: z.unknown().describe(
-          "Represents the action responsible for adding document under a folder.",
+          "Action triggering create document link operation.",
         ).optional(),
         dataUpdate: z.unknown().describe(
-          "Represents the action responsible for properties update operations.",
+          "Action triggering data update operations.",
         ).optional(),
         dataValidation: z.unknown().describe(
-          "Represents the action responsible for data validation operations.",
+          "Action triggering data validation operations.",
         ).optional(),
         deleteDocumentAction: z.unknown().describe(
-          "Represents the action responsible for deleting the document.",
+          "Action deleting the document.",
         ).optional(),
         publishToPubSub: z.unknown().describe(
-          "Represents the action responsible for publishing messages to a Pub/Sub topic.",
+          "Action publish to Pub/Sub operation.",
         ).optional(),
         removeFromFolderAction: z.unknown().describe(
-          "Represents the action responsible for remove a document from a specific folder.",
+          "Action removing a document from a folder.",
         ).optional(),
       })).describe(
         "List of actions that are executed when the rule is satisfied.",
@@ -287,7 +274,7 @@ const GlobalArgsSchema = z.object({
     })).describe("List of rules given by the customer.").optional(),
     source: z.string().describe("Source of the rules i.e., customer name.")
       .optional(),
-  }).describe("Represents a set of rules from a single customer.").optional(),
+  }).describe("Required. The rule set to update.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -350,49 +337,38 @@ const InputsSchema = z.object({
         operationType: z.unknown().describe("Identifies the type of operation.")
           .optional(),
         policy: z.unknown().describe(
-          'An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A `Policy` is a collection of `bindings`. A `binding` binds one or more `members`, or principals, to a single `role`. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A `role` is a named list of permissions; each `role` can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a `binding` can also specify a `condition`, which is a logical expression that allows access to a resource only if the expression evaluates to `true`. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:** ` { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time < timestamp(\'2020-10-01T00:00:00.000Z\')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } ` **YAML example:** ` bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time < timestamp(\'2020-10-01T00:00:00.000Z\') etag: BwWWja0YfJA= version: 3 ` For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).',
+          "Represents the new policy from which bindings are added, removed or replaced based on the type of the operation. the policy is limited to a few 10s of KB.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for access control list management operations.",
-      ).optional(),
+      }).describe("Action triggering access control operations.").optional(),
       actionId: z.string().describe("ID of the action. Managed internally.")
         .optional(),
       addToFolder: z.object({
         folders: z.unknown().describe(
           "Names of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for adding document under a folder.",
-      ).optional(),
+      }).describe("Action triggering create document link operation.")
+        .optional(),
       dataUpdate: z.object({
         entries: z.unknown().describe(
           'Map of (K, V) -> (valid name of the field, new value of the field) E.g., ("age", "60") entry triggers update of field age with a value of 60. If the field is not present then new entry is added. During update action execution, value strings will be casted to appropriate types.',
         ).optional(),
-      }).describe(
-        "Represents the action responsible for properties update operations.",
-      ).optional(),
+      }).describe("Action triggering data update operations.").optional(),
       dataValidation: z.object({
         conditions: z.unknown().describe(
           'Map of (K, V) -> (field, string condition to be evaluated on the field) E.g., ("age", "age > 18 && age < 60") entry triggers validation of field age with the given condition. Map entries will be ANDed during validation.',
         ).optional(),
-      }).describe(
-        "Represents the action responsible for data validation operations.",
-      ).optional(),
+      }).describe("Action triggering data validation operations.").optional(),
       deleteDocumentAction: z.object({
         enableHardDelete: z.unknown().describe(
           "Boolean field to select between hard vs soft delete options. Set 'true' for 'hard delete' and 'false' for 'soft delete'.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for deleting the document.",
-      ).optional(),
+      }).describe("Action deleting the document.").optional(),
       publishToPubSub: z.object({
         messages: z.unknown().describe("Messages to be published.").optional(),
         topicId: z.unknown().describe(
           "The topic id in the Pub/Sub service for which messages will be published to.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for publishing messages to a Pub/Sub topic.",
-      ).optional(),
+      }).describe("Action publish to Pub/Sub operation.").optional(),
       removeFromFolderAction: z.object({
         condition: z.unknown().describe(
           "Condition of the action to be executed.",
@@ -400,9 +376,7 @@ const InputsSchema = z.object({
         folder: z.unknown().describe(
           "Name of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.",
         ).optional(),
-      }).describe(
-        "Represents the action responsible for remove a document from a specific folder.",
-      ).optional(),
+      }).describe("Action removing a document from a folder.").optional(),
     })).describe(
       "List of actions that are executed when the rule is satisfied.",
     ).optional(),
@@ -435,27 +409,27 @@ const InputsSchema = z.object({
     rules: z.array(z.object({
       actions: z.array(z.object({
         accessControl: z.unknown().describe(
-          "Represents the action responsible for access control list management operations.",
+          "Action triggering access control operations.",
         ).optional(),
         actionId: z.unknown().describe("ID of the action. Managed internally.")
           .optional(),
         addToFolder: z.unknown().describe(
-          "Represents the action responsible for adding document under a folder.",
+          "Action triggering create document link operation.",
         ).optional(),
         dataUpdate: z.unknown().describe(
-          "Represents the action responsible for properties update operations.",
+          "Action triggering data update operations.",
         ).optional(),
         dataValidation: z.unknown().describe(
-          "Represents the action responsible for data validation operations.",
+          "Action triggering data validation operations.",
         ).optional(),
         deleteDocumentAction: z.unknown().describe(
-          "Represents the action responsible for deleting the document.",
+          "Action deleting the document.",
         ).optional(),
         publishToPubSub: z.unknown().describe(
-          "Represents the action responsible for publishing messages to a Pub/Sub topic.",
+          "Action publish to Pub/Sub operation.",
         ).optional(),
         removeFromFolderAction: z.unknown().describe(
-          "Represents the action responsible for remove a document from a specific folder.",
+          "Action removing a document from a folder.",
         ).optional(),
       })).describe(
         "List of actions that are executed when the rule is satisfied.",
@@ -480,7 +454,7 @@ const InputsSchema = z.object({
     })).describe("List of rules given by the customer.").optional(),
     source: z.string().describe("Source of the rules i.e., customer name.")
       .optional(),
-  }).describe("Represents a set of rules from a single customer.").optional(),
+  }).describe("Required. The rule set to update.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -509,7 +483,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Document AI Warehouse RuleSets. Registered at `@swamp/gcp/contentwarehouse/rulesets`. */
 export const model = {
   type: "@swamp/gcp/contentwarehouse/rulesets",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -618,6 +592,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

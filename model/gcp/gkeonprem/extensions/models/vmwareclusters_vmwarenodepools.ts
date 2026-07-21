@@ -226,12 +226,8 @@ const GlobalArgsSchema = z.object({
         category: z.string().describe("The Vsphere tag category.").optional(),
         tag: z.string().describe("The Vsphere tag name.").optional(),
       })).describe("Tags to apply to VMs.").optional(),
-    }).describe(
-      "VmwareVsphereConfig represents configuration for the VMware VCenter for node pool.",
-    ).optional(),
-  }).describe(
-    "Parameters that describe the configuration of all nodes within a given node pool.",
-  ).optional(),
+    }).describe("Specifies the vSphere config for node pool.").optional(),
+  }).describe("Required. The node configuration of the node pool.").optional(),
   displayName: z.string().describe("The display name for the node pool.")
     .optional(),
   name: z.string().describe("Immutable. The resource name of this node pool.")
@@ -243,54 +239,9 @@ const GlobalArgsSchema = z.object({
     minReplicas: z.number().int().describe(
       "Minimum number of replicas in the NodePool.",
     ).optional(),
-  }).describe(
-    "NodePoolAutoscaling config for the NodePool to allow for the kubernetes to scale NodePool.",
-  ).optional(),
+  }).describe("Node pool autoscaling config for the node pool.").optional(),
   onPremVersion: z.string().describe(
     "Anthos version for the node pool. Defaults to the user cluster version.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
   ).optional(),
   vmwareNodePoolId: z.string().describe(
     "The ID to use for the node pool, which will become the final component of the node pool's resource name. This value must be up to 40 characters and follow RFC-1123 (https://tools.ietf.org/html/rfc1123) format. The value must not be permitted to be a UUID (or UUID-like: anything matching /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i).",
@@ -418,12 +369,8 @@ const InputsSchema = z.object({
         category: z.string().describe("The Vsphere tag category.").optional(),
         tag: z.string().describe("The Vsphere tag name.").optional(),
       })).describe("Tags to apply to VMs.").optional(),
-    }).describe(
-      "VmwareVsphereConfig represents configuration for the VMware VCenter for node pool.",
-    ).optional(),
-  }).describe(
-    "Parameters that describe the configuration of all nodes within a given node pool.",
-  ).optional(),
+    }).describe("Specifies the vSphere config for node pool.").optional(),
+  }).describe("Required. The node configuration of the node pool.").optional(),
   displayName: z.string().describe("The display name for the node pool.")
     .optional(),
   name: z.string().describe("Immutable. The resource name of this node pool.")
@@ -435,54 +382,9 @@ const InputsSchema = z.object({
     minReplicas: z.number().int().describe(
       "Minimum number of replicas in the NodePool.",
     ).optional(),
-  }).describe(
-    "NodePoolAutoscaling config for the NodePool to allow for the kubernetes to scale NodePool.",
-  ).optional(),
+  }).describe("Node pool autoscaling config for the node pool.").optional(),
   onPremVersion: z.string().describe(
     "Anthos version for the node pool. Defaults to the user cluster version.",
-  ).optional(),
-  status: z.object({
-    conditions: z.array(z.object({
-      lastTransitionTime: z.string().describe(
-        "Last time the condition transit from one status to another.",
-      ).optional(),
-      message: z.string().describe(
-        "Human-readable message indicating details about last transition.",
-      ).optional(),
-      reason: z.string().describe(
-        "Machine-readable message indicating details about last transition.",
-      ).optional(),
-      state: z.enum([
-        "STATE_UNSPECIFIED",
-        "STATE_TRUE",
-        "STATE_FALSE",
-        "STATE_UNKNOWN",
-      ]).describe("state of the condition.").optional(),
-      type: z.string().describe(
-        "Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)",
-      ).optional(),
-    })).describe(
-      "ResourceCondition provide a standard mechanism for higher-level status reporting from controller.",
-    ).optional(),
-    errorMessage: z.string().describe(
-      "Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.",
-    ).optional(),
-    version: z.string().describe("Reflect current version of the resource.")
-      .optional(),
-    versions: z.object({
-      versions: z.array(z.object({
-        count: z.string().describe(
-          "Number of machines under the above version.",
-        ).optional(),
-        version: z.string().describe("Resource version.").optional(),
-      })).describe(
-        "Shows the mapping of a given version to the number of machines under this version.",
-      ).optional(),
-    }).describe(
-      "Versions describes the mapping of a given version to the number of machines under this version.",
-    ).optional(),
-  }).describe(
-    "ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).",
   ).optional(),
   vmwareNodePoolId: z.string().describe(
     "The ID to use for the node pool, which will become the final component of the node pool's resource name. This value must be up to 40 characters and follow RFC-1123 (https://tools.ietf.org/html/rfc1123) format. The value must not be permitted to be a UUID (or UUID-like: anything matching /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i).",
@@ -518,7 +420,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE On-Prem VmwareClusters.VmwareNodePools. Registered at `@swamp/gcp/gkeonprem/vmwareclusters-vmwarenodepools`. */
 export const model = {
   type: "@swamp/gcp/gkeonprem/vmwareclusters-vmwarenodepools",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -625,6 +527,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -665,7 +575,6 @@ export const model = {
         if (g["onPremVersion"] !== undefined) {
           body["onPremVersion"] = g["onPremVersion"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["vmwareNodePoolId"] !== undefined) {
           params["vmwareNodePoolId"] = String(g["vmwareNodePoolId"]);
         }
@@ -798,7 +707,6 @@ export const model = {
         if (g["onPremVersion"] !== undefined) {
           body["onPremVersion"] = g["onPremVersion"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

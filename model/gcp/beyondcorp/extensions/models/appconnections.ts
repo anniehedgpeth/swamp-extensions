@@ -186,8 +186,9 @@ const GlobalArgsSchema = z.object({
     port: z.number().int().describe(
       "Required. Port of the remote application endpoint.",
     ).optional(),
-  }).describe("ApplicationEndpoint represents a remote application endpoint.")
-    .optional(),
+  }).describe(
+    "Required. Address of the remote application endpoint for the BeyondCorp AppConnection.",
+  ).optional(),
   connectors: z.array(z.string()).describe(
     "Optional. List of [google.cloud.beyondcorp.v1main.Connector.name] that are authorized to be associated with this AppConnection.",
   ).optional(),
@@ -210,9 +211,7 @@ const GlobalArgsSchema = z.object({
     uri: z.string().describe(
       "Output only. Server-defined URI for this resource.",
     ).optional(),
-  }).describe(
-    "Gateway represents a user facing component that serves as an entrance to enable connectivity.",
-  ).optional(),
+  }).describe("Optional. Gateway used by the AppConnection.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Resource labels to represent user provided metadata.",
   ).optional(),
@@ -272,8 +271,9 @@ const InputsSchema = z.object({
     port: z.number().int().describe(
       "Required. Port of the remote application endpoint.",
     ).optional(),
-  }).describe("ApplicationEndpoint represents a remote application endpoint.")
-    .optional(),
+  }).describe(
+    "Required. Address of the remote application endpoint for the BeyondCorp AppConnection.",
+  ).optional(),
   connectors: z.array(z.string()).describe(
     "Optional. List of [google.cloud.beyondcorp.v1main.Connector.name] that are authorized to be associated with this AppConnection.",
   ).optional(),
@@ -296,9 +296,7 @@ const InputsSchema = z.object({
     uri: z.string().describe(
       "Output only. Server-defined URI for this resource.",
     ).optional(),
-  }).describe(
-    "Gateway represents a user facing component that serves as an entrance to enable connectivity.",
-  ).optional(),
+  }).describe("Optional. Gateway used by the AppConnection.").optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Resource labels to represent user provided metadata.",
   ).optional(),
@@ -342,7 +340,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BeyondCorp AppConnections. Registered at `@swamp/gcp/beyondcorp/appconnections`. */
 export const model = {
   type: "@swamp/gcp/beyondcorp/appconnections",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -471,6 +469,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -191,9 +191,8 @@ const GlobalArgsSchema = z.object({
     regionCode: z.string().describe(
       "Required. CLDR territory code or the country the postal code group applies to.",
     ).optional(),
-  }).describe(
-    "A list of postal codes that defines the region area. Note: All regions defined using postal codes are accessible via the account's `ShippingSettings.postalCodeGroups` resource.",
-  ).optional(),
+  }).describe("A list of postal codes that defines the region area.")
+    .optional(),
 });
 
 const StateSchema = z.object({
@@ -244,9 +243,8 @@ const InputsSchema = z.object({
     regionCode: z.string().describe(
       "Required. CLDR territory code or the country the postal code group applies to.",
     ).optional(),
-  }).describe(
-    "A list of postal codes that defines the region area. Note: All regions defined using postal codes are accessible via the account's `ShippingSettings.postalCodeGroups` resource.",
-  ).optional(),
+  }).describe("A list of postal codes that defines the region area.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -272,7 +270,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Regions. Registered at `@swamp/gcp/content/regions`. */
 export const model = {
   type: "@swamp/gcp/content/regions",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -361,6 +359,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

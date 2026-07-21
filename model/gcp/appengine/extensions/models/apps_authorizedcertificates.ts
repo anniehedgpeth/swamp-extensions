@@ -175,8 +175,9 @@ const GlobalArgsSchema = z.object({
     publicCertificate: z.string().describe(
       "PEM encoded x.509 public key certificate. This field is set once on certificate creation. Must include the header and footer. Example: -----BEGIN CERTIFICATE----- -----END CERTIFICATE-----",
     ).optional(),
-  }).describe("An SSL certificate obtained from a certificate authority.")
-    .optional(),
+  }).describe(
+    "The SSL certificate serving the AuthorizedCertificate resource. This must be obtained independently from a certificate authority.",
+  ).optional(),
   displayName: z.string().describe(
     "The user-specified display name of the certificate. This is not guaranteed to be unique. Example: My Certificate.",
   ).optional(),
@@ -201,7 +202,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Status of certificate management. Refers to the most recent certificate acquisition or renewal attempt.@OutputOnly",
     ).optional(),
-  }).describe("A certificate managed by App Engine.").optional(),
+  }).describe(
+    "Only applicable if this certificate is managed by App Engine. Managed certificates are tied to the lifecycle of a DomainMapping and cannot be updated or deleted via the AuthorizedCertificates API. If this certificate is manually administered by the user, this field will be empty.@OutputOnly",
+  ).optional(),
   appsId: z.string().describe(
     "Part of `parent`. Required. Name of the parent Application resource. Example: apps/myapp.",
   ),
@@ -240,8 +243,9 @@ const InputsSchema = z.object({
     publicCertificate: z.string().describe(
       "PEM encoded x.509 public key certificate. This field is set once on certificate creation. Must include the header and footer. Example: -----BEGIN CERTIFICATE----- -----END CERTIFICATE-----",
     ).optional(),
-  }).describe("An SSL certificate obtained from a certificate authority.")
-    .optional(),
+  }).describe(
+    "The SSL certificate serving the AuthorizedCertificate resource. This must be obtained independently from a certificate authority.",
+  ).optional(),
   displayName: z.string().describe(
     "The user-specified display name of the certificate. This is not guaranteed to be unique. Example: My Certificate.",
   ).optional(),
@@ -266,7 +270,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Status of certificate management. Refers to the most recent certificate acquisition or renewal attempt.@OutputOnly",
     ).optional(),
-  }).describe("A certificate managed by App Engine.").optional(),
+  }).describe(
+    "Only applicable if this certificate is managed by App Engine. Managed certificates are tied to the lifecycle of a DomainMapping and cannot be updated or deleted via the AuthorizedCertificates API. If this certificate is manually administered by the user, this field will be empty.@OutputOnly",
+  ).optional(),
   appsId: z.string().describe(
     "Part of `parent`. Required. Name of the parent Application resource. Example: apps/myapp.",
   ).optional(),
@@ -295,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.AuthorizedCertificates. Registered at `@swamp/gcp/appengine/apps-authorizedcertificates`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-authorizedcertificates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -389,6 +395,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -534,9 +545,6 @@ export const model = {
           body["domainMappingsCount"] = g["domainMappingsCount"];
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
-        if (g["managedCertificate"] !== undefined) {
-          body["managedCertificate"] = g["managedCertificate"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

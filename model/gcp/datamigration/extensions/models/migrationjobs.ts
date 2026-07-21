@@ -179,7 +179,7 @@ const GlobalArgsSchema = z.object({
     name: z.string().describe(
       "The resource name (URI) of the conversion workspace.",
     ).optional(),
-  }).describe("A conversion workspace's version.").optional(),
+  }).describe("The conversion workspace used by the migration.").optional(),
   destination: z.string().describe(
     "Required. The resource name (URI) of the destination connection profile.",
   ).optional(),
@@ -199,7 +199,7 @@ const GlobalArgsSchema = z.object({
       "ALLOYDB",
       "AZURE_DATABASE",
     ]).describe("The database provider.").optional(),
-  }).describe("A message defining the database engine and provider.")
+  }).describe("The database engine type and provider of the destination.")
     .optional(),
   displayName: z.string().describe("The migration job display name.")
     .optional(),
@@ -208,25 +208,14 @@ const GlobalArgsSchema = z.object({
       name: z.string().describe("The name of the flag").optional(),
       value: z.string().describe("The value of the flag.").optional(),
     })).describe("The flags for the initial dump.").optional(),
-  }).describe("Dump flags definition.").optional(),
+  }).describe(
+    'The initial dump flags. This field and the "dump_path" field are mutually exclusive.',
+  ).optional(),
   dumpPath: z.string().describe(
     'The path to the dump file in Google Cloud Storage, in the format: (gs://[BUCKET_NAME]/[OBJECT_NAME]). This field and the "dump_flags" field are mutually exclusive.',
   ).optional(),
   dumpType: z.enum(["DUMP_TYPE_UNSPECIFIED", "LOGICAL", "PHYSICAL"]).describe(
     "Optional. The type of the data dump. Supported for MySQL to CloudSQL for MySQL migrations only.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
   ).optional(),
   filter: z.string().describe(
     "This field can be used to select the entities to migrate as part of the migration job. It uses AIP-160 notation to select a subset of the entities configured on the associated conversion-workspace. This field should not be set on migration-jobs that are not associated with a conversion workspace.",
@@ -238,7 +227,8 @@ const GlobalArgsSchema = z.object({
     isPrimaryDestination: z.boolean().describe(
       "Optional. Whether the destination for the migration job is a primary instance.",
     ).optional(),
-  }).describe("Configuration for MySQL to MySQL migrations.").optional(),
+  }).describe("Optional. Configuration for MySQL homogeneous migration.")
+    .optional(),
   name: z.string().describe(
     "The name (URI) of this migration job resource, in the form of: projects/{project}/locations/{location}/migrationJobs/{migrationJob}.",
   ).optional(),
@@ -258,7 +248,7 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Required. The type of the migration job object.",
           ).optional(),
-        }).describe("An identifier for the Migration Job Object.").optional(),
+        }).describe("Optional. The object identifier.").optional(),
       })).describe("Optional. The list of the objects to be migrated.")
         .optional(),
       objectsSelectionType: z.enum([
@@ -267,9 +257,8 @@ const GlobalArgsSchema = z.object({
         "SPECIFIED_OBJECTS",
       ]).describe("Optional. The objects selection type of the migration job.")
         .optional(),
-    }).describe("List of configurations for the source objects to be migrated.")
-      .optional(),
-  }).describe("Configuration for the objects to be migrated.").optional(),
+    }).describe("The list of the migration job objects.").optional(),
+  }).describe("Optional. The objects that need to be migrated.").optional(),
   oracleToPostgresConfig: z.object({
     oracleSourceConfig: z.object({
       binaryLogParser: z.object({
@@ -280,20 +269,14 @@ const GlobalArgsSchema = z.object({
           onlineLogDirectory: z.string().describe(
             "Required. Oracle directory for online logs.",
           ).optional(),
-        }).describe(
-          "Configuration to specify the Oracle directories to access the log files.",
-        ).optional(),
-        oracleAsmLogFileAccess: z.object({}).describe(
-          "Configuration to use Oracle ASM to access the log files.",
-        ).optional(),
-      }).describe("Configuration to use Binary Log Parser CDC technique.")
-        .optional(),
+        }).describe("Use Oracle directories.").optional(),
+        oracleAsmLogFileAccess: z.object({}).describe("Use Oracle ASM.")
+          .optional(),
+      }).describe("Use Binary Log Parser.").optional(),
       cdcStartPosition: z.string().describe(
         "Optional. The schema change number (SCN) to start CDC data migration from.",
       ).optional(),
-      logMiner: z.object({}).describe(
-        "Configuration to use LogMiner CDC method.",
-      ).optional(),
+      logMiner: z.object({}).describe("Use LogMiner.").optional(),
       maxConcurrentCdcConnections: z.number().int().describe(
         "Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.",
       ).optional(),
@@ -303,8 +286,7 @@ const GlobalArgsSchema = z.object({
       skipFullDump: z.boolean().describe(
         "Optional. Whether to skip full dump or not.",
       ).optional(),
-    }).describe("Configuration for Oracle as a source in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for Oracle source.").optional(),
     postgresDestinationConfig: z.object({
       maxConcurrentConnections: z.number().int().describe(
         "Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.",
@@ -312,8 +294,7 @@ const GlobalArgsSchema = z.object({
       transactionTimeout: z.string().describe(
         "Optional. Timeout for data migration transactions.",
       ).optional(),
-    }).describe("Configuration for Postgres as a destination in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for Postgres destination.").optional(),
   }).describe(
     "Configuration for heterogeneous **Oracle to Cloud SQL for PostgreSQL** and **Oracle to AlloyDB for PostgreSQL** migrations.",
   ).optional(),
@@ -327,7 +308,8 @@ const GlobalArgsSchema = z.object({
       "OPTIMAL",
       "MAX",
     ]).describe("Initial dump parallelism level.").optional(),
-  }).describe("Performance configuration definition.").optional(),
+  }).describe("Optional. Data dump parallelism settings used by the migration.")
+    .optional(),
   postgresHomogeneousConfig: z.object({
     isNativeLogical: z.boolean().describe(
       "Required. Whether the migration is native logical.",
@@ -335,15 +317,14 @@ const GlobalArgsSchema = z.object({
     maxAdditionalSubscriptions: z.number().int().describe(
       "Optional. Maximum number of additional subscriptions to use for the migration job.",
     ).optional(),
-  }).describe("Configuration for PostgreSQL to PostgreSQL migrations.")
+  }).describe("Optional. Configuration for PostgreSQL homogeneous migration.")
     .optional(),
   postgresToSqlserverConfig: z.object({
     postgresSourceConfig: z.object({
       skipFullDump: z.boolean().describe(
         "Optional. Whether to skip full dump or not.",
       ).optional(),
-    }).describe("Configuration for Postgres as a source in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for PostgreSQL source.").optional(),
     sqlserverDestinationConfig: z.object({
       maxConcurrentConnections: z.number().int().describe(
         "Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.",
@@ -351,7 +332,7 @@ const GlobalArgsSchema = z.object({
       transactionTimeout: z.string().describe(
         "Optional. Timeout for data migration transactions.",
       ).optional(),
-    }).describe("Configuration for SQL Server as a destination in a migration.")
+    }).describe("Optional. Configuration for SQL Server destination.")
       .optional(),
   }).describe(
     "Configuration for heterogeneous failback migrations from **PostgreSQL to SQL Server**.",
@@ -370,7 +351,7 @@ const GlobalArgsSchema = z.object({
       "The name of the VPC to peer with the Cloud SQL private network.",
     ).optional(),
   }).describe(
-    "The details needed to configure a reverse SSH tunnel between the source and destination databases. These details will be used when calling the generateSshScript method (see https://cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.migrationJobs/generateSshScript) to produce the script that will help set up the reverse SSH tunnel, and to set up the VPC peering between the Cloud SQL private network and the VPC.",
+    "The details needed to communicate to the source over Reverse SSH tunnel connectivity.",
   ).optional(),
   source: z.string().describe(
     "Required. The resource name (URI) of the source connection profile.",
@@ -391,7 +372,7 @@ const GlobalArgsSchema = z.object({
       "ALLOYDB",
       "AZURE_DATABASE",
     ]).describe("The database provider.").optional(),
-  }).describe("A message defining the database engine and provider.")
+  }).describe("The database engine type and provider of the source.")
     .optional(),
   sqlserverHomogeneousMigrationJobConfig: z.object({
     backupFilePattern: z.string().describe(
@@ -405,7 +386,7 @@ const GlobalArgsSchema = z.object({
         "Required. The name of the source availability group. Only used by DAG migrations.",
       ).optional(),
     }).describe(
-      "Configuration for distributed availability group (DAG) for the SQL Server homogeneous migration.",
+      "Optional. Configuration for distributed availability group (DAG) for the SQL Server homogeneous migration.",
     ).optional(),
     databaseBackups: z.array(z.object({
       database: z.string().describe(
@@ -421,8 +402,9 @@ const GlobalArgsSchema = z.object({
         pvkPath: z.string().describe(
           "Required. Path to the Certificate Private Key (.pvk) in Cloud Storage, in the form `gs://bucketName/fileName`. The instance must have write permissions to the bucket and read access to the file.",
         ).optional(),
-      }).describe("Encryption settings for the SQL Server database.")
-        .optional(),
+      }).describe(
+        "Optional. Encryption settings for the database. Required if provided database backups are encrypted. Encryption settings include path to certificate, path to certificate private key, and key password.",
+      ).optional(),
     })).describe("Required. Backup details per database in Cloud Storage.")
       .optional(),
     promoteWhenReady: z.boolean().describe(
@@ -431,9 +413,8 @@ const GlobalArgsSchema = z.object({
     useDiffBackup: z.boolean().describe(
       "Optional. Enable differential backups.",
     ).optional(),
-  }).describe(
-    "Configuration for homogeneous migration to Cloud SQL for SQL Server.",
-  ).optional(),
+  }).describe("Optional. Configuration for SQL Server homogeneous migration.")
+    .optional(),
   sqlserverToPostgresConfig: z.object({
     postgresDestinationConfig: z.object({
       maxConcurrentConnections: z.number().int().describe(
@@ -442,8 +423,7 @@ const GlobalArgsSchema = z.object({
       transactionTimeout: z.string().describe(
         "Optional. Timeout for data migration transactions.",
       ).optional(),
-    }).describe("Configuration for Postgres as a destination in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for Postgres destination.").optional(),
     sqlserverSourceConfig: z.object({
       cdcStartPosition: z.string().describe(
         "Optional. The log sequence number (LSN) to start CDC data migration from.",
@@ -457,8 +437,7 @@ const GlobalArgsSchema = z.object({
       skipFullDump: z.boolean().describe(
         "Optional. Whether to skip full dump or not.",
       ).optional(),
-    }).describe("Configuration for SQL Server as a source in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for SQL Server source.").optional(),
   }).describe(
     "Configuration for heterogeneous **SQL Server to Cloud SQL for PostgreSQL** migrations.",
   ).optional(),
@@ -481,7 +460,7 @@ const GlobalArgsSchema = z.object({
     "RESUMING",
   ]).describe("The current migration job state.").optional(),
   staticIpConnectivity: z.object({}).describe(
-    "The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.",
+    "static ip connectivity data (default, no additional details needed).",
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "ONE_TIME", "CONTINUOUS"]).describe(
     "Required. The migration job type.",
@@ -491,7 +470,7 @@ const GlobalArgsSchema = z.object({
       "The name of the VPC network to peer with the Cloud SQL private network.",
     ).optional(),
   }).describe(
-    "The details of the VPC where the source database is located in Google Cloud. We will use this information to set up the VPC peering connection between Cloud SQL and this VPC.",
+    "The details of the VPC network that the source database is located in.",
   ).optional(),
   migrationJobId: z.string().describe(
     "Required. The ID of the instance to create.",
@@ -657,7 +636,7 @@ const InputsSchema = z.object({
     name: z.string().describe(
       "The resource name (URI) of the conversion workspace.",
     ).optional(),
-  }).describe("A conversion workspace's version.").optional(),
+  }).describe("The conversion workspace used by the migration.").optional(),
   destination: z.string().describe(
     "Required. The resource name (URI) of the destination connection profile.",
   ).optional(),
@@ -677,7 +656,7 @@ const InputsSchema = z.object({
       "ALLOYDB",
       "AZURE_DATABASE",
     ]).describe("The database provider.").optional(),
-  }).describe("A message defining the database engine and provider.")
+  }).describe("The database engine type and provider of the destination.")
     .optional(),
   displayName: z.string().describe("The migration job display name.")
     .optional(),
@@ -686,25 +665,14 @@ const InputsSchema = z.object({
       name: z.string().describe("The name of the flag").optional(),
       value: z.string().describe("The value of the flag.").optional(),
     })).describe("The flags for the initial dump.").optional(),
-  }).describe("Dump flags definition.").optional(),
+  }).describe(
+    'The initial dump flags. This field and the "dump_path" field are mutually exclusive.',
+  ).optional(),
   dumpPath: z.string().describe(
     'The path to the dump file in Google Cloud Storage, in the format: (gs://[BUCKET_NAME]/[OBJECT_NAME]). This field and the "dump_flags" field are mutually exclusive.',
   ).optional(),
   dumpType: z.enum(["DUMP_TYPE_UNSPECIFIED", "LOGICAL", "PHYSICAL"]).describe(
     "Optional. The type of the data dump. Supported for MySQL to CloudSQL for MySQL migrations only.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
   ).optional(),
   filter: z.string().describe(
     "This field can be used to select the entities to migrate as part of the migration job. It uses AIP-160 notation to select a subset of the entities configured on the associated conversion-workspace. This field should not be set on migration-jobs that are not associated with a conversion workspace.",
@@ -716,7 +684,8 @@ const InputsSchema = z.object({
     isPrimaryDestination: z.boolean().describe(
       "Optional. Whether the destination for the migration job is a primary instance.",
     ).optional(),
-  }).describe("Configuration for MySQL to MySQL migrations.").optional(),
+  }).describe("Optional. Configuration for MySQL homogeneous migration.")
+    .optional(),
   name: z.string().describe(
     "The name (URI) of this migration job resource, in the form of: projects/{project}/locations/{location}/migrationJobs/{migrationJob}.",
   ).optional(),
@@ -736,7 +705,7 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Required. The type of the migration job object.",
           ).optional(),
-        }).describe("An identifier for the Migration Job Object.").optional(),
+        }).describe("Optional. The object identifier.").optional(),
       })).describe("Optional. The list of the objects to be migrated.")
         .optional(),
       objectsSelectionType: z.enum([
@@ -745,9 +714,8 @@ const InputsSchema = z.object({
         "SPECIFIED_OBJECTS",
       ]).describe("Optional. The objects selection type of the migration job.")
         .optional(),
-    }).describe("List of configurations for the source objects to be migrated.")
-      .optional(),
-  }).describe("Configuration for the objects to be migrated.").optional(),
+    }).describe("The list of the migration job objects.").optional(),
+  }).describe("Optional. The objects that need to be migrated.").optional(),
   oracleToPostgresConfig: z.object({
     oracleSourceConfig: z.object({
       binaryLogParser: z.object({
@@ -758,20 +726,14 @@ const InputsSchema = z.object({
           onlineLogDirectory: z.string().describe(
             "Required. Oracle directory for online logs.",
           ).optional(),
-        }).describe(
-          "Configuration to specify the Oracle directories to access the log files.",
-        ).optional(),
-        oracleAsmLogFileAccess: z.object({}).describe(
-          "Configuration to use Oracle ASM to access the log files.",
-        ).optional(),
-      }).describe("Configuration to use Binary Log Parser CDC technique.")
-        .optional(),
+        }).describe("Use Oracle directories.").optional(),
+        oracleAsmLogFileAccess: z.object({}).describe("Use Oracle ASM.")
+          .optional(),
+      }).describe("Use Binary Log Parser.").optional(),
       cdcStartPosition: z.string().describe(
         "Optional. The schema change number (SCN) to start CDC data migration from.",
       ).optional(),
-      logMiner: z.object({}).describe(
-        "Configuration to use LogMiner CDC method.",
-      ).optional(),
+      logMiner: z.object({}).describe("Use LogMiner.").optional(),
       maxConcurrentCdcConnections: z.number().int().describe(
         "Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.",
       ).optional(),
@@ -781,8 +743,7 @@ const InputsSchema = z.object({
       skipFullDump: z.boolean().describe(
         "Optional. Whether to skip full dump or not.",
       ).optional(),
-    }).describe("Configuration for Oracle as a source in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for Oracle source.").optional(),
     postgresDestinationConfig: z.object({
       maxConcurrentConnections: z.number().int().describe(
         "Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.",
@@ -790,8 +751,7 @@ const InputsSchema = z.object({
       transactionTimeout: z.string().describe(
         "Optional. Timeout for data migration transactions.",
       ).optional(),
-    }).describe("Configuration for Postgres as a destination in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for Postgres destination.").optional(),
   }).describe(
     "Configuration for heterogeneous **Oracle to Cloud SQL for PostgreSQL** and **Oracle to AlloyDB for PostgreSQL** migrations.",
   ).optional(),
@@ -805,7 +765,8 @@ const InputsSchema = z.object({
       "OPTIMAL",
       "MAX",
     ]).describe("Initial dump parallelism level.").optional(),
-  }).describe("Performance configuration definition.").optional(),
+  }).describe("Optional. Data dump parallelism settings used by the migration.")
+    .optional(),
   postgresHomogeneousConfig: z.object({
     isNativeLogical: z.boolean().describe(
       "Required. Whether the migration is native logical.",
@@ -813,15 +774,14 @@ const InputsSchema = z.object({
     maxAdditionalSubscriptions: z.number().int().describe(
       "Optional. Maximum number of additional subscriptions to use for the migration job.",
     ).optional(),
-  }).describe("Configuration for PostgreSQL to PostgreSQL migrations.")
+  }).describe("Optional. Configuration for PostgreSQL homogeneous migration.")
     .optional(),
   postgresToSqlserverConfig: z.object({
     postgresSourceConfig: z.object({
       skipFullDump: z.boolean().describe(
         "Optional. Whether to skip full dump or not.",
       ).optional(),
-    }).describe("Configuration for Postgres as a source in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for PostgreSQL source.").optional(),
     sqlserverDestinationConfig: z.object({
       maxConcurrentConnections: z.number().int().describe(
         "Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.",
@@ -829,7 +789,7 @@ const InputsSchema = z.object({
       transactionTimeout: z.string().describe(
         "Optional. Timeout for data migration transactions.",
       ).optional(),
-    }).describe("Configuration for SQL Server as a destination in a migration.")
+    }).describe("Optional. Configuration for SQL Server destination.")
       .optional(),
   }).describe(
     "Configuration for heterogeneous failback migrations from **PostgreSQL to SQL Server**.",
@@ -848,7 +808,7 @@ const InputsSchema = z.object({
       "The name of the VPC to peer with the Cloud SQL private network.",
     ).optional(),
   }).describe(
-    "The details needed to configure a reverse SSH tunnel between the source and destination databases. These details will be used when calling the generateSshScript method (see https://cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.migrationJobs/generateSshScript) to produce the script that will help set up the reverse SSH tunnel, and to set up the VPC peering between the Cloud SQL private network and the VPC.",
+    "The details needed to communicate to the source over Reverse SSH tunnel connectivity.",
   ).optional(),
   source: z.string().describe(
     "Required. The resource name (URI) of the source connection profile.",
@@ -869,7 +829,7 @@ const InputsSchema = z.object({
       "ALLOYDB",
       "AZURE_DATABASE",
     ]).describe("The database provider.").optional(),
-  }).describe("A message defining the database engine and provider.")
+  }).describe("The database engine type and provider of the source.")
     .optional(),
   sqlserverHomogeneousMigrationJobConfig: z.object({
     backupFilePattern: z.string().describe(
@@ -883,7 +843,7 @@ const InputsSchema = z.object({
         "Required. The name of the source availability group. Only used by DAG migrations.",
       ).optional(),
     }).describe(
-      "Configuration for distributed availability group (DAG) for the SQL Server homogeneous migration.",
+      "Optional. Configuration for distributed availability group (DAG) for the SQL Server homogeneous migration.",
     ).optional(),
     databaseBackups: z.array(z.object({
       database: z.string().describe(
@@ -899,8 +859,9 @@ const InputsSchema = z.object({
         pvkPath: z.string().describe(
           "Required. Path to the Certificate Private Key (.pvk) in Cloud Storage, in the form `gs://bucketName/fileName`. The instance must have write permissions to the bucket and read access to the file.",
         ).optional(),
-      }).describe("Encryption settings for the SQL Server database.")
-        .optional(),
+      }).describe(
+        "Optional. Encryption settings for the database. Required if provided database backups are encrypted. Encryption settings include path to certificate, path to certificate private key, and key password.",
+      ).optional(),
     })).describe("Required. Backup details per database in Cloud Storage.")
       .optional(),
     promoteWhenReady: z.boolean().describe(
@@ -909,9 +870,8 @@ const InputsSchema = z.object({
     useDiffBackup: z.boolean().describe(
       "Optional. Enable differential backups.",
     ).optional(),
-  }).describe(
-    "Configuration for homogeneous migration to Cloud SQL for SQL Server.",
-  ).optional(),
+  }).describe("Optional. Configuration for SQL Server homogeneous migration.")
+    .optional(),
   sqlserverToPostgresConfig: z.object({
     postgresDestinationConfig: z.object({
       maxConcurrentConnections: z.number().int().describe(
@@ -920,8 +880,7 @@ const InputsSchema = z.object({
       transactionTimeout: z.string().describe(
         "Optional. Timeout for data migration transactions.",
       ).optional(),
-    }).describe("Configuration for Postgres as a destination in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for Postgres destination.").optional(),
     sqlserverSourceConfig: z.object({
       cdcStartPosition: z.string().describe(
         "Optional. The log sequence number (LSN) to start CDC data migration from.",
@@ -935,8 +894,7 @@ const InputsSchema = z.object({
       skipFullDump: z.boolean().describe(
         "Optional. Whether to skip full dump or not.",
       ).optional(),
-    }).describe("Configuration for SQL Server as a source in a migration.")
-      .optional(),
+    }).describe("Optional. Configuration for SQL Server source.").optional(),
   }).describe(
     "Configuration for heterogeneous **SQL Server to Cloud SQL for PostgreSQL** migrations.",
   ).optional(),
@@ -959,7 +917,7 @@ const InputsSchema = z.object({
     "RESUMING",
   ]).describe("The current migration job state.").optional(),
   staticIpConnectivity: z.object({}).describe(
-    "The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.",
+    "static ip connectivity data (default, no additional details needed).",
   ).optional(),
   type: z.enum(["TYPE_UNSPECIFIED", "ONE_TIME", "CONTINUOUS"]).describe(
     "Required. The migration job type.",
@@ -969,7 +927,7 @@ const InputsSchema = z.object({
       "The name of the VPC network to peer with the Cloud SQL private network.",
     ).optional(),
   }).describe(
-    "The details of the VPC where the source database is located in Google Cloud. We will use this information to set up the VPC peering connection between Cloud SQL and this VPC.",
+    "The details of the VPC network that the source database is located in.",
   ).optional(),
   migrationJobId: z.string().describe(
     "Required. The ID of the instance to create.",
@@ -1005,7 +963,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration MigrationJobs. Registered at `@swamp/gcp/datamigration/migrationjobs`. */
 export const model = {
   type: "@swamp/gcp/datamigration/migrationjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1172,6 +1130,14 @@ export const model = {
       description: "Added: mysqlHomogeneousConfig, postgresHomogeneousConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { error: _error, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1219,7 +1185,6 @@ export const model = {
         if (g["dumpFlags"] !== undefined) body["dumpFlags"] = g["dumpFlags"];
         if (g["dumpPath"] !== undefined) body["dumpPath"] = g["dumpPath"];
         if (g["dumpType"] !== undefined) body["dumpType"] = g["dumpType"];
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["mysqlHomogeneousConfig"] !== undefined) {
@@ -1408,7 +1373,6 @@ export const model = {
         if (g["dumpFlags"] !== undefined) body["dumpFlags"] = g["dumpFlags"];
         if (g["dumpPath"] !== undefined) body["dumpPath"] = g["dumpPath"];
         if (g["dumpType"] !== undefined) body["dumpType"] = g["dumpType"];
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["filter"] !== undefined) body["filter"] = g["filter"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["mysqlHomogeneousConfig"] !== undefined) {

@@ -177,7 +177,9 @@ const GlobalArgsSchema = z.object({
     destinationDataset: z.string().describe(
       "Optional. Destination dataset to save evaluation results.",
     ).optional(),
-  }).describe("BigQuery destination for evaluation results.").optional(),
+  }).describe(
+    "Optional. The BigQuery destination for detailed evaluation results. If this field is specified, the results of each evaluation execution are exported to BigQuery.",
+  ).optional(),
   customRulesBucket: z.string().describe(
     "The Cloud Storage bucket name for custom rules.",
   ).optional(),
@@ -202,7 +204,7 @@ const GlobalArgsSchema = z.object({
       serviceAccounts: z.array(z.string()).describe(
         "If non-empty, only Compute Engine instances associated with at least one of the provided service accounts will be included in the evaluation.",
       ).optional(),
-    }).describe("A filter for matching Compute Engine instances.").optional(),
+    }).describe("Filter compute engine resources.").optional(),
     inclusionLabels: z.record(z.string(), z.string()).describe(
       'Labels to filter resources by. Each key-value pair in the map must exist on the resource for it to be included (e.g. VM instance labels). For example, specifying `{ "env": "prod", "database": "nosql" }` will only include resources that have labels `env=prod` and `database=nosql`.',
     ).optional(),
@@ -215,10 +217,6 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Resource filter for an evaluation defining the scope of resources to be evaluated.",
   ).optional(),
-  resourceStatus: z.object({
-    state: z.enum(["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING"])
-      .describe("State of the Evaluation resource.").optional(),
-  }).describe("The lifecycle status of an Evaluation resource.").optional(),
   ruleNames: z.array(z.string()).describe(
     "The names of the rules used for this evaluation.",
   ).optional(),
@@ -277,7 +275,9 @@ const InputsSchema = z.object({
     destinationDataset: z.string().describe(
       "Optional. Destination dataset to save evaluation results.",
     ).optional(),
-  }).describe("BigQuery destination for evaluation results.").optional(),
+  }).describe(
+    "Optional. The BigQuery destination for detailed evaluation results. If this field is specified, the results of each evaluation execution are exported to BigQuery.",
+  ).optional(),
   customRulesBucket: z.string().describe(
     "The Cloud Storage bucket name for custom rules.",
   ).optional(),
@@ -302,7 +302,7 @@ const InputsSchema = z.object({
       serviceAccounts: z.array(z.string()).describe(
         "If non-empty, only Compute Engine instances associated with at least one of the provided service accounts will be included in the evaluation.",
       ).optional(),
-    }).describe("A filter for matching Compute Engine instances.").optional(),
+    }).describe("Filter compute engine resources.").optional(),
     inclusionLabels: z.record(z.string(), z.string()).describe(
       'Labels to filter resources by. Each key-value pair in the map must exist on the resource for it to be included (e.g. VM instance labels). For example, specifying `{ "env": "prod", "database": "nosql" }` will only include resources that have labels `env=prod` and `database=nosql`.',
     ).optional(),
@@ -315,10 +315,6 @@ const InputsSchema = z.object({
   }).describe(
     "Resource filter for an evaluation defining the scope of resources to be evaluated.",
   ).optional(),
-  resourceStatus: z.object({
-    state: z.enum(["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING"])
-      .describe("State of the Evaluation resource.").optional(),
-  }).describe("The lifecycle status of an Evaluation resource.").optional(),
   ruleNames: z.array(z.string()).describe(
     "The names of the rules used for this evaluation.",
   ).optional(),
@@ -358,7 +354,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Workload Manager Evaluations. Registered at `@swamp/gcp/workloadmanager/evaluations`. */
 export const model = {
   type: "@swamp/gcp/workloadmanager/evaluations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -465,6 +461,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: resourceStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { resourceStatus: _resourceStatus, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -507,9 +511,6 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["resourceFilter"] !== undefined) {
           body["resourceFilter"] = g["resourceFilter"];
-        }
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
         }
         if (g["ruleNames"] !== undefined) body["ruleNames"] = g["ruleNames"];
         if (g["schedule"] !== undefined) body["schedule"] = g["schedule"];
@@ -640,9 +641,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["resourceFilter"] !== undefined) {
           body["resourceFilter"] = g["resourceFilter"];
-        }
-        if (g["resourceStatus"] !== undefined) {
-          body["resourceStatus"] = g["resourceStatus"];
         }
         if (g["ruleNames"] !== undefined) body["ruleNames"] = g["ruleNames"];
         if (g["schedule"] !== undefined) body["schedule"] = g["schedule"];

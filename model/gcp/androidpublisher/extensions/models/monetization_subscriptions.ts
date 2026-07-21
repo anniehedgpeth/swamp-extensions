@@ -219,7 +219,7 @@ const GlobalArgsSchema = z.object({
         "Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified.",
       ).optional(),
     }).describe(
-      "Represents a base plan that automatically renews at the end of its subscription period.",
+      "Set when the base plan automatically renews at a regular interval.",
     ).optional(),
     basePlanId: z.string().describe(
       "Required. Immutable. The unique identifier of this base plan. Must be unique within the subscription, and conform with RFC-1034. That is, this ID can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 63 characters.",
@@ -259,7 +259,7 @@ const GlobalArgsSchema = z.object({
         "Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified.",
       ).optional(),
     }).describe(
-      "Represents an installments base plan where a user commits to a specified number of payments.",
+      "Set for installments base plans where a user is committed to a specified number of payments.",
     ).optional(),
     offerTags: z.array(z.object({
       tag: z.string().describe(
@@ -279,8 +279,9 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "Required. Price in EUR to use for any new locations Play may launch in.",
+      ).optional(),
       newSubscriberAvailability: z.boolean().describe(
         "Whether the base plan is available for new subscribers in any new locations Play may launch in. If not specified, this will default to false.",
       ).optional(),
@@ -294,10 +295,12 @@ const GlobalArgsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
-    }).describe("Pricing information for any new locations Play may launch in.")
-      .optional(),
+      }).describe(
+        "Required. Price in USD to use for any new locations Play may launch in.",
+      ).optional(),
+    }).describe(
+      "Pricing information for any new locations Play may launch in the future. If omitted, the BasePlan will not be automatically available any new locations Play may launch in the future.",
+    ).optional(),
     prepaidBasePlanType: z.object({
       billingPeriodDuration: z.string().describe(
         "Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.",
@@ -310,7 +313,7 @@ const GlobalArgsSchema = z.object({
         "Whether users should be able to extend this prepaid base plan in Google Play surfaces. Defaults to TIME_EXTENSION_ACTIVE if not specified.",
       ).optional(),
     }).describe(
-      "Represents a base plan that does not automatically renew at the end of the base plan, and must be manually renewed by the user.",
+      "Set when the base plan does not automatically renew at the end of the billing period.",
     ).optional(),
     regionalConfigs: z.array(z.object({
       newSubscriberAvailability: z.boolean().describe(
@@ -326,8 +329,9 @@ const GlobalArgsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The price of the base plan in the specified region. Must be set if the base plan is available to new subscribers. Must be set in the currency that is linked to the specified region.",
+      ).optional(),
       regionCode: z.string().describe(
         'Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".',
       ).optional(),
@@ -365,7 +369,7 @@ const GlobalArgsSchema = z.object({
       'Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".',
     ).optional(),
   }).describe(
-    "Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
+    "Optional. Countries where the purchase of this subscription is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
   ).optional(),
   taxAndComplianceSettings: z.object({
     eeaWithdrawalRightType: z.enum([
@@ -427,9 +431,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       'A mapping from region code to tax rate details. The keys are region codes as defined by Unicode\'s "CLDR".',
     ).optional(),
-  }).describe(
-    "Details about taxation, Google Play policy, and legal compliance for subscription products.",
-  ).optional(),
+  }).describe("Details about taxes and legal compliance.").optional(),
   regionsVersion_version: z.string().describe(
     "Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region's version and set of regional prices and currencies will succeed even though a new version is available.",
   ).optional(),
@@ -551,7 +553,7 @@ const InputsSchema = z.object({
         "Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified.",
       ).optional(),
     }).describe(
-      "Represents a base plan that automatically renews at the end of its subscription period.",
+      "Set when the base plan automatically renews at a regular interval.",
     ).optional(),
     basePlanId: z.string().describe(
       "Required. Immutable. The unique identifier of this base plan. Must be unique within the subscription, and conform with RFC-1034. That is, this ID can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 63 characters.",
@@ -591,7 +593,7 @@ const InputsSchema = z.object({
         "Whether users should be able to resubscribe to this base plan in Google Play surfaces. Defaults to RESUBSCRIBE_STATE_ACTIVE if not specified.",
       ).optional(),
     }).describe(
-      "Represents an installments base plan where a user commits to a specified number of payments.",
+      "Set for installments base plans where a user is committed to a specified number of payments.",
     ).optional(),
     offerTags: z.array(z.object({
       tag: z.string().describe(
@@ -611,8 +613,9 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "Required. Price in EUR to use for any new locations Play may launch in.",
+      ).optional(),
       newSubscriberAvailability: z.boolean().describe(
         "Whether the base plan is available for new subscribers in any new locations Play may launch in. If not specified, this will default to false.",
       ).optional(),
@@ -626,10 +629,12 @@ const InputsSchema = z.object({
         units: z.string().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
-    }).describe("Pricing information for any new locations Play may launch in.")
-      .optional(),
+      }).describe(
+        "Required. Price in USD to use for any new locations Play may launch in.",
+      ).optional(),
+    }).describe(
+      "Pricing information for any new locations Play may launch in the future. If omitted, the BasePlan will not be automatically available any new locations Play may launch in the future.",
+    ).optional(),
     prepaidBasePlanType: z.object({
       billingPeriodDuration: z.string().describe(
         "Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.",
@@ -642,7 +647,7 @@ const InputsSchema = z.object({
         "Whether users should be able to extend this prepaid base plan in Google Play surfaces. Defaults to TIME_EXTENSION_ACTIVE if not specified.",
       ).optional(),
     }).describe(
-      "Represents a base plan that does not automatically renew at the end of the base plan, and must be manually renewed by the user.",
+      "Set when the base plan does not automatically renew at the end of the billing period.",
     ).optional(),
     regionalConfigs: z.array(z.object({
       newSubscriberAvailability: z.boolean().describe(
@@ -658,8 +663,9 @@ const InputsSchema = z.object({
         units: z.unknown().describe(
           'The whole units of the amount. For example if `currencyCode` is `"USD"`, then 1 unit is one US dollar.',
         ).optional(),
-      }).describe("Represents an amount of money with its currency type.")
-        .optional(),
+      }).describe(
+        "The price of the base plan in the specified region. Must be set if the base plan is available to new subscribers. Must be set in the currency that is linked to the specified region.",
+      ).optional(),
       regionCode: z.string().describe(
         'Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g. "US".',
       ).optional(),
@@ -697,7 +703,7 @@ const InputsSchema = z.object({
       'Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".',
     ).optional(),
   }).describe(
-    "Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
+    "Optional. Countries where the purchase of this subscription is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.",
   ).optional(),
   taxAndComplianceSettings: z.object({
     eeaWithdrawalRightType: z.enum([
@@ -759,9 +765,7 @@ const InputsSchema = z.object({
     ).describe(
       'A mapping from region code to tax rate details. The keys are region codes as defined by Unicode\'s "CLDR".',
     ).optional(),
-  }).describe(
-    "Details about taxation, Google Play policy, and legal compliance for subscription products.",
-  ).optional(),
+  }).describe("Details about taxes and legal compliance.").optional(),
   regionsVersion_version: z.string().describe(
     "Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region's version and set of regional prices and currencies will succeed even though a new version is available.",
   ).optional(),
@@ -790,7 +794,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Monetization.Subscriptions. Registered at `@swamp/gcp/androidpublisher/monetization-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/monetization-subscriptions",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -922,6 +926,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -968,12 +977,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "packageName": String(g["packageName"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

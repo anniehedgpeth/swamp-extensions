@@ -213,13 +213,13 @@ const GlobalArgsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
     })).describe(
       "Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of graphQL operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.",
+    "Configuration used to group Apigee proxies or remote services with graphQL operation name, graphQL operation type and quotas. This grouping allows us to precisely set quota for a particular combination of graphQL name and operation type for a particular proxy request. If graphQL name is not set, this would imply quota will be applied on all graphQL requests matching the operation type.",
   ).optional(),
   grpcOperationGroup: z.object({
     operationConfigs: z.array(z.object({
@@ -245,7 +245,7 @@ const GlobalArgsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Quota parameters to be enforced for the methods and API source combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
       service: z.string().describe(
         "Required. gRPC Service name associated to be associated with the API proxy, on which quota rules can be applied upon.",
@@ -254,7 +254,7 @@ const GlobalArgsSchema = z.object({
       "Required. List of operation configurations for either Apigee API proxies that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of gRPC operation configuration details associated with Apigee API proxies.",
+    "Optional. Configuration used to group Apigee proxies with gRPC services and method names. This grouping allows us to set quota for a particular proxy with the gRPC service name and method. If a method name is not set, this implies quota and authorization are applied to all gRPC methods implemented by that proxy for that particular gRPC service.",
   ).optional(),
   lastModifiedAt: z.string().describe(
     "Response only. Modified time of this environment as milliseconds since epoch.",
@@ -293,13 +293,13 @@ const GlobalArgsSchema = z.object({
           "Optional. Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "LLM Token Quota contains the essential parameters needed that can be applied on the resources, methods, models, API source combination associated with this API product. While LLM Token Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Required. LLM token Quota parameters to be enforced for the resources, methods, and API source & LLM model combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
     })).describe(
       "Required. List of LLM operation configurations for either Apigee API proxies that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of LLM operation configuration details associated with Apigee API proxies.",
+    "Optional. Configuration used to group Apigee proxies with resources, method types, LLM model and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources, specific LLM model and how many calls can be made (using the `quota` setting). **Note:** The `api_resources` setting cannot be specified for both the API product and llm operation group; otherwise the call will fail.",
   ).optional(),
   llmQuota: z.string().describe(
     "Optional. Number of LLM tokens permitted per app by this API product for the specified `llm_quota_interval` and `llm_quota_time_unit`. For example, an `llm_quota` of 50,000, for an `llm_quota_interval` of 12 and an `llm_quota_time_unit` of hours means 50,000 llm tokens are allowed to be used every 12 hours.",
@@ -347,13 +347,13 @@ const GlobalArgsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
     })).describe(
       "Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.",
+    "Configuration used to group Apigee proxies or remote services with resources, method types, and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources and how many calls can be made (using the `quota` setting). **Note:** The `api_resources` setting cannot be specified for both the API product and operation group; otherwise the call will fail.",
   ).optional(),
   payloadOperationGroup: z.object({
     operationConfigs: z.array(z.object({
@@ -383,13 +383,13 @@ const GlobalArgsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Optional. Quota parameters to be enforced for the operations and API source combination. If none are specified, quota enforcement will not be done unless a quota is defined at the API product level.",
       ).optional(),
     })).describe(
       "Required. List of payload operation configurations for Apigee API proxies that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of payload operation configuration details associated with Apigee API proxies. Payload operations enable governance of protocols where operations are embedded in the request body (such as JSON-RPC) rather than defined by the URL path.",
+    "Optional. Configuration used to group Apigee proxies with payload-based operations and quotas. Unlike `operation_group`, which matches on the URL path, this grouping matches on operation identifiers extracted from the request payload (for example, JSON-RPC method and tool names). This enables fine-grained authorization and quota enforcement for protocols such as MCP where multiple operations share a single endpoint. **Note:** The `proxies` and `api_resources` settings cannot be specified for both the API product and payload operation group; otherwise the call will fail.",
   ).optional(),
   proxies: z.array(z.string()).describe(
     "Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.",
@@ -601,13 +601,13 @@ const InputsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
     })).describe(
       "Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of graphQL operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.",
+    "Configuration used to group Apigee proxies or remote services with graphQL operation name, graphQL operation type and quotas. This grouping allows us to precisely set quota for a particular combination of graphQL name and operation type for a particular proxy request. If graphQL name is not set, this would imply quota will be applied on all graphQL requests matching the operation type.",
   ).optional(),
   grpcOperationGroup: z.object({
     operationConfigs: z.array(z.object({
@@ -633,7 +633,7 @@ const InputsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Quota parameters to be enforced for the methods and API source combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
       service: z.string().describe(
         "Required. gRPC Service name associated to be associated with the API proxy, on which quota rules can be applied upon.",
@@ -642,7 +642,7 @@ const InputsSchema = z.object({
       "Required. List of operation configurations for either Apigee API proxies that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of gRPC operation configuration details associated with Apigee API proxies.",
+    "Optional. Configuration used to group Apigee proxies with gRPC services and method names. This grouping allows us to set quota for a particular proxy with the gRPC service name and method. If a method name is not set, this implies quota and authorization are applied to all gRPC methods implemented by that proxy for that particular gRPC service.",
   ).optional(),
   lastModifiedAt: z.string().describe(
     "Response only. Modified time of this environment as milliseconds since epoch.",
@@ -681,13 +681,13 @@ const InputsSchema = z.object({
           "Optional. Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "LLM Token Quota contains the essential parameters needed that can be applied on the resources, methods, models, API source combination associated with this API product. While LLM Token Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Required. LLM token Quota parameters to be enforced for the resources, methods, and API source & LLM model combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
     })).describe(
       "Required. List of LLM operation configurations for either Apigee API proxies that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of LLM operation configuration details associated with Apigee API proxies.",
+    "Optional. Configuration used to group Apigee proxies with resources, method types, LLM model and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources, specific LLM model and how many calls can be made (using the `quota` setting). **Note:** The `api_resources` setting cannot be specified for both the API product and llm operation group; otherwise the call will fail.",
   ).optional(),
   llmQuota: z.string().describe(
     "Optional. Number of LLM tokens permitted per app by this API product for the specified `llm_quota_interval` and `llm_quota_time_unit`. For example, an `llm_quota` of 50,000, for an `llm_quota_interval` of 12 and an `llm_quota_time_unit` of hours means 50,000 llm tokens are allowed to be used every 12 hours.",
@@ -735,13 +735,13 @@ const InputsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.",
       ).optional(),
     })).describe(
       "Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.",
+    "Configuration used to group Apigee proxies or remote services with resources, method types, and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources and how many calls can be made (using the `quota` setting). **Note:** The `api_resources` setting cannot be specified for both the API product and operation group; otherwise the call will fail.",
   ).optional(),
   payloadOperationGroup: z.object({
     operationConfigs: z.array(z.object({
@@ -771,13 +771,13 @@ const InputsSchema = z.object({
           "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
         ).optional(),
       }).describe(
-        "Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.",
+        "Optional. Quota parameters to be enforced for the operations and API source combination. If none are specified, quota enforcement will not be done unless a quota is defined at the API product level.",
       ).optional(),
     })).describe(
       "Required. List of payload operation configurations for Apigee API proxies that are associated with this API product.",
     ).optional(),
   }).describe(
-    "List of payload operation configuration details associated with Apigee API proxies. Payload operations enable governance of protocols where operations are embedded in the request body (such as JSON-RPC) rather than defined by the URL path.",
+    "Optional. Configuration used to group Apigee proxies with payload-based operations and quotas. Unlike `operation_group`, which matches on the URL path, this grouping matches on operation identifiers extracted from the request payload (for example, JSON-RPC method and tool names). This enables fine-grained authorization and quota enforcement for protocols such as MCP where multiple operations share a single endpoint. **Note:** The `proxies` and `api_resources` settings cannot be specified for both the API product and payload operation group; otherwise the call will fail.",
   ).optional(),
   proxies: z.array(z.string()).describe(
     "Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.",
@@ -828,7 +828,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Apiproducts. Registered at `@swamp/gcp/apigee/apiproducts`. */
 export const model = {
   type: "@swamp/gcp/apigee/apiproducts",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -946,6 +946,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: payloadOperationGroup",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

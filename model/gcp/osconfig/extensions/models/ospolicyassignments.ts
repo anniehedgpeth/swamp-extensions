@@ -194,9 +194,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "List of inventories to select VMs. A VM is selected if its inventory data matches at least one of the following inventories.",
     ).optional(),
-  }).describe(
-    "Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.",
-  ).optional(),
+  }).describe("Required. Filter to select VMs.").optional(),
   name: z.string().describe(
     "Resource name. Format: `projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id}` This field is ignored when you create an OS policy assignment.",
   ).optional(),
@@ -232,13 +230,13 @@ const GlobalArgsSchema = z.object({
         "Specifies the relative value defined as a percentage, which will be multiplied by a reference value.",
       ).optional(),
     }).describe(
-      'Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.',
+      "Required. The maximum number (or percentage) of VMs per zone to disrupt at any given moment.",
     ).optional(),
     minWaitDuration: z.string().describe(
       "Required. This determines the minimum duration of time to wait after the configuration changes are applied through the current rollout. A VM continues to count towards the `disruption_budget` at least until this duration of time has passed after configuration changes are applied.",
     ).optional(),
   }).describe(
-    "Message to configure the rollout at the zonal level for the OS policy assignment.",
+    "Required. Rollout to deploy the OS policy assignment. A rollout is triggered in the following situations: 1) OSPolicyAssignment is created. 2) OSPolicyAssignment is updated and the update contains changes to one of the following fields: - instance_filter - os_policies 3) OSPolicyAssignment is deleted.",
   ).optional(),
   osPolicyAssignmentId: z.string().describe(
     "Required. The logical name of the OS policy assignment in the project with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project.",
@@ -331,9 +329,7 @@ const InputsSchema = z.object({
     })).describe(
       "List of inventories to select VMs. A VM is selected if its inventory data matches at least one of the following inventories.",
     ).optional(),
-  }).describe(
-    "Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.",
-  ).optional(),
+  }).describe("Required. Filter to select VMs.").optional(),
   name: z.string().describe(
     "Resource name. Format: `projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id}` This field is ignored when you create an OS policy assignment.",
   ).optional(),
@@ -369,13 +365,13 @@ const InputsSchema = z.object({
         "Specifies the relative value defined as a percentage, which will be multiplied by a reference value.",
       ).optional(),
     }).describe(
-      'Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.',
+      "Required. The maximum number (or percentage) of VMs per zone to disrupt at any given moment.",
     ).optional(),
     minWaitDuration: z.string().describe(
       "Required. This determines the minimum duration of time to wait after the configuration changes are applied through the current rollout. A VM continues to count towards the `disruption_budget` at least until this duration of time has passed after configuration changes are applied.",
     ).optional(),
   }).describe(
-    "Message to configure the rollout at the zonal level for the OS policy assignment.",
+    "Required. Rollout to deploy the OS policy assignment. A rollout is triggered in the following situations: 1) OSPolicyAssignment is created. 2) OSPolicyAssignment is updated and the update contains changes to one of the following fields: - instance_filter - os_policies 3) OSPolicyAssignment is deleted.",
   ).optional(),
   osPolicyAssignmentId: z.string().describe(
     "Required. The logical name of the OS policy assignment in the project with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project.",
@@ -411,7 +407,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud OS Config OsPolicyAssignments. Registered at `@swamp/gcp/osconfig/ospolicyassignments`. */
 export const model = {
   type: "@swamp/gcp/osconfig/ospolicyassignments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

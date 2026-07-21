@@ -143,9 +143,8 @@ const GlobalArgsSchema = z.object({
     tag: z.string().describe(
       "The tag of the container image. If not specified, this defaults to the latest tag.",
     ).optional(),
-  }).describe(
-    "Definition of a container image for starting a notebook instance with the environment installed in a container.",
-  ).optional(),
+  }).describe("Use a container image to start the notebook instance.")
+    .optional(),
   description: z.string().describe("A brief description of this environment.")
     .optional(),
   displayName: z.string().describe(
@@ -163,9 +162,8 @@ const GlobalArgsSchema = z.object({
     project: z.string().describe(
       "Required. The name of the Google Cloud project that this VM image belongs to. Format: `{project_id}`",
     ).optional(),
-  }).describe(
-    "Definition of a custom Compute Engine virtual machine image for starting a notebook instance with the environment installed directly on the VM.",
-  ).optional(),
+  }).describe("Use a Compute Engine VM image to start the notebook instance.")
+    .optional(),
   environmentId: z.string().describe(
     "Required. User-defined unique ID of this environment. The `environment_id` must be 1 to 63 characters long and contain only lowercase letters, numeric characters, and dashes. The first character must be a lowercase letter and the last character cannot be a dash.",
   ).optional(),
@@ -206,9 +204,8 @@ const InputsSchema = z.object({
     tag: z.string().describe(
       "The tag of the container image. If not specified, this defaults to the latest tag.",
     ).optional(),
-  }).describe(
-    "Definition of a container image for starting a notebook instance with the environment installed in a container.",
-  ).optional(),
+  }).describe("Use a container image to start the notebook instance.")
+    .optional(),
   description: z.string().describe("A brief description of this environment.")
     .optional(),
   displayName: z.string().describe(
@@ -226,9 +223,8 @@ const InputsSchema = z.object({
     project: z.string().describe(
       "Required. The name of the Google Cloud project that this VM image belongs to. Format: `{project_id}`",
     ).optional(),
-  }).describe(
-    "Definition of a custom Compute Engine virtual machine image for starting a notebook instance with the environment installed directly on the VM.",
-  ).optional(),
+  }).describe("Use a Compute Engine VM image to start the notebook instance.")
+    .optional(),
   environmentId: z.string().describe(
     "Required. User-defined unique ID of this environment. The `environment_id` must be 1 to 63 characters long and contain only lowercase letters, numeric characters, and dashes. The first character must be a lowercase letter and the last character cannot be a dash.",
   ).optional(),
@@ -260,7 +256,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Environments. Registered at `@swamp/gcp/notebooks/environments`. */
 export const model = {
   type: "@swamp/gcp/notebooks/environments",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

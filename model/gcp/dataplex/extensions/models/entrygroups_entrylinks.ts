@@ -149,8 +149,9 @@ const GlobalArgsSchema = z.object({
         updateTime: z.string().describe(
           "The time the aspect was last updated in the source system.",
         ).optional(),
-      }).describe("Information related to the source system of the aspect.")
-        .optional(),
+      }).describe(
+        "Optional. Information related to the source system of the aspect.",
+      ).optional(),
       aspectType: z.string().describe(
         "Output only. The resource name of the type used to create this Aspect.",
       ).optional(),
@@ -231,8 +232,9 @@ const InputsSchema = z.object({
         updateTime: z.string().describe(
           "The time the aspect was last updated in the source system.",
         ).optional(),
-      }).describe("Information related to the source system of the aspect.")
-        .optional(),
+      }).describe(
+        "Optional. Information related to the source system of the aspect.",
+      ).optional(),
       aspectType: z.string().describe(
         "Output only. The resource name of the type used to create this Aspect.",
       ).optional(),
@@ -302,7 +304,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex EntryGroups.EntryLinks. Registered at `@swamp/gcp/dataplex/entrygroups-entrylinks`. */
 export const model = {
   type: "@swamp/gcp/dataplex/entrygroups-entrylinks",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -401,6 +403,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

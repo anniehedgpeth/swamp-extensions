@@ -134,13 +134,12 @@ const GlobalArgsSchema = z.object({
   connections: z.array(z.object({
     target: z.object({
       id: z.string().describe("A unique identifier for a photo.").optional(),
-    }).describe("Identifier for a Photo.").optional(),
+    }).describe(
+      "Required. The destination of the connection from the containing photo to another photo.",
+    ).optional(),
   })).describe(
     "Optional. Connections to other photos. A connection represents the link from this photo to another photo.",
   ).optional(),
-  photoId: z.object({
-    id: z.string().describe("A unique identifier for a photo.").optional(),
-  }).describe("Identifier for a Photo.").optional(),
   places: z.array(z.object({
     languageCode: z.string().describe(
       "Output only. The language_code that the name is localized with. This should be the language_code specified in the request, but may be a fallback.",
@@ -173,7 +172,7 @@ const GlobalArgsSchema = z.object({
         "The longitude in degrees. It must be in the range [-180.0, +180.0].",
       ).optional(),
     }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+      "Latitude and longitude pair of the pose, as explained here: https://cloud.google.com/datastore/docs/reference/rest/Shared.Types/LatLng When creating a Photo, if the latitude and longitude pair are not provided, the geolocation from the exif header is used. A latitude and longitude pair not provided in the photo or exif header causes the photo process to fail.",
     ).optional(),
     level: z.object({
       name: z.string().describe(
@@ -183,7 +182,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.",
       ).optional(),
     }).describe(
-      "Level information containing level number and its corresponding name.",
+      "Level (the floor in a building) used to configure vertical navigation.",
     ).optional(),
     pitch: z.number().describe(
       "Pitch, measured at the center of the photo in degrees. Value must be >=-90 and <= 90. A value of -90 means looking directly down, and a value of 90 means looking directly up. NaN indicates an unmeasured quantity.",
@@ -191,12 +190,14 @@ const GlobalArgsSchema = z.object({
     roll: z.number().describe(
       "Roll, measured in degrees. Value must be >= 0 and <360. A value of 0 means level with the horizon. NaN indicates an unmeasured quantity.",
     ).optional(),
-  }).describe("Raw pose measurement for an entity.").optional(),
+  }).describe("Optional. Pose of the photo.").optional(),
   uploadReference: z.object({
     uploadUrl: z.string().describe(
       'An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"',
     ).optional(),
-  }).describe("Upload reference for media files.").optional(),
+  }).describe(
+    "Input only. Required when creating a photo. Input only. The resource URL where the photo bytes are uploaded to.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -256,13 +257,12 @@ const InputsSchema = z.object({
   connections: z.array(z.object({
     target: z.object({
       id: z.string().describe("A unique identifier for a photo.").optional(),
-    }).describe("Identifier for a Photo.").optional(),
+    }).describe(
+      "Required. The destination of the connection from the containing photo to another photo.",
+    ).optional(),
   })).describe(
     "Optional. Connections to other photos. A connection represents the link from this photo to another photo.",
   ).optional(),
-  photoId: z.object({
-    id: z.string().describe("A unique identifier for a photo.").optional(),
-  }).describe("Identifier for a Photo.").optional(),
   places: z.array(z.object({
     languageCode: z.string().describe(
       "Output only. The language_code that the name is localized with. This should be the language_code specified in the request, but may be a fallback.",
@@ -295,7 +295,7 @@ const InputsSchema = z.object({
         "The longitude in degrees. It must be in the range [-180.0, +180.0].",
       ).optional(),
     }).describe(
-      "An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.",
+      "Latitude and longitude pair of the pose, as explained here: https://cloud.google.com/datastore/docs/reference/rest/Shared.Types/LatLng When creating a Photo, if the latitude and longitude pair are not provided, the geolocation from the exif header is used. A latitude and longitude pair not provided in the photo or exif header causes the photo process to fail.",
     ).optional(),
     level: z.object({
       name: z.string().describe(
@@ -305,7 +305,7 @@ const InputsSchema = z.object({
         "Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.",
       ).optional(),
     }).describe(
-      "Level information containing level number and its corresponding name.",
+      "Level (the floor in a building) used to configure vertical navigation.",
     ).optional(),
     pitch: z.number().describe(
       "Pitch, measured at the center of the photo in degrees. Value must be >=-90 and <= 90. A value of -90 means looking directly down, and a value of 90 means looking directly up. NaN indicates an unmeasured quantity.",
@@ -313,12 +313,14 @@ const InputsSchema = z.object({
     roll: z.number().describe(
       "Roll, measured in degrees. Value must be >= 0 and <360. A value of 0 means level with the horizon. NaN indicates an unmeasured quantity.",
     ).optional(),
-  }).describe("Raw pose measurement for an entity.").optional(),
+  }).describe("Optional. Pose of the photo.").optional(),
   uploadReference: z.object({
     uploadUrl: z.string().describe(
       'An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"',
     ).optional(),
-  }).describe("Upload reference for media files.").optional(),
+  }).describe(
+    "Input only. Required when creating a photo. Input only. The resource URL where the photo bytes are uploaded to.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -344,7 +346,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Street View Publish Photo. Registered at `@swamp/gcp/streetviewpublish/photo`. */
 export const model = {
   type: "@swamp/gcp/streetviewpublish/photo",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -436,6 +438,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: photoId",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { photoId: _photoId, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -464,7 +474,6 @@ export const model = {
         if (g["connections"] !== undefined) {
           body["connections"] = g["connections"];
         }
-        if (g["photoId"] !== undefined) body["photoId"] = g["photoId"];
         if (g["places"] !== undefined) body["places"] = g["places"];
         if (g["pose"] !== undefined) body["pose"] = g["pose"];
         if (g["uploadReference"] !== undefined) {
@@ -558,7 +567,6 @@ export const model = {
         if (g["connections"] !== undefined) {
           body["connections"] = g["connections"];
         }
-        if (g["photoId"] !== undefined) body["photoId"] = g["photoId"];
         if (g["places"] !== undefined) body["places"] = g["places"];
         if (g["pose"] !== undefined) body["pose"] = g["pose"];
         if (g["uploadReference"] !== undefined) {

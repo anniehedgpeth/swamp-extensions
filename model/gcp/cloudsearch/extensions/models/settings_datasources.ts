@@ -190,8 +190,7 @@ const GlobalArgsSchema = z.object({
     enableDebugging: z.boolean().describe(
       "If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.",
     ).optional(),
-  }).describe("Shared request debug options for all cloudsearch RPC methods.")
-    .optional(),
+  }).describe("Common debug options.").optional(),
   source: z.object({
     disableModifications: z.boolean().describe(
       "If true, sets the datasource to read-only mode. In read-only mode, the Indexing API rejects any requests to index or delete items in this source. Enabling read-only mode does not stop the processing of previously accepted data.",
@@ -302,8 +301,7 @@ const InputsSchema = z.object({
     enableDebugging: z.boolean().describe(
       "If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.",
     ).optional(),
-  }).describe("Shared request debug options for all cloudsearch RPC methods.")
-    .optional(),
+  }).describe("Common debug options.").optional(),
   source: z.object({
     disableModifications: z.boolean().describe(
       "If true, sets the datasource to read-only mode. In read-only mode, the Indexing API rejects any requests to index or delete items in this source. Enabling read-only mode does not stop the processing of previously accepted data.",
@@ -373,7 +371,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Settings.Datasources. Registered at `@swamp/gcp/cloudsearch/settings-datasources`. */
 export const model = {
   type: "@swamp/gcp/cloudsearch/settings-datasources",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -467,6 +465,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

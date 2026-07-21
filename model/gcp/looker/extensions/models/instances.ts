@@ -168,7 +168,7 @@ const GlobalArgsSchema = z.object({
     allowedEmailDomains: z.array(z.string()).describe(
       "Email domain allowlist for the instance.",
     ).optional(),
-  }).describe("Looker instance Admin settings fields.").optional(),
+  }).describe("Looker Instance Admin settings.").optional(),
   catalogIntegrationOptOut: z.boolean().describe(
     "Optional. Indicates whether catalog integration is disabled for the Looker instance.",
   ).optional(),
@@ -188,7 +188,7 @@ const GlobalArgsSchema = z.object({
     webProxyIps: z.array(z.string()).describe(
       "Output only. The list of IP addresses used by Secure Web Proxy for outbound traffic.",
     ).optional(),
-  }).describe("Controlled egress configuration.").optional(),
+  }).describe("Optional. Controlled egress configuration.").optional(),
   controlledEgressEnabled: z.boolean().describe(
     "Optional. Whether controlled egress is enabled on the Looker instance.",
   ).optional(),
@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
       "UNAVAILABLE",
       "UNKNOWN",
     ]).describe("Domain state.").optional(),
-  }).describe("Custom domain information.").optional(),
+  }).describe("Custom domain configuration for the instance.").optional(),
   denyMaintenancePeriod: z.object({
     endDate: z.object({
       day: z.number().int().describe(
@@ -215,9 +215,8 @@ const GlobalArgsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. End date of the deny maintenance period.")
+      .optional(),
     startDate: z.object({
       day: z.number().int().describe(
         "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -228,9 +227,8 @@ const GlobalArgsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. Start date of the deny maintenance period.")
+      .optional(),
     time: z.object({
       hours: z.number().int().describe(
         'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -244,10 +242,9 @@ const GlobalArgsSchema = z.object({
       seconds: z.number().int().describe(
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
-  }).describe("Specifies the maintenance denial period.").optional(),
+    }).describe("Required. Time in UTC when the period starts and ends.")
+      .optional(),
+  }).describe("Maintenance denial period for this instance.").optional(),
   encryptionConfig: z.object({
     kmsKeyName: z.string().describe(
       "Name of the CMEK key in KMS (input parameter).",
@@ -257,7 +254,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     kmsKeyState: z.enum(["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"])
       .describe("Output only. Status of the CMEK key.").optional(),
-  }).describe("Encryption configuration (i.e. CMEK).").optional(),
+  }).describe(
+    "Encryption configuration (CMEK). Only set if CMEK has been enabled on the instance.",
+  ).optional(),
   fipsEnabled: z.boolean().describe(
     "Optional. Whether FIPS is enabled on the Looker instance.",
   ).optional(),
@@ -280,51 +279,9 @@ const GlobalArgsSchema = z.object({
     googleServicesEnabled: z.boolean().describe(
       "Optional. Whether google service connections are enabled for the instance.",
     ).optional(),
-  }).describe("Ingress IP allowlist configuration.").optional(),
-  lastDenyMaintenancePeriod: z.object({
-    endDate: z.object({
-      day: z.number().int().describe(
-        "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-      ).optional(),
-      month: z.number().int().describe(
-        "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-      ).optional(),
-      year: z.number().int().describe(
-        "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-      ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
-    startDate: z.object({
-      day: z.number().int().describe(
-        "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-      ).optional(),
-      month: z.number().int().describe(
-        "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-      ).optional(),
-      year: z.number().int().describe(
-        "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-      ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
-    time: z.object({
-      hours: z.number().int().describe(
-        'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
-      ).optional(),
-      minutes: z.number().int().describe(
-        "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
-      ).optional(),
-      nanos: z.number().int().describe(
-        "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
-      ).optional(),
-      seconds: z.number().int().describe(
-        "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
-      ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
-  }).describe("Specifies the maintenance denial period.").optional(),
+  }).describe(
+    "Optional. Ingress IP allowlist configuration for the Looker instance.",
+  ).optional(),
   linkedLspProjectNumber: z.string().describe(
     "Optional. Linked Google Cloud Project Number for Looker Studio Pro.",
   ).optional(),
@@ -334,7 +291,7 @@ const GlobalArgsSchema = z.object({
     startTime: z.string().describe(
       "The scheduled start time for the maintenance.",
     ).optional(),
-  }).describe("Published upcoming future maintenance schedule.").optional(),
+  }).describe("Maintenance schedule for this instance.").optional(),
   maintenanceWindow: z.object({
     dayOfWeek: z.enum([
       "DAY_OF_WEEK_UNSPECIFIED",
@@ -362,9 +319,9 @@ const GlobalArgsSchema = z.object({
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
     }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+      "Required. Time in UTC when the period starts. Maintenance will be scheduled within 60 minutes.",
     ).optional(),
-  }).describe("Specifies the recurring maintenance window.").optional(),
+  }).describe("Maintenance window for this instance.").optional(),
   oauthConfig: z.object({
     clientId: z.string().describe(
       "Input only. Client ID from an external OAuth application. This is an input-only field, and thus will not be set in any responses.",
@@ -396,10 +353,9 @@ const GlobalArgsSchema = z.object({
       seconds: z.number().int().describe(
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
-  }).describe("Configuration for periodic export.").optional(),
+    }).describe("Required. Time in UTC to start the periodic export job.")
+      .optional(),
+  }).describe("Optional. Configuration for periodic export.").optional(),
   platformEdition: z.enum([
     "PLATFORM_EDITION_UNSPECIFIED",
     "LOOKER_CORE_TRIAL",
@@ -447,9 +403,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Optional. List of egress service attachment configurations.")
       .optional(),
-  }).describe(
-    "Information for Private Service Connect (PSC) setup for a Looker instance.",
-  ).optional(),
+  }).describe("Optional. PSC configuration. Used when `psc_enabled` is true.")
+    .optional(),
   pscEnabled: z.boolean().describe(
     "Optional. Whether to use Private Service Connect (PSC) for private IP connectivity. If true, neither `public_ip_enabled` nor `private_ip_enabled` can be true.",
   ).optional(),
@@ -476,7 +431,7 @@ const GlobalArgsSchema = z.object({
     additionalViewerUserCount: z.number().int().describe(
       "Optional. The number of additional viewer users the instance owner has purchased.",
     ).optional(),
-  }).describe("Metadata about users for a Looker instance.").optional(),
+  }).describe("Optional. User metadata.").optional(),
   instanceId: z.string().describe(
     "Required. The unique instance identifier. Must contain only lowercase letters, numbers, or hyphens, with the first character a letter and the last a letter or a number. 63 characters maximum.",
   ).optional(),
@@ -635,7 +590,7 @@ const InputsSchema = z.object({
     allowedEmailDomains: z.array(z.string()).describe(
       "Email domain allowlist for the instance.",
     ).optional(),
-  }).describe("Looker instance Admin settings fields.").optional(),
+  }).describe("Looker Instance Admin settings.").optional(),
   catalogIntegrationOptOut: z.boolean().describe(
     "Optional. Indicates whether catalog integration is disabled for the Looker instance.",
   ).optional(),
@@ -655,7 +610,7 @@ const InputsSchema = z.object({
     webProxyIps: z.array(z.string()).describe(
       "Output only. The list of IP addresses used by Secure Web Proxy for outbound traffic.",
     ).optional(),
-  }).describe("Controlled egress configuration.").optional(),
+  }).describe("Optional. Controlled egress configuration.").optional(),
   controlledEgressEnabled: z.boolean().describe(
     "Optional. Whether controlled egress is enabled on the Looker instance.",
   ).optional(),
@@ -670,7 +625,7 @@ const InputsSchema = z.object({
       "UNAVAILABLE",
       "UNKNOWN",
     ]).describe("Domain state.").optional(),
-  }).describe("Custom domain information.").optional(),
+  }).describe("Custom domain configuration for the instance.").optional(),
   denyMaintenancePeriod: z.object({
     endDate: z.object({
       day: z.number().int().describe(
@@ -682,9 +637,8 @@ const InputsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. End date of the deny maintenance period.")
+      .optional(),
     startDate: z.object({
       day: z.number().int().describe(
         "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
@@ -695,9 +649,8 @@ const InputsSchema = z.object({
       year: z.number().int().describe(
         "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
       ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
+    }).describe("Required. Start date of the deny maintenance period.")
+      .optional(),
     time: z.object({
       hours: z.number().int().describe(
         'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
@@ -711,10 +664,9 @@ const InputsSchema = z.object({
       seconds: z.number().int().describe(
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
-  }).describe("Specifies the maintenance denial period.").optional(),
+    }).describe("Required. Time in UTC when the period starts and ends.")
+      .optional(),
+  }).describe("Maintenance denial period for this instance.").optional(),
   encryptionConfig: z.object({
     kmsKeyName: z.string().describe(
       "Name of the CMEK key in KMS (input parameter).",
@@ -724,7 +676,9 @@ const InputsSchema = z.object({
     ).optional(),
     kmsKeyState: z.enum(["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"])
       .describe("Output only. Status of the CMEK key.").optional(),
-  }).describe("Encryption configuration (i.e. CMEK).").optional(),
+  }).describe(
+    "Encryption configuration (CMEK). Only set if CMEK has been enabled on the instance.",
+  ).optional(),
   fipsEnabled: z.boolean().describe(
     "Optional. Whether FIPS is enabled on the Looker instance.",
   ).optional(),
@@ -747,51 +701,9 @@ const InputsSchema = z.object({
     googleServicesEnabled: z.boolean().describe(
       "Optional. Whether google service connections are enabled for the instance.",
     ).optional(),
-  }).describe("Ingress IP allowlist configuration.").optional(),
-  lastDenyMaintenancePeriod: z.object({
-    endDate: z.object({
-      day: z.number().int().describe(
-        "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-      ).optional(),
-      month: z.number().int().describe(
-        "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-      ).optional(),
-      year: z.number().int().describe(
-        "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-      ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
-    startDate: z.object({
-      day: z.number().int().describe(
-        "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
-      ).optional(),
-      month: z.number().int().describe(
-        "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
-      ).optional(),
-      year: z.number().int().describe(
-        "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
-      ).optional(),
-    }).describe(
-      "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
-    ).optional(),
-    time: z.object({
-      hours: z.number().int().describe(
-        'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
-      ).optional(),
-      minutes: z.number().int().describe(
-        "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
-      ).optional(),
-      nanos: z.number().int().describe(
-        "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
-      ).optional(),
-      seconds: z.number().int().describe(
-        "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
-      ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
-  }).describe("Specifies the maintenance denial period.").optional(),
+  }).describe(
+    "Optional. Ingress IP allowlist configuration for the Looker instance.",
+  ).optional(),
   linkedLspProjectNumber: z.string().describe(
     "Optional. Linked Google Cloud Project Number for Looker Studio Pro.",
   ).optional(),
@@ -801,7 +713,7 @@ const InputsSchema = z.object({
     startTime: z.string().describe(
       "The scheduled start time for the maintenance.",
     ).optional(),
-  }).describe("Published upcoming future maintenance schedule.").optional(),
+  }).describe("Maintenance schedule for this instance.").optional(),
   maintenanceWindow: z.object({
     dayOfWeek: z.enum([
       "DAY_OF_WEEK_UNSPECIFIED",
@@ -829,9 +741,9 @@ const InputsSchema = z.object({
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
     }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
+      "Required. Time in UTC when the period starts. Maintenance will be scheduled within 60 minutes.",
     ).optional(),
-  }).describe("Specifies the recurring maintenance window.").optional(),
+  }).describe("Maintenance window for this instance.").optional(),
   oauthConfig: z.object({
     clientId: z.string().describe(
       "Input only. Client ID from an external OAuth application. This is an input-only field, and thus will not be set in any responses.",
@@ -863,10 +775,9 @@ const InputsSchema = z.object({
       seconds: z.number().int().describe(
         "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
       ).optional(),
-    }).describe(
-      "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-    ).optional(),
-  }).describe("Configuration for periodic export.").optional(),
+    }).describe("Required. Time in UTC to start the periodic export job.")
+      .optional(),
+  }).describe("Optional. Configuration for periodic export.").optional(),
   platformEdition: z.enum([
     "PLATFORM_EDITION_UNSPECIFIED",
     "LOOKER_CORE_TRIAL",
@@ -914,9 +825,8 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Optional. List of egress service attachment configurations.")
       .optional(),
-  }).describe(
-    "Information for Private Service Connect (PSC) setup for a Looker instance.",
-  ).optional(),
+  }).describe("Optional. PSC configuration. Used when `psc_enabled` is true.")
+    .optional(),
   pscEnabled: z.boolean().describe(
     "Optional. Whether to use Private Service Connect (PSC) for private IP connectivity. If true, neither `public_ip_enabled` nor `private_ip_enabled` can be true.",
   ).optional(),
@@ -943,7 +853,7 @@ const InputsSchema = z.object({
     additionalViewerUserCount: z.number().int().describe(
       "Optional. The number of additional viewer users the instance owner has purchased.",
     ).optional(),
-  }).describe("Metadata about users for a Looker instance.").optional(),
+  }).describe("Optional. User metadata.").optional(),
   instanceId: z.string().describe(
     "Required. The unique instance identifier. Must contain only lowercase letters, numbers, or hyphens, with the first character a letter and the last a letter or a number. 63 characters maximum.",
   ).optional(),
@@ -975,7 +885,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Looker (Google Cloud core) Instances. Registered at `@swamp/gcp/looker/instances`. */
 export const model = {
   type: "@swamp/gcp/looker/instances",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1142,6 +1052,17 @@ export const model = {
         "Added: acceleratedSecurityPatchEnabled, catalogIntegrationOptOut, ingressIpAllowlistConfig, releaseChannel",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: lastDenyMaintenancePeriod",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          lastDenyMaintenancePeriod: _lastDenyMaintenancePeriod,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1208,9 +1129,6 @@ export const model = {
         if (g["ingressIpAllowlistConfig"] !== undefined) {
           body["ingressIpAllowlistConfig"] = g["ingressIpAllowlistConfig"];
         }
-        if (g["lastDenyMaintenancePeriod"] !== undefined) {
-          body["lastDenyMaintenancePeriod"] = g["lastDenyMaintenancePeriod"];
-        }
         if (g["linkedLspProjectNumber"] !== undefined) {
           body["linkedLspProjectNumber"] = g["linkedLspProjectNumber"];
         }
@@ -1268,16 +1186,7 @@ export const model = {
               "failedValues": ["FAILED"],
             }
             : undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -1405,9 +1314,6 @@ export const model = {
         }
         if (g["ingressIpAllowlistConfig"] !== undefined) {
           body["ingressIpAllowlistConfig"] = g["ingressIpAllowlistConfig"];
-        }
-        if (g["lastDenyMaintenancePeriod"] !== undefined) {
-          body["lastDenyMaintenancePeriod"] = g["lastDenyMaintenancePeriod"];
         }
         if (g["linkedLspProjectNumber"] !== undefined) {
           body["linkedLspProjectNumber"] = g["linkedLspProjectNumber"];

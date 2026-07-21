@@ -131,20 +131,7 @@ const GlobalArgsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key options for a TuningJob. If this is set, then all resources created by the TuningJob will be encrypted with the provided encryption key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels with user-defined metadata to organize TuningJob and generated resources such as Model and Endpoint. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -159,7 +146,7 @@ const GlobalArgsSchema = z.object({
     tunedModelName: z.string().describe(
       "The resource name of the Model. E.g., a model resource name with a specified version id or alias: `projects/{project}/locations/{location}/models/{model}@{version_id}` `projects/{project}/locations/{location}/models/{model}@{alias}` Or, omit the version id to use the default version: `projects/{project}/locations/{location}/models/{model}`",
     ).optional(),
-  }).describe("A pre-tuned model for continuous tuning.").optional(),
+  }).describe("The pre-tuned model for continuous tuning.").optional(),
   preferenceOptimizationSpec: z.object({
     exportLastCheckpointOnly: z.boolean().describe(
       "Optional. If set to true, disable intermediate checkpoints for Preference Optimization and only the last checkpoint will be exported. Otherwise, enable intermediate checkpoints for Preference Optimization. Default is false.",
@@ -184,7 +171,8 @@ const GlobalArgsSchema = z.object({
       learningRateMultiplier: z.number().describe(
         "Optional. Multiplier for adjusting the default learning rate.",
       ).optional(),
-    }).describe("Hyperparameters for Preference Optimization.").optional(),
+    }).describe("Optional. Hyperparameters for Preference Optimization.")
+      .optional(),
     trainingDatasetUri: z.string().describe(
       "Required. Cloud Storage path to file containing training dataset for preference optimization tuning. The dataset must be formatted as a JSONL file.",
     ).optional(),
@@ -222,7 +210,7 @@ const GlobalArgsSchema = z.object({
               'Optional. The desired aspect ratio for the generated images. The following aspect ratios are supported: "1:1" "2:3", "3:2" "3:4", "4:3" "4:5", "5:4" "9:16", "16:9" "21:9"',
             ).optional(),
             imageOutputOptions: z.unknown().describe(
-              "The image output format for generated images.",
+              "Optional. The image output format for generated images.",
             ).optional(),
             imageSize: z.unknown().describe(
               "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -234,7 +222,7 @@ const GlobalArgsSchema = z.object({
               "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
             ).optional(),
           }).describe(
-            "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+            "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
           ).optional(),
           logprobs: z.number().int().describe(
             "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -344,18 +332,16 @@ const GlobalArgsSchema = z.object({
               "Optional. Data type of the schema field.",
             ).optional(),
           }).describe(
-            "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+            "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
           ).optional(),
           routingConfig: z.object({
             autoMode: z.unknown().describe(
-              "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+              "In this mode, the model is selected automatically based on the content of the request.",
             ).optional(),
             manualMode: z.unknown().describe(
-              "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
+              "In this mode, the model is specified manually.",
             ).optional(),
-          }).describe(
-            "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-          ).optional(),
+          }).describe("Optional. Routing configuration.").optional(),
           seed: z.number().int().describe(
             "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
           ).optional(),
@@ -364,11 +350,12 @@ const GlobalArgsSchema = z.object({
               "Optional. The language code (ISO 639-1) for the speech synthesis.",
             ).optional(),
             multiSpeakerVoiceConfig: z.unknown().describe(
-              "Configuration for a multi-speaker text-to-speech request.",
+              "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
             ).optional(),
-            voiceConfig: z.unknown().describe("Configuration for a voice.")
-              .optional(),
-          }).describe("Configuration for speech generation.").optional(),
+            voiceConfig: z.unknown().describe(
+              "The configuration for the voice to use.",
+            ).optional(),
+          }).describe("Optional. The speech generation config.").optional(),
           stopSequences: z.array(z.unknown()).describe(
             'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
           ).optional(),
@@ -386,7 +373,7 @@ const GlobalArgsSchema = z.object({
               "Optional. The number of thoughts tokens that the model should generate.",
             ).optional(),
           }).describe(
-            'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+            "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
           ).optional(),
           topK: z.number().describe(
             "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -395,14 +382,12 @@ const GlobalArgsSchema = z.object({
             "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
           ).optional(),
         }).describe(
-          "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+          "Optional. Configuration options for model generation and outputs.",
         ).optional(),
         samplingCount: z.number().int().describe(
           "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
         ).optional(),
-      }).describe(
-        "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
-      ).optional(),
+      }).describe("Optional. Autorater config for evaluation.").optional(),
       datasetCustomMetrics: z.array(z.object({
         aggregationFunction: z.string().describe(
           'Required. The Python code string containing the aggregation function. Expected function signature: `def aggregate(instances: list[dict[str, Any]]) -> dict[str, float]:` The `instances` argument is a list of dictionaries, where each dictionary represents a single evaluation result item. The structure of each dictionary corresponds to the fields in the `EvaluationResult` message. This includes: - `"request"`: Contains the original input data and model inputs (from `EvaluationResult.EvaluationRequest`). - `"candidate_results"`: Contains the results of any instance-level metrics (from `EvaluationResult.CandidateResults`). Example of a single item in the `instances` list: { "request": { "prompt": {"text": "What is the capital of France?"}, "golden_response": {"text": "Paris"}, "candidate_responses": [{"candidate": "model-v1", "text": "Paris"}] }, "candidate_results": [ {"metric": "exact_match", "score": 1.0}, {"metric": "bleu", "score": 0.9} ] }',
@@ -437,7 +422,7 @@ const GlobalArgsSchema = z.object({
             mimeType: z.unknown().describe(
               "Optional. The image format that the output should be saved as.",
             ).optional(),
-          }).describe("The image output format for generated images.")
+          }).describe("Optional. The image output format for generated images.")
             .optional(),
           imageSize: z.string().describe(
             "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -458,7 +443,7 @@ const GlobalArgsSchema = z.object({
             "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
           ).optional(),
         }).describe(
-          "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+          "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
         ).optional(),
         logprobs: z.number().int().describe(
           "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -478,18 +463,10 @@ const GlobalArgsSchema = z.object({
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
         responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
+          audio: z.unknown().describe("Audio output format.").optional(),
+          image: z.unknown().describe("Image output format.").optional(),
+          text: z.unknown().describe("Text output format.").optional(),
+          video: z.unknown().describe("Video output format.").optional(),
         })).describe(
           "Optional. New response format field for the model to configure output formatting and delivery.",
         ).optional(),
@@ -590,7 +567,7 @@ const GlobalArgsSchema = z.object({
             "NULL",
           ]).describe("Optional. Data type of the schema field.").optional(),
         }).describe(
-          "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+          "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
         ).optional(),
         routingConfig: z.object({
           autoMode: z.object({
@@ -598,18 +575,15 @@ const GlobalArgsSchema = z.object({
               "The model routing preference.",
             ).optional(),
           }).describe(
-            "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+            "In this mode, the model is selected automatically based on the content of the request.",
           ).optional(),
           manualMode: z.object({
             modelName: z.unknown().describe(
               "The name of the model to use. Only public LLM models are accepted.",
             ).optional(),
-          }).describe(
-            "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
-          ).optional(),
-        }).describe(
-          "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-        ).optional(),
+          }).describe("In this mode, the model is specified manually.")
+            .optional(),
+        }).describe("Optional. Routing configuration.").optional(),
         seed: z.number().int().describe(
           "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
         ).optional(),
@@ -622,17 +596,17 @@ const GlobalArgsSchema = z.object({
               "Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.",
             ).optional(),
           }).describe(
-            "Configuration for a multi-speaker text-to-speech request.",
+            "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
           ).optional(),
           voiceConfig: z.object({
             prebuiltVoiceConfig: z.unknown().describe(
-              "Configuration for a prebuilt voice.",
+              "The configuration for a prebuilt voice.",
             ).optional(),
             replicatedVoiceConfig: z.unknown().describe(
-              "The configuration for the replicated voice to use.",
+              "Optional. The configuration for a replicated voice. This enables users to replicate a voice from an audio sample.",
             ).optional(),
-          }).describe("Configuration for a voice.").optional(),
-        }).describe("Configuration for speech generation.").optional(),
+          }).describe("The configuration for the voice to use.").optional(),
+        }).describe("Optional. The speech generation config.").optional(),
         stopSequences: z.array(z.string()).describe(
           'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
         ).optional(),
@@ -656,7 +630,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The number of thoughts tokens that the model should generate.",
           ).optional(),
         }).describe(
-          'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+          "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
         ).optional(),
         topK: z.number().describe(
           "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -665,7 +639,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
         ).optional(),
       }).describe(
-        "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+        "Optional. Configuration options for inference generation and outputs. If not set, default generation parameters are used.",
       ).optional(),
       metrics: z.array(z.object({
         aggregationMetrics: z.array(z.unknown()).describe(
@@ -675,9 +649,7 @@ const GlobalArgsSchema = z.object({
           useEffectiveOrder: z.unknown().describe(
             "Optional. Whether to use_effective_order to compute bleu score.",
           ).optional(),
-        }).describe(
-          "Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.",
-        ).optional(),
+        }).describe("Spec for bleu metric.").optional(),
         computationBasedMetricSpec: z.object({
           parameters: z.unknown().describe(
             'Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.',
@@ -685,35 +657,32 @@ const GlobalArgsSchema = z.object({
           type: z.unknown().describe(
             "Required. The type of the computation based metric.",
           ).optional(),
-        }).describe("Specification for a computation based metric.").optional(),
+        }).describe("Spec for a computation based metric.").optional(),
         customCodeExecutionSpec: z.object({
           evaluationFunction: z.unknown().describe(
             "Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -> float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input: ` instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text=\"The answer is 4.\"), reference=EvaluationInstance.InstanceData(text=\"4\")) ` Example converted input: ` { 'response': {'text': 'The answer is 4.'}, 'reference': {'text': '4'} } ` Example python function: ` def evaluate(instance: dict[str, Any]) -> float: if instance'response' == instance'reference': return 1.0 return 0.0 ` CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.",
           ).optional(),
-        }).describe(
-          "Specificies a metric that is populated by evaluating user-defined Python code.",
-        ).optional(),
-        exactMatchSpec: z.object({}).describe(
-          "Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.",
-        ).optional(),
+        }).describe("Spec for Custom Code Execution metric.").optional(),
+        exactMatchSpec: z.object({}).describe("Spec for exact match metric.")
+          .optional(),
         llmBasedMetricSpec: z.object({
           additionalConfig: z.unknown().describe(
             "Optional. Optional additional configuration for the metric.",
           ).optional(),
           judgeAutoraterConfig: z.unknown().describe(
-            "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+            "Optional. Optional configuration for the judge LLM (Autorater).",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Template for the prompt sent to the judge model.",
           ).optional(),
           predefinedRubricGenerationSpec: z.unknown().describe(
-            "The spec for a pre-defined metric.",
+            "Dynamically generate rubrics using a predefined spec.",
           ).optional(),
           resultParserConfig: z.unknown().describe(
-            "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
+            "Optional. The parser config for the metric result.",
           ).optional(),
           rubricGenerationSpec: z.unknown().describe(
-            "Specification for how rubrics should be generated.",
+            "Dynamically generate rubrics using this specification.",
           ).optional(),
           rubricGroupKey: z.unknown().describe(
             "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -721,19 +690,19 @@ const GlobalArgsSchema = z.object({
           systemInstruction: z.unknown().describe(
             "Optional. System instructions for the judge model.",
           ).optional(),
-        }).describe("Specification for an LLM based metric.").optional(),
+        }).describe("Spec for an LLM based metric.").optional(),
         metadata: z.object({
           otherMetadata: z.unknown().describe(
             "Optional. Flexible metadata for user-defined attributes.",
           ).optional(),
           scoreRange: z.unknown().describe(
-            "The range of possible scores for this metric, used for plotting.",
+            "Optional. The range of possible scores for this metric, used for plotting.",
           ).optional(),
           title: z.unknown().describe(
             "Optional. The user-friendly name for the metric. If not set for a registered metric, it will default to the metric's display name.",
           ).optional(),
         }).describe(
-          "Metadata about the metric, used for visualization and organization.",
+          "Optional. Metadata about the metric, used for visualization and organization.",
         ).optional(),
         pairwiseMetricSpec: z.object({
           baselineResponseFieldName: z.unknown().describe(
@@ -743,7 +712,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The field name of the candidate response.",
           ).optional(),
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. When this config is set, the default output is replaced with the raw output string. If a custom format is chosen, the `pairwise_choice` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pairwise metric.",
@@ -754,7 +723,7 @@ const GlobalArgsSchema = z.object({
         }).describe("Spec for pairwise metric.").optional(),
         pointwiseMetricSpec: z.object({
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the `score` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pointwise metric.",
@@ -781,20 +750,17 @@ const GlobalArgsSchema = z.object({
           useStemmer: z.unknown().describe(
             "Optional. Whether to use stemmer to compute rouge score.",
           ).optional(),
-        }).describe(
-          "Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.",
-        ).optional(),
+        }).describe("Spec for rouge metric.").optional(),
       })).describe("Required. The metrics used for evaluation.").optional(),
       outputConfig: z.object({
         gcsDestination: z.object({
           outputUriPrefix: z.string().describe(
             "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
           ).optional(),
-        }).describe(
-          "The Google Cloud Storage location where the output is to be written to.",
-        ).optional(),
-      }).describe("Config for evaluation output.").optional(),
-    }).describe("Evaluation Config for Tuning Job.").optional(),
+        }).describe("Cloud storage destination for evaluation output.")
+          .optional(),
+      }).describe("Required. Config for evaluation output.").optional(),
+    }).describe("Optional. Evaluation Config for Tuning Job.").optional(),
     exportLastCheckpointOnly: z.boolean().describe(
       "Optional. If set to true, disable intermediate checkpoints for SFT and only the last checkpoint will be exported. Otherwise, enable intermediate checkpoints for SFT. Default is false.",
     ).optional(),
@@ -814,337 +780,17 @@ const GlobalArgsSchema = z.object({
       learningRateMultiplier: z.number().describe(
         "Optional. Multiplier for adjusting the default learning rate. Mutually exclusive with `learning_rate`. This feature is only available for 1P models.",
       ).optional(),
-    }).describe("Hyperparameters for SFT.").optional(),
+    }).describe("Optional. Hyperparameters for SFT.").optional(),
     trainingDatasetUri: z.string().describe(
       "Required. Training dataset used for tuning. The dataset can be specified as either a Cloud Storage path to a JSONL file or as the resource name of a Vertex Multimodal Dataset.",
     ).optional(),
     validationDatasetUri: z.string().describe(
       "Optional. Validation dataset used for tuning. The dataset can be specified as either a Cloud Storage path to a JSONL file or as the resource name of a Vertex Multimodal Dataset.",
     ).optional(),
-  }).describe("Tuning Spec for Supervised Tuning for first party models.")
-    .optional(),
-  tunedModel: z.object({
-    checkpoints: z.array(z.object({
-      checkpointId: z.string().describe("The ID of the checkpoint.").optional(),
-      endpoint: z.string().describe(
-        "The Endpoint resource name that the checkpoint is deployed to. Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`.",
-      ).optional(),
-      epoch: z.string().describe("The epoch of the checkpoint.").optional(),
-      step: z.string().describe("The step of the checkpoint.").optional(),
-    })).describe(
-      "Output only. The checkpoints associated with this TunedModel. This field is only populated for tuning jobs that enable intermediate checkpoints.",
-    ).optional(),
-    endpoint: z.string().describe(
-      "Output only. A resource name of an Endpoint. Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`.",
-    ).optional(),
-    model: z.string().describe(
-      "Output only. The resource name of the TunedModel. Format: `projects/{project}/locations/{location}/models/{model}@{version_id}` When tuning from a base model, the version ID will be 1. For continuous tuning, if the provided tuned_model_display_name is set and different from parent model's display name, the tuned model will have a new parent model with version 1. Otherwise the version id will be incremented by 1 from the last version ID in the parent model. E.g., `projects/{project}/locations/{location}/models/{model}@{last_version_id + 1}`",
-    ).optional(),
-  }).describe(
-    "The Model Registry Model and Online Prediction Endpoint associated with this TuningJob.",
-  ).optional(),
+  }).describe("Tuning Spec for Supervised Fine Tuning.").optional(),
   tunedModelDisplayName: z.string().describe(
     "Optional. The display name of the TunedModel. The name can be up to 128 characters long and can consist of any UTF-8 characters. For continuous tuning, tuned_model_display_name will by default use the same display name as the pre-tuned model. If a new display name is provided, the tuning job will create a new model instead of a new version.",
   ).optional(),
-  tuningDataStats: z.object({
-    preferenceOptimizationDataStats: z.object({
-      droppedExampleIndices: z.array(z.string()).describe(
-        "Output only. A partial sample of the indices (starting from 1) of the dropped examples.",
-      ).optional(),
-      droppedExampleReasons: z.array(z.string()).describe(
-        "Output only. For each index in `dropped_example_indices`, the user-facing reason why the example was dropped.",
-      ).optional(),
-      scoreVariancePerExampleDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-      scoresDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-      totalBillableTokenCount: z.string().describe(
-        "Output only. Number of billable tokens in the tuning dataset.",
-      ).optional(),
-      tuningDatasetExampleCount: z.string().describe(
-        "Output only. Number of examples in the tuning dataset.",
-      ).optional(),
-      tuningStepCount: z.string().describe(
-        "Output only. Number of tuning steps for this Tuning Job.",
-      ).optional(),
-      userDatasetExamples: z.array(z.object({
-        completions: z.array(z.unknown()).describe(
-          "List of completions for a given prompt.",
-        ).optional(),
-        contents: z.array(z.unknown()).describe(
-          "Multi-turn contents that represents the Prompt.",
-        ).optional(),
-      })).describe("Output only. Sample user examples in the training dataset.")
-        .optional(),
-      userInputTokenDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-      userOutputTokenDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-    }).describe(
-      "Statistics computed for datasets used for preference optimization.",
-    ).optional(),
-    supervisedTuningDataStats: z.object({
-      droppedExampleReasons: z.array(z.string()).describe(
-        "Output only. For each index in `truncated_example_indices`, the user-facing reason why the example was dropped.",
-      ).optional(),
-      totalBillableCharacterCount: z.string().describe(
-        "Output only. Number of billable characters in the tuning dataset.",
-      ).optional(),
-      totalBillableTokenCount: z.string().describe(
-        "Output only. Number of billable tokens in the tuning dataset.",
-      ).optional(),
-      totalTruncatedExampleCount: z.string().describe(
-        "Output only. The number of examples in the dataset that have been dropped. An example can be dropped for reasons including: too many tokens, contains an invalid image, contains too many images, etc.",
-      ).optional(),
-      totalTuningCharacterCount: z.string().describe(
-        "Output only. Number of tuning characters in the tuning dataset.",
-      ).optional(),
-      truncatedExampleIndices: z.array(z.string()).describe(
-        "Output only. A partial sample of the indices (starting from 1) of the dropped examples.",
-      ).optional(),
-      tuningDatasetExampleCount: z.string().describe(
-        "Output only. Number of examples in the tuning dataset.",
-      ).optional(),
-      tuningStepCount: z.string().describe(
-        "Output only. Number of tuning steps for this Tuning Job.",
-      ).optional(),
-      userDatasetExamples: z.array(z.object({
-        parts: z.array(z.unknown()).describe(
-          "Required. A list of Part objects that make up a single message. Parts of a message can have different MIME types. A Content message must have at least one Part.",
-        ).optional(),
-        role: z.string().describe(
-          "Optional. The producer of the content. Must be either 'user' or 'model'. If not set, the service will default to 'user'.",
-        ).optional(),
-      })).describe(
-        "Output only. Sample user messages in the training dataset uri.",
-      ).optional(),
-      userInputTokenDistribution: z.object({
-        billableSum: z.string().describe(
-          "Output only. Sum of a given population of values that are billable.",
-        ).optional(),
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.string().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Dataset distribution for Supervised Tuning.").optional(),
-      userMessagePerExampleDistribution: z.object({
-        billableSum: z.string().describe(
-          "Output only. Sum of a given population of values that are billable.",
-        ).optional(),
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.string().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Dataset distribution for Supervised Tuning.").optional(),
-      userOutputTokenDistribution: z.object({
-        billableSum: z.string().describe(
-          "Output only. Sum of a given population of values that are billable.",
-        ).optional(),
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.string().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Dataset distribution for Supervised Tuning.").optional(),
-    }).describe("Tuning data statistics for Supervised Tuning.").optional(),
-  }).describe("The tuning data statistic values for TuningJob.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -1597,20 +1243,7 @@ const InputsSchema = z.object({
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
-  ).optional(),
-  error: z.object({
-    code: z.number().int().describe(
-      "The status code, which should be an enum value of google.rpc.Code.",
-    ).optional(),
-    details: z.array(z.record(z.string(), z.string())).describe(
-      "A list of messages that carry the error details. There is a common set of message types for APIs to use.",
-    ).optional(),
-    message: z.string().describe(
-      "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
-    ).optional(),
-  }).describe(
-    "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+    "Customer-managed encryption key options for a TuningJob. If this is set, then all resources created by the TuningJob will be encrypted with the provided encryption key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels with user-defined metadata to organize TuningJob and generated resources such as Model and Endpoint. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information and examples of labels.",
@@ -1625,7 +1258,7 @@ const InputsSchema = z.object({
     tunedModelName: z.string().describe(
       "The resource name of the Model. E.g., a model resource name with a specified version id or alias: `projects/{project}/locations/{location}/models/{model}@{version_id}` `projects/{project}/locations/{location}/models/{model}@{alias}` Or, omit the version id to use the default version: `projects/{project}/locations/{location}/models/{model}`",
     ).optional(),
-  }).describe("A pre-tuned model for continuous tuning.").optional(),
+  }).describe("The pre-tuned model for continuous tuning.").optional(),
   preferenceOptimizationSpec: z.object({
     exportLastCheckpointOnly: z.boolean().describe(
       "Optional. If set to true, disable intermediate checkpoints for Preference Optimization and only the last checkpoint will be exported. Otherwise, enable intermediate checkpoints for Preference Optimization. Default is false.",
@@ -1650,7 +1283,8 @@ const InputsSchema = z.object({
       learningRateMultiplier: z.number().describe(
         "Optional. Multiplier for adjusting the default learning rate.",
       ).optional(),
-    }).describe("Hyperparameters for Preference Optimization.").optional(),
+    }).describe("Optional. Hyperparameters for Preference Optimization.")
+      .optional(),
     trainingDatasetUri: z.string().describe(
       "Required. Cloud Storage path to file containing training dataset for preference optimization tuning. The dataset must be formatted as a JSONL file.",
     ).optional(),
@@ -1688,7 +1322,7 @@ const InputsSchema = z.object({
               'Optional. The desired aspect ratio for the generated images. The following aspect ratios are supported: "1:1" "2:3", "3:2" "3:4", "4:3" "4:5", "5:4" "9:16", "16:9" "21:9"',
             ).optional(),
             imageOutputOptions: z.unknown().describe(
-              "The image output format for generated images.",
+              "Optional. The image output format for generated images.",
             ).optional(),
             imageSize: z.unknown().describe(
               "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -1700,7 +1334,7 @@ const InputsSchema = z.object({
               "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
             ).optional(),
           }).describe(
-            "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+            "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
           ).optional(),
           logprobs: z.number().int().describe(
             "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -1810,18 +1444,16 @@ const InputsSchema = z.object({
               "Optional. Data type of the schema field.",
             ).optional(),
           }).describe(
-            "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+            "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
           ).optional(),
           routingConfig: z.object({
             autoMode: z.unknown().describe(
-              "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+              "In this mode, the model is selected automatically based on the content of the request.",
             ).optional(),
             manualMode: z.unknown().describe(
-              "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
+              "In this mode, the model is specified manually.",
             ).optional(),
-          }).describe(
-            "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-          ).optional(),
+          }).describe("Optional. Routing configuration.").optional(),
           seed: z.number().int().describe(
             "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
           ).optional(),
@@ -1830,11 +1462,12 @@ const InputsSchema = z.object({
               "Optional. The language code (ISO 639-1) for the speech synthesis.",
             ).optional(),
             multiSpeakerVoiceConfig: z.unknown().describe(
-              "Configuration for a multi-speaker text-to-speech request.",
+              "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
             ).optional(),
-            voiceConfig: z.unknown().describe("Configuration for a voice.")
-              .optional(),
-          }).describe("Configuration for speech generation.").optional(),
+            voiceConfig: z.unknown().describe(
+              "The configuration for the voice to use.",
+            ).optional(),
+          }).describe("Optional. The speech generation config.").optional(),
           stopSequences: z.array(z.unknown()).describe(
             'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
           ).optional(),
@@ -1852,7 +1485,7 @@ const InputsSchema = z.object({
               "Optional. The number of thoughts tokens that the model should generate.",
             ).optional(),
           }).describe(
-            'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+            "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
           ).optional(),
           topK: z.number().describe(
             "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -1861,14 +1494,12 @@ const InputsSchema = z.object({
             "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
           ).optional(),
         }).describe(
-          "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+          "Optional. Configuration options for model generation and outputs.",
         ).optional(),
         samplingCount: z.number().int().describe(
           "Optional. Number of samples for each instance in the dataset. If not specified, the default is 4. Minimum value is 1, maximum value is 32.",
         ).optional(),
-      }).describe(
-        "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
-      ).optional(),
+      }).describe("Optional. Autorater config for evaluation.").optional(),
       datasetCustomMetrics: z.array(z.object({
         aggregationFunction: z.string().describe(
           'Required. The Python code string containing the aggregation function. Expected function signature: `def aggregate(instances: list[dict[str, Any]]) -> dict[str, float]:` The `instances` argument is a list of dictionaries, where each dictionary represents a single evaluation result item. The structure of each dictionary corresponds to the fields in the `EvaluationResult` message. This includes: - `"request"`: Contains the original input data and model inputs (from `EvaluationResult.EvaluationRequest`). - `"candidate_results"`: Contains the results of any instance-level metrics (from `EvaluationResult.CandidateResults`). Example of a single item in the `instances` list: { "request": { "prompt": {"text": "What is the capital of France?"}, "golden_response": {"text": "Paris"}, "candidate_responses": [{"candidate": "model-v1", "text": "Paris"}] }, "candidate_results": [ {"metric": "exact_match", "score": 1.0}, {"metric": "bleu", "score": 0.9} ] }',
@@ -1903,7 +1534,7 @@ const InputsSchema = z.object({
             mimeType: z.unknown().describe(
               "Optional. The image format that the output should be saved as.",
             ).optional(),
-          }).describe("The image output format for generated images.")
+          }).describe("Optional. The image output format for generated images.")
             .optional(),
           imageSize: z.string().describe(
             "Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
@@ -1924,7 +1555,7 @@ const InputsSchema = z.object({
             "Optional. Controls whether prominent people (celebrities) generation is allowed. If used with personGeneration, personGeneration enum would take precedence. For instance, if ALLOW_NONE is set, all person generation would be blocked. If this field is unspecified, the default behavior is to allow prominent people.",
           ).optional(),
         }).describe(
-          "Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.",
+          "Optional. Config for image generation features. Deprecated: Use `response_format.image` instead.",
         ).optional(),
         logprobs: z.number().int().describe(
           "Optional. The number of top log probabilities to return for each token. This can be used to see which other tokens were considered likely candidates for a given position. A higher value will return more options, but it will also increase the size of the response.",
@@ -1944,18 +1575,10 @@ const InputsSchema = z.object({
           "Optional. Penalizes tokens that have already appeared in the generated text. A positive value encourages the model to generate more diverse and less repetitive text. Valid values can range from [-2.0, 2.0].",
         ).optional(),
         responseFormat: z.array(z.object({
-          audio: z.unknown().describe(
-            "Configuration for audio-specific output formatting.",
-          ).optional(),
-          image: z.unknown().describe(
-            "Configuration for image-specific output formatting.",
-          ).optional(),
-          text: z.unknown().describe(
-            "Configuration for text-specific output formatting.",
-          ).optional(),
-          video: z.unknown().describe(
-            "Configuration for video-specific output formatting.",
-          ).optional(),
+          audio: z.unknown().describe("Audio output format.").optional(),
+          image: z.unknown().describe("Image output format.").optional(),
+          text: z.unknown().describe("Text output format.").optional(),
+          video: z.unknown().describe("Video output format.").optional(),
         })).describe(
           "Optional. New response format field for the model to configure output formatting and delivery.",
         ).optional(),
@@ -2056,7 +1679,7 @@ const InputsSchema = z.object({
             "NULL",
           ]).describe("Optional. Data type of the schema field.").optional(),
         }).describe(
-          "Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).",
+          "Optional. Lets you to specify a schema for the model's response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the `response_mime_type` to `application/json`. Deprecated: Use `response_format` instead.",
         ).optional(),
         routingConfig: z.object({
           autoMode: z.object({
@@ -2064,18 +1687,15 @@ const InputsSchema = z.object({
               "The model routing preference.",
             ).optional(),
           }).describe(
-            "The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.",
+            "In this mode, the model is selected automatically based on the content of the request.",
           ).optional(),
           manualMode: z.object({
             modelName: z.unknown().describe(
               "The name of the model to use. Only public LLM models are accepted.",
             ).optional(),
-          }).describe(
-            "The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.",
-          ).optional(),
-        }).describe(
-          "The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.",
-        ).optional(),
+          }).describe("In this mode, the model is specified manually.")
+            .optional(),
+        }).describe("Optional. Routing configuration.").optional(),
         seed: z.number().int().describe(
           "Optional. A seed for the random number generator. By setting a seed, you can make the model's output mostly deterministic. For a given prompt and parameters (like temperature, top_p, etc.), the model will produce the same response every time. However, it's not a guaranteed absolute deterministic behavior. This is different from parameters like `temperature`, which control the *level* of randomness. `seed` ensures that the \"random\" choices the model makes are the same on every run, making it essential for testing and ensuring reproducible results.",
         ).optional(),
@@ -2088,17 +1708,17 @@ const InputsSchema = z.object({
               "Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.",
             ).optional(),
           }).describe(
-            "Configuration for a multi-speaker text-to-speech request.",
+            "The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.",
           ).optional(),
           voiceConfig: z.object({
             prebuiltVoiceConfig: z.unknown().describe(
-              "Configuration for a prebuilt voice.",
+              "The configuration for a prebuilt voice.",
             ).optional(),
             replicatedVoiceConfig: z.unknown().describe(
-              "The configuration for the replicated voice to use.",
+              "Optional. The configuration for a replicated voice. This enables users to replicate a voice from an audio sample.",
             ).optional(),
-          }).describe("Configuration for a voice.").optional(),
-        }).describe("Configuration for speech generation.").optional(),
+          }).describe("The configuration for the voice to use.").optional(),
+        }).describe("Optional. The speech generation config.").optional(),
         stopSequences: z.array(z.string()).describe(
           'Optional. A list of character sequences that will stop the model from generating further tokens. If a stop sequence is generated, the output will end at that point. This is useful for controlling the length and structure of the output. For example, you can use ["\\n", "###"] to stop generation at a new line or a specific marker.',
         ).optional(),
@@ -2122,7 +1742,7 @@ const InputsSchema = z.object({
             "Optional. The number of thoughts tokens that the model should generate.",
           ).optional(),
         }).describe(
-          'Configuration for the model\'s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.',
+          "Optional. Configuration for thinking features. An error will be returned if this field is set for models that don't support thinking.",
         ).optional(),
         topK: z.number().describe(
           "Optional. Specifies the top-k sampling threshold. The model considers only the top k most probable tokens for the next token. This can be useful for generating more coherent and less random text. For example, a `top_k` of 40 means the model will choose the next word from the 40 most likely words.",
@@ -2131,7 +1751,7 @@ const InputsSchema = z.object({
           "Optional. Specifies the nucleus sampling threshold. The model considers only the smallest set of tokens whose cumulative probability is at least `top_p`. This helps generate more diverse and less repetitive responses. For example, a `top_p` of 0.9 means the model considers tokens until the cumulative probability of the tokens to select from reaches 0.9. It's recommended to adjust either temperature or `top_p`, but not both.",
         ).optional(),
       }).describe(
-        "Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.",
+        "Optional. Configuration options for inference generation and outputs. If not set, default generation parameters are used.",
       ).optional(),
       metrics: z.array(z.object({
         aggregationMetrics: z.array(z.unknown()).describe(
@@ -2141,9 +1761,7 @@ const InputsSchema = z.object({
           useEffectiveOrder: z.unknown().describe(
             "Optional. Whether to use_effective_order to compute bleu score.",
           ).optional(),
-        }).describe(
-          "Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.",
-        ).optional(),
+        }).describe("Spec for bleu metric.").optional(),
         computationBasedMetricSpec: z.object({
           parameters: z.unknown().describe(
             'Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.',
@@ -2151,35 +1769,32 @@ const InputsSchema = z.object({
           type: z.unknown().describe(
             "Required. The type of the computation based metric.",
           ).optional(),
-        }).describe("Specification for a computation based metric.").optional(),
+        }).describe("Spec for a computation based metric.").optional(),
         customCodeExecutionSpec: z.object({
           evaluationFunction: z.unknown().describe(
             "Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -> float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input: ` instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text=\"The answer is 4.\"), reference=EvaluationInstance.InstanceData(text=\"4\")) ` Example converted input: ` { 'response': {'text': 'The answer is 4.'}, 'reference': {'text': '4'} } ` Example python function: ` def evaluate(instance: dict[str, Any]) -> float: if instance'response' == instance'reference': return 1.0 return 0.0 ` CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.",
           ).optional(),
-        }).describe(
-          "Specificies a metric that is populated by evaluating user-defined Python code.",
-        ).optional(),
-        exactMatchSpec: z.object({}).describe(
-          "Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.",
-        ).optional(),
+        }).describe("Spec for Custom Code Execution metric.").optional(),
+        exactMatchSpec: z.object({}).describe("Spec for exact match metric.")
+          .optional(),
         llmBasedMetricSpec: z.object({
           additionalConfig: z.unknown().describe(
             "Optional. Optional additional configuration for the metric.",
           ).optional(),
           judgeAutoraterConfig: z.unknown().describe(
-            "The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.",
+            "Optional. Optional configuration for the judge LLM (Autorater).",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Template for the prompt sent to the judge model.",
           ).optional(),
           predefinedRubricGenerationSpec: z.unknown().describe(
-            "The spec for a pre-defined metric.",
+            "Dynamically generate rubrics using a predefined spec.",
           ).optional(),
           resultParserConfig: z.unknown().describe(
-            "Config for parsing LLM responses. It can be used to parse the LLM response to be evaluated, or the LLM response from LLM-based metrics/Autoraters.",
+            "Optional. The parser config for the metric result.",
           ).optional(),
           rubricGenerationSpec: z.unknown().describe(
-            "Specification for how rubrics should be generated.",
+            "Dynamically generate rubrics using this specification.",
           ).optional(),
           rubricGroupKey: z.unknown().describe(
             "Use a pre-defined group of rubrics associated with the input. Refers to a key in the rubric_groups map of EvaluationInstance.",
@@ -2187,19 +1802,19 @@ const InputsSchema = z.object({
           systemInstruction: z.unknown().describe(
             "Optional. System instructions for the judge model.",
           ).optional(),
-        }).describe("Specification for an LLM based metric.").optional(),
+        }).describe("Spec for an LLM based metric.").optional(),
         metadata: z.object({
           otherMetadata: z.unknown().describe(
             "Optional. Flexible metadata for user-defined attributes.",
           ).optional(),
           scoreRange: z.unknown().describe(
-            "The range of possible scores for this metric, used for plotting.",
+            "Optional. The range of possible scores for this metric, used for plotting.",
           ).optional(),
           title: z.unknown().describe(
             "Optional. The user-friendly name for the metric. If not set for a registered metric, it will default to the metric's display name.",
           ).optional(),
         }).describe(
-          "Metadata about the metric, used for visualization and organization.",
+          "Optional. Metadata about the metric, used for visualization and organization.",
         ).optional(),
         pairwiseMetricSpec: z.object({
           baselineResponseFieldName: z.unknown().describe(
@@ -2209,7 +1824,7 @@ const InputsSchema = z.object({
             "Optional. The field name of the candidate response.",
           ).optional(),
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. When this config is set, the default output is replaced with the raw output string. If a custom format is chosen, the `pairwise_choice` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pairwise metric.",
@@ -2220,7 +1835,7 @@ const InputsSchema = z.object({
         }).describe("Spec for pairwise metric.").optional(),
         pointwiseMetricSpec: z.object({
           customOutputFormatConfig: z.unknown().describe(
-            "Spec for custom output format configuration.",
+            "Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the `score` and `explanation` fields in the corresponding metric result will be empty.",
           ).optional(),
           metricPromptTemplate: z.unknown().describe(
             "Required. Metric prompt template for pointwise metric.",
@@ -2247,20 +1862,17 @@ const InputsSchema = z.object({
           useStemmer: z.unknown().describe(
             "Optional. Whether to use stemmer to compute rouge score.",
           ).optional(),
-        }).describe(
-          "Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.",
-        ).optional(),
+        }).describe("Spec for rouge metric.").optional(),
       })).describe("Required. The metrics used for evaluation.").optional(),
       outputConfig: z.object({
         gcsDestination: z.object({
           outputUriPrefix: z.string().describe(
             "Required. Google Cloud Storage URI to output directory. If the uri doesn't end with '/', a '/' will be automatically appended. The directory is created if it doesn't exist.",
           ).optional(),
-        }).describe(
-          "The Google Cloud Storage location where the output is to be written to.",
-        ).optional(),
-      }).describe("Config for evaluation output.").optional(),
-    }).describe("Evaluation Config for Tuning Job.").optional(),
+        }).describe("Cloud storage destination for evaluation output.")
+          .optional(),
+      }).describe("Required. Config for evaluation output.").optional(),
+    }).describe("Optional. Evaluation Config for Tuning Job.").optional(),
     exportLastCheckpointOnly: z.boolean().describe(
       "Optional. If set to true, disable intermediate checkpoints for SFT and only the last checkpoint will be exported. Otherwise, enable intermediate checkpoints for SFT. Default is false.",
     ).optional(),
@@ -2280,337 +1892,17 @@ const InputsSchema = z.object({
       learningRateMultiplier: z.number().describe(
         "Optional. Multiplier for adjusting the default learning rate. Mutually exclusive with `learning_rate`. This feature is only available for 1P models.",
       ).optional(),
-    }).describe("Hyperparameters for SFT.").optional(),
+    }).describe("Optional. Hyperparameters for SFT.").optional(),
     trainingDatasetUri: z.string().describe(
       "Required. Training dataset used for tuning. The dataset can be specified as either a Cloud Storage path to a JSONL file or as the resource name of a Vertex Multimodal Dataset.",
     ).optional(),
     validationDatasetUri: z.string().describe(
       "Optional. Validation dataset used for tuning. The dataset can be specified as either a Cloud Storage path to a JSONL file or as the resource name of a Vertex Multimodal Dataset.",
     ).optional(),
-  }).describe("Tuning Spec for Supervised Tuning for first party models.")
-    .optional(),
-  tunedModel: z.object({
-    checkpoints: z.array(z.object({
-      checkpointId: z.string().describe("The ID of the checkpoint.").optional(),
-      endpoint: z.string().describe(
-        "The Endpoint resource name that the checkpoint is deployed to. Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`.",
-      ).optional(),
-      epoch: z.string().describe("The epoch of the checkpoint.").optional(),
-      step: z.string().describe("The step of the checkpoint.").optional(),
-    })).describe(
-      "Output only. The checkpoints associated with this TunedModel. This field is only populated for tuning jobs that enable intermediate checkpoints.",
-    ).optional(),
-    endpoint: z.string().describe(
-      "Output only. A resource name of an Endpoint. Format: `projects/{project}/locations/{location}/endpoints/{endpoint}`.",
-    ).optional(),
-    model: z.string().describe(
-      "Output only. The resource name of the TunedModel. Format: `projects/{project}/locations/{location}/models/{model}@{version_id}` When tuning from a base model, the version ID will be 1. For continuous tuning, if the provided tuned_model_display_name is set and different from parent model's display name, the tuned model will have a new parent model with version 1. Otherwise the version id will be incremented by 1 from the last version ID in the parent model. E.g., `projects/{project}/locations/{location}/models/{model}@{last_version_id + 1}`",
-    ).optional(),
-  }).describe(
-    "The Model Registry Model and Online Prediction Endpoint associated with this TuningJob.",
-  ).optional(),
+  }).describe("Tuning Spec for Supervised Fine Tuning.").optional(),
   tunedModelDisplayName: z.string().describe(
     "Optional. The display name of the TunedModel. The name can be up to 128 characters long and can consist of any UTF-8 characters. For continuous tuning, tuned_model_display_name will by default use the same display name as the pre-tuned model. If a new display name is provided, the tuning job will create a new model instead of a new version.",
   ).optional(),
-  tuningDataStats: z.object({
-    preferenceOptimizationDataStats: z.object({
-      droppedExampleIndices: z.array(z.string()).describe(
-        "Output only. A partial sample of the indices (starting from 1) of the dropped examples.",
-      ).optional(),
-      droppedExampleReasons: z.array(z.string()).describe(
-        "Output only. For each index in `dropped_example_indices`, the user-facing reason why the example was dropped.",
-      ).optional(),
-      scoreVariancePerExampleDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-      scoresDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-      totalBillableTokenCount: z.string().describe(
-        "Output only. Number of billable tokens in the tuning dataset.",
-      ).optional(),
-      tuningDatasetExampleCount: z.string().describe(
-        "Output only. Number of examples in the tuning dataset.",
-      ).optional(),
-      tuningStepCount: z.string().describe(
-        "Output only. Number of tuning steps for this Tuning Job.",
-      ).optional(),
-      userDatasetExamples: z.array(z.object({
-        completions: z.array(z.unknown()).describe(
-          "List of completions for a given prompt.",
-        ).optional(),
-        contents: z.array(z.unknown()).describe(
-          "Multi-turn contents that represents the Prompt.",
-        ).optional(),
-      })).describe("Output only. Sample user examples in the training dataset.")
-        .optional(),
-      userInputTokenDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-      userOutputTokenDistribution: z.object({
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.number().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Distribution computed over a tuning dataset.").optional(),
-    }).describe(
-      "Statistics computed for datasets used for preference optimization.",
-    ).optional(),
-    supervisedTuningDataStats: z.object({
-      droppedExampleReasons: z.array(z.string()).describe(
-        "Output only. For each index in `truncated_example_indices`, the user-facing reason why the example was dropped.",
-      ).optional(),
-      totalBillableCharacterCount: z.string().describe(
-        "Output only. Number of billable characters in the tuning dataset.",
-      ).optional(),
-      totalBillableTokenCount: z.string().describe(
-        "Output only. Number of billable tokens in the tuning dataset.",
-      ).optional(),
-      totalTruncatedExampleCount: z.string().describe(
-        "Output only. The number of examples in the dataset that have been dropped. An example can be dropped for reasons including: too many tokens, contains an invalid image, contains too many images, etc.",
-      ).optional(),
-      totalTuningCharacterCount: z.string().describe(
-        "Output only. Number of tuning characters in the tuning dataset.",
-      ).optional(),
-      truncatedExampleIndices: z.array(z.string()).describe(
-        "Output only. A partial sample of the indices (starting from 1) of the dropped examples.",
-      ).optional(),
-      tuningDatasetExampleCount: z.string().describe(
-        "Output only. Number of examples in the tuning dataset.",
-      ).optional(),
-      tuningStepCount: z.string().describe(
-        "Output only. Number of tuning steps for this Tuning Job.",
-      ).optional(),
-      userDatasetExamples: z.array(z.object({
-        parts: z.array(z.unknown()).describe(
-          "Required. A list of Part objects that make up a single message. Parts of a message can have different MIME types. A Content message must have at least one Part.",
-        ).optional(),
-        role: z.string().describe(
-          "Optional. The producer of the content. Must be either 'user' or 'model'. If not set, the service will default to 'user'.",
-        ).optional(),
-      })).describe(
-        "Output only. Sample user messages in the training dataset uri.",
-      ).optional(),
-      userInputTokenDistribution: z.object({
-        billableSum: z.string().describe(
-          "Output only. Sum of a given population of values that are billable.",
-        ).optional(),
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.string().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Dataset distribution for Supervised Tuning.").optional(),
-      userMessagePerExampleDistribution: z.object({
-        billableSum: z.string().describe(
-          "Output only. Sum of a given population of values that are billable.",
-        ).optional(),
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.string().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Dataset distribution for Supervised Tuning.").optional(),
-      userOutputTokenDistribution: z.object({
-        billableSum: z.string().describe(
-          "Output only. Sum of a given population of values that are billable.",
-        ).optional(),
-        buckets: z.array(z.object({
-          count: z.unknown().describe(
-            "Output only. Number of values in the bucket.",
-          ).optional(),
-          left: z.unknown().describe("Output only. Left bound of the bucket.")
-            .optional(),
-          right: z.unknown().describe("Output only. Right bound of the bucket.")
-            .optional(),
-        })).describe("Output only. Defines the histogram bucket.").optional(),
-        max: z.number().describe(
-          "Output only. The maximum of the population values.",
-        ).optional(),
-        mean: z.number().describe(
-          "Output only. The arithmetic mean of the values in the population.",
-        ).optional(),
-        median: z.number().describe(
-          "Output only. The median of the values in the population.",
-        ).optional(),
-        min: z.number().describe(
-          "Output only. The minimum of the population values.",
-        ).optional(),
-        p5: z.number().describe(
-          "Output only. The 5th percentile of the values in the population.",
-        ).optional(),
-        p95: z.number().describe(
-          "Output only. The 95th percentile of the values in the population.",
-        ).optional(),
-        sum: z.string().describe(
-          "Output only. Sum of a given population of values.",
-        ).optional(),
-      }).describe("Dataset distribution for Supervised Tuning.").optional(),
-    }).describe("Tuning data statistics for Supervised Tuning.").optional(),
-  }).describe("The tuning data statistic values for TuningJob.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -2639,7 +1931,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform TuningJobs. Registered at `@swamp/gcp/aiplatform/tuningjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/tuningjobs",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2791,6 +2083,19 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: error, tunedModel, tuningDataStats",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          error: _error,
+          tunedModel: _tunedModel,
+          tuningDataStats: _tuningDataStats,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2822,7 +2127,6 @@ export const model = {
         if (g["encryptionSpec"] !== undefined) {
           body["encryptionSpec"] = g["encryptionSpec"];
         }
-        if (g["error"] !== undefined) body["error"] = g["error"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["preTunedModel"] !== undefined) {
           body["preTunedModel"] = g["preTunedModel"];
@@ -2836,12 +2140,8 @@ export const model = {
         if (g["supervisedTuningSpec"] !== undefined) {
           body["supervisedTuningSpec"] = g["supervisedTuningSpec"];
         }
-        if (g["tunedModel"] !== undefined) body["tunedModel"] = g["tunedModel"];
         if (g["tunedModelDisplayName"] !== undefined) {
           body["tunedModelDisplayName"] = g["tunedModelDisplayName"];
-        }
-        if (g["tuningDataStats"] !== undefined) {
-          body["tuningDataStats"] = g["tuningDataStats"];
         }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -2856,16 +2156,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

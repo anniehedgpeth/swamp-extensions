@@ -215,7 +215,9 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the CrowdStrike config.",
+      ).optional(),
     }).describe("CrowdStrike connector config.").optional(),
     crowdStrikeFalconNextGenConfig: z.object({
       apiKey: z.string().describe(
@@ -269,7 +271,9 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the CrowdStrike Falcon Next Gen config.",
+      ).optional(),
     }).describe("CrowdStrike Falcon Next Gen connector config.").optional(),
     crowdStrikeXdrConfig: z.object({
       apiKey: z.string().describe(
@@ -282,7 +286,8 @@ const GlobalArgsSchema = z.object({
         enableAllXdrEvents: z.boolean().describe(
           "Required. Whether to enable all XDR events.",
         ).optional(),
-      }).describe("XDR settings for connector configs.").optional(),
+      }).describe("Required. The XDR settings for the CrowdStrike XDR config.")
+        .optional(),
     }).describe("CrowdStrike XDR connector config.").optional(),
     deviceTrustConfig: z.object({
       scope: z.enum([
@@ -312,7 +317,7 @@ const GlobalArgsSchema = z.object({
       urlMatchers: z.array(z.string()).describe(
         'Required. List of URLs allowed to be part of the attestation flow to get the set of signals from the machine. URLs must have HTTPS scheme, e.g. "https://example.com". Wildcards, *, are allowed. For detailed information on valid URL patterns, please see https://cloud.google.com/docs/chrome-enterprise/policies/url-patterns.',
       ).optional(),
-    }).describe("Device trust config for device trust connectors.").optional(),
+    }).describe("Device trust connector config.").optional(),
     googleSecOpsConfig: z.object({
       apiKey: z.string().describe(
         "Required. Input only. API key to use on the ingestion API.",
@@ -365,7 +370,9 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the Google SecOps config.",
+      ).optional(),
     }).describe("Google SecOps connector config.").optional(),
     mipLabelConfig: z.object({
       domains: z.array(z.string()).describe(
@@ -426,7 +433,9 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the Palo Alto Networks config.",
+      ).optional(),
     }).describe("Palo Alto Networks connector config.").optional(),
     pubSubConfig: z.object({
       reportingSettings: z.object({
@@ -474,7 +483,8 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe("Required. The reporting settings for the Pub/Sub config.")
+        .optional(),
       topicFullPath: z.string().describe(
         "Required. The full path to the topic to send the event to.",
       ).optional(),
@@ -487,7 +497,8 @@ const GlobalArgsSchema = z.object({
         enableAllXdrEvents: z.boolean().describe(
           "Required. Whether to enable all XDR events.",
         ).optional(),
-      }).describe("XDR settings for connector configs.").optional(),
+      }).describe("Required. The XDR settings for the Pub/Sub XDR config.")
+        .optional(),
     }).describe("Pub/Sub XDR connector config.").optional(),
     splunkConfig: z.object({
       hecToken: z.string().describe(
@@ -544,7 +555,8 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe("Required. The reporting settings for the Splunk config.")
+        .optional(),
       source: z.string().describe(
         "Optional. Optional source name to override the default one set in the Splunk admin console.",
       ).optional(),
@@ -552,24 +564,12 @@ const GlobalArgsSchema = z.object({
         "Optional. Whether to use an unsecure HTTP scheme. Defaults to false (HTTPS).",
       ).optional(),
     }).describe("Splunk connector config.").optional(),
-  }).describe("The details of the connector config.").optional(),
+  }).describe("Required. The details of the connector config.").optional(),
   displayName: z.string().describe("Required. The display name of the config.")
     .optional(),
   name: z.string().describe(
     "Identifier. Format: customers/{customer}/connectorConfigs/{connector_config}",
   ).optional(),
-  status: z.object({
-    failureStartTime: z.string().describe(
-      "Output only. Field recording time of the earliest failure since the last success event. This field is only set when the state is `DISABLED_BY_FAILURES`.",
-    ).optional(),
-    state: z.enum(["CONFIG_STATE_UNKNOWN", "ENABLED", "DISABLED_BY_FAILURES"])
-      .describe(
-        "Output only. The state of the connector config. The connector state is disabled if the connector has not successfully sent an event in the last 24 hours.",
-      ).optional(),
-    updateTime: z.string().describe(
-      "Output only. Field recording time of most recent modification of the status. For `ENABLED`, this is the time the status was changed to `ENABLED`. For `DISABLED_BY_FAILURES`, this is the time of the most recent failed attempt to send an event to this config.",
-    ).optional(),
-  }).describe("The status of the connector config.").optional(),
   type: z.enum([
     "CONNECTOR_TYPE_UNSPECIFIED",
     "REPORTING",
@@ -740,7 +740,9 @@ const InputsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the CrowdStrike config.",
+      ).optional(),
     }).describe("CrowdStrike connector config.").optional(),
     crowdStrikeFalconNextGenConfig: z.object({
       apiKey: z.string().describe(
@@ -794,7 +796,9 @@ const InputsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the CrowdStrike Falcon Next Gen config.",
+      ).optional(),
     }).describe("CrowdStrike Falcon Next Gen connector config.").optional(),
     crowdStrikeXdrConfig: z.object({
       apiKey: z.string().describe(
@@ -807,7 +811,8 @@ const InputsSchema = z.object({
         enableAllXdrEvents: z.boolean().describe(
           "Required. Whether to enable all XDR events.",
         ).optional(),
-      }).describe("XDR settings for connector configs.").optional(),
+      }).describe("Required. The XDR settings for the CrowdStrike XDR config.")
+        .optional(),
     }).describe("CrowdStrike XDR connector config.").optional(),
     deviceTrustConfig: z.object({
       scope: z.enum([
@@ -837,7 +842,7 @@ const InputsSchema = z.object({
       urlMatchers: z.array(z.string()).describe(
         'Required. List of URLs allowed to be part of the attestation flow to get the set of signals from the machine. URLs must have HTTPS scheme, e.g. "https://example.com". Wildcards, *, are allowed. For detailed information on valid URL patterns, please see https://cloud.google.com/docs/chrome-enterprise/policies/url-patterns.',
       ).optional(),
-    }).describe("Device trust config for device trust connectors.").optional(),
+    }).describe("Device trust connector config.").optional(),
     googleSecOpsConfig: z.object({
       apiKey: z.string().describe(
         "Required. Input only. API key to use on the ingestion API.",
@@ -890,7 +895,9 @@ const InputsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the Google SecOps config.",
+      ).optional(),
     }).describe("Google SecOps connector config.").optional(),
     mipLabelConfig: z.object({
       domains: z.array(z.string()).describe(
@@ -951,7 +958,9 @@ const InputsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe(
+        "Required. The reporting settings for the Palo Alto Networks config.",
+      ).optional(),
     }).describe("Palo Alto Networks connector config.").optional(),
     pubSubConfig: z.object({
       reportingSettings: z.object({
@@ -999,7 +1008,8 @@ const InputsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe("Required. The reporting settings for the Pub/Sub config.")
+        .optional(),
       topicFullPath: z.string().describe(
         "Required. The full path to the topic to send the event to.",
       ).optional(),
@@ -1012,7 +1022,8 @@ const InputsSchema = z.object({
         enableAllXdrEvents: z.boolean().describe(
           "Required. Whether to enable all XDR events.",
         ).optional(),
-      }).describe("XDR settings for connector configs.").optional(),
+      }).describe("Required. The XDR settings for the Pub/Sub XDR config.")
+        .optional(),
     }).describe("Pub/Sub XDR connector config.").optional(),
     splunkConfig: z.object({
       hecToken: z.string().describe(
@@ -1069,7 +1080,8 @@ const InputsSchema = z.object({
         ).describe(
           "Optional. The list of opt-in events that are enabled for this config. An empty list disables all opt-in events, and using `ALL_OPT_IN_EVENTS` will enable all opt-in events.",
         ).optional(),
-      }).describe("Reporting settings for connector configs.").optional(),
+      }).describe("Required. The reporting settings for the Splunk config.")
+        .optional(),
       source: z.string().describe(
         "Optional. Optional source name to override the default one set in the Splunk admin console.",
       ).optional(),
@@ -1077,24 +1089,12 @@ const InputsSchema = z.object({
         "Optional. Whether to use an unsecure HTTP scheme. Defaults to false (HTTPS).",
       ).optional(),
     }).describe("Splunk connector config.").optional(),
-  }).describe("The details of the connector config.").optional(),
+  }).describe("Required. The details of the connector config.").optional(),
   displayName: z.string().describe("Required. The display name of the config.")
     .optional(),
   name: z.string().describe(
     "Identifier. Format: customers/{customer}/connectorConfigs/{connector_config}",
   ).optional(),
-  status: z.object({
-    failureStartTime: z.string().describe(
-      "Output only. Field recording time of the earliest failure since the last success event. This field is only set when the state is `DISABLED_BY_FAILURES`.",
-    ).optional(),
-    state: z.enum(["CONFIG_STATE_UNKNOWN", "ENABLED", "DISABLED_BY_FAILURES"])
-      .describe(
-        "Output only. The state of the connector config. The connector state is disabled if the connector has not successfully sent an event in the last 24 hours.",
-      ).optional(),
-    updateTime: z.string().describe(
-      "Output only. Field recording time of most recent modification of the status. For `ENABLED`, this is the time the status was changed to `ENABLED`. For `DISABLED_BY_FAILURES`, this is the time of the most recent failed attempt to send an event to this config.",
-    ).optional(),
-  }).describe("The status of the connector config.").optional(),
   type: z.enum([
     "CONNECTOR_TYPE_UNSPECIFIED",
     "REPORTING",
@@ -1136,7 +1136,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Chrome Management Customers.ConnectorConfigs. Registered at `@swamp/gcp/chromemanagement/customers-connectorconfigs`. */
 export const model = {
   type: "@swamp/gcp/chromemanagement/customers-connectorconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -1163,7 +1173,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["type"] !== undefined) body["type"] = g["type"];
         if (g["connectorConfigId"] !== undefined) {
           params["connectorConfigId"] = String(g["connectorConfigId"]);
@@ -1276,7 +1285,6 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["type"] !== undefined) body["type"] = g["type"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

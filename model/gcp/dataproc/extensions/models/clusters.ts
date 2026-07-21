@@ -219,8 +219,9 @@ const GlobalArgsSchema = z.object({
       policyUri: z.string().describe(
         "Optional. The autoscaling policy used by the cluster.Only resource names including projectid and location (region) are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id] projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id]Note that the policy must be in the same project and region.",
       ).optional(),
-    }).describe("Autoscaling Policy config associated with the cluster.")
-      .optional(),
+    }).describe(
+      "Optional. Autoscaling config for the policy associated with the cluster. Cluster does not autoscale if this field is unset.",
+    ).optional(),
     auxiliaryNodeGroups: z.array(z.object({
       nodeGroup: z.object({
         labels: z.record(z.string(), z.unknown()).describe(
@@ -234,13 +235,13 @@ const GlobalArgsSchema = z.object({
             "Optional. The Compute Engine accelerator configuration for these instances.",
           ).optional(),
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk option config settings.",
           ).optional(),
           imageUri: z.unknown().describe(
             "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
           ).optional(),
           instanceFlexibilityPolicy: z.unknown().describe(
-            "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+            "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
           ).optional(),
           instanceNames: z.unknown().describe(
             "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -255,7 +256,7 @@ const GlobalArgsSchema = z.object({
             "Optional. The Compute Engine machine type used for cluster instances.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/machineTypes/n1-standard-2 projects/[project_id]/zones/[zone]/machineTypes/n1-standard-2 n1-standard-2Auto Zone Exception: If you are using Auto Zone Placement (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/auto-zone#using_auto_zone_placement), you must use the short name of the machine type resource, for example, n1-standard-2.",
           ).optional(),
           managedGroupConfig: z.unknown().describe(
-            "Specifies the resources used to actively manage an instance group.",
+            "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
           ).optional(),
           minCpuPlatform: z.unknown().describe(
             "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -270,16 +271,13 @@ const GlobalArgsSchema = z.object({
             "Optional. Specifies the preemptibility of the instance group.The default value for master and worker groups is NON_PREEMPTIBLE. This default cannot be changed.The default value for secondary instances is PREEMPTIBLE.",
           ).optional(),
           startupConfig: z.unknown().describe(
-            "Configuration to handle the startup of instances during cluster create and update process.",
+            "Optional. Configuration to handle the startup of instances during cluster create and update process.",
           ).optional(),
-        }).describe(
-          "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
-        ).optional(),
+        }).describe("Optional. The node group instance group configuration.")
+          .optional(),
         roles: z.array(z.unknown()).describe("Required. Node group roles.")
           .optional(),
-      }).describe(
-        "Node Group. The NodeGroup resource is not related to the NodeGroupAffinity resource.",
-      ).optional(),
+      }).describe("Required. Node group configuration.").optional(),
       nodeGroupId: z.string().describe(
         "Optional. A node group ID. Generated if not specified.The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). Cannot begin or end with underscore or hyphen. Must consist of from 3 to 33 characters.",
       ).optional(),
@@ -317,7 +315,7 @@ const GlobalArgsSchema = z.object({
           "Required. A standard set of metrics is collected unless metricOverrides are specified for the metric source (see Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) for more information).",
         ).optional(),
       })).describe("Required. Metrics sources to enable.").optional(),
-    }).describe("Metric config.").optional(),
+    }).describe("Optional. The config for metrics.").optional(),
     diagnosticBucket: z.string().describe(
       "Optional. A Cloud Storage bucket used to collect checkpoint diagnostic data (https://cloud.google.com/dataproc/docs/support/diagnose-clusters#checkpoint_diagnostic_data). If you do not specify a diagnostic bucket, The service will use the temp bucket to collect the checkpoint diagnostic data. This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.",
     ).optional(),
@@ -328,7 +326,7 @@ const GlobalArgsSchema = z.object({
       kmsKey: z.string().describe(
         "Optional. The Cloud KMS key resource name to use for cluster persistent disk and job argument encryption. See Use CMEK with cluster data (https://cloud.google.com//dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_cluster_data) for more information.When this key resource name is provided, the following job arguments of the following job types submitted to the cluster are encrypted using CMEK: FlinkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/FlinkJob) HadoopJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/HadoopJob) SparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkJob) SparkRJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkRJob) PySparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/PySparkJob) SparkSqlJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkSqlJob) scriptVariables and queryList.queries HiveJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/HiveJob) scriptVariables and queryList.queries PigJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PigJob) scriptVariables and queryList.queries PrestoJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PrestoJob) scriptVariables and queryList.queries",
       ).optional(),
-    }).describe("Encryption settings for the cluster.").optional(),
+    }).describe("Optional. Encryption settings for the cluster.").optional(),
     endpointConfig: z.object({
       enableHttpPortAccess: z.boolean().describe(
         "Optional. If true, enable http access to specific ports on the cluster from external sources. Defaults to false.",
@@ -336,7 +334,8 @@ const GlobalArgsSchema = z.object({
       httpPorts: z.record(z.string(), z.string()).describe(
         "Output only. The map of port descriptions to URLs. Will only be populated if enable_http_port_access is true.",
       ).optional(),
-    }).describe("Endpoint config for this cluster").optional(),
+    }).describe("Optional. Port/endpoint configuration for this cluster")
+      .optional(),
     engine: z.enum(["ENGINE_UNSPECIFIED", "DEFAULT", "LIGHTNING"]).describe(
       "Optional. The cluster engine.",
     ).optional(),
@@ -357,7 +356,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Deprecated: Use 'confidential_instance_type' instead. Defines whether the instance should have confidential compute enabled.",
         ).optional(),
       }).describe(
-        "Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/confidential-computing/confidential-vm/docs)",
+        "Optional. Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/confidential-computing/confidential-vm/docs).",
       ).optional(),
       internalIpOnly: z.boolean().describe(
         "Optional. This setting applies to subnetwork-enabled networks. It is set to true by default in clusters created with image versions 2.2.x.When set to true: All cluster VMs have internal IP addresses. Google Private Access (https://cloud.google.com/vpc/docs/private-google-access) must be enabled to access the Dataproc API and other Google Cloud APIs. Off-cluster dependencies must be configured to be accessible without external IP addresses.When set to false: Cluster VMs are not restricted to internal IP addresses. Ephemeral external IP addresses are assigned to each cluster VM.",
@@ -372,9 +371,8 @@ const GlobalArgsSchema = z.object({
         nodeGroupUri: z.string().describe(
           "Required. The URI of a sole-tenant node group resource (https://cloud.google.com/compute/docs/reference/rest/v1/nodeGroups) that the cluster will be created on.A full URL, partial URI, or node group name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 node-group-1",
         ).optional(),
-      }).describe(
-        "Node Group Affinity for clusters using sole-tenant node groups. The NodeGroupAffinity resource is not related to the NodeGroup resource.",
-      ).optional(),
+      }).describe("Optional. Node Group Affinity for sole-tenant clusters.")
+        .optional(),
       privateIpv6GoogleAccess: z.enum([
         "PRIVATE_IPV6_GOOGLE_ACCESS_UNSPECIFIED",
         "INHERIT_FROM_SUBNETWORK",
@@ -395,8 +393,9 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.string()).describe(
           "Optional. Corresponds to the label values of reservation resource.",
         ).optional(),
-      }).describe("Reservation Affinity for consuming Zonal reservation.")
-        .optional(),
+      }).describe(
+        "Optional. Reservation Affinity for consuming Zonal reservation.",
+      ).optional(),
       resourceManagerTags: z.record(z.string(), z.string()).describe(
         "Optional. Resource manager tags (https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing) to add to all instances (see Use secure tags (https://cloud.google.com/dataproc/docs/guides/use-secure-tags)).",
       ).optional(),
@@ -417,7 +416,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Defines whether instances have the vTPM enabled.",
         ).optional(),
       }).describe(
-        "Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).",
+        "Optional. Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).",
       ).optional(),
       subnetworkUri: z.string().describe(
         "Optional. The Compute Engine subnetwork to be used for machine communications. Cannot be specified with network_uri.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/regions/[region]/subnetworks/sub0 projects/[project_id]/regions/[region]/subnetworks/sub0 sub0",
@@ -429,7 +428,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The Compute Engine zone where the cluster will be located. If omitted, the service will pick a zone in the cluster's Compute Engine region. On a get request, zone will always be present.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone] projects/[project_id]/zones/[zone] [zone]",
       ).optional(),
     }).describe(
-      "Common config settings for resources of Compute Engine cluster instances, applicable to all instances in the cluster.",
+      "Optional. The shared Compute Engine config settings for all instances in a cluster.",
     ).optional(),
     gkeClusterConfig: z.object({
       gkeClusterTarget: z.string().describe(
@@ -443,7 +442,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The target GKE cluster to deploy to. Format: 'projects/{project}/locations/{location}/clusters/{cluster_id}'",
         ).optional(),
       }).describe(
-        "Deprecated. Used only for the deprecated beta. A full, namespace-isolated deployment target for an existing GKE cluster.",
+        "Optional. Deprecated. Use gkeClusterTarget. Used only for the deprecated beta. A target for the deployment.",
       ).optional(),
       nodePoolTarget: z.array(z.object({
         nodePool: z.string().describe(
@@ -451,16 +450,15 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         nodePoolConfig: z.object({
           autoscaling: z.unknown().describe(
-            "GkeNodePoolAutoscaling contains information the cluster autoscaler needs to adjust the size of the node pool to the current cluster usage.",
+            "Optional. The autoscaler configuration for this node pool. The autoscaler is enabled only when a valid configuration is present.",
           ).optional(),
-          config: z.unknown().describe(
-            "Parameters that describe cluster nodes.",
-          ).optional(),
+          config: z.unknown().describe("Optional. The node pool configuration.")
+            .optional(),
           locations: z.unknown().describe(
             "Optional. The list of Compute Engine zones (https://cloud.google.com/compute/docs/zones#available) where node pool nodes associated with a Dataproc on GKE virtual cluster will be located.Note: All node pools associated with a virtual cluster must be located in the same region as the virtual cluster, and they must be located in the same zone within that region.If a location is not specified during node pool creation, Dataproc on GKE will choose the zone.",
           ).optional(),
         }).describe(
-          "The configuration of a GKE node pool used by a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/concepts/jobs/dataproc-gke#create-a-dataproc-on-gke-cluster).",
+          "Input only. The configuration for the GKE node pool.If specified, Dataproc attempts to create a node pool with the specified shape. If one with the same name already exists, it is verified against all specified fields. If a field differs, the virtual cluster creation will fail.If omitted, any node pool with the specified name is used. If a node pool with the specified name does not exist, Dataproc create a node pool with default values.This is an input only field. It will not be returned by the API.",
         ).optional(),
         roles: z.array(z.unknown()).describe(
           "Required. The roles associated with the GKE node pool.",
@@ -468,7 +466,9 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Optional. GKE node pools where workloads will be scheduled. At least one node pool must be assigned the DEFAULT GkeNodePoolTarget.Role. If a GkeNodePoolTarget is not specified, Dataproc constructs a DEFAULT GkeNodePoolTarget. Each role can be given to only one GkeNodePoolTarget. All node pools must have the same location settings.",
       ).optional(),
-    }).describe("The cluster's GKE config.").optional(),
+    }).describe(
+      "Optional. BETA. The Kubernetes Engine config for clusters deployed to Kubernetes. These config settings are mutually exclusive with Compute Engine-based options, such as gce_cluster_config, master_config, worker_config, secondary_worker_config, and autoscaling_config.",
+    ).optional(),
     initializationActions: z.array(z.object({
       executableFile: z.string().describe(
         "Required. Cloud Storage URI of executable file.",
@@ -501,8 +501,7 @@ const GlobalArgsSchema = z.object({
       idleStopTtl: z.string().describe(
         "Optional. The duration to keep the cluster started while idling (when no jobs are running). Passing this threshold will cause the cluster to be stopped. Minimum value is 5 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).",
       ).optional(),
-    }).describe("Specifies the cluster auto-delete schedule configuration.")
-      .optional(),
+    }).describe("Optional. Lifecycle setting for the cluster.").optional(),
     masterConfig: z.object({
       accelerators: z.array(z.object({
         acceleratorCount: z.number().int().describe(
@@ -546,9 +545,7 @@ const GlobalArgsSchema = z.object({
         numLocalSsds: z.number().int().describe(
           "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
         ).optional(),
-      }).describe(
-        "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-      ).optional(),
+      }).describe("Optional. Disk option config settings.").optional(),
       imageUri: z.string().describe(
         "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
       ).optional(),
@@ -558,7 +555,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         instanceSelectionList: z.array(z.object({
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
           ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -587,10 +584,10 @@ const GlobalArgsSchema = z.object({
             "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
           ).optional(),
         }).describe(
-          "Defines how to create VMs with a mixture of provisioning models.",
+          "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
         ).optional(),
       }).describe(
-        "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+        "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
       ).optional(),
       instanceNames: z.array(z.string()).describe(
         "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -628,7 +625,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The name of the Instance Template used for the Managed Instance Group.",
         ).optional(),
       }).describe(
-        "Specifies the resources used to actively manage an instance group.",
+        "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
       ).optional(),
       minCpuPlatform: z.string().describe(
         "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -652,16 +649,16 @@ const GlobalArgsSchema = z.object({
           "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
         ).optional(),
       }).describe(
-        "Configuration to handle the startup of instances during cluster create and update process.",
+        "Optional. Configuration to handle the startup of instances during cluster create and update process.",
       ).optional(),
     }).describe(
-      "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
+      "Optional. The Compute Engine config settings for the cluster's master instance.",
     ).optional(),
     metastoreConfig: z.object({
       dataprocMetastoreService: z.string().describe(
         "Required. Resource name of an existing Metastore service.Example: projects/[project_id]/locations/[dataproc_region]/services/[service-name]",
       ).optional(),
-    }).describe("Specifies a Metastore configuration.").optional(),
+    }).describe("Optional. Metastore configuration.").optional(),
     secondaryWorkerConfig: z.object({
       accelerators: z.array(z.object({
         acceleratorCount: z.number().int().describe(
@@ -705,9 +702,7 @@ const GlobalArgsSchema = z.object({
         numLocalSsds: z.number().int().describe(
           "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
         ).optional(),
-      }).describe(
-        "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-      ).optional(),
+      }).describe("Optional. Disk option config settings.").optional(),
       imageUri: z.string().describe(
         "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
       ).optional(),
@@ -717,7 +712,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         instanceSelectionList: z.array(z.object({
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
           ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -746,10 +741,10 @@ const GlobalArgsSchema = z.object({
             "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
           ).optional(),
         }).describe(
-          "Defines how to create VMs with a mixture of provisioning models.",
+          "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
         ).optional(),
       }).describe(
-        "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+        "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
       ).optional(),
       instanceNames: z.array(z.string()).describe(
         "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -787,7 +782,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The name of the Instance Template used for the Managed Instance Group.",
         ).optional(),
       }).describe(
-        "Specifies the resources used to actively manage an instance group.",
+        "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
       ).optional(),
       minCpuPlatform: z.string().describe(
         "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -811,10 +806,10 @@ const GlobalArgsSchema = z.object({
           "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
         ).optional(),
       }).describe(
-        "Configuration to handle the startup of instances during cluster create and update process.",
+        "Optional. Configuration to handle the startup of instances during cluster create and update process.",
       ).optional(),
     }).describe(
-      "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
+      "Optional. The Compute Engine config settings for a cluster's secondary worker instances",
     ).optional(),
     securityConfig: z.object({
       identityConfig: z.object({
@@ -822,7 +817,7 @@ const GlobalArgsSchema = z.object({
           "Required. Map of user to service account.",
         ).optional(),
       }).describe(
-        "Identity related configuration, including service account based secure multi-tenancy user mappings.",
+        "Optional. Identity related configuration, including service account based secure multi-tenancy user mappings.",
       ).optional(),
       kerberosConfig: z.object({
         crossRealmTrustAdminServer: z.string().describe(
@@ -870,10 +865,8 @@ const GlobalArgsSchema = z.object({
         truststoreUri: z.string().describe(
           "Optional. The Cloud Storage URI of the truststore file used for SSL encryption. If not provided, the service will provide a self-signed certificate.",
         ).optional(),
-      }).describe("Specifies Kerberos related configuration.").optional(),
-    }).describe(
-      "Security related configuration, including encryption, Kerberos, etc.",
-    ).optional(),
+      }).describe("Optional. Kerberos related configuration.").optional(),
+    }).describe("Optional. Security settings for the cluster.").optional(),
     softwareConfig: z.object({
       imageVersion: z.string().describe(
         'Optional. The version of software inside the cluster. It must be one of the supported Image Versions (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#supported-dataproc-image-versions), such as "1.2" (including a subminor version, such as "1.2.29"), or the "preview" version (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#other_versions). If unspecified, it defaults to the latest Debian version.',
@@ -905,9 +898,8 @@ const GlobalArgsSchema = z.object({
       properties: z.record(z.string(), z.string()).describe(
         "Optional. The properties to set on daemon config files.Property keys are specified in prefix:property format, for example core:hadoop.tmp.dir. The following are supported prefixes and their mappings: capacity-scheduler: capacity-scheduler.xml core: core-site.xml distcp: distcp-default.xml hdfs: hdfs-site.xml hive: hive-site.xml mapred: mapred-site.xml pig: pig.properties spark: spark-defaults.conf yarn: yarn-site.xmlFor more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).",
       ).optional(),
-    }).describe(
-      "Specifies the selection and config of software inside the cluster.",
-    ).optional(),
+    }).describe("Optional. The config settings for cluster software.")
+      .optional(),
     tempBucket: z.string().describe(
       "Optional. A Cloud Storage bucket used to store ephemeral cluster and jobs data, such as Spark and MapReduce history files. If you do not specify a temp bucket, the service will determine a Cloud Storage location (US, ASIA, or EU) for your cluster's temp bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket. The default bucket has a TTL of 90 days, but you can use any TTL (or none) if you specify a bucket (see staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.",
     ).optional(),
@@ -954,9 +946,7 @@ const GlobalArgsSchema = z.object({
         numLocalSsds: z.number().int().describe(
           "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
         ).optional(),
-      }).describe(
-        "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-      ).optional(),
+      }).describe("Optional. Disk option config settings.").optional(),
       imageUri: z.string().describe(
         "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
       ).optional(),
@@ -966,7 +956,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         instanceSelectionList: z.array(z.object({
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
           ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -995,10 +985,10 @@ const GlobalArgsSchema = z.object({
             "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
           ).optional(),
         }).describe(
-          "Defines how to create VMs with a mixture of provisioning models.",
+          "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
         ).optional(),
       }).describe(
-        "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+        "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
       ).optional(),
       instanceNames: z.array(z.string()).describe(
         "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -1036,7 +1026,7 @@ const GlobalArgsSchema = z.object({
           "Output only. The name of the Instance Template used for the Managed Instance Group.",
         ).optional(),
       }).describe(
-        "Specifies the resources used to actively manage an instance group.",
+        "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
       ).optional(),
       minCpuPlatform: z.string().describe(
         "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -1060,65 +1050,39 @@ const GlobalArgsSchema = z.object({
           "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
         ).optional(),
       }).describe(
-        "Configuration to handle the startup of instances during cluster create and update process.",
+        "Optional. Configuration to handle the startup of instances during cluster create and update process.",
       ).optional(),
     }).describe(
-      "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
+      "Optional. The Compute Engine config settings for the cluster's worker instances.",
     ).optional(),
-  }).describe("The cluster config.").optional(),
+  }).describe(
+    "Optional. The cluster config for a cluster of Compute Engine Instances. Note that the service may set default values, and values may change when clusters are updated.Exactly one of ClusterConfig or VirtualClusterConfig must be specified.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels to associate with this cluster. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a cluster.",
-  ).optional(),
-  metrics: z.object({
-    hdfsMetrics: z.record(z.string(), z.string()).describe("The HDFS metrics.")
-      .optional(),
-    yarnMetrics: z.record(z.string(), z.string()).describe("YARN metrics.")
-      .optional(),
-  }).describe(
-    "Contains cluster daemon metrics, such as HDFS and YARN stats.Beta Feature: This report is available for testing purposes only. It may be changed before final release.",
   ).optional(),
   projectId: z.string().describe(
     "Required. The Google Cloud Platform project ID that the cluster belongs to.",
   ).optional(),
-  status: z.object({
-    detail: z.string().describe(
-      "Optional. Output only. Details of cluster's state.",
-    ).optional(),
-    state: z.enum([
-      "UNKNOWN",
-      "CREATING",
-      "RUNNING",
-      "ERROR",
-      "ERROR_DUE_TO_UPDATE",
-      "DELETING",
-      "UPDATING",
-      "STOPPING",
-      "STOPPED",
-      "STARTING",
-      "REPAIRING",
-      "SCHEDULED",
-    ]).describe("Output only. The cluster's state.").optional(),
-    stateStartTime: z.string().describe(
-      "Output only. Time when this state was entered (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).",
-    ).optional(),
-    substate: z.enum(["UNSPECIFIED", "UNHEALTHY", "STALE_STATUS"]).describe(
-      "Output only. Additional state information that includes status reported by the agent.",
-    ).optional(),
-  }).describe("The status of a cluster and its instances.").optional(),
   virtualClusterConfig: z.object({
     auxiliaryServicesConfig: z.object({
       metastoreConfig: z.object({
         dataprocMetastoreService: z.string().describe(
           "Required. Resource name of an existing Metastore service.Example: projects/[project_id]/locations/[dataproc_region]/services/[service-name]",
         ).optional(),
-      }).describe("Specifies a Metastore configuration.").optional(),
+      }).describe(
+        "Optional. The Hive Metastore configuration for this workload.",
+      ).optional(),
       sparkHistoryServerConfig: z.object({
         dataprocCluster: z.string().describe(
           "Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the workload.Example: projects/[project_id]/regions/[region]/clusters/[cluster_name]",
         ).optional(),
-      }).describe("Spark History Server configuration for the workload.")
-        .optional(),
-    }).describe("Auxiliary services configuration for a Cluster.").optional(),
+      }).describe(
+        "Optional. The Spark History Server configuration for the workload.",
+      ).optional(),
+    }).describe(
+      "Optional. Configuration of auxiliary services used by this cluster.",
+    ).optional(),
     kubernetesClusterConfig: z.object({
       gkeClusterConfig: z.object({
         gkeClusterTarget: z.string().describe(
@@ -1132,14 +1096,14 @@ const GlobalArgsSchema = z.object({
             "Optional. The target GKE cluster to deploy to. Format: 'projects/{project}/locations/{location}/clusters/{cluster_id}'",
           ).optional(),
         }).describe(
-          "Deprecated. Used only for the deprecated beta. A full, namespace-isolated deployment target for an existing GKE cluster.",
+          "Optional. Deprecated. Use gkeClusterTarget. Used only for the deprecated beta. A target for the deployment.",
         ).optional(),
         nodePoolTarget: z.array(z.object({
           nodePool: z.unknown().describe(
             "Required. The target GKE node pool. Format: 'projects/{project}/locations/{location}/clusters/{cluster}/nodePools/{node_pool}'",
           ).optional(),
           nodePoolConfig: z.unknown().describe(
-            "The configuration of a GKE node pool used by a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/concepts/jobs/dataproc-gke#create-a-dataproc-on-gke-cluster).",
+            "Input only. The configuration for the GKE node pool.If specified, Dataproc attempts to create a node pool with the specified shape. If one with the same name already exists, it is verified against all specified fields. If a field differs, the virtual cluster creation will fail.If omitted, any node pool with the specified name is used. If a node pool with the specified name does not exist, Dataproc create a node pool with default values.This is an input only field. It will not be returned by the API.",
           ).optional(),
           roles: z.unknown().describe(
             "Required. The roles associated with the GKE node pool.",
@@ -1147,7 +1111,9 @@ const GlobalArgsSchema = z.object({
         })).describe(
           "Optional. GKE node pools where workloads will be scheduled. At least one node pool must be assigned the DEFAULT GkeNodePoolTarget.Role. If a GkeNodePoolTarget is not specified, Dataproc constructs a DEFAULT GkeNodePoolTarget. Each role can be given to only one GkeNodePoolTarget. All node pools must have the same location settings.",
         ).optional(),
-      }).describe("The cluster's GKE config.").optional(),
+      }).describe(
+        "Required. The configuration for running the Dataproc cluster on GKE.",
+      ).optional(),
       kubernetesNamespace: z.string().describe(
         "Optional. A namespace within the Kubernetes cluster to deploy into. If this namespace does not exist, it is created. If it exists, Dataproc verifies that another Dataproc VirtualCluster is not installed into it. If not specified, the name of the Dataproc Cluster is used.",
       ).optional(),
@@ -1159,16 +1125,16 @@ const GlobalArgsSchema = z.object({
           "The properties to set on daemon config files.Property keys are specified in prefix:property format, for example spark:spark.kubernetes.container.image. The following are supported prefixes and their mappings: spark: spark-defaults.confFor more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).",
         ).optional(),
       }).describe(
-        "The software configuration for this Dataproc cluster running on Kubernetes.",
+        "Optional. The software configuration for this Dataproc cluster running on Kubernetes.",
       ).optional(),
     }).describe(
-      "The configuration for running the Dataproc cluster on Kubernetes.",
+      "Required. The configuration for running the cluster on Kubernetes.",
     ).optional(),
     stagingBucket: z.string().describe(
       "Optional. A Cloud Storage bucket used to stage job dependencies, config files, and job driver console output. If you do not specify a staging bucket, the service will determine a Cloud Storage location (US, ASIA, or EU) for your cluster's staging bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket (see staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.",
     ).optional(),
   }).describe(
-    "The cluster config for a cluster that does not directly control the underlying compute resources, such as a GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview).",
+    "Optional. The virtual cluster config is used when creating a cluster that does not directly control the underlying compute resources, for example, when creating a GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview). the service may set default values, and values may change when clusters are updated. Exactly one of config or virtual_cluster_config must be specified.",
   ).optional(),
   region: z.string().describe(
     "Required. The region in which to handle the request.",
@@ -1562,8 +1528,9 @@ const InputsSchema = z.object({
       policyUri: z.string().describe(
         "Optional. The autoscaling policy used by the cluster.Only resource names including projectid and location (region) are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id] projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id]Note that the policy must be in the same project and region.",
       ).optional(),
-    }).describe("Autoscaling Policy config associated with the cluster.")
-      .optional(),
+    }).describe(
+      "Optional. Autoscaling config for the policy associated with the cluster. Cluster does not autoscale if this field is unset.",
+    ).optional(),
     auxiliaryNodeGroups: z.array(z.object({
       nodeGroup: z.object({
         labels: z.record(z.string(), z.unknown()).describe(
@@ -1577,13 +1544,13 @@ const InputsSchema = z.object({
             "Optional. The Compute Engine accelerator configuration for these instances.",
           ).optional(),
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk option config settings.",
           ).optional(),
           imageUri: z.unknown().describe(
             "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
           ).optional(),
           instanceFlexibilityPolicy: z.unknown().describe(
-            "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+            "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
           ).optional(),
           instanceNames: z.unknown().describe(
             "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -1598,7 +1565,7 @@ const InputsSchema = z.object({
             "Optional. The Compute Engine machine type used for cluster instances.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/machineTypes/n1-standard-2 projects/[project_id]/zones/[zone]/machineTypes/n1-standard-2 n1-standard-2Auto Zone Exception: If you are using Auto Zone Placement (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/auto-zone#using_auto_zone_placement), you must use the short name of the machine type resource, for example, n1-standard-2.",
           ).optional(),
           managedGroupConfig: z.unknown().describe(
-            "Specifies the resources used to actively manage an instance group.",
+            "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
           ).optional(),
           minCpuPlatform: z.unknown().describe(
             "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -1613,16 +1580,13 @@ const InputsSchema = z.object({
             "Optional. Specifies the preemptibility of the instance group.The default value for master and worker groups is NON_PREEMPTIBLE. This default cannot be changed.The default value for secondary instances is PREEMPTIBLE.",
           ).optional(),
           startupConfig: z.unknown().describe(
-            "Configuration to handle the startup of instances during cluster create and update process.",
+            "Optional. Configuration to handle the startup of instances during cluster create and update process.",
           ).optional(),
-        }).describe(
-          "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
-        ).optional(),
+        }).describe("Optional. The node group instance group configuration.")
+          .optional(),
         roles: z.array(z.unknown()).describe("Required. Node group roles.")
           .optional(),
-      }).describe(
-        "Node Group. The NodeGroup resource is not related to the NodeGroupAffinity resource.",
-      ).optional(),
+      }).describe("Required. Node group configuration.").optional(),
       nodeGroupId: z.string().describe(
         "Optional. A node group ID. Generated if not specified.The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). Cannot begin or end with underscore or hyphen. Must consist of from 3 to 33 characters.",
       ).optional(),
@@ -1660,7 +1624,7 @@ const InputsSchema = z.object({
           "Required. A standard set of metrics is collected unless metricOverrides are specified for the metric source (see Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) for more information).",
         ).optional(),
       })).describe("Required. Metrics sources to enable.").optional(),
-    }).describe("Metric config.").optional(),
+    }).describe("Optional. The config for metrics.").optional(),
     diagnosticBucket: z.string().describe(
       "Optional. A Cloud Storage bucket used to collect checkpoint diagnostic data (https://cloud.google.com/dataproc/docs/support/diagnose-clusters#checkpoint_diagnostic_data). If you do not specify a diagnostic bucket, The service will use the temp bucket to collect the checkpoint diagnostic data. This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.",
     ).optional(),
@@ -1671,7 +1635,7 @@ const InputsSchema = z.object({
       kmsKey: z.string().describe(
         "Optional. The Cloud KMS key resource name to use for cluster persistent disk and job argument encryption. See Use CMEK with cluster data (https://cloud.google.com//dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_cluster_data) for more information.When this key resource name is provided, the following job arguments of the following job types submitted to the cluster are encrypted using CMEK: FlinkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/FlinkJob) HadoopJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/HadoopJob) SparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkJob) SparkRJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkRJob) PySparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/PySparkJob) SparkSqlJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkSqlJob) scriptVariables and queryList.queries HiveJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/HiveJob) scriptVariables and queryList.queries PigJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PigJob) scriptVariables and queryList.queries PrestoJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PrestoJob) scriptVariables and queryList.queries",
       ).optional(),
-    }).describe("Encryption settings for the cluster.").optional(),
+    }).describe("Optional. Encryption settings for the cluster.").optional(),
     endpointConfig: z.object({
       enableHttpPortAccess: z.boolean().describe(
         "Optional. If true, enable http access to specific ports on the cluster from external sources. Defaults to false.",
@@ -1679,7 +1643,8 @@ const InputsSchema = z.object({
       httpPorts: z.record(z.string(), z.string()).describe(
         "Output only. The map of port descriptions to URLs. Will only be populated if enable_http_port_access is true.",
       ).optional(),
-    }).describe("Endpoint config for this cluster").optional(),
+    }).describe("Optional. Port/endpoint configuration for this cluster")
+      .optional(),
     engine: z.enum(["ENGINE_UNSPECIFIED", "DEFAULT", "LIGHTNING"]).describe(
       "Optional. The cluster engine.",
     ).optional(),
@@ -1700,7 +1665,7 @@ const InputsSchema = z.object({
           "Optional. Deprecated: Use 'confidential_instance_type' instead. Defines whether the instance should have confidential compute enabled.",
         ).optional(),
       }).describe(
-        "Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/confidential-computing/confidential-vm/docs)",
+        "Optional. Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/confidential-computing/confidential-vm/docs).",
       ).optional(),
       internalIpOnly: z.boolean().describe(
         "Optional. This setting applies to subnetwork-enabled networks. It is set to true by default in clusters created with image versions 2.2.x.When set to true: All cluster VMs have internal IP addresses. Google Private Access (https://cloud.google.com/vpc/docs/private-google-access) must be enabled to access the Dataproc API and other Google Cloud APIs. Off-cluster dependencies must be configured to be accessible without external IP addresses.When set to false: Cluster VMs are not restricted to internal IP addresses. Ephemeral external IP addresses are assigned to each cluster VM.",
@@ -1715,9 +1680,8 @@ const InputsSchema = z.object({
         nodeGroupUri: z.string().describe(
           "Required. The URI of a sole-tenant node group resource (https://cloud.google.com/compute/docs/reference/rest/v1/nodeGroups) that the cluster will be created on.A full URL, partial URI, or node group name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 node-group-1",
         ).optional(),
-      }).describe(
-        "Node Group Affinity for clusters using sole-tenant node groups. The NodeGroupAffinity resource is not related to the NodeGroup resource.",
-      ).optional(),
+      }).describe("Optional. Node Group Affinity for sole-tenant clusters.")
+        .optional(),
       privateIpv6GoogleAccess: z.enum([
         "PRIVATE_IPV6_GOOGLE_ACCESS_UNSPECIFIED",
         "INHERIT_FROM_SUBNETWORK",
@@ -1738,8 +1702,9 @@ const InputsSchema = z.object({
         values: z.array(z.string()).describe(
           "Optional. Corresponds to the label values of reservation resource.",
         ).optional(),
-      }).describe("Reservation Affinity for consuming Zonal reservation.")
-        .optional(),
+      }).describe(
+        "Optional. Reservation Affinity for consuming Zonal reservation.",
+      ).optional(),
       resourceManagerTags: z.record(z.string(), z.string()).describe(
         "Optional. Resource manager tags (https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing) to add to all instances (see Use secure tags (https://cloud.google.com/dataproc/docs/guides/use-secure-tags)).",
       ).optional(),
@@ -1760,7 +1725,7 @@ const InputsSchema = z.object({
           "Optional. Defines whether instances have the vTPM enabled.",
         ).optional(),
       }).describe(
-        "Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).",
+        "Optional. Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).",
       ).optional(),
       subnetworkUri: z.string().describe(
         "Optional. The Compute Engine subnetwork to be used for machine communications. Cannot be specified with network_uri.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/regions/[region]/subnetworks/sub0 projects/[project_id]/regions/[region]/subnetworks/sub0 sub0",
@@ -1772,7 +1737,7 @@ const InputsSchema = z.object({
         "Optional. The Compute Engine zone where the cluster will be located. If omitted, the service will pick a zone in the cluster's Compute Engine region. On a get request, zone will always be present.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone] projects/[project_id]/zones/[zone] [zone]",
       ).optional(),
     }).describe(
-      "Common config settings for resources of Compute Engine cluster instances, applicable to all instances in the cluster.",
+      "Optional. The shared Compute Engine config settings for all instances in a cluster.",
     ).optional(),
     gkeClusterConfig: z.object({
       gkeClusterTarget: z.string().describe(
@@ -1786,7 +1751,7 @@ const InputsSchema = z.object({
           "Optional. The target GKE cluster to deploy to. Format: 'projects/{project}/locations/{location}/clusters/{cluster_id}'",
         ).optional(),
       }).describe(
-        "Deprecated. Used only for the deprecated beta. A full, namespace-isolated deployment target for an existing GKE cluster.",
+        "Optional. Deprecated. Use gkeClusterTarget. Used only for the deprecated beta. A target for the deployment.",
       ).optional(),
       nodePoolTarget: z.array(z.object({
         nodePool: z.string().describe(
@@ -1794,16 +1759,15 @@ const InputsSchema = z.object({
         ).optional(),
         nodePoolConfig: z.object({
           autoscaling: z.unknown().describe(
-            "GkeNodePoolAutoscaling contains information the cluster autoscaler needs to adjust the size of the node pool to the current cluster usage.",
+            "Optional. The autoscaler configuration for this node pool. The autoscaler is enabled only when a valid configuration is present.",
           ).optional(),
-          config: z.unknown().describe(
-            "Parameters that describe cluster nodes.",
-          ).optional(),
+          config: z.unknown().describe("Optional. The node pool configuration.")
+            .optional(),
           locations: z.unknown().describe(
             "Optional. The list of Compute Engine zones (https://cloud.google.com/compute/docs/zones#available) where node pool nodes associated with a Dataproc on GKE virtual cluster will be located.Note: All node pools associated with a virtual cluster must be located in the same region as the virtual cluster, and they must be located in the same zone within that region.If a location is not specified during node pool creation, Dataproc on GKE will choose the zone.",
           ).optional(),
         }).describe(
-          "The configuration of a GKE node pool used by a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/concepts/jobs/dataproc-gke#create-a-dataproc-on-gke-cluster).",
+          "Input only. The configuration for the GKE node pool.If specified, Dataproc attempts to create a node pool with the specified shape. If one with the same name already exists, it is verified against all specified fields. If a field differs, the virtual cluster creation will fail.If omitted, any node pool with the specified name is used. If a node pool with the specified name does not exist, Dataproc create a node pool with default values.This is an input only field. It will not be returned by the API.",
         ).optional(),
         roles: z.array(z.unknown()).describe(
           "Required. The roles associated with the GKE node pool.",
@@ -1811,7 +1775,9 @@ const InputsSchema = z.object({
       })).describe(
         "Optional. GKE node pools where workloads will be scheduled. At least one node pool must be assigned the DEFAULT GkeNodePoolTarget.Role. If a GkeNodePoolTarget is not specified, Dataproc constructs a DEFAULT GkeNodePoolTarget. Each role can be given to only one GkeNodePoolTarget. All node pools must have the same location settings.",
       ).optional(),
-    }).describe("The cluster's GKE config.").optional(),
+    }).describe(
+      "Optional. BETA. The Kubernetes Engine config for clusters deployed to Kubernetes. These config settings are mutually exclusive with Compute Engine-based options, such as gce_cluster_config, master_config, worker_config, secondary_worker_config, and autoscaling_config.",
+    ).optional(),
     initializationActions: z.array(z.object({
       executableFile: z.string().describe(
         "Required. Cloud Storage URI of executable file.",
@@ -1844,8 +1810,7 @@ const InputsSchema = z.object({
       idleStopTtl: z.string().describe(
         "Optional. The duration to keep the cluster started while idling (when no jobs are running). Passing this threshold will cause the cluster to be stopped. Minimum value is 5 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).",
       ).optional(),
-    }).describe("Specifies the cluster auto-delete schedule configuration.")
-      .optional(),
+    }).describe("Optional. Lifecycle setting for the cluster.").optional(),
     masterConfig: z.object({
       accelerators: z.array(z.object({
         acceleratorCount: z.number().int().describe(
@@ -1889,9 +1854,7 @@ const InputsSchema = z.object({
         numLocalSsds: z.number().int().describe(
           "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
         ).optional(),
-      }).describe(
-        "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-      ).optional(),
+      }).describe("Optional. Disk option config settings.").optional(),
       imageUri: z.string().describe(
         "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
       ).optional(),
@@ -1901,7 +1864,7 @@ const InputsSchema = z.object({
         ).optional(),
         instanceSelectionList: z.array(z.object({
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
           ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -1930,10 +1893,10 @@ const InputsSchema = z.object({
             "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
           ).optional(),
         }).describe(
-          "Defines how to create VMs with a mixture of provisioning models.",
+          "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
         ).optional(),
       }).describe(
-        "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+        "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
       ).optional(),
       instanceNames: z.array(z.string()).describe(
         "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -1971,7 +1934,7 @@ const InputsSchema = z.object({
           "Output only. The name of the Instance Template used for the Managed Instance Group.",
         ).optional(),
       }).describe(
-        "Specifies the resources used to actively manage an instance group.",
+        "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
       ).optional(),
       minCpuPlatform: z.string().describe(
         "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -1995,16 +1958,16 @@ const InputsSchema = z.object({
           "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
         ).optional(),
       }).describe(
-        "Configuration to handle the startup of instances during cluster create and update process.",
+        "Optional. Configuration to handle the startup of instances during cluster create and update process.",
       ).optional(),
     }).describe(
-      "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
+      "Optional. The Compute Engine config settings for the cluster's master instance.",
     ).optional(),
     metastoreConfig: z.object({
       dataprocMetastoreService: z.string().describe(
         "Required. Resource name of an existing Metastore service.Example: projects/[project_id]/locations/[dataproc_region]/services/[service-name]",
       ).optional(),
-    }).describe("Specifies a Metastore configuration.").optional(),
+    }).describe("Optional. Metastore configuration.").optional(),
     secondaryWorkerConfig: z.object({
       accelerators: z.array(z.object({
         acceleratorCount: z.number().int().describe(
@@ -2048,9 +2011,7 @@ const InputsSchema = z.object({
         numLocalSsds: z.number().int().describe(
           "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
         ).optional(),
-      }).describe(
-        "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-      ).optional(),
+      }).describe("Optional. Disk option config settings.").optional(),
       imageUri: z.string().describe(
         "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
       ).optional(),
@@ -2060,7 +2021,7 @@ const InputsSchema = z.object({
         ).optional(),
         instanceSelectionList: z.array(z.object({
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
           ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -2089,10 +2050,10 @@ const InputsSchema = z.object({
             "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
           ).optional(),
         }).describe(
-          "Defines how to create VMs with a mixture of provisioning models.",
+          "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
         ).optional(),
       }).describe(
-        "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+        "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
       ).optional(),
       instanceNames: z.array(z.string()).describe(
         "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -2130,7 +2091,7 @@ const InputsSchema = z.object({
           "Output only. The name of the Instance Template used for the Managed Instance Group.",
         ).optional(),
       }).describe(
-        "Specifies the resources used to actively manage an instance group.",
+        "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
       ).optional(),
       minCpuPlatform: z.string().describe(
         "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -2154,10 +2115,10 @@ const InputsSchema = z.object({
           "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
         ).optional(),
       }).describe(
-        "Configuration to handle the startup of instances during cluster create and update process.",
+        "Optional. Configuration to handle the startup of instances during cluster create and update process.",
       ).optional(),
     }).describe(
-      "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
+      "Optional. The Compute Engine config settings for a cluster's secondary worker instances",
     ).optional(),
     securityConfig: z.object({
       identityConfig: z.object({
@@ -2165,7 +2126,7 @@ const InputsSchema = z.object({
           "Required. Map of user to service account.",
         ).optional(),
       }).describe(
-        "Identity related configuration, including service account based secure multi-tenancy user mappings.",
+        "Optional. Identity related configuration, including service account based secure multi-tenancy user mappings.",
       ).optional(),
       kerberosConfig: z.object({
         crossRealmTrustAdminServer: z.string().describe(
@@ -2213,10 +2174,8 @@ const InputsSchema = z.object({
         truststoreUri: z.string().describe(
           "Optional. The Cloud Storage URI of the truststore file used for SSL encryption. If not provided, the service will provide a self-signed certificate.",
         ).optional(),
-      }).describe("Specifies Kerberos related configuration.").optional(),
-    }).describe(
-      "Security related configuration, including encryption, Kerberos, etc.",
-    ).optional(),
+      }).describe("Optional. Kerberos related configuration.").optional(),
+    }).describe("Optional. Security settings for the cluster.").optional(),
     softwareConfig: z.object({
       imageVersion: z.string().describe(
         'Optional. The version of software inside the cluster. It must be one of the supported Image Versions (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#supported-dataproc-image-versions), such as "1.2" (including a subminor version, such as "1.2.29"), or the "preview" version (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#other_versions). If unspecified, it defaults to the latest Debian version.',
@@ -2248,9 +2207,8 @@ const InputsSchema = z.object({
       properties: z.record(z.string(), z.string()).describe(
         "Optional. The properties to set on daemon config files.Property keys are specified in prefix:property format, for example core:hadoop.tmp.dir. The following are supported prefixes and their mappings: capacity-scheduler: capacity-scheduler.xml core: core-site.xml distcp: distcp-default.xml hdfs: hdfs-site.xml hive: hive-site.xml mapred: mapred-site.xml pig: pig.properties spark: spark-defaults.conf yarn: yarn-site.xmlFor more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).",
       ).optional(),
-    }).describe(
-      "Specifies the selection and config of software inside the cluster.",
-    ).optional(),
+    }).describe("Optional. The config settings for cluster software.")
+      .optional(),
     tempBucket: z.string().describe(
       "Optional. A Cloud Storage bucket used to store ephemeral cluster and jobs data, such as Spark and MapReduce history files. If you do not specify a temp bucket, the service will determine a Cloud Storage location (US, ASIA, or EU) for your cluster's temp bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket. The default bucket has a TTL of 90 days, but you can use any TTL (or none) if you specify a bucket (see staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.",
     ).optional(),
@@ -2297,9 +2255,7 @@ const InputsSchema = z.object({
         numLocalSsds: z.number().int().describe(
           "Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.",
         ).optional(),
-      }).describe(
-        "Specifies the config of boot disk and attached disk options for a group of VM instances.",
-      ).optional(),
+      }).describe("Optional. Disk option config settings.").optional(),
       imageUri: z.string().describe(
         "Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. The service will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.",
       ).optional(),
@@ -2309,7 +2265,7 @@ const InputsSchema = z.object({
         ).optional(),
         instanceSelectionList: z.array(z.object({
           diskConfig: z.unknown().describe(
-            "Specifies the config of boot disk and attached disk options for a group of VM instances.",
+            "Optional. Disk configuration to apply to the instances in this instance selection. If specified on any entry in instanceSelectionList, then it must be specified on every entry in instanceSelectionList and the instanceGroupConfig must not specify any diskConfig.",
           ).optional(),
           machineTypes: z.unknown().describe(
             'Optional. Full machine-type names, e.g. "n1-standard-16".',
@@ -2338,10 +2294,10 @@ const InputsSchema = z.object({
             "Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, the service will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.",
           ).optional(),
         }).describe(
-          "Defines how to create VMs with a mixture of provisioning models.",
+          "Optional. Defines how the Group selects the provisioning model to ensure required reliability.",
         ).optional(),
       }).describe(
-        "Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
+        "Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.",
       ).optional(),
       instanceNames: z.array(z.string()).describe(
         "Output only. The list of instance names, derived from cluster_name, num_instances, and the instance group.",
@@ -2379,7 +2335,7 @@ const InputsSchema = z.object({
           "Output only. The name of the Instance Template used for the Managed Instance Group.",
         ).optional(),
       }).describe(
-        "Specifies the resources used to actively manage an instance group.",
+        "Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.",
       ).optional(),
       minCpuPlatform: z.string().describe(
         "Optional. Specifies the minimum cpu platform for the Instance Group. See Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).",
@@ -2403,65 +2359,39 @@ const InputsSchema = z.object({
           "Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).",
         ).optional(),
       }).describe(
-        "Configuration to handle the startup of instances during cluster create and update process.",
+        "Optional. Configuration to handle the startup of instances during cluster create and update process.",
       ).optional(),
     }).describe(
-      "The config settings for Compute Engine resources in an instance group, such as a master or worker group.",
+      "Optional. The Compute Engine config settings for the cluster's worker instances.",
     ).optional(),
-  }).describe("The cluster config.").optional(),
+  }).describe(
+    "Optional. The cluster config for a cluster of Compute Engine Instances. Note that the service may set default values, and values may change when clusters are updated.Exactly one of ClusterConfig or VirtualClusterConfig must be specified.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. The labels to associate with this cluster. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a cluster.",
-  ).optional(),
-  metrics: z.object({
-    hdfsMetrics: z.record(z.string(), z.string()).describe("The HDFS metrics.")
-      .optional(),
-    yarnMetrics: z.record(z.string(), z.string()).describe("YARN metrics.")
-      .optional(),
-  }).describe(
-    "Contains cluster daemon metrics, such as HDFS and YARN stats.Beta Feature: This report is available for testing purposes only. It may be changed before final release.",
   ).optional(),
   projectId: z.string().describe(
     "Required. The Google Cloud Platform project ID that the cluster belongs to.",
   ).optional(),
-  status: z.object({
-    detail: z.string().describe(
-      "Optional. Output only. Details of cluster's state.",
-    ).optional(),
-    state: z.enum([
-      "UNKNOWN",
-      "CREATING",
-      "RUNNING",
-      "ERROR",
-      "ERROR_DUE_TO_UPDATE",
-      "DELETING",
-      "UPDATING",
-      "STOPPING",
-      "STOPPED",
-      "STARTING",
-      "REPAIRING",
-      "SCHEDULED",
-    ]).describe("Output only. The cluster's state.").optional(),
-    stateStartTime: z.string().describe(
-      "Output only. Time when this state was entered (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).",
-    ).optional(),
-    substate: z.enum(["UNSPECIFIED", "UNHEALTHY", "STALE_STATUS"]).describe(
-      "Output only. Additional state information that includes status reported by the agent.",
-    ).optional(),
-  }).describe("The status of a cluster and its instances.").optional(),
   virtualClusterConfig: z.object({
     auxiliaryServicesConfig: z.object({
       metastoreConfig: z.object({
         dataprocMetastoreService: z.string().describe(
           "Required. Resource name of an existing Metastore service.Example: projects/[project_id]/locations/[dataproc_region]/services/[service-name]",
         ).optional(),
-      }).describe("Specifies a Metastore configuration.").optional(),
+      }).describe(
+        "Optional. The Hive Metastore configuration for this workload.",
+      ).optional(),
       sparkHistoryServerConfig: z.object({
         dataprocCluster: z.string().describe(
           "Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the workload.Example: projects/[project_id]/regions/[region]/clusters/[cluster_name]",
         ).optional(),
-      }).describe("Spark History Server configuration for the workload.")
-        .optional(),
-    }).describe("Auxiliary services configuration for a Cluster.").optional(),
+      }).describe(
+        "Optional. The Spark History Server configuration for the workload.",
+      ).optional(),
+    }).describe(
+      "Optional. Configuration of auxiliary services used by this cluster.",
+    ).optional(),
     kubernetesClusterConfig: z.object({
       gkeClusterConfig: z.object({
         gkeClusterTarget: z.string().describe(
@@ -2475,14 +2405,14 @@ const InputsSchema = z.object({
             "Optional. The target GKE cluster to deploy to. Format: 'projects/{project}/locations/{location}/clusters/{cluster_id}'",
           ).optional(),
         }).describe(
-          "Deprecated. Used only for the deprecated beta. A full, namespace-isolated deployment target for an existing GKE cluster.",
+          "Optional. Deprecated. Use gkeClusterTarget. Used only for the deprecated beta. A target for the deployment.",
         ).optional(),
         nodePoolTarget: z.array(z.object({
           nodePool: z.unknown().describe(
             "Required. The target GKE node pool. Format: 'projects/{project}/locations/{location}/clusters/{cluster}/nodePools/{node_pool}'",
           ).optional(),
           nodePoolConfig: z.unknown().describe(
-            "The configuration of a GKE node pool used by a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/concepts/jobs/dataproc-gke#create-a-dataproc-on-gke-cluster).",
+            "Input only. The configuration for the GKE node pool.If specified, Dataproc attempts to create a node pool with the specified shape. If one with the same name already exists, it is verified against all specified fields. If a field differs, the virtual cluster creation will fail.If omitted, any node pool with the specified name is used. If a node pool with the specified name does not exist, Dataproc create a node pool with default values.This is an input only field. It will not be returned by the API.",
           ).optional(),
           roles: z.unknown().describe(
             "Required. The roles associated with the GKE node pool.",
@@ -2490,7 +2420,9 @@ const InputsSchema = z.object({
         })).describe(
           "Optional. GKE node pools where workloads will be scheduled. At least one node pool must be assigned the DEFAULT GkeNodePoolTarget.Role. If a GkeNodePoolTarget is not specified, Dataproc constructs a DEFAULT GkeNodePoolTarget. Each role can be given to only one GkeNodePoolTarget. All node pools must have the same location settings.",
         ).optional(),
-      }).describe("The cluster's GKE config.").optional(),
+      }).describe(
+        "Required. The configuration for running the Dataproc cluster on GKE.",
+      ).optional(),
       kubernetesNamespace: z.string().describe(
         "Optional. A namespace within the Kubernetes cluster to deploy into. If this namespace does not exist, it is created. If it exists, Dataproc verifies that another Dataproc VirtualCluster is not installed into it. If not specified, the name of the Dataproc Cluster is used.",
       ).optional(),
@@ -2502,16 +2434,16 @@ const InputsSchema = z.object({
           "The properties to set on daemon config files.Property keys are specified in prefix:property format, for example spark:spark.kubernetes.container.image. The following are supported prefixes and their mappings: spark: spark-defaults.confFor more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).",
         ).optional(),
       }).describe(
-        "The software configuration for this Dataproc cluster running on Kubernetes.",
+        "Optional. The software configuration for this Dataproc cluster running on Kubernetes.",
       ).optional(),
     }).describe(
-      "The configuration for running the Dataproc cluster on Kubernetes.",
+      "Required. The configuration for running the cluster on Kubernetes.",
     ).optional(),
     stagingBucket: z.string().describe(
       "Optional. A Cloud Storage bucket used to stage job dependencies, config files, and job driver console output. If you do not specify a staging bucket, the service will determine a Cloud Storage location (US, ASIA, or EU) for your cluster's staging bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket (see staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.",
     ).optional(),
   }).describe(
-    "The cluster config for a cluster that does not directly control the underlying compute resources, such as a GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview).",
+    "Optional. The virtual cluster config is used when creating a cluster that does not directly control the underlying compute resources, for example, when creating a GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview). the service may set default values, and values may change when clusters are updated. Exactly one of config or virtual_cluster_config must be specified.",
   ).optional(),
   region: z.string().describe(
     "Required. The region in which to handle the request.",
@@ -2547,7 +2479,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Clusters. Registered at `@swamp/gcp/dataproc/clusters`. */
 export const model = {
   type: "@swamp/gcp/dataproc/clusters",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2709,6 +2641,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: metrics, status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { metrics: _metrics, status: _status, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2737,8 +2677,6 @@ export const model = {
         }
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["metrics"] !== undefined) body["metrics"] = g["metrics"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["virtualClusterConfig"] !== undefined) {
           body["virtualClusterConfig"] = g["virtualClusterConfig"];
         }
@@ -2758,15 +2696,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "projectId": projectId,
-              "region": String(g["region"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
@@ -2847,8 +2777,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["metrics"] !== undefined) body["metrics"] = g["metrics"];
-        if (g["status"] !== undefined) body["status"] = g["status"];
         if (g["virtualClusterConfig"] !== undefined) {
           body["virtualClusterConfig"] = g["virtualClusterConfig"];
         }

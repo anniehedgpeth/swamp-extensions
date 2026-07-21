@@ -165,7 +165,8 @@ const GlobalArgsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement description.")
+      .optional(),
     iconUrl: z.string().describe(
       "The icon url of this achievement. Writes to this field are ignored.",
     ).optional(),
@@ -183,13 +184,13 @@ const GlobalArgsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement name.").optional(),
     pointValue: z.number().int().describe("Point value for the achievement.")
       .optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this achievement. Writes to this field are ignored.",
     ).optional(),
-  }).describe("An achievement configuration detail.").optional(),
+  }).describe("The draft data of the achievement.").optional(),
   id: z.string().describe("The ID of the achievement.").optional(),
   initialState: z.enum(["INITIAL_STATE_UNSPECIFIED", "HIDDEN", "REVEALED"])
     .describe("The initial state of the achievement.").optional(),
@@ -205,7 +206,8 @@ const GlobalArgsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement description.")
+      .optional(),
     iconUrl: z.string().describe(
       "The icon url of this achievement. Writes to this field are ignored.",
     ).optional(),
@@ -223,13 +225,13 @@ const GlobalArgsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement name.").optional(),
     pointValue: z.number().int().describe("Point value for the achievement.")
       .optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this achievement. Writes to this field are ignored.",
     ).optional(),
-  }).describe("An achievement configuration detail.").optional(),
+  }).describe("The read-only published data of the achievement.").optional(),
   stepsToUnlock: z.number().int().describe(
     "Steps to unlock. Only applicable to incremental achievements.",
   ).optional(),
@@ -317,7 +319,8 @@ const InputsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement description.")
+      .optional(),
     iconUrl: z.string().describe(
       "The icon url of this achievement. Writes to this field are ignored.",
     ).optional(),
@@ -335,13 +338,13 @@ const InputsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement name.").optional(),
     pointValue: z.number().int().describe("Point value for the achievement.")
       .optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this achievement. Writes to this field are ignored.",
     ).optional(),
-  }).describe("An achievement configuration detail.").optional(),
+  }).describe("The draft data of the achievement.").optional(),
   id: z.string().describe("The ID of the achievement.").optional(),
   initialState: z.enum(["INITIAL_STATE_UNSPECIFIED", "HIDDEN", "REVEALED"])
     .describe("The initial state of the achievement.").optional(),
@@ -357,7 +360,8 @@ const InputsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement description.")
+      .optional(),
     iconUrl: z.string().describe(
       "The icon url of this achievement. Writes to this field are ignored.",
     ).optional(),
@@ -375,13 +379,13 @@ const InputsSchema = z.object({
         locale: z.string().describe("The locale string.").optional(),
         value: z.string().describe("The string value.").optional(),
       })).describe("The locale strings.").optional(),
-    }).describe("A localized string bundle resource.").optional(),
+    }).describe("Localized strings for the achievement name.").optional(),
     pointValue: z.number().int().describe("Point value for the achievement.")
       .optional(),
     sortRank: z.number().int().describe(
       "The sort rank of this achievement. Writes to this field are ignored.",
     ).optional(),
-  }).describe("An achievement configuration detail.").optional(),
+  }).describe("The read-only published data of the achievement.").optional(),
   stepsToUnlock: z.number().int().describe(
     "Steps to unlock. Only applicable to incremental achievements.",
   ).optional(),
@@ -414,7 +418,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Games Services Publishing AchievementConfigurations. Registered at `@swamp/gcp/gamesconfiguration/achievementconfigurations`. */
 export const model = {
   type: "@swamp/gcp/gamesconfiguration/achievementconfigurations",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -506,6 +510,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -553,12 +562,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "applicationId": String(g["applicationId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

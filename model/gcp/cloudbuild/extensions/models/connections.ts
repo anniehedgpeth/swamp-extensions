@@ -179,7 +179,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. An access token with the `webhook`, `repository`, `repository:admin` and `pullrequest` scope access. It can be either a workspace, project or repository access token. It's recommended to use a system account to generate these credentials.",
     ).optional(),
     readAuthorizerCredential: z.object({
       userTokenSecretVersion: z.string().describe(
@@ -189,7 +189,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. An access token with the `repository` access. It can be either a workspace, project or repository access token. It's recommended to use a system account to generate the credentials.",
     ).optional(),
     webhookSecretSecretVersion: z.string().describe(
       "Required. SecretManager resource containing the webhook secret used to verify webhook events, formatted as `projects/*/secrets/*/versions/*`.",
@@ -207,7 +207,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. A http access token with the `REPO_ADMIN` scope access.",
     ).optional(),
     hostUri: z.string().describe(
       "Required. The URI of the Bitbucket Data Center instance or cluster this connection is for.",
@@ -219,9 +219,8 @@ const GlobalArgsSchema = z.object({
       username: z.string().describe(
         "Output only. The username associated to this token.",
       ).optional(),
-    }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
-    ).optional(),
+    }).describe("Required. A http access token with the `REPO_READ` access.")
+      .optional(),
     serverVersion: z.string().describe(
       "Output only. Version of the Bitbucket Data Center running on the `host_uri`.",
     ).optional(),
@@ -230,7 +229,7 @@ const GlobalArgsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to privately connect to a Bitbucket Data Center. This should only be set if the Bitbucket Data Center is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the Bitbucket Data Center will be made over the public internet.",
     ).optional(),
     sslCa: z.string().describe(
       "Optional. SSL certificate to use for requests to the Bitbucket Data Center.",
@@ -255,7 +254,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents an OAuth token of the account that authorized the Connection, and associated metadata.",
+      "Optional. OAuth credential of the account that authorized the Cloud Build GitHub App. It is recommended to use a robot account instead of a human user account. The OAuth token must be tied to the Cloud Build GitHub App.",
     ).optional(),
   }).describe("Configuration for connections to github.com.").optional(),
   githubEnterpriseConfig: z.object({
@@ -285,7 +284,7 @@ const GlobalArgsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to privately connect to a GitHub Enterprise server. This should only be set if the GitHub Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitHub Enterprise server will be made over the public internet.",
     ).optional(),
     sslCa: z.string().describe(
       "Optional. SSL certificate to use for requests to GitHub Enterprise.",
@@ -305,7 +304,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. A GitLab personal access token with the `api` scope access.",
     ).optional(),
     hostUri: z.string().describe(
       "Optional. The URI of the GitLab Enterprise host this connection is for. If not specified, the default value is https://gitlab.com.",
@@ -318,7 +317,7 @@ const GlobalArgsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. A GitLab personal access token with the minimum `read_api` scope access.",
     ).optional(),
     serverVersion: z.string().describe(
       "Output only. Version of the GitLab Enterprise server running on the `host_uri`.",
@@ -328,7 +327,7 @@ const GlobalArgsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to privately connect to a GitLab Enterprise server. This should only be set if the GitLab Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitLab Enterprise server will be made over the public internet.",
     ).optional(),
     sslCa: z.string().describe(
       "Optional. SSL certificate to use for requests to GitLab Enterprise.",
@@ -338,24 +337,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "Configuration for connections to gitlab.com or an instance of GitLab Enterprise.",
-  ).optional(),
-  installationState: z.object({
-    actionUri: z.string().describe(
-      "Output only. Link to follow for next action. Empty string if the installation is already complete.",
-    ).optional(),
-    message: z.string().describe(
-      "Output only. Message of what the user should do next to continue the installation. Empty string if the installation is already complete.",
-    ).optional(),
-    stage: z.enum([
-      "STAGE_UNSPECIFIED",
-      "PENDING_CREATE_APP",
-      "PENDING_USER_OAUTH",
-      "PENDING_INSTALL_APP",
-      "COMPLETE",
-    ]).describe("Output only. Current step of the installation process.")
-      .optional(),
-  }).describe(
-    "Describes stage and necessary actions to be taken by the user to complete the installation. Used for GitHub and GitHub Enterprise based connections.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the connection, in the format `projects/{project}/locations/{location}/connections/{connection_id}`.",
@@ -469,7 +450,7 @@ const InputsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. An access token with the `webhook`, `repository`, `repository:admin` and `pullrequest` scope access. It can be either a workspace, project or repository access token. It's recommended to use a system account to generate these credentials.",
     ).optional(),
     readAuthorizerCredential: z.object({
       userTokenSecretVersion: z.string().describe(
@@ -479,7 +460,7 @@ const InputsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. An access token with the `repository` access. It can be either a workspace, project or repository access token. It's recommended to use a system account to generate the credentials.",
     ).optional(),
     webhookSecretSecretVersion: z.string().describe(
       "Required. SecretManager resource containing the webhook secret used to verify webhook events, formatted as `projects/*/secrets/*/versions/*`.",
@@ -497,7 +478,7 @@ const InputsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. A http access token with the `REPO_ADMIN` scope access.",
     ).optional(),
     hostUri: z.string().describe(
       "Required. The URI of the Bitbucket Data Center instance or cluster this connection is for.",
@@ -509,9 +490,8 @@ const InputsSchema = z.object({
       username: z.string().describe(
         "Output only. The username associated to this token.",
       ).optional(),
-    }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
-    ).optional(),
+    }).describe("Required. A http access token with the `REPO_READ` access.")
+      .optional(),
     serverVersion: z.string().describe(
       "Output only. Version of the Bitbucket Data Center running on the `host_uri`.",
     ).optional(),
@@ -520,7 +500,7 @@ const InputsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to privately connect to a Bitbucket Data Center. This should only be set if the Bitbucket Data Center is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the Bitbucket Data Center will be made over the public internet.",
     ).optional(),
     sslCa: z.string().describe(
       "Optional. SSL certificate to use for requests to the Bitbucket Data Center.",
@@ -545,7 +525,7 @@ const InputsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents an OAuth token of the account that authorized the Connection, and associated metadata.",
+      "Optional. OAuth credential of the account that authorized the Cloud Build GitHub App. It is recommended to use a robot account instead of a human user account. The OAuth token must be tied to the Cloud Build GitHub App.",
     ).optional(),
   }).describe("Configuration for connections to github.com.").optional(),
   githubEnterpriseConfig: z.object({
@@ -575,7 +555,7 @@ const InputsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to privately connect to a GitHub Enterprise server. This should only be set if the GitHub Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitHub Enterprise server will be made over the public internet.",
     ).optional(),
     sslCa: z.string().describe(
       "Optional. SSL certificate to use for requests to GitHub Enterprise.",
@@ -595,7 +575,7 @@ const InputsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. A GitLab personal access token with the `api` scope access.",
     ).optional(),
     hostUri: z.string().describe(
       "Optional. The URI of the GitLab Enterprise host this connection is for. If not specified, the default value is https://gitlab.com.",
@@ -608,7 +588,7 @@ const InputsSchema = z.object({
         "Output only. The username associated to this token.",
       ).optional(),
     }).describe(
-      "Represents a personal access token that authorized the Connection, and associated metadata.",
+      "Required. A GitLab personal access token with the minimum `read_api` scope access.",
     ).optional(),
     serverVersion: z.string().describe(
       "Output only. Version of the GitLab Enterprise server running on the `host_uri`.",
@@ -618,7 +598,7 @@ const InputsSchema = z.object({
         "Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.",
       ).optional(),
     }).describe(
-      "ServiceDirectoryConfig represents Service Directory configuration for a connection.",
+      "Optional. Configuration for using Service Directory to privately connect to a GitLab Enterprise server. This should only be set if the GitLab Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitLab Enterprise server will be made over the public internet.",
     ).optional(),
     sslCa: z.string().describe(
       "Optional. SSL certificate to use for requests to GitLab Enterprise.",
@@ -628,24 +608,6 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe(
     "Configuration for connections to gitlab.com or an instance of GitLab Enterprise.",
-  ).optional(),
-  installationState: z.object({
-    actionUri: z.string().describe(
-      "Output only. Link to follow for next action. Empty string if the installation is already complete.",
-    ).optional(),
-    message: z.string().describe(
-      "Output only. Message of what the user should do next to continue the installation. Empty string if the installation is already complete.",
-    ).optional(),
-    stage: z.enum([
-      "STAGE_UNSPECIFIED",
-      "PENDING_CREATE_APP",
-      "PENDING_USER_OAUTH",
-      "PENDING_INSTALL_APP",
-      "COMPLETE",
-    ]).describe("Output only. Current step of the installation process.")
-      .optional(),
-  }).describe(
-    "Describes stage and necessary actions to be taken by the user to complete the installation. Used for GitHub and GitHub Enterprise based connections.",
   ).optional(),
   name: z.string().describe(
     "Immutable. The resource name of the connection, in the format `projects/{project}/locations/{location}/connections/{connection_id}`.",
@@ -681,7 +643,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Connections. Registered at `@swamp/gcp/cloudbuild/connections`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/connections",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -788,6 +750,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: installationState",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { installationState: _installationState, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -831,9 +801,6 @@ export const model = {
         }
         if (g["gitlabConfig"] !== undefined) {
           body["gitlabConfig"] = g["gitlabConfig"];
-        }
-        if (g["installationState"] !== undefined) {
-          body["installationState"] = g["installationState"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["connectionId"] !== undefined) {
@@ -963,9 +930,6 @@ export const model = {
         }
         if (g["gitlabConfig"] !== undefined) {
           body["gitlabConfig"] = g["gitlabConfig"];
-        }
-        if (g["installationState"] !== undefined) {
-          body["installationState"] = g["installationState"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

@@ -194,7 +194,9 @@ const GlobalArgsSchema = z.object({
   autoPricingMinPrice: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe(
+    "A safeguard in the [Automated Discounts](//support.google.com/merchants/answer/10295759) and [Dynamic Promotions](//support.google.com/merchants/answer/13949249) projects, ensuring that discounts on merchants' offers do not fall below this value, thereby preserving the offer's value and profitability.",
+  ).optional(),
   availability: z.string().describe("Availability status of the item.")
     .optional(),
   availabilityDate: z.string().describe(
@@ -258,7 +260,8 @@ const GlobalArgsSchema = z.object({
   costOfGoodsSold: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe("Cost of goods sold. Used for gross profit reporting.")
+    .optional(),
   customAttributes: z.array(z.object({
     groupValues: z.array(z.record(z.string(), z.unknown())).describe(
       "Subattributes within this attribute group. Exactly one of value or groupValues must be provided.",
@@ -327,7 +330,9 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Required. The minimum product price for the shipping cost to become free. Represented as a number.",
+    ).optional(),
   })).describe(
     "Optional. Conditions to be met for a product to have free shipping.",
   ).optional(),
@@ -352,7 +357,7 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("The amount the buyer has to pay per month.").optional(),
     creditType: z.string().describe(
       'Optional. Type of installment payments. Supported values are: - "`finance`" - "`lease`"',
     ).optional(),
@@ -360,13 +365,14 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Optional. The initial down payment amount the buyer has to pay.",
+    ).optional(),
     months: z.string().describe(
       "The number of installments the buyer has to pay.",
     ).optional(),
-  }).describe(
-    "Details of a monthly installment payment offering. [Learn more](https://support.google.com/merchants/answer/6324474) about installments.",
-  ).optional(),
+  }).describe("Number and amount of installments to pay for an item.")
+    .optional(),
   isBundle: z.boolean().describe(
     "Whether the item is a merchant-defined bundle. A bundle is a custom grouping of different products sold by a merchant for a single price.",
   ).optional(),
@@ -387,7 +393,8 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Optional. The cashback that can be used for future purchases.")
+      .optional(),
     loyaltyPoints: z.string().describe(
       "Optional. The amount of loyalty points earned on a purchase.",
     ).optional(),
@@ -398,7 +405,9 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Optional. The price for members of the given tier (instant discount price). Must be smaller or equal to the regular price.",
+    ).optional(),
     programLabel: z.string().describe(
       "Required. The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a merchant entity and a loyalty program entity. It must be provided so that system can associate the assets below (for example, price and points) with a merchant. The corresponding program must be linked to the merchant account.",
     ).optional(),
@@ -409,14 +418,15 @@ const GlobalArgsSchema = z.object({
       "Required. The label of the tier within the loyalty program. Must match one of the labels within the program.",
     ).optional(),
   }).describe(
-    "Allows the setting up of loyalty program benefits (for example price or points). https://support.google.com/merchants/answer/12922446",
+    "Loyalty program information that is used to surface loyalty benefits ( for example, better pricing, points, etc) to the user of this item. This signular field points to the latest uploaded loyalty program info. This field will be deprecated in the coming weeks and should not be used in favor of the plural 'LoyaltyProgram' field below.",
   ).optional(),
   loyaltyPrograms: z.array(z.object({
     cashbackForFutureUse: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Optional. The cashback that can be used for future purchases.")
+      .optional(),
     loyaltyPoints: z.string().describe(
       "Optional. The amount of loyalty points earned on a purchase.",
     ).optional(),
@@ -427,7 +437,9 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Optional. The price for members of the given tier (instant discount price). Must be smaller or equal to the regular price.",
+    ).optional(),
     programLabel: z.string().describe(
       "Required. The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a merchant entity and a loyalty program entity. It must be provided so that system can associate the assets below (for example, price and points) with a merchant. The corresponding program must be linked to the merchant account.",
     ).optional(),
@@ -451,7 +463,9 @@ const GlobalArgsSchema = z.object({
   maximumRetailPrice: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe(
+    "Maximum retail price (MRP) of the item. Applicable to India only.",
+  ).optional(),
   minEnergyEfficiencyClass: z.string().describe(
     "The energy efficiency class as defined in EU directive 2010/30/EU.",
   ).optional(),
@@ -486,7 +500,7 @@ const GlobalArgsSchema = z.object({
   price: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe("Price of the item.").optional(),
   productDetails: z.array(z.object({
     attributeName: z.string().describe("The name of the product detail.")
       .optional(),
@@ -504,7 +518,9 @@ const GlobalArgsSchema = z.object({
     value: z.number().describe(
       "Required. The length value represented as a number. The value can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The height of the product in the units provided. The value must be between 0 (exclusive) and 3000 (inclusive).",
+  ).optional(),
   productHighlights: z.array(z.string()).describe(
     "Bullet points describing the most relevant highlights of a product.",
   ).optional(),
@@ -515,7 +531,9 @@ const GlobalArgsSchema = z.object({
     value: z.number().describe(
       "Required. The length value represented as a number. The value can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The length of the product in the units provided. The value must be between 0 (exclusive) and 3000 (inclusive).",
+  ).optional(),
   productTypes: z.array(z.string()).describe(
     "Categories of the item (formatted as in product data specification).",
   ).optional(),
@@ -526,7 +544,9 @@ const GlobalArgsSchema = z.object({
     value: z.number().describe(
       "Required. The weight represented as a number. The weight can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The weight of the product in the units provided. The value must be between 0 (exclusive) and 2000 (inclusive).",
+  ).optional(),
   productWidth: z.object({
     unit: z.string().describe(
       'Required. The length units. Acceptable values are: - "`in`" - "`cm`"',
@@ -534,13 +554,15 @@ const GlobalArgsSchema = z.object({
     value: z.number().describe(
       "Required. The length value represented as a number. The value can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The width of the product in the units provided. The value must be between 0 (exclusive) and 3000 (inclusive).",
+  ).optional(),
   promotionIds: z.array(z.string()).describe("The unique ID of a promotion.")
     .optional(),
   salePrice: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe("Advertised sale price of the item.").optional(),
   salePriceEffectiveDate: z.string().describe(
     "Date range during which the item is on sale (see product data specification).",
   ).optional(),
@@ -576,7 +598,7 @@ const GlobalArgsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Fixed shipping price, represented as a number.").optional(),
     region: z.string().describe(
       "The geographic region to which a shipping rate applies.",
     ).optional(),
@@ -589,7 +611,7 @@ const GlobalArgsSchema = z.object({
     value: z.number().describe(
       "The dimension of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Height of the item for shipping.").optional(),
   shippingLabel: z.string().describe(
     "The shipping label of the product, used to group product in account-level shipping rules.",
   ).optional(),
@@ -598,19 +620,19 @@ const GlobalArgsSchema = z.object({
     value: z.number().describe(
       "The dimension of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Length of the item for shipping.").optional(),
   shippingWeight: z.object({
     unit: z.string().describe("The unit of value.").optional(),
     value: z.number().describe(
       "The weight of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Weight of the item for shipping.").optional(),
   shippingWidth: z.object({
     unit: z.string().describe("The unit of value.").optional(),
     value: z.number().describe(
       "The dimension of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Width of the item for shipping.").optional(),
   shoppingAdsExcludedCountries: z.array(z.string()).describe(
     "List of country codes (ISO 3166-1 alpha-2) to exclude the offer from Shopping Ads destination. Countries from this list are removed from countries configured in MC feed settings.",
   ).optional(),
@@ -631,7 +653,7 @@ const GlobalArgsSchema = z.object({
       'Optional. The digital source type. Acceptable values are: - "`trained_algorithmic_media`" - "`default`"',
     ).optional(),
   }).describe(
-    "Structured description, for algorithmically (AI)-generated descriptions. See [description](https://support.google.com/merchants/answer/6324468#When_to_use) for more information.",
+    "Structured description, for algorithmically (AI)-generated descriptions.",
   ).optional(),
   structuredTitle: z.object({
     content: z.string().describe(
@@ -640,28 +662,30 @@ const GlobalArgsSchema = z.object({
     digitalSourceType: z.string().describe(
       'Optional. The digital source type. Acceptable values are: - "`trained_algorithmic_media`" - "`default`"',
     ).optional(),
-  }).describe(
-    "Structured title, for algorithmically (AI)-generated titles. See [title](https://support.google.com/merchants/answer/6324415#Whentouse) for more information.",
-  ).optional(),
+  }).describe("Structured title, for algorithmically (AI)-generated titles.")
+    .optional(),
   subscriptionCost: z.object({
     amount: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("The amount the buyer has to pay per subscription period.")
+      .optional(),
     period: z.string().describe(
       'The type of subscription period. - "`month`" - "`year`"',
     ).optional(),
     periodLength: z.string().describe(
       "The number of subscription periods the buyer has to pay.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Number of periods (months or years) and amount of payment per period for an item with an associated subscription contract.",
+  ).optional(),
   sustainabilityIncentives: z.array(z.object({
     amount: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Optional. The fixed amount of the incentive.").optional(),
     percentage: z.number().describe(
       "Optional. The percentage of the sale price that the incentive is applied to.",
     ).optional(),
@@ -702,11 +726,12 @@ const GlobalArgsSchema = z.object({
   unitPricingBaseMeasure: z.object({
     unit: z.string().describe("The unit of the denominator.").optional(),
     value: z.string().describe("The denominator of the unit price.").optional(),
-  }).optional(),
+  }).describe("The preference of the denominator of the unit price.")
+    .optional(),
   unitPricingMeasure: z.object({
     unit: z.string().describe("The unit of the measure.").optional(),
     value: z.number().describe("The measure of an item.").optional(),
-  }).optional(),
+  }).describe("The measure and dimension of an item.").optional(),
   virtualModelLink: z.string().describe(
     "URL of the 3D model of the item to provide more visuals.",
   ).optional(),
@@ -1009,7 +1034,9 @@ const InputsSchema = z.object({
   autoPricingMinPrice: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe(
+    "A safeguard in the [Automated Discounts](//support.google.com/merchants/answer/10295759) and [Dynamic Promotions](//support.google.com/merchants/answer/13949249) projects, ensuring that discounts on merchants' offers do not fall below this value, thereby preserving the offer's value and profitability.",
+  ).optional(),
   availability: z.string().describe("Availability status of the item.")
     .optional(),
   availabilityDate: z.string().describe(
@@ -1073,7 +1100,8 @@ const InputsSchema = z.object({
   costOfGoodsSold: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe("Cost of goods sold. Used for gross profit reporting.")
+    .optional(),
   customAttributes: z.array(z.object({
     groupValues: z.array(z.record(z.string(), z.unknown())).describe(
       "Subattributes within this attribute group. Exactly one of value or groupValues must be provided.",
@@ -1142,7 +1170,9 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Required. The minimum product price for the shipping cost to become free. Represented as a number.",
+    ).optional(),
   })).describe(
     "Optional. Conditions to be met for a product to have free shipping.",
   ).optional(),
@@ -1167,7 +1197,7 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("The amount the buyer has to pay per month.").optional(),
     creditType: z.string().describe(
       'Optional. Type of installment payments. Supported values are: - "`finance`" - "`lease`"',
     ).optional(),
@@ -1175,13 +1205,14 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Optional. The initial down payment amount the buyer has to pay.",
+    ).optional(),
     months: z.string().describe(
       "The number of installments the buyer has to pay.",
     ).optional(),
-  }).describe(
-    "Details of a monthly installment payment offering. [Learn more](https://support.google.com/merchants/answer/6324474) about installments.",
-  ).optional(),
+  }).describe("Number and amount of installments to pay for an item.")
+    .optional(),
   isBundle: z.boolean().describe(
     "Whether the item is a merchant-defined bundle. A bundle is a custom grouping of different products sold by a merchant for a single price.",
   ).optional(),
@@ -1202,7 +1233,8 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Optional. The cashback that can be used for future purchases.")
+      .optional(),
     loyaltyPoints: z.string().describe(
       "Optional. The amount of loyalty points earned on a purchase.",
     ).optional(),
@@ -1213,7 +1245,9 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Optional. The price for members of the given tier (instant discount price). Must be smaller or equal to the regular price.",
+    ).optional(),
     programLabel: z.string().describe(
       "Required. The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a merchant entity and a loyalty program entity. It must be provided so that system can associate the assets below (for example, price and points) with a merchant. The corresponding program must be linked to the merchant account.",
     ).optional(),
@@ -1224,14 +1258,15 @@ const InputsSchema = z.object({
       "Required. The label of the tier within the loyalty program. Must match one of the labels within the program.",
     ).optional(),
   }).describe(
-    "Allows the setting up of loyalty program benefits (for example price or points). https://support.google.com/merchants/answer/12922446",
+    "Loyalty program information that is used to surface loyalty benefits ( for example, better pricing, points, etc) to the user of this item. This signular field points to the latest uploaded loyalty program info. This field will be deprecated in the coming weeks and should not be used in favor of the plural 'LoyaltyProgram' field below.",
   ).optional(),
   loyaltyPrograms: z.array(z.object({
     cashbackForFutureUse: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Optional. The cashback that can be used for future purchases.")
+      .optional(),
     loyaltyPoints: z.string().describe(
       "Optional. The amount of loyalty points earned on a purchase.",
     ).optional(),
@@ -1242,7 +1277,9 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe(
+      "Optional. The price for members of the given tier (instant discount price). Must be smaller or equal to the regular price.",
+    ).optional(),
     programLabel: z.string().describe(
       "Required. The label of the loyalty program. This is an internal label that uniquely identifies the relationship between a merchant entity and a loyalty program entity. It must be provided so that system can associate the assets below (for example, price and points) with a merchant. The corresponding program must be linked to the merchant account.",
     ).optional(),
@@ -1266,7 +1303,9 @@ const InputsSchema = z.object({
   maximumRetailPrice: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe(
+    "Maximum retail price (MRP) of the item. Applicable to India only.",
+  ).optional(),
   minEnergyEfficiencyClass: z.string().describe(
     "The energy efficiency class as defined in EU directive 2010/30/EU.",
   ).optional(),
@@ -1301,7 +1340,7 @@ const InputsSchema = z.object({
   price: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe("Price of the item.").optional(),
   productDetails: z.array(z.object({
     attributeName: z.string().describe("The name of the product detail.")
       .optional(),
@@ -1319,7 +1358,9 @@ const InputsSchema = z.object({
     value: z.number().describe(
       "Required. The length value represented as a number. The value can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The height of the product in the units provided. The value must be between 0 (exclusive) and 3000 (inclusive).",
+  ).optional(),
   productHighlights: z.array(z.string()).describe(
     "Bullet points describing the most relevant highlights of a product.",
   ).optional(),
@@ -1330,7 +1371,9 @@ const InputsSchema = z.object({
     value: z.number().describe(
       "Required. The length value represented as a number. The value can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The length of the product in the units provided. The value must be between 0 (exclusive) and 3000 (inclusive).",
+  ).optional(),
   productTypes: z.array(z.string()).describe(
     "Categories of the item (formatted as in product data specification).",
   ).optional(),
@@ -1341,7 +1384,9 @@ const InputsSchema = z.object({
     value: z.number().describe(
       "Required. The weight represented as a number. The weight can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The weight of the product in the units provided. The value must be between 0 (exclusive) and 2000 (inclusive).",
+  ).optional(),
   productWidth: z.object({
     unit: z.string().describe(
       'Required. The length units. Acceptable values are: - "`in`" - "`cm`"',
@@ -1349,13 +1394,15 @@ const InputsSchema = z.object({
     value: z.number().describe(
       "Required. The length value represented as a number. The value can have a maximum precision of four decimal places.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The width of the product in the units provided. The value must be between 0 (exclusive) and 3000 (inclusive).",
+  ).optional(),
   promotionIds: z.array(z.string()).describe("The unique ID of a promotion.")
     .optional(),
   salePrice: z.object({
     currency: z.string().describe("The currency of the price.").optional(),
     value: z.string().describe("The price represented as a number.").optional(),
-  }).optional(),
+  }).describe("Advertised sale price of the item.").optional(),
   salePriceEffectiveDate: z.string().describe(
     "Date range during which the item is on sale (see product data specification).",
   ).optional(),
@@ -1391,7 +1438,7 @@ const InputsSchema = z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Fixed shipping price, represented as a number.").optional(),
     region: z.string().describe(
       "The geographic region to which a shipping rate applies.",
     ).optional(),
@@ -1404,7 +1451,7 @@ const InputsSchema = z.object({
     value: z.number().describe(
       "The dimension of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Height of the item for shipping.").optional(),
   shippingLabel: z.string().describe(
     "The shipping label of the product, used to group product in account-level shipping rules.",
   ).optional(),
@@ -1413,19 +1460,19 @@ const InputsSchema = z.object({
     value: z.number().describe(
       "The dimension of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Length of the item for shipping.").optional(),
   shippingWeight: z.object({
     unit: z.string().describe("The unit of value.").optional(),
     value: z.number().describe(
       "The weight of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Weight of the item for shipping.").optional(),
   shippingWidth: z.object({
     unit: z.string().describe("The unit of value.").optional(),
     value: z.number().describe(
       "The dimension of the product used to calculate the shipping cost of the item.",
     ).optional(),
-  }).optional(),
+  }).describe("Width of the item for shipping.").optional(),
   shoppingAdsExcludedCountries: z.array(z.string()).describe(
     "List of country codes (ISO 3166-1 alpha-2) to exclude the offer from Shopping Ads destination. Countries from this list are removed from countries configured in MC feed settings.",
   ).optional(),
@@ -1446,7 +1493,7 @@ const InputsSchema = z.object({
       'Optional. The digital source type. Acceptable values are: - "`trained_algorithmic_media`" - "`default`"',
     ).optional(),
   }).describe(
-    "Structured description, for algorithmically (AI)-generated descriptions. See [description](https://support.google.com/merchants/answer/6324468#When_to_use) for more information.",
+    "Structured description, for algorithmically (AI)-generated descriptions.",
   ).optional(),
   structuredTitle: z.object({
     content: z.string().describe(
@@ -1455,28 +1502,30 @@ const InputsSchema = z.object({
     digitalSourceType: z.string().describe(
       'Optional. The digital source type. Acceptable values are: - "`trained_algorithmic_media`" - "`default`"',
     ).optional(),
-  }).describe(
-    "Structured title, for algorithmically (AI)-generated titles. See [title](https://support.google.com/merchants/answer/6324415#Whentouse) for more information.",
-  ).optional(),
+  }).describe("Structured title, for algorithmically (AI)-generated titles.")
+    .optional(),
   subscriptionCost: z.object({
     amount: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("The amount the buyer has to pay per subscription period.")
+      .optional(),
     period: z.string().describe(
       'The type of subscription period. - "`month`" - "`year`"',
     ).optional(),
     periodLength: z.string().describe(
       "The number of subscription periods the buyer has to pay.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Number of periods (months or years) and amount of payment per period for an item with an associated subscription contract.",
+  ).optional(),
   sustainabilityIncentives: z.array(z.object({
     amount: z.object({
       currency: z.string().describe("The currency of the price.").optional(),
       value: z.string().describe("The price represented as a number.")
         .optional(),
-    }).optional(),
+    }).describe("Optional. The fixed amount of the incentive.").optional(),
     percentage: z.number().describe(
       "Optional. The percentage of the sale price that the incentive is applied to.",
     ).optional(),
@@ -1517,11 +1566,12 @@ const InputsSchema = z.object({
   unitPricingBaseMeasure: z.object({
     unit: z.string().describe("The unit of the denominator.").optional(),
     value: z.string().describe("The denominator of the unit price.").optional(),
-  }).optional(),
+  }).describe("The preference of the denominator of the unit price.")
+    .optional(),
   unitPricingMeasure: z.object({
     unit: z.string().describe("The unit of the measure.").optional(),
     value: z.number().describe("The measure of an item.").optional(),
-  }).optional(),
+  }).describe("The measure and dimension of an item.").optional(),
   virtualModelLink: z.string().describe(
     "URL of the 3D model of the item to provide more visuals.",
   ).optional(),
@@ -1556,7 +1606,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Products. Registered at `@swamp/gcp/content/products`. */
 export const model = {
   type: "@swamp/gcp/content/products",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1655,6 +1705,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1940,12 +1995,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "merchantId": String(g["merchantId"] ?? "") },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

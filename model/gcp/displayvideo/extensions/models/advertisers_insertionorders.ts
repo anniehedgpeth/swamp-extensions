@@ -204,13 +204,13 @@ const GlobalArgsSchema = z.object({
         "Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS` Value of this field is in micros of the advertiser's currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for Demand Gen resources.",
+      "A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.",
     ).optional(),
     fixedBid: z.object({
       bidAmountMicros: z.string().describe(
         "The fixed bid amount, in micros of the advertiser's currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.",
       ).optional(),
-    }).describe("A strategy that uses a fixed bidding price.").optional(),
+    }).describe("A strategy that uses a fixed bid price.").optional(),
     maximizeSpendAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
         "The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.",
@@ -235,7 +235,7 @@ const GlobalArgsSchema = z.object({
         "Whether the strategy takes deal floor prices into account.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.",
+      "A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`, `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` only allow for `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH` only allows for `LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP` line items.",
     ).optional(),
     performanceGoalAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
@@ -261,7 +261,7 @@ const GlobalArgsSchema = z.object({
         "Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal.",
+      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.",
     ).optional(),
     youtubeAndPartnersBid: z.object({
       adGroupEffectiveTargetCpaSource: z.enum([
@@ -291,10 +291,10 @@ const GlobalArgsSchema = z.object({
         "The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for YouTube and Partners resources.",
+      "A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.",
     ).optional(),
   }).describe(
-    "Settings that control the bid strategy. Bid strategy determines the bid price.",
+    "Optional. The bidding strategy of the insertion order. By default, fixed_bid is set. If the budget field automationType is set to `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`, the insertion order will impose this bidding strategy on its line items. If an imposed bidding strategy is not compatible with a line item's enableOptimizedTargeting setting, the optimized targeting setting will be updated.",
   ).optional(),
   budget: z.object({
     automationType: z.enum([
@@ -324,7 +324,7 @@ const GlobalArgsSchema = z.object({
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
         }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+          "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
         ).optional(),
         startDate: z.object({
           day: z.unknown().describe(
@@ -337,9 +337,11 @@ const GlobalArgsSchema = z.object({
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
         }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+          "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
         ).optional(),
-      }).describe("A date range.").optional(),
+      }).describe(
+        "Required. The start and end date settings of the budget segment. They are resolved relative to the parent advertiser's time zone. * When creating a new budget segment, both `start_date` and `end_date` must be in the future. * An existing budget segment with a `start_date` in the past has a mutable `end_date` but an immutable `start_date`. * `end_date` must be the `start_date` or later, both before the year 2037.",
+      ).optional(),
       description: z.string().describe(
         "Optional. The budget segment description. It can be used to enter Purchase Order information for each budget segment and have that information printed on the invoices. Must be UTF-8 encoded.",
       ).optional(),
@@ -353,8 +355,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. Immutable. The budget unit specifies whether the budget is currency based or impression based.",
     ).optional(),
-  }).describe("Settings that control how insertion order budget is allocated.")
-    .optional(),
+  }).describe(
+    "Required. The budget allocation settings of the insertion order.",
+  ).optional(),
   campaignId: z.string().describe(
     "Required. Immutable. The unique ID of the campaign that the insertion order belongs to.",
   ).optional(),
@@ -395,9 +398,8 @@ const GlobalArgsSchema = z.object({
     unlimited: z.boolean().describe(
       "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
     ).optional(),
-  }).describe(
-    "Settings that control the number of times a user may be shown with the same ad during a given time period.",
-  ).optional(),
+  }).describe("Required. The frequency capping setting of the insertion order.")
+    .optional(),
   insertionOrderType: z.enum([
     "INSERTION_ORDER_TYPE_UNSPECIFIED",
     "RTB",
@@ -412,7 +414,9 @@ const GlobalArgsSchema = z.object({
     integrationCode: z.string().describe(
       "An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.",
     ).optional(),
-  }).describe("Integration details of an entry.").optional(),
+  }).describe(
+    "Optional. Additional integration details of the insertion order.",
+  ).optional(),
   kpi: z.object({
     kpiAlgorithmId: z.string().describe(
       "Optional. Custom Bidding Algorithm ID associated with KPI_CUSTOM_IMPRESSION_VALUE_OVER_COST. This field is ignored if the proper KPI is not selected.",
@@ -450,7 +454,7 @@ const GlobalArgsSchema = z.object({
       "KPI_TYPE_OTHER",
     ]).describe("Required. The type of KPI.").optional(),
   }).describe(
-    "Settings that control the key performance indicator, or KPI, of an insertion order.",
+    'Required. The key performance indicator (KPI) of the insertion order. This is represented as referred to as the "Goal" in the Display & Video 360 interface.',
   ).optional(),
   optimizationObjective: z.enum([
     "OPTIMIZATION_OBJECTIVE_UNSPECIFIED",
@@ -484,8 +488,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. The type of pacing that defines how the budget amount will be spent across the pacing_period. `PACING_TYPE_ASAP` is not compatible with pacing_period `PACING_PERIOD_FLIGHT` for insertion orders.",
     ).optional(),
-  }).describe("Settings that control the rate at which a budget is spent.")
-    .optional(),
+  }).describe(
+    "Required. The budget spending speed setting of the insertion order. pacing_type `PACING_TYPE_ASAP` is not compatible with pacing_period `PACING_PERIOD_FLIGHT`.",
+  ).optional(),
   partnerCosts: z.array(z.object({
     costType: z.enum([
       "PARTNER_COST_TYPE_UNSPECIFIED",
@@ -673,13 +678,13 @@ const InputsSchema = z.object({
         "Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC` * `DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS` Value of this field is in micros of the advertiser's currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for Demand Gen resources.",
+      "A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.",
     ).optional(),
     fixedBid: z.object({
       bidAmountMicros: z.string().describe(
         "The fixed bid amount, in micros of the advertiser's currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.",
       ).optional(),
-    }).describe("A strategy that uses a fixed bidding price.").optional(),
+    }).describe("A strategy that uses a fixed bid price.").optional(),
     maximizeSpendAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
         "The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.",
@@ -704,7 +709,7 @@ const InputsSchema = z.object({
         "Whether the strategy takes deal floor prices into account.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.",
+      "A strategy that automatically adjusts the bid to optimize to your performance goal while spending the full budget. At insertion order level, the markup_type of line items cannot be set to `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the performance_goal_type value assigned to an insertion order determines the possible line_item_type values available for line items under that insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`, `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA` and `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` only allow for `LINE_ITEM_TYPE_VIDEO_DEFAULT` line items. * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_REACH` only allows for `LINE_ITEM_TYPE_VIDEO_OVER_THE_TOP` line items.",
     ).optional(),
     performanceGoalAutoBid: z.object({
       customBiddingAlgorithmId: z.string().describe(
@@ -730,7 +735,7 @@ const InputsSchema = z.object({
         "Required. The type of the performance goal that the bidding strategy will try to meet or beat. For line item level usage, the value must be one of: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO`.",
       ).optional(),
     }).describe(
-      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal.",
+      "A strategy that automatically adjusts the bid to meet or beat a specified performance goal. It is to be used only for a line item entity.",
     ).optional(),
     youtubeAndPartnersBid: z.object({
       adGroupEffectiveTargetCpaSource: z.enum([
@@ -760,10 +765,10 @@ const InputsSchema = z.object({
         "The value used by the bidding strategy. When the bidding strategy is assigned at the line item level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` When the bidding strategy is assigned at the ad group level, this field is only applicable for the following strategy types: * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_MANUAL_CPV` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPA` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_RESERVE_CPM` * `YOUTUBE_AND_PARTNERS_BIDDING_STRATEGY_TYPE_TARGET_ROAS` If not using an applicable strategy, the value of this field will be 0.",
       ).optional(),
     }).describe(
-      "Settings that control the bid strategy for YouTube and Partners resources.",
+      "A bid strategy used by YouTube and Partners resources. It can only be used for a YouTube and Partners line item or ad group entity.",
     ).optional(),
   }).describe(
-    "Settings that control the bid strategy. Bid strategy determines the bid price.",
+    "Optional. The bidding strategy of the insertion order. By default, fixed_bid is set. If the budget field automationType is set to `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`, the insertion order will impose this bidding strategy on its line items. If an imposed bidding strategy is not compatible with a line item's enableOptimizedTargeting setting, the optimized targeting setting will be updated.",
   ).optional(),
   budget: z.object({
     automationType: z.enum([
@@ -793,7 +798,7 @@ const InputsSchema = z.object({
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
         }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+          "The upper bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
         ).optional(),
         startDate: z.object({
           day: z.unknown().describe(
@@ -806,9 +811,11 @@ const InputsSchema = z.object({
             "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
           ).optional(),
         }).describe(
-          "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+          "The lower bound of the date range, inclusive. Must specify a positive value for `year`, `month`, and `day`.",
         ).optional(),
-      }).describe("A date range.").optional(),
+      }).describe(
+        "Required. The start and end date settings of the budget segment. They are resolved relative to the parent advertiser's time zone. * When creating a new budget segment, both `start_date` and `end_date` must be in the future. * An existing budget segment with a `start_date` in the past has a mutable `end_date` but an immutable `start_date`. * `end_date` must be the `start_date` or later, both before the year 2037.",
+      ).optional(),
       description: z.string().describe(
         "Optional. The budget segment description. It can be used to enter Purchase Order information for each budget segment and have that information printed on the invoices. Must be UTF-8 encoded.",
       ).optional(),
@@ -822,8 +829,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. Immutable. The budget unit specifies whether the budget is currency based or impression based.",
     ).optional(),
-  }).describe("Settings that control how insertion order budget is allocated.")
-    .optional(),
+  }).describe(
+    "Required. The budget allocation settings of the insertion order.",
+  ).optional(),
   campaignId: z.string().describe(
     "Required. Immutable. The unique ID of the campaign that the insertion order belongs to.",
   ).optional(),
@@ -864,9 +872,8 @@ const InputsSchema = z.object({
     unlimited: z.boolean().describe(
       "Whether unlimited frequency capping is applied. When this field is set to `true`, the remaining frequency cap fields are not applicable.",
     ).optional(),
-  }).describe(
-    "Settings that control the number of times a user may be shown with the same ad during a given time period.",
-  ).optional(),
+  }).describe("Required. The frequency capping setting of the insertion order.")
+    .optional(),
   insertionOrderType: z.enum([
     "INSERTION_ORDER_TYPE_UNSPECIFIED",
     "RTB",
@@ -881,7 +888,9 @@ const InputsSchema = z.object({
     integrationCode: z.string().describe(
       "An external identifier to be associated with the entry. The integration code will show up together with the entry in many places in the system, for example, reporting. Must be UTF-8 encoded with a length of no more than 500 characters.",
     ).optional(),
-  }).describe("Integration details of an entry.").optional(),
+  }).describe(
+    "Optional. Additional integration details of the insertion order.",
+  ).optional(),
   kpi: z.object({
     kpiAlgorithmId: z.string().describe(
       "Optional. Custom Bidding Algorithm ID associated with KPI_CUSTOM_IMPRESSION_VALUE_OVER_COST. This field is ignored if the proper KPI is not selected.",
@@ -919,7 +928,7 @@ const InputsSchema = z.object({
       "KPI_TYPE_OTHER",
     ]).describe("Required. The type of KPI.").optional(),
   }).describe(
-    "Settings that control the key performance indicator, or KPI, of an insertion order.",
+    'Required. The key performance indicator (KPI) of the insertion order. This is represented as referred to as the "Goal" in the Display & Video 360 interface.',
   ).optional(),
   optimizationObjective: z.enum([
     "OPTIMIZATION_OBJECTIVE_UNSPECIFIED",
@@ -953,8 +962,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. The type of pacing that defines how the budget amount will be spent across the pacing_period. `PACING_TYPE_ASAP` is not compatible with pacing_period `PACING_PERIOD_FLIGHT` for insertion orders.",
     ).optional(),
-  }).describe("Settings that control the rate at which a budget is spent.")
-    .optional(),
+  }).describe(
+    "Required. The budget spending speed setting of the insertion order. pacing_type `PACING_TYPE_ASAP` is not compatible with pacing_period `PACING_PERIOD_FLIGHT`.",
+  ).optional(),
   partnerCosts: z.array(z.object({
     costType: z.enum([
       "PARTNER_COST_TYPE_UNSPECIFIED",
@@ -1034,7 +1044,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.InsertionOrders. Registered at `@swamp/gcp/displayvideo/advertisers-insertionorders`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-insertionorders",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1173,6 +1183,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

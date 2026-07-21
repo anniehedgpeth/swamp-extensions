@@ -172,22 +172,24 @@ const GlobalArgsSchema = z.object({
       minNodeCount: z.number().int().describe(
         "Required. The minimum number of nodes to scale down to. Must be greater than or equal to 1.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. Autoscaling config applied to Bigtable Instance.")
+      .optional(),
     bigtableMetadata: z.object({
       instanceId: z.string().describe("The Cloud Bigtable instance id.")
         .optional(),
       tableId: z.string().describe("The Cloud Bigtable table id.").optional(),
       tenantProjectId: z.string().describe("Tenant project ID.").optional(),
-    }).describe(
-      "Metadata of the Bigtable instance. This is used by direct read access to the Bigtable in tenant project.",
-    ).optional(),
+    }).describe("Output only. Metadata of the Bigtable instance. Output only.")
+      .optional(),
     enableDirectBigtableAccess: z.boolean().describe(
       "Optional. It true, enable direct access to the Bigtable instance.",
     ).optional(),
     zone: z.string().describe(
       'Optional. The zone where the underlying Bigtable cluster for the primary Bigtable instance will be provisioned. Only the zone must be provided. For example, only "us-central1-a" should be provided.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Contains settings for the Cloud Bigtable instance that will be created to serve featureValues for all FeatureViews under this FeatureOnlineStore.",
+  ).optional(),
   dedicatedServingEndpoint: z.object({
     privateServiceConnectConfig: z.object({
       enablePrivateServiceConnect: z.boolean().describe(
@@ -224,8 +226,9 @@ const GlobalArgsSchema = z.object({
       serviceAttachment: z.string().describe(
         "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
       ).optional(),
-    }).describe("Represents configuration for private service connect.")
-      .optional(),
+    }).describe(
+      "Optional. Private service connect config. The private service connection is available only for Optimized storage type, not for embedding management now. If PrivateServiceConnectConfig.enable_private_service_connect set to true, customers will use private service connection to send request. Otherwise, the connection will set to public endpoint.",
+    ).optional(),
     publicEndpointDomainName: z.string().describe(
       "Output only. This field will be populated with the domain name to use for this FeatureOnlineStore",
     ).optional(),
@@ -233,14 +236,14 @@ const GlobalArgsSchema = z.object({
       "Output only. The name of the service attachment resource. Populated if private service connect is enabled and after FeatureViewSync is created.",
     ).optional(),
   }).describe(
-    "The dedicated serving endpoint for this FeatureOnlineStore. Only need to set when you choose Optimized storage type. Public endpoint is provisioned by default.",
+    "Optional. The dedicated serving endpoint for this FeatureOnlineStore, which is different from common Vertex service endpoint.",
   ).optional(),
   encryptionSpec: z.object({
     kmsKeyName: z.string().describe(
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Optional. Customer-managed encryption key spec for data storage. If set, online store will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. The labels with user-defined metadata to organize your FeatureOnlineStore. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information on and examples of labels. No more than 64 user labels can be associated with one FeatureOnlineStore(System labels are excluded)." System reserved label keys are prefixed with "aiplatform.googleapis.com/" and are immutable.',
@@ -248,7 +251,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. Name of the FeatureOnlineStore. Format: `projects/{project}/locations/{location}/featureOnlineStores/{featureOnlineStore}`",
   ).optional(),
-  optimized: z.object({}).describe("Optimized storage type").optional(),
+  optimized: z.object({}).describe(
+    "Contains settings for the Optimized store that will be created to serve featureValues for all FeatureViews under this FeatureOnlineStore. When choose Optimized storage type, need to set PrivateServiceConnectConfig.enable_private_service_connect to use private endpoint. Otherwise will use public endpoint by default.",
+  ).optional(),
   featureOnlineStoreId: z.string().describe(
     "Required. The ID to use for this FeatureOnlineStore, which will become the final component of the FeatureOnlineStore's resource name. This value may be up to 60 characters, and valid characters are `[a-z0-9_]`. The first character cannot be a number. The value must be unique within the project and location.",
   ).optional(),
@@ -321,22 +326,24 @@ const InputsSchema = z.object({
       minNodeCount: z.number().int().describe(
         "Required. The minimum number of nodes to scale down to. Must be greater than or equal to 1.",
       ).optional(),
-    }).optional(),
+    }).describe("Required. Autoscaling config applied to Bigtable Instance.")
+      .optional(),
     bigtableMetadata: z.object({
       instanceId: z.string().describe("The Cloud Bigtable instance id.")
         .optional(),
       tableId: z.string().describe("The Cloud Bigtable table id.").optional(),
       tenantProjectId: z.string().describe("Tenant project ID.").optional(),
-    }).describe(
-      "Metadata of the Bigtable instance. This is used by direct read access to the Bigtable in tenant project.",
-    ).optional(),
+    }).describe("Output only. Metadata of the Bigtable instance. Output only.")
+      .optional(),
     enableDirectBigtableAccess: z.boolean().describe(
       "Optional. It true, enable direct access to the Bigtable instance.",
     ).optional(),
     zone: z.string().describe(
       'Optional. The zone where the underlying Bigtable cluster for the primary Bigtable instance will be provisioned. Only the zone must be provided. For example, only "us-central1-a" should be provided.',
     ).optional(),
-  }).optional(),
+  }).describe(
+    "Contains settings for the Cloud Bigtable instance that will be created to serve featureValues for all FeatureViews under this FeatureOnlineStore.",
+  ).optional(),
   dedicatedServingEndpoint: z.object({
     privateServiceConnectConfig: z.object({
       enablePrivateServiceConnect: z.boolean().describe(
@@ -373,8 +380,9 @@ const InputsSchema = z.object({
       serviceAttachment: z.string().describe(
         "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
       ).optional(),
-    }).describe("Represents configuration for private service connect.")
-      .optional(),
+    }).describe(
+      "Optional. Private service connect config. The private service connection is available only for Optimized storage type, not for embedding management now. If PrivateServiceConnectConfig.enable_private_service_connect set to true, customers will use private service connection to send request. Otherwise, the connection will set to public endpoint.",
+    ).optional(),
     publicEndpointDomainName: z.string().describe(
       "Output only. This field will be populated with the domain name to use for this FeatureOnlineStore",
     ).optional(),
@@ -382,14 +390,14 @@ const InputsSchema = z.object({
       "Output only. The name of the service attachment resource. Populated if private service connect is enabled and after FeatureViewSync is created.",
     ).optional(),
   }).describe(
-    "The dedicated serving endpoint for this FeatureOnlineStore. Only need to set when you choose Optimized storage type. Public endpoint is provisioned by default.",
+    "Optional. The dedicated serving endpoint for this FeatureOnlineStore, which is different from common Vertex service endpoint.",
   ).optional(),
   encryptionSpec: z.object({
     kmsKeyName: z.string().describe(
       "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
     ).optional(),
   }).describe(
-    "Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.",
+    "Optional. Customer-managed encryption key spec for data storage. If set, online store will be secured by this key.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     'Optional. The labels with user-defined metadata to organize your FeatureOnlineStore. Label keys and values can be no longer than 64 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. See https://goo.gl/xmQnxf for more information on and examples of labels. No more than 64 user labels can be associated with one FeatureOnlineStore(System labels are excluded)." System reserved label keys are prefixed with "aiplatform.googleapis.com/" and are immutable.',
@@ -397,7 +405,9 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. Name of the FeatureOnlineStore. Format: `projects/{project}/locations/{location}/featureOnlineStores/{featureOnlineStore}`",
   ).optional(),
-  optimized: z.object({}).describe("Optimized storage type").optional(),
+  optimized: z.object({}).describe(
+    "Contains settings for the Optimized store that will be created to serve featureValues for all FeatureViews under this FeatureOnlineStore. When choose Optimized storage type, need to set PrivateServiceConnectConfig.enable_private_service_connect to use private endpoint. Otherwise will use public endpoint by default.",
+  ).optional(),
   featureOnlineStoreId: z.string().describe(
     "Required. The ID to use for this FeatureOnlineStore, which will become the final component of the FeatureOnlineStore's resource name. This value may be up to 60 characters, and valid characters are `[a-z0-9_]`. The first character cannot be a number. The value must be unique within the project and location.",
   ).optional(),
@@ -429,7 +439,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform FeatureOnlineStores. Registered at `@swamp/gcp/aiplatform/featureonlinestores`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/featureonlinestores",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -558,6 +568,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

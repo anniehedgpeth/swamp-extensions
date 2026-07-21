@@ -211,7 +211,7 @@ const GlobalArgsSchema = z.object({
     state: z.enum(["off", "on", "transfer"]).describe(
       "Specifies whether DNSSEC is enabled, and what mode it is in.",
     ).optional(),
-  }).optional(),
+  }).describe("DNSSEC configuration.").optional(),
   forwardingConfig: z.object({
     kind: z.string().optional(),
     targetNameServers: z.array(z.object({
@@ -230,7 +230,9 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "List of target name servers to forward to. Cloud DNS selects the best available name server if more than one target is given.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The presence for this field indicates that outbound forwarding is enabled for this zone. The value of this field contains the set of destinations to forward to.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe("User labels.").optional(),
   name: z.string().describe(
     "User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.",
@@ -248,8 +250,10 @@ const GlobalArgsSchema = z.object({
       networkUrl: z.string().describe(
         "The fully qualified URL of the VPC network to forward queries to. This should be formatted like `https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network}`",
       ).optional(),
-    }).optional(),
-  }).optional(),
+    }).describe("The network with which to peer.").optional(),
+  }).describe(
+    "The presence of this field indicates that DNS Peering is enabled for this zone. The value of this field contains the network to peer with.",
+  ).optional(),
   privateVisibilityConfig: z.object({
     gkeClusters: z.array(z.object({
       gkeClusterName: z.string().describe(
@@ -266,10 +270,14 @@ const GlobalArgsSchema = z.object({
         "The fully qualified URL of the VPC network to bind to. Format this URL like `https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network}`",
       ).optional(),
     })).describe("The list of VPC networks that can see this zone.").optional(),
-  }).optional(),
+  }).describe(
+    "For privately visible zones, the set of Virtual Private Cloud resources that the zone is visible from.",
+  ).optional(),
   reverseLookupConfig: z.object({
     kind: z.string().optional(),
-  }).optional(),
+  }).describe(
+    "The presence of this field indicates that this is a managed reverse lookup zone and Cloud DNS resolves reverse lookup queries using automatically configured records for VPC resources. This only applies to networks listed under private_visibility_config.",
+  ).optional(),
   serviceDirectoryConfig: z.object({
     kind: z.string().optional(),
     namespace: z.object({
@@ -280,9 +288,12 @@ const GlobalArgsSchema = z.object({
       namespaceUrl: z.string().describe(
         "The fully qualified URL of the namespace associated with the zone. Format must be `https://servicedirectory.googleapis.com/v1/projects/{project}/locations/{location}/namespaces/{namespace}`",
       ).optional(),
-    }).optional(),
-  }).describe("Contains information about Service Directory-backed zones.")
-    .optional(),
+    }).describe(
+      "Contains information about the namespace associated with the zone.",
+    ).optional(),
+  }).describe(
+    "This field links to the associated service directory namespace. Do not set this field for public zones or forwarding zones.",
+  ).optional(),
   visibility: z.enum(["public", "private"]).describe(
     "The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources.",
   ).optional(),
@@ -406,7 +417,7 @@ const InputsSchema = z.object({
     state: z.enum(["off", "on", "transfer"]).describe(
       "Specifies whether DNSSEC is enabled, and what mode it is in.",
     ).optional(),
-  }).optional(),
+  }).describe("DNSSEC configuration.").optional(),
   forwardingConfig: z.object({
     kind: z.string().optional(),
     targetNameServers: z.array(z.object({
@@ -425,7 +436,9 @@ const InputsSchema = z.object({
     })).describe(
       "List of target name servers to forward to. Cloud DNS selects the best available name server if more than one target is given.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The presence for this field indicates that outbound forwarding is enabled for this zone. The value of this field contains the set of destinations to forward to.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe("User labels.").optional(),
   name: z.string().describe(
     "User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.",
@@ -443,8 +456,10 @@ const InputsSchema = z.object({
       networkUrl: z.string().describe(
         "The fully qualified URL of the VPC network to forward queries to. This should be formatted like `https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network}`",
       ).optional(),
-    }).optional(),
-  }).optional(),
+    }).describe("The network with which to peer.").optional(),
+  }).describe(
+    "The presence of this field indicates that DNS Peering is enabled for this zone. The value of this field contains the network to peer with.",
+  ).optional(),
   privateVisibilityConfig: z.object({
     gkeClusters: z.array(z.object({
       gkeClusterName: z.string().describe(
@@ -461,10 +476,14 @@ const InputsSchema = z.object({
         "The fully qualified URL of the VPC network to bind to. Format this URL like `https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network}`",
       ).optional(),
     })).describe("The list of VPC networks that can see this zone.").optional(),
-  }).optional(),
+  }).describe(
+    "For privately visible zones, the set of Virtual Private Cloud resources that the zone is visible from.",
+  ).optional(),
   reverseLookupConfig: z.object({
     kind: z.string().optional(),
-  }).optional(),
+  }).describe(
+    "The presence of this field indicates that this is a managed reverse lookup zone and Cloud DNS resolves reverse lookup queries using automatically configured records for VPC resources. This only applies to networks listed under private_visibility_config.",
+  ).optional(),
   serviceDirectoryConfig: z.object({
     kind: z.string().optional(),
     namespace: z.object({
@@ -475,9 +494,12 @@ const InputsSchema = z.object({
       namespaceUrl: z.string().describe(
         "The fully qualified URL of the namespace associated with the zone. Format must be `https://servicedirectory.googleapis.com/v1/projects/{project}/locations/{location}/namespaces/{namespace}`",
       ).optional(),
-    }).optional(),
-  }).describe("Contains information about Service Directory-backed zones.")
-    .optional(),
+    }).describe(
+      "Contains information about the namespace associated with the zone.",
+    ).optional(),
+  }).describe(
+    "This field links to the associated service directory namespace. Do not set this field for public zones or forwarding zones.",
+  ).optional(),
   visibility: z.enum(["public", "private"]).describe(
     "The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources.",
   ).optional(),
@@ -509,7 +531,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud DNS ManagedZones. Registered at `@swamp/gcp/dns/managedzones`. */
 export const model = {
   type: "@swamp/gcp/dns/managedzones",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -613,6 +635,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

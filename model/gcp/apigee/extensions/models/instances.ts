@@ -157,7 +157,7 @@ const GlobalArgsSchema = z.object({
       'Optional. Ship the access log entries that match the status_code defined in the filter. The status_code is the only expected/supported filter field. (Ex: status_code) The filter will parse it to the Common Expression Language semantics for expression evaluation to build the filter condition. (Ex: "filter": status_code >= 200 && status_code < 300)',
     ).optional(),
   }).describe(
-    "Access logging configuration enables customers to ship the access logs from the tenant projects to their own project's cloud logging. The feature is at the instance level ad disabled by default. It can be enabled during CreateInstance or UpdateInstance.",
+    "Optional. Access logging configuration enables the access logging feature at the instance. Apigee customers can enable access logging to ship the access logs to their own project's cloud logging.",
   ).optional(),
   consumerAcceptList: z.array(z.string()).describe(
     "Optional. Customer accept list represents the list of projects (id/number) on customer side that can privately connect to the service attachment. It is an optional field which the customers can provide during the instance creation. By default, the customer project associated with the Apigee organization will be included to the list.",
@@ -209,23 +209,17 @@ const GlobalArgsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. The start time (UTC) of the maintenance window.")
+        .optional(),
     })).describe(
       "Optional. Preferred windows to perform maintenance. Currently limited to 1.",
     ).optional(),
   }).describe(
-    "MaintenanceUpdatePolicy specifies the preferred window to perform maintenance on the instance (day of the week and time of day).",
+    "Optional. Apigee customers can set the preferred window to perform maintenance on the instance (day of the week and time of day).",
   ).optional(),
   name: z.string().describe(
     "Required. Resource ID of the instance. Values must match the regular expression `^a-z{0,30}[a-z\\d]$`.",
   ).optional(),
-  scheduledMaintenance: z.object({
-    startTime: z.string().describe(
-      "Output only. The start time (UTC) of the scheduled maintenance.",
-    ).optional(),
-  }).describe("Scheduled maintenance information for an instance.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -284,7 +278,7 @@ const InputsSchema = z.object({
       'Optional. Ship the access log entries that match the status_code defined in the filter. The status_code is the only expected/supported filter field. (Ex: status_code) The filter will parse it to the Common Expression Language semantics for expression evaluation to build the filter condition. (Ex: "filter": status_code >= 200 && status_code < 300)',
     ).optional(),
   }).describe(
-    "Access logging configuration enables customers to ship the access logs from the tenant projects to their own project's cloud logging. The feature is at the instance level ad disabled by default. It can be enabled during CreateInstance or UpdateInstance.",
+    "Optional. Access logging configuration enables the access logging feature at the instance. Apigee customers can enable access logging to ship the access logs to their own project's cloud logging.",
   ).optional(),
   consumerAcceptList: z.array(z.string()).describe(
     "Optional. Customer accept list represents the list of projects (id/number) on customer side that can privately connect to the service attachment. It is an optional field which the customers can provide during the instance creation. By default, the customer project associated with the Apigee organization will be included to the list.",
@@ -336,23 +330,17 @@ const InputsSchema = z.object({
         seconds: z.number().int().describe(
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
-      }).describe(
-        "Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and `google.protobuf.Timestamp`.",
-      ).optional(),
+      }).describe("Required. The start time (UTC) of the maintenance window.")
+        .optional(),
     })).describe(
       "Optional. Preferred windows to perform maintenance. Currently limited to 1.",
     ).optional(),
   }).describe(
-    "MaintenanceUpdatePolicy specifies the preferred window to perform maintenance on the instance (day of the week and time of day).",
+    "Optional. Apigee customers can set the preferred window to perform maintenance on the instance (day of the week and time of day).",
   ).optional(),
   name: z.string().describe(
     "Required. Resource ID of the instance. Values must match the regular expression `^a-z{0,30}[a-z\\d]$`.",
   ).optional(),
-  scheduledMaintenance: z.object({
-    startTime: z.string().describe(
-      "Output only. The start time (UTC) of the scheduled maintenance.",
-    ).optional(),
-  }).describe("Scheduled maintenance information for an instance.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -381,7 +369,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Instances. Registered at `@swamp/gcp/apigee/instances`. */
 export const model = {
   type: "@swamp/gcp/apigee/instances",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -483,6 +471,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: scheduledMaintenance",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { scheduledMaintenance: _scheduledMaintenance, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -530,9 +526,6 @@ export const model = {
           body["maintenanceUpdatePolicy"] = g["maintenanceUpdatePolicy"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["scheduledMaintenance"] !== undefined) {
-          body["scheduledMaintenance"] = g["scheduledMaintenance"];
-        }
         if (g["parent"] !== undefined && g["name"] !== undefined) {
           params["name"] = buildResourceName(
             String(g["parent"]),
@@ -668,9 +661,6 @@ export const model = {
         if (g["location"] !== undefined) body["location"] = g["location"];
         if (g["maintenanceUpdatePolicy"] !== undefined) {
           body["maintenanceUpdatePolicy"] = g["maintenanceUpdatePolicy"];
-        }
-        if (g["scheduledMaintenance"] !== undefined) {
-          body["scheduledMaintenance"] = g["scheduledMaintenance"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

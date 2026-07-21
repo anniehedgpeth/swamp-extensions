@@ -173,20 +173,7 @@ const GlobalArgsSchema = z.object({
       "ANTHOS_SUPPORT",
     ]).describe("predefined_role is the Kubernetes default role to use")
       .optional(),
-  }).describe("Role is the type for Kubernetes roles").optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe(
-      "Output only. The current state of the rbacrolebinding resource.",
-    ).optional(),
-  }).describe(
-    "RBACRoleBindingLifecycleState describes the state of a RbacRoleBinding resource.",
-  ).optional(),
+  }).describe("Required. Role to bind to the principal").optional(),
   user: z.string().describe(
     'user is the name of the user as seen by the kubernetes cluster, example "alice" or "alice@domain.tld"',
   ).optional(),
@@ -247,20 +234,7 @@ const InputsSchema = z.object({
       "ANTHOS_SUPPORT",
     ]).describe("predefined_role is the Kubernetes default role to use")
       .optional(),
-  }).describe("Role is the type for Kubernetes roles").optional(),
-  state: z.object({
-    code: z.enum([
-      "CODE_UNSPECIFIED",
-      "CREATING",
-      "READY",
-      "DELETING",
-      "UPDATING",
-    ]).describe(
-      "Output only. The current state of the rbacrolebinding resource.",
-    ).optional(),
-  }).describe(
-    "RBACRoleBindingLifecycleState describes the state of a RbacRoleBinding resource.",
-  ).optional(),
+  }).describe("Required. Role to bind to the principal").optional(),
   user: z.string().describe(
     'user is the name of the user as seen by the kubernetes cluster, example "alice" or "alice@domain.tld"',
   ).optional(),
@@ -298,7 +272,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Memberships.Rbacrolebindings. Registered at `@swamp/gcp/gkehub/memberships-rbacrolebindings`. */
 export const model = {
   type: "@swamp/gcp/gkehub/memberships-rbacrolebindings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: state",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { state: _state, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -325,7 +309,6 @@ export const model = {
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["role"] !== undefined) body["role"] = g["role"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["user"] !== undefined) body["user"] = g["user"];
         if (g["rbacrolebindingId"] !== undefined) {
           params["rbacrolebindingId"] = String(g["rbacrolebindingId"]);
@@ -437,7 +420,6 @@ export const model = {
         if (g["group"] !== undefined) body["group"] = g["group"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["role"] !== undefined) body["role"] = g["role"];
-        if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["user"] !== undefined) body["user"] = g["user"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

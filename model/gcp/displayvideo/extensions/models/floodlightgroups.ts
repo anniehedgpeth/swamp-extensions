@@ -159,8 +159,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Required. The minimum percentage of the video ad's volume required in order for an impression to be recorded.",
     ).optional(),
-  }).describe("Configuration for custom Active View video viewability metrics.")
-    .optional(),
+  }).describe(
+    "The Active View video viewability metric configuration for the Floodlight group.",
+  ).optional(),
   customVariables: z.record(z.string(), z.string()).describe(
     'User-defined custom variables owned by the Floodlight group. Use custom Floodlight variables to create reporting data that is tailored to your unique business needs. Custom Floodlight variables use the keys `U1=`, `U2=`, and so on, and can take any values that you choose to pass to them. You can use them to track virtually any type of data that you collect about your customers, such as the genre of movie that a customer purchases, the country to which the item is shipped, and so on. Custom Floodlight variables may not be used to pass any data that could be used or recognized as personally identifiable information (PII). Example: `custom_variables { fields { "U1": value { number_value: 123.4 }, "U2": value { string_value: "MyVariable2" }, "U3": value { string_value: "MyVariable3" } } }` Acceptable values for keys are "U1" through "U100", inclusive. String values must be less than 64 characters long, and cannot contain the following characters: `"<>`.',
   ).optional(),
@@ -178,7 +179,7 @@ const GlobalArgsSchema = z.object({
       "Lookback window, in days, from the last time a given user viewed one of your ads.",
     ).optional(),
   }).describe(
-    "Specifies how many days into the past to look when determining whether to record a conversion.",
+    "Required. The lookback window for the Floodlight group. Both click_days and impression_days are required. Acceptable values for both are `0` to `90`, inclusive.",
   ).optional(),
   name: z.string().describe(
     "Output only. The resource name of the Floodlight group.",
@@ -274,8 +275,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Required. The minimum percentage of the video ad's volume required in order for an impression to be recorded.",
     ).optional(),
-  }).describe("Configuration for custom Active View video viewability metrics.")
-    .optional(),
+  }).describe(
+    "The Active View video viewability metric configuration for the Floodlight group.",
+  ).optional(),
   customVariables: z.record(z.string(), z.string()).describe(
     'User-defined custom variables owned by the Floodlight group. Use custom Floodlight variables to create reporting data that is tailored to your unique business needs. Custom Floodlight variables use the keys `U1=`, `U2=`, and so on, and can take any values that you choose to pass to them. You can use them to track virtually any type of data that you collect about your customers, such as the genre of movie that a customer purchases, the country to which the item is shipped, and so on. Custom Floodlight variables may not be used to pass any data that could be used or recognized as personally identifiable information (PII). Example: `custom_variables { fields { "U1": value { number_value: 123.4 }, "U2": value { string_value: "MyVariable2" }, "U3": value { string_value: "MyVariable3" } } }` Acceptable values for keys are "U1" through "U100", inclusive. String values must be less than 64 characters long, and cannot contain the following characters: `"<>`.',
   ).optional(),
@@ -293,7 +295,7 @@ const InputsSchema = z.object({
       "Lookback window, in days, from the last time a given user viewed one of your ads.",
     ).optional(),
   }).describe(
-    "Specifies how many days into the past to look when determining whether to record a conversion.",
+    "Required. The lookback window for the Floodlight group. Both click_days and impression_days are required. Acceptable values for both are `0` to `90`, inclusive.",
   ).optional(),
   name: z.string().describe(
     "Output only. The resource name of the Floodlight group.",
@@ -330,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 FloodlightGroups. Registered at `@swamp/gcp/displayvideo/floodlightgroups`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/floodlightgroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -419,6 +421,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

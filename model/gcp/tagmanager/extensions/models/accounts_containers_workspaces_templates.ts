@@ -181,9 +181,8 @@ const GlobalArgsSchema = z.object({
     version: z.string().describe(
       "The version of the community gallery template.",
     ).optional(),
-  }).describe(
-    "Represents the link between a custom template and an entry on the Community Template Gallery site.",
-  ).optional(),
+  }).describe("A reference to the Community Template Gallery entry.")
+    .optional(),
   name: z.string().describe("Custom Template display name.").optional(),
   path: z.string().describe("GTM Custom Template's API relative path.")
     .optional(),
@@ -260,9 +259,8 @@ const InputsSchema = z.object({
     version: z.string().describe(
       "The version of the community gallery template.",
     ).optional(),
-  }).describe(
-    "Represents the link between a custom template and an entry on the Community Template Gallery site.",
-  ).optional(),
+  }).describe("A reference to the Community Template Gallery entry.")
+    .optional(),
   name: z.string().describe("Custom Template display name.").optional(),
   path: z.string().describe("GTM Custom Template's API relative path.")
     .optional(),
@@ -303,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Workspaces.Templates. Registered at `@swamp/gcp/tagmanager/accounts-containers-workspaces-templates`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-workspaces-templates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -397,6 +395,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

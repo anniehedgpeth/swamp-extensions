@@ -176,9 +176,7 @@ const GlobalArgsSchema = z.object({
         "Required. Designation of the person i.e. Data Steward or Data Analyst. Example values: owner, steward, producer, admin.",
       ).optional(),
     })).describe("Required. Identities of the business contacts.").optional(),
-  }).describe(
-    "Business contacts part of business context of a Data Domain. Corresponds to the Contacts Aspect in Dataplex Universal Catalog.",
-  ).optional(),
+  }).describe("Required. Contact info for the Data Domains.").optional(),
   description: z.string().describe(
     "Optional. User-provided description of the DataDomain.",
   ).optional(),
@@ -192,16 +190,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   parentDataDomain: z.string().describe(
     "Optional. Immutable. The resource name of the parent DataDomain. Empty if this is a top-level DataDomain. Format: projects/{project_id_or_number}/locations/{location}/dataDomains/{parent_data_domain_id} This field is immutable after creation.",
-  ).optional(),
-  policyMember: z.object({
-    iamPolicyNamePrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource.Example: principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter",
-    ).optional(),
-    iamPolicyUidPrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resourceExample: principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5",
-    ).optional(),
-  }).describe(
-    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
   ).optional(),
   dataDomainId: z.string().describe(
     "Required. DataDomain identifier. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project and location.",
@@ -252,9 +240,7 @@ const InputsSchema = z.object({
         "Required. Designation of the person i.e. Data Steward or Data Analyst. Example values: owner, steward, producer, admin.",
       ).optional(),
     })).describe("Required. Identities of the business contacts.").optional(),
-  }).describe(
-    "Business contacts part of business context of a Data Domain. Corresponds to the Contacts Aspect in Dataplex Universal Catalog.",
-  ).optional(),
+  }).describe("Required. Contact info for the Data Domains.").optional(),
   description: z.string().describe(
     "Optional. User-provided description of the DataDomain.",
   ).optional(),
@@ -268,16 +254,6 @@ const InputsSchema = z.object({
   ).optional(),
   parentDataDomain: z.string().describe(
     "Optional. Immutable. The resource name of the parent DataDomain. Empty if this is a top-level DataDomain. Format: projects/{project_id_or_number}/locations/{location}/dataDomains/{parent_data_domain_id} This field is immutable after creation.",
-  ).optional(),
-  policyMember: z.object({
-    iamPolicyNamePrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource.Example: principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter",
-    ).optional(),
-    iamPolicyUidPrincipal: z.string().describe(
-      "Output only. IAM policy binding member referring to a Google Cloud resource by system-assigned unique identifier (https://google.aip.dev/148#uid). If a resource is deleted and recreated with the same name, the binding will not be applicable to the new resourceExample: principal://parametermanager.googleapis.com/projects/12345/uid/locations/us-central1-a/parameters/a918fed5",
-    ).optional(),
-  }).describe(
-    "Output-only policy member strings of a Google Cloud resource's built-in identity.",
   ).optional(),
   dataDomainId: z.string().describe(
     "Required. DataDomain identifier. * Must contain only lowercase letters, numbers and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project and location.",
@@ -310,7 +286,17 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataDomains. Registered at `@swamp/gcp/dataplex/datadomains`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datadomains",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: policyMember",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { policyMember: _policyMember, ...rest } = old;
+        return rest;
+      },
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -346,9 +332,6 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["parentDataDomain"] !== undefined) {
           body["parentDataDomain"] = g["parentDataDomain"];
-        }
-        if (g["policyMember"] !== undefined) {
-          body["policyMember"] = g["policyMember"];
         }
         if (g["dataDomainId"] !== undefined) {
           params["dataDomainId"] = String(g["dataDomainId"]);
@@ -467,9 +450,6 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["policyMember"] !== undefined) {
-          body["policyMember"] = g["policyMember"];
-        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

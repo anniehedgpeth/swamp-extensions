@@ -171,7 +171,9 @@ const GlobalArgsSchema = z.object({
     timeZone: z.string().describe(
       "Timezone ID. This matches the timezone IDs used by the Cloud Scheduler API. If empty, UTC time is assumed.",
     ).optional(),
-  }).describe("Details of the schedule the pipeline runs on.").optional(),
+  }).describe(
+    "Internal scheduling information for a pipeline. If this information is provided, periodic jobs will be created per the schedule. If not, users are responsible for creating jobs externally.",
+  ).optional(),
   schedulerServiceAccountEmail: z.string().describe(
     "Optional. A service account email to be used with the Cloud Scheduler job. If not specified, the default compute engine service account will be used.",
   ).optional(),
@@ -253,9 +255,8 @@ const GlobalArgsSchema = z.object({
           zone: z.string().describe(
             "The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.",
           ).optional(),
-        }).describe(
-          "The environment values to be set at runtime for a Flex Template.",
-        ).optional(),
+        }).describe("The runtime environment for the Flex Template job.")
+          .optional(),
         jobName: z.string().describe(
           "Required. The job name to use for the created job. For an update job request, the job name should be the same as the existing running job.",
         ).optional(),
@@ -271,7 +272,8 @@ const GlobalArgsSchema = z.object({
         update: z.boolean().describe(
           "Set this to true if you are sending a request to update a running streaming job. When set, the job name should be the same as the running job.",
         ).optional(),
-      }).describe("Launch Flex Template parameter.").optional(),
+      }).describe("Required. Parameter to launch a job from a Flex Template.")
+        .optional(),
       location: z.string().describe(
         "Required. The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request. For example, `us-central1`, `us-west1`.",
       ).optional(),
@@ -281,8 +283,9 @@ const GlobalArgsSchema = z.object({
       validateOnly: z.boolean().describe(
         "If true, the request is validated but not actually executed. Defaults to false.",
       ).optional(),
-    }).describe("A request to launch a Dataflow job from a Flex Template.")
-      .optional(),
+    }).describe(
+      "Template information and additional parameters needed to launch a Dataflow job using the flex launch API.",
+    ).optional(),
     dataflowLaunchTemplateRequest: z.object({
       gcsPath: z.string().describe(
         "A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with 'gs://'.",
@@ -339,7 +342,7 @@ const GlobalArgsSchema = z.object({
           zone: z.string().describe(
             "The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.",
           ).optional(),
-        }).describe("The environment values to set at runtime.").optional(),
+        }).describe("The runtime environment for the job.").optional(),
         jobName: z.string().describe(
           "Required. The job name to use for the created job.",
         ).optional(),
@@ -352,8 +355,9 @@ const GlobalArgsSchema = z.object({
         update: z.boolean().describe(
           "If set, replace the existing pipeline with the name specified by jobName with this pipeline, preserving state.",
         ).optional(),
-      }).describe("Parameters to provide to the template being launched.")
-        .optional(),
+      }).describe(
+        "The parameters of the template to launch. This should be part of the body of the POST request.",
+      ).optional(),
       location: z.string().describe(
         "The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request.",
       ).optional(),
@@ -363,8 +367,10 @@ const GlobalArgsSchema = z.object({
       validateOnly: z.boolean().describe(
         "If true, the request is validated but not actually executed. Defaults to false.",
       ).optional(),
-    }).describe("A request to launch a template.").optional(),
-  }).describe("Workload details for creating the pipeline jobs.").optional(),
+    }).describe(
+      "Template information and additional parameters needed to launch a Dataflow job using the standard launch API.",
+    ).optional(),
+  }).describe("Workload information for creating new jobs.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -476,7 +482,9 @@ const InputsSchema = z.object({
     timeZone: z.string().describe(
       "Timezone ID. This matches the timezone IDs used by the Cloud Scheduler API. If empty, UTC time is assumed.",
     ).optional(),
-  }).describe("Details of the schedule the pipeline runs on.").optional(),
+  }).describe(
+    "Internal scheduling information for a pipeline. If this information is provided, periodic jobs will be created per the schedule. If not, users are responsible for creating jobs externally.",
+  ).optional(),
   schedulerServiceAccountEmail: z.string().describe(
     "Optional. A service account email to be used with the Cloud Scheduler job. If not specified, the default compute engine service account will be used.",
   ).optional(),
@@ -558,9 +566,8 @@ const InputsSchema = z.object({
           zone: z.string().describe(
             "The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.",
           ).optional(),
-        }).describe(
-          "The environment values to be set at runtime for a Flex Template.",
-        ).optional(),
+        }).describe("The runtime environment for the Flex Template job.")
+          .optional(),
         jobName: z.string().describe(
           "Required. The job name to use for the created job. For an update job request, the job name should be the same as the existing running job.",
         ).optional(),
@@ -576,7 +583,8 @@ const InputsSchema = z.object({
         update: z.boolean().describe(
           "Set this to true if you are sending a request to update a running streaming job. When set, the job name should be the same as the running job.",
         ).optional(),
-      }).describe("Launch Flex Template parameter.").optional(),
+      }).describe("Required. Parameter to launch a job from a Flex Template.")
+        .optional(),
       location: z.string().describe(
         "Required. The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request. For example, `us-central1`, `us-west1`.",
       ).optional(),
@@ -586,8 +594,9 @@ const InputsSchema = z.object({
       validateOnly: z.boolean().describe(
         "If true, the request is validated but not actually executed. Defaults to false.",
       ).optional(),
-    }).describe("A request to launch a Dataflow job from a Flex Template.")
-      .optional(),
+    }).describe(
+      "Template information and additional parameters needed to launch a Dataflow job using the flex launch API.",
+    ).optional(),
     dataflowLaunchTemplateRequest: z.object({
       gcsPath: z.string().describe(
         "A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with 'gs://'.",
@@ -644,7 +653,7 @@ const InputsSchema = z.object({
           zone: z.string().describe(
             "The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.",
           ).optional(),
-        }).describe("The environment values to set at runtime.").optional(),
+        }).describe("The runtime environment for the job.").optional(),
         jobName: z.string().describe(
           "Required. The job name to use for the created job.",
         ).optional(),
@@ -657,8 +666,9 @@ const InputsSchema = z.object({
         update: z.boolean().describe(
           "If set, replace the existing pipeline with the name specified by jobName with this pipeline, preserving state.",
         ).optional(),
-      }).describe("Parameters to provide to the template being launched.")
-        .optional(),
+      }).describe(
+        "The parameters of the template to launch. This should be part of the body of the POST request.",
+      ).optional(),
       location: z.string().describe(
         "The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request.",
       ).optional(),
@@ -668,8 +678,10 @@ const InputsSchema = z.object({
       validateOnly: z.boolean().describe(
         "If true, the request is validated but not actually executed. Defaults to false.",
       ).optional(),
-    }).describe("A request to launch a template.").optional(),
-  }).describe("Workload details for creating the pipeline jobs.").optional(),
+    }).describe(
+      "Template information and additional parameters needed to launch a Dataflow job using the standard launch API.",
+    ).optional(),
+  }).describe("Workload information for creating new jobs.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -698,7 +710,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Data pipelines Pipelines. Registered at `@swamp/gcp/datapipelines/pipelines`. */
 export const model = {
   type: "@swamp/gcp/datapipelines/pipelines",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -817,6 +829,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

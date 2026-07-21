@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Indicates whether to enable incident logs and trace collection.",
       ).optional(),
     }).describe(
-      "Data collection options for diagnostics. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DataCollectionOptions",
+      "Optional. Immutable. Indicates user preference for data collection options.",
     ).optional(),
     enabledEcpuCountPerNode: z.number().int().describe(
       "Required. Immutable. The number of ECPUs enabled per node for an exadata vm cluster on exascale infrastructure.",
@@ -268,17 +268,16 @@ const GlobalArgsSchema = z.object({
       version: z.string().describe(
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
-    }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
-    ).optional(),
+    }).describe("Optional. Immutable. The time zone of the ExadbVmCluster.")
+      .optional(),
     vmFileSystemStorage: z.object({
       sizeInGbsPerNode: z.number().int().describe(
         "Required. The storage allocation for the exadbvmcluster per node, in gigabytes (GB). This field is used to calculate the total storage allocation for the exadbvmcluster.",
       ).optional(),
     }).describe(
-      "The storage allocation for the exadbvmcluster, in gigabytes (GB).",
+      "Required. Immutable. Total storage details for the ExadbVmCluster.",
     ).optional(),
-  }).describe("The properties of an ExadbVmCluster.").optional(),
+  }).describe("Required. The properties of the ExadbVmCluster.").optional(),
   exadbVmClusterId: z.string().describe(
     "Required. The ID of the ExadbVmCluster to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -375,7 +374,7 @@ const InputsSchema = z.object({
         "Optional. Indicates whether to enable incident logs and trace collection.",
       ).optional(),
     }).describe(
-      "Data collection options for diagnostics. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DataCollectionOptions",
+      "Optional. Immutable. Indicates user preference for data collection options.",
     ).optional(),
     enabledEcpuCountPerNode: z.number().int().describe(
       "Required. Immutable. The number of ECPUs enabled per node for an exadata vm cluster on exascale infrastructure.",
@@ -440,17 +439,16 @@ const InputsSchema = z.object({
       version: z.string().describe(
         'Optional. IANA Time Zone Database version number. For example "2019a".',
       ).optional(),
-    }).describe(
-      "Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).",
-    ).optional(),
+    }).describe("Optional. Immutable. The time zone of the ExadbVmCluster.")
+      .optional(),
     vmFileSystemStorage: z.object({
       sizeInGbsPerNode: z.number().int().describe(
         "Required. The storage allocation for the exadbvmcluster per node, in gigabytes (GB). This field is used to calculate the total storage allocation for the exadbvmcluster.",
       ).optional(),
     }).describe(
-      "The storage allocation for the exadbvmcluster, in gigabytes (GB).",
+      "Required. Immutable. Total storage details for the ExadbVmCluster.",
     ).optional(),
-  }).describe("The properties of an ExadbVmCluster.").optional(),
+  }).describe("Required. The properties of the ExadbVmCluster.").optional(),
   exadbVmClusterId: z.string().describe(
     "Required. The ID of the ExadbVmCluster to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
   ).optional(),
@@ -485,7 +483,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud ExadbVmClusters. Registered at `@swamp/gcp/oracledatabase/exadbvmclusters`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/exadbvmclusters",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -589,6 +587,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

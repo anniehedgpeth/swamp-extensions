@@ -119,7 +119,9 @@ const GlobalArgsSchema = z.object({
     kind: z.string().describe(
       "Output only. [Output Only] Type of the resource. Always compute#metadata for metadata.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The metadata key/value pairs assigned to all the instances in the corresponding scope.",
+  ).optional(),
   zone: z.string().describe(
     "Output only. [Output Only] URL of the zone where the resource resides You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
@@ -156,7 +158,9 @@ const InputsSchema = z.object({
     kind: z.string().describe(
       "Output only. [Output Only] Type of the resource. Always compute#metadata for metadata.",
     ).optional(),
-  }).optional(),
+  }).describe(
+    "The metadata key/value pairs assigned to all the instances in the corresponding scope.",
+  ).optional(),
   zone: z.string().describe(
     "Output only. [Output Only] URL of the zone where the resource resides You must specify this field as part of the HTTP request URL. It is not settable as a field in the request body.",
   ).optional(),
@@ -185,7 +189,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine InstanceSettings. Registered at `@swamp/gcp/compute/instancesettings`. */
 export const model = {
   type: "@swamp/gcp/compute/instancesettings",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -279,6 +283,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

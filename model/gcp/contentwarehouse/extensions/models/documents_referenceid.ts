@@ -114,8 +114,9 @@ const GlobalArgsSchema = z.object({
     enableEntitiesConversions: z.boolean().describe(
       "Whether to convert all the entities to properties.",
     ).optional(),
-  }).describe("Request Option for processing Cloud AI Document in CW Document.")
-    .optional(),
+  }).describe(
+    "Request Option for processing Cloud AI Document in Document Warehouse. This field offers limited support for mapping entities from Cloud AI Document to Warehouse Document. Please consult with product team before using this field and other available options.",
+  ).optional(),
   document: z.object({
     cloudAiDocument: z.object({
       chunkedDocument: z.object({
@@ -129,32 +130,27 @@ const GlobalArgsSchema = z.object({
           pageHeaders: z.unknown().describe(
             "Page headers associated with the chunk.",
           ).optional(),
-          pageSpan: z.unknown().describe(
-            "Represents where the chunk starts and ends in the document.",
-          ).optional(),
+          pageSpan: z.unknown().describe("Page span of the chunk.").optional(),
           sourceBlockIds: z.unknown().describe("Unused.").optional(),
         })).describe("List of chunks.").optional(),
-      }).describe("Represents the chunks that the document is divided into.")
-        .optional(),
+      }).describe("Document chunked based on chunking config.").optional(),
       content: z.string().describe(
         "Optional. Inline document content, represented as a stream of bytes. Note: As with all `bytes` fields, protobuffers use a pure binary representation, whereas JSON representations use base64.",
       ).optional(),
       documentLayout: z.object({
         blocks: z.array(z.object({
           blockId: z.unknown().describe("ID of the block.").optional(),
-          listBlock: z.unknown().describe("Represents a list type block.")
-            .optional(),
-          pageSpan: z.unknown().describe(
-            "Represents where the block starts and ends in the document.",
+          listBlock: z.unknown().describe(
+            "Block consisting of list content/structure.",
           ).optional(),
-          tableBlock: z.unknown().describe("Represents a table type block.")
-            .optional(),
-          textBlock: z.unknown().describe("Represents a text type block.")
+          pageSpan: z.unknown().describe("Page span of the block.").optional(),
+          tableBlock: z.unknown().describe(
+            "Block consisting of table content/structure.",
+          ).optional(),
+          textBlock: z.unknown().describe("Block consisting of text content.")
             .optional(),
         })).describe("List of blocks in the document.").optional(),
-      }).describe(
-        "Represents the parsed layout of a document as a collection of blocks that the document is divided into.",
-      ).optional(),
+      }).describe("Parsed layout of the document.").optional(),
       entities: z.array(z.object({
         confidence: z.number().describe(
           "Optional. Confidence of detected Schema entity. Range `[0, 1]`.",
@@ -170,32 +166,34 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         normalizedValue: z.object({
           addressValue: z.unknown().describe(
-            "Represents a postal address. For example for postal delivery or payments addresses. Given a postal address, a postal service can deliver items to a premise, P.O. Box or similar. It is not intended to model geographical locations (roads, towns, mountains). In typical usage an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input / editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput) - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478",
+            "Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto",
           ).optional(),
           booleanValue: z.unknown().describe(
             "Boolean value. Can be used for entities with binary values, or for checkboxes.",
           ).optional(),
           dateValue: z.unknown().describe(
-            "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+            "Date value. Includes year, month, day. See also: https://github.com/googleapis/googleapis/blob/master/google/type/date.proto",
           ).optional(),
           datetimeValue: z.unknown().describe(
-            "Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the `time_offset` oneof is set. Consider using `Timestamp` message for physical time instead. If your use case also would like to store the user's timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application's limitations.",
+            "DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto",
           ).optional(),
           floatValue: z.unknown().describe("Float value.").optional(),
           integerValue: z.unknown().describe("Integer value.").optional(),
           moneyValue: z.unknown().describe(
-            "Represents an amount of money with its currency type.",
+            "Money value. See also: https://github.com/googleapis/googleapis/blob/master/google/type/money.proto",
           ).optional(),
           text: z.unknown().describe(
             "Optional. An optional field to store a normalized string. For some entity types, one of respective `structured_value` fields may also be populated. Also not all the types of `structured_value` will be normalized. For example, some processors may not generate `float` or `integer` normalized text by default. Below are sample formats mapped to structured values. - Money/Currency type (`money_value`) is in the ISO 4217 text format. - Date type (`date_value`) is in the ISO 8601 text format. - Datetime type (`datetime_value`) is in the ISO 8601 text format.",
           ).optional(),
-        }).describe("Parsed and normalized entity value.").optional(),
+        }).describe(
+          "Optional. Normalized entity value. Absent if the extracted value could not be converted or the type (e.g. address) is not supported for certain parsers. This field is also only populated for certain supported document types.",
+        ).optional(),
         pageAnchor: z.object({
           pageRefs: z.unknown().describe(
             "One or more references to visual page elements",
           ).optional(),
         }).describe(
-          "Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.",
+          "Optional. Represents the provenance of this entity wrt. the location on the page where it was found.",
         ).optional(),
         properties: z.array(z.unknown()).describe(
           "Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.",
@@ -212,9 +210,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of provenance operation.")
             .optional(),
-        }).describe(
-          "Structure to identify provenance relationships between annotations in different revisions.",
-        ).optional(),
+        }).describe("Optional. The history of this annotation.").optional(),
         redacted: z.boolean().describe(
           "Optional. Whether the entity will be redacted for de-identification purposes.",
         ).optional(),
@@ -225,8 +221,9 @@ const GlobalArgsSchema = z.object({
           textSegments: z.unknown().describe(
             "The text segments from the Document.text.",
           ).optional(),
-        }).describe("Text reference indexing into the Document.text.")
-          .optional(),
+        }).describe(
+          "Optional. Provenance of the entity. Text anchor indexing into the Document.text.",
+        ).optional(),
         type: z.string().describe(
           "Required. Entity type from a schema e.g. `Address`.",
         ).optional(),
@@ -249,9 +246,8 @@ const GlobalArgsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Any error that occurred while processing this document.")
+        .optional(),
       mimeType: z.string().describe(
         "An IANA published [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml).",
       ).optional(),
@@ -269,7 +265,7 @@ const GlobalArgsSchema = z.object({
           height: z.unknown().describe("Page height.").optional(),
           unit: z.unknown().describe("Dimension unit.").optional(),
           width: z.unknown().describe("Page width.").optional(),
-        }).describe("Dimension for the page.").optional(),
+        }).describe("Physical dimension of the page.").optional(),
         formFields: z.array(z.unknown()).describe(
           "A list of visually detected form fields on the page.",
         ).optional(),
@@ -283,17 +279,19 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           width: z.unknown().describe("Width of the image in pixels.")
             .optional(),
-        }).describe("Rendered image contents for this page.").optional(),
+        }).describe(
+          "Rendered image for this page. This image is preprocessed to remove any skew, rotation, and distortions such that the annotation bounding boxes can be upright and axis-aligned.",
+        ).optional(),
         imageQualityScores: z.object({
           detectedDefects: z.unknown().describe("A list of detected defects.")
             .optional(),
           qualityScore: z.unknown().describe(
             "The overall quality score. Range `[0, 1]` where `1` is perfect quality.",
           ).optional(),
-        }).describe("Image quality scores for the page image.").optional(),
+        }).describe("Image quality scores.").optional(),
         layout: z.object({
           boundingPoly: z.unknown().describe(
-            "A bounding polygon for the detected image annotation.",
+            "The bounding polygon for the Layout.",
           ).optional(),
           confidence: z.unknown().describe(
             "Confidence of the current Layout within context of the object this layout is for. e.g. confidence can be for a single token, a table, a visual element, etc. depending on context. Range `[0, 1]`.",
@@ -302,10 +300,9 @@ const GlobalArgsSchema = z.object({
             "Detected orientation for the Layout.",
           ).optional(),
           textAnchor: z.unknown().describe(
-            "Text reference indexing into the Document.text.",
+            "Text anchor indexing into the Document.text.",
           ).optional(),
-        }).describe("Visual element describing a layout unit on a page.")
-          .optional(),
+        }).describe("Layout for the page.").optional(),
         lines: z.array(z.unknown()).describe(
           "A list of visually detected text lines on the page. A collection of tokens that a human would perceive as a line.",
         ).optional(),
@@ -327,9 +324,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of provenance operation.")
             .optional(),
-        }).describe(
-          "Structure to identify provenance relationships between annotations in different revisions.",
-        ).optional(),
+        }).describe("The history of this page.").optional(),
         symbols: z.array(z.unknown()).describe(
           "A list of visually detected symbols on the page.",
         ).optional(),
@@ -360,7 +355,7 @@ const GlobalArgsSchema = z.object({
           stateMessage: z.unknown().describe(
             "A message providing more details about the current state of processing. For example, the rejection reason when the state is `rejected`.",
           ).optional(),
-        }).describe("Human Review information of the document.").optional(),
+        }).describe("Human Review information of this revision.").optional(),
         id: z.string().describe(
           "Id of the revision, internally generated by doc proto storage. Unique within the context of the document.",
         ).optional(),
@@ -383,7 +378,7 @@ const GlobalArgsSchema = z.object({
           "The index of the first character in Document.text in the overall document global text.",
         ).optional(),
       }).describe(
-        "For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.",
+        "Information about the sharding if this document is sharded part of a larger document. If the document is not sharded, this message is not specified.",
       ).optional(),
       text: z.string().describe(
         "Optional. UTF-8 encoded text in reading order from the document.",
@@ -402,8 +397,9 @@ const GlobalArgsSchema = z.object({
           textSegments: z.unknown().describe(
             "The text segments from the Document.text.",
           ).optional(),
-        }).describe("Text reference indexing into the Document.text.")
-          .optional(),
+        }).describe(
+          "Provenance of the correction. Text anchor indexing into the Document.text. There can only be a single `TextAnchor.text_segments` element. If the start and end index of the text segment are the same, the text change is inserted before that index.",
+        ).optional(),
       })).describe(
         "Placeholder. A list of text corrections made to Document.text. This is usually used for annotating corrections to OCR mistakes. Text changes for a given revision may not overlap with each other.",
       ).optional(),
@@ -421,9 +417,7 @@ const GlobalArgsSchema = z.object({
           red: z.unknown().describe(
             "The amount of red in the color as a value in the interval [0, 1].",
           ).optional(),
-        }).describe(
-          "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
-        ).optional(),
+        }).describe("Text background color.").optional(),
         color: z.object({
           alpha: z.unknown().describe(
             "The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: `pixel color = alpha * (this color) + (1.0 - alpha) * (background color)` This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).",
@@ -437,9 +431,7 @@ const GlobalArgsSchema = z.object({
           red: z.unknown().describe(
             "The amount of red in the color as a value in the interval [0, 1].",
           ).optional(),
-        }).describe(
-          "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
-        ).optional(),
+        }).describe("Text color.").optional(),
         fontFamily: z.string().describe(
           "Font family such as `Arial`, `Times New Roman`. https://www.w3schools.com/cssref/pr_font_font-family.asp",
         ).optional(),
@@ -448,7 +440,7 @@ const GlobalArgsSchema = z.object({
           unit: z.unknown().describe(
             "Unit for the font size. Follows CSS naming (such as `in`, `px`, and `pt`).",
           ).optional(),
-        }).describe("Font size with unit.").optional(),
+        }).describe("Font size.").optional(),
         fontWeight: z.string().describe(
           "[Font weight](https://www.w3schools.com/cssref/pr_font_weight.asp). Possible values are `normal`, `bold`, `bolder`, and `lighter`.",
         ).optional(),
@@ -459,8 +451,7 @@ const GlobalArgsSchema = z.object({
           textSegments: z.unknown().describe(
             "The text segments from the Document.text.",
           ).optional(),
-        }).describe("Text reference indexing into the Document.text.")
-          .optional(),
+        }).describe("Text anchor indexing into the Document.text.").optional(),
         textDecoration: z.string().describe(
           "[Text decoration](https://www.w3schools.com/cssref/pr_text_text-decoration.asp). Follows CSS standard.",
         ).optional(),
@@ -472,7 +463,7 @@ const GlobalArgsSchema = z.object({
         "Optional. Currently supports Google Cloud Storage URI of the form `gs://bucket_name/object_name`. Object versioning is not supported. For more information, refer to [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris).",
       ).optional(),
     }).describe(
-      "Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.",
+      "Document AI format to save the structured content, including OCR.",
     ).optional(),
     contentCategory: z.enum([
       "CONTENT_CATEGORY_UNSPECIFIED",
@@ -513,41 +504,43 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "List of datetime values. Both OffsetDateTime and ZonedDateTime are supported.",
         ).optional(),
-      }).describe("DateTime values.").optional(),
+      }).describe(
+        "Date time property values. It is not supported by CMEK compliant deployment.",
+      ).optional(),
       enumValues: z.object({
         values: z.array(z.unknown()).describe("List of enum values.")
           .optional(),
-      }).describe("Enum values.").optional(),
+      }).describe("Enum property values.").optional(),
       floatValues: z.object({
         values: z.array(z.unknown()).describe("List of float values.")
           .optional(),
-      }).describe("Float values.").optional(),
+      }).describe("Float property values.").optional(),
       integerValues: z.object({
         values: z.array(z.unknown()).describe("List of integer values.")
           .optional(),
-      }).describe("Integer values.").optional(),
+      }).describe("Integer property values.").optional(),
       mapProperty: z.object({
         fields: z.record(z.string(), z.unknown()).describe(
           "Unordered map of dynamically typed values.",
         ).optional(),
-      }).describe(
-        "Map property value. Represents a structured entries of key value pairs, consisting of field names which map to dynamically typed values.",
-      ).optional(),
+      }).describe("Map property values.").optional(),
       name: z.string().describe(
         "Required. Must match the name of a PropertyDefinition in the DocumentSchema.",
       ).optional(),
       propertyValues: z.object({
         properties: z.array(z.unknown()).describe("List of property values.")
           .optional(),
-      }).describe("Property values.").optional(),
+      }).describe("Nested structured data property values.").optional(),
       textValues: z.object({
         values: z.array(z.unknown()).describe("List of text values.")
           .optional(),
-      }).describe("String/text values.").optional(),
+      }).describe("String/text property values.").optional(),
       timestampValues: z.object({
         values: z.array(z.unknown()).describe("List of timestamp values.")
           .optional(),
-      }).describe("Timestamp values.").optional(),
+      }).describe(
+        "Timestamp property values. It is not supported by CMEK compliant deployment.",
+      ).optional(),
     })).describe("List of values that are user supplied metadata.").optional(),
     rawDocumentFileType: z.enum([
       "RAW_DOCUMENT_FILE_TYPE_UNSPECIFIED",
@@ -580,8 +573,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     updater: z.string().describe("The user who lastly updates the document.")
       .optional(),
-  }).describe("Defines the structure for content warehouse document proto.")
-    .optional(),
+  }).describe("Required. The document to update.").optional(),
   requestMetadata: z.object({
     userInfo: z.object({
       groupIds: z.array(z.string()).describe(
@@ -590,9 +582,10 @@ const GlobalArgsSchema = z.object({
       id: z.string().describe(
         'A unique user identification string, as determined by the client. The maximum number of allowed characters is 255. Allowed characters include numbers 0 to 9, uppercase and lowercase letters, and restricted special symbols (:, @, +, -, _, ~) The format is "user:xxxx@example.com";',
       ).optional(),
-    }).describe("The user information.").optional(),
+    }).describe("Provides user unique identification and groups information.")
+      .optional(),
   }).describe(
-    "Meta information is used to improve the performance of the service.",
+    "The meta information collected about the end user, used to enforce access control for the service.",
   ).optional(),
   updateOptions: z.object({
     mergeFieldsOptions: z.object({
@@ -602,7 +595,7 @@ const GlobalArgsSchema = z.object({
       replaceRepeatedFields: z.boolean().describe(
         "When merging repeated fields, the default behavior is to append entries from the source repeated field to the destination repeated field. If you instead want to keep only the entries from the source repeated field, set this flag to true. If you want to replace a repeated field within a message field on the destination message, you must set both replace_repeated_fields and replace_message_fields to true, otherwise the repeated fields will be appended.",
       ).optional(),
-    }).describe("Options for merging updated fields.").optional(),
+    }).describe("Options for merging.").optional(),
     updateMask: z.string().describe(
       "Field mask for merging Document fields. For the `FieldMask` definition, see https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask",
     ).optional(),
@@ -615,7 +608,7 @@ const GlobalArgsSchema = z.object({
       "UPDATE_TYPE_DELETE_PROPERTIES_BY_NAMES",
       "UPDATE_TYPE_MERGE_AND_REPLACE_OR_INSERT_PROPERTIES_BY_NAMES",
     ]).describe("Type for update.").optional(),
-  }).describe("Options for Update operations.").optional(),
+  }).describe("Options for the update operation.").optional(),
 });
 
 const StateSchema = z.object({
@@ -964,8 +957,9 @@ const InputsSchema = z.object({
     enableEntitiesConversions: z.boolean().describe(
       "Whether to convert all the entities to properties.",
     ).optional(),
-  }).describe("Request Option for processing Cloud AI Document in CW Document.")
-    .optional(),
+  }).describe(
+    "Request Option for processing Cloud AI Document in Document Warehouse. This field offers limited support for mapping entities from Cloud AI Document to Warehouse Document. Please consult with product team before using this field and other available options.",
+  ).optional(),
   document: z.object({
     cloudAiDocument: z.object({
       chunkedDocument: z.object({
@@ -979,32 +973,27 @@ const InputsSchema = z.object({
           pageHeaders: z.unknown().describe(
             "Page headers associated with the chunk.",
           ).optional(),
-          pageSpan: z.unknown().describe(
-            "Represents where the chunk starts and ends in the document.",
-          ).optional(),
+          pageSpan: z.unknown().describe("Page span of the chunk.").optional(),
           sourceBlockIds: z.unknown().describe("Unused.").optional(),
         })).describe("List of chunks.").optional(),
-      }).describe("Represents the chunks that the document is divided into.")
-        .optional(),
+      }).describe("Document chunked based on chunking config.").optional(),
       content: z.string().describe(
         "Optional. Inline document content, represented as a stream of bytes. Note: As with all `bytes` fields, protobuffers use a pure binary representation, whereas JSON representations use base64.",
       ).optional(),
       documentLayout: z.object({
         blocks: z.array(z.object({
           blockId: z.unknown().describe("ID of the block.").optional(),
-          listBlock: z.unknown().describe("Represents a list type block.")
-            .optional(),
-          pageSpan: z.unknown().describe(
-            "Represents where the block starts and ends in the document.",
+          listBlock: z.unknown().describe(
+            "Block consisting of list content/structure.",
           ).optional(),
-          tableBlock: z.unknown().describe("Represents a table type block.")
-            .optional(),
-          textBlock: z.unknown().describe("Represents a text type block.")
+          pageSpan: z.unknown().describe("Page span of the block.").optional(),
+          tableBlock: z.unknown().describe(
+            "Block consisting of table content/structure.",
+          ).optional(),
+          textBlock: z.unknown().describe("Block consisting of text content.")
             .optional(),
         })).describe("List of blocks in the document.").optional(),
-      }).describe(
-        "Represents the parsed layout of a document as a collection of blocks that the document is divided into.",
-      ).optional(),
+      }).describe("Parsed layout of the document.").optional(),
       entities: z.array(z.object({
         confidence: z.number().describe(
           "Optional. Confidence of detected Schema entity. Range `[0, 1]`.",
@@ -1020,32 +1009,34 @@ const InputsSchema = z.object({
         ).optional(),
         normalizedValue: z.object({
           addressValue: z.unknown().describe(
-            "Represents a postal address. For example for postal delivery or payments addresses. Given a postal address, a postal service can deliver items to a premise, P.O. Box or similar. It is not intended to model geographical locations (roads, towns, mountains). In typical usage an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input / editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput) - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478",
+            "Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto",
           ).optional(),
           booleanValue: z.unknown().describe(
             "Boolean value. Can be used for entities with binary values, or for checkboxes.",
           ).optional(),
           dateValue: z.unknown().describe(
-            "Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp",
+            "Date value. Includes year, month, day. See also: https://github.com/googleapis/googleapis/blob/master/google/type/date.proto",
           ).optional(),
           datetimeValue: z.unknown().describe(
-            "Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the `time_offset` oneof is set. Consider using `Timestamp` message for physical time instead. If your use case also would like to store the user's timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application's limitations.",
+            "DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto",
           ).optional(),
           floatValue: z.unknown().describe("Float value.").optional(),
           integerValue: z.unknown().describe("Integer value.").optional(),
           moneyValue: z.unknown().describe(
-            "Represents an amount of money with its currency type.",
+            "Money value. See also: https://github.com/googleapis/googleapis/blob/master/google/type/money.proto",
           ).optional(),
           text: z.unknown().describe(
             "Optional. An optional field to store a normalized string. For some entity types, one of respective `structured_value` fields may also be populated. Also not all the types of `structured_value` will be normalized. For example, some processors may not generate `float` or `integer` normalized text by default. Below are sample formats mapped to structured values. - Money/Currency type (`money_value`) is in the ISO 4217 text format. - Date type (`date_value`) is in the ISO 8601 text format. - Datetime type (`datetime_value`) is in the ISO 8601 text format.",
           ).optional(),
-        }).describe("Parsed and normalized entity value.").optional(),
+        }).describe(
+          "Optional. Normalized entity value. Absent if the extracted value could not be converted or the type (e.g. address) is not supported for certain parsers. This field is also only populated for certain supported document types.",
+        ).optional(),
         pageAnchor: z.object({
           pageRefs: z.unknown().describe(
             "One or more references to visual page elements",
           ).optional(),
         }).describe(
-          "Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.",
+          "Optional. Represents the provenance of this entity wrt. the location on the page where it was found.",
         ).optional(),
         properties: z.array(z.unknown()).describe(
           "Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.",
@@ -1062,9 +1053,7 @@ const InputsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of provenance operation.")
             .optional(),
-        }).describe(
-          "Structure to identify provenance relationships between annotations in different revisions.",
-        ).optional(),
+        }).describe("Optional. The history of this annotation.").optional(),
         redacted: z.boolean().describe(
           "Optional. Whether the entity will be redacted for de-identification purposes.",
         ).optional(),
@@ -1075,8 +1064,9 @@ const InputsSchema = z.object({
           textSegments: z.unknown().describe(
             "The text segments from the Document.text.",
           ).optional(),
-        }).describe("Text reference indexing into the Document.text.")
-          .optional(),
+        }).describe(
+          "Optional. Provenance of the entity. Text anchor indexing into the Document.text.",
+        ).optional(),
         type: z.string().describe(
           "Required. Entity type from a schema e.g. `Address`.",
         ).optional(),
@@ -1099,9 +1089,8 @@ const InputsSchema = z.object({
         message: z.string().describe(
           "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
         ).optional(),
-      }).describe(
-        "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
-      ).optional(),
+      }).describe("Any error that occurred while processing this document.")
+        .optional(),
       mimeType: z.string().describe(
         "An IANA published [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml).",
       ).optional(),
@@ -1119,7 +1108,7 @@ const InputsSchema = z.object({
           height: z.unknown().describe("Page height.").optional(),
           unit: z.unknown().describe("Dimension unit.").optional(),
           width: z.unknown().describe("Page width.").optional(),
-        }).describe("Dimension for the page.").optional(),
+        }).describe("Physical dimension of the page.").optional(),
         formFields: z.array(z.unknown()).describe(
           "A list of visually detected form fields on the page.",
         ).optional(),
@@ -1133,17 +1122,19 @@ const InputsSchema = z.object({
           ).optional(),
           width: z.unknown().describe("Width of the image in pixels.")
             .optional(),
-        }).describe("Rendered image contents for this page.").optional(),
+        }).describe(
+          "Rendered image for this page. This image is preprocessed to remove any skew, rotation, and distortions such that the annotation bounding boxes can be upright and axis-aligned.",
+        ).optional(),
         imageQualityScores: z.object({
           detectedDefects: z.unknown().describe("A list of detected defects.")
             .optional(),
           qualityScore: z.unknown().describe(
             "The overall quality score. Range `[0, 1]` where `1` is perfect quality.",
           ).optional(),
-        }).describe("Image quality scores for the page image.").optional(),
+        }).describe("Image quality scores.").optional(),
         layout: z.object({
           boundingPoly: z.unknown().describe(
-            "A bounding polygon for the detected image annotation.",
+            "The bounding polygon for the Layout.",
           ).optional(),
           confidence: z.unknown().describe(
             "Confidence of the current Layout within context of the object this layout is for. e.g. confidence can be for a single token, a table, a visual element, etc. depending on context. Range `[0, 1]`.",
@@ -1152,10 +1143,9 @@ const InputsSchema = z.object({
             "Detected orientation for the Layout.",
           ).optional(),
           textAnchor: z.unknown().describe(
-            "Text reference indexing into the Document.text.",
+            "Text anchor indexing into the Document.text.",
           ).optional(),
-        }).describe("Visual element describing a layout unit on a page.")
-          .optional(),
+        }).describe("Layout for the page.").optional(),
         lines: z.array(z.unknown()).describe(
           "A list of visually detected text lines on the page. A collection of tokens that a human would perceive as a line.",
         ).optional(),
@@ -1177,9 +1167,7 @@ const InputsSchema = z.object({
           ).optional(),
           type: z.unknown().describe("The type of provenance operation.")
             .optional(),
-        }).describe(
-          "Structure to identify provenance relationships between annotations in different revisions.",
-        ).optional(),
+        }).describe("The history of this page.").optional(),
         symbols: z.array(z.unknown()).describe(
           "A list of visually detected symbols on the page.",
         ).optional(),
@@ -1210,7 +1198,7 @@ const InputsSchema = z.object({
           stateMessage: z.unknown().describe(
             "A message providing more details about the current state of processing. For example, the rejection reason when the state is `rejected`.",
           ).optional(),
-        }).describe("Human Review information of the document.").optional(),
+        }).describe("Human Review information of this revision.").optional(),
         id: z.string().describe(
           "Id of the revision, internally generated by doc proto storage. Unique within the context of the document.",
         ).optional(),
@@ -1233,7 +1221,7 @@ const InputsSchema = z.object({
           "The index of the first character in Document.text in the overall document global text.",
         ).optional(),
       }).describe(
-        "For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.",
+        "Information about the sharding if this document is sharded part of a larger document. If the document is not sharded, this message is not specified.",
       ).optional(),
       text: z.string().describe(
         "Optional. UTF-8 encoded text in reading order from the document.",
@@ -1252,8 +1240,9 @@ const InputsSchema = z.object({
           textSegments: z.unknown().describe(
             "The text segments from the Document.text.",
           ).optional(),
-        }).describe("Text reference indexing into the Document.text.")
-          .optional(),
+        }).describe(
+          "Provenance of the correction. Text anchor indexing into the Document.text. There can only be a single `TextAnchor.text_segments` element. If the start and end index of the text segment are the same, the text change is inserted before that index.",
+        ).optional(),
       })).describe(
         "Placeholder. A list of text corrections made to Document.text. This is usually used for annotating corrections to OCR mistakes. Text changes for a given revision may not overlap with each other.",
       ).optional(),
@@ -1271,9 +1260,7 @@ const InputsSchema = z.object({
           red: z.unknown().describe(
             "The amount of red in the color as a value in the interval [0, 1].",
           ).optional(),
-        }).describe(
-          "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
-        ).optional(),
+        }).describe("Text background color.").optional(),
         color: z.object({
           alpha: z.unknown().describe(
             "The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: `pixel color = alpha * (this color) + (1.0 - alpha) * (background color)` This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).",
@@ -1287,9 +1274,7 @@ const InputsSchema = z.object({
           red: z.unknown().describe(
             "The amount of red in the color as a value in the interval [0, 1].",
           ).optional(),
-        }).describe(
-          "Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of `java.awt.Color` in Java; it can also be trivially provided to UIColor's `+colorWithRed:green:blue:alpha` method in iOS; and, with just a little work, it can be easily formatted into a CSS `rgba()` string in JavaScript. This reference page doesn't have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most `1e-5`. Example (Java): import com.google.type.Color; //... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha()? protocolor.getAlpha().getValue(): 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color.newBuilder().setRed(red / denominator).setGreen(green / denominator).setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha!= 255) { result.setAlpha( FloatValue.newBuilder().setValue(((float) alpha) / denominator).build()); } return resultBuilder.build(); } //... Example (iOS / Obj-C): //... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper!= nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha <= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } //... Example (JavaScript): //... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!('alpha' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join(','); return ['rgba(', rgbParams, ',', alphaFrac, ')'].join(''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red << 16) | (green << 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = ['#']; for (var i = 0; i < missingZeros; i++) { resultBuilder.push('0'); } resultBuilder.push(hexString); return resultBuilder.join(''); }; //...",
-        ).optional(),
+        }).describe("Text color.").optional(),
         fontFamily: z.string().describe(
           "Font family such as `Arial`, `Times New Roman`. https://www.w3schools.com/cssref/pr_font_font-family.asp",
         ).optional(),
@@ -1298,7 +1283,7 @@ const InputsSchema = z.object({
           unit: z.unknown().describe(
             "Unit for the font size. Follows CSS naming (such as `in`, `px`, and `pt`).",
           ).optional(),
-        }).describe("Font size with unit.").optional(),
+        }).describe("Font size.").optional(),
         fontWeight: z.string().describe(
           "[Font weight](https://www.w3schools.com/cssref/pr_font_weight.asp). Possible values are `normal`, `bold`, `bolder`, and `lighter`.",
         ).optional(),
@@ -1309,8 +1294,7 @@ const InputsSchema = z.object({
           textSegments: z.unknown().describe(
             "The text segments from the Document.text.",
           ).optional(),
-        }).describe("Text reference indexing into the Document.text.")
-          .optional(),
+        }).describe("Text anchor indexing into the Document.text.").optional(),
         textDecoration: z.string().describe(
           "[Text decoration](https://www.w3schools.com/cssref/pr_text_text-decoration.asp). Follows CSS standard.",
         ).optional(),
@@ -1322,7 +1306,7 @@ const InputsSchema = z.object({
         "Optional. Currently supports Google Cloud Storage URI of the form `gs://bucket_name/object_name`. Object versioning is not supported. For more information, refer to [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris).",
       ).optional(),
     }).describe(
-      "Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.",
+      "Document AI format to save the structured content, including OCR.",
     ).optional(),
     contentCategory: z.enum([
       "CONTENT_CATEGORY_UNSPECIFIED",
@@ -1363,41 +1347,43 @@ const InputsSchema = z.object({
         values: z.array(z.unknown()).describe(
           "List of datetime values. Both OffsetDateTime and ZonedDateTime are supported.",
         ).optional(),
-      }).describe("DateTime values.").optional(),
+      }).describe(
+        "Date time property values. It is not supported by CMEK compliant deployment.",
+      ).optional(),
       enumValues: z.object({
         values: z.array(z.unknown()).describe("List of enum values.")
           .optional(),
-      }).describe("Enum values.").optional(),
+      }).describe("Enum property values.").optional(),
       floatValues: z.object({
         values: z.array(z.unknown()).describe("List of float values.")
           .optional(),
-      }).describe("Float values.").optional(),
+      }).describe("Float property values.").optional(),
       integerValues: z.object({
         values: z.array(z.unknown()).describe("List of integer values.")
           .optional(),
-      }).describe("Integer values.").optional(),
+      }).describe("Integer property values.").optional(),
       mapProperty: z.object({
         fields: z.record(z.string(), z.unknown()).describe(
           "Unordered map of dynamically typed values.",
         ).optional(),
-      }).describe(
-        "Map property value. Represents a structured entries of key value pairs, consisting of field names which map to dynamically typed values.",
-      ).optional(),
+      }).describe("Map property values.").optional(),
       name: z.string().describe(
         "Required. Must match the name of a PropertyDefinition in the DocumentSchema.",
       ).optional(),
       propertyValues: z.object({
         properties: z.array(z.unknown()).describe("List of property values.")
           .optional(),
-      }).describe("Property values.").optional(),
+      }).describe("Nested structured data property values.").optional(),
       textValues: z.object({
         values: z.array(z.unknown()).describe("List of text values.")
           .optional(),
-      }).describe("String/text values.").optional(),
+      }).describe("String/text property values.").optional(),
       timestampValues: z.object({
         values: z.array(z.unknown()).describe("List of timestamp values.")
           .optional(),
-      }).describe("Timestamp values.").optional(),
+      }).describe(
+        "Timestamp property values. It is not supported by CMEK compliant deployment.",
+      ).optional(),
     })).describe("List of values that are user supplied metadata.").optional(),
     rawDocumentFileType: z.enum([
       "RAW_DOCUMENT_FILE_TYPE_UNSPECIFIED",
@@ -1430,8 +1416,7 @@ const InputsSchema = z.object({
     ).optional(),
     updater: z.string().describe("The user who lastly updates the document.")
       .optional(),
-  }).describe("Defines the structure for content warehouse document proto.")
-    .optional(),
+  }).describe("Required. The document to update.").optional(),
   requestMetadata: z.object({
     userInfo: z.object({
       groupIds: z.array(z.string()).describe(
@@ -1440,9 +1425,10 @@ const InputsSchema = z.object({
       id: z.string().describe(
         'A unique user identification string, as determined by the client. The maximum number of allowed characters is 255. Allowed characters include numbers 0 to 9, uppercase and lowercase letters, and restricted special symbols (:, @, +, -, _, ~) The format is "user:xxxx@example.com";',
       ).optional(),
-    }).describe("The user information.").optional(),
+    }).describe("Provides user unique identification and groups information.")
+      .optional(),
   }).describe(
-    "Meta information is used to improve the performance of the service.",
+    "The meta information collected about the end user, used to enforce access control for the service.",
   ).optional(),
   updateOptions: z.object({
     mergeFieldsOptions: z.object({
@@ -1452,7 +1438,7 @@ const InputsSchema = z.object({
       replaceRepeatedFields: z.boolean().describe(
         "When merging repeated fields, the default behavior is to append entries from the source repeated field to the destination repeated field. If you instead want to keep only the entries from the source repeated field, set this flag to true. If you want to replace a repeated field within a message field on the destination message, you must set both replace_repeated_fields and replace_message_fields to true, otherwise the repeated fields will be appended.",
       ).optional(),
-    }).describe("Options for merging updated fields.").optional(),
+    }).describe("Options for merging.").optional(),
     updateMask: z.string().describe(
       "Field mask for merging Document fields. For the `FieldMask` definition, see https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask",
     ).optional(),
@@ -1465,7 +1451,7 @@ const InputsSchema = z.object({
       "UPDATE_TYPE_DELETE_PROPERTIES_BY_NAMES",
       "UPDATE_TYPE_MERGE_AND_REPLACE_OR_INSERT_PROPERTIES_BY_NAMES",
     ]).describe("Type for update.").optional(),
-  }).describe("Options for Update operations.").optional(),
+  }).describe("Options for the update operation.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -1491,7 +1477,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Document AI Warehouse Documents.ReferenceId. Registered at `@swamp/gcp/contentwarehouse/documents-referenceid`. */
 export const model = {
   type: "@swamp/gcp/contentwarehouse/documents-referenceid",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1590,6 +1576,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

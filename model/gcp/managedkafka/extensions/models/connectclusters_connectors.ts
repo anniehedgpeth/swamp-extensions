@@ -168,9 +168,8 @@ const GlobalArgsSchema = z.object({
     taskRetryDisabled: z.boolean().describe(
       "Optional. If true, task retry is disabled.",
     ).optional(),
-  }).describe(
-    "Task Retry Policy is implemented on a best-effort basis. The default policy retries tasks with a minimum_backoff of 60 seconds, and a maximum_backoff of 12 hours. You can disable the policy by setting the task_retry_disabled field to true. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. Note that the delay between consecutive task restarts may not always precisely match the configured settings. This can happen when the ConnectCluster is in rebalancing state or if the ConnectCluster is unresponsive etc. The default values for minimum and maximum backoffs are 60 seconds and 12 hours respectively.",
-  ).optional(),
+  }).describe("Optional. Restarts the individual tasks of a Connector.")
+    .optional(),
   connectorId: z.string().describe(
     "Required. The ID to use for the connector, which will become the final component of the connector's name. The ID must be 1-63 characters long, and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` to comply with RFC 1035. This value is structured like: `my-connector-id`.",
   ).optional(),
@@ -216,9 +215,8 @@ const InputsSchema = z.object({
     taskRetryDisabled: z.boolean().describe(
       "Optional. If true, task retry is disabled.",
     ).optional(),
-  }).describe(
-    "Task Retry Policy is implemented on a best-effort basis. The default policy retries tasks with a minimum_backoff of 60 seconds, and a maximum_backoff of 12 hours. You can disable the policy by setting the task_retry_disabled field to true. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. Note that the delay between consecutive task restarts may not always precisely match the configured settings. This can happen when the ConnectCluster is in rebalancing state or if the ConnectCluster is unresponsive etc. The default values for minimum and maximum backoffs are 60 seconds and 12 hours respectively.",
-  ).optional(),
+  }).describe("Optional. Restarts the individual tasks of a Connector.")
+    .optional(),
   connectorId: z.string().describe(
     "Required. The ID to use for the connector, which will become the final component of the connector's name. The ID must be 1-63 characters long, and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` to comply with RFC 1035. This value is structured like: `my-connector-id`.",
   ).optional(),
@@ -253,7 +251,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Managed Service for Apache Kafka ConnectClusters.Connectors. Registered at `@swamp/gcp/managedkafka/connectclusters-connectors`. */
 export const model = {
   type: "@swamp/gcp/managedkafka/connectclusters-connectors",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -357,6 +355,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -181,10 +181,10 @@ const GlobalArgsSchema = z.object({
         "The list of label value pairs that must match labels in the provided metadata based on filterMatchCriteria This list can have at most 64 entries. The list can be empty if the match criteria is MATCH_ANY, to specify a wildcard match (i.e this matches any client).",
       ).optional(),
     }).describe(
-      "The matcher that is based on node metadata presented by xDS clients.",
+      "The matcher is based on node metadata presented by xDS clients.",
     ).optional(),
   }).describe(
-    "A definition of a matcher that selects endpoints to which the policies should be applied.",
+    "Required. A matcher that selects endpoints to which the policies should be applied.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Set of label tags associated with the EndpointPolicy resource.",
@@ -199,7 +199,9 @@ const GlobalArgsSchema = z.object({
     ports: z.array(z.string()).describe(
       "Optional. A list of ports. Can be port numbers or port range (example, [80-90] specifies all ports from 80 to 90, including 80 and 90) or named ports or * to specify all ports. If the list is empty, all ports are selected.",
     ).optional(),
-  }).describe("Specification of a port-based selector.").optional(),
+  }).describe(
+    "Optional. Port selector for the (matched) endpoints. If no port selector is provided, the matched config is applied to all ports.",
+  ).optional(),
   type: z.enum([
     "ENDPOINT_POLICY_TYPE_UNSPECIFIED",
     "SIDECAR_PROXY",
@@ -272,10 +274,10 @@ const InputsSchema = z.object({
         "The list of label value pairs that must match labels in the provided metadata based on filterMatchCriteria This list can have at most 64 entries. The list can be empty if the match criteria is MATCH_ANY, to specify a wildcard match (i.e this matches any client).",
       ).optional(),
     }).describe(
-      "The matcher that is based on node metadata presented by xDS clients.",
+      "The matcher is based on node metadata presented by xDS clients.",
     ).optional(),
   }).describe(
-    "A definition of a matcher that selects endpoints to which the policies should be applied.",
+    "Required. A matcher that selects endpoints to which the policies should be applied.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Optional. Set of label tags associated with the EndpointPolicy resource.",
@@ -290,7 +292,9 @@ const InputsSchema = z.object({
     ports: z.array(z.string()).describe(
       "Optional. A list of ports. Can be port numbers or port range (example, [80-90] specifies all ports from 80 to 90, including 80 and 90) or named ports or * to specify all ports. If the list is empty, all ports are selected.",
     ).optional(),
-  }).describe("Specification of a port-based selector.").optional(),
+  }).describe(
+    "Optional. Port selector for the (matched) endpoints. If no port selector is provided, the matched config is applied to all ports.",
+  ).optional(),
   type: z.enum([
     "ENDPOINT_POLICY_TYPE_UNSPECIFIED",
     "SIDECAR_PROXY",
@@ -329,7 +333,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services EndpointPolicies. Registered at `@swamp/gcp/networkservices/endpointpolicies`. */
 export const model = {
   type: "@swamp/gcp/networkservices/endpointpolicies",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -446,6 +450,11 @@ export const model = {
         const { clientTlsPolicy: _clientTlsPolicy, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,

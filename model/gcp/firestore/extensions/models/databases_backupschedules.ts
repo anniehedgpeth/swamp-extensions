@@ -146,9 +146,8 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
-  dailyRecurrence: z.object({}).describe(
-    "Represents a recurring schedule that runs every day. The time zone is UTC.",
-  ).optional(),
+  dailyRecurrence: z.object({}).describe("For a schedule that runs daily.")
+    .optional(),
   retention: z.string().describe(
     "At what relative time in the future, compared to its creation time, the backup should be deleted, e.g. keep backups for 7 days. The maximum supported retention period is 14 weeks.",
   ).optional(),
@@ -165,9 +164,7 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "The day of week to run. DAY_OF_WEEK_UNSPECIFIED is not allowed.",
     ).optional(),
-  }).describe(
-    "Represents a recurring schedule that runs on a specified day of the week. The time zone is UTC.",
-  ).optional(),
+  }).describe("For a schedule that runs weekly on a specific day.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -195,9 +192,8 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
-  dailyRecurrence: z.object({}).describe(
-    "Represents a recurring schedule that runs every day. The time zone is UTC.",
-  ).optional(),
+  dailyRecurrence: z.object({}).describe("For a schedule that runs daily.")
+    .optional(),
   retention: z.string().describe(
     "At what relative time in the future, compared to its creation time, the backup should be deleted, e.g. keep backups for 7 days. The maximum supported retention period is 14 weeks.",
   ).optional(),
@@ -214,9 +210,7 @@ const InputsSchema = z.object({
     ]).describe(
       "The day of week to run. DAY_OF_WEEK_UNSPECIFIED is not allowed.",
     ).optional(),
-  }).describe(
-    "Represents a recurring schedule that runs on a specified day of the week. The time zone is UTC.",
-  ).optional(),
+  }).describe("For a schedule that runs weekly on a specific day.").optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
   ).optional(),
@@ -248,7 +242,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.BackupSchedules. Registered at `@swamp/gcp/firestore/databases-backupschedules`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-backupschedules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -360,6 +354,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -403,14 +402,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

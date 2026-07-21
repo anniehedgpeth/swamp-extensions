@@ -232,10 +232,9 @@ const GlobalArgsSchema = z.object({
         weeklyWindows: z.array(z.unknown()).describe(
           "Optional. Recurring weekly windows within which actions are restricted.",
         ).optional(),
-      }).describe(
-        "Time windows within which actions are restricted. See the [documentation](https://cloud.google.com/deploy/docs/deploy-policy#dates_times) for more information on how to configure dates/times.",
-      ).optional(),
-    }).describe("Rollout restrictions.").optional(),
+      }).describe("Required. Time window within which actions are restricted.")
+        .optional(),
+    }).describe("Optional. Rollout restrictions.").optional(),
   })).describe("Required. Rules to apply. At least one rule must be present.")
     .optional(),
   selectors: z.array(z.object({
@@ -246,7 +245,7 @@ const GlobalArgsSchema = z.object({
       labels: z.record(z.string(), z.string()).describe(
         "DeliveryPipeline labels.",
       ).optional(),
-    }).describe("Contains criteria for selecting DeliveryPipelines.")
+    }).describe("Optional. Contains attributes about a delivery pipeline.")
       .optional(),
     target: z.object({
       id: z.string().describe(
@@ -254,9 +253,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       labels: z.record(z.string(), z.string()).describe("Target labels.")
         .optional(),
-    }).describe(
-      "Contains criteria for selecting Targets. This could be used to select targets for a Deploy Policy or for an Automation.",
-    ).optional(),
+    }).describe("Optional. Contains attributes about a target.").optional(),
   })).describe(
     "Required. Selected resources to which the policy will be applied. At least one selector is required. If one selector matches the resource the policy applies. For example, if there are two selectors and the action being attempted matches one of them, the policy will apply to that action.",
   ).optional(),
@@ -359,10 +356,9 @@ const InputsSchema = z.object({
         weeklyWindows: z.array(z.unknown()).describe(
           "Optional. Recurring weekly windows within which actions are restricted.",
         ).optional(),
-      }).describe(
-        "Time windows within which actions are restricted. See the [documentation](https://cloud.google.com/deploy/docs/deploy-policy#dates_times) for more information on how to configure dates/times.",
-      ).optional(),
-    }).describe("Rollout restrictions.").optional(),
+      }).describe("Required. Time window within which actions are restricted.")
+        .optional(),
+    }).describe("Optional. Rollout restrictions.").optional(),
   })).describe("Required. Rules to apply. At least one rule must be present.")
     .optional(),
   selectors: z.array(z.object({
@@ -373,7 +369,7 @@ const InputsSchema = z.object({
       labels: z.record(z.string(), z.string()).describe(
         "DeliveryPipeline labels.",
       ).optional(),
-    }).describe("Contains criteria for selecting DeliveryPipelines.")
+    }).describe("Optional. Contains attributes about a delivery pipeline.")
       .optional(),
     target: z.object({
       id: z.string().describe(
@@ -381,9 +377,7 @@ const InputsSchema = z.object({
       ).optional(),
       labels: z.record(z.string(), z.string()).describe("Target labels.")
         .optional(),
-    }).describe(
-      "Contains criteria for selecting Targets. This could be used to select targets for a Deploy Policy or for an Automation.",
-    ).optional(),
+    }).describe("Optional. Contains attributes about a target.").optional(),
   })).describe(
     "Required. Selected resources to which the policy will be applied. At least one selector is required. If one selector matches the resource the policy applies. For example, if there are two selectors and the action being attempted matches one of them, the policy will apply to that action.",
   ).optional(),
@@ -423,7 +417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Deploy DeployPolicies. Registered at `@swamp/gcp/clouddeploy/deploypolicies`. */
 export const model = {
   type: "@swamp/gcp/clouddeploy/deploypolicies",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -535,6 +529,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -589,16 +588,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

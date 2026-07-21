@@ -165,20 +165,20 @@ const GlobalArgsSchema = z.object({
           "Optional. The roles to appear in result.",
         ).optional(),
       }).describe(
-        "Specifies roles and/or permissions to analyze, to determine both the identities possessing them and the resources they control. If multiple values are specified, results will include roles or permissions matching any of them. The total number of roles and permissions should be equal or less than 10.",
+        "Optional. Specifies roles or permissions for analysis. This is optional.",
       ).optional(),
       conditionContext: z.object({
         accessTime: z.string().describe(
           "The hypothetical access timestamp to evaluate IAM conditions. Note that this value must not be earlier than the current time; otherwise, an INVALID_ARGUMENT error will be returned.",
         ).optional(),
-      }).describe("The IAM conditions context.").optional(),
+      }).describe(
+        "Optional. The hypothetical context for IAM conditions evaluation.",
+      ).optional(),
       identitySelector: z.object({
         identity: z.string().describe(
           'Required. The identity appear in the form of principals in [IAM policy binding](https://cloud.google.com/iam/reference/rest/v1/Binding). The examples of supported forms are: "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com". Notice that wildcard characters (such as * and?) are not supported. You must give a specific identity.',
         ).optional(),
-      }).describe(
-        "Specifies an identity for which to determine resource access, based on roles assigned either directly to them or to the groups they belong to, directly or indirectly.",
-      ).optional(),
+      }).describe("Optional. Specifies an identity for analysis.").optional(),
       options: z.object({
         analyzeServiceAccountImpersonation: z.boolean().describe(
           "Optional. If true, the response will include access analysis from identities to resources via service account impersonation. This is a very expensive operation, because many derived queries will be executed. We highly recommend you use AssetService.AnalyzeIamPolicyLongrunning RPC instead. For example, if the request analyzes for which resources user A has permission P, and there's an IAM policy states user A has iam.serviceAccounts.getAccessToken permission to a service account SA, and there's another IAM policy states service account SA has permission P to a Google Cloud folder F, then user A potentially has access to the Google Cloud folder F. And those advanced analysis results will be included in AnalyzeIamPolicyResponse.service_account_impersonation_analysis. Another example, if the request analyzes for who has permission P to a Google Cloud folder F, and there's an IAM policy states user A has iam.serviceAccounts.actAs permission to a service account SA, and there's another IAM policy states service account SA has permission P to the Google Cloud folder F, then user A potentially has access to the Google Cloud folder F. And those advanced analysis results will be included in AnalyzeIamPolicyResponse.service_account_impersonation_analysis. Only the following permissions are considered in this analysis: * `iam.serviceAccounts.actAs` * `iam.serviceAccounts.signBlob` * `iam.serviceAccounts.signJwt` * `iam.serviceAccounts.getAccessToken` * `iam.serviceAccounts.getOpenIdToken` * `iam.serviceAccounts.implicitDelegation` Default is false.",
@@ -198,18 +198,18 @@ const GlobalArgsSchema = z.object({
         outputResourceEdges: z.boolean().describe(
           "Optional. If true, the result will output the relevant parent/child relationships between resources. Default is false.",
         ).optional(),
-      }).describe("Contains query options.").optional(),
+      }).describe("Optional. The query options.").optional(),
       resourceSelector: z.object({
         fullResourceName: z.string().describe(
           "Required. The [full resource name] (https://cloud.google.com/asset-inventory/docs/resource-name-format) of a resource of [supported resource types](https://cloud.google.com/asset-inventory/docs/supported-asset-types#analyzable_asset_types).",
         ).optional(),
-      }).describe(
-        "Specifies the resource to analyze for access policies, which may be set directly on the resource, or on ancestors such as organizations, folders or projects.",
-      ).optional(),
+      }).describe("Optional. Specifies a resource for analysis.").optional(),
       scope: z.string().describe(
         'Required. The relative name of the root asset. Only resources and IAM policies within the scope will be analyzed. This can only be an organization number (such as "organizations/123"), a folder number (such as "folders/123"), a project ID (such as "projects/my-project-id"), or a project number (such as "projects/12345"). To know how to get organization ID, visit [here ](https://cloud.google.com/resource-manager/docs/creating-managing-organization#retrieving_your_organization_id). To know how to get folder or project ID, visit [here ](https://cloud.google.com/resource-manager/docs/creating-managing-folders#viewing_or_listing_folders_and_projects).',
       ).optional(),
-    }).describe("IAM policy analysis query message.").optional(),
+    }).describe(
+      "An IAM Policy Analysis query, which could be used in the AssetService.AnalyzeIamPolicy RPC or the AssetService.AnalyzeIamPolicyLongrunning RPC.",
+    ).optional(),
   }).describe("The query content.").optional(),
   description: z.string().describe(
     "The description of this saved query. This value should be fewer than 255 characters.",
@@ -281,20 +281,20 @@ const InputsSchema = z.object({
           "Optional. The roles to appear in result.",
         ).optional(),
       }).describe(
-        "Specifies roles and/or permissions to analyze, to determine both the identities possessing them and the resources they control. If multiple values are specified, results will include roles or permissions matching any of them. The total number of roles and permissions should be equal or less than 10.",
+        "Optional. Specifies roles or permissions for analysis. This is optional.",
       ).optional(),
       conditionContext: z.object({
         accessTime: z.string().describe(
           "The hypothetical access timestamp to evaluate IAM conditions. Note that this value must not be earlier than the current time; otherwise, an INVALID_ARGUMENT error will be returned.",
         ).optional(),
-      }).describe("The IAM conditions context.").optional(),
+      }).describe(
+        "Optional. The hypothetical context for IAM conditions evaluation.",
+      ).optional(),
       identitySelector: z.object({
         identity: z.string().describe(
           'Required. The identity appear in the form of principals in [IAM policy binding](https://cloud.google.com/iam/reference/rest/v1/Binding). The examples of supported forms are: "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com". Notice that wildcard characters (such as * and?) are not supported. You must give a specific identity.',
         ).optional(),
-      }).describe(
-        "Specifies an identity for which to determine resource access, based on roles assigned either directly to them or to the groups they belong to, directly or indirectly.",
-      ).optional(),
+      }).describe("Optional. Specifies an identity for analysis.").optional(),
       options: z.object({
         analyzeServiceAccountImpersonation: z.boolean().describe(
           "Optional. If true, the response will include access analysis from identities to resources via service account impersonation. This is a very expensive operation, because many derived queries will be executed. We highly recommend you use AssetService.AnalyzeIamPolicyLongrunning RPC instead. For example, if the request analyzes for which resources user A has permission P, and there's an IAM policy states user A has iam.serviceAccounts.getAccessToken permission to a service account SA, and there's another IAM policy states service account SA has permission P to a Google Cloud folder F, then user A potentially has access to the Google Cloud folder F. And those advanced analysis results will be included in AnalyzeIamPolicyResponse.service_account_impersonation_analysis. Another example, if the request analyzes for who has permission P to a Google Cloud folder F, and there's an IAM policy states user A has iam.serviceAccounts.actAs permission to a service account SA, and there's another IAM policy states service account SA has permission P to the Google Cloud folder F, then user A potentially has access to the Google Cloud folder F. And those advanced analysis results will be included in AnalyzeIamPolicyResponse.service_account_impersonation_analysis. Only the following permissions are considered in this analysis: * `iam.serviceAccounts.actAs` * `iam.serviceAccounts.signBlob` * `iam.serviceAccounts.signJwt` * `iam.serviceAccounts.getAccessToken` * `iam.serviceAccounts.getOpenIdToken` * `iam.serviceAccounts.implicitDelegation` Default is false.",
@@ -314,18 +314,18 @@ const InputsSchema = z.object({
         outputResourceEdges: z.boolean().describe(
           "Optional. If true, the result will output the relevant parent/child relationships between resources. Default is false.",
         ).optional(),
-      }).describe("Contains query options.").optional(),
+      }).describe("Optional. The query options.").optional(),
       resourceSelector: z.object({
         fullResourceName: z.string().describe(
           "Required. The [full resource name] (https://cloud.google.com/asset-inventory/docs/resource-name-format) of a resource of [supported resource types](https://cloud.google.com/asset-inventory/docs/supported-asset-types#analyzable_asset_types).",
         ).optional(),
-      }).describe(
-        "Specifies the resource to analyze for access policies, which may be set directly on the resource, or on ancestors such as organizations, folders or projects.",
-      ).optional(),
+      }).describe("Optional. Specifies a resource for analysis.").optional(),
       scope: z.string().describe(
         'Required. The relative name of the root asset. Only resources and IAM policies within the scope will be analyzed. This can only be an organization number (such as "organizations/123"), a folder number (such as "folders/123"), a project ID (such as "projects/my-project-id"), or a project number (such as "projects/12345"). To know how to get organization ID, visit [here ](https://cloud.google.com/resource-manager/docs/creating-managing-organization#retrieving_your_organization_id). To know how to get folder or project ID, visit [here ](https://cloud.google.com/resource-manager/docs/creating-managing-folders#viewing_or_listing_folders_and_projects).',
       ).optional(),
-    }).describe("IAM policy analysis query message.").optional(),
+    }).describe(
+      "An IAM Policy Analysis query, which could be used in the AssetService.AnalyzeIamPolicy RPC or the AssetService.AnalyzeIamPolicyLongrunning RPC.",
+    ).optional(),
   }).describe("The query content.").optional(),
   description: z.string().describe(
     "The description of this saved query. This value should be fewer than 255 characters.",
@@ -367,7 +367,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Asset SavedQueries. Registered at `@swamp/gcp/cloudasset/savedqueries`. */
 export const model = {
   type: "@swamp/gcp/cloudasset/savedqueries",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -466,6 +466,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

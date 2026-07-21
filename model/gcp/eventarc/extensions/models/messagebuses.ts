@@ -203,7 +203,7 @@ const GlobalArgsSchema = z.object({
       "Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE.",
     ).optional(),
   }).describe(
-    "The configuration for Platform Telemetry logging for Eventarc Advanced resources.",
+    "Optional. Config to control Platform logging for the Message Bus. This log configuration is applied to the Message Bus itself, and all the Enrollments attached to it.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the form projects/{project}/locations/{location}/messageBuses/{message_bus}",
@@ -265,7 +265,7 @@ const InputsSchema = z.object({
       "Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE.",
     ).optional(),
   }).describe(
-    "The configuration for Platform Telemetry logging for Eventarc Advanced resources.",
+    "Optional. Config to control Platform logging for the Message Bus. This log configuration is applied to the Message Bus itself, and all the Enrollments attached to it.",
   ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the form projects/{project}/locations/{location}/messageBuses/{message_bus}",
@@ -301,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Eventarc MessageBuses. Registered at `@swamp/gcp/eventarc/messagebuses`. */
 export const model = {
   type: "@swamp/gcp/eventarc/messagebuses",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -405,6 +405,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

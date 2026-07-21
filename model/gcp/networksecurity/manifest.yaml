@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/networksecurity"
-version: "2026.07.20.2"
+version: "2026.07.21.1"
 description: "Google Cloud networksecurity infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,8 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: sacattachments, sacrealms
-  - Updated: locations, addressgroups, authzpolicies, mirroringendpointgroupassociations
+  - Updated: firewallendpoints, securityprofiles, authorizationpolicies, authzpolicies, clienttlspolicies, interceptendpointgroups, sacrealms, servertlspolicies
 models:
   - addressgroups.ts
   - authorizationpolicies.ts

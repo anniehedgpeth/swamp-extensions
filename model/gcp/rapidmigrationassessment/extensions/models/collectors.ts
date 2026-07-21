@@ -180,12 +180,6 @@ const GlobalArgsSchema = z.object({
   expectedAssetCount: z.string().describe(
     "User specified expected asset count.",
   ).optional(),
-  guestOsScan: z.object({
-    coreSource: z.string().describe(
-      "reference to the corresponding Guest OS Scan in MC Source.",
-    ).optional(),
-  }).describe("Message describing a MC Source of type Guest OS Scan.")
-    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels as key value pairs.",
   ).optional(),
@@ -193,12 +187,6 @@ const GlobalArgsSchema = z.object({
   serviceAccount: z.string().describe(
     "Service Account email used to ingest data to this Collector.",
   ).optional(),
-  vsphereScan: z.object({
-    coreSource: z.string().describe(
-      "reference to the corresponding VSphere Scan in MC Source.",
-    ).optional(),
-  }).describe("Message describing a MC Source of type VSphere Scan.")
-    .optional(),
   collectorId: z.string().describe("Required. Id of the requesting object.")
     .optional(),
   requestId: z.string().describe(
@@ -251,12 +239,6 @@ const InputsSchema = z.object({
   expectedAssetCount: z.string().describe(
     "User specified expected asset count.",
   ).optional(),
-  guestOsScan: z.object({
-    coreSource: z.string().describe(
-      "reference to the corresponding Guest OS Scan in MC Source.",
-    ).optional(),
-  }).describe("Message describing a MC Source of type Guest OS Scan.")
-    .optional(),
   labels: z.record(z.string(), z.string()).describe(
     "Labels as key value pairs.",
   ).optional(),
@@ -264,12 +246,6 @@ const InputsSchema = z.object({
   serviceAccount: z.string().describe(
     "Service Account email used to ingest data to this Collector.",
   ).optional(),
-  vsphereScan: z.object({
-    coreSource: z.string().describe(
-      "reference to the corresponding VSphere Scan in MC Source.",
-    ).optional(),
-  }).describe("Message describing a MC Source of type VSphere Scan.")
-    .optional(),
   collectorId: z.string().describe("Required. Id of the requesting object.")
     .optional(),
   requestId: z.string().describe(
@@ -303,7 +279,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Rapid Migration Assessment Collectors. Registered at `@swamp/gcp/rapidmigrationassessment/collectors`. */
 export const model = {
   type: "@swamp/gcp/rapidmigrationassessment/collectors",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -410,6 +386,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "Removed: guestOsScan, vsphereScan",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          guestOsScan: _guestOsScan,
+          vsphereScan: _vsphereScan,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -447,16 +435,10 @@ export const model = {
         if (g["expectedAssetCount"] !== undefined) {
           body["expectedAssetCount"] = g["expectedAssetCount"];
         }
-        if (g["guestOsScan"] !== undefined) {
-          body["guestOsScan"] = g["guestOsScan"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
-        }
-        if (g["vsphereScan"] !== undefined) {
-          body["vsphereScan"] = g["vsphereScan"];
         }
         if (g["collectorId"] !== undefined) {
           params["collectorId"] = String(g["collectorId"]);
@@ -583,15 +565,9 @@ export const model = {
         if (g["expectedAssetCount"] !== undefined) {
           body["expectedAssetCount"] = g["expectedAssetCount"];
         }
-        if (g["guestOsScan"] !== undefined) {
-          body["guestOsScan"] = g["guestOsScan"];
-        }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["serviceAccount"] !== undefined) {
           body["serviceAccount"] = g["serviceAccount"];
-        }
-        if (g["vsphereScan"] !== undefined) {
-          body["vsphereScan"] = g["vsphereScan"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

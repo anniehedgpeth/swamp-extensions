@@ -163,9 +163,7 @@ const GlobalArgsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. Time the release was updated.",
     ).optional(),
-  }).describe(
-    "`Release` is a named reference to a `Ruleset`. Once a `Release` refers to a `Ruleset`, rules-enabled services will be able to enforce the `Ruleset`.",
-  ).optional(),
+  }).describe("Required. `Release` to update.").optional(),
   updateMask: z.string().describe("Optional. Specifies which fields to update.")
     .optional(),
 });
@@ -203,9 +201,7 @@ const InputsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. Time the release was updated.",
     ).optional(),
-  }).describe(
-    "`Release` is a named reference to a `Ruleset`. Once a `Release` refers to a `Ruleset`, rules-enabled services will be able to enforce the `Ruleset`.",
-  ).optional(),
+  }).describe("Required. `Release` to update.").optional(),
   updateMask: z.string().describe("Optional. Specifies which fields to update.")
     .optional(),
 });
@@ -233,7 +229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase Rules Releases. Registered at `@swamp/gcp/firebaserules/releases`. */
 export const model = {
   type: "@swamp/gcp/firebaserules/releases",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -327,6 +323,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

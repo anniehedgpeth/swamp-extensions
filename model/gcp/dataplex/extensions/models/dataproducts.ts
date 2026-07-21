@@ -174,8 +174,9 @@ const GlobalArgsSchema = z.object({
     approverEmails: z.array(z.string()).describe(
       "Optional. Specifies the email addresses of users who are potential approvers and are notified when an access request is made for the data product. The maximum number of emails allowed is 10.",
     ).optional(),
-  }).describe("Configuration for access approval for the data product.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for access approval for the data product.",
+  ).optional(),
   accessGroups: z.record(
     z.string(),
     z.object({
@@ -196,7 +197,7 @@ const GlobalArgsSchema = z.object({
           "Optional. Specifies the email of the producer service account, as per https://cloud.google.com/iam/docs/principals-overview#service-account.",
         ).optional(),
       }).describe(
-        "Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.",
+        "Required. The principal entity associated with this access group.",
       ).optional(),
     }),
   ).describe(
@@ -256,8 +257,9 @@ const InputsSchema = z.object({
     approverEmails: z.array(z.string()).describe(
       "Optional. Specifies the email addresses of users who are potential approvers and are notified when an access request is made for the data product. The maximum number of emails allowed is 10.",
     ).optional(),
-  }).describe("Configuration for access approval for the data product.")
-    .optional(),
+  }).describe(
+    "Optional. Configuration for access approval for the data product.",
+  ).optional(),
   accessGroups: z.record(
     z.string(),
     z.object({
@@ -278,7 +280,7 @@ const InputsSchema = z.object({
           "Optional. Specifies the email of the producer service account, as per https://cloud.google.com/iam/docs/principals-overview#service-account.",
         ).optional(),
       }).describe(
-        "Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.",
+        "Required. The principal entity associated with this access group.",
       ).optional(),
     }),
   ).describe(
@@ -332,7 +334,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataProducts. Registered at `@swamp/gcp/dataplex/dataproducts`. */
 export const model = {
   type: "@swamp/gcp/dataplex/dataproducts",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -466,6 +468,11 @@ export const model = {
     {
       toVersion: "2026.07.20.2",
       description: "Added: accessApprovalConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

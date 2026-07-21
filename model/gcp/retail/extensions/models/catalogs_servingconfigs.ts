@@ -175,7 +175,9 @@ const GlobalArgsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]).describe(
       "Mode of the DynamicFacet feature. Defaults to Mode.DISABLED if it's unset.",
     ).optional(),
-  }).describe("The specifications of dynamically generated facets.").optional(),
+  }).describe(
+    "The specification for dynamically generated facets. Notice that only textual facets can be dynamically generated. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.",
+  ).optional(),
   enableCategoryFilterLevel: z.string().describe(
     "Whether to add additional category filters on the `similar-items` model. If not specified, we enable it by default. Allowed values are: * `no-category-match`: No additional filtering of original results from the model and the customer's filters. * `relaxed-category-match`: Only keep results with categories that match at least one item categories in the PredictRequests's context item. * If customer also sends filters in the PredictRequest, then the results will satisfy both conditions (user given and category match). Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.",
   ).optional(),
@@ -204,7 +206,9 @@ const GlobalArgsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "AUTO", "DISABLED"]).describe(
       "Defaults to Mode.AUTO.",
     ).optional(),
-  }).describe("The specification for personalization.").optional(),
+  }).describe(
+    "The specification for personalization spec. Can only be set if solution_types is SOLUTION_TYPE_SEARCH. Notice that if both ServingConfig.personalization_spec and SearchRequest.personalization_spec are set. SearchRequest.personalization_spec will override ServingConfig.personalization_spec.",
+  ).optional(),
   priceRerankingLevel: z.string().describe(
     "How much price ranking we want in serving results. Price reranking causes product items with a similar recommendation probability to be ordered by price, with the highest-priced items first. This setting could result in a decrease in click-through and conversion rates. Allowed values are: * `no-price-reranking` * `low-price-reranking` * `medium-price-reranking` * `high-price-reranking` If not specified, we choose default based on model type. Default value: `no-price-reranking`. Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.",
   ).optional(),
@@ -294,7 +298,9 @@ const InputsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]).describe(
       "Mode of the DynamicFacet feature. Defaults to Mode.DISABLED if it's unset.",
     ).optional(),
-  }).describe("The specifications of dynamically generated facets.").optional(),
+  }).describe(
+    "The specification for dynamically generated facets. Notice that only textual facets can be dynamically generated. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.",
+  ).optional(),
   enableCategoryFilterLevel: z.string().describe(
     "Whether to add additional category filters on the `similar-items` model. If not specified, we enable it by default. Allowed values are: * `no-category-match`: No additional filtering of original results from the model and the customer's filters. * `relaxed-category-match`: Only keep results with categories that match at least one item categories in the PredictRequests's context item. * If customer also sends filters in the PredictRequest, then the results will satisfy both conditions (user given and category match). Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.",
   ).optional(),
@@ -323,7 +329,9 @@ const InputsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "AUTO", "DISABLED"]).describe(
       "Defaults to Mode.AUTO.",
     ).optional(),
-  }).describe("The specification for personalization.").optional(),
+  }).describe(
+    "The specification for personalization spec. Can only be set if solution_types is SOLUTION_TYPE_SEARCH. Notice that if both ServingConfig.personalization_spec and SearchRequest.personalization_spec are set. SearchRequest.personalization_spec will override ServingConfig.personalization_spec.",
+  ).optional(),
   priceRerankingLevel: z.string().describe(
     "How much price ranking we want in serving results. Price reranking causes product items with a similar recommendation probability to be ordered by price, with the highest-priced items first. This setting could result in a decrease in click-through and conversion rates. Allowed values are: * `no-price-reranking` * `low-price-reranking` * `medium-price-reranking` * `high-price-reranking` If not specified, we choose default based on model type. Default value: `no-price-reranking`. Can only be set if solution_types is SOLUTION_TYPE_RECOMMENDATION.",
   ).optional(),
@@ -379,7 +387,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.ServingConfigs. Registered at `@swamp/gcp/retail/catalogs-servingconfigs`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs-servingconfigs",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -483,6 +491,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

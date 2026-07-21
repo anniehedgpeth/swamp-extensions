@@ -204,7 +204,7 @@ const GlobalArgsSchema = z.object({
         "The number of physical cores to expose to an instance. Multiply by the number of threads per core to compute the total number of virtual CPUs to expose to the instance. If unset, the number of cores is inferred from the instance's nominal CPU count and the underlying platform's SMT width.",
       ).optional(),
     }).describe(
-      "Specifies options for controlling advanced machine features. Options that would traditionally be configured in a BIOS belong here. Features that require operating system support may have corresponding entries in the GuestOsFeatures of anImage (e.g., whether or not the OS in theImage supports nested virtualization being enabled or disabled).",
+      "Controls for advanced machine-related behavior features. Note that for MachineImage, this is not supported yet.",
     ).optional(),
     canIpForward: z.boolean().describe(
       "Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify true. If unsure, leave this set tofalse. See theEnable IP forwarding documentation for more information.",
@@ -222,7 +222,9 @@ const GlobalArgsSchema = z.object({
       enableConfidentialCompute: z.boolean().describe(
         "Defines whether the instance should have confidential compute enabled.",
       ).optional(),
-    }).describe("A set of Confidential Instance options.").optional(),
+    }).describe(
+      "Specifies the Confidential Instance options. Note that for MachineImage, this is not supported yet.",
+    ).optional(),
     description: z.string().describe(
       "An optional text description for the instances that are created from these properties.",
     ).optional(),
@@ -256,7 +258,9 @@ const GlobalArgsSchema = z.object({
         sha256: z.string().describe(
           "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Encrypts or decrypts a disk using acustomer-supplied encryption key. If you are creating a new disk, this field encrypts the new disk using an encryption key that you provide. If you are attaching an existing disk that is already encrypted, this field decrypts the disk using the customer-supplied encryption key. If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time. For example, you must provide the key when you create a snapshot or an image from the disk or when you attach the disk to a virtual machine instance. If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Note: Instance templates do not storecustomer-supplied encryption keys, so you cannot use your own keys to encrypt disks in amanaged instance group. You cannot create VMs that have disks with customer-supplied keys using the bulk insert method.",
+      ).optional(),
       diskSizeGb: z.string().describe("The size of the disk in GB.").optional(),
       forceAttach: z.boolean().describe(
         "[Input Only] Whether to force attach the regional disk even if it's currently attached to another instance. If you try to force attach a zonal disk to an instance, you will receive an error.",
@@ -336,7 +340,9 @@ const GlobalArgsSchema = z.object({
           sha256: z.unknown().describe(
             "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Thecustomer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. InstanceTemplate and InstancePropertiesPatch do not storecustomer-supplied encryption keys, so you cannot create disks for instances in a managed instance group if the source images are encrypted with your own keys.",
+        ).optional(),
         sourceSnapshot: z.string().describe(
           "The source snapshot to create this disk. When creating a new instance boot disk, one of initializeParams.sourceSnapshot orinitializeParams.sourceImage or disks.source is required. To create a disk with a snapshot that you created, specify the snapshot name in the following format: global/snapshots/my-backup If the source snapshot is deleted later, this field will not be set. Note: You cannot create VMs in bulk using a snapshot as the source. Use an image instead when you create VMs using the bulk insert method.",
         ).optional(),
@@ -356,12 +362,14 @@ const GlobalArgsSchema = z.object({
           sha256: z.unknown().describe(
             "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Thecustomer-supplied encryption key of the source snapshot.",
+        ).optional(),
         storagePool: z.string().describe(
           "The storage pool in which the new disk is created. You can provide this as a partial or full URL to the resource. For example, the following are valid values: - https://www.googleapis.com/compute/v1/projects/project/zones/zone/storagePools/storagePool - projects/project/zones/zone/storagePools/storagePool - zones/zone/storagePools/storagePool",
         ).optional(),
       }).describe(
-        "[Input Only] Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This field is persisted and returned for instanceTemplate and not returned in the context of instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
+        "[Input Only] Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
       ).optional(),
       interface: z.enum(["NVME", "SCSI"]).describe(
         "Specifies the disk interface to use for attaching this disk, which is either SCSI or NVME. For most machine types, the default is SCSI. Local SSDs can use either NVME or SCSI. In certain configurations, persistent disks can use NVMe. For more information, seeAbout persistent disks.",
@@ -391,9 +399,9 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           fileType: z.unknown().describe("The file type of source file.")
             .optional(),
-        }).optional(),
+        }).describe("The Platform Key (PK).").optional(),
       }).describe(
-        "Initial State for shielded instance, these are public keys which are safe to store in public",
+        "Output only. [Output Only] shielded vm initial state stored on disk",
       ).optional(),
       source: z.string().describe(
         "Specifies a valid partial or full URL to an existing Persistent Disk resource. When creating a new instance boot disk, one ofinitializeParams.sourceImage orinitializeParams.sourceSnapshot or disks.source is required. If desired, you can also attach existing non-root persistent disks using this property. This field is only applicable for persistent disks. Note that for InstanceTemplate, specify the disk name for zonal disk, and the URL for regional disk.",
@@ -451,7 +459,9 @@ const GlobalArgsSchema = z.object({
       kind: z.string().describe(
         "Output only. [Output Only] Type of the resource. Always compute#metadata for metadata.",
       ).optional(),
-    }).describe("A metadata key/value entry.").optional(),
+    }).describe(
+      "The metadata key/value pairs to assign to instances that are created from these properties. These pairs can consist of custom metadata or predefined keys. SeeProject and instance metadata for more information.",
+    ).optional(),
     minCpuPlatform: z.string().describe(
       'Minimum cpu/platform to be used by instances. The instance may be scheduled on the specified or newer cpu/platform. Applicable values are the friendly names of CPU platforms, such asminCpuPlatform: "Intel Haswell" orminCpuPlatform: "Intel Sandy Bridge". For more information, read Specifying a Minimum CPU Platform.',
     ).optional(),
@@ -610,7 +620,8 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     networkPerformanceConfig: z.object({
       totalEgressBandwidthTier: z.enum(["DEFAULT", "TIER_1"]).optional(),
-    }).optional(),
+    }).describe("Note that for MachineImage, this is not supported yet.")
+      .optional(),
     privateIpv6GoogleAccess: z.enum([
       "ENABLE_BIDIRECTIONAL_ACCESS_TO_GOOGLE",
       "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE",
@@ -634,7 +645,7 @@ const GlobalArgsSchema = z.object({
         'Corresponds to the label values of a reservation resource. This can be either a name to a reservation in the same project or "projects/different-project/reservations/some-reservation-name" to target a shared reservation in the same zone but in a different project.',
       ).optional(),
     }).describe(
-      "Specifies the reservations that this instance can consume from.",
+      "Specifies the reservations that instances can consume from. Note that for MachineImage, this is not supported yet.",
     ).optional(),
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the instance. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
@@ -666,7 +677,7 @@ const GlobalArgsSchema = z.object({
           "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+        "Specifies the maximum amount of time a Local Ssd Vm should wait while recovery of the Local Ssd state is attempted. Its value should be in between 0 and 168 hours with hour granularity and the default value being 1 hour.",
       ).optional(),
       locationHint: z.string().describe(
         "An opaque location hint used to place the instance close to other resources. This field is for use by internal tools that use the public API.",
@@ -679,7 +690,7 @@ const GlobalArgsSchema = z.object({
           "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+        "Specifies the max run duration for the given instance. If specified, the instance termination action will be performed at the end of the run duration.",
       ).optional(),
       minNodeCpus: z.number().int().describe(
         "The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node.",
@@ -723,7 +734,9 @@ const GlobalArgsSchema = z.object({
       terminationTime: z.string().describe(
         "Specifies the timestamp, when the instance will be terminated, inRFC3339 text format. If specified, the instance termination action will be performed at the termination time.",
       ).optional(),
-    }).describe("Sets the scheduling options for an Instance.").optional(),
+    }).describe(
+      "Specifies the scheduling options for the instances that are created from these properties.",
+    ).optional(),
     serviceAccounts: z.array(z.object({
       email: z.string().describe("Email address of the service account.")
         .optional(),
@@ -743,7 +756,8 @@ const GlobalArgsSchema = z.object({
       enableVtpm: z.boolean().describe(
         "Defines whether the instance has the vTPM enabled.Enabled by default.",
       ).optional(),
-    }).describe("A set of Shielded Instance options.").optional(),
+    }).describe("Note that for MachineImage, this is not supported yet.")
+      .optional(),
     tags: z.object({
       fingerprint: z.string().describe(
         "Specifies a fingerprint for this request, which is essentially a hash of the tags' contents and used for optimistic locking. The fingerprint is initially generated by Compute Engine and changes after every request to modify or update tags. You must always provide an up-to-date fingerprint hash in order to update or change tags. To see the latest fingerprint, make get() request to the instance.",
@@ -751,12 +765,14 @@ const GlobalArgsSchema = z.object({
       items: z.array(z.string()).describe(
         "An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.",
       ).optional(),
-    }).describe("A set of instance tags.").optional(),
+    }).describe(
+      "A list of tags to apply to the instances that are created from these properties. The tags identify valid sources or targets for network firewalls. The setTags method can modify this list of tags. Each tag within the list must comply with RFC1035.",
+    ).optional(),
     workloadIdentityConfig: z.object({
       identity: z.string().optional(),
       identityCertificateEnabled: z.boolean().optional(),
     }).optional(),
-  }).optional(),
+  }).describe("The instance properties for this instance template.").optional(),
   region: z.string().describe(
     "Output only. [Output Only] URL of the region where the instance template resides. Only applicable for regional resources.",
   ).optional(),
@@ -789,7 +805,7 @@ const GlobalArgsSchema = z.object({
       "Attached disks configuration. If not provided, defaults are applied: For boot disk and any other R/W disks, the source images for each disk will be used. For read-only disks, they will be attached in read-only mode. Local SSD disks will be created as blank volumes.",
     ).optional(),
   }).describe(
-    "A specification of the parameters to use when creating the instance template from a source instance.",
+    "The source instance params to use to create this instance template.",
   ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -1064,7 +1080,7 @@ const InputsSchema = z.object({
         "The number of physical cores to expose to an instance. Multiply by the number of threads per core to compute the total number of virtual CPUs to expose to the instance. If unset, the number of cores is inferred from the instance's nominal CPU count and the underlying platform's SMT width.",
       ).optional(),
     }).describe(
-      "Specifies options for controlling advanced machine features. Options that would traditionally be configured in a BIOS belong here. Features that require operating system support may have corresponding entries in the GuestOsFeatures of anImage (e.g., whether or not the OS in theImage supports nested virtualization being enabled or disabled).",
+      "Controls for advanced machine-related behavior features. Note that for MachineImage, this is not supported yet.",
     ).optional(),
     canIpForward: z.boolean().describe(
       "Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify true. If unsure, leave this set tofalse. See theEnable IP forwarding documentation for more information.",
@@ -1082,7 +1098,9 @@ const InputsSchema = z.object({
       enableConfidentialCompute: z.boolean().describe(
         "Defines whether the instance should have confidential compute enabled.",
       ).optional(),
-    }).describe("A set of Confidential Instance options.").optional(),
+    }).describe(
+      "Specifies the Confidential Instance options. Note that for MachineImage, this is not supported yet.",
+    ).optional(),
     description: z.string().describe(
       "An optional text description for the instances that are created from these properties.",
     ).optional(),
@@ -1116,7 +1134,9 @@ const InputsSchema = z.object({
         sha256: z.string().describe(
           "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "Encrypts or decrypts a disk using acustomer-supplied encryption key. If you are creating a new disk, this field encrypts the new disk using an encryption key that you provide. If you are attaching an existing disk that is already encrypted, this field decrypts the disk using the customer-supplied encryption key. If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time. For example, you must provide the key when you create a snapshot or an image from the disk or when you attach the disk to a virtual machine instance. If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Note: Instance templates do not storecustomer-supplied encryption keys, so you cannot use your own keys to encrypt disks in amanaged instance group. You cannot create VMs that have disks with customer-supplied keys using the bulk insert method.",
+      ).optional(),
       diskSizeGb: z.string().describe("The size of the disk in GB.").optional(),
       forceAttach: z.boolean().describe(
         "[Input Only] Whether to force attach the regional disk even if it's currently attached to another instance. If you try to force attach a zonal disk to an instance, you will receive an error.",
@@ -1196,7 +1216,9 @@ const InputsSchema = z.object({
           sha256: z.unknown().describe(
             "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Thecustomer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. InstanceTemplate and InstancePropertiesPatch do not storecustomer-supplied encryption keys, so you cannot create disks for instances in a managed instance group if the source images are encrypted with your own keys.",
+        ).optional(),
         sourceSnapshot: z.string().describe(
           "The source snapshot to create this disk. When creating a new instance boot disk, one of initializeParams.sourceSnapshot orinitializeParams.sourceImage or disks.source is required. To create a disk with a snapshot that you created, specify the snapshot name in the following format: global/snapshots/my-backup If the source snapshot is deleted later, this field will not be set. Note: You cannot create VMs in bulk using a snapshot as the source. Use an image instead when you create VMs using the bulk insert method.",
         ).optional(),
@@ -1216,12 +1238,14 @@ const InputsSchema = z.object({
           sha256: z.unknown().describe(
             "[Output only] TheRFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.",
           ).optional(),
-        }).optional(),
+        }).describe(
+          "Thecustomer-supplied encryption key of the source snapshot.",
+        ).optional(),
         storagePool: z.string().describe(
           "The storage pool in which the new disk is created. You can provide this as a partial or full URL to the resource. For example, the following are valid values: - https://www.googleapis.com/compute/v1/projects/project/zones/zone/storagePools/storagePool - projects/project/zones/zone/storagePools/storagePool - zones/zone/storagePools/storagePool",
         ).optional(),
       }).describe(
-        "[Input Only] Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This field is persisted and returned for instanceTemplate and not returned in the context of instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
+        "[Input Only] Specifies the parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.",
       ).optional(),
       interface: z.enum(["NVME", "SCSI"]).describe(
         "Specifies the disk interface to use for attaching this disk, which is either SCSI or NVME. For most machine types, the default is SCSI. Local SSDs can use either NVME or SCSI. In certain configurations, persistent disks can use NVMe. For more information, seeAbout persistent disks.",
@@ -1251,9 +1275,9 @@ const InputsSchema = z.object({
           ).optional(),
           fileType: z.unknown().describe("The file type of source file.")
             .optional(),
-        }).optional(),
+        }).describe("The Platform Key (PK).").optional(),
       }).describe(
-        "Initial State for shielded instance, these are public keys which are safe to store in public",
+        "Output only. [Output Only] shielded vm initial state stored on disk",
       ).optional(),
       source: z.string().describe(
         "Specifies a valid partial or full URL to an existing Persistent Disk resource. When creating a new instance boot disk, one ofinitializeParams.sourceImage orinitializeParams.sourceSnapshot or disks.source is required. If desired, you can also attach existing non-root persistent disks using this property. This field is only applicable for persistent disks. Note that for InstanceTemplate, specify the disk name for zonal disk, and the URL for regional disk.",
@@ -1311,7 +1335,9 @@ const InputsSchema = z.object({
       kind: z.string().describe(
         "Output only. [Output Only] Type of the resource. Always compute#metadata for metadata.",
       ).optional(),
-    }).describe("A metadata key/value entry.").optional(),
+    }).describe(
+      "The metadata key/value pairs to assign to instances that are created from these properties. These pairs can consist of custom metadata or predefined keys. SeeProject and instance metadata for more information.",
+    ).optional(),
     minCpuPlatform: z.string().describe(
       'Minimum cpu/platform to be used by instances. The instance may be scheduled on the specified or newer cpu/platform. Applicable values are the friendly names of CPU platforms, such asminCpuPlatform: "Intel Haswell" orminCpuPlatform: "Intel Sandy Bridge". For more information, read Specifying a Minimum CPU Platform.',
     ).optional(),
@@ -1470,7 +1496,8 @@ const InputsSchema = z.object({
     ).optional(),
     networkPerformanceConfig: z.object({
       totalEgressBandwidthTier: z.enum(["DEFAULT", "TIER_1"]).optional(),
-    }).optional(),
+    }).describe("Note that for MachineImage, this is not supported yet.")
+      .optional(),
     privateIpv6GoogleAccess: z.enum([
       "ENABLE_BIDIRECTIONAL_ACCESS_TO_GOOGLE",
       "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE",
@@ -1494,7 +1521,7 @@ const InputsSchema = z.object({
         'Corresponds to the label values of a reservation resource. This can be either a name to a reservation in the same project or "projects/different-project/reservations/some-reservation-name" to target a shared reservation in the same zone but in a different project.',
       ).optional(),
     }).describe(
-      "Specifies the reservations that this instance can consume from.",
+      "Specifies the reservations that instances can consume from. Note that for MachineImage, this is not supported yet.",
     ).optional(),
     resourceManagerTags: z.record(z.string(), z.string()).describe(
       "Input only. Resource manager tags to be bound to the instance. Tag keys and values have the same definition as resource manager tags. Keys and values can be either in numeric format, such as `tagKeys/{tag_key_id}` and `tagValues/{tag_value_id}` or in namespaced format such as `{org_id|project_id}/{tag_key_short_name}` and `{tag_value_short_name}`. The field is ignored (both PUT & PATCH) when empty.",
@@ -1526,7 +1553,7 @@ const InputsSchema = z.object({
           "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+        "Specifies the maximum amount of time a Local Ssd Vm should wait while recovery of the Local Ssd state is attempted. Its value should be in between 0 and 168 hours with hour granularity and the default value being 1 hour.",
       ).optional(),
       locationHint: z.string().describe(
         "An opaque location hint used to place the instance close to other resources. This field is for use by internal tools that use the public API.",
@@ -1539,7 +1566,7 @@ const InputsSchema = z.object({
           "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
         ).optional(),
       }).describe(
-        'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+        "Specifies the max run duration for the given instance. If specified, the instance termination action will be performed at the end of the run duration.",
       ).optional(),
       minNodeCpus: z.number().int().describe(
         "The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node.",
@@ -1583,7 +1610,9 @@ const InputsSchema = z.object({
       terminationTime: z.string().describe(
         "Specifies the timestamp, when the instance will be terminated, inRFC3339 text format. If specified, the instance termination action will be performed at the termination time.",
       ).optional(),
-    }).describe("Sets the scheduling options for an Instance.").optional(),
+    }).describe(
+      "Specifies the scheduling options for the instances that are created from these properties.",
+    ).optional(),
     serviceAccounts: z.array(z.object({
       email: z.string().describe("Email address of the service account.")
         .optional(),
@@ -1603,7 +1632,8 @@ const InputsSchema = z.object({
       enableVtpm: z.boolean().describe(
         "Defines whether the instance has the vTPM enabled.Enabled by default.",
       ).optional(),
-    }).describe("A set of Shielded Instance options.").optional(),
+    }).describe("Note that for MachineImage, this is not supported yet.")
+      .optional(),
     tags: z.object({
       fingerprint: z.string().describe(
         "Specifies a fingerprint for this request, which is essentially a hash of the tags' contents and used for optimistic locking. The fingerprint is initially generated by Compute Engine and changes after every request to modify or update tags. You must always provide an up-to-date fingerprint hash in order to update or change tags. To see the latest fingerprint, make get() request to the instance.",
@@ -1611,12 +1641,14 @@ const InputsSchema = z.object({
       items: z.array(z.string()).describe(
         "An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.",
       ).optional(),
-    }).describe("A set of instance tags.").optional(),
+    }).describe(
+      "A list of tags to apply to the instances that are created from these properties. The tags identify valid sources or targets for network firewalls. The setTags method can modify this list of tags. Each tag within the list must comply with RFC1035.",
+    ).optional(),
     workloadIdentityConfig: z.object({
       identity: z.string().optional(),
       identityCertificateEnabled: z.boolean().optional(),
     }).optional(),
-  }).optional(),
+  }).describe("The instance properties for this instance template.").optional(),
   region: z.string().describe(
     "Output only. [Output Only] URL of the region where the instance template resides. Only applicable for regional resources.",
   ).optional(),
@@ -1649,7 +1681,7 @@ const InputsSchema = z.object({
       "Attached disks configuration. If not provided, defaults are applied: For boot disk and any other R/W disks, the source images for each disk will be used. For read-only disks, they will be attached in read-only mode. Local SSD disks will be created as blank volumes.",
     ).optional(),
   }).describe(
-    "A specification of the parameters to use when creating the instance template from a source instance.",
+    "The source instance params to use to create this instance template.",
   ).optional(),
   requestId: z.string().describe(
     "An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -1679,7 +1711,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionInstanceTemplates. Registered at `@swamp/gcp/compute/regioninstancetemplates`. */
 export const model = {
   type: "@swamp/gcp/compute/regioninstancetemplates",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1858,6 +1890,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

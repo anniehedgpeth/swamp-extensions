@@ -163,71 +163,67 @@ const GlobalArgsSchema = z.object({
       imageTransformations: z.object({
         transforms: z.array(z.object({
           allInfoTypes: z.unknown().describe(
-            "Apply transformation to all findings.",
+            "Apply transformation to all findings not specified in other ImageTransformation's selected_info_types. Only one instance is allowed within the ImageTransformations message.",
           ).optional(),
-          allText: z.unknown().describe("Apply to all text.").optional(),
+          allText: z.unknown().describe(
+            "Apply transformation to all text that doesn't match an infoType. Only one instance is allowed within the ImageTransformations message.",
+          ).optional(),
           redactionColor: z.unknown().describe(
-            "Represents a color in the RGB color space.",
+            "The color to use when redacting content from an image. If not specified, the default is black.",
           ).optional(),
           selectedInfoTypes: z.unknown().describe(
             "Apply transformation to the selected info_types.",
           ).optional(),
         })).describe("List of transforms to make.").optional(),
-      }).describe("A type of transformation that is applied over images.")
-        .optional(),
+      }).describe("Treat the dataset as an image and redact.").optional(),
       infoTypeTransformations: z.object({
         transformations: z.array(z.object({
           infoTypes: z.unknown().describe(
             "InfoTypes to apply the transformation to. An empty list will cause this transformation to apply to all findings that correspond to infoTypes that were requested in `InspectConfig`.",
           ).optional(),
           primitiveTransformation: z.unknown().describe(
-            "A rule for transforming a value.",
+            "Required. Primitive transformation to apply to the infoType.",
           ).optional(),
         })).describe(
           "Required. Transformation for each infoType. Cannot specify more than one for a given infoType.",
         ).optional(),
       }).describe(
-        "A type of transformation that will scan unstructured text and apply various `PrimitiveTransformation`s to each finding, where the transformation is applied to only values that were identified as a specific info_type.",
+        "Treat the dataset as free-form text and apply the same free text transformation everywhere.",
       ).optional(),
       recordTransformations: z.object({
         fieldTransformations: z.array(z.object({
           condition: z.unknown().describe(
-            "A condition for determining whether a transformation should be applied to a field.",
+            "Only apply the transformation if the condition evaluates to true for the given `RecordCondition`. The conditions are allowed to reference fields that are not used in the actual transformation. Example Use Cases: - Apply a different bucket transformation to an age column if the zip code column for the same record is within a specific range. - Redact a field if the date of birth field is greater than 85.",
           ).optional(),
           fields: z.unknown().describe(
             'Required. Input field(s) to apply the transformation to. When you have columns that reference their position within a list, omit the index from the FieldId. FieldId name matching ignores the index. For example, instead of "contact.nums[0].type", use "contact.nums.type".',
           ).optional(),
           infoTypeTransformations: z.unknown().describe(
-            "A type of transformation that will scan unstructured text and apply various `PrimitiveTransformation`s to each finding, where the transformation is applied to only values that were identified as a specific info_type.",
+            "Treat the contents of the field as free text, and selectively transform content that matches an `InfoType`.",
           ).optional(),
           primitiveTransformation: z.unknown().describe(
-            "A rule for transforming a value.",
+            "Apply the transformation to the entire field.",
           ).optional(),
         })).describe(
           "Transform the record by applying various field transformations.",
         ).optional(),
         recordSuppressions: z.array(z.object({
           condition: z.unknown().describe(
-            "A condition for determining whether a transformation should be applied to a field.",
+            "A condition that when it evaluates to true will result in the record being evaluated to be suppressed from the transformed content.",
           ).optional(),
         })).describe(
           "Configuration defining which records get suppressed entirely. Records that match any suppression rule are omitted from the output.",
         ).optional(),
       }).describe(
-        "A type of transformation that is applied over structured data such as a table.",
+        "Treat the dataset as structured. Transformations can be applied to specific locations within structured datasets, such as transforming a column within a table.",
       ).optional(),
       transformationErrorHandling: z.object({
-        leaveUntransformed: z.object({}).describe(
-          "Skips the data without modifying it if the requested transformation would cause an error. For example, if a `DateShift` transformation were applied an an IP address, this mode would leave the IP address unchanged in the response.",
-        ).optional(),
-        throwError: z.object({}).describe(
-          "Throw an error and fail the request when a transformation error occurs.",
-        ).optional(),
+        leaveUntransformed: z.object({}).describe("Ignore errors").optional(),
+        throwError: z.object({}).describe("Throw an error").optional(),
       }).describe(
-        "How to handle transformation errors during de-identification. A transformation error occurs when the requested transformation is incompatible with the data. For example, trying to de-identify an IP address using a `DateShift` transformation would result in a transformation error, since date info cannot be extracted from an IP address. Information about any incompatible transformations, and how they were handled, is returned in the response as part of the `TransformationOverviews`.",
+        "Mode for handling transformation errors. If left unspecified, the default mode is `TransformationErrorHandling.ThrowError`.",
       ).optional(),
-    }).describe("The configuration that controls how the data will change.")
-      .optional(),
+    }).describe("The core content of the template.").optional(),
     description: z.string().describe("Short description (max 256 chars).")
       .optional(),
     displayName: z.string().describe("Display name (max 256 chars).")
@@ -238,9 +234,7 @@ const GlobalArgsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. The last update timestamp of an inspectTemplate.",
     ).optional(),
-  }).describe(
-    "DeidentifyTemplates contains instructions on how to de-identify content. See https://cloud.google.com/sensitive-data-protection/docs/concepts-templates to learn more.",
-  ).optional(),
+  }).describe("New DeidentifyTemplate value.").optional(),
   locationId: z.string().describe("Deprecated. This field has no effect.")
     .optional(),
   templateId: z.string().describe(
@@ -346,71 +340,67 @@ const InputsSchema = z.object({
       imageTransformations: z.object({
         transforms: z.array(z.object({
           allInfoTypes: z.unknown().describe(
-            "Apply transformation to all findings.",
+            "Apply transformation to all findings not specified in other ImageTransformation's selected_info_types. Only one instance is allowed within the ImageTransformations message.",
           ).optional(),
-          allText: z.unknown().describe("Apply to all text.").optional(),
+          allText: z.unknown().describe(
+            "Apply transformation to all text that doesn't match an infoType. Only one instance is allowed within the ImageTransformations message.",
+          ).optional(),
           redactionColor: z.unknown().describe(
-            "Represents a color in the RGB color space.",
+            "The color to use when redacting content from an image. If not specified, the default is black.",
           ).optional(),
           selectedInfoTypes: z.unknown().describe(
             "Apply transformation to the selected info_types.",
           ).optional(),
         })).describe("List of transforms to make.").optional(),
-      }).describe("A type of transformation that is applied over images.")
-        .optional(),
+      }).describe("Treat the dataset as an image and redact.").optional(),
       infoTypeTransformations: z.object({
         transformations: z.array(z.object({
           infoTypes: z.unknown().describe(
             "InfoTypes to apply the transformation to. An empty list will cause this transformation to apply to all findings that correspond to infoTypes that were requested in `InspectConfig`.",
           ).optional(),
           primitiveTransformation: z.unknown().describe(
-            "A rule for transforming a value.",
+            "Required. Primitive transformation to apply to the infoType.",
           ).optional(),
         })).describe(
           "Required. Transformation for each infoType. Cannot specify more than one for a given infoType.",
         ).optional(),
       }).describe(
-        "A type of transformation that will scan unstructured text and apply various `PrimitiveTransformation`s to each finding, where the transformation is applied to only values that were identified as a specific info_type.",
+        "Treat the dataset as free-form text and apply the same free text transformation everywhere.",
       ).optional(),
       recordTransformations: z.object({
         fieldTransformations: z.array(z.object({
           condition: z.unknown().describe(
-            "A condition for determining whether a transformation should be applied to a field.",
+            "Only apply the transformation if the condition evaluates to true for the given `RecordCondition`. The conditions are allowed to reference fields that are not used in the actual transformation. Example Use Cases: - Apply a different bucket transformation to an age column if the zip code column for the same record is within a specific range. - Redact a field if the date of birth field is greater than 85.",
           ).optional(),
           fields: z.unknown().describe(
             'Required. Input field(s) to apply the transformation to. When you have columns that reference their position within a list, omit the index from the FieldId. FieldId name matching ignores the index. For example, instead of "contact.nums[0].type", use "contact.nums.type".',
           ).optional(),
           infoTypeTransformations: z.unknown().describe(
-            "A type of transformation that will scan unstructured text and apply various `PrimitiveTransformation`s to each finding, where the transformation is applied to only values that were identified as a specific info_type.",
+            "Treat the contents of the field as free text, and selectively transform content that matches an `InfoType`.",
           ).optional(),
           primitiveTransformation: z.unknown().describe(
-            "A rule for transforming a value.",
+            "Apply the transformation to the entire field.",
           ).optional(),
         })).describe(
           "Transform the record by applying various field transformations.",
         ).optional(),
         recordSuppressions: z.array(z.object({
           condition: z.unknown().describe(
-            "A condition for determining whether a transformation should be applied to a field.",
+            "A condition that when it evaluates to true will result in the record being evaluated to be suppressed from the transformed content.",
           ).optional(),
         })).describe(
           "Configuration defining which records get suppressed entirely. Records that match any suppression rule are omitted from the output.",
         ).optional(),
       }).describe(
-        "A type of transformation that is applied over structured data such as a table.",
+        "Treat the dataset as structured. Transformations can be applied to specific locations within structured datasets, such as transforming a column within a table.",
       ).optional(),
       transformationErrorHandling: z.object({
-        leaveUntransformed: z.object({}).describe(
-          "Skips the data without modifying it if the requested transformation would cause an error. For example, if a `DateShift` transformation were applied an an IP address, this mode would leave the IP address unchanged in the response.",
-        ).optional(),
-        throwError: z.object({}).describe(
-          "Throw an error and fail the request when a transformation error occurs.",
-        ).optional(),
+        leaveUntransformed: z.object({}).describe("Ignore errors").optional(),
+        throwError: z.object({}).describe("Throw an error").optional(),
       }).describe(
-        "How to handle transformation errors during de-identification. A transformation error occurs when the requested transformation is incompatible with the data. For example, trying to de-identify an IP address using a `DateShift` transformation would result in a transformation error, since date info cannot be extracted from an IP address. Information about any incompatible transformations, and how they were handled, is returned in the response as part of the `TransformationOverviews`.",
+        "Mode for handling transformation errors. If left unspecified, the default mode is `TransformationErrorHandling.ThrowError`.",
       ).optional(),
-    }).describe("The configuration that controls how the data will change.")
-      .optional(),
+    }).describe("The core content of the template.").optional(),
     description: z.string().describe("Short description (max 256 chars).")
       .optional(),
     displayName: z.string().describe("Display name (max 256 chars).")
@@ -421,9 +411,7 @@ const InputsSchema = z.object({
     updateTime: z.string().describe(
       "Output only. The last update timestamp of an inspectTemplate.",
     ).optional(),
-  }).describe(
-    "DeidentifyTemplates contains instructions on how to de-identify content. See https://cloud.google.com/sensitive-data-protection/docs/concepts-templates to learn more.",
-  ).optional(),
+  }).describe("New DeidentifyTemplate value.").optional(),
   locationId: z.string().describe("Deprecated. This field has no effect.")
     .optional(),
   templateId: z.string().describe(
@@ -459,7 +447,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) DeidentifyTemplates. Registered at `@swamp/gcp/dlp/deidentifytemplates`. */
 export const model = {
   type: "@swamp/gcp/dlp/deidentifytemplates",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -561,6 +549,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -602,14 +595,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(

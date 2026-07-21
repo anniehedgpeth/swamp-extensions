@@ -169,7 +169,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The filter will match columns with scale greater than or equal to this number.",
       ).optional(),
     }).describe(
-      "Filter for fixed point number data types such as NUMERIC/NUMBER",
+      "Optional. Optional filter on source column precision and scale. Used for fixed point numbers such as NUMERIC/NUMBER data types.",
     ).optional(),
     sourceTextFilter: z.object({
       sourceMaxLengthFilter: z.string().describe(
@@ -178,27 +178,27 @@ const GlobalArgsSchema = z.object({
       sourceMinLengthFilter: z.string().describe(
         "Optional. The filter will match columns with length greater than or equal to this number.",
       ).optional(),
-    }).describe("Filter for text-based data types like varchar.").optional(),
+    }).describe(
+      "Optional. Optional filter on source column length. Used for text based data types like varchar.",
+    ).optional(),
     valueTransformation: z.object({
       applyHash: z.object({
         uuidFromBytes: z.object({}).describe(
-          "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
+          "Optional. Generate UUID from the data's byte array",
         ).optional(),
-      }).describe("Apply a hash function on the value.").optional(),
+      }).describe("Optional. Applies a hash function on the data").optional(),
       assignMaxValue: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
+        "Optional. Set to max_value - if integer or numeric, will use int.maxvalue, etc",
       ).optional(),
       assignMinValue: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
+        "Optional. Set to min_value - if integer or numeric, will use int.minvalue, etc",
       ).optional(),
-      assignNull: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
-      ).optional(),
+      assignNull: z.object({}).describe("Optional. Set to null").optional(),
       assignSpecificValue: z.object({
         value: z.string().describe("Required. Specific value to be assigned")
           .optional(),
       }).describe(
-        "Set to a specific value (value is converted to fit the target data type)",
+        "Optional. Set to a specific value (value is converted to fit the target data type)",
       ).optional(),
       doubleComparison: z.object({
         value: z.number().describe("Required. Double compare value to be used")
@@ -212,7 +212,7 @@ const GlobalArgsSchema = z.object({
         ]).describe("Required. Relation between source value and compare value")
           .optional(),
       }).describe(
-        "Filter based on relation between source value and compare value of type double in ConditionalColumnSetValue",
+        "Optional. Filter on relation between source value and compare value of type double.",
       ).optional(),
       intComparison: z.object({
         value: z.string().describe("Required. Integer compare value to be used")
@@ -226,17 +226,13 @@ const GlobalArgsSchema = z.object({
         ]).describe("Required. Relation between source value and compare value")
           .optional(),
       }).describe(
-        "Filter based on relation between source value and compare value of type integer in ConditionalColumnSetValue",
+        "Optional. Filter on relation between source value and compare value of type integer.",
       ).optional(),
-      isNull: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
-      ).optional(),
+      isNull: z.object({}).describe("Optional. Value is null").optional(),
       roundScale: z.object({
         scale: z.number().int().describe("Required. Scale value to be used")
           .optional(),
-      }).describe(
-        "This allows the data to change scale, for example if the source is 2 digits after the decimal point, specify round to scale value = 2. If for example the value needs to be converted to an integer, use round to scale value = 0.",
-      ).optional(),
+      }).describe("Optional. Allows the data to change scale").optional(),
       valueList: z.object({
         ignoreCase: z.boolean().describe(
           "Required. Whether to ignore case when filtering by values. Defaults to false",
@@ -251,27 +247,26 @@ const GlobalArgsSchema = z.object({
         values: z.array(z.string()).describe(
           "Required. The list to be used to filter by",
         ).optional(),
-      }).describe("A list of values to filter by in ConditionalColumnSetValue")
-        .optional(),
+      }).describe("Optional. Value is found in the specified list.").optional(),
     }).describe(
-      "Description of data transformation during migration as part of the ConditionalColumnSetValue.",
+      "Required. Description of data transformation during migration.",
     ).optional(),
   }).describe(
-    "Options to configure rule type ConditionalColumnSetValue. The rule is used to transform the data which is being replicated/migrated. The rule filter field can refer to one or more entities. The rule scope can be one of: Column.",
+    "Optional. Rule to specify how the data contained in a column should be transformed (such as trimmed, rounded, etc) provided that the data meets certain criteria.",
   ).optional(),
   convertRowidColumn: z.object({
     onlyIfNoPrimaryKey: z.boolean().describe(
       "Required. Only work on tables without primary key defined",
     ).optional(),
   }).describe(
-    "Options to configure rule type ConvertROWIDToColumn. The rule is used to add column rowid to destination tables based on an Oracle rowid function/property. The rule filter field can refer to one or more entities. The rule scope can be one of: Table. This rule requires additional filter to be specified beyond the basic rule filter field, which is whether or not to work on tables which already have a primary key defined.",
+    "Optional. Rule to specify how multiple tables should be converted with an additional rowid column.",
   ).optional(),
   displayName: z.string().describe("Optional. A human readable name")
     .optional(),
   entityMove: z.object({
     newSchema: z.string().describe("Required. The new schema").optional(),
   }).describe(
-    "Options to configure rule type EntityMove. The rule is used to move an entity to a new schema. The rule filter field can refer to one or more entities. The rule scope can be one of: Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT",
+    "Optional. Rule to specify how multiple entities should be relocated into a different schema.",
   ).optional(),
   filter: z.object({
     entities: z.array(z.string()).describe(
@@ -289,9 +284,7 @@ const GlobalArgsSchema = z.object({
     parentEntity: z.string().describe(
       "Optional. The rule should be applied to entities whose parent entity (fully qualified name) matches the given value. For example, if the rule applies to a table entity, the expected value should be a schema (schema). If the rule applies to a column or index entity, the expected value can be either a schema (schema) or a table (schema.table)",
     ).optional(),
-  }).describe(
-    "A filter defining the entities that a mapping rule should be applied to. When more than one field is specified, the rule is applied only to entities which match all the fields.",
-  ).optional(),
+  }).describe("Required. The rule filter").optional(),
   filterTableColumns: z.object({
     excludeColumns: z.array(z.string()).describe(
       "Optional. List of columns to be excluded for a particular table.",
@@ -300,7 +293,7 @@ const GlobalArgsSchema = z.object({
       "Optional. List of columns to be included for a particular table.",
     ).optional(),
   }).describe(
-    "Options to configure rule type FilterTableColumns. The rule is used to filter the list of columns to include or exclude from a table. The rule filter field can refer to one entity. The rule scope can be: Table Only one of the two lists can be specified for the rule.",
+    "Optional. Rule to specify the list of columns to include or exclude from a table.",
   ).optional(),
   multiColumnDataTypeChange: z.object({
     customFeatures: z.record(z.string(), z.string()).describe(
@@ -344,7 +337,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The filter will match columns with scale greater than or equal to this number.",
       ).optional(),
     }).describe(
-      "Filter for fixed point number data types such as NUMERIC/NUMBER",
+      "Optional. Filter for fixed point number data types such as NUMERIC/NUMBER.",
     ).optional(),
     sourceTextFilter: z.object({
       sourceMaxLengthFilter: z.string().describe(
@@ -353,9 +346,10 @@ const GlobalArgsSchema = z.object({
       sourceMinLengthFilter: z.string().describe(
         "Optional. The filter will match columns with length greater than or equal to this number.",
       ).optional(),
-    }).describe("Filter for text-based data types like varchar.").optional(),
+    }).describe("Optional. Filter for text-based data types like varchar.")
+      .optional(),
   }).describe(
-    "Options to configure rule type MultiColumnDatatypeChange. The rule is used to change the data type and associated properties of multiple columns at once. The rule filter field can refer to one or more entities. The rule scope can be one of:Column. This rule requires additional filters to be specified beyond the basic rule filter field, which is the source data type, but the rule supports additional filtering capabilities such as the minimum and maximum field length. All additional filters which are specified are required to be met in order for the rule to be applied (logical AND between the fields).",
+    "Optional. Rule to specify how multiple columns should be converted to a different data type.",
   ).optional(),
   multiEntityRename: z.object({
     newNamePattern: z.string().describe(
@@ -371,7 +365,7 @@ const GlobalArgsSchema = z.object({
       "Optional. Additional transformation that can be done on the source entity name before it is being used by the new_name_pattern, for example lower case. If no transformation is desired, use NO_TRANSFORMATION",
     ).optional(),
   }).describe(
-    "Options to configure rule type MultiEntityRename. The rule is used to rename multiple entities. The rule filter field can refer to one or more entities. The rule scope can be one of: Database, Schema, Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT",
+    "Optional. Rule to specify how multiple entities should be renamed.",
   ).optional(),
   name: z.string().describe(
     "Full name of the mapping rule resource, in the form of: projects/{project}/locations/{location}/conversionWorkspaces/{set}/mappingRule/{rule}.",
@@ -403,9 +397,8 @@ const GlobalArgsSchema = z.object({
     primaryKeyColumns: z.array(z.string()).describe(
       "Required. List of column names for the primary key",
     ).optional(),
-  }).describe(
-    "Options to configure rule type SetTablePrimaryKey. The rule is used to specify the columns and name to configure/alter the primary key of a table. The rule filter field can refer to one entity. The rule scope can be one of: Table.",
-  ).optional(),
+  }).describe("Optional. Rule to specify the primary key for a table")
+    .optional(),
   singleColumnChange: z.object({
     array: z.boolean().describe("Optional. Is the column of array type.")
       .optional(),
@@ -449,15 +442,14 @@ const GlobalArgsSchema = z.object({
     udt: z.boolean().describe(
       "Optional. Is the column a UDT (User-defined Type).",
     ).optional(),
-  }).describe(
-    "Options to configure rule type SingleColumnChange. The rule is used to change the properties of a column. The rule filter field can refer to one entity. The rule scope can be one of: Column. When using this rule, if a field is not specified than the destination column's configuration will be the same as the one in the source column..",
-  ).optional(),
+  }).describe("Optional. Rule to specify how a single column is converted.")
+    .optional(),
   singleEntityRename: z.object({
     newName: z.string().describe(
       "Required. The new name of the destination entity",
     ).optional(),
   }).describe(
-    "Options to configure rule type SingleEntityRename. The rule is used to rename an entity. The rule filter field can refer to only one entity. The rule scope can be one of: Database, Schema, Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT, Synonym",
+    "Optional. Rule to specify how a single entity should be renamed.",
   ).optional(),
   singlePackageChange: z.object({
     packageBody: z.string().describe("Optional. Sql code for package body")
@@ -465,15 +457,14 @@ const GlobalArgsSchema = z.object({
     packageDescription: z.string().describe(
       "Optional. Sql code for package description",
     ).optional(),
-  }).describe(
-    "Options to configure rule type SinglePackageChange. The rule is used to alter the sql code for a package entities. The rule filter field can refer to one entity. The rule scope can be: Package",
-  ).optional(),
+  }).describe("Optional. Rule to specify how a single package is converted.")
+    .optional(),
   sourceSqlChange: z.object({
     sqlCode: z.string().describe(
       "Required. Sql code for source (stored procedure, function, trigger or view)",
     ).optional(),
   }).describe(
-    "Options to configure rule type SourceSqlChange. The rule is used to alter the sql code for database entities. The rule filter field can refer to one entity. The rule scope can be: StoredProcedure, Function, Trigger, View",
+    "Optional. Rule to change the sql code for an entity, for example, function, procedure.",
   ).optional(),
   state: z.enum(["STATE_UNSPECIFIED", "ENABLED", "DISABLED", "DELETED"])
     .describe("Optional. The mapping rule state").optional(),
@@ -647,7 +638,7 @@ const InputsSchema = z.object({
         "Optional. The filter will match columns with scale greater than or equal to this number.",
       ).optional(),
     }).describe(
-      "Filter for fixed point number data types such as NUMERIC/NUMBER",
+      "Optional. Optional filter on source column precision and scale. Used for fixed point numbers such as NUMERIC/NUMBER data types.",
     ).optional(),
     sourceTextFilter: z.object({
       sourceMaxLengthFilter: z.string().describe(
@@ -656,27 +647,27 @@ const InputsSchema = z.object({
       sourceMinLengthFilter: z.string().describe(
         "Optional. The filter will match columns with length greater than or equal to this number.",
       ).optional(),
-    }).describe("Filter for text-based data types like varchar.").optional(),
+    }).describe(
+      "Optional. Optional filter on source column length. Used for text based data types like varchar.",
+    ).optional(),
     valueTransformation: z.object({
       applyHash: z.object({
         uuidFromBytes: z.object({}).describe(
-          "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
+          "Optional. Generate UUID from the data's byte array",
         ).optional(),
-      }).describe("Apply a hash function on the value.").optional(),
+      }).describe("Optional. Applies a hash function on the data").optional(),
       assignMaxValue: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
+        "Optional. Set to max_value - if integer or numeric, will use int.maxvalue, etc",
       ).optional(),
       assignMinValue: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
+        "Optional. Set to min_value - if integer or numeric, will use int.minvalue, etc",
       ).optional(),
-      assignNull: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
-      ).optional(),
+      assignNull: z.object({}).describe("Optional. Set to null").optional(),
       assignSpecificValue: z.object({
         value: z.string().describe("Required. Specific value to be assigned")
           .optional(),
       }).describe(
-        "Set to a specific value (value is converted to fit the target data type)",
+        "Optional. Set to a specific value (value is converted to fit the target data type)",
       ).optional(),
       doubleComparison: z.object({
         value: z.number().describe("Required. Double compare value to be used")
@@ -690,7 +681,7 @@ const InputsSchema = z.object({
         ]).describe("Required. Relation between source value and compare value")
           .optional(),
       }).describe(
-        "Filter based on relation between source value and compare value of type double in ConditionalColumnSetValue",
+        "Optional. Filter on relation between source value and compare value of type double.",
       ).optional(),
       intComparison: z.object({
         value: z.string().describe("Required. Integer compare value to be used")
@@ -704,17 +695,13 @@ const InputsSchema = z.object({
         ]).describe("Required. Relation between source value and compare value")
           .optional(),
       }).describe(
-        "Filter based on relation between source value and compare value of type integer in ConditionalColumnSetValue",
+        "Optional. Filter on relation between source value and compare value of type integer.",
       ).optional(),
-      isNull: z.object({}).describe(
-        "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
-      ).optional(),
+      isNull: z.object({}).describe("Optional. Value is null").optional(),
       roundScale: z.object({
         scale: z.number().int().describe("Required. Scale value to be used")
           .optional(),
-      }).describe(
-        "This allows the data to change scale, for example if the source is 2 digits after the decimal point, specify round to scale value = 2. If for example the value needs to be converted to an integer, use round to scale value = 0.",
-      ).optional(),
+      }).describe("Optional. Allows the data to change scale").optional(),
       valueList: z.object({
         ignoreCase: z.boolean().describe(
           "Required. Whether to ignore case when filtering by values. Defaults to false",
@@ -729,27 +716,26 @@ const InputsSchema = z.object({
         values: z.array(z.string()).describe(
           "Required. The list to be used to filter by",
         ).optional(),
-      }).describe("A list of values to filter by in ConditionalColumnSetValue")
-        .optional(),
+      }).describe("Optional. Value is found in the specified list.").optional(),
     }).describe(
-      "Description of data transformation during migration as part of the ConditionalColumnSetValue.",
+      "Required. Description of data transformation during migration.",
     ).optional(),
   }).describe(
-    "Options to configure rule type ConditionalColumnSetValue. The rule is used to transform the data which is being replicated/migrated. The rule filter field can refer to one or more entities. The rule scope can be one of: Column.",
+    "Optional. Rule to specify how the data contained in a column should be transformed (such as trimmed, rounded, etc) provided that the data meets certain criteria.",
   ).optional(),
   convertRowidColumn: z.object({
     onlyIfNoPrimaryKey: z.boolean().describe(
       "Required. Only work on tables without primary key defined",
     ).optional(),
   }).describe(
-    "Options to configure rule type ConvertROWIDToColumn. The rule is used to add column rowid to destination tables based on an Oracle rowid function/property. The rule filter field can refer to one or more entities. The rule scope can be one of: Table. This rule requires additional filter to be specified beyond the basic rule filter field, which is whether or not to work on tables which already have a primary key defined.",
+    "Optional. Rule to specify how multiple tables should be converted with an additional rowid column.",
   ).optional(),
   displayName: z.string().describe("Optional. A human readable name")
     .optional(),
   entityMove: z.object({
     newSchema: z.string().describe("Required. The new schema").optional(),
   }).describe(
-    "Options to configure rule type EntityMove. The rule is used to move an entity to a new schema. The rule filter field can refer to one or more entities. The rule scope can be one of: Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT",
+    "Optional. Rule to specify how multiple entities should be relocated into a different schema.",
   ).optional(),
   filter: z.object({
     entities: z.array(z.string()).describe(
@@ -767,9 +753,7 @@ const InputsSchema = z.object({
     parentEntity: z.string().describe(
       "Optional. The rule should be applied to entities whose parent entity (fully qualified name) matches the given value. For example, if the rule applies to a table entity, the expected value should be a schema (schema). If the rule applies to a column or index entity, the expected value can be either a schema (schema) or a table (schema.table)",
     ).optional(),
-  }).describe(
-    "A filter defining the entities that a mapping rule should be applied to. When more than one field is specified, the rule is applied only to entities which match all the fields.",
-  ).optional(),
+  }).describe("Required. The rule filter").optional(),
   filterTableColumns: z.object({
     excludeColumns: z.array(z.string()).describe(
       "Optional. List of columns to be excluded for a particular table.",
@@ -778,7 +762,7 @@ const InputsSchema = z.object({
       "Optional. List of columns to be included for a particular table.",
     ).optional(),
   }).describe(
-    "Options to configure rule type FilterTableColumns. The rule is used to filter the list of columns to include or exclude from a table. The rule filter field can refer to one entity. The rule scope can be: Table Only one of the two lists can be specified for the rule.",
+    "Optional. Rule to specify the list of columns to include or exclude from a table.",
   ).optional(),
   multiColumnDataTypeChange: z.object({
     customFeatures: z.record(z.string(), z.string()).describe(
@@ -822,7 +806,7 @@ const InputsSchema = z.object({
         "Optional. The filter will match columns with scale greater than or equal to this number.",
       ).optional(),
     }).describe(
-      "Filter for fixed point number data types such as NUMERIC/NUMBER",
+      "Optional. Filter for fixed point number data types such as NUMERIC/NUMBER.",
     ).optional(),
     sourceTextFilter: z.object({
       sourceMaxLengthFilter: z.string().describe(
@@ -831,9 +815,10 @@ const InputsSchema = z.object({
       sourceMinLengthFilter: z.string().describe(
         "Optional. The filter will match columns with length greater than or equal to this number.",
       ).optional(),
-    }).describe("Filter for text-based data types like varchar.").optional(),
+    }).describe("Optional. Filter for text-based data types like varchar.")
+      .optional(),
   }).describe(
-    "Options to configure rule type MultiColumnDatatypeChange. The rule is used to change the data type and associated properties of multiple columns at once. The rule filter field can refer to one or more entities. The rule scope can be one of:Column. This rule requires additional filters to be specified beyond the basic rule filter field, which is the source data type, but the rule supports additional filtering capabilities such as the minimum and maximum field length. All additional filters which are specified are required to be met in order for the rule to be applied (logical AND between the fields).",
+    "Optional. Rule to specify how multiple columns should be converted to a different data type.",
   ).optional(),
   multiEntityRename: z.object({
     newNamePattern: z.string().describe(
@@ -849,7 +834,7 @@ const InputsSchema = z.object({
       "Optional. Additional transformation that can be done on the source entity name before it is being used by the new_name_pattern, for example lower case. If no transformation is desired, use NO_TRANSFORMATION",
     ).optional(),
   }).describe(
-    "Options to configure rule type MultiEntityRename. The rule is used to rename multiple entities. The rule filter field can refer to one or more entities. The rule scope can be one of: Database, Schema, Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT",
+    "Optional. Rule to specify how multiple entities should be renamed.",
   ).optional(),
   name: z.string().describe(
     "Full name of the mapping rule resource, in the form of: projects/{project}/locations/{location}/conversionWorkspaces/{set}/mappingRule/{rule}.",
@@ -881,9 +866,8 @@ const InputsSchema = z.object({
     primaryKeyColumns: z.array(z.string()).describe(
       "Required. List of column names for the primary key",
     ).optional(),
-  }).describe(
-    "Options to configure rule type SetTablePrimaryKey. The rule is used to specify the columns and name to configure/alter the primary key of a table. The rule filter field can refer to one entity. The rule scope can be one of: Table.",
-  ).optional(),
+  }).describe("Optional. Rule to specify the primary key for a table")
+    .optional(),
   singleColumnChange: z.object({
     array: z.boolean().describe("Optional. Is the column of array type.")
       .optional(),
@@ -927,15 +911,14 @@ const InputsSchema = z.object({
     udt: z.boolean().describe(
       "Optional. Is the column a UDT (User-defined Type).",
     ).optional(),
-  }).describe(
-    "Options to configure rule type SingleColumnChange. The rule is used to change the properties of a column. The rule filter field can refer to one entity. The rule scope can be one of: Column. When using this rule, if a field is not specified than the destination column's configuration will be the same as the one in the source column..",
-  ).optional(),
+  }).describe("Optional. Rule to specify how a single column is converted.")
+    .optional(),
   singleEntityRename: z.object({
     newName: z.string().describe(
       "Required. The new name of the destination entity",
     ).optional(),
   }).describe(
-    "Options to configure rule type SingleEntityRename. The rule is used to rename an entity. The rule filter field can refer to only one entity. The rule scope can be one of: Database, Schema, Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT, Synonym",
+    "Optional. Rule to specify how a single entity should be renamed.",
   ).optional(),
   singlePackageChange: z.object({
     packageBody: z.string().describe("Optional. Sql code for package body")
@@ -943,15 +926,14 @@ const InputsSchema = z.object({
     packageDescription: z.string().describe(
       "Optional. Sql code for package description",
     ).optional(),
-  }).describe(
-    "Options to configure rule type SinglePackageChange. The rule is used to alter the sql code for a package entities. The rule filter field can refer to one entity. The rule scope can be: Package",
-  ).optional(),
+  }).describe("Optional. Rule to specify how a single package is converted.")
+    .optional(),
   sourceSqlChange: z.object({
     sqlCode: z.string().describe(
       "Required. Sql code for source (stored procedure, function, trigger or view)",
     ).optional(),
   }).describe(
-    "Options to configure rule type SourceSqlChange. The rule is used to alter the sql code for database entities. The rule filter field can refer to one entity. The rule scope can be: StoredProcedure, Function, Trigger, View",
+    "Optional. Rule to change the sql code for an entity, for example, function, procedure.",
   ).optional(),
   state: z.enum(["STATE_UNSPECIFIED", "ENABLED", "DISABLED", "DELETED"])
     .describe("Optional. The mapping rule state").optional(),
@@ -991,7 +973,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration ConversionWorkspaces.MappingRules. Registered at `@swamp/gcp/datamigration/conversionworkspaces-mappingrules`. */
 export const model = {
   type: "@swamp/gcp/datamigration/conversionworkspaces-mappingrules",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1095,6 +1077,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

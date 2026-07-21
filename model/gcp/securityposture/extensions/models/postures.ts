@@ -182,18 +182,19 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       constraint: z.object({
         orgPolicyConstraint: z.unknown().describe(
-          "A predefined organization policy constraint.",
+          "Optional. A predefined organization policy constraint.",
         ).optional(),
         orgPolicyConstraintCustom: z.unknown().describe(
-          "A custom organization policy constraint.",
+          "Optional. A custom organization policy constraint.",
         ).optional(),
         securityHealthAnalyticsCustomModule: z.unknown().describe(
-          "A custom module for Security Health Analytics.",
+          "Optional. A custom module for Security Health Analytics.",
         ).optional(),
         securityHealthAnalyticsModule: z.unknown().describe(
-          "A built-in detector for Security Health Analytics.",
+          "Optional. A built-in detector for Security Health Analytics.",
         ).optional(),
-      }).describe("Metadata for a constraint in a Policy.").optional(),
+      }).describe("Required. The constraints that the policy includes.")
+        .optional(),
       description: z.string().describe("Optional. A description of the policy.")
         .optional(),
       policyId: z.string().describe(
@@ -271,18 +272,19 @@ const InputsSchema = z.object({
       ).optional(),
       constraint: z.object({
         orgPolicyConstraint: z.unknown().describe(
-          "A predefined organization policy constraint.",
+          "Optional. A predefined organization policy constraint.",
         ).optional(),
         orgPolicyConstraintCustom: z.unknown().describe(
-          "A custom organization policy constraint.",
+          "Optional. A custom organization policy constraint.",
         ).optional(),
         securityHealthAnalyticsCustomModule: z.unknown().describe(
-          "A custom module for Security Health Analytics.",
+          "Optional. A custom module for Security Health Analytics.",
         ).optional(),
         securityHealthAnalyticsModule: z.unknown().describe(
-          "A built-in detector for Security Health Analytics.",
+          "Optional. A built-in detector for Security Health Analytics.",
         ).optional(),
-      }).describe("Metadata for a constraint in a Policy.").optional(),
+      }).describe("Required. The constraints that the policy includes.")
+        .optional(),
       description: z.string().describe("Optional. A description of the policy.")
         .optional(),
       policyId: z.string().describe(
@@ -330,7 +332,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Posture Postures. Registered at `@swamp/gcp/securityposture/postures`. */
 export const model = {
   type: "@swamp/gcp/securityposture/postures",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -434,6 +436,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

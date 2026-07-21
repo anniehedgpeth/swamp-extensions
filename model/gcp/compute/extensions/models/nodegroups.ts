@@ -214,7 +214,7 @@ const GlobalArgsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "OFF", "ON", "ONLY_SCALE_OUT"]).describe(
       "The autoscaling mode. Set to one of: ON, OFF, or ONLY_SCALE_OUT. For more information, see Autoscaler modes.",
     ).optional(),
-  }).optional(),
+  }).describe("Specifies how autoscaling should behave.").optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -242,7 +242,7 @@ const GlobalArgsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Output only. [Output only] A predetermined duration for the window, automatically chosen to be the smallest possible in the given scenario.",
     ).optional(),
     startTime: z.string().describe(
       "Start time of the window. This must be in UTC format that resolves to one of 00:00, 04:00, 08:00,12:00, 16:00, or 20:00. For example, both 13:00-5 and 08:00 are valid.",
@@ -273,9 +273,7 @@ const GlobalArgsSchema = z.object({
       "SHARE_TYPE_UNSPECIFIED",
       "SPECIFIC_PROJECTS",
     ]).describe("Type of sharing for this shared-reservation").optional(),
-  }).describe(
-    "The share setting for reservations and sole tenancy node groups.",
-  ).optional(),
+  }).describe("Share-settings for the node group").optional(),
   status: z.enum(["CREATING", "DELETING", "INVALID", "READY"]).optional(),
   zone: z.string().describe(
     "Output only. [Output Only] The name of the zone where the node group resides, such as us-central1-a.",
@@ -338,7 +336,7 @@ const InputsSchema = z.object({
     mode: z.enum(["MODE_UNSPECIFIED", "OFF", "ON", "ONLY_SCALE_OUT"]).describe(
       "The autoscaling mode. Set to one of: ON, OFF, or ONLY_SCALE_OUT. For more information, see Autoscaler modes.",
     ).optional(),
-  }).optional(),
+  }).describe("Specifies how autoscaling should behave.").optional(),
   description: z.string().describe(
     "An optional description of this resource. Provide this property when you create the resource.",
   ).optional(),
@@ -366,7 +364,7 @@ const InputsSchema = z.object({
         "Span of time at a resolution of a second. Must be from 0 to 315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years",
       ).optional(),
     }).describe(
-      'A Duration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.',
+      "Output only. [Output only] A predetermined duration for the window, automatically chosen to be the smallest possible in the given scenario.",
     ).optional(),
     startTime: z.string().describe(
       "Start time of the window. This must be in UTC format that resolves to one of 00:00, 04:00, 08:00,12:00, 16:00, or 20:00. For example, both 13:00-5 and 08:00 are valid.",
@@ -397,9 +395,7 @@ const InputsSchema = z.object({
       "SHARE_TYPE_UNSPECIFIED",
       "SPECIFIC_PROJECTS",
     ]).describe("Type of sharing for this shared-reservation").optional(),
-  }).describe(
-    "The share setting for reservations and sole tenancy node groups.",
-  ).optional(),
+  }).describe("Share-settings for the node group").optional(),
   status: z.enum(["CREATING", "DELETING", "INVALID", "READY"]).optional(),
   zone: z.string().describe(
     "Output only. [Output Only] The name of the zone where the node group resides, such as us-central1-a.",
@@ -435,7 +431,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine NodeGroups. Registered at `@swamp/gcp/compute/nodegroups`. */
 export const model = {
   type: "@swamp/gcp/compute/nodegroups",
-  version: "2026.07.20.1",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -534,6 +530,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

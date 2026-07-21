@@ -173,7 +173,7 @@ const GlobalArgsSchema = z.object({
         lineNumber: z.string().describe(
           "Line number (1-based), or 0 if whole File / unknown.",
         ).optional(),
-      }).describe("Location details with file path and line number.")
+      }).describe("Location (path and line) where the finding was detected.")
         .optional(),
       scanner: z.enum([
         "SCANNER_UNSPECIFIED",
@@ -194,9 +194,7 @@ const GlobalArgsSchema = z.object({
     skillName: z.string().describe(
       "Name of the skill that produced this analysis.",
     ).optional(),
-  }).describe(
-    "AISkillAnalysisOccurrence provides the results of an AI-based skill analysis.",
-  ).optional(),
+  }).describe("Describes an AI skill analysis.").optional(),
   attestation: z.object({
     jwts: z.array(z.object({
       compactJwt: z.string().describe(
@@ -218,9 +216,7 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "One or more signatures over `serialized_payload`. Verifier implementations should consider this attestation message verified if at least one `signature` verifies `serialized_payload`. See `Signature` in common.proto for more details on signature structure and verification.",
     ).optional(),
-  }).describe(
-    'Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.',
-  ).optional(),
+  }).describe("Describes an attestation of an artifact.").optional(),
   build: z.object({
     inTotoSlsaProvenanceV1: z.object({
       _type: z.string().describe(
@@ -256,11 +252,13 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         name: z.string().optional(),
       })).optional(),
-    }).optional(),
+    }).describe(
+      "In-Toto Slsa Provenance V1 represents a slsa provenance meeting the slsa spec, wrapped in an in-toto statement. This allows for direct jsonification of a to-spec in-toto slsa statement with a to-spec slsa provenance.",
+    ).optional(),
     intotoProvenance: z.object({
       builderConfig: z.object({
         id: z.string().optional(),
-      }).optional(),
+      }).describe("required").optional(),
       materials: z.array(z.string()).describe(
         "The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.",
       ).optional(),
@@ -308,9 +306,11 @@ const GlobalArgsSchema = z.object({
           "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
         ).optional(),
       }).describe(
-        "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+        "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Deprecated. See InTotoStatement for the replacement. In-toto Provenance representation as defined in spec.",
+    ).optional(),
     intotoStatement: z.object({
       _type: z.string().describe("Always `https://in-toto.io/Statement/v0.1`.")
         .optional(),
@@ -320,7 +320,7 @@ const GlobalArgsSchema = z.object({
       provenance: z.object({
         builderConfig: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.string()).describe(
           "The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.",
         ).optional(),
@@ -368,13 +368,13 @@ const GlobalArgsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenance: z.object({
         builder: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.object({
           digest: z.unknown().optional(),
           uri: z.unknown().optional(),
@@ -425,7 +425,7 @@ const GlobalArgsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenanceZeroTwo: z.object({
@@ -474,7 +474,7 @@ const GlobalArgsSchema = z.object({
         name: z.string().optional(),
       })).optional(),
     }).describe(
-      'Spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement The serialized InTotoStatement will be stored as Envelope.payload. Envelope.payloadType is always "application/vnd.in-toto+json".',
+      "In-toto Statement representation as defined in spec. The intoto_statement can contain any type of provenance. The serialized payload of the statement can be stored and signed in the Occurrence's envelope.",
     ).optional(),
     provenance: z.object({
       buildOptions: z.record(z.string(), z.string()).describe(
@@ -531,13 +531,13 @@ const GlobalArgsSchema = z.object({
       sourceProvenance: z.object({
         additionalContexts: z.array(z.object({
           cloudRepo: z.unknown().describe(
-            "A CloudRepoSourceContext denotes a particular revision in a Google Cloud Source Repo.",
+            "A SourceContext referring to a revision in a Google Cloud Source Repo.",
           ).optional(),
           gerrit: z.unknown().describe(
             "A SourceContext referring to a Gerrit project.",
           ).optional(),
           git: z.unknown().describe(
-            "A GitSourceContext denotes a particular revision in a third party Git repository (e.g., GitHub).",
+            "A SourceContext referring to any third party Git repo (e.g., GitHub).",
           ).optional(),
           labels: z.unknown().describe("Labels with user defined metadata.")
             .optional(),
@@ -549,18 +549,18 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         context: z.object({
           cloudRepo: z.object({
-            aliasContext: z.unknown().describe("An alias to a repo revision.")
-              .optional(),
-            repoId: z.unknown().describe(
-              "A unique identifier for a Cloud Repo.",
+            aliasContext: z.unknown().describe(
+              "An alias, which may be a branch or tag.",
             ).optional(),
+            repoId: z.unknown().describe("The ID of the repo.").optional(),
             revisionId: z.unknown().describe("A revision ID.").optional(),
           }).describe(
-            "A CloudRepoSourceContext denotes a particular revision in a Google Cloud Source Repo.",
+            "A SourceContext referring to a revision in a Google Cloud Source Repo.",
           ).optional(),
           gerrit: z.object({
-            aliasContext: z.unknown().describe("An alias to a repo revision.")
-              .optional(),
+            aliasContext: z.unknown().describe(
+              "An alias, which may be a branch or tag.",
+            ).optional(),
             gerritProject: z.unknown().describe(
               'The full project name within the host. Projects may be nested, so "project/subproject" is a valid project name. The "repo name" is the hostURI/project.',
             ).optional(),
@@ -575,13 +575,13 @@ const GlobalArgsSchema = z.object({
             revisionId: z.unknown().describe("Git commit hash.").optional(),
             url: z.unknown().describe("Git repository URL.").optional(),
           }).describe(
-            "A GitSourceContext denotes a particular revision in a third party Git repository (e.g., GitHub).",
+            "A SourceContext referring to any third party Git repo (e.g., GitHub).",
           ).optional(),
           labels: z.record(z.string(), z.unknown()).describe(
             "Labels with user defined metadata.",
           ).optional(),
         }).describe(
-          "A SourceContext is a reference to a tree of files. A SourceContext together with a path point to a unique revision of a single file or directory.",
+          "If provided, the source code used for the build came from this location.",
         ).optional(),
         fileHashes: z.record(
           z.string(),
@@ -593,22 +593,18 @@ const GlobalArgsSchema = z.object({
         ).describe(
           "Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.",
         ).optional(),
-      }).describe(
-        "Source describes the location of the source used for the build.",
-      ).optional(),
+      }).describe("Details of the Source input to the build.").optional(),
       startTime: z.string().describe(
         "Time at which execution of the build was started.",
       ).optional(),
       triggerId: z.string().describe(
         "Trigger identifier if the build was triggered automatically; empty if not.",
       ).optional(),
-    }).describe(
-      "Provenance of a build. Contains all information needed to verify the full details about the build from source to completion.",
-    ).optional(),
+    }).describe("The actual provenance for the build.").optional(),
     provenanceBytes: z.string().describe(
       "Serialized JSON representation of the provenance, used in generating the build signature in the corresponding build note. After verifying the signature, `provenance_bytes` can be unmarshalled and compared to the provenance to confirm that it is unchanged. A base64-encoded string representation of the provenance bytes is used for the signature in order to interoperate with openssl which expects this format for signature verification. The serialized form is captured both to avoid ambiguity in how the provenance is marshalled to json as well to prevent incompatibilities with future changes.",
     ).optional(),
-  }).describe("Details of a build occurrence.").optional(),
+  }).describe("Describes a verifiable build.").optional(),
   compliance: z.object({
     nonComplianceReason: z.string().optional(),
     nonCompliantFiles: z.array(z.object({
@@ -631,12 +627,10 @@ const GlobalArgsSchema = z.object({
       version: z.string().describe(
         "The version of the benchmark. This is set to the version of the OS-specific CIS document the benchmark is defined in.",
       ).optional(),
-    }).describe(
-      "Describes the CIS benchmark version that is applicable to a given OS and os version.",
-    ).optional(),
-  }).describe(
-    "An indication that the compliance checks in the associated ComplianceNote were not satisfied for particular resources or a specified reason.",
-  ).optional(),
+    }).describe("The OS and config version the benchmark was run on.")
+      .optional(),
+  }).describe("Describes a compliance violation on a linked resource.")
+    .optional(),
   deployment: z.object({
     address: z.string().describe(
       "Address of the runtime element hosting this deployment.",
@@ -656,9 +650,8 @@ const GlobalArgsSchema = z.object({
     userEmail: z.string().describe(
       "Identity of the user that triggered this deployment.",
     ).optional(),
-  }).describe(
-    "The period during which some deployable was active in a runtime.",
-  ).optional(),
+  }).describe("Describes the deployment of an artifact on a runtime.")
+    .optional(),
   discovery: z.object({
     analysisCompleted: z.object({
       analysisType: z.array(z.string()).optional(),
@@ -698,7 +691,7 @@ const GlobalArgsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "When an error is encountered this will contain a LocalizedMessage under details to show to the user. The LocalizedMessage is output only and populated by the API.",
     ).optional(),
     archiveTime: z.string().describe(
       "Output only. The time occurrences related to this discovery occurrence were archived.",
@@ -728,9 +721,7 @@ const GlobalArgsSchema = z.object({
       sbomState: z.enum(["SBOM_STATE_UNSPECIFIED", "PENDING", "COMPLETE"])
         .describe("The progress of the SBOM generation.").optional(),
     }).describe("The status of an SBOM generation.").optional(),
-  }).describe(
-    "Provides information about the analysis status of a discovered resource.",
-  ).optional(),
+  }).describe("Describes when a resource was discovered.").optional(),
   dsseAttestation: z.object({
     envelope: z.object({
       payload: z.string().optional(),
@@ -740,7 +731,7 @@ const GlobalArgsSchema = z.object({
         sig: z.string().optional(),
       })).optional(),
     }).describe(
-      "MUST match https://github.com/secure-systems-lab/dsse/blob/master/envelope.proto. An authenticated message of arbitrary type.",
+      "If doing something security critical, make sure to verify the signatures in this metadata.",
     ).optional(),
     statement: z.object({
       _type: z.string().describe("Always `https://in-toto.io/Statement/v0.1`.")
@@ -751,7 +742,7 @@ const GlobalArgsSchema = z.object({
       provenance: z.object({
         builderConfig: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.string()).describe(
           "The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.",
         ).optional(),
@@ -799,13 +790,13 @@ const GlobalArgsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenance: z.object({
         builder: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.object({
           digest: z.unknown().optional(),
           uri: z.unknown().optional(),
@@ -856,7 +847,7 @@ const GlobalArgsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenanceZeroTwo: z.object({
@@ -907,9 +898,7 @@ const GlobalArgsSchema = z.object({
     }).describe(
       'Spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement The serialized InTotoStatement will be stored as Envelope.payload. Envelope.payloadType is always "application/vnd.in-toto+json".',
     ).optional(),
-  }).describe(
-    "Deprecated. Prefer to use a regular Occurrence, and populate the Envelope at the top level of the Occurrence.",
-  ).optional(),
+  }).describe("Describes an attestation of an artifact using dsse.").optional(),
   envelope: z.object({
     payload: z.string().optional(),
     payloadType: z.string().optional(),
@@ -917,9 +906,7 @@ const GlobalArgsSchema = z.object({
       keyid: z.string().optional(),
       sig: z.string().optional(),
     })).optional(),
-  }).describe(
-    "MUST match https://github.com/secure-systems-lab/dsse/blob/master/envelope.proto. An authenticated message of arbitrary type.",
-  ).optional(),
+  }).describe("https://github.com/secure-systems-lab/dsse").optional(),
   image: z.object({
     baseResourceUrl: z.string().describe(
       "Output only. This contains the base image URL for the derived image occurrence.",
@@ -937,9 +924,7 @@ const GlobalArgsSchema = z.object({
       v2Name: z.string().describe(
         'Output only. The name of the image\'s v2 blobs computed via: [bottom]:= v2_blobbottom:= sha256(v2_blob[N] + " " + v2_name[N+1]) Only the name of the final blob is kept.',
       ).optional(),
-    }).describe(
-      "A set of properties that uniquely identify a given Docker image.",
-    ).optional(),
+    }).describe("Required. The fingerprint of the derived image.").optional(),
     layerInfo: z.array(z.object({
       arguments: z.string().describe(
         "The recovered arguments to the Dockerfile directive.",
@@ -951,7 +936,7 @@ const GlobalArgsSchema = z.object({
       'This contains layer-specific metadata, if populated it has length "distance" and is ordered with [distance] being the layer immediately following the base image and [1] being the final layer.',
     ).optional(),
   }).describe(
-    "Details of the derived image portion of the DockerImage relationship. This image would be produced from a Dockerfile with FROM.",
+    "Describes how this resource derives from the basis in the associated note.",
   ).optional(),
   noteName: z.string().describe(
     "Required. Immutable. The analysis note associated with this occurrence, in the form of `projects/[PROVIDER_ID]/notes/[NOTE_ID]`. This field can be used as a filter in list requests.",
@@ -968,7 +953,9 @@ const GlobalArgsSchema = z.object({
       expression: z.string().describe(
         'Often a single license can be used to represent the licensing terms. Sometimes it is necessary to include a choice of one or more licenses or some combination of license identifiers. Examples: "LGPL-2.1-only OR MIT", "LGPL-2.1-only AND MIT", "GPL-2.0-or-later WITH Bison-exception-2.2".',
       ).optional(),
-    }).describe("License information.").optional(),
+    }).describe(
+      "Licenses that have been declared by the authors of the package.",
+    ).optional(),
     location: z.array(z.object({
       cpeUri: z.string().describe(
         "Deprecated. The CPE URI in [CPE format](https://cpe.mitre.org/specification/)",
@@ -1000,9 +987,8 @@ const GlobalArgsSchema = z.object({
         revision: z.string().describe(
           "The iteration of the package build from the above version.",
         ).optional(),
-      }).describe(
-        "Version contains structured information about the version of a package.",
-      ).optional(),
+      }).describe("Deprecated. The version installed at this location.")
+        .optional(),
     })).describe(
       "All of the places within the filesystem versions of this package have been found.",
     ).optional(),
@@ -1032,12 +1018,9 @@ const GlobalArgsSchema = z.object({
       revision: z.string().describe(
         "The iteration of the package build from the above version.",
       ).optional(),
-    }).describe(
-      "Version contains structured information about the version of a package.",
-    ).optional(),
-  }).describe(
-    "Details on how a particular software package was installed on a system.",
-  ).optional(),
+    }).describe("Output only. The version of the package.").optional(),
+  }).describe("Describes the installation of a package on the linked resource.")
+    .optional(),
   remediation: z.string().describe(
     "A description of actions that can be taken to remedy the note.",
   ).optional(),
@@ -1057,8 +1040,9 @@ const GlobalArgsSchema = z.object({
         referrerId: z.string().describe(
           "The person or system referring this predicate to the consumer.",
         ).optional(),
-      }).describe("A predicate which describes the SBOM being referenced.")
-        .optional(),
+      }).describe(
+        "Additional parameters of the Predicate. Includes the actual data about the SBOM.",
+      ).optional(),
       predicateType: z.string().describe(
         "URI identifying the type of the Predicate.",
       ).optional(),
@@ -1070,9 +1054,8 @@ const GlobalArgsSchema = z.object({
       })).describe(
         "Set of software artifacts that the attestation applies to. Each element represents a single software artifact.",
       ).optional(),
-    }).describe(
-      "The actual payload that contains the SBOM Reference data. The payload follows the intoto statement specification. See https://github.com/in-toto/attestation/blob/main/spec/v1.0/statement.md for more details.",
-    ).optional(),
+    }).describe("The actual payload that contains the SBOM reference data.")
+      .optional(),
     payloadType: z.string().describe(
       "The kind of payload that SbomReferenceIntotoPayload takes. Since it's in the intoto format, this value is expected to be 'application/vnd.in-toto+json'.",
     ).optional(),
@@ -1080,9 +1063,7 @@ const GlobalArgsSchema = z.object({
       keyid: z.string().optional(),
       sig: z.string().optional(),
     })).describe("The signatures over the payload.").optional(),
-  }).describe(
-    "The occurrence representing an SBOM reference as applied to a specific resource. The occurrence follows the DSSE specification. See https://github.com/secure-systems-lab/dsse/blob/master/envelope.md for more details.",
-  ).optional(),
+  }).describe("Describes a specific SBOM reference occurrences.").optional(),
   secret: z.object({
     kind: z.enum([
       "SECRET_KIND_UNSPECIFIED",
@@ -1130,13 +1111,13 @@ const GlobalArgsSchema = z.object({
           index: z.unknown().describe(
             "The index of the layer in the container image.",
           ).optional(),
-        }).describe("Details about the layer a package was found in.")
-          .optional(),
+        }).describe(
+          "Each package found in a file should have its own layer metadata (that is, information from the origin layer of the package).",
+        ).optional(),
         lineNumber: z.number().int().describe(
           "Line number in the file where the package was found. Optional field that only applies to source repository scanning.",
         ).optional(),
-      }).describe("Indicates the location at which a package was found.")
-        .optional(),
+      }).describe("The secret is found from a file.").optional(),
     })).describe("Optional. Locations where the secret is detected.")
       .optional(),
     statuses: z.array(z.object({
@@ -1149,7 +1130,7 @@ const GlobalArgsSchema = z.object({
         "Optional. The time the secret status was last updated.",
       ).optional(),
     })).describe("Optional. Status of the secret.").optional(),
-  }).describe("The occurrence provides details of a secret.").optional(),
+  }).describe("Describes a secret.").optional(),
   upgrade: z.object({
     distribution: z.object({
       classification: z.string().describe(
@@ -1164,7 +1145,7 @@ const GlobalArgsSchema = z.object({
         "The severity as specified by the upstream operating system.",
       ).optional(),
     }).describe(
-      "The Upgrade Distribution represents metadata about the Upgrade for each operating system (CPE). Some distributions have additional metadata around updates, classifying them into various categories and severities.",
+      "Metadata about the upgrade for available for the specific operating system for the resource_url. This allows efficient filtering, as well as making it easier to use the occurrence.",
     ).optional(),
     package: z.string().describe(
       "Required for non-Windows OS. The package this Upgrade is for.",
@@ -1190,7 +1171,7 @@ const GlobalArgsSchema = z.object({
         "The iteration of the package build from the above version.",
       ).optional(),
     }).describe(
-      "Version contains structured information about the version of a package.",
+      "Required for non-Windows OS. The version of the package in a machine + human readable form.",
     ).optional(),
     windowsUpdate: z.object({
       categories: z.array(z.object({
@@ -1210,7 +1191,8 @@ const GlobalArgsSchema = z.object({
         updateId: z.string().describe(
           "The revision independent identifier of the update.",
         ).optional(),
-      }).describe("The unique identifier of the update.").optional(),
+      }).describe("Required - The unique identifier for the update.")
+        .optional(),
       kbArticleIds: z.array(z.string()).describe(
         "The Microsoft Knowledge Base article IDs that are associated with the update.",
       ).optional(),
@@ -1223,11 +1205,10 @@ const GlobalArgsSchema = z.object({
       title: z.string().describe("The localized title of the update.")
         .optional(),
     }).describe(
-      "Windows Update represents the metadata about the update for the Windows operating system. The fields in this message come from the Windows Update API documented at https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdate.",
+      "Required for Windows OS. Represents the metadata about the Windows update.",
     ).optional(),
-  }).describe(
-    "An Upgrade Occurrence represents that a specific resource_url could install a specific upgrade. This presence is supplied via local sources (i.e. it is present in the mirror and the running system has noticed its availability). For Windows, both distribution and windows_update contain information for the Windows update.",
-  ).optional(),
+  }).describe("Describes an available package upgrade on the linked resource.")
+    .optional(),
   vulnerability: z.object({
     cvssScore: z.number().describe(
       "Output only. The CVSS score of this vulnerability. CVSS score is on a scale of 0 - 10 where 0 indicates low severity and 10 indicates high severity.",
@@ -1372,9 +1353,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The cvss v2 score for the vulnerability.").optional(),
     cvssV4: z.object({
       attackComplexity: z.enum([
         "ATTACK_COMPLEXITY_UNSPECIFIED",
@@ -1515,9 +1494,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The cvss v4 score for the vulnerability.").optional(),
     cvssVersion: z.enum([
       "CVSS_VERSION_UNSPECIFIED",
       "CVSS_VERSION_2",
@@ -1666,9 +1643,7 @@ const GlobalArgsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The cvss v3 score for the vulnerability.").optional(),
     effectiveSeverity: z.enum([
       "SEVERITY_UNSPECIFIED",
       "MINIMAL",
@@ -1720,7 +1695,7 @@ const GlobalArgsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "Required. The version of the package that is installed on the resource affected by this vulnerability.",
       ).optional(),
       effectiveSeverity: z.enum([
         "SEVERITY_UNSPECIFIED",
@@ -1737,7 +1712,7 @@ const GlobalArgsSchema = z.object({
           "For jars that are contained inside.war files, this filepath can indicate the path to war file combined with the path to jar file.",
         ).optional(),
         layerDetails: z.unknown().describe(
-          "Details about the layer a package was found in.",
+          "Each package found in a file should have its own layer metadata (that is, information from the origin layer of the package).",
         ).optional(),
         lineNumber: z.unknown().describe(
           "Line number in the file where the package was found. Optional field that only applies to source repository scanning.",
@@ -1777,7 +1752,7 @@ const GlobalArgsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "Required. The version of the package this vulnerability was fixed in. Setting this to VersionKind.MAXIMUM means no fix is yet available.",
       ).optional(),
       packageType: z.string().describe(
         "The type of package (e.g. OS, MAVEN, GO).",
@@ -1796,7 +1771,9 @@ const GlobalArgsSchema = z.object({
         knownRansomwareCampaignUse: z.string().describe(
           "Whether the vulnerability is known to have been leveraged as part of a ransomware campaign.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "CISA maintains the authoritative source of vulnerabilities that have been exploited in the wild.",
+      ).optional(),
       epss: z.object({
         percentile: z.number().describe(
           "The percentile of the current score, the proportion of all scored vulnerabilities with the same or a lower EPSS score",
@@ -1804,8 +1781,12 @@ const GlobalArgsSchema = z.object({
         score: z.number().describe(
           "The EPSS score representing the probability [0-1] of exploitation in the wild in the next 30 days",
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe(
+        "The Exploit Prediction Scoring System (EPSS) estimates the likelihood (probability) that a software vulnerability will be exploited in the wild.",
+      ).optional(),
+    }).describe(
+      "Risk information about the vulnerability, such as CISA, EPSS, etc.",
+    ).optional(),
     severity: z.enum([
       "SEVERITY_UNSPECIFIED",
       "MINIMAL",
@@ -1874,7 +1855,8 @@ const GlobalArgsSchema = z.object({
           url: z.unknown().describe(
             "Specific URL associated with the resource.",
           ).optional(),
-        }).describe("Metadata for any related URL information.").optional(),
+        }).describe("Contains the URL where to obtain the remediation.")
+          .optional(),
       })).describe(
         "Specifies details on how to handle (and presumably, fix) a vulnerability.",
       ).optional(),
@@ -1892,8 +1874,7 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "VexAssessment provides all publisher provided Vex information that is related to this vulnerability.",
     ).optional(),
-  }).describe("An occurrence of a severity vulnerability on a resource.")
-    .optional(),
+  }).describe("Describes a security vulnerability.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -2575,7 +2556,7 @@ const InputsSchema = z.object({
         lineNumber: z.string().describe(
           "Line number (1-based), or 0 if whole File / unknown.",
         ).optional(),
-      }).describe("Location details with file path and line number.")
+      }).describe("Location (path and line) where the finding was detected.")
         .optional(),
       scanner: z.enum([
         "SCANNER_UNSPECIFIED",
@@ -2596,9 +2577,7 @@ const InputsSchema = z.object({
     skillName: z.string().describe(
       "Name of the skill that produced this analysis.",
     ).optional(),
-  }).describe(
-    "AISkillAnalysisOccurrence provides the results of an AI-based skill analysis.",
-  ).optional(),
+  }).describe("Describes an AI skill analysis.").optional(),
   attestation: z.object({
     jwts: z.array(z.object({
       compactJwt: z.string().describe(
@@ -2620,9 +2599,7 @@ const InputsSchema = z.object({
     })).describe(
       "One or more signatures over `serialized_payload`. Verifier implementations should consider this attestation message verified if at least one `signature` verifies `serialized_payload`. See `Signature` in common.proto for more details on signature structure and verification.",
     ).optional(),
-  }).describe(
-    'Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.',
-  ).optional(),
+  }).describe("Describes an attestation of an artifact.").optional(),
   build: z.object({
     inTotoSlsaProvenanceV1: z.object({
       _type: z.string().describe(
@@ -2658,11 +2635,13 @@ const InputsSchema = z.object({
         ).optional(),
         name: z.string().optional(),
       })).optional(),
-    }).optional(),
+    }).describe(
+      "In-Toto Slsa Provenance V1 represents a slsa provenance meeting the slsa spec, wrapped in an in-toto statement. This allows for direct jsonification of a to-spec in-toto slsa statement with a to-spec slsa provenance.",
+    ).optional(),
     intotoProvenance: z.object({
       builderConfig: z.object({
         id: z.string().optional(),
-      }).optional(),
+      }).describe("required").optional(),
       materials: z.array(z.string()).describe(
         "The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.",
       ).optional(),
@@ -2710,9 +2689,11 @@ const InputsSchema = z.object({
           "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
         ).optional(),
       }).describe(
-        "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+        "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
       ).optional(),
-    }).optional(),
+    }).describe(
+      "Deprecated. See InTotoStatement for the replacement. In-toto Provenance representation as defined in spec.",
+    ).optional(),
     intotoStatement: z.object({
       _type: z.string().describe("Always `https://in-toto.io/Statement/v0.1`.")
         .optional(),
@@ -2722,7 +2703,7 @@ const InputsSchema = z.object({
       provenance: z.object({
         builderConfig: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.string()).describe(
           "The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.",
         ).optional(),
@@ -2770,13 +2751,13 @@ const InputsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenance: z.object({
         builder: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.object({
           digest: z.unknown().optional(),
           uri: z.unknown().optional(),
@@ -2827,7 +2808,7 @@ const InputsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenanceZeroTwo: z.object({
@@ -2876,7 +2857,7 @@ const InputsSchema = z.object({
         name: z.string().optional(),
       })).optional(),
     }).describe(
-      'Spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement The serialized InTotoStatement will be stored as Envelope.payload. Envelope.payloadType is always "application/vnd.in-toto+json".',
+      "In-toto Statement representation as defined in spec. The intoto_statement can contain any type of provenance. The serialized payload of the statement can be stored and signed in the Occurrence's envelope.",
     ).optional(),
     provenance: z.object({
       buildOptions: z.record(z.string(), z.string()).describe(
@@ -2933,13 +2914,13 @@ const InputsSchema = z.object({
       sourceProvenance: z.object({
         additionalContexts: z.array(z.object({
           cloudRepo: z.unknown().describe(
-            "A CloudRepoSourceContext denotes a particular revision in a Google Cloud Source Repo.",
+            "A SourceContext referring to a revision in a Google Cloud Source Repo.",
           ).optional(),
           gerrit: z.unknown().describe(
             "A SourceContext referring to a Gerrit project.",
           ).optional(),
           git: z.unknown().describe(
-            "A GitSourceContext denotes a particular revision in a third party Git repository (e.g., GitHub).",
+            "A SourceContext referring to any third party Git repo (e.g., GitHub).",
           ).optional(),
           labels: z.unknown().describe("Labels with user defined metadata.")
             .optional(),
@@ -2951,18 +2932,18 @@ const InputsSchema = z.object({
         ).optional(),
         context: z.object({
           cloudRepo: z.object({
-            aliasContext: z.unknown().describe("An alias to a repo revision.")
-              .optional(),
-            repoId: z.unknown().describe(
-              "A unique identifier for a Cloud Repo.",
+            aliasContext: z.unknown().describe(
+              "An alias, which may be a branch or tag.",
             ).optional(),
+            repoId: z.unknown().describe("The ID of the repo.").optional(),
             revisionId: z.unknown().describe("A revision ID.").optional(),
           }).describe(
-            "A CloudRepoSourceContext denotes a particular revision in a Google Cloud Source Repo.",
+            "A SourceContext referring to a revision in a Google Cloud Source Repo.",
           ).optional(),
           gerrit: z.object({
-            aliasContext: z.unknown().describe("An alias to a repo revision.")
-              .optional(),
+            aliasContext: z.unknown().describe(
+              "An alias, which may be a branch or tag.",
+            ).optional(),
             gerritProject: z.unknown().describe(
               'The full project name within the host. Projects may be nested, so "project/subproject" is a valid project name. The "repo name" is the hostURI/project.',
             ).optional(),
@@ -2977,13 +2958,13 @@ const InputsSchema = z.object({
             revisionId: z.unknown().describe("Git commit hash.").optional(),
             url: z.unknown().describe("Git repository URL.").optional(),
           }).describe(
-            "A GitSourceContext denotes a particular revision in a third party Git repository (e.g., GitHub).",
+            "A SourceContext referring to any third party Git repo (e.g., GitHub).",
           ).optional(),
           labels: z.record(z.string(), z.unknown()).describe(
             "Labels with user defined metadata.",
           ).optional(),
         }).describe(
-          "A SourceContext is a reference to a tree of files. A SourceContext together with a path point to a unique revision of a single file or directory.",
+          "If provided, the source code used for the build came from this location.",
         ).optional(),
         fileHashes: z.record(
           z.string(),
@@ -2995,22 +2976,18 @@ const InputsSchema = z.object({
         ).describe(
           "Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.",
         ).optional(),
-      }).describe(
-        "Source describes the location of the source used for the build.",
-      ).optional(),
+      }).describe("Details of the Source input to the build.").optional(),
       startTime: z.string().describe(
         "Time at which execution of the build was started.",
       ).optional(),
       triggerId: z.string().describe(
         "Trigger identifier if the build was triggered automatically; empty if not.",
       ).optional(),
-    }).describe(
-      "Provenance of a build. Contains all information needed to verify the full details about the build from source to completion.",
-    ).optional(),
+    }).describe("The actual provenance for the build.").optional(),
     provenanceBytes: z.string().describe(
       "Serialized JSON representation of the provenance, used in generating the build signature in the corresponding build note. After verifying the signature, `provenance_bytes` can be unmarshalled and compared to the provenance to confirm that it is unchanged. A base64-encoded string representation of the provenance bytes is used for the signature in order to interoperate with openssl which expects this format for signature verification. The serialized form is captured both to avoid ambiguity in how the provenance is marshalled to json as well to prevent incompatibilities with future changes.",
     ).optional(),
-  }).describe("Details of a build occurrence.").optional(),
+  }).describe("Describes a verifiable build.").optional(),
   compliance: z.object({
     nonComplianceReason: z.string().optional(),
     nonCompliantFiles: z.array(z.object({
@@ -3033,12 +3010,10 @@ const InputsSchema = z.object({
       version: z.string().describe(
         "The version of the benchmark. This is set to the version of the OS-specific CIS document the benchmark is defined in.",
       ).optional(),
-    }).describe(
-      "Describes the CIS benchmark version that is applicable to a given OS and os version.",
-    ).optional(),
-  }).describe(
-    "An indication that the compliance checks in the associated ComplianceNote were not satisfied for particular resources or a specified reason.",
-  ).optional(),
+    }).describe("The OS and config version the benchmark was run on.")
+      .optional(),
+  }).describe("Describes a compliance violation on a linked resource.")
+    .optional(),
   deployment: z.object({
     address: z.string().describe(
       "Address of the runtime element hosting this deployment.",
@@ -3058,9 +3033,8 @@ const InputsSchema = z.object({
     userEmail: z.string().describe(
       "Identity of the user that triggered this deployment.",
     ).optional(),
-  }).describe(
-    "The period during which some deployable was active in a runtime.",
-  ).optional(),
+  }).describe("Describes the deployment of an artifact on a runtime.")
+    .optional(),
   discovery: z.object({
     analysisCompleted: z.object({
       analysisType: z.array(z.string()).optional(),
@@ -3100,7 +3074,7 @@ const InputsSchema = z.object({
         "A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.",
       ).optional(),
     }).describe(
-      "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).",
+      "When an error is encountered this will contain a LocalizedMessage under details to show to the user. The LocalizedMessage is output only and populated by the API.",
     ).optional(),
     archiveTime: z.string().describe(
       "Output only. The time occurrences related to this discovery occurrence were archived.",
@@ -3130,9 +3104,7 @@ const InputsSchema = z.object({
       sbomState: z.enum(["SBOM_STATE_UNSPECIFIED", "PENDING", "COMPLETE"])
         .describe("The progress of the SBOM generation.").optional(),
     }).describe("The status of an SBOM generation.").optional(),
-  }).describe(
-    "Provides information about the analysis status of a discovered resource.",
-  ).optional(),
+  }).describe("Describes when a resource was discovered.").optional(),
   dsseAttestation: z.object({
     envelope: z.object({
       payload: z.string().optional(),
@@ -3142,7 +3114,7 @@ const InputsSchema = z.object({
         sig: z.string().optional(),
       })).optional(),
     }).describe(
-      "MUST match https://github.com/secure-systems-lab/dsse/blob/master/envelope.proto. An authenticated message of arbitrary type.",
+      "If doing something security critical, make sure to verify the signatures in this metadata.",
     ).optional(),
     statement: z.object({
       _type: z.string().describe("Always `https://in-toto.io/Statement/v0.1`.")
@@ -3153,7 +3125,7 @@ const InputsSchema = z.object({
       provenance: z.object({
         builderConfig: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.string()).describe(
           "The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on. This is considered to be incomplete unless metadata.completeness.materials is true. Unset or null is equivalent to empty.",
         ).optional(),
@@ -3201,13 +3173,13 @@ const InputsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenance: z.object({
         builder: z.object({
           id: z.string().optional(),
-        }).optional(),
+        }).describe("required").optional(),
         materials: z.array(z.object({
           digest: z.unknown().optional(),
           uri: z.unknown().optional(),
@@ -3258,7 +3230,7 @@ const InputsSchema = z.object({
             "URI indicating what type of recipe was performed. It determines the meaning of recipe.entryPoint, recipe.arguments, recipe.environment, and materials.",
           ).optional(),
         }).describe(
-          "Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.",
+          "Identifies the configuration used for the build. When combined with materials, this SHOULD fully describe the build, such that re-running this recipe results in bit-for-bit identical output (if the build is reproducible). required",
         ).optional(),
       }).optional(),
       slsaProvenanceZeroTwo: z.object({
@@ -3309,9 +3281,7 @@ const InputsSchema = z.object({
     }).describe(
       'Spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement The serialized InTotoStatement will be stored as Envelope.payload. Envelope.payloadType is always "application/vnd.in-toto+json".',
     ).optional(),
-  }).describe(
-    "Deprecated. Prefer to use a regular Occurrence, and populate the Envelope at the top level of the Occurrence.",
-  ).optional(),
+  }).describe("Describes an attestation of an artifact using dsse.").optional(),
   envelope: z.object({
     payload: z.string().optional(),
     payloadType: z.string().optional(),
@@ -3319,9 +3289,7 @@ const InputsSchema = z.object({
       keyid: z.string().optional(),
       sig: z.string().optional(),
     })).optional(),
-  }).describe(
-    "MUST match https://github.com/secure-systems-lab/dsse/blob/master/envelope.proto. An authenticated message of arbitrary type.",
-  ).optional(),
+  }).describe("https://github.com/secure-systems-lab/dsse").optional(),
   image: z.object({
     baseResourceUrl: z.string().describe(
       "Output only. This contains the base image URL for the derived image occurrence.",
@@ -3339,9 +3307,7 @@ const InputsSchema = z.object({
       v2Name: z.string().describe(
         'Output only. The name of the image\'s v2 blobs computed via: [bottom]:= v2_blobbottom:= sha256(v2_blob[N] + " " + v2_name[N+1]) Only the name of the final blob is kept.',
       ).optional(),
-    }).describe(
-      "A set of properties that uniquely identify a given Docker image.",
-    ).optional(),
+    }).describe("Required. The fingerprint of the derived image.").optional(),
     layerInfo: z.array(z.object({
       arguments: z.string().describe(
         "The recovered arguments to the Dockerfile directive.",
@@ -3353,7 +3319,7 @@ const InputsSchema = z.object({
       'This contains layer-specific metadata, if populated it has length "distance" and is ordered with [distance] being the layer immediately following the base image and [1] being the final layer.',
     ).optional(),
   }).describe(
-    "Details of the derived image portion of the DockerImage relationship. This image would be produced from a Dockerfile with FROM.",
+    "Describes how this resource derives from the basis in the associated note.",
   ).optional(),
   noteName: z.string().describe(
     "Required. Immutable. The analysis note associated with this occurrence, in the form of `projects/[PROVIDER_ID]/notes/[NOTE_ID]`. This field can be used as a filter in list requests.",
@@ -3370,7 +3336,9 @@ const InputsSchema = z.object({
       expression: z.string().describe(
         'Often a single license can be used to represent the licensing terms. Sometimes it is necessary to include a choice of one or more licenses or some combination of license identifiers. Examples: "LGPL-2.1-only OR MIT", "LGPL-2.1-only AND MIT", "GPL-2.0-or-later WITH Bison-exception-2.2".',
       ).optional(),
-    }).describe("License information.").optional(),
+    }).describe(
+      "Licenses that have been declared by the authors of the package.",
+    ).optional(),
     location: z.array(z.object({
       cpeUri: z.string().describe(
         "Deprecated. The CPE URI in [CPE format](https://cpe.mitre.org/specification/)",
@@ -3402,9 +3370,8 @@ const InputsSchema = z.object({
         revision: z.string().describe(
           "The iteration of the package build from the above version.",
         ).optional(),
-      }).describe(
-        "Version contains structured information about the version of a package.",
-      ).optional(),
+      }).describe("Deprecated. The version installed at this location.")
+        .optional(),
     })).describe(
       "All of the places within the filesystem versions of this package have been found.",
     ).optional(),
@@ -3434,12 +3401,9 @@ const InputsSchema = z.object({
       revision: z.string().describe(
         "The iteration of the package build from the above version.",
       ).optional(),
-    }).describe(
-      "Version contains structured information about the version of a package.",
-    ).optional(),
-  }).describe(
-    "Details on how a particular software package was installed on a system.",
-  ).optional(),
+    }).describe("Output only. The version of the package.").optional(),
+  }).describe("Describes the installation of a package on the linked resource.")
+    .optional(),
   remediation: z.string().describe(
     "A description of actions that can be taken to remedy the note.",
   ).optional(),
@@ -3459,8 +3423,9 @@ const InputsSchema = z.object({
         referrerId: z.string().describe(
           "The person or system referring this predicate to the consumer.",
         ).optional(),
-      }).describe("A predicate which describes the SBOM being referenced.")
-        .optional(),
+      }).describe(
+        "Additional parameters of the Predicate. Includes the actual data about the SBOM.",
+      ).optional(),
       predicateType: z.string().describe(
         "URI identifying the type of the Predicate.",
       ).optional(),
@@ -3472,9 +3437,8 @@ const InputsSchema = z.object({
       })).describe(
         "Set of software artifacts that the attestation applies to. Each element represents a single software artifact.",
       ).optional(),
-    }).describe(
-      "The actual payload that contains the SBOM Reference data. The payload follows the intoto statement specification. See https://github.com/in-toto/attestation/blob/main/spec/v1.0/statement.md for more details.",
-    ).optional(),
+    }).describe("The actual payload that contains the SBOM reference data.")
+      .optional(),
     payloadType: z.string().describe(
       "The kind of payload that SbomReferenceIntotoPayload takes. Since it's in the intoto format, this value is expected to be 'application/vnd.in-toto+json'.",
     ).optional(),
@@ -3482,9 +3446,7 @@ const InputsSchema = z.object({
       keyid: z.string().optional(),
       sig: z.string().optional(),
     })).describe("The signatures over the payload.").optional(),
-  }).describe(
-    "The occurrence representing an SBOM reference as applied to a specific resource. The occurrence follows the DSSE specification. See https://github.com/secure-systems-lab/dsse/blob/master/envelope.md for more details.",
-  ).optional(),
+  }).describe("Describes a specific SBOM reference occurrences.").optional(),
   secret: z.object({
     kind: z.enum([
       "SECRET_KIND_UNSPECIFIED",
@@ -3532,13 +3494,13 @@ const InputsSchema = z.object({
           index: z.unknown().describe(
             "The index of the layer in the container image.",
           ).optional(),
-        }).describe("Details about the layer a package was found in.")
-          .optional(),
+        }).describe(
+          "Each package found in a file should have its own layer metadata (that is, information from the origin layer of the package).",
+        ).optional(),
         lineNumber: z.number().int().describe(
           "Line number in the file where the package was found. Optional field that only applies to source repository scanning.",
         ).optional(),
-      }).describe("Indicates the location at which a package was found.")
-        .optional(),
+      }).describe("The secret is found from a file.").optional(),
     })).describe("Optional. Locations where the secret is detected.")
       .optional(),
     statuses: z.array(z.object({
@@ -3551,7 +3513,7 @@ const InputsSchema = z.object({
         "Optional. The time the secret status was last updated.",
       ).optional(),
     })).describe("Optional. Status of the secret.").optional(),
-  }).describe("The occurrence provides details of a secret.").optional(),
+  }).describe("Describes a secret.").optional(),
   upgrade: z.object({
     distribution: z.object({
       classification: z.string().describe(
@@ -3566,7 +3528,7 @@ const InputsSchema = z.object({
         "The severity as specified by the upstream operating system.",
       ).optional(),
     }).describe(
-      "The Upgrade Distribution represents metadata about the Upgrade for each operating system (CPE). Some distributions have additional metadata around updates, classifying them into various categories and severities.",
+      "Metadata about the upgrade for available for the specific operating system for the resource_url. This allows efficient filtering, as well as making it easier to use the occurrence.",
     ).optional(),
     package: z.string().describe(
       "Required for non-Windows OS. The package this Upgrade is for.",
@@ -3592,7 +3554,7 @@ const InputsSchema = z.object({
         "The iteration of the package build from the above version.",
       ).optional(),
     }).describe(
-      "Version contains structured information about the version of a package.",
+      "Required for non-Windows OS. The version of the package in a machine + human readable form.",
     ).optional(),
     windowsUpdate: z.object({
       categories: z.array(z.object({
@@ -3612,7 +3574,8 @@ const InputsSchema = z.object({
         updateId: z.string().describe(
           "The revision independent identifier of the update.",
         ).optional(),
-      }).describe("The unique identifier of the update.").optional(),
+      }).describe("Required - The unique identifier for the update.")
+        .optional(),
       kbArticleIds: z.array(z.string()).describe(
         "The Microsoft Knowledge Base article IDs that are associated with the update.",
       ).optional(),
@@ -3625,11 +3588,10 @@ const InputsSchema = z.object({
       title: z.string().describe("The localized title of the update.")
         .optional(),
     }).describe(
-      "Windows Update represents the metadata about the update for the Windows operating system. The fields in this message come from the Windows Update API documented at https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdate.",
+      "Required for Windows OS. Represents the metadata about the Windows update.",
     ).optional(),
-  }).describe(
-    "An Upgrade Occurrence represents that a specific resource_url could install a specific upgrade. This presence is supplied via local sources (i.e. it is present in the mirror and the running system has noticed its availability). For Windows, both distribution and windows_update contain information for the Windows update.",
-  ).optional(),
+  }).describe("Describes an available package upgrade on the linked resource.")
+    .optional(),
   vulnerability: z.object({
     cvssScore: z.number().describe(
       "Output only. The CVSS score of this vulnerability. CVSS score is on a scale of 0 - 10 where 0 indicates low severity and 10 indicates high severity.",
@@ -3774,9 +3736,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The cvss v2 score for the vulnerability.").optional(),
     cvssV4: z.object({
       attackComplexity: z.enum([
         "ATTACK_COMPLEXITY_UNSPECIFIED",
@@ -3917,9 +3877,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The cvss v4 score for the vulnerability.").optional(),
     cvssVersion: z.enum([
       "CVSS_VERSION_UNSPECIFIED",
       "CVSS_VERSION_2",
@@ -4068,9 +4026,7 @@ const InputsSchema = z.object({
       ]).describe(
         "Vulnerable System Integrity Impact (VI). Defined in CVSS v4.",
       ).optional(),
-    }).describe(
-      "Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.",
-    ).optional(),
+    }).describe("The cvss v3 score for the vulnerability.").optional(),
     effectiveSeverity: z.enum([
       "SEVERITY_UNSPECIFIED",
       "MINIMAL",
@@ -4122,7 +4078,7 @@ const InputsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "Required. The version of the package that is installed on the resource affected by this vulnerability.",
       ).optional(),
       effectiveSeverity: z.enum([
         "SEVERITY_UNSPECIFIED",
@@ -4139,7 +4095,7 @@ const InputsSchema = z.object({
           "For jars that are contained inside.war files, this filepath can indicate the path to war file combined with the path to jar file.",
         ).optional(),
         layerDetails: z.unknown().describe(
-          "Details about the layer a package was found in.",
+          "Each package found in a file should have its own layer metadata (that is, information from the origin layer of the package).",
         ).optional(),
         lineNumber: z.unknown().describe(
           "Line number in the file where the package was found. Optional field that only applies to source repository scanning.",
@@ -4179,7 +4135,7 @@ const InputsSchema = z.object({
           "The iteration of the package build from the above version.",
         ).optional(),
       }).describe(
-        "Version contains structured information about the version of a package.",
+        "Required. The version of the package this vulnerability was fixed in. Setting this to VersionKind.MAXIMUM means no fix is yet available.",
       ).optional(),
       packageType: z.string().describe(
         "The type of package (e.g. OS, MAVEN, GO).",
@@ -4198,7 +4154,9 @@ const InputsSchema = z.object({
         knownRansomwareCampaignUse: z.string().describe(
           "Whether the vulnerability is known to have been leveraged as part of a ransomware campaign.",
         ).optional(),
-      }).optional(),
+      }).describe(
+        "CISA maintains the authoritative source of vulnerabilities that have been exploited in the wild.",
+      ).optional(),
       epss: z.object({
         percentile: z.number().describe(
           "The percentile of the current score, the proportion of all scored vulnerabilities with the same or a lower EPSS score",
@@ -4206,8 +4164,12 @@ const InputsSchema = z.object({
         score: z.number().describe(
           "The EPSS score representing the probability [0-1] of exploitation in the wild in the next 30 days",
         ).optional(),
-      }).optional(),
-    }).optional(),
+      }).describe(
+        "The Exploit Prediction Scoring System (EPSS) estimates the likelihood (probability) that a software vulnerability will be exploited in the wild.",
+      ).optional(),
+    }).describe(
+      "Risk information about the vulnerability, such as CISA, EPSS, etc.",
+    ).optional(),
     severity: z.enum([
       "SEVERITY_UNSPECIFIED",
       "MINIMAL",
@@ -4276,7 +4238,8 @@ const InputsSchema = z.object({
           url: z.unknown().describe(
             "Specific URL associated with the resource.",
           ).optional(),
-        }).describe("Metadata for any related URL information.").optional(),
+        }).describe("Contains the URL where to obtain the remediation.")
+          .optional(),
       })).describe(
         "Specifies details on how to handle (and presumably, fix) a vulnerability.",
       ).optional(),
@@ -4294,8 +4257,7 @@ const InputsSchema = z.object({
     }).describe(
       "VexAssessment provides all publisher provided Vex information that is related to this vulnerability.",
     ).optional(),
-  }).describe("An occurrence of a severity vulnerability on a resource.")
-    .optional(),
+  }).describe("Describes a security vulnerability.").optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
   ).optional(),
@@ -4324,7 +4286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Container Analysis Occurrences. Registered at `@swamp/gcp/containeranalysis/occurrences`. */
 export const model = {
   type: "@swamp/gcp/containeranalysis/occurrences",
-  version: "2026.07.20.2",
+  version: "2026.07.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4523,6 +4485,11 @@ export const model = {
       description: "Added: aiSkillAnalysis",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -4595,16 +4562,7 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
-            },
-            matchField: "name",
-            matchValue: String(g["name"] ?? ""),
-          },
+          undefined,
           credentials,
         ) as StateData;
         const instanceName = (g.name?.toString() ?? "current").replace(
