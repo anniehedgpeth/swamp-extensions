@@ -2633,10 +2633,22 @@ export class GcsCacheSyncService implements DatastoreSyncService {
 
     if (existing.size !== stat.size) return true;
 
+    // Same size + same mtime — usually safe to skip, but on filesystems
+    // with coarse mtime granularity (e.g. Linux tmpfs at 1s resolution),
+    // same-size writes within the same second are invisible to stat alone.
+    // Hash-compare when available before trusting the fast path.
     if (
       existing.localMtime && stat.mtime &&
       existing.localMtime === stat.mtime.toISOString()
     ) {
+      if (existing.sha256) {
+        const data = await Deno.readFile(absPath);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const localHash = Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        return localHash !== existing.sha256;
+      }
       return false;
     }
 

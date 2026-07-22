@@ -2824,6 +2824,105 @@ Deno.test("pushChanged: SHA-256 mismatch triggers push even with same size", asy
   }
 });
 
+Deno.test("pushChanged: SHA-256 fallback detects same-size change when mtime matches (#1307)", async () => {
+  const cachePath = await Deno.makeTempDir();
+  const mock = createMockGcsClient();
+  const service = new GcsCacheSyncService(mock, cachePath);
+  try {
+    const oldContent = "content-v1";
+    const newContent = "content-v2";
+    const oldData = new TextEncoder().encode(oldContent);
+    const newData = new TextEncoder().encode(newContent);
+    assertEquals(
+      oldData.length,
+      newData.length,
+      "test content must be same size",
+    );
+
+    const oldHashBuffer = await crypto.subtle.digest("SHA-256", oldData);
+    const oldSha256 = Array.from(new Uint8Array(oldHashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    await seedFile(cachePath, "data/model/x/out/1/raw", newContent);
+    const stat = await Deno.stat(join(cachePath, "data/model/x/out/1/raw"));
+
+    const indexWithHash = {
+      version: 1,
+      lastPulled: new Date().toISOString(),
+      entries: {
+        "data/model/x/out/1/raw": {
+          key: "data/model/x/out/1/raw",
+          size: oldData.length,
+          lastModified: new Date().toISOString(),
+          localMtime: stat.mtime!.toISOString(),
+          sha256: oldSha256,
+        },
+      },
+    };
+    mock.storage.set(
+      ".datastore-index.json",
+      new TextEncoder().encode(JSON.stringify(indexWithHash, null, 2)),
+    );
+
+    await service.markDirty();
+    const pushed = await service.pushChanged();
+
+    assert(
+      typeof pushed === "number" && pushed > 0,
+      "same size + same mtime but different content must trigger push via SHA-256 fallback",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pushChanged: SHA-256 fallback skips push when mtime matches and content unchanged (#1307)", async () => {
+  const cachePath = await Deno.makeTempDir();
+  const mock = createMockGcsClient();
+  const service = new GcsCacheSyncService(mock, cachePath);
+  try {
+    const content = "unchanged content";
+    const data = new TextEncoder().encode(content);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const sha256 = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    await seedFile(cachePath, "data/model/x/out/1/raw", content);
+    const stat = await Deno.stat(join(cachePath, "data/model/x/out/1/raw"));
+
+    const indexWithHash = {
+      version: 1,
+      lastPulled: new Date().toISOString(),
+      entries: {
+        "data/model/x/out/1/raw": {
+          key: "data/model/x/out/1/raw",
+          size: data.length,
+          lastModified: new Date().toISOString(),
+          localMtime: stat.mtime!.toISOString(),
+          sha256,
+        },
+      },
+    };
+    mock.storage.set(
+      ".datastore-index.json",
+      new TextEncoder().encode(JSON.stringify(indexWithHash, null, 2)),
+    );
+
+    await service.markDirty();
+    const pushed = await service.pushChanged();
+
+    assertEquals(
+      pushed,
+      0,
+      "same size + same mtime + same SHA-256 must skip push",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 Deno.test("pushChanged: writes partitioned index alongside monolithic", async () => {
   const cachePath = await Deno.makeTempDir();
   const mock = createMockGcsClient();

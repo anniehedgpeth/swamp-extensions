@@ -2996,6 +2996,103 @@ Deno.test("pushChanged: SHA-256 detects unchanged content despite mtime differen
   }
 });
 
+Deno.test("pushChanged: SHA-256 fallback detects same-size change when mtime matches (#1307)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-sha256-mtime-" });
+  try {
+    const mock = createMockS3Client();
+
+    const oldContent = "content-v1";
+    const newContent = "content-v2";
+    const oldData = new TextEncoder().encode(oldContent);
+    const newData = new TextEncoder().encode(newContent);
+    assertEquals(
+      oldData.length,
+      newData.length,
+      "test content must be same size",
+    );
+
+    const oldHashBuffer = await crypto.subtle.digest("SHA-256", oldData);
+    const oldSha256 = Array.from(new Uint8Array(oldHashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    // Write the new content locally
+    await seedFile(cachePath, "data/m/samelen.yaml", newContent);
+    const stat = await Deno.stat(join(cachePath, "data/m/samelen.yaml"));
+
+    // Seed the remote index with old hash but the SAME mtime as the local file —
+    // simulates coarse-grained filesystem where mtime didn't change
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/samelen.yaml": {
+          key: "data/m/samelen.yaml",
+          size: oldData.length,
+          lastModified: new Date().toISOString(),
+          localMtime: stat.mtime!.toISOString(),
+          sha256: oldSha256,
+        },
+      }),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    mock.puts.length = 0;
+    const pushed = await service.pushChanged();
+
+    assert(
+      typeof pushed === "number" && pushed > 0,
+      "same size + same mtime but different content must trigger push via SHA-256 fallback",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pushChanged: SHA-256 fallback skips push when mtime matches and content unchanged (#1307)", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "s3sync-sha256-mtime-skip-",
+  });
+  try {
+    const mock = createMockS3Client();
+
+    const content = "unchanged content";
+    const data = new TextEncoder().encode(content);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const sha256 = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    await seedFile(cachePath, "data/m/stable.yaml", content);
+    const stat = await Deno.stat(join(cachePath, "data/m/stable.yaml"));
+
+    // Same mtime, same size, same hash — must NOT push
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/stable.yaml": {
+          key: "data/m/stable.yaml",
+          size: data.length,
+          lastModified: new Date().toISOString(),
+          localMtime: stat.mtime!.toISOString(),
+          sha256,
+        },
+      }),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    mock.puts.length = 0;
+    const pushed = await service.pushChanged();
+
+    assertEquals(
+      pushed,
+      0,
+      "same size + same mtime + same SHA-256 must skip push",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 Deno.test("pushChanged: partitioned index dual-write creates partition files", async () => {
   const cachePath = await Deno.makeTempDir({ prefix: "s3sync-partitioned-" });
   try {

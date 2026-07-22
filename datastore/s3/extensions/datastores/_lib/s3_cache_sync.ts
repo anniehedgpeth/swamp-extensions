@@ -2748,10 +2748,11 @@ export class S3CacheSyncService implements DatastoreSyncService {
   }
 
   /**
-   * Three-branch change detection for a single file during push walk:
+   * Change detection for a single file during push walk:
    * 1. Size differs → needs push
-   * 2. Same size + same mtime → skip (stat-only fast path)
-   * 3. Same size + different mtime → SHA-256 comparison when available
+   * 2. Same size + same mtime + sha256 in index → hash comparison
+   * 3. Same size + same mtime + no sha256 → skip (stat-only fast path)
+   * 4. Same size + different mtime → SHA-256 comparison when available
    */
   private async fileNeedsPush(
     absPath: string,
@@ -2763,11 +2764,22 @@ export class S3CacheSyncService implements DatastoreSyncService {
 
     if (existing.size !== stat.size) return true;
 
-    // Same size — check mtime for fast-path skip
+    // Same size + same mtime — usually safe to skip, but on filesystems
+    // with coarse mtime granularity (e.g. Linux tmpfs at 1s resolution),
+    // same-size writes within the same second are invisible to stat alone.
+    // Hash-compare when available before trusting the fast path.
     if (
       existing.localMtime && stat.mtime &&
       existing.localMtime === stat.mtime.toISOString()
     ) {
+      if (existing.sha256) {
+        const data = await Deno.readFile(absPath);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const localHash = Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        return localHash !== existing.sha256;
+      }
       return false;
     }
 
