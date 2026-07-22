@@ -1830,6 +1830,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         ? await detectNamespaceDirs(this.cachePath, this.namespace)
         : new Set<string>();
       let namespaceDirSkips = 0;
+      let soloLayoutSkips = 0;
       const localFiles = new Set<string>();
       try {
         for await (
@@ -1837,6 +1838,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         ) {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
+          if (nsPrefix && !rel.startsWith(nsPrefix)) {
+            soloLayoutSkips++;
+            continue;
+          }
           if (isInsideNamespaceDir(rel, namespaceDirs)) {
             namespaceDirSkips++;
             continue;
@@ -1851,6 +1856,13 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       } catch {
         // Cache directory may not exist yet
+      }
+      if (soloLayoutSkips > 0) {
+        console.warn(
+          `[gcs-sync] Skipped ${soloLayoutSkips} solo-layout file(s) outside the bound ` +
+            `namespace "${this.namespace}". These are stale leftovers — ` +
+            `investigate and remove them.`,
+        );
       }
       if (namespaceDirSkips > 0) {
         console.warn(
@@ -2225,6 +2237,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         ) {
           const rel = relative(this.cachePath, entry.path);
           if (isInternalCacheFile(rel)) continue;
+          if (nsPrefix && !rel.startsWith(nsPrefix)) continue;
           if (isInsideNamespaceDir(rel, namespaceDirs)) continue;
           const bareRel = nsPrefix && rel.startsWith(nsPrefix)
             ? rel.substring(nsPrefix.length)
